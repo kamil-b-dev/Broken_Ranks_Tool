@@ -4,30 +4,30 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pl.brokenranks.tool.broken_ranks_tool.dto.GemRequest;
-import pl.brokenranks.tool.broken_ranks_tool.entity.Gem;
-import pl.brokenranks.tool.broken_ranks_tool.entity.Item;
-import pl.brokenranks.tool.broken_ranks_tool.service.ItemService;
-
-import java.util.List;
+import pl.brokenranks.tool.broken_ranks_tool.entity.UserGem;
+import pl.brokenranks.tool.broken_ranks_tool.entity.UserItem;
+import pl.brokenranks.tool.broken_ranks_tool.service.EquipCharacterService;
 
 @RestController
 @RequestMapping("/api/items")
 @RequiredArgsConstructor
 public class ItemController {
 
-    private final ItemService itemService;
+    private final EquipCharacterService equipCharacterService;
 
-    //Pobieranie wszystkich przedmiotów
-    @GetMapping
-    public List<Item> getAllItems() {
-        return itemService.getAllItems();
+    //Zakladanie przedmiotu
+    @PostMapping("/add-item")
+    public ResponseEntity<UserItem> equipItem(@RequestParam Long templateId)
+    {
+        UserItem userItem = equipCharacterService.equipItem(templateId);
+        return new ResponseEntity<>(userItem, HttpStatus.CREATED);
     }
 
     //Dodawanie kamienia do przedmiotu
     @PostMapping("/add-gem")
-    public ResponseEntity<Gem> addGemToItem(@RequestBody GemRequest gemRequest) {
-        Gem savedGem = itemService.addGemToItem(gemRequest);
-        return new ResponseEntity<>(savedGem, HttpStatus.CREATED);
+    public ResponseEntity<UserGem> equipGem(@RequestParam Long userItemId, @RequestParam Long gemTemplateId)
+    {
+        UserGem userGem = equipCharacterService.addGemToUserItem(userItemId, gemTemplateId);
+        return new ResponseEntity<>(userGem, HttpStatus.CREATED);
     }
 }
