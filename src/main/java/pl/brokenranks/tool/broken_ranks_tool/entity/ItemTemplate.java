@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 @Entity
-@Table(name = "items")
+@Table(name = "item_templates")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -21,8 +21,11 @@ public class ItemTemplate {
 
     private String name;
     private String category;
-    private String slot;
+    private String tier;
     private int reqLevel;
+    private String boss;
+    private int capacity;
+
 
     @ElementCollection
     @CollectionTable(name = "item_stats", joinColumns = @JoinColumn(name = "item_id"))
