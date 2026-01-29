@@ -25,9 +25,9 @@ public class ItemController {
 
     //Dodawanie kamienia do przedmiotu
     @PostMapping("/add-gem")
-    public ResponseEntity<UserGem> equipGem(@RequestParam Long userItemId, @RequestParam Long gemTemplateId)
+    public ResponseEntity<UserItem> attachGemToItem(@RequestParam Long userItemId, @RequestParam Long gemTemplateId)
     {
-        UserGem userGem = equipCharacterService.addGemToUserItem(userItemId, gemTemplateId);
-        return new ResponseEntity<>(userGem, HttpStatus.CREATED);
+        UserItem updatedItem = equipCharacterService.addGemToUserItem(userItemId, gemTemplateId);
+        return new ResponseEntity<>(updatedItem, HttpStatus.CREATED);
     }
 }

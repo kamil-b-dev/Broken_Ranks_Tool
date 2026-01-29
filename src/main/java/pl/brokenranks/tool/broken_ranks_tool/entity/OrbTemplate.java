@@ -4,19 +4,21 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "gem_templates")
+@Table(name = "orb_templates")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class GemTemplate {
-
+public class OrbTemplate {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private long id;
 
     private String name;
     private String bonusStat;
     private int bonusValue;
+    private int tier;
+    private int level;
+    private ORB_CATEGORY category;
 }

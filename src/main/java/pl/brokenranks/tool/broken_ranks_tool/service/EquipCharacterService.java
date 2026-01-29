@@ -1,5 +1,6 @@
 package pl.brokenranks.tool.broken_ranks_tool.service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.brokenranks.tool.broken_ranks_tool.entity.GemTemplate;
@@ -15,6 +16,7 @@ import java.util.ArrayList;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class EquipCharacterService {
 
     private final ItemTemplateRepository itemTemplateRepository;
@@ -36,7 +38,7 @@ public class EquipCharacterService {
     }
 
     //Dodanie kamienia do instacji przedmiotu
-    public UserGem addGemToUserItem(Long userItemId, Long gemTemplateId) {
+    public UserItem addGemToUserItem(Long userItemId, Long gemTemplateId) {
         UserItem userItem = userItemRepository.findById(userItemId)
                 .orElseThrow(() -> new RuntimeException("Nie znaleziono założonego przedmiotu"));
 
@@ -48,6 +50,9 @@ public class EquipCharacterService {
                 .userItem(userItem)
                 .build();
 
-        return userGemRepository.save(userGem);
+        userGemRepository.save(userGem);
+
+        return userItemRepository.findById(userItemId)
+                .orElseThrow(() -> new RuntimeException("Błąd podczas odświeżania przedmiotu"));
     }
 }
