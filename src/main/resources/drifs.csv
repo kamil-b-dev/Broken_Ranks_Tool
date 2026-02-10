@@ -1,0 +1,121 @@
+Nazwa Drifu,Wielkość,Rodzaj Bonusu,Bonus Bazowy (Lvl 1),Przyrost co poziom,Zakres Rang,Cena (Złoto)
+Amad,Subdrif,Zużycie kondycji,-1%,-1%,I - XII,27 500
+Amad,Bidrif,Zużycie kondycji,-2%,-1%,IV - XII,55 000
+Amad,Magnidrif,Zużycie kondycji,-4%,-1%,VII - XII,110 000
+Amad,Arcydrif,Zużycie kondycji,-6%,-1%,X - XII,220 000
+Ann,Subdrif,Regeneracja many,"0,15%","+0,15%",I - XII,27 500
+Ann,Bidrif,Regeneracja many,"0,30%","+0,15%",IV - XII,55 000
+Ann,Magnidrif,Regeneracja many,"0,60%","+0,15%",VII - XII,110 000
+Ann,Arcydrif,Regeneracja many,"0,90%","+0,15%",X - XII,220 000
+Eras,Subdrif,Regeneracja kondycji,"0,15%","+0,15%",I - XII,27 500
+Eras,Bidrif,Regeneracja kondycji,"0,30%","+0,15%",IV - XII,55 000
+Eras,Magnidrif,Regeneracja kondycji,"0,60%","+0,15%",VII - XII,110 000
+Eras,Arcydrif,Regeneracja kondycji,"0,90%","+0,15%",X - XII,220 000
+Err,Subdrif,Wyssanie many,"0,50%","+0,5%",I - XII,27 500
+Err,Bidrif,Wyssanie many,1%,"+0,5%",IV - XII,55 000
+Err,Magnidrif,Wyssanie many,2%,"+0,5%",VII - XII,110 000
+Err,Arcydrif,Wyssanie many,3%,"+0,5%",X - XII,220 000
+Lun,Subdrif,Odp. na efekty krępujące i ukazanie,"0,50%","+0,5%",I - XII,27 500
+Lun,Bidrif,Odp. na efekty krępujące i ukazanie,1%,"+0,5%",IV - XII,55 000
+Lun,Magnidrif,Odp. na efekty krępujące i ukazanie,2%,"+0,5%",VII - XII,110 000
+Lun,Arcydrif,Odp. na efekty krępujące i ukazanie,3%,"+0,5%",X - XII,220 000
+Verd,Subdrif,Szansa na odczarowanie,"0,50%","+0,5%",I - XII,27 500
+Verd,Bidrif,Szansa na odczarowanie,1%,"+0,5%",IV - XII,55 000
+Verd,Magnidrif,Szansa na odczarowanie,2%,"+0,5%",VII - XII,110 000
+Verd,Arcydrif,Szansa na odczarowanie,3%,"+0,5%",X - XII,220 000
+Von,Subdrif,Zużycie many,-1%,-1%,I - XII,27 500
+Von,Bidrif,Zużycie many,-2%,-1%,IV - XII,55 000
+Von,Magnidrif,Zużycie many,-4%,-1%,VII - XII,110 000
+Von,Arcydrif,Zużycie many,-6%,-1%,X - XII,220 000
+Elen,Subdrif,Podwójne losowanie obrony,1%,+1%,I - XII,27 500
+Elen,Bidrif,Podwójne losowanie obrony,2%,+1%,IV - XII,55 000
+Elen,Magnidrif,Podwójne losowanie obrony,4%,+1%,VII - XII,110 000
+Elen,Arcydrif,Podwójne losowanie obrony,6%,+1%,X - XII,220 000
+Grod,Subdrif,Odporność na trafienie krytyczne,"0,50%","+0,5%",I - XII,27 500
+Grod,Bidrif,Odporność na trafienie krytyczne,1%,"+0,5%",IV - XII,55 000
+Grod,Magnidrif,Odporność na trafienie krytyczne,2%,"+0,5%",VII - XII,110 000
+Grod,Arcydrif,Odporność na trafienie krytyczne,3%,"+0,5%",X - XII,220 000
+Grud,Subdrif,Obrona mentalna,"1,50%","+1,5%",I - XII,27 500
+Grud,Bidrif,Obrona mentalna,3%,"+1,5%",IV - XII,55 000
+Grud,Magnidrif,Obrona mentalna,6%,"+1,5%",VII - XII,110 000
+Grud,Arcydrif,Obrona mentalna,9%,"+1,5%",X - XII,220 000
+Tall,Subdrif,Obrona wręcz,"1,50%","+1,5%",I - XII,27 500
+Tall,Bidrif,Obrona wręcz,3%,"+1,5%",IV - XII,55 000
+Tall,Magnidrif,Obrona wręcz,6%,"+1,5%",VII - XII,110 000
+Tall,Arcydrif,Obrona wręcz,9%,"+1,5%",X - XII,220 000
+Tovi,Subdrif,Obrona dystansowa,"1,50%","+1,5%",I - XII,27 500
+Tovi,Bidrif,Obrona dystansowa,3%,"+1,5%",IV - XII,55 000
+Tovi,Magnidrif,Obrona dystansowa,6%,"+1,5%",VII - XII,110 000
+Tovi,Arcydrif,Obrona dystansowa,9%,"+1,5%",X - XII,220 000
+Alorn,Subdrif,Redukcja obrażeń,"0,50%","+0,5%",I - XII,27 500
+Alorn,Bidrif,Redukcja obrażeń,1%,"+0,5%",IV - XII,55 000
+Alorn,Magnidrif,Redukcja obrażeń,2%,"+0,5%",VII - XII,110 000
+Alorn,Arcydrif,Redukcja obrażeń,3%,"+0,5%",X - XII,220 000
+Faln,Subdrif,Redukcja obrażeń krytycznych,1%,+1%,I - XII,27 500
+Faln,Bidrif,Redukcja obrażeń krytycznych,2%,+1%,IV - XII,55 000
+Faln,Magnidrif,Redukcja obrażeń krytycznych,4%,+1%,VII - XII,110 000
+Faln,Arcydrif,Redukcja obrażeń krytycznych,6%,+1%,X - XII,220 000
+Farid,Subdrif,Szansa na unik,"0,50%","+0,5%",I - XII,27 500
+Farid,Bidrif,Szansa na unik,1%,"+0,5%",IV - XII,55 000
+Farid,Magnidrif,Szansa na unik,2%,"+0,5%",VII - XII,110 000
+Farid,Arcydrif,Szansa na unik,3%,"+0,5%",X - XII,220 000
+Holm,Subdrif,Szansa na zredukowanie obrażeń,"0,50%","+0,5%",I - XII,27 500
+Holm,Bidrif,Szansa na zredukowanie obrażeń,1%,"+0,5%",IV - XII,55 000
+Holm,Magnidrif,Szansa na zredukowanie obrażeń,2%,"+0,5%",VII - XII,110 000
+Holm,Arcydrif,Szansa na zredukowanie obrażeń,3%,"+0,5%",X - XII,220 000
+Iori,Subdrif,Redukcja otrzymanych obrażeń biernych,1%,+1%,I - XII,27 500
+Iori,Bidrif,Redukcja otrzymanych obrażeń biernych,2%,+1%,IV - XII,55 000
+Iori,Magnidrif,Redukcja otrzymanych obrażeń biernych,4%,+1%,VII - XII,110 000
+Iori,Arcydrif,Redukcja otrzymanych obrażeń biernych,6%,+1%,X - XII,220 000
+Jorn,Subdrif,Red. obrażeń z ataków odbierających % PŻ,1%,+1%,I - XII,27 500
+Jorn,Bidrif,Red. obrażeń z ataków odbierających % PŻ,2%,+1%,IV - XII,55 000
+Jorn,Magnidrif,Red. obrażeń z ataków odbierających % PŻ,4%,+1%,VII - XII,110 000
+Jorn,Arcydrif,Red. obrażeń z ataków odbierających % PŻ,6%,+1%,X - XII,220 000
+Abaf,Subdrif,Modyfikator obrażeń magicznych,"0,50%","+0,5%",I - XII,27 500
+Abaf,Bidrif,Modyfikator obrażeń magicznych,1%,"+0,5%",IV - XII,55 000
+Abaf,Magnidrif,Modyfikator obrażeń magicznych,2%,"+0,5%",VII - XII,110 000
+Abaf,Arcydrif,Modyfikator obrażeń magicznych,3%,"+0,5%",X - XII,220 000
+Astah,Subdrif,Modyfikator obrażeń fizycznych,"0,50%","+0,5%",I - XII,27 500
+Astah,Bidrif,Modyfikator obrażeń fizycznych,1%,"+0,5%",IV - XII,55 000
+Astah,Magnidrif,Modyfikator obrażeń fizycznych,2%,"+0,5%",VII - XII,110 000
+Astah,Arcydrif,Modyfikator obrażeń fizycznych,3%,"+0,5%",X - XII,220 000
+Band,Subdrif,Szansa na trafienie krytyczne,"0,50%","+0,5%",I - XII,27 500
+Band,Bidrif,Szansa na trafienie krytyczne,1%,"+0,5%",IV - XII,55 000
+Band,Magnidrif,Szansa na trafienie krytyczne,2%,"+0,5%",VII - XII,110 000
+Band,Arcydrif,Szansa na trafienie krytyczne,3%,"+0,5%",X - XII,220 000
+Kalh,Subdrif,Dodatkowe obrażenia od zimna,"0,35%","+0,35%",I - XII,27 500
+Kalh,Bidrif,Dodatkowe obrażenia od zimna,"0,70%","+0,35%",IV - XII,55 000
+Kalh,Magnidrif,Dodatkowe obrażenia od zimna,"1,40%","+0,35%",VII - XII,110 000
+Kalh,Arcydrif,Dodatkowe obrażenia od zimna,"2,10%","+0,35%",X - XII,220 000
+Teld,Subdrif,Szansa na podwójny atak,"0,50%","+0,5%",I - XII,27 500
+Teld,Bidrif,Szansa na podwójny atak,1%,"+0,5%",IV - XII,55 000
+Teld,Magnidrif,Szansa na podwójny atak,2%,"+0,5%",VII - XII,110 000
+Teld,Arcydrif,Szansa na podwójny atak,3%,"+0,5%",X - XII,220 000
+Unn,Subdrif,Dodatkowe obrażenia od ognia,"0,35%","+0,35%",I - XII,27 500
+Unn,Bidrif,Dodatkowe obrażenia od ognia,"0,70%","+0,35%",IV - XII,55 000
+Unn,Magnidrif,Dodatkowe obrażenia od ognia,"1,40%","+0,35%",VII - XII,110 000
+Unn,Arcydrif,Dodatkowe obrażenia od ognia,"2,10%","+0,35%",X - XII,220 000
+Val,Subdrif,Dodatkowe obrażenia od energii,"0,35%","+0,35%",I - XII,27 500
+Val,Bidrif,Dodatkowe obrażenia od energii,"0,70%","+0,35%",IV - XII,55 000
+Val,Magnidrif,Dodatkowe obrażenia od energii,"1,40%","+0,35%",VII - XII,110 000
+Val,Arcydrif,Dodatkowe obrażenia od energii,"2,10%","+0,35%",X - XII,220 000
+Dur,Subdrif,Podwójne losowanie trafienia,"0,50%","+0,5%",I - XII,27 500
+Dur,Bidrif,Podwójne losowanie trafienia,1%,"+0,5%",IV - XII,55 000
+Dur,Magnidrif,Podwójne losowanie trafienia,2%,"+0,5%",VII - XII,110 000
+Dur,Arcydrif,Podwójne losowanie trafienia,3%,"+0,5%",X - XII,220 000
+Ling,Subdrif,Modyfikator trafień dystansowych,1%,+1%,I - XII,27 500
+Ling,Bidrif,Modyfikator trafień dystansowych,2%,+1%,IV - XII,55 000
+Ling,Magnidrif,Modyfikator trafień dystansowych,4%,+1%,VII - XII,110 000
+Ling,Arcydrif,Modyfikator trafień dystansowych,6%,+1%,X - XII,220 000
+Lorb,Subdrif,Przełamanie odporności na uroki,1%,+1%,I - XII,27 500
+Lorb,Bidrif,Przełamanie odporności na uroki,2%,+1%,IV - XII,55 000
+Lorb,Magnidrif,Przełamanie odporności na uroki,4%,+1%,VII - XII,110 000
+Lorb,Arcydrif,Przełamanie odporności na uroki,6%,+1%,X - XII,220 000
+Oda,Subdrif,Modyfikator trafień mentalnych,1%,+1%,I - XII,27 500
+Oda,Bidrif,Modyfikator trafień mentalnych,2%,+1%,IV - XII,55 000
+Oda,Magnidrif,Modyfikator trafień mentalnych,4%,+1%,VII - XII,110 000
+Oda,Arcydrif,Modyfikator trafień mentalnych,6%,+1%,X - XII,220 000
+Ulk,Subdrif,Modyfikator trafień wręcz,1%,+1%,I - XII,27 500
+Ulk,Bidrif,Modyfikator trafień wręcz,2%,+1%,IV - XII,55 000
+Ulk,Magnidrif,Modyfikator trafień wręcz,4%,+1%,VII - XII,110 000
+Ulk,Arcydrif,Modyfikator trafień wręcz,6%,+1%,X - XII,220 000

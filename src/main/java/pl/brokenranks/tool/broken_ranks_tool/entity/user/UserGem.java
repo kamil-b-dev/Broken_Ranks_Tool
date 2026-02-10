@@ -1,8 +1,10 @@
-package pl.brokenranks.tool.broken_ranks_tool.entity;
+package pl.brokenranks.tool.broken_ranks_tool.entity.user;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
+import pl.brokenranks.tool.broken_ranks_tool.entity.templates.GemTemplate;
 
 @Entity
 @Table(name = "user_gems")
@@ -10,7 +12,7 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 public class UserGem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

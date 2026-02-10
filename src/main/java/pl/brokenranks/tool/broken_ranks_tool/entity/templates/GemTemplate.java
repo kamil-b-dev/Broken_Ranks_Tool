@@ -1,7 +1,8 @@
-package pl.brokenranks.tool.broken_ranks_tool.entity;
+package pl.brokenranks.tool.broken_ranks_tool.entity.templates;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @Table(name = "gem_templates")
@@ -9,14 +10,9 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class GemTemplate {
+@SuperBuilder
+public class GemTemplate extends BaseNamedEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    private String name;
     private String bonusStat;
     private int bonusValue;
 }

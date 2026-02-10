@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
-import pl.brokenranks.tool.broken_ranks_tool.entity.ItemTemplate;
+import pl.brokenranks.tool.broken_ranks_tool.entity.templates.ItemTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.repository.ItemTemplateRepository;
 
 import java.nio.charset.StandardCharsets;
