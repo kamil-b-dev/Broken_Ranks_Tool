@@ -4,8 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pl.brokenranks.tool.broken_ranks_tool.entity.UserGem;
-import pl.brokenranks.tool.broken_ranks_tool.entity.UserItem;
+import pl.brokenranks.tool.broken_ranks_tool.entity.user.UserItem;
 import pl.brokenranks.tool.broken_ranks_tool.service.EquipCharacterService;
 
 @RestController

@@ -1,4 +1,5 @@
 -- 1. Tabela dla szablonów przedmiotów (ItemTemplate)
+DROP TABLE IF EXISTS orb_templates;
 CREATE TABLE IF NOT EXISTS item_templates (
                                               id INTEGER PRIMARY KEY AUTOINCREMENT,
                                               name TEXT,
@@ -6,18 +7,9 @@ CREATE TABLE IF NOT EXISTS item_templates (
                                               tier TEXT,
                                               req_level INTEGER,
                                               boss TEXT,
-                                              capacity INTEGER
+                                              capacity INTEGER,
+                                              stats TEXT
 );
-
--- 2. Tabela dla statystyk (Map<String, Integer> stats)
--- Nazwy kolumn muszą pasować do Twojego @CollectionTable i @MapKeyColumn
-CREATE TABLE IF NOT EXISTS item_stats (
-                                          item_id INTEGER,
-                                          stat_name TEXT,
-                                          stat_value INTEGER,
-                                          FOREIGN KEY (item_id) REFERENCES item_templates(id)
-);
-
 -- 3. Tabela dla szablonów kamieni (GemTemplate)
 CREATE TABLE IF NOT EXISTS gem_templates (
                                              id INTEGER PRIMARY KEY,
@@ -56,5 +48,28 @@ CREATE TABLE IF NOT EXISTS orb_templates (
                                          tier INTEGER,
                                          level INTEGER,
                                          category TEXT
+);
+CREATE TABLE IF NOT EXISTS drif_templates (
+                                              id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                              name TEXT,
+                                              size TEXT,
+                                              bonus_type TEXT,
+                                              base_value TEXT,
+                                              increment TEXT,
+                                              rank_range TEXT,
+                                              price INTEGER
+);
+DROP TABLE IF EXISTS orb_templates;
+CREATE TABLE IF NOT EXISTS orb_templates (
+                                             id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                             name TEXT,
+                                             size TEXT,
+                                             category TEXT,
+                                             bonus_type TEXT,
+                                             bonus_lvl1 TEXT,
+                                             bonus_lvl2 TEXT,
+                                             bonus_lvl3 TEXT,
+                                             rank_range TEXT,
+                                             price INTEGER
 );
 

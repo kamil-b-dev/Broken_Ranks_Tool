@@ -1,7 +1,10 @@
-package pl.brokenranks.tool.broken_ranks_tool.entity;
+package pl.brokenranks.tool.broken_ranks_tool.entity.user;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
+import pl.brokenranks.tool.broken_ranks_tool.entity.templates.ItemTemplate;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,7 +14,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 public class UserItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -1,7 +1,9 @@
-package pl.brokenranks.tool.broken_ranks_tool.entity;
+package pl.brokenranks.tool.broken_ranks_tool.entity.user;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
+import pl.brokenranks.tool.broken_ranks_tool.entity.templates.OrbTemplate;
 
 @Entity
 @Table(name = "user_orbs")
@@ -9,7 +11,7 @@ import lombok.*;
 @Getter
 @Setter
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 public class UserOrb {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
