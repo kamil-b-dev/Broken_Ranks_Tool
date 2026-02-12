@@ -3,6 +3,7 @@ package pl.brokenranks.tool.broken_ranks_tool.entity.user;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import pl.brokenranks.tool.broken_ranks_tool.entity.templates.BaseEntity;
 import pl.brokenranks.tool.broken_ranks_tool.entity.templates.OrbTemplate;
 
 @Entity
@@ -12,11 +13,7 @@ import pl.brokenranks.tool.broken_ranks_tool.entity.templates.OrbTemplate;
 @Setter
 @AllArgsConstructor
 @SuperBuilder
-public class UserOrb {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
+public class UserOrb extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "orb_template_id", nullable = false)
     private OrbTemplate orbTemplate;

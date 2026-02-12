@@ -8,16 +8,17 @@ import lombok.Getter;
 public enum ITEM_CATEGORY {
     HELMET("Hełm"),
     ARMOR("Zbroja"),
-    PANTS("Spodnie"),
-    SHOES("Buty"),
+    LEGS("Spodnie"),
+    BOOTS("Buty"),
     GLOVES("Rękawice"),
     BELT("Pas"),
-    CLOAK("Płaszcz"),
+    CAPE("Peleryna"),
     NECKLACE("Naszyjnik"),
     RING("Pierścień"),
-    MAIN_HAND("Bron główna"),
-    OFF_HAND("Bron pomocnicza"),
-    SHIELD("Tarcza");
+    WEAPON_1H("Bron jednoręczna"),
+    WEAPON_2H("Broń dwuręczna"),
+    WEAPON_RANGED("Bron dystansowa"),
+    OFF_HAND("Bron pomocnicza");
 
     private final String description;
 }

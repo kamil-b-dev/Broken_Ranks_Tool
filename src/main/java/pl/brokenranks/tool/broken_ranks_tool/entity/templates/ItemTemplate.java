@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import pl.brokenranks.tool.broken_ranks_tool.entity.converters.MapToStringConverter;
+import pl.brokenranks.tool.broken_ranks_tool.entity.enums.ITEM_CATEGORY;
 
 import java.util.Map;
 
@@ -14,14 +15,11 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
-public class ItemTemplate {
+public class ItemTemplate extends  BaseNamedEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Enumerated(EnumType.STRING)
+    private ITEM_CATEGORY category;
 
-    private String name;
-    private String category;
     private String tier;
     private int reqLevel;
     private String boss;
