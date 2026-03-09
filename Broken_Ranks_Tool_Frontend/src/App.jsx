@@ -13,7 +13,7 @@ const SLOTS = [
     { key: "gloves", label: "Rękawice", cat: "GLOVES" },
     { key: "belt", label: "Pas", cat: "BELT" },
     { key: "weapon", label: "Broń", cat: "WEAPON" },
-    { key: "shield", label: "Tarcza", cat: "SHIELD" },
+    { key: "shield", label: "Druga ręka", cat: ["SHIELD","OFF_HAND"] },
     { key: "ring1", label: "Pierścień 1", cat: "RING" },
     { key: "ring2", label: "Pierścień 2", cat: "RING" },
     { key: "necklace", label: "Naszyjnik", cat: "NECKLACE" },
@@ -67,25 +67,33 @@ function App() {
             {/* Lewa kolumna - Ekwipunek */}
             <div className="flex-[2] bg-neutral-800 p-6 rounded-xl shadow-lg border border-neutral-700">
                 <h1 className="text-3xl font-bold text-center text-orange-500 mb-6">
-                    🛠️ Broken Ranks Builder
+                    Broken Ranks Tool
                 </h1>
-                {SLOTS.map((slot) => (
-                    <GearSlot
-                        key={slot.key}
-                        slotKey={slot.key}
-                        label={slot.label}
-                        items={data.items.filter((i) => slot.key === 'weapon' ? i.category.includes('WEAPON') : i.category === slot.cat)}
-                        orbs={data.orbs}
-                        drifs={data.drifs}
-                        onUpdate={handleSlotUpdate}
-                    />
-                ))}
+
+                {/* KONTENER FLEX - układa kafelki poziomo */}
+                <div className="flex flex-wrap justify-center gap-6">
+                    {SLOTS.map((slot) => (
+                        <GearSlot
+                            key={slot.key}
+                            slotKey={slot.key}
+                            label={slot.label}
+                            items={data.items.filter(i =>
+                                Array.isArray(slot.cat)
+                                    ? slot.cat.includes(i.category.toUpperCase())
+                                    : i.category.toUpperCase() === slot.cat
+                            )}
+                            orbs={data.orbs}
+                            drifs={data.drifs}
+                            onUpdate={handleSlotUpdate}
+                        />
+                    ))}
+                </div>
             </div>
 
             {/* Prawa kolumna - Statystyki */}
             <div className="flex-1 bg-neutral-800 p-6 rounded-xl shadow-lg border border-neutral-700 sticky top-6 h-fit">
                 <h3 className="text-2xl font-bold border-b-2 border-orange-600 pb-3 mb-4 text-white">
-                    📊 Twoje Statystyki
+                    Statystyki
                 </h3>
 
                 <button
