@@ -5,6 +5,24 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate }) => {
     const [selectedOrb, setSelectedOrb] = useState("");
     const [selectedDrifs, setSelectedDrifs] = useState([]);
 
+    // Funkcja grupująca przedmioty według wybranej kolumny (np. 'tier' lub 'size')
+    const groupItems = (itemsList) => {
+        return itemsList.reduce((acc, item) => {
+            // ZAKŁADAM, że w bazie drifów/orbów masz kolumnę np. 'tier' (I, II, III).
+            // Jeśli masz inną nazwę (np. 'size'), zmień słowo 'tier' poniżej!
+            const category = item.size || "Inne";
+
+            if (!acc[category]) {
+                acc[category] = []; // Tworzymy nową szufladkę, jeśli jeszcze jej nie ma
+            }
+            acc[category].push(item); // Wrzucamy drif/orb do odpowiedniej szufladki
+            return acc;
+        }, {});
+    };
+
+    const groupedOrbs = groupItems(orbs);
+    const groupedDrifs = groupItems(drifs);
+
     useEffect(() => {
         onUpdate(slotKey, {
             itemId: selectedItem || null,
@@ -27,54 +45,66 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate }) => {
     };
 
     return (
-        <div className="bg-neutral-800 p-4 mb-4 rounded-lg border-l-4 border-orange-600 shadow-md">
-            <div className="flex justify-between items-center mb-3">
-                <span className="font-bold text-lg text-white">{label}</span>
+        <div className="flex flex-col items-center gap-3 w-48 p-2">
+            {/* Mała etykieta na górze (np. "Hełm") */}
+            <span className="text-xs font-bold text-gray-400">{label}</span>
+
+            {/* 1. PRZEDMIOT: Niebieski Prostokąt */}
+            <select
+                value={selectedItem}
+                onChange={(e) => setSelectedItem(e.target.value)}
+                className="w-full bg-neutral-800 text-white p-1 text-xs rounded border-2 border-blue-500 focus:border-blue-400 outline-none text-center"
+            >
+                <option value="">-- {label} --</option>
+                {items.map((i) => (
+                    <option key={i.id} value={i.id}>{i.name}</option>
+                ))}
+            </select>
+
+            {/* 2. ORB: Czerwone "Kółko" */}
+            <select
+                value={selectedOrb}
+                onChange={(e) => setSelectedOrb(e.target.value)}
+                className="w-14 h-14 bg-neutral-800 text-transparent hover:text-white p-1 text-xs rounded-full border-2 border-red-500 focus:border-red-400 outline-none cursor-pointer appearance-none text-center"
+                title="Wybierz Orba"
+            >
+                <option value="" className="text-white">Brak</option>
+                {Object.entries(groupedOrbs).map(([size, groupOfOrbs]) => (
+                    <optgroup key={size} label={`Wielkość: ${size}`} className="text-white">
+                        {groupOfOrbs.map((orb) => (
+                            <option key={orb.id} value={orb.id}>{orb.name}</option>
+                        ))}
+                    </optgroup>
+                ))}
+            </select>
+
+            {/* 3. DRIFY: Czarna Linia */}
+            <div className="flex flex-col w-full gap-1 items-center">
+                {selectedDrifs.map((drif, index) => (
+                    <select
+                        key={index}
+                        value={drif}
+                        onChange={(e) => updateDrif(index, e.target.value)}
+                        className="w-full bg-transparent text-white p-1 text-xs border-b-2 border-black focus:border-gray-500 outline-none text-center"
+                    >
+                        <option value="" className="bg-neutral-800 text-white">Brak drifa</option>
+                        {Object.entries(groupedDrifs).map(([size, groupOfDrifs]) => (
+                            <optgroup key={size} label={`Wielkość: ${size}`} className="bg-neutral-800 text-white">
+                                {groupOfDrifs.map((d) => (
+                                    <option key={d.id} value={d.id}>{d.name}</option>
+                                ))}
+                            </optgroup>
+                        ))}
+                    </select>
+                ))}
+
+                {/* Mały guzik do dodawania kolejnego drifa */}
                 <button
-                    className="bg-green-600 hover:bg-green-500 text-white text-xs px-2 py-1 rounded transition-colors"
                     onClick={addDrif}
+                    className="text-xs text-gray-500 hover:text-white mt-1"
                 >
                     + Drif
                 </button>
-            </div>
-
-            <select
-                className="w-full p-2 mb-2 bg-neutral-700 text-white border border-neutral-600 rounded focus:outline-none focus:border-orange-500"
-                value={selectedItem}
-                onChange={(e) => setSelectedItem(e.target.value)}
-            >
-                <option value="">-- Wybierz {label} --</option>
-                {items.map((i) => <option key={i.id} value={i.id}>{i.name} (Lvl {i.reqLevel})</option>)}
-            </select>
-
-            <select
-                className="w-full p-2 mb-2 bg-neutral-700 text-white border border-neutral-600 rounded focus:outline-none focus:border-orange-500"
-                value={selectedOrb}
-                onChange={(e) => setSelectedOrb(e.target.value)}
-            >
-                <option value="">-- Brak Orba --</option>
-                {orbs.map((o) => <option key={o.id} value={o.id}>{o.name} ({o.bonusType})</option>)}
-            </select>
-
-            <div className="mt-2 pl-2 border-l-2 border-dashed border-neutral-600">
-                {selectedDrifs.map((drifId, index) => (
-                    <div key={index} className="flex items-center mb-2">
-                        <select
-                            className="flex-grow p-2 bg-neutral-700 text-white border border-neutral-600 rounded focus:outline-none focus:border-orange-500"
-                            value={drifId}
-                            onChange={(e) => updateDrif(index, e.target.value)}
-                        >
-                            <option value="">-- Wybierz Drif --</option>
-                            {drifs.map((d) => <option key={d.id} value={d.id}>{d.name} ({d.baseValue})</option>)}
-                        </select>
-                        <button
-                            className="ml-2 bg-red-600 hover:bg-red-500 text-white w-8 h-10 rounded flex items-center justify-center transition-colors"
-                            onClick={() => removeDrif(index)}
-                        >
-                            X
-                        </button>
-                    </div>
-                ))}
             </div>
         </div>
     );
