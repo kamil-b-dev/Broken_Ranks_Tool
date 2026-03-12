@@ -5,21 +5,21 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate }) => {
     const [selectedOrb, setSelectedOrb] = useState("");
     const [selectedDrifs, setSelectedDrifs] = useState([]);
 
-    // Stany do zapamiętywania wybranego RODZAJU (zanim wybierzemy wielkość)
+    // Stany do zapamiętywania wybranego RODZAJU (z kolumny 'name', np. "Ann")
     const [orbType, setOrbType] = useState("");
-    const [drifTypes, setDrifTypes] = useState({}); // Zapisuje typ dla każdego indeksu drifa osobno
+    const [drifTypes, setDrifTypes] = useState({});
 
-    // Grupujemy według RODZAJU (np. "Drif Siły"), a nie według wielkości
+    const [drifLevels, setDrifLevels] = useState({});
+
+    // Grupujemy bezpośrednio po kolumnie 'name' z Twojej bazy
     const groupByType = (itemsList) => {
         if (!itemsList || !Array.isArray(itemsList)) return {};
 
         return itemsList.reduce((acc, item) => {
-            // Jeśli masz w bazie ładną kolumnę określającą rodzaj (np. item.type), użyj jej!
-            // Jeśli masz tylko nazwę "Mały Drif Siły", ten krótki kod "odetnie" przedrostki wielkości:
-            let category = item.size;
-            if (!category) {
-                category = item.name.replace(/SUBDRIF |BIDRIF |MAGNIDRIF |ARCYDRIF |I |II |III |IV |V |VI /g, "").trim();
-            }
+            // Zgodnie z bazą: 'name' to rodzaj drifa/orba (np. "Ann", "Amad")
+            const category = item.name;
+
+            if (!category) return acc;
 
             if (!acc[category]) {
                 acc[category] = [];
@@ -29,7 +29,6 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate }) => {
         }, {});
     };
 
-// Zmieniamy nazwy zmiennych na nowe
     const groupedOrbs = groupByType(orbs);
     const groupedDrifs = groupByType(drifs);
 
@@ -37,9 +36,10 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate }) => {
         onUpdate(slotKey, {
             itemId: selectedItem || null,
             orbId: selectedOrb || null,
-            drifIds: selectedDrifs.filter(id => id !== "")
+            drifIds: selectedDrifs.filter(id => id !== ""),
+            drifLevel: drifLevels || null
         });
-    }, [selectedItem, selectedOrb, selectedDrifs]);
+    }, [selectedItem, selectedOrb, selectedDrifs, drifLevels]);
 
     const addDrif = () => setSelectedDrifs([...selectedDrifs, ""]);
 
@@ -54,10 +54,16 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate }) => {
         setSelectedDrifs(newDrifs);
     };
 
+    const  updateDrifLevel = (index, value) => {
+        const newLevels = {...drifLevels};
+        newLevels[index] = value;
+        setDrifLevels(newLevels);
+    }
+
     const fullSelectedItem = items.find(i => i.id.toString() === selectedItem.toString());
 
-    // USTALAMY LIMIT: Tutaj możesz zdefiniować, ile drifów wchodzi w jaki tier
-    let maxDrifs = 0; // Domyślnie blokujemy
+    // USTALAMY LIMIT DRIFÓW
+    let maxDrifs = 0;
     if (fullSelectedItem) {
         switch(fullSelectedItem.tier) {
             case 'I':
@@ -65,7 +71,6 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate }) => {
             case 'III':
                 maxDrifs = 1;
                 break;
-
             case 'IV':
             case 'V':
             case 'VI':
@@ -74,21 +79,18 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate }) => {
             case 'IX':
                 maxDrifs = 2;
                 break;
-
             case 'X':
             case 'XI':
             case 'XII':
                 maxDrifs = 3;
                 break;
-
             default:
                 maxDrifs = 0;
         }
     }
 
     return (
-        <div className="flex flex-col items-center gap-3 w-48 p-2">
-            {/* Mała etykieta na górze (np. "Hełm") */}
+        <div className="flex flex-col items-center gap-3 w-64 p-2">
             <span className="text-xs font-bold text-gray-400">{label}</span>
 
             {/* 1. PRZEDMIOT: Niebieski Prostokąt */}
@@ -105,34 +107,34 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate }) => {
 
             {/* 2. ORB: Wybór dwuetapowy */}
             <div className="flex flex-col items-center w-full">
-                {/* KROK 1: Wybór rodzaju (Napis nad kółkiem) */}
+                {/* KROK 1: Wybór RODZAJU */}
                 <select
                     value={orbType}
                     onChange={(e) => {
                         setOrbType(e.target.value);
-                        setSelectedOrb(""); // Resetujemy orba, gdy zmienisz jego rodzaj!
+                        setSelectedOrb("");
                     }}
                     className="w-full bg-transparent text-orange-400 font-bold text-xs text-center outline-none mb-1 cursor-pointer"
                 >
-                    <option value="" className="bg-neutral-800 text-white">-- Typ Orba --</option>
+                    <option value="" className="bg-neutral-800 text-white">-- Rodzaj Orba --</option>
                     {Object.keys(groupedOrbs).map(type => (
                         <option key={type} value={type} className="bg-neutral-800 text-white">{type}</option>
                     ))}
                 </select>
 
-                {/* KROK 2: Wybór wielkości (Czerwone kółko) */}
+                {/* KROK 2: Wybór WIELKOŚCI */}
                 <select
                     value={selectedOrb}
                     onChange={(e) => setSelectedOrb(e.target.value)}
-                    disabled={!orbType} // Kółko jest zablokowane, dopóki nie wybierzesz typu
+                    disabled={!orbType}
                     className="w-14 h-14 bg-neutral-800 text-transparent hover:text-white p-1 text-sm rounded-full border-[3px] border-red-500 focus:border-red-400 outline-none cursor-pointer appearance-none text-center disabled:border-neutral-700 disabled:opacity-40"
-                    title={orbType ? "Wybierz Wielkość" : "Najpierw wybierz typ wyżej"}
+                    title={orbType ? "Wybierz Wielkość" : "Najpierw wybierz rodzaj wyżej"}
                 >
                     <option value="" className="text-white">Brak</option>
-                    {/* Pokazujemy tylko orby z wybranego wyżej typu */}
                     {orbType && groupedOrbs[orbType]?.map((orb) => (
+                        // Bierzemy wartość bezpośrednio z kolumny size lub tier
                         <option key={orb.id} value={orb.id} className="text-white">
-                            {orb.tier || orb.name.split(" ")[0]}
+                            {orb.size || orb.tier}
                         </option>
                     ))}
                 </select>
@@ -144,15 +146,16 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate }) => {
                     const currentType = drifTypes[index] || "";
 
                     return (
-                        <div key={index} className="flex gap-2 w-full justify-center">
-                            {/* KROK 1: Wybór rodzaju (Lewa linia) */}
+                        <div key={index} className="flex gap-1 w-full items-center">
+                            {/* KROK 1: Wybór RODZAJU */}
                             <select
                                 value={currentType}
                                 onChange={(e) => {
                                     setDrifTypes({ ...drifTypes, [index]: e.target.value });
-                                    updateDrif(index, ""); // Resetujemy drif przy zmianie rodzaju
+                                    updateDrif(index, "");
                                 }}
-                                className="w-1/2 bg-transparent text-orange-400 p-1 text-xs border-b-4 border-black focus:border-gray-500 outline-none text-center cursor-pointer"
+                                // ZMIANA: flex-[3] zamiast w-1/2, dodane min-w-0
+                                className="flex-[3] min-w-0 bg-transparent text-orange-400 p-1 text-xs border-b-4 border-black focus:border-gray-500 outline-none text-center cursor-pointer"
                             >
                                 <option value="" className="bg-neutral-800 text-white">Rodzaj...</option>
                                 {Object.keys(groupedDrifs).map(type => (
@@ -160,27 +163,48 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate }) => {
                                 ))}
                             </select>
 
-                            {/* KROK 2: Wybór wielkości (Prawa linia) */}
+                            {/* KROK 2: Wybór WIELKOŚCI */}
                             <select
                                 value={drifId}
                                 onChange={(e) => updateDrif(index, e.target.value)}
-                                disabled={!currentType} // Zablokowane bez wybranego rodzaju
-                                className="w-1/2 bg-transparent text-white p-1 text-xs border-b-4 border-black focus:border-gray-500 outline-none text-center disabled:opacity-30 cursor-pointer"
+                                disabled={!currentType}
+                                // ZMIANA: flex-[3] zamiast w-1/2, dodane min-w-0
+                                className="flex-[3] min-w-0 bg-transparent text-white p-1 text-xs border-b-4 border-black focus:border-gray-500 outline-none text-center disabled:opacity-30 cursor-pointer"
                             >
-                                <option value="" className="bg-neutral-800 text-white">Rozmiar...</option>
-                                {/* Pokazujemy tylko wielkości dla wybranego rodzaju */}
+                                <option value="" className="bg-neutral-800 text-white">Wielkość...</option>
                                 {currentType && groupedDrifs[currentType]?.map((d) => (
                                     <option key={d.id} value={d.id} className="bg-neutral-800 text-white">
-                                        {d.tier || d.name.split(" ")[0]}
+                                        {d.size || d.tier}
                                     </option>
                                 ))}
                             </select>
+
+                            {/* KROK 3: Wybór POZIOMU */}
+                            {/* KROK 3: Wybór POZIOMU */}
+                            <select
+                                value={drifLevels[index] || ""}
+                                onChange={(e) => updateDrifLevel(index, e.target.value)}
+                                disabled={!drifId}
+                                className="flex-[2] min-w-0 bg-transparent text-white p-1 text-xs border-b-4 border-black focus:border-gray-500 outline-none text-center disabled:opacity-30 cursor-pointer"
+                            >
+                                <option value="" className="bg-neutral-800 text-white">Lvl...</option>
+                                {Array.from({ length: 21 }, (_, i) => i + 1).map(num => (
+                                    <option
+                                        key={num}
+                                        value={num.toString()}
+                                        className="bg-neutral-800 text-white"
+                                    >
+                                        {num}
+                                    </option>
+                                ))}
+                            </select>
+
+                            {/* PRZYCISK USUWANIA - dodany mały margines z lewej (ml-1) */}
+                            <button onClick={() => removeDrif(index)} className="text-red-500 font-bold hover:text-red-400 ml-1">X</button>
                         </div>
                     );
                 })}
 
-                {/* Przycisk pojawi się TYLKO, gdy mamy wybrany przedmiot
-                    i gdy liczba dodanych drifów jest mniejsza niż limit */}
                 {fullSelectedItem && selectedDrifs.length < maxDrifs && (
                     <button
                         onClick={addDrif}
