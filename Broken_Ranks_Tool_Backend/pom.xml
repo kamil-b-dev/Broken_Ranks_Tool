@@ -11,9 +11,9 @@
     </parent>
 
     <groupId>pl.brokenranks.tool</groupId>
-    <artifactId>Broken_Ranks_Tool</artifactId>
+    <artifactId>Broken_Ranks_Tool_Backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>Broken_Ranks_Tool</name>
+    <name>Broken_Ranks_Tool_Backend</name>
     <description>Broken_Ranks_Tool</description>
 
     <properties>
@@ -44,6 +44,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+            <version>1.18.32</version>
             <optional>true</optional>
         </dependency>
 
