@@ -21,25 +21,47 @@ const SLOTS = [
 
 function App() {
     const [data, setData] = useState({ items: [], orbs: [], drifs: [] });
+    const [categoryNames, setCategoryNames] = useState({});
     const [requestData, setRequestData] = useState({});
     const [stats, setStats] = useState(null);
 
     // Pobieranie danych z Javy przy starcie strony
     useEffect(() => {
         const fetchData = async () => {
+            // BLOK 1: Krytyczne dane (Przedmioty, Orby, Drify)
             try {
                 const [itemsRes, orbsRes, drifsRes] = await Promise.all([
                     axios.get(`${API_URL}/items`),
                     axios.get(`${API_URL}/orbs`),
-                    axios.get(`${API_URL}/drifs`),
+                    axios.get(`${API_URL}/drifs`)
                 ]);
                 setData({ items: itemsRes.data, orbs: orbsRes.data, drifs: drifsRes.data });
             } catch (error) {
-                console.error("Błąd połączenia z Javą (czy backend działa?)", error);
+                console.error("Błąd krytyczny: Nie udało się pobrać głównych danych z Javy!", error);
+            }
+
+            // BLOK 2: Dane dodatkowe (Słownik) - Nawet jak wybuchnie, aplikacja przetrwa!
+            try {
+                const catRes = await axios.get(`${API_URL}/dictionaries/categories`);
+                setCategoryNames(catRes.data);
+            } catch (error) {
+                console.warn("Błąd pobierania słownika. Używam angielskich nazw.", error);
             }
         };
         fetchData();
     }, []);
+
+    // Grupowanie WSZYSTKICH przedmiotów z dynamicznym tłumaczeniem z Javy
+    const groupedAllItems = data.items.reduce((acc, item) => {
+        const rawCat = item.category || "INNE";
+
+        // Zaglądamy do słownika pobranego z backendu
+        const niceCat = categoryNames[rawCat] || rawCat;
+
+        if (!acc[niceCat]) acc[niceCat] = [];
+        acc[niceCat].push(item);
+        return acc;
+    }, {});
 
     // Aktualizacja stanu gdy użytkownik wybierze coś w slocie
     const handleSlotUpdate = (slotKey, slotData) => {
@@ -48,6 +70,7 @@ function App() {
             [`${slotKey}Id`]: slotData.itemId,
             [`${slotKey}OrbId`]: slotData.orbId,
             [`${slotKey}Drifs`]: slotData.drifIds,
+            [`${slotKey}DrifLevels`]: slotData.drifLevels, // <-- Pamiętamy o wysłaniu poziomów!
         }));
     };
 
@@ -62,7 +85,7 @@ function App() {
     };
 
     return (
-        <div className="max-w-7xl mx-auto p-6 flex flex-col md:flex-row gap-6">
+        <div className="w-full mx-auto p-6 flex flex-col md:flex-row gap-6">
 
             {/* Lewa kolumna - Ekwipunek */}
             <div className="flex-[2] bg-neutral-800 p-6 rounded-xl shadow-lg border border-neutral-700">
@@ -79,8 +102,8 @@ function App() {
                             label={slot.label}
                             items={data.items.filter(i =>
                                 Array.isArray(slot.cat)
-                                    ? slot.cat.includes(i.category.toUpperCase())
-                                    : i.category.toUpperCase() === slot.cat
+                                    ? slot.cat.includes(i.category?.toUpperCase())
+                                    : i.category?.toUpperCase() === slot.cat
                             )}
                             orbs={data.orbs}
                             drifs={data.drifs}
@@ -90,27 +113,59 @@ function App() {
                 </div>
             </div>
 
-            {/* Prawa kolumna - Statystyki */}
-            <div className="flex-1 bg-neutral-800 p-6 rounded-xl shadow-lg border border-neutral-700 sticky top-6 h-fit">
-                <h3 className="text-2xl font-bold border-b-2 border-orange-600 pb-3 mb-4 text-white">
-                    Statystyki
-                </h3>
+            {/* Prawa kolumna - Podzielona na 2 części */}
+            <div className="flex-1 flex flex-col gap-6 sticky top-6 max-h-[calc(100vh-3rem)]">
 
-                <button
-                    className="w-full py-3 bg-orange-600 hover:bg-orange-500 text-white font-bold rounded-lg text-lg transition-colors mb-6 shadow-md"
-                    onClick={calculateStats}
-                >
-                    PRZELICZ STATYSTYKI
-                </button>
+                {/* 1. GÓRNA CZĘŚĆ: Lista wszystkich przedmiotów (Przewijana) */}
+                <div className="bg-neutral-800 p-6 rounded-xl shadow-lg border border-neutral-700 flex flex-col min-h-0 flex-1">
+                    <h3 className="text-xl font-bold border-b-2 border-blue-600 pb-3 mb-4 text-white shrink-0">
+                        Baza Przedmiotów
+                    </h3>
 
-                <div className="space-y-2">
-                    {stats ? Object.entries(stats).sort().map(([key, val]) => (
-                        <div key={key} className="flex justify-between border-b border-neutral-700 pb-2">
-                            <span className="text-gray-300">{key}</span>
-                            <span className="text-yellow-400 font-bold">{val}</span>
-                        </div>
-                    )) : <p className="text-center text-gray-500">Wybierz sprzęt i kliknij przelicz...</p>}
+                    {/* Wewnętrzny scrollbar */}
+                    <div className="overflow-y-auto pr-2 space-y-4">
+                        {Object.entries(groupedAllItems).sort().map(([category, catItems]) => (
+                            <div key={category}>
+                                <h4 className="text-blue-400 font-bold mb-1 text-sm">{category}</h4>
+                                <ul className="text-sm text-gray-300 space-y-1 pl-2 border-l-2 border-neutral-700">
+                                    {catItems.map(item => (
+                                        <li key={item.id} className="hover:text-white transition-colors cursor-default flex justify-between">
+                                            <span>{item.name}</span>
+                                            <span className="text-gray-500 text-xs">Lvl {item.reqLevel || "?"}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        ))}
+                        {Object.keys(groupedAllItems).length === 0 && (
+                            <p className="text-gray-500 text-sm text-center">Brak przedmiotów do wyświetlenia.</p>
+                        )}
+                    </div>
                 </div>
+
+                {/* 2. DOLNA CZĘŚĆ: Kalkulator Statystyk */}
+                <div className="bg-neutral-800 p-6 rounded-xl shadow-lg border border-neutral-700 shrink-0">
+                    <h3 className="text-2xl font-bold border-b-2 border-orange-600 pb-3 mb-4 text-white">
+                        Statystyki
+                    </h3>
+
+                    <button
+                        className="w-full py-3 bg-orange-600 hover:bg-orange-500 text-white font-bold rounded-lg text-lg transition-colors mb-6 shadow-md"
+                        onClick={calculateStats}
+                    >
+                        PRZELICZ STATYSTYKI
+                    </button>
+
+                    <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
+                        {stats ? Object.entries(stats).sort().map(([key, val]) => (
+                            <div key={key} className="flex justify-between border-b border-neutral-700 pb-2">
+                                <span className="text-gray-300">{key}</span>
+                                <span className="text-yellow-400 font-bold">{val}</span>
+                            </div>
+                        )) : <p className="text-center text-gray-500">Wybierz sprzęt i kliknij przelicz...</p>}
+                    </div>
+                </div>
+
             </div>
         </div>
     );
