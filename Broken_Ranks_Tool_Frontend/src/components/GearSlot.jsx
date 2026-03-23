@@ -10,6 +10,7 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate }) => {
     const [drifTypes, setDrifTypes] = useState({});
 
     const [drifLevels, setDrifLevels] = useState({});
+    const [orbLevel, setOrbLevel] = useState("");
 
     // Grupujemy bezpośrednio po kolumnie 'name' z Twojej bazy
     const groupByType = (itemsList) => {
@@ -32,14 +33,16 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate }) => {
     const groupedOrbs = groupByType(orbs);
     const groupedDrifs = groupByType(drifs);
 
+    // Wysyłanie paczki z nowymi poziomami!
     useEffect(() => {
         onUpdate(slotKey, {
             itemId: selectedItem || null,
             orbId: selectedOrb || null,
+            orbLevel: orbLevel || null, // <--- DODANE
             drifIds: selectedDrifs.filter(id => id !== ""),
-            drifLevel: drifLevels || null
+            drifLevels: drifLevels
         });
-    }, [selectedItem, selectedOrb, selectedDrifs, drifLevels]);
+    }, [selectedItem, selectedOrb, orbLevel, selectedDrifs, drifLevels]);
 
     const addDrif = () => setSelectedDrifs([...selectedDrifs, ""]);
 
@@ -105,18 +108,19 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate }) => {
                 ))}
             </select>
 
-            {/* 2. ORB: Wybór dwuetapowy */}
-            <div className="flex flex-col items-center w-full">
+            {/* 2. ORB: Trzy paski obok siebie (Rodzaj, Wielkość, Lvl) */}
+            <div className="flex gap-1 w-full items-center mb-2 mt-1">
                 {/* KROK 1: Wybór RODZAJU */}
                 <select
                     value={orbType}
                     onChange={(e) => {
                         setOrbType(e.target.value);
                         setSelectedOrb("");
+                        setOrbLevel(""); // Resetujemy level przy zmianie rodzaju
                     }}
-                    className="w-full bg-transparent text-orange-400 font-bold text-xs text-center outline-none mb-1 cursor-pointer"
+                    className="flex-[3] min-w-0 bg-transparent text-orange-400 p-1 text-xs border-b-4 border-red-600 focus:border-red-400 outline-none text-center cursor-pointer"
                 >
-                    <option value="" className="bg-neutral-800 text-white">-- Rodzaj Orba --</option>
+                    <option value="" className="bg-neutral-800 text-white">Rodzaj...</option>
                     {Object.keys(groupedOrbs).map(type => (
                         <option key={type} value={type} className="bg-neutral-800 text-white">{type}</option>
                     ))}
@@ -125,16 +129,32 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate }) => {
                 {/* KROK 2: Wybór WIELKOŚCI */}
                 <select
                     value={selectedOrb}
-                    onChange={(e) => setSelectedOrb(e.target.value)}
+                    onChange={(e) => {
+                        setSelectedOrb(e.target.value);
+                        setOrbLevel(""); // Resetujemy level przy zmianie wielkości
+                    }}
                     disabled={!orbType}
-                    className="w-14 h-14 bg-neutral-800 text-transparent hover:text-white p-1 text-sm rounded-full border-[3px] border-red-500 focus:border-red-400 outline-none cursor-pointer appearance-none text-center disabled:border-neutral-700 disabled:opacity-40"
-                    title={orbType ? "Wybierz Wielkość" : "Najpierw wybierz rodzaj wyżej"}
+                    className="flex-[3] min-w-0 bg-transparent text-white p-1 text-xs border-b-4 border-red-600 focus:border-red-400 outline-none text-center disabled:opacity-30 cursor-pointer"
                 >
-                    <option value="" className="text-white">Brak</option>
+                    <option value="" className="bg-neutral-800 text-white">Wielkość...</option>
                     {orbType && groupedOrbs[orbType]?.map((orb) => (
-                        // Bierzemy wartość bezpośrednio z kolumny size lub tier
-                        <option key={orb.id} value={orb.id} className="text-white">
+                        <option key={orb.id} value={orb.id} className="text-white bg-neutral-800">
                             {orb.size || orb.tier}
+                        </option>
+                    ))}
+                </select>
+
+                {/* KROK 3: Wybór POZIOMU (1-3) */}
+                <select
+                    value={orbLevel}
+                    onChange={(e) => setOrbLevel(e.target.value)}
+                    disabled={!selectedOrb}
+                    className="flex-[2] min-w-0 bg-transparent text-white p-1 text-xs border-b-4 border-red-600 focus:border-red-400 outline-none text-center disabled:opacity-30 cursor-pointer"
+                >
+                    <option value="" className="bg-neutral-800 text-white">Lvl...</option>
+                    {[1, 2, 3].map(num => (
+                        <option key={num} value={num.toString()} className="bg-neutral-800 text-white">
+                            {num}
                         </option>
                     ))}
                 </select>

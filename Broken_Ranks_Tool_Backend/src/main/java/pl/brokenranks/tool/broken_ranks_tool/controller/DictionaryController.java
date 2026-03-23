@@ -19,8 +19,8 @@ public class DictionaryController {
     public Map<String, String> getCategoryDictionary() {
         return Arrays.stream(ITEM_CATEGORY.values())
                 .collect(Collectors.toMap(
-                        Enum::name,                   // Klucz: np. "HELMET"
-                        ITEM_CATEGORY::getDescription // Wartość: np. "Hełm"
+                        Enum::name,
+                        ITEM_CATEGORY::getDescription
                 ));
     }
 }
