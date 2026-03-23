@@ -14,7 +14,7 @@ const SLOTS = [
     { key: "boots", label: "Buty", cat: "BOOTS" },
     { key: "gloves", label: "Rękawice", cat: "GLOVES" },
     { key: "belt", label: "Pas", cat: "BELT" },
-    { key: "weapon", label: "Broń", cat: "WEAPON" },
+    { key: "weapon", label: "Broń", cat: ["WEAPON_1H", "WEAPON_2H"] },
     { key: "shield", label: "Druga ręka", cat: ["SHIELD","OFF_HAND"] },
     { key: "ring1", label: "Pierścień 1", cat: "RING" },
     { key: "ring2", label: "Pierścień 2", cat: "RING" },
