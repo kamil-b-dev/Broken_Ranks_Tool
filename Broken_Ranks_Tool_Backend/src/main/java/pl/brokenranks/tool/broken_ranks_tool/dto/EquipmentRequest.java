@@ -1,50 +1,94 @@
 package pl.brokenranks.tool.broken_ranks_tool.dto;
 
 import lombok.Data;
-
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Data
 public class EquipmentRequest {
-    // Tutaj użytkownik prześle ID wybranych przedmiotów
-    // Null oznacza, że nic nie wybrał w danym slocie
+
+    // --- HEŁM ---
     private Long helmetId;
-    private Long armorId;
-    private Long capeId;
-    private Long legsId;
-    private Long bootsId;
-    private Long glovesId;
-    private Long beltId;
-    private Long ring1Id;
-    private Long ring2Id;
-    private Long necklaceId;
-    private Long shieldId;
-    private Long weaponId;
-
     private Long helmetOrbId;
-    private Long armorOrbId;
-    private Long capeOrbId;
-    private Long legsOrbId;
-    private Long bootsOrbId;
-    private Long glovesOrbId;
-    private Long beltOrbId;
-    private Long ring1OrbId;
-    private Long ring2OrbId;
-    private Long necklaceOrbId;
-    private Long shieldOrbId;
-    private Long weaponOrbId;
+    private Integer helmetOrbLevel;
+    private List<Long> helmetDrifs;
+    private Map<String, Integer> helmetDrifLevels;
 
-    private List<Long> helmetDrifs = new ArrayList<>();
-    private List<Long> armorDrifs = new ArrayList<>();
-    private List<Long> capeDrifs = new ArrayList<>();
-    private List<Long> legsDrifs = new ArrayList<>();
-    private List<Long> bootsDrifs = new ArrayList<>();
-    private List<Long> glovesDrifs = new ArrayList<>();
-    private List<Long> beltDrifs = new ArrayList<>();
-    private List<Long> ring1Drifs = new ArrayList<>();
-    private List<Long> ring2Drifs = new ArrayList<>();
-    private List<Long> necklaceDrifs = new ArrayList<>();
-    private List<Long> shieldDrifs = new ArrayList<>();
-    private List<Long> weaponDrifs = new ArrayList<>();
+    // --- ZBROJA ---
+    private Long armorId;
+    private Long armorOrbId;
+    private Integer armorOrbLevel;
+    private List<Long> armorDrifs;
+    private Map<String, Integer> armorDrifLevels;
+
+    // --- PELERYNA ---
+    private Long capeId;
+    private Long capeOrbId;
+    private Integer capeOrbLevel;
+    private List<Long> capeDrifs;
+    private Map<String, Integer> capeDrifLevels;
+
+    // --- SPODNIE ---
+    private Long legsId;
+    private Long legsOrbId;
+    private Integer legsOrbLevel;
+    private List<Long> legsDrifs;
+    private Map<String, Integer> legsDrifLevels;
+
+    // --- BUTY ---
+    private Long bootsId;
+    private Long bootsOrbId;
+    private Integer bootsOrbLevel;
+    private List<Long> bootsDrifs;
+    private Map<String, Integer> bootsDrifLevels;
+
+    // --- RĘKAWICE ---
+    private Long glovesId;
+    private Long glovesOrbId;
+    private Integer glovesOrbLevel;
+    private List<Long> glovesDrifs;
+    private Map<String, Integer> glovesDrifLevels;
+
+    // --- PAS ---
+    private Long beltId;
+    private Long beltOrbId;
+    private Integer beltOrbLevel;
+    private List<Long> beltDrifs;
+    private Map<String, Integer> beltDrifLevels;
+
+    // --- BROŃ ---
+    private Long weaponId;
+    private Long weaponOrbId;
+    private Integer weaponOrbLevel;
+    private List<Long> weaponDrifs;
+    private Map<String, Integer> weaponDrifLevels;
+
+    // --- TARCZA / DRUGA RĘKA ---
+    private Long shieldId;
+    private Long shieldOrbId;
+    private Integer shieldOrbLevel;
+    private List<Long> shieldDrifs;
+    private Map<String, Integer> shieldDrifLevels;
+
+    // --- PIERŚCIEŃ 1 ---
+    private Long ring1Id;
+    private Long ring1OrbId;
+    private Integer ring1OrbLevel;
+    private List<Long> ring1Drifs;
+    private Map<String, Integer> ring1DrifLevels;
+
+    // --- PIERŚCIEŃ 2 ---
+    private Long ring2Id;
+    private Long ring2OrbId;
+    private Integer ring2OrbLevel;
+    private List<Long> ring2Drifs;
+    private Map<String, Integer> ring2DrifLevels;
+
+    // --- NASZYJNIK ---
+    private Long necklaceId;
+    private Long necklaceOrbId;
+    private Integer necklaceOrbLevel;
+    private List<Long> necklaceDrifs;
+    private Map<String, Integer> necklaceDrifLevels;
+
 }
