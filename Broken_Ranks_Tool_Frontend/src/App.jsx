@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import GearSlot from "./components/GearSlot";
+import ItemDatabase from "./components/ItemDatabase";
+import StatsPanel from "./components/StatsPanel";
 
 const API_URL = "http://localhost:8080/api";
 
@@ -52,15 +54,18 @@ function App() {
     }, []);
 
     // Grupowanie WSZYSTKICH przedmiotów z dynamicznym tłumaczeniem z Javy
-    const groupedAllItems = data.items.reduce((acc, item) => {
-        const rawCat = item.category || "INNE";
+    const itemsGroupedByCategory = data.items.reduce((groupedItems, item) => {
+        const categoryKey = item.category || "INNE";
 
         // Zaglądamy do słownika pobranego z backendu
-        const niceCat = categoryNames[rawCat] || rawCat;
+        const displayCategory = categoryNames[categoryKey] || categoryKey;
 
-        if (!acc[niceCat]) acc[niceCat] = [];
-        acc[niceCat].push(item);
-        return acc;
+        if (!groupedItems[displayCategory]) {
+            groupedItems[displayCategory] = [];
+        }
+
+        groupedItems[displayCategory].push(item);
+        return groupedItems;
     }, {});
 
     // Aktualizacja stanu gdy użytkownik wybierze coś w slocie
@@ -69,8 +74,9 @@ function App() {
             ...prev,
             [`${slotKey}Id`]: slotData.itemId,
             [`${slotKey}OrbId`]: slotData.orbId,
+            [`${slotKey}OrbLevel`]: slotData.orbLevel,
             [`${slotKey}Drifs`]: slotData.drifIds,
-            [`${slotKey}DrifLevels`]: slotData.drifLevels, // <-- Pamiętamy o wysłaniu poziomów!
+            [`${slotKey}DrifLevels`]: slotData.drifLevels,
         }));
     };
 
@@ -93,7 +99,6 @@ function App() {
                     Broken Ranks Tool
                 </h1>
 
-                {/* KONTENER FLEX - układa kafelki poziomo */}
                 <div className="flex flex-wrap justify-center gap-6">
                     {SLOTS.map((slot) => (
                         <GearSlot
@@ -116,55 +121,11 @@ function App() {
             {/* Prawa kolumna - Podzielona na 2 części */}
             <div className="flex-1 flex flex-col gap-6 sticky top-6 max-h-[calc(100vh-3rem)]">
 
-                {/* 1. GÓRNA CZĘŚĆ: Lista wszystkich przedmiotów (Przewijana) */}
-                <div className="bg-neutral-800 p-6 rounded-xl shadow-lg border border-neutral-700 flex flex-col min-h-0 flex-1">
-                    <h3 className="text-xl font-bold border-b-2 border-blue-600 pb-3 mb-4 text-white shrink-0">
-                        Baza Przedmiotów
-                    </h3>
+                {/* 1. Moduł Bazy Przedmiotów */}
+                <ItemDatabase groupedItems={itemsGroupedByCategory} />
 
-                    {/* Wewnętrzny scrollbar */}
-                    <div className="overflow-y-auto pr-2 space-y-4">
-                        {Object.entries(groupedAllItems).sort().map(([category, catItems]) => (
-                            <div key={category}>
-                                <h4 className="text-blue-400 font-bold mb-1 text-sm">{category}</h4>
-                                <ul className="text-sm text-gray-300 space-y-1 pl-2 border-l-2 border-neutral-700">
-                                    {catItems.map(item => (
-                                        <li key={item.id} className="hover:text-white transition-colors cursor-default flex justify-between">
-                                            <span>{item.name}</span>
-                                            <span className="text-gray-500 text-xs">Lvl {item.reqLevel || "?"}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        ))}
-                        {Object.keys(groupedAllItems).length === 0 && (
-                            <p className="text-gray-500 text-sm text-center">Brak przedmiotów do wyświetlenia.</p>
-                        )}
-                    </div>
-                </div>
-
-                {/* 2. DOLNA CZĘŚĆ: Kalkulator Statystyk */}
-                <div className="bg-neutral-800 p-6 rounded-xl shadow-lg border border-neutral-700 shrink-0">
-                    <h3 className="text-2xl font-bold border-b-2 border-orange-600 pb-3 mb-4 text-white">
-                        Statystyki
-                    </h3>
-
-                    <button
-                        className="w-full py-3 bg-orange-600 hover:bg-orange-500 text-white font-bold rounded-lg text-lg transition-colors mb-6 shadow-md"
-                        onClick={calculateStats}
-                    >
-                        PRZELICZ STATYSTYKI
-                    </button>
-
-                    <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
-                        {stats ? Object.entries(stats).sort().map(([key, val]) => (
-                            <div key={key} className="flex justify-between border-b border-neutral-700 pb-2">
-                                <span className="text-gray-300">{key}</span>
-                                <span className="text-yellow-400 font-bold">{val}</span>
-                            </div>
-                        )) : <p className="text-center text-gray-500">Wybierz sprzęt i kliknij przelicz...</p>}
-                    </div>
-                </div>
+                {/* 2. Moduł Kalkulatora Statystyk */}
+                <StatsPanel stats={stats} onCalculate={calculateStats} />
 
             </div>
         </div>
