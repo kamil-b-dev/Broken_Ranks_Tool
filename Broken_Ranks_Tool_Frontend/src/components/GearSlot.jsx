@@ -5,7 +5,6 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate }) => {
     const [selectedOrb, setSelectedOrb] = useState("");
     const [orbLevel, setOrbLevel] = useState("");
 
-    // Pamięć drifów (Teraz z góry określona przez ramy przedmiotu)
     const [selectedDrifs, setSelectedDrifs] = useState([]);
     const [drifTypes, setDrifTypes] = useState({});
     const [drifLevels, setDrifLevels] = useState({});
@@ -26,7 +25,7 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate }) => {
     const groupedOrbs = groupByType(orbs);
     const groupedDrifs = groupByType(drifs);
 
-    // 1. USTALAMY LIMIT DRIFÓW (Przeniesione wyżej!)
+    //Limit drifów
     const fullSelectedItem = items.find(i => i.id.toString() === selectedItem.toString());
     let maxDrifs = 0;
     if (fullSelectedItem) {
@@ -38,9 +37,8 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate }) => {
         }
     }
 
-    // 2. WYSYŁKA DANYCH
+    //Wysyłanie danych
     useEffect(() => {
-        // Zabezpieczenie: ucinamy "duchy", jeśli gracz zmienił item na gorszy tier
         const validDrifIds = selectedDrifs.slice(0, maxDrifs).filter(id => id !== "");
         const validDrifLevels = {};
         for (let i = 0; i < maxDrifs; i++) {
@@ -56,7 +54,7 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate }) => {
         });
     }, [selectedItem, selectedOrb, orbLevel, selectedDrifs, drifLevels, maxDrifs]);
 
-    // 3. FUNKCJE AKTUALIZUJĄCE (usunięto addDrif i removeDrif)
+    //Aktualizowanie
     const updateDrif = (index, value) => {
         const newDrifs = [...selectedDrifs];
         newDrifs[index] = value;
@@ -71,7 +69,7 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate }) => {
         <div className="flex flex-col items-center gap-3 w-64 p-2">
             <span className="text-xs font-bold text-gray-400">{label}</span>
 
-            {/* 1. PRZEDMIOT */}
+            {/*Item*/}
             <select
                 value={selectedItem}
                 onChange={(e) => setSelectedItem(e.target.value)}
@@ -83,7 +81,7 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate }) => {
                 ))}
             </select>
 
-            {/* 2. ORB */}
+            {/* Orb*/}
             <div className="w-full flex flex-col items-center mt-1">
                 <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Orb</span>
 
@@ -136,12 +134,11 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate }) => {
                 </div>
             </div>
 
-            {/* 3. DRIFY (Zależne od Rangi) */}
+            {/*Drify*/}
             <div className="w-full flex flex-col items-center mt-1">
                 <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Drify</span>
 
                 <div className="flex flex-col w-full gap-3 items-center">
-                    {/* Generujemy dokładnie tyle slotów, ile wynika z tieru */}
                     {Array.from({ length: maxDrifs }).map((_, index) => {
                         const drifId = selectedDrifs[index] || "";
                         const currentType = drifTypes[index] || "";
@@ -153,7 +150,7 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate }) => {
                                     onChange={(e) => {
                                         setDrifTypes({ ...drifTypes, [index]: e.target.value });
                                         updateDrif(index, "");
-                                        updateDrifLevel(index, ""); // Czyścimy lvl przy zmianie rodzaju!
+                                        updateDrifLevel(index, "");
                                     }}
                                     className="flex-[3] min-w-0 bg-transparent text-orange-400 p-1 text-xs border-b-4 border-black focus:border-gray-500 outline-none text-center cursor-pointer"
                                 >
@@ -167,7 +164,7 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate }) => {
                                     value={drifId}
                                     onChange={(e) => {
                                         updateDrif(index, e.target.value);
-                                        updateDrifLevel(index, ""); // Czyścimy lvl przy zmianie wielkości!
+                                        updateDrifLevel(index, "");
                                     }}
                                     disabled={!currentType}
                                     className="flex-[3] min-w-0 bg-transparent text-white p-1 text-xs border-b-4 border-black focus:border-gray-500 outline-none text-center disabled:opacity-30 cursor-pointer"
@@ -197,7 +194,6 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate }) => {
                         );
                     })}
 
-                    {/* Komunikaty dla gracza, gdy slotów jest 0 */}
                     {!fullSelectedItem && (
                         <span className="text-[10px] text-gray-600 uppercase tracking-wider mt-1">Wybierz przedmiot...</span>
                     )}
