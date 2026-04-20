@@ -8,7 +8,7 @@ import pl.brokenranks.tool.broken_ranks_tool.repository.DrifTemplateRepository;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/drifs") // <--- Adres dla drifów
+@RequestMapping("/api/drifs")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class GetDrifTemplatesController {

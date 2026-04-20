@@ -19,11 +19,11 @@ import java.util.List;
 public class UserItem extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "template_id")
-    private ItemTemplate itemTemplate; //Wskazuje co to za przedmiot
+    private ItemTemplate itemTemplate;
 
     @OneToMany(mappedBy = "userItem", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<UserDrif> equippedGems = new ArrayList<>(); //Kamienie włożone przez gracza
+    private List<UserDrif> equippedGems = new ArrayList<>();
 
     @OneToMany(mappedBy = "userItem", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<UserOrb> equippedOrbs = new  ArrayList<>(); //Orby włożone przez gracza
+    private List<UserOrb> equippedOrbs = new  ArrayList<>();
 }
