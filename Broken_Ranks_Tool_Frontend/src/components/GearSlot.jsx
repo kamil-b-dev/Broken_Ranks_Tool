@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 
 const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate }) => {
     const [selectedItem, setSelectedItem] = useState("");
+    const [itemStars, setItemStars] = useState(1); // Domyślnie 1 gwiazdka
     const [selectedOrb, setSelectedOrb] = useState("");
     const [orbLevel, setOrbLevel] = useState("");
 
@@ -10,6 +11,8 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate }) => {
     const [drifLevels, setDrifLevels] = useState({});
 
     const [orbType, setOrbType] = useState("");
+
+    const [isDragOver, setIsDragOver] = useState(false);
 
     const groupByType = (itemsList) => {
         if (!itemsList || !Array.isArray(itemsList)) return {};
@@ -25,7 +28,6 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate }) => {
     const groupedOrbs = groupByType(orbs);
     const groupedDrifs = groupByType(drifs);
 
-    //Limit drifów
     const fullSelectedItem = items.find(i => i.id.toString() === selectedItem.toString());
     let maxDrifs = 0;
     if (fullSelectedItem) {
@@ -37,7 +39,6 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate }) => {
         }
     }
 
-    //Wysyłanie danych
     useEffect(() => {
         const validDrifIds = selectedDrifs.slice(0, maxDrifs).filter(id => id !== "");
         const validDrifLevels = {};
@@ -47,14 +48,14 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate }) => {
 
         onUpdate(slotKey, {
             itemId: selectedItem || null,
+            itemStars: itemStars,
             orbId: selectedOrb || null,
             orbLevel: orbLevel || null,
             drifIds: validDrifIds,
             drifLevels: validDrifLevels
         });
-    }, [selectedItem, selectedOrb, orbLevel, selectedDrifs, drifLevels, maxDrifs]);
+    }, [selectedItem, itemStars, selectedOrb, orbLevel, selectedDrifs, drifLevels, maxDrifs]);
 
-    //Aktualizowanie
     const updateDrif = (index, value) => {
         const newDrifs = [...selectedDrifs];
         newDrifs[index] = value;
@@ -65,25 +66,80 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate }) => {
         setDrifLevels({ ...drifLevels, [index]: value });
     };
 
+    //FUNKCJE DRAG & DROP
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        setIsDragOver(true);
+    };
+
+    const handleDragLeave = () => {
+        setIsDragOver(false);
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        setIsDragOver(false);
+
+        try {
+            const data = JSON.parse(e.dataTransfer.getData("application/json"));
+
+            if (items.some(i => i.id.toString() === data.id.toString())) {
+                setSelectedItem(data.id.toString());
+                setItemStars(1);
+            } else {
+                console.warn("Ten przedmiot nie pasuje do tego slota!");
+            }
+        } catch (error) {
+            console.error("Błąd podczas upuszczania przedmiotu:", error);
+        }
+    };
+
+    const slotClasses = `flex flex-col items-center gap-3 w-64 p-2 rounded-xl transition-all duration-200 border-2 ${
+        isDragOver ? "border-green-500 bg-green-900/20 shadow-[0_0_15px_rgba(34,197,94,0.3)] scale-105" : "border-transparent"
+    }`;
+
     return (
-        <div className="flex flex-col items-center gap-3 w-64 p-2">
-            <span className="text-xs font-bold text-gray-400">{label}</span>
+        <div
+            className={slotClasses}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+        >
+            <span className="text-xs font-bold text-gray-400 pointer-events-none">{label}</span>
 
-            {/*Item*/}
-            <select
-                value={selectedItem}
-                onChange={(e) => setSelectedItem(e.target.value)}
-                className="w-full bg-neutral-800 text-white p-1 text-xs rounded border-2 border-blue-500 focus:border-blue-400 outline-none text-center cursor-pointer"
-            >
-                <option value="">-- {label} --</option>
-                {items.map((i) => (
-                    <option key={i.id} value={i.id}>{i.name}</option>
-                ))}
-            </select>
+            {/* PRZEDMIOT I GWIAZDKI */}
+            <div className="w-full flex gap-1">
+                <select
+                    value={selectedItem}
+                    onChange={(e) => {
+                        setSelectedItem(e.target.value);
+                        setItemStars(1);
+                    }}
+                    className="flex-[4] min-w-0 bg-neutral-800 text-white p-1 text-xs rounded border-2 border-blue-500 focus:border-blue-400 outline-none text-center cursor-pointer"
+                >
+                    <option value="">-- {label} --</option>
+                    {items.map((i) => (
+                        <option key={i.id} value={i.id}>{i.name}</option>
+                    ))}
+                </select>
 
-            {/* Orb*/}
+                <select
+                    value={itemStars}
+                    onChange={(e) => setItemStars(parseInt(e.target.value))}
+                    disabled={!selectedItem}
+                    className="flex-[1] min-w-0 bg-yellow-600/20 text-yellow-500 p-1 text-xs rounded border-2 border-yellow-600 focus:border-yellow-400 outline-none text-center cursor-pointer disabled:opacity-30 font-bold"
+                >
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
+                        <option key={num} value={num} className="bg-neutral-800 text-yellow-500">
+                            {num}
+                        </option>
+                    ))}
+                </select>
+            </div>
+
+            {/* ORB */}
             <div className="w-full flex flex-col items-center mt-1">
-                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Orb</span>
+                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1 pointer-events-none">Orb</span>
 
                 <div className="flex gap-1 w-full items-center mb-1">
                     <select
@@ -134,9 +190,9 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate }) => {
                 </div>
             </div>
 
-            {/*Drify*/}
+            {/* DRIFY */}
             <div className="w-full flex flex-col items-center mt-1">
-                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Drify</span>
+                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 pointer-events-none">Drify</span>
 
                 <div className="flex flex-col w-full gap-3 items-center">
                     {Array.from({ length: maxDrifs }).map((_, index) => {
@@ -195,10 +251,10 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate }) => {
                     })}
 
                     {!fullSelectedItem && (
-                        <span className="text-[10px] text-gray-600 uppercase tracking-wider mt-1">Wybierz przedmiot...</span>
+                        <span className="text-[10px] text-gray-600 uppercase tracking-wider mt-1 pointer-events-none">Wybierz przedmiot...</span>
                     )}
                     {fullSelectedItem && maxDrifs === 0 && (
-                        <span className="text-[10px] text-gray-600 uppercase tracking-wider mt-1">Brak slotów na drify</span>
+                        <span className="text-[10px] text-gray-600 uppercase tracking-wider mt-1 pointer-events-none">Brak slotów na drify</span>
                     )}
                 </div>
             </div>
