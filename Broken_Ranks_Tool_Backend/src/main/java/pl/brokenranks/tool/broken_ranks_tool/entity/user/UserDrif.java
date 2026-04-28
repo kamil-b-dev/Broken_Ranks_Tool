@@ -29,6 +29,6 @@ public class UserDrif extends BaseEntity {
     @JoinColumn(name = "drif_template_id")
     private pl.brokenranks.tool.broken_ranks_tool.entity.templates.DrifTemplate drifTemplate;
 
-    private int level; // Poziom ulepszenia drifa
+    private int level;
 
 }

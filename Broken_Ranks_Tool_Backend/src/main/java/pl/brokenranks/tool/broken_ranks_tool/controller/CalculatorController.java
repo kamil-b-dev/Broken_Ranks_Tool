@@ -17,8 +17,8 @@ public class CalculatorController {
     private final EquipmentStatsCalculatorService calculatorService;
 
     @PostMapping("/calculate")
-    public ResponseEntity<Map<String, Integer>> calculateStats(@RequestBody EquipmentRequest request) {
-        Map<String, Integer> result = calculatorService.calculateTotalStats(request);
+    public ResponseEntity<Map<String, String>> calculateStats(@RequestBody EquipmentRequest request) {
+        Map<String, String> result = calculatorService.calculateTotalStats(request);
         return ResponseEntity.ok(result);
     }
 }

@@ -28,11 +28,4 @@ public class ItemTemplate extends  BaseNamedEntity {
     @Column(name = "stats")
     @Convert(converter = MapToStringConverter.class)
     private Map<String, Integer> stats;
-
-
-    // @ElementCollection
-    // @CollectionTable(name = "item_stats", joinColumns = @JoinColumn(name = "item_id"))
-    // @MapKeyColumn(name = "stat_name")
-    // @Column(name = "stat_value")
-    // private Map<String, Integer> stats;
 }
