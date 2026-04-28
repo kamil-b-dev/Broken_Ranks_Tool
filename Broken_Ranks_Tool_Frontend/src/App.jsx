@@ -3,6 +3,7 @@ import axios from "axios";
 import GearSlot from "./components/GearSlot";
 import ItemDatabase from "./components/ItemDatabase";
 import StatsPanel from "./components/StatsPanel";
+import CharacterPanel from "./components/CharacterPanel"; // Pamiętaj o imporcie!
 
 const API_URL = "http://localhost:8080/api";
 
@@ -24,8 +25,11 @@ const SLOTS = [
 function App() {
     const [data, setData] = useState({ items: [], orbs: [], drifs: [] });
     const [categoryNames, setCategoryNames] = useState({});
-    const [requestData, setRequestData] = useState({});
+
+    const [requestData, setRequestData] = useState({ slots: {}, characterStats: {} });
     const [stats, setStats] = useState(null);
+
+    const [activeTab, setActiveTab] = useState("database"); // "database" | "character"
 
     useEffect(() => {
         const fetchData = async () => {
@@ -94,6 +98,7 @@ function App() {
             {/* GÓRNA SEKCJA */}
             <div className="grid grid-cols-1 xl:grid-cols-10 gap-6">
 
+                {/* Lewa kolumna - Ekwipunek */}
                 <div className="xl:col-span-7 bg-neutral-800 p-6 rounded-xl shadow-lg border border-neutral-700 flex flex-col">
                     <h1 className="text-3xl font-bold text-center text-orange-500 mb-6 shrink-0">
                         Broken Ranks Tool
@@ -118,9 +123,45 @@ function App() {
                     </div>
                 </div>
 
-                <div className="xl:col-span-3 relative min-h-[500px] xl:min-h-0">
-                    <div className="xl:absolute xl:inset-0 flex flex-col w-full h-full">
-                        <ItemDatabase groupedItems={itemsGroupedByCategory} />
+                {/* Prawa kolumna - PRZEŁĄCZNIK ZAKŁADEK*/}
+                <div className="xl:col-span-3 flex flex-col gap-4 relative min-h-[600px] xl:min-h-0">
+
+                    {/* Nawigacja*/}
+                    <div className="flex bg-neutral-800 rounded-xl p-1 shadow-lg border border-neutral-700 shrink-0">
+                        <button
+                            onClick={() => setActiveTab("database")}
+                            className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
+                                activeTab === "database"
+                                    ? "bg-blue-600 text-white shadow-md"
+                                    : "text-gray-400 hover:text-white hover:bg-neutral-700"
+                            }`}
+                        >
+                            Baza Przedmiotów
+                        </button>
+                        <button
+                            onClick={() => setActiveTab("character")}
+                            className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
+                                activeTab === "character"
+                                    ? "bg-orange-600 text-white shadow-md"
+                                    : "text-gray-400 hover:text-white hover:bg-neutral-700"
+                            }`}
+                        >
+                            Statystyki Postaci
+                        </button>
+                    </div>
+
+                    <div className="relative flex-1">
+
+                        {/* Okno Bazy */}
+                        <div className={`xl:absolute xl:inset-0 flex flex-col w-full h-full ${activeTab === "database" ? "flex" : "hidden"}`}>
+                            <ItemDatabase groupedItems={itemsGroupedByCategory} />
+                        </div>
+
+                        {/* Okno Statystyk Postaci */}
+                        <div className={`xl:absolute xl:inset-0 flex flex-col w-full h-full ${activeTab === "character" ? "flex" : "hidden"}`}>
+                            <CharacterPanel onStatsChange={(stats) => setRequestData(prev => ({ ...prev, characterStats: stats }))} />
+                        </div>
+
                     </div>
                 </div>
 
