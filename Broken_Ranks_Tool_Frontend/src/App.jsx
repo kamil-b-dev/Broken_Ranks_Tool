@@ -14,7 +14,7 @@ const SLOTS = [
     { key: "boots", label: "Buty", cat: "BOOTS" },
     { key: "gloves", label: "Rękawice", cat: "GLOVES" },
     { key: "belt", label: "Pas", cat: "BELT" },
-    { key: "weapon", label: "Broń", cat: "WEAPON" },
+    { key: "weapon", label: "Broń", cat: ["WEAPON_1H", "WEAPON_2H", "WEAPON_RANGED", "RANGED_WEAPON", "RANGED"] },
     { key: "shield", label: "Druga ręka", cat: ["SHIELD","OFF_HAND"] },
     { key: "ring1", label: "Pierścień 1", cat: "RING" },
     { key: "ring2", label: "Pierścień 2", cat: "RING" },
@@ -27,10 +27,8 @@ function App() {
     const [requestData, setRequestData] = useState({});
     const [stats, setStats] = useState(null);
 
-    // Pobieranie danych z Javy przy starcie strony
     useEffect(() => {
         const fetchData = async () => {
-            // BLOK 1: Krytyczne dane (Przedmioty, Orby, Drify)
             try {
                 const [itemsRes, orbsRes, drifsRes] = await Promise.all([
                     axios.get(`${API_URL}/items`),
@@ -42,7 +40,6 @@ function App() {
                 console.error("Błąd krytyczny: Nie udało się pobrać głównych danych z Javy!", error);
             }
 
-            // BLOK 2: Dane dodatkowe (Słownik) - Nawet jak wybuchnie, aplikacja przetrwa!
             try {
                 const catRes = await axios.get(`${API_URL}/dictionaries/categories`);
                 setCategoryNames(catRes.data);
@@ -53,11 +50,8 @@ function App() {
         fetchData();
     }, []);
 
-    // Grupowanie WSZYSTKICH przedmiotów z dynamicznym tłumaczeniem z Javy
     const itemsGroupedByCategory = data.items.reduce((groupedItems, item) => {
         const categoryKey = item.category || "INNE";
-
-        // Zaglądamy do słownika pobranego z backendu
         const displayCategory = categoryNames[categoryKey] || categoryKey;
 
         if (!groupedItems[displayCategory]) {
@@ -68,19 +62,23 @@ function App() {
         return groupedItems;
     }, {});
 
-    // Aktualizacja stanu gdy użytkownik wybierze coś w slocie
     const handleSlotUpdate = (slotKey, slotData) => {
         setRequestData((prev) => ({
             ...prev,
-            [`${slotKey}Id`]: slotData.itemId,
-            [`${slotKey}OrbId`]: slotData.orbId,
-            [`${slotKey}OrbLevel`]: slotData.orbLevel,
-            [`${slotKey}Drifs`]: slotData.drifIds,
-            [`${slotKey}DrifLevels`]: slotData.drifLevels,
+            slots: {
+                ...(prev.slots || {}),
+                [slotKey]: {
+                    itemId: slotData.itemId,
+                    itemStars: slotData.itemStars,
+                    orbId: slotData.orbId,
+                    orbLevel: slotData.orbLevel,
+                    drifIds: slotData.drifIds,
+                    drifLevels: slotData.drifLevels,
+                }
+            }
         }));
     };
 
-    // Wysłanie zapytania do kalkulatora
     const calculateStats = async () => {
         try {
             const response = await axios.post(`${API_URL}/calculator/calculate`, requestData);
@@ -91,43 +89,48 @@ function App() {
     };
 
     return (
-        <div className="w-full mx-auto p-6 flex flex-col md:flex-row gap-6">
+        <div className="w-full max-w-[1600px] mx-auto p-6 flex flex-col gap-6">
 
-            {/* Lewa kolumna - Ekwipunek */}
-            <div className="flex-[2] bg-neutral-800 p-6 rounded-xl shadow-lg border border-neutral-700">
-                <h1 className="text-3xl font-bold text-center text-orange-500 mb-6">
-                    Broken Ranks Tool
-                </h1>
+            {/* GÓRNA SEKCJA */}
+            <div className="grid grid-cols-1 xl:grid-cols-10 gap-6">
 
-                <div className="flex flex-wrap justify-center gap-6">
-                    {SLOTS.map((slot) => (
-                        <GearSlot
-                            key={slot.key}
-                            slotKey={slot.key}
-                            label={slot.label}
-                            items={data.items.filter(i =>
-                                Array.isArray(slot.cat)
-                                    ? slot.cat.includes(i.category?.toUpperCase())
-                                    : i.category?.toUpperCase() === slot.cat
-                            )}
-                            orbs={data.orbs}
-                            drifs={data.drifs}
-                            onUpdate={handleSlotUpdate}
-                        />
-                    ))}
+                <div className="xl:col-span-7 bg-neutral-800 p-6 rounded-xl shadow-lg border border-neutral-700 flex flex-col">
+                    <h1 className="text-3xl font-bold text-center text-orange-500 mb-6 shrink-0">
+                        Broken Ranks Tool
+                    </h1>
+
+                    <div className="flex flex-wrap justify-center gap-4 xl:gap-6 pb-4">
+                        {SLOTS.map((slot) => (
+                            <GearSlot
+                                key={slot.key}
+                                slotKey={slot.key}
+                                label={slot.label}
+                                items={data.items.filter(i =>
+                                    Array.isArray(slot.cat)
+                                        ? slot.cat.includes(i.category?.toUpperCase())
+                                        : i.category?.toUpperCase() === slot.cat
+                                )}
+                                orbs={data.orbs}
+                                drifs={data.drifs}
+                                onUpdate={handleSlotUpdate}
+                            />
+                        ))}
+                    </div>
                 </div>
+
+                <div className="xl:col-span-3 relative min-h-[500px] xl:min-h-0">
+                    <div className="xl:absolute xl:inset-0 flex flex-col w-full h-full">
+                        <ItemDatabase groupedItems={itemsGroupedByCategory} />
+                    </div>
+                </div>
+
             </div>
 
-            {/* Prawa kolumna - Podzielona na 2 części */}
-            <div className="flex-1 flex flex-col gap-6 sticky top-6 max-h-[calc(100vh-3rem)]">
-
-                {/* 1. Moduł Bazy Przedmiotów */}
-                <ItemDatabase groupedItems={itemsGroupedByCategory} />
-
-                {/* 2. Moduł Kalkulatora Statystyk */}
+            {/* DOLNA SEKCJA: Kalkulator Statystyk */}
+            <div className="w-full">
                 <StatsPanel stats={stats} onCalculate={calculateStats} />
-
             </div>
+
         </div>
     );
 }

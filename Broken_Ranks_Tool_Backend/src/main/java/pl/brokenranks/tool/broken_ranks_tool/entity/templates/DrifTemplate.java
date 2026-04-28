@@ -20,8 +20,8 @@ public class DrifTemplate extends BaseNamedEntity {
     @Enumerated(EnumType.STRING)
     private DRIF_BONUS_TYPE bonusType;
 
-    private String baseValue;   // -1%, 0,15% (zostawiamy jako String dla precyzji lub zmieniamy na Double)
-    private String increment;   // -1%, +0,15%
-    private String rankRange;   // I - XII
-    private int price;          // 27500
+    private String baseValue;
+    private String increment;
+    private String rankRange;
+    private int price;
 }
