@@ -57,6 +57,12 @@ public class EquipmentStatsCalculatorService {
         Collection<SlotData> allSlots = request.getSlots().values();
         CalculationContext ctx = buildContext(allSlots);
 
+        if (request.getCharacterStats() != null) {
+            request.getCharacterStats().forEach((stat, val) ->
+                    ctx.flatStats().merge(stat, val.doubleValue(), Double::sum)
+            );
+        }
+
         allSlots.forEach(slot -> processSlot(slot, ctx));
 
         Map<String, String> finalStats = new HashMap<>();
