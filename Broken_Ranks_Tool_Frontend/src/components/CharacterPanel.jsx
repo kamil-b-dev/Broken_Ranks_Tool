@@ -45,6 +45,30 @@ const CharacterPanel = ({ onStatsChange }) => {
         }));
     };
 
+    const handleLevelChange = (newLevelValue) => {
+        const newLevel = Math.min(140, Math.max(1, parseInt(newLevelValue) || 1));
+        setLevel(newLevel);
+
+        const newTotalPoints = (newLevel - 1) * 4;
+        const newCurrentSpent = Object.values(spentPoints).reduce((a, b) => a + b, 0);
+
+        if (newCurrentSpent > newTotalPoints) {
+            let pointsToRemove = newCurrentSpent - newTotalPoints;
+            let updatedSpent = { ...spentPoints };
+            const statNames = Object.keys(updatedSpent);
+
+            while (pointsToRemove > 0) {
+                for (let stat of statNames) {
+                    if (updatedSpent[stat] > 0 && pointsToRemove > 0) {
+                        updatedSpent[stat] -= 1;
+                        pointsToRemove -= 1;
+                    }
+                }
+            }
+            setSpentPoints(updatedSpent);
+        }
+    };
+
     return (
         <div className="bg-neutral-800 p-6 rounded-xl shadow-lg border border-neutral-700 flex flex-col shrink-0 h-full">
             <div className="flex justify-between items-center border-b-2 border-orange-600 pb-3 mb-4">
@@ -56,16 +80,12 @@ const CharacterPanel = ({ onStatsChange }) => {
                         min="1"
                         max="140"
                         value={level}
-                        onChange={(e) => {
-                            const val = Math.min(140, Math.max(1, parseInt(e.target.value) || 1));
-                            setLevel(val);
-                        }}
+                        onChange={(e) => handleLevelChange(e.target.value)}
                         className="bg-transparent text-orange-400 font-bold w-12 text-center outline-none"
                     />
                 </div>
             </div>
 
-            {/* Pasek punktów */}
             <div className="mb-6 p-3 bg-neutral-900 rounded-lg border border-neutral-700 flex justify-between items-center">
                 <span className="text-gray-400 text-xs uppercase font-bold">Dostępne punkty:</span>
                 <span className={`text-xl font-black ${pointsLeft > 0 ? "text-green-400" : "text-gray-500"}`}>
@@ -113,8 +133,20 @@ const CharacterPanel = ({ onStatsChange }) => {
                 })}
             </div>
 
-            <p className="text-[10px] text-gray-500 text-center mt-4 uppercase tracking-widest italic">
-            </p>
+            <div className="mt-4 flex justify-between items-center shrink-0">
+                <p className="text-[10px] text-gray-500 uppercase tracking-widest italic flex-1">
+                </p>
+                <button
+                    onClick={() => {
+                        setSpentPoints({
+                            "Siła": 0, "Zręczność": 0, "Moc": 0, "Wiedza": 0, "Pż": 0, "Mana": 0, "Kondycja": 0
+                        });
+                    }}
+                    className="text-xs text-red-400 hover:text-red-300 font-bold uppercase border border-red-500/50 px-3 py-1 rounded transition-colors"
+                >
+                    Resetuj punkty
+                </button>
+            </div>
         </div>
     );
 };
