@@ -4,11 +4,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.brokenranks.tool.broken_ranks_tool.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.dto.EquipmentRequest.SlotData;
+import pl.brokenranks.tool.broken_ranks_tool.entity.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.entity.enums.ITEM_STAR;
+import pl.brokenranks.tool.broken_ranks_tool.entity.enums.ORB_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.entity.templates.*;
 import pl.brokenranks.tool.broken_ranks_tool.service.calculator.StatsAccumulator;
 import pl.brokenranks.tool.broken_ranks_tool.service.provider.EquipmentDataProvider;
 import pl.brokenranks.tool.broken_ranks_tool.service.provider.EquipmentDataProvider.CalculationContext;
+import pl.brokenranks.tool.broken_ranks_tool.service.rules.EquipmentRulesRegistry;
 import pl.brokenranks.tool.broken_ranks_tool.service.validator.EquipmentValidator;
 
 import java.util.*;
@@ -17,7 +20,7 @@ import java.util.*;
 @RequiredArgsConstructor
 public class EquipmentStatsCalculatorService {
 
-    private final EquipmentDataProvider dataProvider; // Zamiast 3 repozytoriów mamy 1 dostawcę
+    private final EquipmentDataProvider dataProvider;
     private final EquipmentValidator validator;
 
     public Map<String, String> calculateTotalStats(EquipmentRequest request) {
@@ -32,25 +35,73 @@ public class EquipmentStatsCalculatorService {
             request.getCharacterStats().forEach((stat, val) -> acc.addFlatValue(stat, val.doubleValue()));
         }
 
-        request.getSlots().forEach((slotKey, slotData) -> processSlot(slotKey, slotData, ctx, acc));
+        Set<ORB_BONUS_TYPE> usedOrbs = new HashSet<>();
+        Map<DRIF_BONUS_TYPE, Integer> drifCounts = preCountDrifs(request, ctx);
+
+        request.getSlots().forEach((slotKey, slotData) ->
+                processSlot(slotKey, slotData, ctx, acc, usedOrbs, drifCounts)
+        );
 
         return acc.getFormattedResults();
     }
 
-    private void processSlot(String slotKey, SlotData slot, CalculationContext ctx, StatsAccumulator acc) {
+    private Map<DRIF_BONUS_TYPE, Integer> preCountDrifs(EquipmentRequest request, CalculationContext ctx) {
+        Map<DRIF_BONUS_TYPE, Integer> counts = new HashMap<>();
+        boolean elementalDamageAlreadyAssigned = false; // Flaga unikalności globalnej
+
+        for (Map.Entry<String, SlotData> entry : request.getSlots().entrySet()) {
+            String slotKey = entry.getKey();
+            SlotData slot = entry.getValue();
+
+            if (slot.getItemId() == null || !ctx.items().containsKey(slot.getItemId())) continue;
+            ItemTemplate item = ctx.items().get(slot.getItemId());
+            if (!validator.isValidItem(item, slotKey)) continue;
+            if (slot.getDrifIds() == null) continue;
+
+            Set<DRIF_BONUS_TYPE> itemUniqueDrifs = new HashSet<>();
+            for (Long drifId : slot.getDrifIds()) {
+                if (drifId == null || !ctx.drifs().containsKey(drifId)) continue;
+                DrifTemplate drif = ctx.drifs().get(drifId);
+
+                if (!validator.isValidDrif(drif, slotKey)) continue;
+
+                if (!validator.isElementalDrifPositionValid(drif, slotKey)) continue;
+
+                if (validator.isElementalDamage(drif.getBonusType())) {
+                    if (elementalDamageAlreadyAssigned) {
+                        continue;
+                    }
+                    elementalDamageAlreadyAssigned = true;
+                }
+
+                if (!validator.isValidDrifSizeForTier(drif, item)) continue;
+
+                if (itemUniqueDrifs.contains(drif.getBonusType())) continue;
+
+                itemUniqueDrifs.add(drif.getBonusType());
+                counts.merge(drif.getBonusType(), 1, Integer::sum);
+            }
+        }
+        return counts;
+    }
+
+    private void processSlot(String slotKey, SlotData slot, CalculationContext ctx, StatsAccumulator acc,
+                             Set<ORB_BONUS_TYPE> usedOrbs, Map<DRIF_BONUS_TYPE, Integer> drifCounts) {
+
+        if (slot.getItemId() == null || !ctx.items().containsKey(slot.getItemId())) return;
+        ItemTemplate item = ctx.items().get(slot.getItemId());
+        if (!validator.isValidItem(item, slotKey)) return;
+
         int starLevel = (slot.getItemStars() != null) ? slot.getItemStars() : 1;
         ITEM_STAR starMod = ITEM_STAR.fromLevel(starLevel);
 
-        processItem(slotKey, slot, starMod.getStatsMod(), ctx, acc);
-        processOrb(slotKey, slot, starMod.getOrbMod(), ctx, acc);
-        processDrifs(slotKey, slot, starMod.getDrifMod(), ctx, acc);
+        processItem(item, starMod.getStatsMod(), acc);
+        processOrb(slotKey, slot, starMod.getOrbMod(), ctx, acc, usedOrbs);
+        processDrifs(slotKey, slot, item, starMod.getDrifMod(), ctx, acc, drifCounts);
     }
 
-    private void processItem(String slotKey, SlotData slot, double statMod, CalculationContext ctx, StatsAccumulator acc) {
-        if (slot.getItemId() == null || !ctx.items().containsKey(slot.getItemId())) return;
-        ItemTemplate item = ctx.items().get(slot.getItemId());
-
-        if (!validator.isValidItem(item, slotKey) || item.getStats() == null || item.getStats().isEmpty()) return;
+    private void processItem(ItemTemplate item, double statMod, StatsAccumulator acc) {
+        if (item.getStats() == null || item.getStats().isEmpty()) return;
 
         if (statMod == 0.0) {
             item.getStats().forEach((stat, val) -> acc.addFlatValue(stat, ((Number) val).doubleValue()));
@@ -69,11 +120,15 @@ public class EquipmentStatsCalculatorService {
         acc.distributeRandomly(baseResists, statMod);
     }
 
-    private void processOrb(String slotKey, SlotData slot, double orbMod, CalculationContext ctx, StatsAccumulator acc) {
+    private void processOrb(String slotKey, SlotData slot, double orbMod, CalculationContext ctx,
+                            StatsAccumulator acc, Set<ORB_BONUS_TYPE> usedOrbs) {
         if (slot.getOrbId() == null || !ctx.orbs().containsKey(slot.getOrbId())) return;
         OrbTemplate orb = ctx.orbs().get(slot.getOrbId());
 
         if (!validator.isValidOrb(orb, slotKey)) return;
+
+        if (usedOrbs.contains(orb.getBonusType())) return;
+        usedOrbs.add(orb.getBonusType());
 
         int finalLvl = validator.sanitizeOrbLevel((slot.getOrbLevel() != null) ? slot.getOrbLevel() : 1, orb);
 
@@ -87,8 +142,11 @@ public class EquipmentStatsCalculatorService {
         acc.addRawValue(orb.getBonusType().name(), bonusStr, 1.0 + orbMod);
     }
 
-    private void processDrifs(String slotKey, SlotData slot, double drifMod, CalculationContext ctx, StatsAccumulator acc) {
+    private void processDrifs(String slotKey, SlotData slot, ItemTemplate item, double drifMod,
+                              CalculationContext ctx, StatsAccumulator acc, Map<DRIF_BONUS_TYPE, Integer> drifCounts) {
         if (slot.getDrifIds() == null) return;
+
+        Set<DRIF_BONUS_TYPE> processedDrifsForItem = new HashSet<>();
 
         for (int i = 0; i < slot.getDrifIds().size(); i++) {
             Long drifId = slot.getDrifIds().get(i);
@@ -96,13 +154,21 @@ public class EquipmentStatsCalculatorService {
             DrifTemplate drif = ctx.drifs().get(drifId);
 
             if (!validator.isValidDrif(drif, slotKey)) continue;
+            if (!validator.isValidDrifSizeForTier(drif, item)) continue; // Walidacja Rozmiaru
+
+            if (processedDrifsForItem.contains(drif.getBonusType())) continue;
+            processedDrifsForItem.add(drif.getBonusType());
 
             int requestedLvl = (slot.getDrifLevels() != null && slot.getDrifLevels().containsKey(String.valueOf(i)))
                     ? slot.getDrifLevels().get(String.valueOf(i)) : 1;
 
             int finalLvl = validator.sanitizeDrifLevel(requestedLvl, drif);
 
-            acc.addRawValue(drif.getBonusType().name(), drif.getBaseValue(), (double) finalLvl * (1.0 + drifMod));
+            int globalCountForThisDrif = drifCounts.getOrDefault(drif.getBonusType(), 1);
+            double penaltyMultiplier = EquipmentRulesRegistry.getDrifPenalty(globalCountForThisDrif);
+
+            double finalMultiplier = (double) finalLvl * (1.0 + drifMod) * penaltyMultiplier;
+            acc.addRawValue(drif.getBonusType().name(), drif.getBaseValue(), finalMultiplier);
         }
     }
 }

@@ -27,10 +27,12 @@ public class EquipmentValidator {
 
     public boolean isValidDrif(DrifTemplate drif, String slotKey) {
         if (drif == null) return false;
-        if (!rules.isDrifAllowedInSlot(drif.getBonusType(), slotKey)) {
-            log.warn("[SECURITY] Odrzucono drif {} ze slotu {}", drif.getBonusType(), slotKey);
+
+        if (drif.getBonusType() == null) {
+            log.warn("[SECURITY] Odrzucono drif o ID {} - brak zdefiniowanego typu bonusu!", drif.getId());
             return false;
         }
+
         return true;
     }
 
@@ -52,5 +54,43 @@ public class EquipmentValidator {
     public int sanitizeOrbLevel(int requestedLevel, OrbTemplate orb) {
         if (orb.getSize() == null) return requestedLevel;
         return Math.min(requestedLevel, orb.getSize().getMaxLevel());
+    }
+
+    public boolean isElementalDamage(pl.brokenranks.tool.broken_ranks_tool.entity.enums.DRIF_BONUS_TYPE type) {
+        return rules.isElementalDamage(type);
+    }
+
+    public boolean isElementalDrifPositionValid(DrifTemplate drif, String slotKey) {
+        if (drif == null || drif.getBonusType() == null) return false;
+
+        if (rules.isElementalDamage(drif.getBonusType())) {
+            return "weapon".equals(slotKey);
+        }
+
+        return true;
+    }
+
+    public boolean isValidDrifSizeForTier(DrifTemplate drif, ItemTemplate item) {
+        if (drif == null || drif.getSize() == null || item == null || item.getTier() == null) return false;
+
+        int tierLvl = convertRomanToInteger(item.getTier());
+        int allowedSizeIndex;
+
+        if (tierLvl <= 3) allowedSizeIndex = 0;
+        else if (tierLvl <= 6) allowedSizeIndex = 1;
+        else if (tierLvl <= 9) allowedSizeIndex = 2;
+        else allowedSizeIndex = 3;
+
+        return drif.getSize().ordinal() <= allowedSizeIndex;
+    }
+
+    private int convertRomanToInteger(String roman) {
+        return switch (roman.toUpperCase()) {
+            case "I" -> 1; case "II" -> 2; case "III" -> 3;
+            case "IV" -> 4; case "V" -> 5; case "VI" -> 6;
+            case "VII" -> 7; case "VIII" -> 8; case "IX" -> 9;
+            case "X" -> 10; case "XI" -> 11; case "XII" -> 12;
+            default -> 0;
+        };
     }
 }
