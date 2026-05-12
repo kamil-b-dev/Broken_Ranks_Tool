@@ -3,7 +3,7 @@ import axios from "axios";
 import GearSlot from "./components/GearSlot";
 import ItemDatabase from "./components/ItemDatabase";
 import StatsPanel from "./components/StatsPanel";
-import CharacterPanel from "./components/CharacterPanel"; // Pamiętaj o imporcie!
+import CharacterPanel from "./components/CharacterPanel";
 
 const API_URL = "http://localhost:8080/api";
 
@@ -25,21 +25,24 @@ const SLOTS = [
 function App() {
     const [data, setData] = useState({ items: [], orbs: [], drifs: [] });
     const [categoryNames, setCategoryNames] = useState({});
+    const [gameRules, setGameRules] = useState(null);
 
     const [requestData, setRequestData] = useState({ slots: {}, characterStats: {} });
     const [stats, setStats] = useState(null);
 
-    const [activeTab, setActiveTab] = useState("database"); // "database" | "character"
+    const [activeTab, setActiveTab] = useState("database");
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [itemsRes, orbsRes, drifsRes] = await Promise.all([
+                const [itemsRes, orbsRes, drifsRes, rulesRes] = await Promise.all([
                     axios.get(`${API_URL}/items`),
                     axios.get(`${API_URL}/orbs`),
-                    axios.get(`${API_URL}/drifs`)
+                    axios.get(`${API_URL}/drifs`),
+                    axios.get(`${API_URL}/rules`)
                 ]);
                 setData({ items: itemsRes.data, orbs: orbsRes.data, drifs: drifsRes.data });
+                setGameRules(rulesRes.data);
             } catch (error) {
                 console.error("Błąd krytyczny: Nie udało się pobrać głównych danych z Javy!", error);
             }
@@ -94,11 +97,7 @@ function App() {
 
     return (
         <div className="w-full max-w-[1600px] mx-auto p-6 flex flex-col gap-6">
-
-            {/* GÓRNA SEKCJA */}
             <div className="grid grid-cols-1 xl:grid-cols-10 gap-6">
-
-                {/* Lewa kolumna - Ekwipunek */}
                 <div className="xl:col-span-7 bg-neutral-800 p-6 rounded-xl shadow-lg border border-neutral-700 flex flex-col">
                     <h1 className="text-3xl font-bold text-center text-orange-500 mb-6 shrink-0">
                         Broken Ranks Tool
@@ -117,16 +116,15 @@ function App() {
                                 )}
                                 orbs={data.orbs}
                                 drifs={data.drifs}
+                                allSlots={requestData.slots || {}}
                                 onUpdate={handleSlotUpdate}
+                                gameRules={gameRules}
                             />
                         ))}
                     </div>
                 </div>
 
-                {/* Prawa kolumna - PRZEŁĄCZNIK ZAKŁADEK*/}
                 <div className="xl:col-span-3 flex flex-col gap-4 relative min-h-[600px] xl:min-h-0">
-
-                    {/* Nawigacja*/}
                     <div className="flex bg-neutral-800 rounded-xl p-1 shadow-lg border border-neutral-700 shrink-0">
                         <button
                             onClick={() => setActiveTab("database")}
@@ -151,27 +149,20 @@ function App() {
                     </div>
 
                     <div className="relative flex-1">
-
-                        {/* Okno Bazy */}
                         <div className={`xl:absolute xl:inset-0 flex flex-col w-full h-full ${activeTab === "database" ? "flex" : "hidden"}`}>
                             <ItemDatabase groupedItems={itemsGroupedByCategory} />
                         </div>
 
-                        {/* Okno Statystyk Postaci */}
                         <div className={`xl:absolute xl:inset-0 flex flex-col w-full h-full ${activeTab === "character" ? "flex" : "hidden"}`}>
                             <CharacterPanel onStatsChange={(stats) => setRequestData(prev => ({ ...prev, characterStats: stats }))} />
                         </div>
-
                     </div>
                 </div>
-
             </div>
 
-            {/* DOLNA SEKCJA: Kalkulator Statystyk */}
             <div className="w-full">
                 <StatsPanel stats={stats} onCalculate={calculateStats} />
             </div>
-
         </div>
     );
 }

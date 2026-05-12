@@ -1,5 +1,6 @@
 package pl.brokenranks.tool.broken_ranks_tool.service.rules;
 
+import lombok.Getter;
 import org.springframework.stereotype.Component;
 import pl.brokenranks.tool.broken_ranks_tool.entity.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.entity.enums.ITEM_CATEGORY;
@@ -9,9 +10,10 @@ import java.util.List;
 import java.util.Map;
 
 @Component
+@Getter
 public class EquipmentRulesRegistry {
 
-    private static final Map<String, List<ITEM_CATEGORY>> SLOT_ITEM_RULES = Map.ofEntries(
+    private final Map<String, List<ITEM_CATEGORY>> slotItemRules = Map.ofEntries(
             Map.entry("helmet", List.of(ITEM_CATEGORY.HELMET)),
             Map.entry("armor", List.of(ITEM_CATEGORY.ARMOR)),
             Map.entry("cape", List.of(ITEM_CATEGORY.CAPE)),
@@ -26,37 +28,39 @@ public class EquipmentRulesRegistry {
             Map.entry("necklace", List.of(ITEM_CATEGORY.NECKLACE))
     );
 
-    private static final Map<String, List<ORB_CATEGORY>> SLOT_ORB_RULES = Map.ofEntries(
+    private final Map<String, List<ORB_CATEGORY>> slotOrbRules = Map.ofEntries(
             Map.entry("weapon", List.of(ORB_CATEGORY.OFENSIVE)),
             Map.entry("shield", List.of(ORB_CATEGORY.OFENSIVE, ORB_CATEGORY.DEFENSIVE)),
             Map.entry("helmet", List.of(ORB_CATEGORY.DEFENSIVE)),
             Map.entry("armor", List.of(ORB_CATEGORY.DEFENSIVE)),
-            Map.entry("cape", List.of(ORB_CATEGORY.DEFENSIVE)),
             Map.entry("legs", List.of(ORB_CATEGORY.DEFENSIVE)),
             Map.entry("boots", List.of(ORB_CATEGORY.DEFENSIVE)),
-            Map.entry("gloves", List.of(ORB_CATEGORY.DEFENSIVE)),
-            Map.entry("belt", List.of(ORB_CATEGORY.DEFENSIVE)),
+            Map.entry("cape", List.of(ORB_CATEGORY.OFENSIVE)),
+            Map.entry("belt", List.of(ORB_CATEGORY.OFENSIVE)),
+            Map.entry("gloves", List.of(ORB_CATEGORY.OFENSIVE)),
             Map.entry("ring1", List.of(ORB_CATEGORY.UTILITY)),
             Map.entry("ring2", List.of(ORB_CATEGORY.UTILITY)),
             Map.entry("necklace", List.of(ORB_CATEGORY.UTILITY))
     );
 
-    private static final List<DRIF_BONUS_TYPE> ELEMENTAL_DAMAGE_TYPES = List.of(
+    private final List<DRIF_BONUS_TYPE> elementalDamageTypes = List.of(
             DRIF_BONUS_TYPE.DAMAGE_ENERGY,
             DRIF_BONUS_TYPE.DAMAGE_FIRE,
-            DRIF_BONUS_TYPE.DAMAGE_FROST
+            DRIF_BONUS_TYPE.DAMAGE_FROST,
+            DRIF_BONUS_TYPE.DAMAGE_MAGIC,
+            DRIF_BONUS_TYPE.DAMAGE_PHYSICAL
     );
 
-    public boolean isElementalDamage(DRIF_BONUS_TYPE type) {
-        return ELEMENTAL_DAMAGE_TYPES.contains(type);
-    }
-
     public boolean isItemAllowedInSlot(ITEM_CATEGORY category, String slotKey) {
-        return SLOT_ITEM_RULES.getOrDefault(slotKey, List.of()).contains(category);
+        return slotItemRules.getOrDefault(slotKey, List.of()).contains(category);
     }
 
     public boolean isOrbAllowedInSlot(ORB_CATEGORY category, String slotKey) {
-        return SLOT_ORB_RULES.getOrDefault(slotKey, List.of()).contains(category);
+        return slotOrbRules.getOrDefault(slotKey, List.of()).contains(category);
+    }
+
+    public boolean isElementalDamage(DRIF_BONUS_TYPE type) {
+        return elementalDamageTypes.contains(type);
     }
 
     public static double getDrifPenalty(int count) {

@@ -47,7 +47,7 @@ public class EquipmentStatsCalculatorService {
 
     private Map<DRIF_BONUS_TYPE, Integer> preCountDrifs(EquipmentRequest request, CalculationContext ctx) {
         Map<DRIF_BONUS_TYPE, Integer> counts = new HashMap<>();
-        boolean elementalDamageAlreadyAssigned = false; // Flaga unikalności globalnej
+        boolean elementalDamageAlreadyAssigned = false;
 
         for (Map.Entry<String, SlotData> entry : request.getSlots().entrySet()) {
             String slotKey = entry.getKey();
