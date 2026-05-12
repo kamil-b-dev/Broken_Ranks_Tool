@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.brokenranks.tool.broken_ranks_tool.dto.EquipmentRequest.SlotData;
+import pl.brokenranks.tool.broken_ranks_tool.entity.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.entity.templates.ItemTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.entity.templates.OrbTemplate;
@@ -56,7 +57,7 @@ public class EquipmentValidator {
         return Math.min(requestedLevel, orb.getSize().getMaxLevel());
     }
 
-    public boolean isElementalDamage(pl.brokenranks.tool.broken_ranks_tool.entity.enums.DRIF_BONUS_TYPE type) {
+    public boolean isElementalDamage(DRIF_BONUS_TYPE type) {
         return rules.isElementalDamage(type);
     }
 
