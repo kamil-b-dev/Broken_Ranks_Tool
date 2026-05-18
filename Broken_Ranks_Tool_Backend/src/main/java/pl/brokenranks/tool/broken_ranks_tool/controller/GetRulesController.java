@@ -25,14 +25,18 @@ public class GetRulesController {
         Map<String, Object> response = new HashMap<>();
 
         Map<String, String> translations = new HashMap<>();
+        Map<String, Integer> drifBasePowers = new HashMap<>(); // NOWOŚĆ
+
         for (ORB_BONUS_TYPE type : ORB_BONUS_TYPE.values()) {
             translations.put(type.name(), type.getName());
         }
         for (DRIF_BONUS_TYPE type : DRIF_BONUS_TYPE.values()) {
             translations.put(type.name(), type.getDescription());
+            drifBasePowers.put(type.name(), type.getBasePower()); // POBIERAMY POTĘGĘ
         }
 
         response.put("bonusTranslations", translations);
+        response.put("drifBasePowers", drifBasePowers); // WYSYŁAMY POTĘGI
         response.put("slotOrbRules", registry.getSlotOrbRules());
         response.put("elementalTypes", registry.getElementalDamageTypes());
 
