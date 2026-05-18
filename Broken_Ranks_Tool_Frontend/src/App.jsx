@@ -44,30 +44,18 @@ function App() {
                 setData({ items: itemsRes.data, orbs: orbsRes.data, drifs: drifsRes.data });
                 setGameRules(rulesRes.data);
             } catch (error) {
-                console.error("Błąd krytyczny: Nie udało się pobrać głównych danych z Javy!", error);
+                console.error(error);
             }
 
             try {
                 const catRes = await axios.get(`${API_URL}/dictionaries/categories`);
                 setCategoryNames(catRes.data);
             } catch (error) {
-                console.warn("Błąd pobierania słownika. Używam angielskich nazw.", error);
+                console.warn(error);
             }
         };
         fetchData();
     }, []);
-
-    const itemsGroupedByCategory = data.items.reduce((groupedItems, item) => {
-        const categoryKey = item.category || "INNE";
-        const displayCategory = categoryNames[categoryKey] || categoryKey;
-
-        if (!groupedItems[displayCategory]) {
-            groupedItems[displayCategory] = [];
-        }
-
-        groupedItems[displayCategory].push(item);
-        return groupedItems;
-    }, {});
 
     const handleSlotUpdate = (slotKey, slotData) => {
         setRequestData((prev) => ({
@@ -91,7 +79,7 @@ function App() {
             const response = await axios.post(`${API_URL}/calculator/calculate`, requestData);
             setStats(response.data);
         } catch (error) {
-            console.error("Błąd podczas przeliczania statystyk", error);
+            console.error(error);
         }
     };
 
@@ -150,7 +138,13 @@ function App() {
 
                     <div className="relative flex-1">
                         <div className={`xl:absolute xl:inset-0 flex flex-col w-full h-full ${activeTab === "database" ? "flex" : "hidden"}`}>
-                            <ItemDatabase groupedItems={itemsGroupedByCategory} />
+                            <ItemDatabase
+                                items={data.items}
+                                orbs={data.orbs}
+                                drifs={data.drifs}
+                                categoryNames={categoryNames}
+                                gameRules={gameRules || {}}
+                            />
                         </div>
 
                         <div className={`xl:absolute xl:inset-0 flex flex-col w-full h-full ${activeTab === "character" ? "flex" : "hidden"}`}>

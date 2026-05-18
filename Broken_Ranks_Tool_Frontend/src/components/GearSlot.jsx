@@ -24,7 +24,7 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate, allSlots = {},
     const [drifLevels, setDrifLevels] = useState({});
 
     const [orbType, setOrbType] = useState("");
-    const [isDragOver, setIsDragOver] = useState(false);
+    const [dragOverZone, setDragOverZone] = useState(null);
 
     const getRarityColor = (rarity) => {
         if (!rarity) return "text-white";
@@ -85,9 +85,9 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate, allSlots = {},
 
     const baseCapacity = fullSelectedItem?.capacity || 0;
     let capacityBonus = 0;
-    if (itemStars === 7) capacityBonus = 1;
-    else if (itemStars === 8) capacityBonus = 2;
-    else if (itemStars === 9) capacityBonus = 4;
+    if (itemStars >= 7 && itemStars < 8) capacityBonus = 1;
+    else if (itemStars >= 8 && itemStars < 9) capacityBonus = 2;
+    else if (itemStars >= 9) capacityBonus = 4;
 
     const itemCapacity = baseCapacity > 0 ? baseCapacity + capacityBonus : 0;
 
@@ -123,61 +123,89 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate, allSlots = {},
         });
     }, [selectedItem, itemStars, selectedOrb, orbLevel, selectedDrifs, drifLevels, maxDrifs]);
 
-    const updateDrif = (index, value) => {
-        const newDrifs = [...selectedDrifs];
-        newDrifs[index] = value;
-        setSelectedDrifs(newDrifs);
-    };
-
-    const updateDrifLevel = (index, value) => {
-        setDrifLevels({ ...drifLevels, [index]: parseInt(value) });
-    };
-
-    const handleDragOver = (e) => {
+    const handleDragOver = (e, zone) => {
         e.preventDefault();
-        setIsDragOver(true);
+        setDragOverZone(zone);
     };
 
     const handleDragLeave = () => {
-        setIsDragOver(false);
+        setDragOverZone(null);
     };
 
-    const handleDrop = (e) => {
+    const handleDrop = (e, zone) => {
         e.preventDefault();
-        setIsDragOver(false);
+        setDragOverZone(null);
         try {
             const data = JSON.parse(e.dataTransfer.getData("application/json"));
-            if (items.some(i => i.id.toString() === data.id.toString())) {
-                setSelectedItem(data.id.toString());
-                setItemStars(1);
-                setHoverStars(0);
-                setSelectedOrb("");
-                setOrbLevel("");
-                setOrbType("");
-                setSelectedDrifs([]);
-                setDrifTypes({});
-                setDrifLevels({});
+
+            if (data.dragType === "items" && zone === "item") {
+                if (items.some(i => i.id.toString() === data.id.toString())) {
+                    setSelectedItem(data.id.toString());
+                    setItemStars(1);
+                    setHoverStars(0);
+                    setSelectedOrb("");
+                    setOrbLevel("");
+                    setOrbType("");
+                    setSelectedDrifs([]);
+                    setDrifTypes({});
+                    setDrifLevels({});
+                }
+            } else if (data.dragType === "orbs" && zone === "orb") {
+                if (!selectedItem) return;
+                if (allowedOrbCategories.length > 0 && !allowedOrbCategories.includes(data.category)) return;
+
+                const typeKey = data.name || data.description || data.bonusType;
+                setOrbType(typeKey);
+                setSelectedOrb(data.id.toString());
+                setOrbLevel("1");
+            } else if (data.dragType === "drifs" && zone.startsWith("drif-")) {
+                if (!selectedItem || maxDrifs === 0) return;
+
+                const targetIndex = parseInt(zone.split('-')[1]);
+
+                if (elementalTypes.includes(data.bonusType)) {
+                    if (slotKey !== "weapon") return;
+                    if (hasGlobalElemental) return;
+                }
+
+                const localUsedBonusTypes = selectedDrifs
+                    .map((dId, i) => i !== targetIndex && dId ? drifs.find(dr => dr.id.toString() === dId.toString())?.bonusType : null)
+                    .filter(Boolean);
+                if (localUsedBonusTypes.includes(data.bonusType)) return;
+
+                if (SIZE_INDEX[data.size] > maxDrifIndex) return;
+
+                const typeKey = data.name || data.description || data.bonusType;
+                setDrifTypes(prev => ({ ...prev, [targetIndex]: typeKey }));
+
+                setSelectedDrifs(prev => {
+                    const next = [...prev];
+                    while (next.length < maxDrifs) next.push("");
+                    next[targetIndex] = data.id.toString();
+                    return next;
+                });
+
+                setDrifLevels(prev => ({ ...prev, [targetIndex]: 1 }));
             }
         } catch (error) {}
     };
 
     const slotClasses = `flex flex-col items-center gap-3 w-64 p-2 rounded-xl transition-all duration-200 border-2 ${
-        isDragOver ? "border-green-500 bg-green-900/20 shadow-[0_0_15px_rgba(34,197,94,0.3)] scale-105" :
-            isOverCapacity ? "border-red-500 bg-red-900/10 shadow-[0_0_15px_rgba(239,68,68,0.3)]" : "border-transparent"
+        isOverCapacity ? "border-red-500 bg-red-900/10 shadow-[0_0_15px_rgba(239,68,68,0.3)]" : "border-transparent"
     }`;
 
     if (!gameRules) return <div className="w-64 p-2 text-xs text-gray-500 text-center border border-gray-700 rounded-xl">Ładowanie reguł...</div>;
 
     return (
-        <div
-            className={slotClasses}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-        >
+        <div className={slotClasses}>
             <span className="text-xs font-bold text-gray-400 pointer-events-none">{label}</span>
 
-            <div className="w-full flex flex-col gap-1.5">
+            <div
+                className={`w-full flex flex-col gap-1.5 p-1 -m-1 rounded-lg border-2 transition-colors ${dragOverZone === 'item' ? 'border-green-500 bg-green-900/20' : 'border-transparent'}`}
+                onDragOver={(e) => handleDragOver(e, 'item')}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, 'item')}
+            >
                 <select
                     value={selectedItem}
                     onChange={(e) => {
@@ -197,11 +225,7 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate, allSlots = {},
                 >
                     <option value="" className="text-white">-- {label} --</option>
                     {items.map((i) => (
-                        <option
-                            key={i.id}
-                            value={i.id}
-                            className={`bg-neutral-800 ${getRarityColor(i.rarity)}`}
-                        >
+                        <option key={i.id} value={i.id} className={`bg-neutral-800 ${getRarityColor(i.rarity)}`}>
                             {i.name} {i.tier ? i.tier : ""}
                         </option>
                     ))}
@@ -231,7 +255,12 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate, allSlots = {},
             <div className="w-full flex flex-col items-center mt-1">
                 <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1 pointer-events-none">Orb</span>
 
-                <div className="flex gap-1 w-full items-center mb-1">
+                <div
+                    className={`flex gap-1 w-full items-center mb-1 p-1 -m-1 rounded-lg border-2 transition-colors ${dragOverZone === 'orb' ? 'border-red-500 bg-red-900/20' : 'border-transparent'}`}
+                    onDragOver={(e) => handleDragOver(e, 'orb')}
+                    onDragLeave={handleDragLeave}
+                    onDrop={(e) => handleDrop(e, 'orb')}
+                >
                     <select
                         value={orbType}
                         onChange={(e) => {
@@ -302,7 +331,7 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate, allSlots = {},
                     </div>
                 )}
 
-                <div className="flex flex-col w-full gap-3 items-center">
+                <div className="flex flex-col w-full gap-2 items-center">
                     {Array.from({ length: maxDrifs }).map((_, index) => {
                         const drifId = selectedDrifs[index] || "";
                         const currentType = drifTypes[index] || "";
@@ -338,13 +367,23 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate, allSlots = {},
                         const powerWithoutThisDrif = currentPowerUsed - currentDrifCost;
 
                         return (
-                            <div key={index} className="flex gap-1 w-full items-center">
+                            <div
+                                key={index}
+                                className={`flex gap-1 w-full items-center p-1 -m-1 rounded-lg border-2 transition-colors ${dragOverZone === `drif-${index}` ? 'border-orange-500 bg-orange-900/20' : 'border-transparent'}`}
+                                onDragOver={(e) => handleDragOver(e, `drif-${index}`)}
+                                onDragLeave={handleDragLeave}
+                                onDrop={(e) => handleDrop(e, `drif-${index}`)}
+                            >
                                 <select
                                     value={currentType}
                                     onChange={(e) => {
-                                        setDrifTypes({ ...drifTypes, [index]: e.target.value });
-                                        updateDrif(index, "");
-                                        updateDrifLevel(index, "");
+                                        setDrifTypes(prev => ({ ...prev, [index]: e.target.value }));
+                                        setSelectedDrifs(prev => {
+                                            const next = [...prev];
+                                            next[index] = "";
+                                            return next;
+                                        });
+                                        setDrifLevels(prev => ({ ...prev, [index]: parseInt("") }));
                                     }}
                                     className={`flex-[3] min-w-0 bg-transparent text-orange-400 p-1 text-xs border-b-4 focus:border-gray-500 outline-none text-center cursor-pointer ${isOverCapacity ? 'border-red-500/50' : 'border-black'}`}
                                 >
@@ -359,8 +398,12 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate, allSlots = {},
                                 <select
                                     value={drifId}
                                     onChange={(e) => {
-                                        updateDrif(index, e.target.value);
-                                        updateDrifLevel(index, "");
+                                        setSelectedDrifs(prev => {
+                                            const next = [...prev];
+                                            next[index] = e.target.value;
+                                            return next;
+                                        });
+                                        setDrifLevels(prev => ({ ...prev, [index]: parseInt("") }));
                                     }}
                                     disabled={!currentType}
                                     className={`flex-[3] min-w-0 bg-transparent text-white p-1 text-xs border-b-4 focus:border-gray-500 outline-none text-center disabled:opacity-30 cursor-pointer ${isOverCapacity ? 'border-red-500/50' : 'border-black'}`}
@@ -382,7 +425,7 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate, allSlots = {},
 
                                 <select
                                     value={drifLevels[index] || ""}
-                                    onChange={(e) => updateDrifLevel(index, e.target.value)}
+                                    onChange={(e) => setDrifLevels(prev => ({ ...prev, [index]: parseInt(e.target.value) }))}
                                     disabled={!drifId}
                                     className={`flex-[2] min-w-0 bg-transparent text-white p-1 text-xs border-b-4 focus:border-gray-500 outline-none text-center disabled:opacity-30 cursor-pointer ${isOverCapacity ? 'border-red-500/50' : 'border-black'}`}
                                 >
