@@ -9,6 +9,8 @@ public class EquipmentRequest {
 
     private Map<String, SlotData> slots;
 
+    private Map<String, Integer> characterStats;
+
     @Data
     public static class SlotData {
         private Long itemId;

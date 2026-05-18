@@ -1,16 +1,24 @@
 import { useState, useMemo } from "react";
 
+const getRarityColor = (rarity) => {
+    if (!rarity) return "text-gray-300";
+    switch(rarity.toUpperCase()) {
+        case 'SET': return "text-green-400 font-bold";
+        case 'EPIC': return "text-purple-400 font-bold";
+        case 'LEGENDARY': return "text-orange-400 font-bold";
+        case 'RARE': return "text-blue-300 font-bold";
+        default: return "text-gray-300";
+    }
+};
+
 const ItemDatabase = ({ groupedItems }) => {
-    //STAN FILTRÓW
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("Wszystkie");
     const [selectedTier, setSelectedTier] = useState("Wszystkie");
     const [selectedStat, setSelectedStat] = useState("Wszystkie");
 
-    //PAMIĘĆ TOOTLIPA
     const [tooltip, setTooltip] = useState({ show: false, x: 0, y: 0, item: null });
 
-    //WYCIĄGANIE OPCJI Z BAZY
     const { allCategories, allTiers, allStats } = useMemo(() => {
         const tiersSet = new Set();
         const statsSet = new Set();
@@ -31,15 +39,12 @@ const ItemDatabase = ({ groupedItems }) => {
         };
     }, [groupedItems]);
 
-    //LOGIKA FILTROWANIA
     const filteredGroups = Object.entries(groupedItems).reduce((acc, [category, items]) => {
         if (selectedCategory !== "Wszystkie" && category !== selectedCategory) return acc;
 
         const matchedItems = items.filter(item => {
             const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
-
             const matchesTier = selectedTier === "Wszystkie" || item.tier === selectedTier;
-
             const matchesStat = selectedStat === "Wszystkie" || (item.stats && item.stats[selectedStat] !== undefined);
 
             return matchesSearch && matchesTier && matchesStat;
@@ -49,12 +54,10 @@ const ItemDatabase = ({ groupedItems }) => {
         return acc;
     }, {});
 
-    // SYSTEM DRAG & DROP
     const handleDragStart = (e, item) => {
         e.dataTransfer.setData("application/json", JSON.stringify(item));
     };
 
-    // SYSTEM TOOLTIPÓW
     const handleMouseMove = (e, item) => {
         setTooltip({ show: true, x: e.clientX + 15, y: e.clientY + 15, item });
     };
@@ -86,7 +89,6 @@ const ItemDatabase = ({ groupedItems }) => {
                 )}
             </div>
 
-            {/* SEKCJA FILTRÓW */}
             <div className="shrink-0 mb-4 flex flex-col gap-2">
                 <input
                     type="text"
@@ -126,12 +128,11 @@ const ItemDatabase = ({ groupedItems }) => {
                 </div>
             </div>
 
-            {/* LISTA PRZEDMIOTÓW */}
             <div className="overflow-y-auto pr-2 space-y-4 flex-1">
                 {Object.entries(filteredGroups).sort().map(([category, catItems]) => (
                     <div key={category}>
                         <h4 className="text-blue-400 font-bold mb-1 text-sm">{category}</h4>
-                        <ul className="text-sm text-gray-300 space-y-1 pl-2 border-l-2 border-neutral-700">
+                        <ul className="text-sm space-y-1 pl-2 border-l-2 border-neutral-700">
                             {catItems.map(item => (
                                 <li
                                     key={item.id}
@@ -139,9 +140,9 @@ const ItemDatabase = ({ groupedItems }) => {
                                     onDragStart={(e) => handleDragStart(e, item)}
                                     onMouseMove={(e) => handleMouseMove(e, item)}
                                     onMouseLeave={handleMouseLeave}
-                                    className="hover:text-white hover:bg-neutral-700/50 p-1 rounded transition-colors cursor-grab active:cursor-grabbing flex justify-between items-center group"
+                                    className="hover:bg-neutral-700/50 p-1 rounded transition-colors cursor-grab active:cursor-grabbing flex justify-between items-center group"
                                 >
-                                    <span className="truncate mr-2">{item.name}</span>
+                                    <span className={`truncate mr-2 ${getRarityColor(item.rarity)}`}>{item.name}</span>
                                     <div className="flex items-center gap-2 shrink-0">
                                         {item.tier && <span className="text-[10px] text-orange-400 font-bold border border-orange-500/30 px-1 rounded bg-orange-900/20">{item.tier}</span>}
                                         <span className="text-gray-500 text-[11px] group-hover:text-gray-300 transition-colors w-10 text-right">
@@ -164,15 +165,14 @@ const ItemDatabase = ({ groupedItems }) => {
                 )}
             </div>
 
-            {/* TOOLTIP */}
             {tooltip.show && tooltip.item && (
                 <div
                     style={{ top: tooltip.y, left: tooltip.x }}
                     className="fixed z-50 bg-neutral-900 border-2 border-blue-600 p-3 rounded-lg shadow-2xl text-white pointer-events-none w-64"
                 >
                     <div className="flex justify-between items-start border-b border-gray-700 pb-1 mb-2">
-                        <h4 className="font-bold text-orange-400">{tooltip.item.name}</h4>
-                        {tooltip.item.tier && <span className="text-xs text-orange-500 font-bold">{tooltip.item.tier}</span>}
+                        <h4 className={`text-base ${getRarityColor(tooltip.item.rarity)}`}>{tooltip.item.name}</h4>
+                        {tooltip.item.tier && <span className="text-xs text-orange-500 font-bold mt-1">{tooltip.item.tier}</span>}
                     </div>
                     {tooltip.item.stats && Object.keys(tooltip.item.stats).length > 0 ? (
                         Object.entries(tooltip.item.stats).map(([k, v]) => (

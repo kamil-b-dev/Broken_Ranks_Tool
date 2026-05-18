@@ -5,11 +5,11 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum ORB_SIZE {
-    SUBORB(3),
-    BIORB(3),
-    MAGNIORB(3),
-    ARCYORB(3);
+public enum RARITY {
+    RARE("Rar"),
+    EPIC("Epik"),
+    LEGENDARY("Legenda"),
+    SET("Set");
 
-    private final int maxLevel;
+    private final String displayName;
 }
