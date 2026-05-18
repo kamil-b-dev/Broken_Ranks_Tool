@@ -8,6 +8,13 @@ export const getDrifMaxLvl = (size) => {
     return 21;
 };
 
+export const DRIF_MULTIPLIERS = {
+    SUBDRIF: 1,
+    BIDRIF: 2,
+    MAGNIDRIF: 3,
+    ARCYDRIF: 4
+};
+
 export const getStarColor = (value, isFilled) => {
     if (!isFilled) return "text-neutral-700";
     if (value <= 3) return "text-orange-700 drop-shadow-[0_0_4px_rgba(194,65,12,0.8)]";

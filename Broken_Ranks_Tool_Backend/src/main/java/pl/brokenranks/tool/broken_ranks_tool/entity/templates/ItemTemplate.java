@@ -5,6 +5,7 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 import pl.brokenranks.tool.broken_ranks_tool.entity.converters.MapToStringConverter;
 import pl.brokenranks.tool.broken_ranks_tool.entity.enums.ITEM_CATEGORY;
+import pl.brokenranks.tool.broken_ranks_tool.entity.enums.RARITY;
 
 import java.util.Map;
 
@@ -28,4 +29,8 @@ public class ItemTemplate extends  BaseNamedEntity {
     @Column(name = "stats")
     @Convert(converter = MapToStringConverter.class)
     private Map<String, Integer> stats;
+
+    @Column(name = "rarity")
+    @Enumerated(EnumType.STRING)
+    private RARITY rarity;
 }
