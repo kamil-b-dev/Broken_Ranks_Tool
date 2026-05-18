@@ -18,7 +18,7 @@ public enum ITEM_CATEGORY {
     WEAPON_1H("Bron jednoręczna"),
     WEAPON_2H("Broń dwuręczna"),
     WEAPON_RANGED("Bron dystansowa"),
-    OFF_HAND("Bron pomocnicza");
+    OFF_HAND("Karwasze/Tarcza");
 
     private final String description;
 }
