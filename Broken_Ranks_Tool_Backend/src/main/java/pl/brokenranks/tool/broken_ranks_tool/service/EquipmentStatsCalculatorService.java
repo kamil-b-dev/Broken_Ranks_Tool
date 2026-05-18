@@ -64,7 +64,6 @@ public class EquipmentStatsCalculatorService {
                 DrifTemplate drif = ctx.drifs().get(drifId);
 
                 if (!validator.isValidDrif(drif, slotKey)) continue;
-
                 if (!validator.isElementalDrifPositionValid(drif, slotKey)) continue;
 
                 if (validator.isElementalDamage(drif.getBonusType())) {
@@ -75,7 +74,6 @@ public class EquipmentStatsCalculatorService {
                 }
 
                 if (!validator.isValidDrifSizeForTier(drif, item)) continue;
-
                 if (itemUniqueDrifs.contains(drif.getBonusType())) continue;
 
                 itemUniqueDrifs.add(drif.getBonusType());
@@ -154,7 +152,7 @@ public class EquipmentStatsCalculatorService {
             DrifTemplate drif = ctx.drifs().get(drifId);
 
             if (!validator.isValidDrif(drif, slotKey)) continue;
-            if (!validator.isValidDrifSizeForTier(drif, item)) continue; // Walidacja Rozmiaru
+            if (!validator.isValidDrifSizeForTier(drif, item)) continue;
 
             if (processedDrifsForItem.contains(drif.getBonusType())) continue;
             processedDrifsForItem.add(drif.getBonusType());
@@ -167,8 +165,37 @@ public class EquipmentStatsCalculatorService {
             int globalCountForThisDrif = drifCounts.getOrDefault(drif.getBonusType(), 1);
             double penaltyMultiplier = EquipmentRulesRegistry.getDrifPenalty(globalCountForThisDrif);
 
-            double finalMultiplier = (double) finalLvl * (1.0 + drifMod) * penaltyMultiplier;
-            acc.addRawValue(drif.getBonusType().name(), drif.getBaseValue(), finalMultiplier);
+            String calculatedStatValue = calculateTotalDrifStat(drif.getBaseValue(), drif.getIncrement(), finalLvl);
+            double finalMultiplier = (1.0 + drifMod) * penaltyMultiplier;
+
+            acc.addRawValue(drif.getBonusType().name(), calculatedStatValue, finalMultiplier);
+        }
+    }
+
+    private String calculateTotalDrifStat(String baseValueStr, String incrementStr, int level) {
+        if (baseValueStr == null || incrementStr == null) return "0";
+        boolean isPercentage = baseValueStr.contains("%") || incrementStr.contains("%");
+
+        try {
+            double baseValue = Double.parseDouble(baseValueStr.replace(",", ".").replace("%", "").trim());
+            double increment = Double.parseDouble(incrementStr.replace(",", ".").replace("%", "").trim());
+
+            double total = baseValue;
+            for (int currentLevel = 2; currentLevel <= level; currentLevel++) {
+                if (currentLevel >= 19 && currentLevel <= 21) {
+                    total += (increment * 2.0);
+                } else {
+                    total += increment;
+                }
+            }
+
+            String result = (total == Math.floor(total)) ?
+                    String.format(Locale.US, "%.0f", total) :
+                    String.format(Locale.US, "%.2f", total);
+
+            return isPercentage ? result + "%" : result;
+        } catch (NumberFormatException e) {
+            return "0";
         }
     }
 }
