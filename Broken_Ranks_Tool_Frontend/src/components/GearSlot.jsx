@@ -106,6 +106,10 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate, allSlots = {},
     const isAtMaxCapacity = currentPowerUsed === itemCapacity && itemCapacity > 0;
     const capacityPercentage = itemCapacity > 0 ? Math.min((currentPowerUsed / itemCapacity) * 100, 100) : 0;
 
+    const currentOrbObj = orbs.find(o => o.id.toString() === selectedOrb.toString());
+    const isSubOrb = currentOrbObj?.size?.toUpperCase() === "SUBORB";
+    const availableOrbLevels = isSubOrb ? [1] : [1, 2, 3];
+
     useEffect(() => {
         const validDrifIds = selectedDrifs.slice(0, maxDrifs).filter(id => id !== "");
         const validDrifLevels = {};
@@ -173,7 +177,7 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate, allSlots = {},
                     .filter(Boolean);
                 if (localUsedBonusTypes.includes(data.bonusType)) return;
 
-                if (SIZE_INDEX[data.size] > maxDrifIndex) return;
+                if (SIZE_INDEX[data.size?.toUpperCase()] > maxDrifIndex) return;
 
                 const typeKey = data.name || data.description || data.bonusType;
                 setDrifTypes(prev => ({ ...prev, [targetIndex]: typeKey }));
@@ -282,8 +286,14 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate, allSlots = {},
                     <select
                         value={selectedOrb}
                         onChange={(e) => {
-                            setSelectedOrb(e.target.value);
-                            setOrbLevel("");
+                            const val = e.target.value;
+                            setSelectedOrb(val);
+                            const found = orbs.find(o => o.id.toString() === val.toString());
+                            if (found && found.size?.toUpperCase() === "SUBORB") {
+                                setOrbLevel("1");
+                            } else {
+                                setOrbLevel("");
+                            }
                         }}
                         disabled={!orbType}
                         className="flex-[3] min-w-0 bg-transparent text-white p-1 text-xs border-b-4 border-red-600 focus:border-red-400 outline-none text-center disabled:opacity-30 cursor-pointer"
@@ -299,11 +309,11 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate, allSlots = {},
                     <select
                         value={orbLevel}
                         onChange={(e) => setOrbLevel(e.target.value)}
-                        disabled={!selectedOrb}
+                        disabled={!selectedOrb || isSubOrb}
                         className="flex-[2] min-w-0 bg-transparent text-white p-1 text-xs border-b-4 border-red-600 focus:border-red-400 outline-none text-center disabled:opacity-30 cursor-pointer"
                     >
                         <option value="" className="bg-neutral-800 text-white">Lvl...</option>
-                        {[1, 2, 3].map(num => (
+                        {availableOrbLevels.map(num => (
                             <option key={num} value={num.toString()} className="bg-neutral-800 text-white">
                                 {num}
                             </option>
@@ -341,18 +351,14 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate, allSlots = {},
                             .filter(Boolean);
 
                         const allowedDrifs = drifs.filter(drif => {
-                            if (SIZE_INDEX[drif.size] > maxDrifIndex) return false;
+                            if (SIZE_INDEX[drif.size?.toUpperCase()] > maxDrifIndex) return false;
                             if (localUsedBonusTypes.includes(drif.bonusType)) return false;
                             if (elementalTypes.includes(drif.bonusType)) {
                                 if (slotKey !== "weapon") return false;
                                 if (hasGlobalElemental) return false;
                             }
 
-                            if (drifId === "") {
-                                const basePwr = drifBasePowers[drif.bonusType] || 0;
-                                const projectedPower = basePwr * 1;
-                                if (currentPowerUsed + projectedPower > itemCapacity) return false;
-                            }
+                            // Usunięty nadgorliwy filtr pojemności!
 
                             return true;
                         });
@@ -412,7 +418,7 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate, allSlots = {},
                                     {currentType && currentGroupedDrifs[currentType]?.map((d) => {
                                         const basePwr = drifBasePowers[d.bonusType] || 0;
                                         const minPwr = basePwr * 1;
-                                        const maxPwr = basePwr * (DRIF_MULTIPLIERS[d.size] || 1);
+                                        const maxPwr = basePwr * (DRIF_MULTIPLIERS[d.size?.toUpperCase()] || 1);
                                         const labelPwr = minPwr === maxPwr ? `${minPwr}p` : `${minPwr}-${maxPwr}p`;
 
                                         return (

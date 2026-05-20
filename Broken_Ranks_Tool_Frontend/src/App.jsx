@@ -155,7 +155,7 @@ function App() {
             </div>
 
             <div className="w-full">
-                <StatsPanel stats={stats} onCalculate={calculateStats} />
+                <StatsPanel stats={stats} onCalculate={calculateStats} gameRules={gameRules} />
             </div>
         </div>
     );

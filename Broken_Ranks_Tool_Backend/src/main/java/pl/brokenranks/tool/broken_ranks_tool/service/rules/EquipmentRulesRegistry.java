@@ -46,9 +46,7 @@ public class EquipmentRulesRegistry {
     private final List<DRIF_BONUS_TYPE> elementalDamageTypes = List.of(
             DRIF_BONUS_TYPE.DAMAGE_ENERGY,
             DRIF_BONUS_TYPE.DAMAGE_FIRE,
-            DRIF_BONUS_TYPE.DAMAGE_FROST,
-            DRIF_BONUS_TYPE.DAMAGE_MAGIC,
-            DRIF_BONUS_TYPE.DAMAGE_PHYSICAL
+            DRIF_BONUS_TYPE.DAMAGE_FROST
     );
 
     public boolean isItemAllowedInSlot(ITEM_CATEGORY category, String slotKey) {
