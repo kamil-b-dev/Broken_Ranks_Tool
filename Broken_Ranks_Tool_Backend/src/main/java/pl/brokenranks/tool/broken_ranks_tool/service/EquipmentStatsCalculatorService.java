@@ -14,6 +14,8 @@ import pl.brokenranks.tool.broken_ranks_tool.service.provider.EquipmentDataProvi
 import pl.brokenranks.tool.broken_ranks_tool.service.rules.EquipmentRulesRegistry;
 import pl.brokenranks.tool.broken_ranks_tool.service.validator.EquipmentValidator;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 
 @Service
@@ -177,21 +179,21 @@ public class EquipmentStatsCalculatorService {
         boolean isPercentage = baseValueStr.contains("%") || incrementStr.contains("%");
 
         try {
-            double baseValue = Double.parseDouble(baseValueStr.replace(",", ".").replace("%", "").trim());
-            double increment = Double.parseDouble(incrementStr.replace(",", ".").replace("%", "").trim());
+            BigDecimal total = new BigDecimal(baseValueStr.replace(",", ".").replace("%", "").trim());
+            BigDecimal increment = new BigDecimal(incrementStr.replace(",", ".").replace("%", "").trim());
+            BigDecimal doubleIncrement = increment.multiply(new BigDecimal("2"));
 
-            double total = baseValue;
             for (int currentLevel = 2; currentLevel <= level; currentLevel++) {
                 if (currentLevel >= 19 && currentLevel <= 21) {
-                    total += (increment * 2.0);
+                    total = total.add(doubleIncrement);
                 } else {
-                    total += increment;
+                    total = total.add(increment);
                 }
             }
 
-            String result = (total == Math.floor(total)) ?
-                    String.format(Locale.US, "%.0f", total) :
-                    String.format(Locale.US, "%.2f", total);
+            String result = total.setScale(2, RoundingMode.HALF_UP)
+                    .stripTrailingZeros()
+                    .toPlainString();
 
             return isPercentage ? result + "%" : result;
         } catch (NumberFormatException e) {
