@@ -6,7 +6,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum ORB_SIZE {
-    SUBORB(3),
+    SUBORB(1),
     BIORB(3),
     MAGNIORB(3),
     ARCYORB(3);
