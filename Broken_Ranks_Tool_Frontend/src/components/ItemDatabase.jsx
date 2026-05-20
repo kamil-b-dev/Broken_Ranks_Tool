@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { ROMAN_ORDER, SIZE_ORDER} from  "../utils/GearRules.jsx"
 
 const getRarityColor = (rarity) => {
     if (!rarity) return "text-gray-300";
@@ -10,9 +11,6 @@ const getRarityColor = (rarity) => {
         default: return "text-gray-300";
     }
 };
-
-const SIZE_ORDER = { "SUBDRIF": 1, "BIDRIF": 2, "MAGNIDRIF": 3, "ARCYDRIF": 4 };
-const ROMAN_ORDER = { "I": 1, "II": 2, "III": 3, "IV": 4, "V": 5, "VI": 6, "VII": 7, "VIII": 8, "IX": 9, "X": 10, "XI": 11, "XII": 12 };
 
 const deduplicateVariants = (variants) => {
     const seen = new Set();

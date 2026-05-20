@@ -1,5 +1,7 @@
 package pl.brokenranks.tool.broken_ranks_tool.service.calculator;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 
 public class StatsAccumulator {
@@ -48,11 +50,21 @@ public class StatsAccumulator {
 
     public Map<String, String> getFormattedResults() {
         Map<String, String> finalStats = new HashMap<>();
-        flatStats.forEach((stat, val) -> finalStats.put(stat, String.valueOf(Math.round(val))));
-        percentStats.forEach((stat, val) -> {
-            String format = (val == (long) val.doubleValue()) ? "%d%%" : "%s%%";
-            finalStats.put(stat, String.format(format, (long) val.doubleValue()).replace(",", "."));
+
+        flatStats.forEach((stat, val) -> {
+            BigDecimal bd = new BigDecimal(Double.toString(val))
+                    .setScale(2, RoundingMode.HALF_UP)
+                    .stripTrailingZeros();
+            finalStats.put(stat, bd.toPlainString());
         });
+
+        percentStats.forEach((stat, val) -> {
+            BigDecimal bd = new BigDecimal(Double.toString(val))
+                    .setScale(2, RoundingMode.HALF_UP)
+                    .stripTrailingZeros();
+            finalStats.put(stat, bd.toPlainString() + "%");
+        });
+
         return finalStats;
     }
 }
