@@ -84,10 +84,10 @@ function App() {
     };
 
     return (
-        <div className="w-full max-w-[1600px] mx-auto p-6 flex flex-col gap-6">
+        <div className="w-full max-w-[1600px] mx-auto p-6 flex flex-col gap-6 font-serif">
             <div className="grid grid-cols-1 xl:grid-cols-10 gap-6">
-                <div className="xl:col-span-7 bg-neutral-800 p-6 rounded-xl shadow-lg border border-neutral-700 flex flex-col">
-                    <h1 className="text-3xl font-bold text-center text-orange-500 mb-6 shrink-0">
+                <div className="xl:col-span-7 bg-gradient-to-b from-stone-900 to-black p-6 border-2 border-stone-800 shadow-[0_0_30px_rgba(0,0,0,0.9)] flex flex-col">
+                    <h1 className="text-3xl font-bold text-center text-stone-300 uppercase tracking-[0.2em] mb-8 shrink-0 border-b-4 border-double border-red-900/70 pb-4 drop-shadow-[0_2px_5px_rgba(0,0,0,1)]">
                         Broken Ranks Tool
                     </h1>
 
@@ -113,23 +113,23 @@ function App() {
                 </div>
 
                 <div className="xl:col-span-3 flex flex-col gap-4 relative min-h-[600px] xl:min-h-0">
-                    <div className="flex bg-neutral-800 rounded-xl p-1 shadow-lg border border-neutral-700 shrink-0">
+                    <div className="flex bg-black/60 p-1 border border-stone-800 shadow-[inset_0_0_10px_rgba(0,0,0,1)] shrink-0">
                         <button
                             onClick={() => setActiveTab("database")}
-                            className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
+                            className={`flex-1 py-3 text-sm font-bold uppercase tracking-widest transition-all ${
                                 activeTab === "database"
-                                    ? "bg-blue-600 text-white shadow-md"
-                                    : "text-gray-400 hover:text-white hover:bg-neutral-700"
+                                    ? "bg-stone-800 border-b-2 border-stone-400 text-stone-200"
+                                    : "text-stone-500 hover:text-stone-300 hover:bg-stone-900/50 border-b-2 border-transparent"
                             }`}
                         >
                             Baza Przedmiotów
                         </button>
                         <button
                             onClick={() => setActiveTab("character")}
-                            className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
+                            className={`flex-1 py-3 text-sm font-bold uppercase tracking-widest transition-all ${
                                 activeTab === "character"
-                                    ? "bg-orange-600 text-white shadow-md"
-                                    : "text-gray-400 hover:text-white hover:bg-neutral-700"
+                                    ? "bg-amber-950/40 border-b-2 border-amber-700 text-amber-500"
+                                    : "text-stone-500 hover:text-stone-300 hover:bg-stone-900/50 border-b-2 border-transparent"
                             }`}
                         >
                             Statystyki Postaci
