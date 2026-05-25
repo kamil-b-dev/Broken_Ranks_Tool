@@ -95,9 +95,18 @@ public class EquipmentStatsCalculatorService {
         int starLevel = (slot.getItemStars() != null) ? slot.getItemStars() : 1;
         ITEM_STAR starMod = ITEM_STAR.fromLevel(starLevel);
 
+        double baseStarDrifMod = starMod.getDrifMod();
+
+        double itemDatabaseDrifBonus = 0.0;
+        if (item.getStats() != null && item.getStats().containsKey("Bonus drify")) {
+            itemDatabaseDrifBonus = ((Number) item.getStats().get("Bonus drify")).doubleValue() / 100.0;
+        }
+
+        double finalDrifMod = baseStarDrifMod + itemDatabaseDrifBonus;
+
         processItem(item, starMod.getStatsMod(), acc);
         processOrb(slotKey, slot, starMod.getOrbMod(), ctx, acc, usedOrbs);
-        processDrifs(slotKey, slot, item, starMod.getDrifMod(), ctx, acc, drifCounts);
+        processDrifs(slotKey, slot, item, finalDrifMod, ctx, acc, drifCounts);
     }
 
     private void processItem(ItemTemplate item, double statMod, StatsAccumulator acc) {
@@ -112,8 +121,14 @@ public class EquipmentStatsCalculatorService {
         Map<String, Integer> baseResists = new HashMap<>();
 
         item.getStats().forEach((k, v) -> {
-            if (k.toLowerCase().contains("odp")) baseResists.put(k, ((Number) v).intValue());
-            else baseStats.put(k, ((Number) v).intValue());
+            String keyLower = k.toLowerCase();
+
+            if (keyLower.contains("bonus") || keyLower.contains("drif") || keyLower.contains("orb") || keyLower.contains("pojemność")) {
+                acc.addFlatValue(k, ((Number) v).doubleValue());
+            } else {
+                if (keyLower.contains("odp")) baseResists.put(k, ((Number) v).intValue());
+                else baseStats.put(k, ((Number) v).intValue());
+            }
         });
 
         acc.distributeRandomly(baseStats, statMod);

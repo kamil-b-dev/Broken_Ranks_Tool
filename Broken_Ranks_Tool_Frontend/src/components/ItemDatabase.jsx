@@ -2,13 +2,13 @@ import { useState, useMemo } from "react";
 import { ROMAN_ORDER, SIZE_ORDER} from  "../utils/GearRules.jsx"
 
 const getRarityColor = (rarity) => {
-    if (!rarity) return "text-gray-300";
+    if (!rarity) return "bg-clip-text text-transparent bg-gradient-to-r from-stone-400 to-stone-500 font-bold";
     switch(rarity.toUpperCase()) {
-        case 'SET': return "text-green-400 font-bold";
-        case 'EPIC': return "text-purple-400 font-bold";
-        case 'LEGENDARY': return "text-orange-400 font-bold";
-        case 'RARE': return "text-blue-300 font-bold";
-        default: return "text-gray-300";
+        case 'SET': return "bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-green-600 font-bold";
+        case 'EPIC': return "bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-purple-600 font-bold";
+        case 'LEGENDARY': return "bg-clip-text text-transparent bg-gradient-to-r from-amber-300 to-amber-600 font-bold";
+        case 'RARE': return "bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-blue-600 font-bold";
+        default: return "bg-clip-text text-transparent bg-gradient-to-r from-stone-400 to-stone-500 font-bold";
     }
 };
 
@@ -158,26 +158,39 @@ const ItemDatabase = ({ items = [], orbs = [], drifs = [], categoryNames = {}, g
     };
 
     return (
-        <div className="bg-neutral-800 p-6 rounded-xl shadow-lg border border-neutral-700 flex flex-col h-full relative">
-            <div className="flex justify-between items-end border-b-2 border-blue-600 pb-3 mb-4 shrink-0">
-                <h3 className="text-xl font-bold text-white">Baza Danych</h3>
+        <div className="bg-gradient-to-b from-stone-900 to-black p-6 border-2 border-stone-800 shadow-[0_0_30px_rgba(0,0,0,0.9)] flex flex-col h-full relative">
+            <div className="flex justify-between items-end border-b-4 border-double border-rose-900/70 pb-3 mb-4 shrink-0">
+                <h3 className="text-xl font-serif font-bold text-stone-300 uppercase tracking-widest drop-shadow-[0_2px_5px_rgba(0,0,0,1)]">Baza Danych</h3>
                 {(searchTerm || selectedCategory !== "Wszystkie" || selectedTier !== "Wszystkie" || selectedStat !== "Wszystkie") && (
-                    <button onClick={clearFilters} className="text-xs text-red-400 hover:text-red-300 transition-colors font-bold uppercase tracking-wider">
+                    <button onClick={clearFilters} className="text-xs text-rose-800 hover:text-rose-600 transition-colors font-serif font-bold uppercase tracking-widest">
                         Wyczyść filtry
                     </button>
                 )}
             </div>
 
-            <div className="flex bg-neutral-900 rounded-lg p-1 mb-4 shrink-0 border border-neutral-700">
-                {["items", "orbs", "drifs"].map(tab => (
-                    <button
-                        key={tab}
-                        onClick={() => handleTabChange(tab)}
-                        className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${activeTab === tab ? (tab==="items"?"bg-blue-600":tab==="orbs"?"bg-red-600":"bg-orange-600") + " text-white" : "text-gray-400 hover:text-white hover:bg-neutral-800"}`}
-                    >
-                        {tab === "items" ? "Przedmioty" : tab === "orbs" ? "Orby" : "Drify"}
-                    </button>
-                ))}
+            <div className="flex bg-black/60 p-1 mb-4 shrink-0 border border-stone-800 shadow-[inset_0_0_10px_rgba(0,0,0,1)]">
+                {["items", "orbs", "drifs"].map(tab => {
+                    const isActive = activeTab === tab;
+                    const baseBtn = "flex-1 py-2 text-xs font-serif font-bold uppercase tracking-widest transition-all";
+                    const bgClass = isActive
+                        ? (tab === "items" ? "bg-stone-800 border-b-2 border-stone-400"
+                            : tab === "orbs" ? "bg-rose-950/40 border-b-2 border-rose-800"
+                                : "bg-amber-950/40 border-b-2 border-orange-700")
+                        : "hover:bg-stone-900/50 border-b-2 border-transparent";
+                    const textClass = isActive
+                        ? (tab === "items" ? "bg-clip-text text-transparent bg-gradient-to-r from-stone-200 to-stone-400"
+                            : tab === "orbs" ? "bg-clip-text text-transparent bg-gradient-to-r from-red-400 to-rose-600"
+                                : "bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-amber-600")
+                        : "text-stone-500 hover:text-stone-300";
+
+                    return (
+                        <button key={tab} onClick={() => handleTabChange(tab)} className={`${baseBtn} ${bgClass}`}>
+                            <span className={textClass}>
+                                {tab === "items" ? "Przedmioty" : tab === "orbs" ? "Orby" : "Drify"}
+                            </span>
+                        </button>
+                    );
+                })}
             </div>
 
             <div className="shrink-0 mb-4 flex flex-col gap-2">
@@ -186,7 +199,7 @@ const ItemDatabase = ({ items = [], orbs = [], drifs = [], categoryNames = {}, g
                     placeholder={`Wyszukaj ${activeTab === "items" ? "(np. Morana)" : activeTab === "orbs" ? "orba" : "drifa"}...`}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full bg-neutral-900 text-white p-2 text-sm rounded border border-neutral-600 focus:border-blue-500 outline-none transition-colors"
+                    className="w-full bg-black/60 text-stone-300 font-serif p-2 text-sm border border-stone-800 focus:border-rose-900 outline-none transition-colors shadow-[inset_0_0_10px_rgba(0,0,0,1)]"
                 />
 
                 <div className="flex gap-2">
@@ -194,37 +207,37 @@ const ItemDatabase = ({ items = [], orbs = [], drifs = [], categoryNames = {}, g
                         <select
                             value={selectedCategory}
                             onChange={(e) => setSelectedCategory(e.target.value)}
-                            className="flex-1 min-w-0 bg-neutral-900 text-gray-300 p-2 text-xs rounded border border-neutral-600 focus:border-blue-500 outline-none cursor-pointer"
+                            className="flex-1 min-w-0 bg-black/60 text-stone-400 font-serif p-2 text-xs border border-stone-800 focus:border-rose-900 outline-none cursor-pointer shadow-[inset_0_0_10px_rgba(0,0,0,1)]"
                         >
-                            {allCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                            {allCategories.map(cat => <option key={cat} value={cat} className="bg-stone-900 text-stone-300">{cat}</option>)}
                         </select>
                     )}
 
                     <select
                         value={selectedTier}
                         onChange={(e) => setSelectedTier(e.target.value)}
-                        className="flex-1 min-w-0 bg-neutral-900 text-orange-300 p-2 text-xs rounded border border-neutral-600 focus:border-blue-500 outline-none cursor-pointer font-bold"
+                        className="flex-1 min-w-0 bg-black/60 text-stone-400 font-serif font-bold uppercase tracking-wider p-2 text-xs border border-stone-800 focus:border-rose-900 outline-none cursor-pointer shadow-[inset_0_0_10px_rgba(0,0,0,1)]"
                     >
-                        {allTiers.map(tier => <option key={tier} value={tier}>{tier === "Wszystkie" ? (activeTab === "items" ? "Tier..." : "Wielkość...") : tier}</option>)}
+                        {allTiers.map(tier => <option key={tier} value={tier} className="bg-stone-900 text-stone-300">{tier === "Wszystkie" ? (activeTab === "items" ? "Tier..." : "Wielkość...") : tier}</option>)}
                     </select>
 
                     {activeTab === "items" && (
                         <select
                             value={selectedStat}
                             onChange={(e) => setSelectedStat(e.target.value)}
-                            className="flex-1 min-w-0 bg-neutral-900 text-yellow-300 p-2 text-xs rounded border border-neutral-600 focus:border-blue-500 outline-none cursor-pointer"
+                            className="flex-1 min-w-0 bg-black/60 text-stone-400 font-serif p-2 text-xs border border-stone-800 focus:border-rose-900 outline-none cursor-pointer shadow-[inset_0_0_10px_rgba(0,0,0,1)]"
                         >
-                            {allStats.map(stat => <option key={stat} value={stat}>{stat === "Wszystkie" ? "Staty..." : stat}</option>)}
+                            {allStats.map(stat => <option key={stat} value={stat} className="bg-stone-900 text-stone-300">{stat === "Wszystkie" ? "Staty..." : stat}</option>)}
                         </select>
                     )}
                 </div>
             </div>
 
-            <div className="overflow-y-auto pr-2 space-y-4 flex-1">
+            <div className="overflow-y-auto pr-2 space-y-4 flex-1 custom-scrollbar">
                 {Object.entries(filteredGroups).sort().map(([category, catItems]) => (
                     <div key={category}>
-                        <h4 className="text-blue-400 font-bold mb-1 text-sm">{category}</h4>
-                        <ul className="text-sm space-y-1 pl-2 border-l-2 border-neutral-700">
+                        <h4 className="text-stone-500 font-serif font-bold mb-2 text-xs uppercase tracking-[0.2em]">{category}</h4>
+                        <ul className="text-sm space-y-1 pl-2 border-l border-stone-800">
                             {catItems.map((itemData, idx) => {
                                 if (activeTab === "items") {
                                     return (
@@ -234,14 +247,14 @@ const ItemDatabase = ({ items = [], orbs = [], drifs = [], categoryNames = {}, g
                                             onDragStart={(e) => handleDragStart(e, itemData, "items")}
                                             onMouseMove={(e) => handleMouseMove(e, itemData, "items")}
                                             onMouseLeave={handleMouseLeave}
-                                            className="p-1 rounded transition-colors flex justify-between items-center group cursor-grab active:cursor-grabbing hover:bg-neutral-700/50"
+                                            className="p-1.5 transition-colors flex justify-between items-center group cursor-grab active:cursor-grabbing hover:bg-stone-900/50 border-b border-stone-800/50"
                                         >
-                                            <span className={`truncate mr-2 ${getRarityColor(itemData.rarity)}`}>
+                                            <span className={`truncate mr-2 font-serif ${getRarityColor(itemData.rarity)}`}>
                                                 {itemData.name || itemData.description || itemData.bonusType}
                                             </span>
                                             <div className="flex items-center gap-2 shrink-0">
-                                                {itemData.tier && <span className="text-[10px] text-orange-400 font-bold border border-orange-500/30 px-1 rounded bg-orange-900/20">{itemData.tier}</span>}
-                                                <span className="text-gray-500 text-[11px] group-hover:text-gray-300 transition-colors w-10 text-right">
+                                                {itemData.tier && <span className="text-[10px] text-stone-400 font-serif font-bold border border-stone-800/50 px-1.5 py-0.5 bg-black">{itemData.tier}</span>}
+                                                <span className="text-stone-600 font-serif text-[11px] group-hover:text-stone-400 transition-colors w-10 text-right">
                                                     Lvl {itemData.reqLevel || "?"}
                                                 </span>
                                             </div>
@@ -254,15 +267,15 @@ const ItemDatabase = ({ items = [], orbs = [], drifs = [], categoryNames = {}, g
                                     return (
                                         <li
                                             key={idx}
-                                            className="p-1 rounded flex justify-between items-center gap-2 hover:bg-neutral-800 transition-colors"
+                                            className="p-1.5 flex justify-between items-center gap-2 hover:bg-stone-900/50 transition-colors border-b border-stone-800/50"
                                         >
                                             <span
                                                 className="truncate flex-1 cursor-help flex items-center gap-1.5"
                                                 onMouseMove={(e) => handleMouseMove(e, baseItem, activeTab)}
                                                 onMouseLeave={handleMouseLeave}
                                             >
-                                                {baseItem.name && <span className="text-orange-400 font-bold">{baseItem.name}</span>}
-                                                <span className="text-gray-300">{translatedName}</span>
+                                                {baseItem.name && <span className={`font-serif font-bold bg-clip-text text-transparent bg-gradient-to-r ${activeTab === 'orbs' ? 'from-red-400 to-rose-600' : 'from-orange-400 to-amber-600'}`}>{baseItem.name}</span>}
+                                                <span className="text-stone-400 font-serif text-xs">{translatedName}</span>
                                             </span>
                                             <div className="flex gap-1 shrink-0">
                                                 {itemData.map(variant => (
@@ -272,7 +285,10 @@ const ItemDatabase = ({ items = [], orbs = [], drifs = [], categoryNames = {}, g
                                                         onDragStart={(e) => handleDragStart(e, variant, activeTab)}
                                                         onMouseMove={(e) => handleMouseMove(e, variant, activeTab)}
                                                         onMouseLeave={handleMouseLeave}
-                                                        className={`w-6 h-6 flex items-center justify-center bg-neutral-700 text-white text-[10px] font-bold rounded cursor-grab active:cursor-grabbing border border-neutral-600 transition-colors ${activeTab === 'orbs' ? 'hover:bg-red-600 hover:border-red-400' : 'hover:bg-orange-500 hover:border-orange-400'}`}
+                                                        className={`w-7 h-7 flex items-center justify-center font-serif text-[12px] font-bold cursor-grab active:cursor-grabbing transition-colors shadow-inner border 
+                                                            ${activeTab === 'orbs'
+                                                            ? 'bg-black text-rose-700 border-rose-900/50 hover:bg-rose-950/40 hover:text-red-500 hover:border-rose-700'
+                                                            : 'bg-black text-orange-600 border-orange-900/50 hover:bg-amber-950/30 hover:text-amber-500 hover:border-orange-500'}`}
                                                         title={variant.size || variant.tier}
                                                     >
                                                         {getShortLabel(variant)}
@@ -289,8 +305,8 @@ const ItemDatabase = ({ items = [], orbs = [], drifs = [], categoryNames = {}, g
 
                 {Object.keys(filteredGroups).length === 0 && (
                     <div className="text-center mt-10">
-                        <p className="text-gray-500 text-sm mb-2">Brak wyników spełniających kryteria.</p>
-                        <button onClick={clearFilters} className="text-blue-400 hover:text-blue-300 text-sm border border-blue-500 px-3 py-1 rounded">
+                        <p className="text-stone-600 font-serif italic text-sm mb-2">Brak wyników spełniających kryteria.</p>
+                        <button onClick={clearFilters} className="text-rose-800 hover:text-rose-600 text-sm font-serif border border-stone-700 px-3 py-1 bg-black/60 shadow-inner">
                             Zresetuj filtry
                         </button>
                     </div>
@@ -300,73 +316,73 @@ const ItemDatabase = ({ items = [], orbs = [], drifs = [], categoryNames = {}, g
             {tooltip.show && tooltip.item && (
                 <div
                     style={{ top: tooltip.y, left: tooltip.x }}
-                    className="fixed z-50 bg-neutral-900 border-2 border-blue-600 p-3 rounded-lg shadow-2xl text-white pointer-events-none w-64"
+                    className="fixed z-50 bg-gradient-to-b from-stone-900 to-black border border-stone-700 p-4 shadow-[0_0_20px_rgba(0,0,0,1)] pointer-events-none w-64"
                 >
-                    <div className="flex justify-between items-start border-b border-gray-700 pb-1 mb-2">
-                        <h4 className={`text-base ${tooltip.type === 'items' ? getRarityColor(tooltip.item.rarity) : 'font-bold'}`}>
+                    <div className="flex justify-between items-start border-b-2 border-double border-rose-900/50 pb-2 mb-2">
+                        <h4 className={`text-base font-serif tracking-wide ${tooltip.type === 'items' ? getRarityColor(tooltip.item.rarity) : `font-bold bg-clip-text text-transparent bg-gradient-to-r ${tooltip.type === 'orbs' ? 'from-red-400 to-rose-600' : 'from-orange-400 to-amber-600'}`}`}>
                             {tooltip.type === 'items' ? tooltip.item.name : (
                                 <div className="flex flex-col">
-                                    {tooltip.item.name && <span className="text-orange-400">{tooltip.item.name}</span>}
-                                    <span className="text-gray-400 text-xs font-normal">{bonusTranslations[tooltip.item.bonusType] || tooltip.item.bonusType}</span>
+                                    {tooltip.item.name && <span>{tooltip.item.name}</span>}
+                                    <span className="text-stone-400 text-xs font-normal">{bonusTranslations[tooltip.item.bonusType] || tooltip.item.bonusType}</span>
                                 </div>
                             )}
                         </h4>
-                        {(tooltip.item.tier || tooltip.item.size) && <span className="text-xs text-orange-500 font-bold mt-1 ml-2">{tooltip.item.tier || tooltip.item.size}</span>}
+                        {(tooltip.item.tier || tooltip.item.size) && <span className={`text-xs font-serif font-bold mt-1 ml-2 ${tooltip.type === 'orbs' ? 'text-rose-800' : 'text-orange-600'}`}>{tooltip.item.tier || tooltip.item.size}</span>}
                     </div>
 
                     {tooltip.type === "items" && (
                         tooltip.item.stats && Object.keys(tooltip.item.stats).length > 0 ? (
                             Object.entries(tooltip.item.stats).map(([k, v]) => (
-                                <div key={k} className="flex justify-between text-xs my-1">
-                                    <span className="text-gray-300">{k}</span>
-                                    <span className="text-yellow-400 font-bold">+{v}</span>
+                                <div key={k} className="flex justify-between text-xs my-1 border-b border-stone-800/50 pb-1">
+                                    <span className="text-stone-400 font-serif uppercase tracking-wider">{k}</span>
+                                    <span className="text-stone-300 font-bold font-serif">+{v}</span>
                                 </div>
                             ))
                         ) : (
-                            <p className="text-xs text-gray-500 italic">Brak statystyk bazowych.</p>
+                            <p className="text-xs text-stone-600 font-serif italic mt-2">Brak statystyk bazowych.</p>
                         )
                     )}
 
                     {tooltip.type === "drifs" && (
-                        <div className="flex flex-col gap-1 text-xs">
-                            <div className="flex justify-between">
-                                <span className="text-gray-400">Wartość bazowa:</span>
-                                <span className="text-white font-bold">{tooltip.item.baseValue || "?"}</span>
+                        <div className="flex flex-col gap-1.5 text-xs font-serif mt-2">
+                            <div className="flex justify-between border-b border-stone-800/50 pb-1">
+                                <span className="text-stone-500">Wartość bazowa:</span>
+                                <span className="text-stone-300 font-bold">{tooltip.item.baseValue || "?"}</span>
                             </div>
-                            <div className="flex justify-between">
-                                <span className="text-gray-400">Przyrost co lvl:</span>
-                                <span className="text-green-400 font-bold">{tooltip.item.increment || "?"}</span>
+                            <div className="flex justify-between border-b border-stone-800/50 pb-1">
+                                <span className="text-stone-500">Przyrost co lvl:</span>
+                                <span className="text-orange-500 font-bold">{tooltip.item.increment || "?"}</span>
                             </div>
-                            <div className="text-[10px] text-orange-400 italic mb-2 text-right">
-                                * Arcydrif (19-21 lvl): przyrost x2 ({calculateDoubleIncrement(tooltip.item.increment)})
+                            <div className="text-[10px] text-orange-600/70 italic mb-2 text-right">
+                                Arcydrif (19-21 lvl): przyrost x2 ({calculateDoubleIncrement(tooltip.item.increment)})
                             </div>
-                            <div className="flex justify-between mb-2 pb-1 border-b border-neutral-700">
-                                <span className="text-gray-400">Potęga bazowa:</span>
-                                <span className="text-yellow-400 font-bold">{drifBasePowers[tooltip.item.bonusType] || "?"} pkt</span>
+                            <div className="flex justify-between mb-2 pb-1 border-b-2 border-double border-rose-900/30">
+                                <span className="text-stone-500">Potęga bazowa:</span>
+                                <span className="text-orange-400 font-bold">{drifBasePowers[tooltip.item.bonusType] || "?"} pkt</span>
                             </div>
-                            <div className="text-gray-500 font-bold mb-1">Mnożniki pojemności:</div>
-                            <div className="flex justify-between text-gray-300"><span>Subdrif (Lvl 1-6):</span> <span className="text-white">x1</span></div>
-                            <div className="flex justify-between text-gray-300"><span>Bidrif (Lvl 7-11):</span> <span className="text-white">x2</span></div>
-                            <div className="flex justify-between text-gray-300"><span>Magnidrif (Lvl 12-16):</span> <span className="text-white">x3</span></div>
-                            <div className="flex justify-between text-gray-300"><span>Arcydrif (Lvl 17-21):</span> <span className="text-orange-400">x4</span></div>
+                            <div className="text-stone-600 font-bold mb-1 uppercase tracking-widest text-[10px]">Mnożniki pojemności:</div>
+                            <div className="flex justify-between text-stone-400"><span>Subdrif (Lvl 1-6):</span> <span className="text-stone-300">x1</span></div>
+                            <div className="flex justify-between text-stone-400"><span>Bidrif (Lvl 7-11):</span> <span className="text-stone-300">x2</span></div>
+                            <div className="flex justify-between text-stone-400"><span>Magnidrif (Lvl 12-16):</span> <span className="text-stone-300">x3</span></div>
+                            <div className="flex justify-between text-stone-400"><span>Arcydrif (Lvl 17-21):</span> <span className="text-orange-500">x4</span></div>
                         </div>
                     )}
 
                     {tooltip.type === "orbs" && (
-                        <div className="flex flex-col gap-1 text-xs mt-1">
-                            <div className="flex justify-between">
-                                <span className="text-gray-400">Bonus Lvl 1:</span>
-                                <span className="text-white font-bold">{tooltip.item.bonusLvl1 || "?"}</span>
+                        <div className="flex flex-col gap-1.5 text-xs font-serif mt-2">
+                            <div className="flex justify-between border-b border-stone-800/50 pb-1">
+                                <span className="text-stone-500">Bonus Lvl 1:</span>
+                                <span className="text-rose-700 font-bold">{tooltip.item.bonusLvl1 || "?"}</span>
                             </div>
-                            <div className="flex justify-between">
-                                <span className="text-gray-400">Bonus Lvl 2:</span>
-                                <span className="text-white font-bold">{tooltip.item.bonusLvl2 || "?"}</span>
+                            <div className="flex justify-between border-b border-stone-800/50 pb-1">
+                                <span className="text-stone-500">Bonus Lvl 2:</span>
+                                <span className="text-rose-600 font-bold">{tooltip.item.bonusLvl2 || "?"}</span>
                             </div>
-                            <div className="flex justify-between mb-2 pb-1 border-b border-neutral-700">
-                                <span className="text-gray-400">Bonus Lvl 3:</span>
-                                <span className="text-white font-bold">{tooltip.item.bonusLvl3 || "?"}</span>
+                            <div className="flex justify-between mb-2 pb-2 border-b-2 border-double border-rose-900/30">
+                                <span className="text-stone-500">Bonus Lvl 3:</span>
+                                <span className="text-rose-500 font-bold">{tooltip.item.bonusLvl3 || "?"}</span>
                             </div>
-                            <div className="text-xs text-gray-400 italic">
+                            <div className="text-[10px] text-stone-600 italic text-center mt-1">
                                 Przeciągnij kwadracik bezpośrednio na okienko z przedmiotem.
                             </div>
                         </div>
