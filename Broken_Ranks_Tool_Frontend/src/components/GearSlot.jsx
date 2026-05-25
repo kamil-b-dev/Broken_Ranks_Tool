@@ -27,13 +27,13 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate, allSlots = {},
     const [dragOverZone, setDragOverZone] = useState(null);
 
     const getRarityColor = (rarity) => {
-        if (!rarity) return "text-white";
+        if (!rarity) return "text-stone-300";
         switch(rarity.toUpperCase()) {
-            case 'SET': return "text-green-400 font-bold";
-            case 'EPIC': return "text-purple-400 font-bold";
-            case 'LEGENDARY': return "text-orange-500 font-bold";
-            case 'RARE': return "text-blue-300 font-bold";
-            default: return "text-white";
+            case 'SET': return "text-green-700 font-bold";
+            case 'EPIC': return "text-purple-700 font-bold";
+            case 'LEGENDARY': return "text-amber-600 font-bold";
+            case 'RARE': return "text-blue-700 font-bold";
+            default: return "text-stone-300";
         }
     };
 
@@ -167,17 +167,20 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate, allSlots = {},
 
                 const targetIndex = parseInt(zone.split('-')[1]);
 
-                if (elementalTypes.includes(data.bonusType)) {
-                    if (slotKey !== "weapon") return;
-                    if (hasGlobalElemental) return;
-                }
+                if (SIZE_INDEX[data.size?.toUpperCase()] > maxDrifIndex) return;
 
                 const localUsedBonusTypes = selectedDrifs
                     .map((dId, i) => i !== targetIndex && dId ? drifs.find(dr => dr.id.toString() === dId.toString())?.bonusType : null)
                     .filter(Boolean);
+
                 if (localUsedBonusTypes.includes(data.bonusType)) return;
 
-                if (SIZE_INDEX[data.size?.toUpperCase()] > maxDrifIndex) return;
+                if (elementalTypes.includes(data.bonusType)) {
+                    if (slotKey !== "weapon") return;
+                    if (hasGlobalElemental) return;
+                    const hasLocalElemental = localUsedBonusTypes.some(type => elementalTypes.includes(type));
+                    if (hasLocalElemental) return;
+                }
 
                 const typeKey = data.name || data.description || data.bonusType;
                 setDrifTypes(prev => ({ ...prev, [targetIndex]: typeKey }));
@@ -194,18 +197,19 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate, allSlots = {},
         } catch (error) {}
     };
 
-    const slotClasses = `flex flex-col items-center gap-3 w-64 p-2 rounded-xl transition-all duration-200 border-2 ${
-        isOverCapacity ? "border-red-500 bg-red-900/10 shadow-[0_0_15px_rgba(239,68,68,0.3)]" : "border-transparent"
-    }`;
+    const slotClasses = `flex flex-col items-center gap-3 w-64 p-4 bg-gradient-to-b from-stone-900 to-black transition-all duration-200 border-2 relative overflow-hidden shadow-[inset_0_0_20px_rgba(0,0,0,0.9),0_0_15px_rgba(0,0,0,0.8)] 
+        ${isOverCapacity ? "border-rose-900 shadow-[inset_0_0_40px_rgba(153,27,27,0.4),0_0_20px_rgba(153,27,27,0.6)]" : "border-stone-700"}`;
 
-    if (!gameRules) return <div className="w-64 p-2 text-xs text-gray-500 text-center border border-gray-700 rounded-xl">Ładowanie reguł...</div>;
+    if (!gameRules) return <div className="w-64 p-3 text-xs text-stone-500 font-serif text-center border border-stone-800 bg-black">Ładowanie potęgi...</div>;
 
     return (
         <div className={slotClasses}>
-            <span className="text-xs font-bold text-gray-400 pointer-events-none">{label}</span>
+            <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-red-900 via-rose-700 to-red-900"></div>
+
+            <span className="text-xs font-serif font-bold text-stone-400 uppercase tracking-widest pointer-events-none drop-shadow-[0_2px_2px_rgba(0,0,0,1)]">{label}</span>
 
             <div
-                className={`w-full flex flex-col gap-1.5 p-1 -m-1 rounded-lg border-2 transition-colors ${dragOverZone === 'item' ? 'border-green-500 bg-green-900/20' : 'border-transparent'}`}
+                className={`w-full flex flex-col gap-1.5 p-2 bg-black/60 border transition-colors shadow-[inset_0_0_10px_rgba(0,0,0,1)] ${dragOverZone === 'item' ? 'border-amber-700/50 bg-amber-900/10' : 'border-stone-800'}`}
                 onDragOver={(e) => handleDragOver(e, 'item')}
                 onDragLeave={handleDragLeave}
                 onDrop={(e) => handleDrop(e, 'item')}
@@ -223,19 +227,19 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate, allSlots = {},
                         setDrifTypes({});
                         setDrifLevels({});
                     }}
-                    className={`w-full min-w-0 bg-neutral-800 p-1.5 text-xs rounded border-2 border-blue-500 focus:border-blue-400 outline-none text-center cursor-pointer ${
-                        fullSelectedItem ? getRarityColor(fullSelectedItem.rarity) : "text-white"
+                    className={`w-full bg-black/80 text-xs font-serif border border-stone-700 focus:border-rose-900 p-1.5 outline-none text-center cursor-pointer shadow-inner ${
+                        fullSelectedItem ? getRarityColor(fullSelectedItem.rarity) : "text-stone-300"
                     }`}
                 >
-                    <option value="" className="text-white">-- {label} --</option>
+                    <option value="" className="text-stone-600">-- {label} --</option>
                     {items.map((i) => (
-                        <option key={i.id} value={i.id} className={`bg-neutral-800 ${getRarityColor(i.rarity)}`}>
+                        <option key={i.id} value={i.id} className={`bg-stone-950 ${getRarityColor(i.rarity)}`}>
                             {i.name} {i.tier ? i.tier : ""}
                         </option>
                     ))}
                 </select>
 
-                <div className={`flex justify-center gap-1 bg-neutral-900/80 p-1 rounded border border-neutral-700 transition-opacity ${!selectedItem ? "opacity-30 pointer-events-none" : "opacity-100"}`}>
+                <div className={`flex justify-center gap-1 bg-stone-950 p-1 border border-stone-800 shadow-inner transition-opacity ${!selectedItem ? "opacity-30 pointer-events-none" : "opacity-100"}`}>
                     {[...Array(9)].map((_, i) => {
                         const starValue = i + 1;
                         const isFilled = starValue <= (hoverStars || itemStars);
@@ -243,11 +247,11 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate, allSlots = {},
                         return (
                             <span
                                 key={starValue}
-                                className={`cursor-pointer text-lg leading-none transition-all duration-150 transform hover:scale-125 ${colorClass}`}
+                                className={`cursor-pointer text-lg leading-none transition-all duration-150 transform hover:scale-125 drop-shadow-[0_1px_1px_rgba(0,0,0,1)] ${colorClass}`}
                                 onMouseEnter={() => setHoverStars(starValue)}
                                 onMouseLeave={() => setHoverStars(0)}
                                 onClick={() => setItemStars(starValue)}
-                                title={`Ulepszenie: ${starValue}★`}
+                                title={`Wzmocnienie: ${starValue}★`}
                             >
                                 ★
                             </span>
@@ -257,10 +261,10 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate, allSlots = {},
             </div>
 
             <div className="w-full flex flex-col items-center mt-1">
-                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1 pointer-events-none">Orb</span>
+                <span className="text-[10px] font-serif font-bold text-rose-800/80 uppercase tracking-widest mb-1 pointer-events-none drop-shadow-md">Orb</span>
 
                 <div
-                    className={`flex gap-1 w-full items-center mb-1 p-1 -m-1 rounded-lg border-2 transition-colors ${dragOverZone === 'orb' ? 'border-red-500 bg-red-900/20' : 'border-transparent'}`}
+                    className={`flex gap-1 w-full items-center mb-1 p-1.5 bg-black/60 border transition-colors shadow-[inset_0_0_15px_rgba(0,0,0,0.8)] ${dragOverZone === 'orb' ? 'border-rose-900/50 bg-rose-950/20' : 'border-stone-800'}`}
                     onDragOver={(e) => handleDragOver(e, 'orb')}
                     onDragLeave={handleDragLeave}
                     onDrop={(e) => handleDrop(e, 'orb')}
@@ -273,11 +277,11 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate, allSlots = {},
                             setOrbLevel("");
                         }}
                         disabled={!selectedItem}
-                        className="flex-[3] min-w-0 bg-transparent text-orange-400 p-1 text-xs border-b-4 border-red-600 focus:border-red-400 outline-none text-center cursor-pointer disabled:opacity-30"
+                        className="flex-[3] min-w-0 bg-transparent text-rose-700 font-serif p-1 text-xs border-b border-stone-800 focus:border-rose-900 outline-none text-center cursor-pointer disabled:opacity-30"
                     >
-                        <option value="" className="bg-neutral-800 text-white">Rodzaj...</option>
+                        <option value="" className="bg-stone-950 text-stone-500">Rodzaj...</option>
                         {Object.keys(groupedOrbs).map(type => (
-                            <option key={type} value={type} className="bg-neutral-800 text-white">
+                            <option key={type} value={type} className="bg-stone-950 text-stone-300">
                                 {formatGroupLabel(type, groupedOrbs[type], bonusTranslations)}
                             </option>
                         ))}
@@ -296,11 +300,11 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate, allSlots = {},
                             }
                         }}
                         disabled={!orbType}
-                        className="flex-[3] min-w-0 bg-transparent text-white p-1 text-xs border-b-4 border-red-600 focus:border-red-400 outline-none text-center disabled:opacity-30 cursor-pointer"
+                        className="flex-[3] min-w-0 bg-transparent text-stone-300 font-serif p-1 text-xs border-b border-stone-800 focus:border-rose-900 outline-none text-center disabled:opacity-30 cursor-pointer"
                     >
-                        <option value="" className="bg-neutral-800 text-white">Wielkość...</option>
+                        <option value="" className="bg-stone-950 text-stone-500">Wymiar...</option>
                         {orbType && groupedOrbs[orbType]?.map((orb) => (
-                            <option key={orb.id} value={orb.id} className="text-white bg-neutral-800">
+                            <option key={orb.id} value={orb.id} className="text-stone-300 bg-stone-950">
                                 {orb.size || orb.tier}
                             </option>
                         ))}
@@ -310,11 +314,11 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate, allSlots = {},
                         value={orbLevel}
                         onChange={(e) => setOrbLevel(e.target.value)}
                         disabled={!selectedOrb || isSubOrb}
-                        className="flex-[2] min-w-0 bg-transparent text-white p-1 text-xs border-b-4 border-red-600 focus:border-red-400 outline-none text-center disabled:opacity-30 cursor-pointer"
+                        className="flex-[2] min-w-0 bg-transparent text-stone-300 font-serif p-1 text-xs border-b border-stone-800 focus:border-rose-900 outline-none text-center disabled:opacity-30 cursor-pointer"
                     >
-                        <option value="" className="bg-neutral-800 text-white">Lvl...</option>
+                        <option value="" className="bg-stone-950 text-stone-500">Moc...</option>
                         {availableOrbLevels.map(num => (
-                            <option key={num} value={num.toString()} className="bg-neutral-800 text-white">
+                            <option key={num} value={num.toString()} className="bg-stone-950 text-stone-300">
                                 {num}
                             </option>
                         ))}
@@ -324,18 +328,18 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate, allSlots = {},
 
             <div className="w-full flex flex-col items-center mt-1">
                 <div className="w-full flex justify-between items-center mb-1">
-                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest pointer-events-none">Drify</span>
+                    <span className="text-[10px] font-serif font-bold text-amber-800/80 uppercase tracking-widest pointer-events-none drop-shadow-md">Drify</span>
                     {fullSelectedItem && itemCapacity > 0 && (
-                        <span className={`text-[10px] font-bold uppercase tracking-wider ${isOverCapacity ? 'text-red-500 animate-pulse' : (isAtMaxCapacity ? 'text-red-500' : 'text-blue-400')}`}>
-                            Pojemność: {currentPowerUsed}/{itemCapacity}
+                        <span className={`text-[10px] font-serif font-bold uppercase tracking-wider ${isOverCapacity ? 'text-rose-600 animate-pulse' : (isAtMaxCapacity ? 'text-rose-700' : 'text-stone-500')}`}>
+                            Waga: {currentPowerUsed}/{itemCapacity}
                         </span>
                     )}
                 </div>
 
                 {fullSelectedItem && itemCapacity > 0 && (
-                    <div className="w-full bg-neutral-900 h-1.5 rounded-full overflow-hidden mb-2 border border-neutral-700">
+                    <div className="w-full bg-black border border-stone-800 shadow-inner h-1 mb-2">
                         <div
-                            className={`h-full transition-all duration-300 ${isOverCapacity || isAtMaxCapacity ? 'bg-red-500' : 'bg-blue-500'}`}
+                            className={`h-full transition-all duration-300 ${isOverCapacity || isAtMaxCapacity ? 'bg-gradient-to-r from-rose-900 to-red-600' : 'bg-gradient-to-r from-stone-700 to-stone-400'}`}
                             style={{ width: `${Math.min(capacityPercentage, 100)}%` }}
                         ></div>
                     </div>
@@ -352,13 +356,15 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate, allSlots = {},
 
                         const allowedDrifs = drifs.filter(drif => {
                             if (SIZE_INDEX[drif.size?.toUpperCase()] > maxDrifIndex) return false;
+
                             if (localUsedBonusTypes.includes(drif.bonusType)) return false;
+
                             if (elementalTypes.includes(drif.bonusType)) {
                                 if (slotKey !== "weapon") return false;
                                 if (hasGlobalElemental) return false;
+                                const hasLocalElemental = localUsedBonusTypes.some(type => elementalTypes.includes(type));
+                                if (hasLocalElemental) return false;
                             }
-
-                            // Usunięty nadgorliwy filtr pojemności!
 
                             return true;
                         });
@@ -375,7 +381,7 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate, allSlots = {},
                         return (
                             <div
                                 key={index}
-                                className={`flex gap-1 w-full items-center p-1 -m-1 rounded-lg border-2 transition-colors ${dragOverZone === `drif-${index}` ? 'border-orange-500 bg-orange-900/20' : 'border-transparent'}`}
+                                className={`flex gap-1 w-full items-center p-1.5 bg-black/60 border transition-colors shadow-[inset_0_0_15px_rgba(0,0,0,0.8)] ${dragOverZone === `drif-${index}` ? 'border-amber-800/50 bg-amber-950/20' : 'border-stone-800'}`}
                                 onDragOver={(e) => handleDragOver(e, `drif-${index}`)}
                                 onDragLeave={handleDragLeave}
                                 onDrop={(e) => handleDrop(e, `drif-${index}`)}
@@ -391,11 +397,11 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate, allSlots = {},
                                         });
                                         setDrifLevels(prev => ({ ...prev, [index]: parseInt("") }));
                                     }}
-                                    className={`flex-[3] min-w-0 bg-transparent text-orange-400 p-1 text-xs border-b-4 focus:border-gray-500 outline-none text-center cursor-pointer ${isOverCapacity ? 'border-red-500/50' : 'border-black'}`}
+                                    className={`flex-[3] min-w-0 bg-transparent text-amber-600 font-serif p-1 text-xs border-b border-stone-800 focus:border-rose-900 outline-none text-center cursor-pointer ${isOverCapacity ? 'border-rose-900/50' : 'border-stone-800'}`}
                                 >
-                                    <option value="" className="bg-neutral-800 text-white">Rodzaj...</option>
+                                    <option value="" className="bg-stone-950 text-stone-500">Rodzaj...</option>
                                     {Object.keys(currentGroupedDrifs).map(type => (
-                                        <option key={type} value={type} className="bg-neutral-800 text-white">
+                                        <option key={type} value={type} className="bg-stone-950 text-stone-300">
                                             {formatGroupLabel(type, currentGroupedDrifs[type], bonusTranslations)}
                                         </option>
                                     ))}
@@ -412,9 +418,9 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate, allSlots = {},
                                         setDrifLevels(prev => ({ ...prev, [index]: parseInt("") }));
                                     }}
                                     disabled={!currentType}
-                                    className={`flex-[3] min-w-0 bg-transparent text-white p-1 text-xs border-b-4 focus:border-gray-500 outline-none text-center disabled:opacity-30 cursor-pointer ${isOverCapacity ? 'border-red-500/50' : 'border-black'}`}
+                                    className={`flex-[3] min-w-0 bg-transparent text-stone-300 font-serif p-1 text-xs border-b border-stone-800 focus:border-rose-900 outline-none text-center disabled:opacity-30 cursor-pointer ${isOverCapacity ? 'border-rose-900/50' : 'border-stone-800'}`}
                                 >
-                                    <option value="" className="bg-neutral-800 text-white">Wielkość...</option>
+                                    <option value="" className="bg-stone-950 text-stone-500">Wymiar...</option>
                                     {currentType && currentGroupedDrifs[currentType]?.map((d) => {
                                         const basePwr = drifBasePowers[d.bonusType] || 0;
                                         const minPwr = basePwr * 1;
@@ -422,7 +428,7 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate, allSlots = {},
                                         const labelPwr = minPwr === maxPwr ? `${minPwr}p` : `${minPwr}-${maxPwr}p`;
 
                                         return (
-                                            <option key={d.id} value={d.id} className="bg-neutral-800 text-white">
+                                            <option key={d.id} value={d.id} className="bg-stone-950 text-stone-300">
                                                 {d.size || d.tier} ({labelPwr})
                                             </option>
                                         )
@@ -433,9 +439,9 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate, allSlots = {},
                                     value={drifLevels[index] || ""}
                                     onChange={(e) => setDrifLevels(prev => ({ ...prev, [index]: parseInt(e.target.value) }))}
                                     disabled={!drifId}
-                                    className={`flex-[2] min-w-0 bg-transparent text-white p-1 text-xs border-b-4 focus:border-gray-500 outline-none text-center disabled:opacity-30 cursor-pointer ${isOverCapacity ? 'border-red-500/50' : 'border-black'}`}
+                                    className={`flex-[2] min-w-0 bg-transparent text-stone-300 font-serif p-1 text-xs border-b border-stone-800 focus:border-rose-900 outline-none text-center disabled:opacity-30 cursor-pointer ${isOverCapacity ? 'border-rose-900/50' : 'border-stone-800'}`}
                                 >
-                                    <option value="" className="bg-neutral-800 text-white">Lvl...</option>
+                                    <option value="" className="bg-stone-950 text-stone-500">lvl...</option>
                                     {Array.from({ length: maxLvl }, (_, i) => i + 1).map(num => {
                                         const wouldCost = basePwrForCurrent * getEffectiveMultiplier(num);
                                         const wouldExceedCapacity = powerWithoutThisDrif + wouldCost > itemCapacity;
@@ -445,7 +451,7 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate, allSlots = {},
                                                 key={num}
                                                 value={num.toString()}
                                                 disabled={wouldExceedCapacity}
-                                                className={`bg-neutral-800 ${wouldExceedCapacity ? 'text-neutral-600' : 'text-white'}`}
+                                                className={`bg-stone-950 ${wouldExceedCapacity ? 'text-stone-700' : 'text-stone-300'}`}
                                             >
                                                 {num}
                                             </option>
@@ -457,7 +463,7 @@ const GearSlot = ({ slotKey, label, items, orbs, drifs, onUpdate, allSlots = {},
                     })}
 
                     {!fullSelectedItem && (
-                        <span className="text-[10px] text-gray-600 uppercase tracking-wider mt-1 pointer-events-none">Wybierz przedmiot...</span>
+                        <span className="text-[10px] font-serif text-stone-600 uppercase tracking-widest mt-1 pointer-events-none drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">Oczekiwanie...</span>
                     )}
                 </div>
             </div>
