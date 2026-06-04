@@ -25,20 +25,22 @@ public class RulesController {
         Map<String, Object> response = new HashMap<>();
 
         Map<String, String> translations = new HashMap<>();
-        Map<String, Integer> drifBasePowers = new HashMap<>(); // NOWOŚĆ
+        Map<String, Integer> drifBasePowers = new HashMap<>();
 
         for (ORB_BONUS_TYPE type : ORB_BONUS_TYPE.values()) {
             translations.put(type.name(), type.getName());
         }
         for (DRIF_BONUS_TYPE type : DRIF_BONUS_TYPE.values()) {
             translations.put(type.name(), type.getDescription());
-            drifBasePowers.put(type.name(), type.getBasePower()); // POBIERAMY POTĘGĘ
+            drifBasePowers.put(type.name(), type.getBasePower());
         }
 
         response.put("bonusTranslations", translations);
-        response.put("drifBasePowers", drifBasePowers); // WYSYŁAMY POTĘGI
+        response.put("drifBasePowers", drifBasePowers);
         response.put("slotOrbRules", registry.getSlotOrbRules());
         response.put("elementalTypes", registry.getElementalDamageTypes());
+
+        response.put("epicBuiltInDrifs", EquipmentRulesRegistry.EPIC_BUILTIN_DRIFS);
 
         return response;
     }

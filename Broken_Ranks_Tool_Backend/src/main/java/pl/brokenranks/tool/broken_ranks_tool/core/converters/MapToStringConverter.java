@@ -7,10 +7,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Converter
-public class MapToStringConverter implements AttributeConverter<Map<String, Integer>, String> {
+public class MapToStringConverter implements AttributeConverter<Map<String, Double>, String> {
 
     @Override
-    public String convertToDatabaseColumn(Map<String, Integer> attribute) {
+    public String convertToDatabaseColumn(Map<String, Double> attribute) {
         if (attribute == null || attribute.isEmpty()) return "";
         return attribute.entrySet().stream()
                 .map(entry -> entry.getKey() + ":" + entry.getValue())
@@ -18,14 +18,18 @@ public class MapToStringConverter implements AttributeConverter<Map<String, Inte
     }
 
     @Override
-    public Map<String, Integer> convertToEntityAttribute(String dbData) {
+    public Map<String, Double> convertToEntityAttribute(String dbData) {
         if (dbData == null || dbData.isEmpty()) return new HashMap<>();
-        Map<String, Integer> map = new HashMap<>();
+        Map<String, Double> map = new HashMap<>();
         String[] entries = dbData.split(";");
         for (String entry : entries) {
             String[] kv = entry.split(":");
             if (kv.length == 2) {
-                map.put(kv[0], Integer.parseInt(kv[1]));
+                String cleanValue = kv[1].replace("%", "").replace(",", ".").trim();
+                try {
+                    map.put(kv[0], Double.parseDouble(cleanValue));
+                } catch (NumberFormatException e) {
+                }
             }
         }
         return map;
