@@ -13,6 +13,16 @@ import java.util.Map;
 @Getter
 public class EquipmentRulesRegistry {
 
+    public static final Map<String, List<String>> EPIC_BUILTIN_DRIFS = Map.of(
+            "Allenor", List.of(DRIF_BONUS_TYPE.DAMAGE_PHYSICAL.name(), DRIF_BONUS_TYPE.CRITICAL_CHANCE.name()),
+            "Attawa", List.of(DRIF_BONUS_TYPE.CRITICAL_CHANCE.name(), DRIF_BONUS_TYPE.HIT_CHANCE_MENTAL.name()),
+            "Gorthdar", List.of(DRIF_BONUS_TYPE.DAMAGE_FIRE.name(), DRIF_BONUS_TYPE.CRITICAL_CHANCE.name()),
+            "Imisindo", List.of(DRIF_BONUS_TYPE.CRITICAL_CHANCE.name(), DRIF_BONUS_TYPE.HIT_CHANCE_RANGED.name()),
+            "Latarnia Życia", List.of(DRIF_BONUS_TYPE.MANA_STEAL.name(), DRIF_BONUS_TYPE.CRITICAL_CHANCE.name()),
+            "Washi", List.of(DRIF_BONUS_TYPE.CRITICAL_CHANCE.name(), DRIF_BONUS_TYPE.HIT_CHANCE_MELEE.name()),
+            "Żmij", List.of(DRIF_BONUS_TYPE.CRITICAL_CHANCE.name(), DRIF_BONUS_TYPE.DOUBLE_ATTACK_CHANCE.name())
+    );
+
     private final Map<String, List<ITEM_CATEGORY>> slotItemRules = Map.ofEntries(
             Map.entry("helmet", List.of(ITEM_CATEGORY.HELMET)),
             Map.entry("armor", List.of(ITEM_CATEGORY.ARMOR)),

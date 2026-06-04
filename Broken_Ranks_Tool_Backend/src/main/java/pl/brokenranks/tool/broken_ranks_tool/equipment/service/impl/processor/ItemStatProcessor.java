@@ -3,7 +3,7 @@ package pl.brokenranks.tool.broken_ranks_tool.equipment.service.impl.processor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pl.brokenranks.tool.broken_ranks_tool.core.enums.ITEM_STAR;
-import pl.brokenranks.tool.broken_ranks_tool.core.util.RandomProvider;
+import pl.brokenranks.tool.broken_ranks_tool.core.utils.RandomProvider;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.CalculationState;
 
