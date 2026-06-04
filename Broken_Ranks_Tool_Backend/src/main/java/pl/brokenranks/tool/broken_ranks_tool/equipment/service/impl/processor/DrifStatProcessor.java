@@ -21,7 +21,7 @@ import java.util.Set;
 
 @Component
 @RequiredArgsConstructor
-class DrifStatProcessor {
+public class DrifStatProcessor {
 
     private final EquipmentValidator validator;
 

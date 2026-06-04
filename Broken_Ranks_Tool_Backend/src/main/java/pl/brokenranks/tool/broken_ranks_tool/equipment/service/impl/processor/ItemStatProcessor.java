@@ -1,7 +1,9 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.service.impl.processor;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pl.brokenranks.tool.broken_ranks_tool.core.enums.ITEM_STAR;
+import pl.brokenranks.tool.broken_ranks_tool.core.util.RandomProvider;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.CalculationState;
 
@@ -9,7 +11,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Component
-class ItemStatProcessor {
+@RequiredArgsConstructor
+public class ItemStatProcessor {
+
+    private final RandomProvider randomProvider;
 
     public double calculateFinalDrifMod(ItemTemplate item, int starLevel) {
         ITEM_STAR starMod = ITEM_STAR.fromLevel(starLevel);
@@ -47,7 +52,7 @@ class ItemStatProcessor {
             }
         });
 
-        state.getAccumulator().distributeRandomly(baseStats, statMod);
-        state.getAccumulator().distributeRandomly(baseResists, statMod);
+        state.getAccumulator().distributeRandomly(baseStats, statMod, randomProvider);
+        state.getAccumulator().distributeRandomly(baseResists, statMod, randomProvider);
     }
 }

@@ -1,5 +1,7 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator;
 
+import pl.brokenranks.tool.broken_ranks_tool.core.util.RandomProvider;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
@@ -30,7 +32,7 @@ public class StatsAccumulator {
         flatStats.merge(statName, value, Double::sum);
     }
 
-    public void distributeRandomly(Map<String, Integer> baseValues, double multiplier) {
+    public void distributeRandomly(Map<String, Integer> baseValues, double multiplier, RandomProvider randomProvider) {
         if (baseValues.isEmpty()) return;
 
         int totalBase = baseValues.values().stream().mapToInt(Integer::intValue).sum();
@@ -38,10 +40,9 @@ public class StatsAccumulator {
 
         Map<String, Integer> finalValues = new HashMap<>(baseValues);
         List<String> keys = new ArrayList<>(baseValues.keySet());
-        Random random = new Random();
 
         for (int i = 0; i < bonusPool; i++) {
-            String randomKey = keys.get(random.nextInt(keys.size()));
+            String randomKey = keys.get(randomProvider.nextInt(keys.size()));
             finalValues.put(randomKey, finalValues.get(randomKey) + 1);
         }
 
