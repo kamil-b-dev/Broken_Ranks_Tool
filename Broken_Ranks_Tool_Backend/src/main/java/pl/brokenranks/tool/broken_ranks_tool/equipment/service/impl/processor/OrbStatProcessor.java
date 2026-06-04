@@ -10,7 +10,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.Equipme
 
 @Component
 @RequiredArgsConstructor
-class OrbStatProcessor {
+public class OrbStatProcessor {
 
     private final EquipmentValidator validator;
 

@@ -24,11 +24,11 @@ public class ItemTemplate extends  BaseNamedEntity {
     private String tier;
     private int reqLevel;
     private String boss;
-    private int capacity;
+    private Integer capacity;
 
     @Column(name = "stats")
     @Convert(converter = MapToStringConverter.class)
-    private Map<String, Integer> stats;
+    private Map<String, Double> stats;
 
     @Column(name = "rarity")
     @Enumerated(EnumType.STRING)
