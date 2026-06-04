@@ -1,4 +1,4 @@
-package pl.brokenranks.tool.broken_ranks_tool.core.util;
+package pl.brokenranks.tool.broken_ranks_tool.core.utils;
 
 import org.springframework.stereotype.Component;
 import java.util.Random;

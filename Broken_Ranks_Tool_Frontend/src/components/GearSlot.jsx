@@ -19,6 +19,8 @@ const GearSlot = (props) => {
     const {
         selectedItem, setSelectedItem,
         itemStars, setItemStars,
+        builtInLvls, setBuiltInLvls,
+        isEpicOrSet, builtInDrifs,
         hoverStars, setHoverStars,
         selectedOrb, setSelectedOrb,
         orbLevel, setOrbLevel,
@@ -65,6 +67,7 @@ const GearSlot = (props) => {
                     onChange={(e) => {
                         setSelectedItem(e.target.value);
                         setItemStars(1);
+                        setBuiltInLvls([1, 1]);
                         setHoverStars(0);
                         setSelectedOrb("");
                         setOrbLevel("");
@@ -191,6 +194,33 @@ const GearSlot = (props) => {
                 )}
 
                 <div className="flex flex-col w-full gap-2 items-center">
+
+                    {isEpicOrSet && builtInDrifs.map((drifObj, idx) => (
+                        <div key={`builtin-${idx}`} className="flex gap-1 w-full items-center p-1.5 bg-black/60 border border-purple-900/60 shadow-[inset_0_0_15px_rgba(0,0,0,0.8)]">
+                            <div className="flex-[3] min-w-0 bg-transparent text-purple-400/90 font-serif p-1 text-[9px] border-b border-purple-900/50 text-center truncate pointer-events-none font-bold uppercase" title={drifObj.name || formatGroupLabel(drifObj.bonusType, [], bonusTranslations)}>
+                                {drifObj.name || formatGroupLabel(drifObj.bonusType, [], bonusTranslations)}
+                            </div>
+                            <div className="flex-[3] min-w-0 bg-transparent text-stone-400/80 font-serif p-1 text-xs border-b border-purple-900/50 text-center pointer-events-none">
+                                {drifObj.displayName || drifObj.bonusType}
+                            </div>
+                            <select
+                                value={builtInLvls[idx]}
+                                onChange={(e) => {
+                                    const newLvls = [...builtInLvls];
+                                    newLvls[idx] = parseInt(e.target.value);
+                                    setBuiltInLvls(newLvls);
+                                }}
+                                className="flex-[2] min-w-0 bg-transparent text-purple-300 font-serif p-1 text-xs border-b border-purple-900/50 outline-none text-center cursor-pointer hover:border-purple-500 bg-stone-950"
+                            >
+                                {Array.from({ length: 16 }, (_, i) => i + 1).map(num => (
+                                    <option key={num} value={num} className="bg-stone-950 text-stone-300">
+                                        {num} lvl
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    ))}
+
                     {Array.from({ length: maxDrifs }).map((_, index) => {
                         const drifId = selectedDrifs[index] || "";
                         const currentType = drifTypes[index] || "";
