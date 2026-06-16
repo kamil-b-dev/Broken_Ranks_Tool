@@ -2,7 +2,6 @@ import React from "react";
 import { getDrifMaxLvl, getStarColor, formatGroupLabel, DRIF_MULTIPLIERS } from "../utils/GearRules";
 import { useGearSlot } from "../hooks/useGearSlot";
 
-
 const getRarityColor = (rarity) => {
     if (!rarity) return "text-stone-300";
     switch (rarity.toUpperCase()) {
@@ -13,7 +12,6 @@ const getRarityColor = (rarity) => {
         default: return "text-stone-300";
     }
 };
-
 
 const ItemSelectorSection = ({ label, items, fullSelectedItem, dragOverZone, handleDragOver, handleDragLeave, handleDrop, hookData }) => {
     const {
@@ -125,17 +123,19 @@ const OrbSelectorSection = ({ selectedItem, dragOverZone, handleDragOver, handle
 
 const DrifsSection = ({ drifs, fullSelectedItem, dragOverZone, handleDragOver, handleDragLeave, handleDrop, hookData, bonusTranslations, drifBasePowers }) => {
     const {
-        isEpicOrSet, builtInDrifs, builtInLvls, setBuiltInLvls, maxDrifs, itemCapacity,
+        isEpicOrSet, builtInDrifs, builtInLvls, setBuiltInLvls, maxDrifs, maxDrifIndex, itemCapacity,
         currentPowerUsed, isOverCapacity, isAtMaxCapacity, capacityPercentage,
         selectedDrifs, setSelectedDrifs, drifTypes, setDrifTypes, drifLevels, setDrifLevels, groupByType
     } = hookData;
+
+    const sizeIndexMap = { "SUBDRIF": 0, "BIDRIF": 1, "MAGNIDRIF": 2, "ARCYDRIF": 3 };
 
     return (
         <div className="w-full flex flex-col items-center mt-1">
             <div className="w-full flex justify-between items-center mb-1">
                 <span className="text-[10px] font-serif font-bold text-amber-800/80 uppercase tracking-widest pointer-events-none drop-shadow-md">Drify</span>
                 {fullSelectedItem && itemCapacity > 0 && (
-                    <span className={`text-[10px] font-serif font-bold uppercase tracking-wider ${isOverCapacity ? 'text-red-500 animate-pulse' : (isAtMaxCapacity ? 'text-rose-700' : 'text-stone-500')}`}>
+                    <span className={`text-[10px] font-serif font-bold uppercase tracking-wider ${isOverCapacity ? 'text-red-500 animate-pulse' : (isAtMaxCapacity ? 'text-amber-500' : 'text-stone-500')}`}>
                         Pojemność: {currentPowerUsed}/{itemCapacity}
                     </span>
                 )}
@@ -144,7 +144,7 @@ const DrifsSection = ({ drifs, fullSelectedItem, dragOverZone, handleDragOver, h
             {fullSelectedItem && itemCapacity > 0 && (
                 <div className="w-full bg-black border border-rose-900/70 shadow-inner h-1 mb-2">
                     <div
-                        className={`h-full transition-all duration-300 ${isOverCapacity || isAtMaxCapacity ? 'bg-gradient-to-r from-rose-900 to-red-600' : 'bg-gradient-to-r from-stone-700 to-stone-400'}`}
+                        className={`h-full transition-all duration-300 ${isOverCapacity ? 'bg-gradient-to-r from-rose-900 to-red-600' : (isAtMaxCapacity ? 'bg-gradient-to-r from-amber-700 to-amber-500' : 'bg-gradient-to-r from-stone-700 to-stone-400')}`}
                         style={{ width: `${Math.min(capacityPercentage, 100)}%` }}
                     ></div>
                 </div>
@@ -177,7 +177,14 @@ const DrifsSection = ({ drifs, fullSelectedItem, dragOverZone, handleDragOver, h
                     const drifId = selectedDrifs[index] || "";
                     const currentType = drifTypes[index] || "";
                     const localUsedBonusTypes = selectedDrifs.map((dId, i) => i !== index && dId ? drifs.find(dr => dr.id.toString() === dId.toString())?.bonusType : null).filter(Boolean);
-                    const allowedDrifs = drifs.filter(drif => !localUsedBonusTypes.includes(drif.bonusType));
+
+                    const allowedDrifs = drifs.filter(drif => {
+                        if (localUsedBonusTypes.includes(drif.bonusType)) return false;
+                        const drifSizeIdx = sizeIndexMap[drif.size?.toUpperCase()] || 0;
+                        if (drifSizeIdx > maxDrifIndex) return false;
+                        return true;
+                    });
+
                     const currentGroupedDrifs = groupByType(allowedDrifs);
                     const currentDrifObj = drifs.find(d => d.id.toString() === drifId.toString());
                     const maxLvl = currentDrifObj ? getDrifMaxLvl(currentDrifObj.size) : 21;
@@ -248,7 +255,6 @@ const DrifsSection = ({ drifs, fullSelectedItem, dragOverZone, handleDragOver, h
         </div>
     );
 };
-
 
 const GearSlot = (props) => {
     const { label, items, drifs, gameRules } = props;
