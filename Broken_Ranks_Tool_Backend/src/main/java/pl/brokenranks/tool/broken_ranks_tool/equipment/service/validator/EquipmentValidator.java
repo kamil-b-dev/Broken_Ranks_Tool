@@ -135,10 +135,10 @@ public class EquipmentValidator {
         int tierLvl = convertRomanToInteger(item.getTier());
         int allowedSizeIndex;
 
-        if (tierLvl <= 3) allowedSizeIndex = 0;
-        else if (tierLvl <= 6) allowedSizeIndex = 1;
-        else if (tierLvl <= 9) allowedSizeIndex = 2;
-        else allowedSizeIndex = 3;
+        if (tierLvl >= 10) allowedSizeIndex = 3;
+        else if (tierLvl >= 7) allowedSizeIndex = 2;
+        else if (tierLvl >= 4) allowedSizeIndex = 1;
+        else allowedSizeIndex = 0;
 
         return drif.getSize().ordinal() <= allowedSizeIndex;
     }

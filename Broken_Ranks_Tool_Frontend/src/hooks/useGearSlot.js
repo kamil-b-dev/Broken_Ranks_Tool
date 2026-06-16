@@ -86,7 +86,12 @@ export const useGearSlot = ({ slotKey, items, orbs, drifs, allSlots, gameRules, 
         return max;
     }, [fullSelectedItem, tierVal, itemStars, isEpicOrSet]);
 
-    const maxDrifIndex = tierVal <= 3 ? 0 : tierVal <= 6 ? 1 : tierVal <= 9 ? 2 : 3;
+    const maxDrifIndex = useMemo(() => {
+        if (tierVal >= 9) return 3;
+        if (tierVal >= 7) return 2;
+        if (tierVal >= 4) return 1;
+        return 0;
+    }, [tierVal]);
 
     const itemCapacity = useMemo(() => {
         const baseCapacity = fullSelectedItem?.capacity || 0;
@@ -141,30 +146,47 @@ export const useGearSlot = ({ slotKey, items, orbs, drifs, allSlots, gameRules, 
     const handleDragOver = (e, zone) => { e.preventDefault(); setDragOverZone(zone); };
     const handleDragLeave = () => setDragOverZone(null);
 
+    const handleItemDrop = (data) => {
+        setSelectedItem(data.id.toString());
+        setBuiltInLvls([1, 1]);
+        setSelectedOrb(""); setOrbLevel("");
+        setSelectedDrifs([]); setDrifTypes({}); setDrifLevels({});
+    };
+
+    const handleOrbDrop = (data) => {
+        if (!selectedItem || (allowedOrbCategories.length > 0 && !allowedOrbCategories.includes(data.category))) return;
+        setOrbType(data.name || data.bonusType);
+        setSelectedOrb(data.id.toString());
+        setOrbLevel("1");
+    };
+
+    const handleDrifDrop = (data, zone) => {
+        if (!selectedItem || maxDrifs === 0 || SIZE_INDEX[data.size?.toUpperCase()] > maxDrifIndex) return;
+
+        const idx = parseInt(zone.split('-')[1]);
+        if (elementalTypes.includes(data.bonusType) && (slotKey !== "weapon" || hasGlobalElemental)) return;
+
+        setDrifTypes(prev => ({ ...prev, [idx]: data.name || data.bonusType }));
+        setSelectedDrifs(prev => { const n = [...prev]; n[idx] = data.id.toString(); return n; });
+        setDrifLevels(prev => ({ ...prev, [idx]: 1 }));
+    };
+
     const handleDrop = (e, zone) => {
         e.preventDefault();
         setDragOverZone(null);
         try {
             const data = JSON.parse(e.dataTransfer.getData("application/json"));
+
             if (data.dragType === "items" && zone === "item") {
-                setSelectedItem(data.id.toString());
-                setBuiltInLvls([1, 1]);
-                setSelectedOrb(""); setOrbLevel("");
-                setSelectedDrifs([]); setDrifTypes({}); setDrifLevels({});
+                handleItemDrop(data);
             } else if (data.dragType === "orbs" && zone === "orb") {
-                if (!selectedItem || (allowedOrbCategories.length > 0 && !allowedOrbCategories.includes(data.category))) return;
-                setOrbType(data.name || data.bonusType);
-                setSelectedOrb(data.id.toString());
-                setOrbLevel("1");
+                handleOrbDrop(data);
             } else if (data.dragType === "drifs" && zone.startsWith("drif-")) {
-                if (!selectedItem || maxDrifs === 0 || SIZE_INDEX[data.size?.toUpperCase()] > maxDrifIndex) return;
-                const idx = parseInt(zone.split('-')[1]);
-                if (elementalTypes.includes(data.bonusType) && (slotKey !== "weapon" || hasGlobalElemental)) return;
-                setDrifTypes(prev => ({ ...prev, [idx]: data.name || data.bonusType }));
-                setSelectedDrifs(prev => { const n = [...prev]; n[idx] = data.id.toString(); return n; });
-                setDrifLevels(prev => ({ ...prev, [idx]: 1 }));
+                handleDrifDrop(data, zone);
             }
-        } catch (e) {}
+        } catch (error) {
+            console.error(error);
+        }
     };
 
     return {
@@ -172,7 +194,7 @@ export const useGearSlot = ({ slotKey, items, orbs, drifs, allSlots, gameRules, 
         isEpicOrSet, builtInDrifs, hoverStars, setHoverStars, selectedOrb, setSelectedOrb,
         orbLevel, setOrbLevel, selectedDrifs, setSelectedDrifs, drifTypes, setDrifTypes,
         drifLevels, setDrifLevels, orbType, setOrbType, dragOverZone, groupedOrbs,
-        fullSelectedItem, maxDrifs, itemCapacity, currentPowerUsed, isOverCapacity,
+        fullSelectedItem, maxDrifs, maxDrifIndex, itemCapacity, currentPowerUsed, isOverCapacity,
         isAtMaxCapacity, capacityPercentage, isSubOrb, availableOrbLevels, handleDragOver,
         handleDragLeave, handleDrop, groupByType
     };

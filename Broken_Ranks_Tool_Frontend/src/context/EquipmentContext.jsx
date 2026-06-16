@@ -66,6 +66,11 @@ export const EquipmentProvider = ({ children }) => {
             const response = await axios.post(`${API_URL}/calculator/calculate`, requestData);
             setStats(response.data);
         } catch (error) {
+            if (error.response && error.response.data && error.response.data.message) {
+                alert(`BŁĄD ZAPISU: ${error.response.data.message}`);
+            } else {
+                alert("Błąd połączenia z serwerem obliczeniowym.");
+            }
             console.error("Błąd kalkulacji potęgi:", error);
         }
     };
