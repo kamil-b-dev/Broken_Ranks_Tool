@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import GearSlot from "./components/GearSlot";
 import ItemDatabase from "./components/ItemDatabase";
 import StatsPanel from "./components/StatsPanel";
@@ -34,6 +34,20 @@ function App() {
         calculateStats
     } = useEquipment();
 
+    const itemsBySlot = useMemo(() => {
+        const grouped = {};
+        if (!data?.items) return grouped;
+
+        SLOTS.forEach(slot => {
+            grouped[slot.key] = data.items.filter(i =>
+                Array.isArray(slot.cat)
+                    ? slot.cat.includes(i.category?.toUpperCase())
+                    : i.category?.toUpperCase() === slot.cat
+            );
+        });
+        return grouped;
+    }, [data.items]);
+
     return (
         <div className="w-full max-w-[1600px] mx-auto p-6 flex flex-col gap-6 font-serif">
             <div className="grid grid-cols-1 xl:grid-cols-10 gap-6">
@@ -48,11 +62,7 @@ function App() {
                                 key={slot.key}
                                 slotKey={slot.key}
                                 label={slot.label}
-                                items={data.items.filter(i =>
-                                    Array.isArray(slot.cat)
-                                        ? slot.cat.includes(i.category?.toUpperCase())
-                                        : i.category?.toUpperCase() === slot.cat
-                                )}
+                                items={itemsBySlot[slot.key] || []}
                                 orbs={data.orbs}
                                 drifs={data.drifs}
                                 allSlots={requestData.slots || {}}

@@ -1,6 +1,7 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,6 +22,7 @@ public class RulesController {
     private final EquipmentRulesRegistry registry;
 
     @GetMapping
+    @Cacheable("gameRules")
     public Map<String, Object> getGameRules() {
         Map<String, Object> response = new HashMap<>();
 
