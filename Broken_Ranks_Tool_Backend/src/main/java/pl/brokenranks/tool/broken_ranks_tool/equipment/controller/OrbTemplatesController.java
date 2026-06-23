@@ -2,6 +2,7 @@ package pl.brokenranks.tool.broken_ranks_tool.equipment.controller;
 
 import org.springframework.cache.annotation.Cacheable;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.OrbTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.repository.OrbTemplateRepository;
@@ -18,7 +19,7 @@ public class OrbTemplatesController {
 
     @GetMapping
     @Cacheable("allOrbs")
-    public List<OrbTemplate> getAllOrbs() {
-        return orbRepository.findAll();
+    public ResponseEntity<List<OrbTemplate>> getAllOrbs() {
+        return ResponseEntity.ok(orbRepository.findAll());
     }
 }

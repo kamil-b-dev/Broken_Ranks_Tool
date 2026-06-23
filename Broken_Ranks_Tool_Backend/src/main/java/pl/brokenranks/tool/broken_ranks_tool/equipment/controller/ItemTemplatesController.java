@@ -20,8 +20,8 @@ public class ItemTemplatesController {
 
     @GetMapping
     @Cacheable("allItems")
-    public List<ItemTemplate> getAllItems() {
-        return itemRepository.findAll();
+    public ResponseEntity<List<ItemTemplate>> getAllItems() {
+        return ResponseEntity.ok(itemRepository.findAll());
     }
 
     @GetMapping("/category/{category}")
