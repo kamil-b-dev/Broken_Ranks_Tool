@@ -2,6 +2,7 @@ package pl.brokenranks.tool.broken_ranks_tool.equipment.service.impl.processor;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import pl.brokenranks.tool.broken_ranks_tool.core.constants.StatConstants;
 import pl.brokenranks.tool.broken_ranks_tool.core.enums.ITEM_STAR;
 import pl.brokenranks.tool.broken_ranks_tool.core.utils.RandomProvider;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
@@ -13,7 +14,6 @@ import java.util.Map;
 @Component
 @RequiredArgsConstructor
 public class ItemStatProcessor {
-
     private final RandomProvider randomProvider;
 
     public double calculateFinalDrifMod(ItemTemplate item, int starLevel) {
@@ -21,38 +21,50 @@ public class ItemStatProcessor {
         double baseStarDrifMod = starMod.getDrifMod();
         double itemDatabaseDrifBonus = 0.0;
 
-        if (item.getStats() != null && item.getStats().containsKey("Bonus drify")) {
-            itemDatabaseDrifBonus = ((Number) item.getStats().get("Bonus drify")).doubleValue() / 100.0;
+        if (item.getStats() != null && item.getStats().containsKey(StatConstants.DRIF_BONUS_STAT_NAME)) {
+            itemDatabaseDrifBonus = ((Number) item.getStats().get(StatConstants.DRIF_BONUS_STAT_NAME)).doubleValue() / 100.0;
         }
 
         return baseStarDrifMod + itemDatabaseDrifBonus;
     }
 
     public void process(ItemTemplate item, int starLevel, CalculationState state) {
-        if (item.getStats() == null || item.getStats().isEmpty()) return;
+        if (item.getStats() == null || item.getStats().isEmpty()) {
+            return;
+        }
 
         ITEM_STAR starMod = ITEM_STAR.fromLevel(starLevel);
         double statMod = starMod.getStatsMod();
 
         if (statMod == 0.0) {
-            item.getStats().forEach((stat, val) -> state.getAccumulator().addFlatValue(stat, ((Number) val).doubleValue()));
+            item.getStats().forEach((statName, statValue) ->
+                    state.getAccumulator().addFlatValue(statName, ((Number) statValue).doubleValue()));
             return;
         }
 
         Map<String, Integer> baseStats = new HashMap<>();
         Map<String, Integer> baseResists = new HashMap<>();
 
-        item.getStats().forEach((k, v) -> {
-            String keyLower = k.toLowerCase();
-            if (keyLower.contains("bonus") || keyLower.contains("drif") || keyLower.contains("orb") || keyLower.contains("pojemność")) {
-                state.getAccumulator().addFlatValue(k, ((Number) v).doubleValue());
+        item.getStats().forEach((statName, statValue) -> {
+            if (isSpecialStat(statName)) {
+                state.getAccumulator().addFlatValue(statName, ((Number) statValue).doubleValue());
+            } else if (isResistanceStat(statName)) {
+                baseResists.put(statName, ((Number) statValue).intValue());
             } else {
-                if (keyLower.contains("odp")) baseResists.put(k, ((Number) v).intValue());
-                else baseStats.put(k, ((Number) v).intValue());
+                baseStats.put(statName, ((Number) statValue).intValue());
             }
         });
 
         state.getAccumulator().distributeRandomly(baseStats, statMod, randomProvider);
         state.getAccumulator().distributeRandomly(baseResists, statMod, randomProvider);
+    }
+
+    private boolean isSpecialStat(String statName) {
+        String lowerCaseStatName = statName.toLowerCase();
+        return StatConstants.SPECIAL_STAT_KEYWORDS.stream().anyMatch(lowerCaseStatName::contains);
+    }
+
+    private boolean isResistanceStat(String statName) {
+        return statName.toLowerCase().contains(StatConstants.RESISTANCE_KEYWORD);
     }
 }
