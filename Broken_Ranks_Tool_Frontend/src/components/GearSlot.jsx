@@ -1,16 +1,44 @@
 import React from "react";
-import { getDrifMaxLvl, getStarColor, formatGroupLabel, DRIF_MULTIPLIERS } from "../utils/GearRules";
-import { useGearSlot } from "../hooks/useGearSlot";
+import { useGearSlot } from "../hooks/useGearSlot.js";
 
 const getRarityColor = (rarity) => {
     if (!rarity) return "text-stone-300";
     switch (rarity.toUpperCase()) {
         case 'SET': return "text-green-700 font-bold";
-        case 'EPIC': return "text-purple-700 font-bold";
+        case 'EPIC': return "text-yellow-500 font-bold";
         case 'LEGENDARY': return "text-amber-600 font-bold";
         case 'RARE': return "text-blue-700 font-bold";
         default: return "text-stone-300";
     }
+};
+
+const getStarColor = (starValue, isFilled) => {
+    if (!isFilled) return "text-stone-700";
+    if (starValue <= 3) return "text-yellow-900";
+    if (starValue <= 6) return "text-gray-400";
+    return "text-amber-500";
+};
+
+const getDrifMaxLvl = (size) => {
+    if (!size) return 21;
+    switch (size.toUpperCase()) {
+        case 'SUBDRIF': return 6;
+        case 'BIDRIF': return 11;
+        case 'MAGNIDRIF': return 16;
+        case 'ARCYDRIF': return 21;
+        default: return 21;
+    }
+};
+
+const formatGroupLabel = (type, items, translations) => {
+    return translations[type] || type;
+};
+
+const DRIF_MULTIPLIERS = {
+    "SUBDRIF": 1,
+    "BIDRIF": 2,
+    "MAGNIDRIF": 3,
+    "ARCYDRIF": 4,
 };
 
 const ItemSelectorSection = ({ label, items, fullSelectedItem, dragOverZone, handleDragOver, handleDragLeave, handleDrop, hookData }) => {
@@ -152,8 +180,8 @@ const DrifsSection = ({ drifs, fullSelectedItem, dragOverZone, handleDragOver, h
 
             <div className="flex flex-col w-full gap-2 items-center">
                 {isEpicOrSet && builtInDrifs.map((drifObj, idx) => (
-                    <div key={`builtin-${idx}`} className="flex gap-1 w-full items-center p-1.5 bg-black/60 border border-purple-900/60 shadow-[inset_0_0_15px_rgba(0,0,0,0.8)]">
-                        <div className="flex-[4] min-w-0 bg-transparent text-purple-300 font-serif p-1 text-[10px] border-b border-purple-900/50 text-center truncate pointer-events-none font-bold uppercase" title={drifObj.displayName}>
+                    <div key={`builtin-${idx}`} className="flex gap-1 w-full items-center p-1.5 bg-black/60 border border-yellow-900/60 shadow-[inset_0_0_15px_rgba(0,0,0,0.8)]">
+                        <div className="flex-[4] min-w-0 bg-transparent text-yellow-0300 font-serif p-1 text-[10px] border-b border-yellow-900/50 text-center truncate pointer-events-none font-bold uppercase" title={drifObj.displayName}>
                             {drifObj.displayName}
                         </div>
                         <select
@@ -163,7 +191,7 @@ const DrifsSection = ({ drifs, fullSelectedItem, dragOverZone, handleDragOver, h
                                 newLvls[idx] = parseInt(e.target.value);
                                 setBuiltInLvls(newLvls);
                             }}
-                            className={`flex-[2] min-w-0 bg-transparent font-serif p-1 text-xs border-b outline-none text-center cursor-pointer bg-stone-950 ${drifObj.id ? 'text-purple-300 border-purple-900/50 hover:border-purple-500' : 'text-rose-600 border-rose-900'}`}
+                            className={`flex-[2] min-w-0 bg-transparent font-serif p-1 text-xs border-b outline-none text-center cursor-pointer bg-stone-950 ${drifObj.id ? 'text-yellow-300 border-yellow-900/50 hover:border-yellow-500' : 'text-rose-600 border-rose-900'}`}
                             disabled={!drifObj.id}
                         >
                             {Array.from({ length: 16 }, (_, i) => i + 1).map(num => (

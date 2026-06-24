@@ -71,7 +71,7 @@ public class EquipmentRulesRegistry {
         return elementalDamageTypes.contains(type);
     }
 
-    public static double getDrifPenalty(int count) {
+    public double getDrifPenalty(int count) {
         if (count <= 3) return 1.0;
         return switch (count) {
             case 4 -> 0.95; case 5 -> 0.87; case 6 -> 0.80;
