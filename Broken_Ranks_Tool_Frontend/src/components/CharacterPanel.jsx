@@ -1,27 +1,9 @@
 import { useState, useEffect } from "react";
+import { STAT_CONFIG, INITIAL_SPENT_POINTS } from "../constants/character";
 
 const CharacterPanel = ({ onStatsChange }) => {
     const [level, setLevel] = useState(1);
-
-    const [spentPoints, setSpentPoints] = useState({
-        "Siła": 0,
-        "Zręczność": 0,
-        "Moc": 0,
-        "Wiedza": 0,
-        "Pż": 0,
-        "Mana": 0,
-        "Kondycja": 0
-    });
-
-    const statConfig = {
-        "Siła": { base: 10, ratio: 1 },
-        "Zręczność": { base: 10, ratio: 1 },
-        "Moc": { base: 10, ratio: 1 },
-        "Wiedza": { base: 10, ratio: 1 },
-        "Pż": { base: 200, ratio: 10 },
-        "Mana": { base: 200, ratio: 10 },
-        "Kondycja": { base: 200, ratio: 10 }
-    };
+    const [spentPoints, setSpentPoints] = useState(INITIAL_SPENT_POINTS);
 
     const totalPoints = (level - 1) * 4;
     const currentSpent = Object.values(spentPoints).reduce((a, b) => a + b, 0);
@@ -29,11 +11,11 @@ const CharacterPanel = ({ onStatsChange }) => {
 
     useEffect(() => {
         const finalStats = {};
-        Object.keys(statConfig).forEach(name => {
-            finalStats[name] = statConfig[name].base + (spentPoints[name] * statConfig[name].ratio);
+        Object.keys(STAT_CONFIG).forEach(name => {
+            finalStats[name] = STAT_CONFIG[name].base + (spentPoints[name] * STAT_CONFIG[name].ratio);
         });
         onStatsChange(finalStats);
-    }, [spentPoints, level]);
+    }, [spentPoints, level, onStatsChange]);
 
     const handleAddPoint = (statName, amount) => {
         if (amount > 0 && pointsLeft < amount) return;
@@ -97,8 +79,8 @@ const CharacterPanel = ({ onStatsChange }) => {
             </div>
 
             <div className="grid grid-cols-1 gap-1 flex-1 overflow-y-auto pr-2 custom-scrollbar">
-                {Object.keys(statConfig).map((statName) => {
-                    const finalValue = statConfig[statName].base + (spentPoints[statName] * statConfig[statName].ratio);
+                {Object.keys(STAT_CONFIG).map((statName) => {
+                    const finalValue = STAT_CONFIG[statName].base + (spentPoints[statName] * STAT_CONFIG[statName].ratio);
 
                     return (
                         <div key={statName} className="flex items-center justify-between bg-black/60 p-3 border-b border-stone-800 group hover:bg-stone-900/50 transition-colors">
@@ -138,11 +120,7 @@ const CharacterPanel = ({ onStatsChange }) => {
 
             <div className="mt-4 flex justify-end items-center shrink-0">
                 <button
-                    onClick={() => {
-                        setSpentPoints({
-                            "Siła": 0, "Zręczność": 0, "Moc": 0, "Wiedza": 0, "Pż": 0, "Mana": 0, "Kondycja": 0
-                        });
-                    }}
+                    onClick={() => setSpentPoints(INITIAL_SPENT_POINTS)}
                     className="text-xs text-red-800 hover:text-red-500 font-serif font-bold uppercase tracking-widest border border-red-900/50 bg-black/50 px-4 py-2 hover:bg-red-900/20 transition-colors shadow-inner"
                 >
                     Zresetuj

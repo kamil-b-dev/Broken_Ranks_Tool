@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.brokenranks.tool.broken_ranks_tool.core.enums.DRIF_BONUS_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.core.enums.RARITY;
+import pl.brokenranks.tool.broken_ranks_tool.core.utils.StringUtils;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.OrbTemplate;
@@ -20,15 +22,15 @@ public class EquipmentValidator {
 
     private final EquipmentRulesRegistry rules;
 
-
     public void validateDrifsSecurity(ItemTemplate item, int itemStars, List<DrifTemplate> drifs, List<Integer> drifLevels) {
-        if (item == null || drifs == null || drifs.isEmpty()) return;
+        if (item == null || drifs == null || drifs.isEmpty()) {
+            return;
+        }
 
         Set<DRIF_BONUS_TYPE> uniqueBonuses = new HashSet<>();
         int currentPowerUsed = 0;
 
-        boolean isEpicOrSet = item.getRarity() != null &&
-                ("EPIC".equalsIgnoreCase(item.getRarity().name()) || "SET".equalsIgnoreCase(item.getRarity().name()));
+        boolean isEpicOrSet = item.getRarity() == RARITY.EPIC || item.getRarity() == RARITY.SET;
 
         String baseItemName = item.getName() != null ? item.getName().replaceAll("\\s+[IVX]+$", "").trim() : "";
         List<String> builtInTypes = isEpicOrSet ? EquipmentRulesRegistry.EPIC_BUILTIN_DRIFS.getOrDefault(baseItemName, List.of()) : List.of();
@@ -73,7 +75,6 @@ public class EquipmentValidator {
         if (level <= 16) return 3;
         return 4;
     }
-
 
     public boolean isValidItem(ItemTemplate item, String slotKey) {
         if (item == null) return false;
@@ -125,14 +126,15 @@ public class EquipmentValidator {
     }
 
     public boolean isValidDrifSizeForTier(DrifTemplate drif, ItemTemplate item) {
-        if (drif == null || drif.getSize() == null || item == null || item.getTier() == null) return false;
+        if (drif == null || drif.getSize() == null || item == null || item.getTier() == null) {
+            return false;
+        }
 
-        if (item.getRarity() != null &&
-                ("EPIC".equalsIgnoreCase(item.getRarity().name()) || "SET".equalsIgnoreCase(item.getRarity().name()))) {
+        if (item.getRarity() == RARITY.EPIC || item.getRarity() == RARITY.SET) {
             return true;
         }
 
-        int tierLvl = convertRomanToInteger(item.getTier());
+        int tierLvl = StringUtils.convertRomanToInteger(item.getTier());
         int allowedSizeIndex;
 
         if (tierLvl >= 10) allowedSizeIndex = 3;
@@ -141,15 +143,5 @@ public class EquipmentValidator {
         else allowedSizeIndex = 0;
 
         return drif.getSize().ordinal() <= allowedSizeIndex;
-    }
-
-    private int convertRomanToInteger(String roman) {
-        return switch (roman.toUpperCase()) {
-            case "I" -> 1; case "II" -> 2; case "III" -> 3;
-            case "IV" -> 4; case "V" -> 5; case "VI" -> 6;
-            case "VII" -> 7; case "VIII" -> 8; case "IX" -> 9;
-            case "X" -> 10; case "XI" -> 11; case "XII" -> 12;
-            default -> 0;
-        };
     }
 }

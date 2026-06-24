@@ -1,13 +1,11 @@
 import { createContext, useState, useEffect, useContext } from "react";
-import axios from "axios";
+import apiClient from "../api/axiosConfig";
 
 const EquipmentContext = createContext();
 
 export const useEquipment = () => useContext(EquipmentContext);
 
 export const EquipmentProvider = ({ children }) => {
-    const API_URL = "http://localhost:8080/api";
-
     const [data, setData] = useState({ items: [], orbs: [], drifs: [] });
     const [categoryNames, setCategoryNames] = useState({});
     const [gameRules, setGameRules] = useState(null);
@@ -19,10 +17,10 @@ export const EquipmentProvider = ({ children }) => {
         const fetchData = async () => {
             try {
                 const [itemsRes, orbsRes, drifsRes, rulesRes] = await Promise.all([
-                    axios.get(`${API_URL}/items`),
-                    axios.get(`${API_URL}/orbs`),
-                    axios.get(`${API_URL}/drifs`),
-                    axios.get(`${API_URL}/rules`)
+                    apiClient.get("/items"),
+                    apiClient.get("/orbs"),
+                    apiClient.get("/drifs"),
+                    apiClient.get("/rules")
                 ]);
                 setData({ items: itemsRes.data, orbs: orbsRes.data, drifs: drifsRes.data });
                 setGameRules(rulesRes.data);
@@ -31,7 +29,7 @@ export const EquipmentProvider = ({ children }) => {
             }
 
             try {
-                const catRes = await axios.get(`${API_URL}/dictionaries/categories`);
+                const catRes = await apiClient.get("/dictionaries/categories");
                 setCategoryNames(catRes.data);
             } catch (error) {
                 console.warn("Błąd ładowania słowników:", error);
@@ -63,7 +61,7 @@ export const EquipmentProvider = ({ children }) => {
 
     const calculateStats = async () => {
         try {
-            const response = await axios.post(`${API_URL}/calculator/calculate`, requestData);
+            const response = await apiClient.post("/calculator/calculate", requestData);
             setStats(response.data);
         } catch (error) {
             if (error.response && error.response.data && error.response.data.message) {

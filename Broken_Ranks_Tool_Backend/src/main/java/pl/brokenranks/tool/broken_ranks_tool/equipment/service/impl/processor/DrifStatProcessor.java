@@ -24,6 +24,7 @@ import java.util.Set;
 public class DrifStatProcessor {
 
     private final EquipmentValidator validator;
+    private final EquipmentRulesRegistry rules;
 
     public Map<DRIF_BONUS_TYPE, Integer> preCountDrifs(EquipmentRequest request, CalculationContext ctx) {
         Map<DRIF_BONUS_TYPE, Integer> counts = new HashMap<>();
@@ -83,7 +84,7 @@ public class DrifStatProcessor {
             int finalLvl = validator.sanitizeDrifLevel(requestedLvl, drif);
 
             int globalCountForThisDrif = state.getDrifCounts().getOrDefault(drif.getBonusType(), 1);
-            double penaltyMultiplier = EquipmentRulesRegistry.getDrifPenalty(globalCountForThisDrif);
+            double penaltyMultiplier = rules.getDrifPenalty(globalCountForThisDrif);
 
             String calculatedStatValue = calculateTotalDrifStat(drif.getBaseValue(), drif.getIncrement(), finalLvl);
             double finalMultiplier = (1.0 + drifMod) * penaltyMultiplier;
