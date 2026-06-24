@@ -52,20 +52,17 @@ public class StatsAccumulator {
     public Map<String, String> getFormattedResults() {
         Map<String, String> finalStats = new HashMap<>();
 
-        flatStats.forEach((stat, val) -> {
-            BigDecimal bd = new BigDecimal(Double.toString(val))
-                    .setScale(2, RoundingMode.HALF_UP)
-                    .stripTrailingZeros();
-            finalStats.put(stat, bd.toPlainString());
-        });
-
-        percentStats.forEach((stat, val) -> {
-            BigDecimal bd = new BigDecimal(Double.toString(val))
-                    .setScale(2, RoundingMode.HALF_UP)
-                    .stripTrailingZeros();
-            finalStats.put(stat, bd.toPlainString() + "%");
-        });
+        flatStats.forEach((stat, val) -> finalStats.put(stat, formatValue(val, false)));
+        percentStats.forEach((stat, val) -> finalStats.put(stat, formatValue(val, true)));
 
         return finalStats;
+    }
+
+    private String formatValue(double value, boolean isPercent) {
+        BigDecimal bd = BigDecimal.valueOf(value)
+                .setScale(2, RoundingMode.HALF_UP)
+                .stripTrailingZeros();
+        String formatted = bd.toPlainString();
+        return isPercent ? formatted + "%" : formatted;
     }
 }

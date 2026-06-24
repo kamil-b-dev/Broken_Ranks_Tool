@@ -61,9 +61,16 @@ export const useGearSlot = ({ slotKey, items, orbs, drifs, allSlots, gameRules, 
 
     const allowedOrbCategories = slotOrbRules[slotKey] || [];
 
-    const availableOrbs = useMemo(() =>
-            orbs.filter(o => !globalUsedOrbs.includes(o.bonusType) && allowedOrbCategories.includes(o.category)),
-        [orbs, globalUsedOrbs, allowedOrbCategories]);
+    const availableOrbs = useMemo(() => {
+        return orbs.filter(o => {
+            const orbTierVal = ROMAN_TO_INT[o.tier] || 0;
+            const isAllowedByCategory = allowedOrbCategories.includes(o.category);
+            const isNotUsedGlobally = !globalUsedOrbs.includes(o.bonusType);
+            const isTierValid = tierVal > 0 ? orbTierVal <= tierVal : true;
+            return isAllowedByCategory && isNotUsedGlobally && isTierValid;
+        });
+    }, [orbs, globalUsedOrbs, allowedOrbCategories, tierVal]);
+
 
     const groupedOrbs = useMemo(() => groupByType(availableOrbs), [availableOrbs]);
 
@@ -87,11 +94,12 @@ export const useGearSlot = ({ slotKey, items, orbs, drifs, allSlots, gameRules, 
     }, [fullSelectedItem, tierVal, itemStars, isEpicOrSet]);
 
     const maxDrifIndex = useMemo(() => {
-        if (tierVal >= 9) return 3;
+        if (!fullSelectedItem || isEpicOrSet) return -1;
+        if (tierVal >= 10) return 3;
         if (tierVal >= 7) return 2;
         if (tierVal >= 4) return 1;
         return 0;
-    }, [tierVal]);
+    }, [tierVal, fullSelectedItem, isEpicOrSet]);
 
     const itemCapacity = useMemo(() => {
         const baseCapacity = fullSelectedItem?.capacity || 0;
@@ -155,6 +163,9 @@ export const useGearSlot = ({ slotKey, items, orbs, drifs, allSlots, gameRules, 
 
     const handleOrbDrop = (data) => {
         if (!selectedItem || (allowedOrbCategories.length > 0 && !allowedOrbCategories.includes(data.category))) return;
+        const orbTierVal = ROMAN_TO_INT[data.tier] || 0;
+        if (tierVal > 0 && orbTierVal > tierVal) return;
+
         setOrbType(data.name || data.bonusType);
         setSelectedOrb(data.id.toString());
         setOrbLevel("1");
