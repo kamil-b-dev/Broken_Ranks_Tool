@@ -17,6 +17,10 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * Serwis odpowiedzialny za dostarczanie i agregację danych o ekwipunku z bazy danych.
+ * Optymalizuje pobieranie danych, aby uniknąć problemu N+1 zapytań.
+ */
 @Service
 @RequiredArgsConstructor
 public class EquipmentDataProvider {
@@ -25,6 +29,13 @@ public class EquipmentDataProvider {
     private final OrbTemplateRepository orbRepository;
     private final DrifTemplateRepository drifRepository;
 
+    /**
+     * Buduje kontekst obliczeniowy, pobierając wszystkie niezbędne szablony
+     * (przedmioty, orby, drify) za pomocą jednego zapytania dla każdego typu.
+     *
+     * @param slots Kolekcja danych o slotach z żądania.
+     * @return Obiekt {@link CalculationContext} zawierający mapy szablonów po ich ID.
+     */
     public CalculationContext buildContext(Collection<SlotData> slots) {
         List<Long> itemIds = slots.stream().map(SlotData::getItemId).filter(Objects::nonNull).toList();
         List<Long> orbIds = slots.stream().map(SlotData::getOrbId).filter(Objects::nonNull).toList();
@@ -37,6 +48,14 @@ public class EquipmentDataProvider {
         );
     }
 
+    /**
+     * Rekord przechowujący kontekst obliczeniowy - mapy z szablonami ekwipunku.
+     * Używany do przekazywania wszystkich potrzebnych danych w jednym obiekcie.
+     *
+     * @param items Mapa szablonów przedmiotów (ID -> ItemTemplate).
+     * @param orbs  Mapa szablonów orbów (ID -> OrbTemplate).
+     * @param drifs Mapa szablonów drifów (ID -> DrifTemplate).
+     */
     public record CalculationContext(
             Map<Long, ItemTemplate> items,
             Map<Long, OrbTemplate> orbs,

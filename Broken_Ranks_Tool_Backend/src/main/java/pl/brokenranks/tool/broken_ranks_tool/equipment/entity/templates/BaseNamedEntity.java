@@ -7,6 +7,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
+/**
+ * Abstrakcyjna klasa bazowa dla encji, które posiadają nazwę.
+ * Rozszerza {@link BaseEntity} o pole {@code name}.
+ */
 @MappedSuperclass
 @Getter
 @Setter

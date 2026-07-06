@@ -11,6 +11,10 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.Calcul
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Procesor odpowiedzialny za obliczanie i dodawanie statystyk pochodzących bezpośrednio z przedmiotu.
+ * Obsługuje modyfikatory z gwiazdek i losową dystrybucję statystyk.
+ */
 @Component
 @RequiredArgsConstructor
 public class ItemStatProcessor {

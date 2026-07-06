@@ -4,6 +4,9 @@ import lombok.experimental.UtilityClass;
 
 import java.util.Set;
 
+/**
+ * Klasa narzędziowa przechowująca globalne stałe związane ze statystykami.
+ */
 @UtilityClass
 public class StatConstants {
     public static final Set<String> SPECIAL_STAT_KEYWORDS = Set.of("bonus", "drif", "orb", "pojemność");

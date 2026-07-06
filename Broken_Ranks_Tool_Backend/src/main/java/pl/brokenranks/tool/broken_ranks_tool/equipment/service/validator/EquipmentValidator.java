@@ -15,6 +15,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Serwis odpowiedzialny za walidację reguł i zabezpieczeń związanych z ekwipunkiem.
+ * Sprawdza, czy operacje wykonywane przez użytkownika są zgodne z zasadami tworzenia ekwipunku.
+ */
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -22,6 +26,16 @@ public class EquipmentValidator {
 
     private final EquipmentRulesRegistry rules;
 
+    /**
+     * Waliduje bezpieczeństwo i poprawność drifów osadzonych w przedmiocie.
+     * Sprawdza unikalność bonusów, pojemność przedmiotu oraz inne ograniczenia.
+     * Rzuca {@link IllegalArgumentException} w przypadku wykrycia naruszenia.
+     *
+     * @param item       Szablon przedmiotu, w którym osadzane są drify.
+     * @param itemStars  Poziom ulepszenia przedmiotu (gwiazdki).
+     * @param drifs      Lista szablonów drifów do osadzenia.
+     * @param drifLevels Lista poziomów ulepszenia dla każdego drifu.
+     */
     public void validateDrifsSecurity(ItemTemplate item, int itemStars, List<DrifTemplate> drifs, List<Integer> drifLevels) {
         if (item == null || drifs == null || drifs.isEmpty()) {
             return;
@@ -76,6 +90,10 @@ public class EquipmentValidator {
         return 4;
     }
 
+    /**
+     * Sprawdza, czy przedmiot może być umieszczony w danym slocie.
+     * @return true, jeśli przedmiot jest prawidłowy dla slotu.
+     */
     public boolean isValidItem(ItemTemplate item, String slotKey) {
         if (item == null) return false;
         if (!rules.isItemAllowedInSlot(item.getCategory(), slotKey)) {
@@ -85,6 +103,10 @@ public class EquipmentValidator {
         return true;
     }
 
+    /**
+     * Sprawdza podstawową poprawność drifu.
+     * @return true, jeśli drif jest prawidłowy.
+     */
     public boolean isValidDrif(DrifTemplate drif, String slotKey) {
         if (drif == null) return false;
         if (drif.getBonusType() == null) {
@@ -94,11 +116,19 @@ public class EquipmentValidator {
         return true;
     }
 
+    /**
+     * Ogranicza poziom ulepszenia drifu do jego maksymalnej dozwolonej wartości.
+     * @return Poprawny poziom ulepszenia.
+     */
     public int sanitizeDrifLevel(int requestedLevel, DrifTemplate drif) {
         if (drif.getSize() == null) return requestedLevel;
         return Math.min(requestedLevel, drif.getSize().getMaxLevel());
     }
 
+    /**
+     * Sprawdza, czy orb może być umieszczony w danym slocie.
+     * @return true, jeśli orb jest prawidłowy dla slotu.
+     */
     public boolean isValidOrb(OrbTemplate orb, String slotKey) {
         if (orb == null) return false;
         if (!rules.isOrbAllowedInSlot(orb.getCategory(), slotKey)) {
@@ -108,15 +138,27 @@ public class EquipmentValidator {
         return true;
     }
 
+    /**
+     * Ogranicza poziom ulepszenia orba do jego maksymalnej dozwolonej wartości.
+     * @return Poprawny poziom ulepszenia.
+     */
     public int sanitizeOrbLevel(int requestedLevel, OrbTemplate orb) {
         if (orb.getSize() == null) return requestedLevel;
         return Math.min(requestedLevel, orb.getSize().getMaxLevel());
     }
 
+    /**
+     * Sprawdza, czy bonus drifu jest typu "obrażenia od żywiołów".
+     * @return true, jeśli bonus jest od żywiołów.
+     */
     public boolean isElementalDamage(DRIF_BONUS_TYPE type) {
         return rules.isElementalDamage(type);
     }
 
+    /**
+     * Sprawdza, czy drif z obrażeniami od żywiołów jest w dozwolonym slocie (tylko broń).
+     * @return true, jeśli pozycja drifu jest prawidłowa.
+     */
     public boolean isElementalDrifPositionValid(DrifTemplate drif, String slotKey) {
         if (drif == null || drif.getBonusType() == null) return false;
         if (rules.isElementalDamage(drif.getBonusType())) {
@@ -125,6 +167,10 @@ public class EquipmentValidator {
         return true;
     }
 
+    /**
+     * Sprawdza, czy rozmiar drifu jest dozwolony dla danego tieru przedmiotu.
+     * @return true, jeśli rozmiar drifu jest prawidłowy.
+     */
     public boolean isValidDrifSizeForTier(DrifTemplate drif, ItemTemplate item) {
         if (drif == null || drif.getSize() == null || item == null || item.getTier() == null) {
             return false;

@@ -1,10 +1,15 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates;
+
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import pl.brokenranks.tool.broken_ranks_tool.core.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.core.enums.DRIF_SIZE;
 
+/**
+ * Encja reprezentująca szablon drifu (DrifTemplate).
+ * Mapuje się na tabelę 'drif_templates' przechowującą wszystkie możliwe do zdobycia drify w grze.
+ */
 @Entity
 @Table(name = "drif_templates")
 @Getter

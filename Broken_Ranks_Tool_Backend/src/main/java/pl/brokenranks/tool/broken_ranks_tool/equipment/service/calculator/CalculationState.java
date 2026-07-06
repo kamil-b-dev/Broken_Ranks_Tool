@@ -10,6 +10,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Klasa przechowująca stan pojedynczej sesji obliczeniowej.
+ * Jest tworzona na początku procesu obliczeń i przekazywana pomiędzy procesorami.
+ * Agreguje wszystkie dane potrzebne w trakcie obliczeń.
+ */
 @Getter
 public class CalculationState {
     private final StatsAccumulator accumulator = new StatsAccumulator();

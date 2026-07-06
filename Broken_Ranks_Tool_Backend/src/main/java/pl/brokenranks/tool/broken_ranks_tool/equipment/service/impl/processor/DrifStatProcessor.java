@@ -19,6 +19,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Procesor odpowiedzialny za obliczanie i dodawanie statystyk pochodzących z drifów.
+ * Obsługuje modyfikatory z przedmiotu, kary za powielanie drifów oraz ich poziomy ulepszenia.
+ */
 @Component
 @RequiredArgsConstructor
 public class DrifStatProcessor {

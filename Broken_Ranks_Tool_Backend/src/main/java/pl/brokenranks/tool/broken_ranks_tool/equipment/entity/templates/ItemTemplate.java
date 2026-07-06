@@ -9,6 +9,10 @@ import pl.brokenranks.tool.broken_ranks_tool.core.enums.RARITY;
 
 import java.util.Map;
 
+/**
+ * Encja reprezentująca szablon przedmiotu (ItemTemplate).
+ * Mapuje się na tabelę 'item_templates' przechowującą wszystkie możliwe do zdobycia przedmioty w grze.
+ */
 @Entity
 @Table(name = "item_templates")
 @Getter
