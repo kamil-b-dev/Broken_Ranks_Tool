@@ -10,11 +10,20 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * Kontroler API do pobierania podstawowych słowników używanych w aplikacji.
+ */
 @RestController
 @RequestMapping("/api/dictionaries")
 @CrossOrigin(origins = "*")
 public class DictionaryController {
 
+    /**
+     * Zwraca słownik tłumaczeń dla kategorii przedmiotów.
+     * Kluczem jest nazwa enuma, wartością jest opis.
+     *
+     * @return Mapa tłumaczeń dla kategorii przedmiotów.
+     */
     @GetMapping("/categories")
     public Map<String, String> getCategoryDictionary() {
         return Arrays.stream(ITEM_CATEGORY.values())

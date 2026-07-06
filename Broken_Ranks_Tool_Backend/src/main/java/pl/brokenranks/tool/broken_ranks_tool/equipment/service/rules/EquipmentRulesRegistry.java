@@ -9,10 +9,19 @@ import pl.brokenranks.tool.broken_ranks_tool.core.enums.ORB_CATEGORY;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Centralny rejestr przechowujący i udostępniający globalne reguły związane z ekwipunkiem.
+ * Klasa ta jest komponentem Springa i jest wstrzykiwana do innych serwisów,
+ * które potrzebują dostępu do reguł.
+ */
 @Component
 @Getter
 public class EquipmentRulesRegistry {
 
+    /**
+     * Mapa przechowująca definicje wbudowanych drifów dla przedmiotów epickich.
+     * Kluczem jest nazwa przedmiotu, wartością jest lista typów bonusów.
+     */
     public static final Map<String, List<String>> EPIC_BUILTIN_DRIFS = Map.of(
             "Allenor", List.of(DRIF_BONUS_TYPE.DAMAGE_PHYSICAL.name(), DRIF_BONUS_TYPE.CRITICAL_CHANCE.name()),
             "Attawa", List.of(DRIF_BONUS_TYPE.CRITICAL_CHANCE.name(), DRIF_BONUS_TYPE.HIT_CHANCE_MENTAL.name()),
@@ -59,18 +68,40 @@ public class EquipmentRulesRegistry {
             DRIF_BONUS_TYPE.DAMAGE_FROST
     );
 
+    /**
+     * Sprawdza, czy dany typ przedmiotu jest dozwolony w określonym slocie.
+     * @param category Kategoria przedmiotu.
+     * @param slotKey Klucz identyfikujący slot (np. "helmet").
+     * @return true, jeśli przedmiot jest dozwolony, w przeciwnym razie false.
+     */
     public boolean isItemAllowedInSlot(ITEM_CATEGORY category, String slotKey) {
         return slotItemRules.getOrDefault(slotKey, List.of()).contains(category);
     }
 
+    /**
+     * Sprawdza, czy dany typ orba jest dozwolony w określonym slocie.
+     * @param category Kategoria orba.
+     * @param slotKey Klucz identyfikujący slot (np. "weapon").
+     * @return true, jeśli orb jest dozwolony, w przeciwnym razie false.
+     */
     public boolean isOrbAllowedInSlot(ORB_CATEGORY category, String slotKey) {
         return slotOrbRules.getOrDefault(slotKey, List.of()).contains(category);
     }
 
+    /**
+     * Sprawdza, czy dany typ bonusu jest klasyfikowany jako obrażenia od żywiołów.
+     * @param type Typ bonusu drifu.
+     * @return true, jeśli bonus to obrażenia od żywiołów, w przeciwnym razie false.
+     */
     public boolean isElementalDamage(DRIF_BONUS_TYPE type) {
         return elementalDamageTypes.contains(type);
     }
 
+    /**
+     * Oblicza karę (mnożnik) za posiadanie dużej liczby drifów tego samego typu.
+     * @param count Liczba posiadanych drifów danego typu.
+     * @return Mnożnik kary (wartość od 0.5 do 1.0).
+     */
     public double getDrifPenalty(int count) {
         if (count <= 3) return 1.0;
         return switch (count) {
