@@ -6,10 +6,23 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
 
+/**
+ * Klasa pomocnicza odpowiedzialna za akumulację i obliczanie statystyk.
+ * Przechowuje statystyki w postaci płaskiej i procentowej, a na końcu je formatuje.
+ * Nie jest komponentem Springa - nowa instancja jest tworzona dla każdego obliczenia.
+ */
 public class StatsAccumulator {
     private final Map<String, Double> flatStats = new HashMap<>();
     private final Map<String, Double> percentStats = new HashMap<>();
 
+    /**
+     * Dodaje wartość statystyki na podstawie surowego stringa (np. "10%" lub "25").
+     * Automatycznie parsuje wartość i decyduje, czy jest to statystyka płaska czy procentowa.
+     *
+     * @param statName   Nazwa statystyki.
+     * @param rawValue   Surowa wartość w postaci stringa.
+     * @param multiplier Mnożnik, przez który zostanie przemnożona wartość.
+     */
     public void addRawValue(String statName, String rawValue, double multiplier) {
         if (rawValue == null || rawValue.isBlank()) return;
 
@@ -28,10 +41,23 @@ public class StatsAccumulator {
         } catch (NumberFormatException ignored) {}
     }
 
+    /**
+     * Dodaje płaską wartość do statystyk.
+     *
+     * @param statName Nazwa statystyki.
+     * @param value    Wartość do dodania.
+     */
     public void addFlatValue(String statName, double value) {
         flatStats.merge(statName, value, Double::sum);
     }
 
+    /**
+     * Rozdziela pulę bonusowych punktów statystyk losowo pomiędzy podane statystyki bazowe.
+     *
+     * @param baseValues     Mapa statystyk bazowych do rozdzielenia.
+     * @param multiplier     Mnożnik, który określa wielkość puli bonusowej.
+     * @param randomProvider Dostawca losowości.
+     */
     public void distributeRandomly(Map<String, Integer> baseValues, double multiplier, RandomProvider randomProvider) {
         if (baseValues.isEmpty()) return;
 
@@ -49,6 +75,12 @@ public class StatsAccumulator {
         finalValues.forEach((stat, val) -> addFlatValue(stat, (double) val));
     }
 
+    /**
+     * Formatuje zebrane statystyki do ostatecznej, czytelnej formy.
+     * Używa {@link BigDecimal} do precyzyjnego zaokrąglania.
+     *
+     * @return Mapa sformatowanych statystyk gotowa do wyświetlenia.
+     */
     public Map<String, String> getFormattedResults() {
         Map<String, String> finalStats = new HashMap<>();
 

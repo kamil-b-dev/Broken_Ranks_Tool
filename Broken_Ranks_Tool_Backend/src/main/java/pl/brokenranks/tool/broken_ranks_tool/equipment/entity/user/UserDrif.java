@@ -1,35 +1,13 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.entity.user;
 
-
 import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.SuperBuilder;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.BaseEntity;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.BaseNamedEntity;
 
+/**
+ * Encja reprezentująca drif należący do użytkownika.
+ * Przechowuje informacje o konkretnym drifie w ekwipunku lub konfiguracji użytkownika.
+ */
 @Entity
-@Table(name = "user_drif")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@SuperBuilder
-public class UserDrif extends BaseEntity {
-
-    @ManyToOne
-    @JoinColumn(name = "user_item_id")
-    private UserItem userItem;
-
-    @ManyToOne
-    @JoinColumn(name = "drif_template_id")
-    private DrifTemplate drifTemplate;
-
-    private int level;
-
+public class UserDrif extends BaseNamedEntity {
+    // Potencjalnie pola specyficzne dla drifu użytkownika.
 }

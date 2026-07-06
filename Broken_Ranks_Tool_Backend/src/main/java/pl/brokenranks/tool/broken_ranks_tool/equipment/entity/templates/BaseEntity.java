@@ -10,6 +10,12 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
+/**
+ * Abstrakcyjna klasa bazowa dla wszystkich encji.
+ * Definiuje wspólne pole ID, które jest generowane automatycznie.
+ * Adnotacja {@link MappedSuperclass} sprawia, że pola tej klasy są mapowane
+ * w tabelach klas dziedziczących, ale sama klasa nie ma swojej tabeli.
+ */
 @MappedSuperclass
 @Getter
 @Setter
