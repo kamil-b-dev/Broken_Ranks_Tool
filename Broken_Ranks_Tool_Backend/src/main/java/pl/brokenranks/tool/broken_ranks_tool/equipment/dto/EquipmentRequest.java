@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Data Transfer Object (DTO) reprezentujący żądanie obliczenia statystyk.
- * Obiekt ten jest przesyłany w ciele żądania POST do endpointu /api/calculator/calculate.
+ * Data Transfer Object (DTO) dla żądania obliczenia statystyk.
+ * Reprezentuje strukturę danych przesyłaną do API kalkulatora.
  */
 @Data
 public class EquipmentRequest {

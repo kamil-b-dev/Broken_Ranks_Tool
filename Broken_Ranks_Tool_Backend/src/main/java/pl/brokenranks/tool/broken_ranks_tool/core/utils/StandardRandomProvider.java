@@ -4,9 +4,8 @@ import org.springframework.stereotype.Component;
 import java.util.Random;
 
 /**
- * Standardowa implementacja interfejsu {@link RandomProvider}.
- * Używa wbudowanej w Javę klasy {@link java.util.Random}.
- * Jest komponentem Springa, aby można go było łatwo wstrzykiwać.
+ * Domyślna, produkcyjna implementacja {@link RandomProvider},
+ * która deleguje wywołania do standardowej klasy {@link java.util.Random}.
  */
 @Component
 public class StandardRandomProvider implements RandomProvider {

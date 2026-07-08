@@ -10,7 +10,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.repository.OrbTemplateRep
 import java.util.List;
 
 /**
- * Kontroler API do pobierania szablonów orbów (OrbTemplate).
+ * Udostępnia endpointy API do pobierania szablonów orbów.
  */
 @RestController
 @RequestMapping("/api/orbs")
@@ -21,10 +21,7 @@ public class OrbTemplatesController {
     private final OrbTemplateRepository orbRepository;
 
     /**
-     * Zwraca listę wszystkich dostępnych szablonów orbów.
-     * Wynik jest cachowany w celu poprawy wydajności.
-     *
-     * @return ResponseEntity z listą wszystkich orbów.
+     * @return ResponseEntity z listą wszystkich szablonów orbów.
      */
     @GetMapping
     @Cacheable("allOrbs")

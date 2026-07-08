@@ -16,8 +16,9 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Serwis odpowiedzialny za walidację reguł i zabezpieczeń związanych z ekwipunkiem.
- * Sprawdza, czy operacje wykonywane przez użytkownika są zgodne z zasadami tworzenia ekwipunku.
+ * Odpowiada za walidację logiki biznesowej i reguł gry.
+ * Celem tej klasy jest zapewnienie, że dane wejściowe i operacje
+ * są zgodne z zasadami (np. pojemność drifów, dozwolone sloty).
  */
 @Service
 @Slf4j
@@ -27,14 +28,10 @@ public class EquipmentValidator {
     private final EquipmentRulesRegistry rules;
 
     /**
-     * Waliduje bezpieczeństwo i poprawność drifów osadzonych w przedmiocie.
-     * Sprawdza unikalność bonusów, pojemność przedmiotu oraz inne ograniczenia.
-     * Rzuca {@link IllegalArgumentException} w przypadku wykrycia naruszenia.
+     * Waliduje, czy podana konfiguracja drifów jest zgodna z regułami dla danego przedmiotu.
+     * Sprawdza m.in. unikalność bonusów i limit pojemności.
      *
-     * @param item       Szablon przedmiotu, w którym osadzane są drify.
-     * @param itemStars  Poziom ulepszenia przedmiotu (gwiazdki).
-     * @param drifs      Lista szablonów drifów do osadzenia.
-     * @param drifLevels Lista poziomów ulepszenia dla każdego drifu.
+     * @throws IllegalArgumentException w przypadku wykrycia naruszenia reguł.
      */
     public void validateDrifsSecurity(ItemTemplate item, int itemStars, List<DrifTemplate> drifs, List<Integer> drifLevels) {
         if (item == null || drifs == null || drifs.isEmpty()) {
@@ -91,8 +88,7 @@ public class EquipmentValidator {
     }
 
     /**
-     * Sprawdza, czy przedmiot może być umieszczony w danym slocie.
-     * @return true, jeśli przedmiot jest prawidłowy dla slotu.
+     * @return {@code true}, jeśli przedmiot może być umieszczony w danym slocie.
      */
     public boolean isValidItem(ItemTemplate item, String slotKey) {
         if (item == null) return false;
@@ -104,8 +100,7 @@ public class EquipmentValidator {
     }
 
     /**
-     * Sprawdza podstawową poprawność drifu.
-     * @return true, jeśli drif jest prawidłowy.
+     * @return {@code true}, jeśli drif jest poprawny.
      */
     public boolean isValidDrif(DrifTemplate drif, String slotKey) {
         if (drif == null) return false;
@@ -117,8 +112,7 @@ public class EquipmentValidator {
     }
 
     /**
-     * Ogranicza poziom ulepszenia drifu do jego maksymalnej dozwolonej wartości.
-     * @return Poprawny poziom ulepszenia.
+     * @return Poziom ulepszenia drifu, ograniczony do jego maksymalnej dozwolonej wartości.
      */
     public int sanitizeDrifLevel(int requestedLevel, DrifTemplate drif) {
         if (drif.getSize() == null) return requestedLevel;
@@ -126,8 +120,7 @@ public class EquipmentValidator {
     }
 
     /**
-     * Sprawdza, czy orb może być umieszczony w danym slocie.
-     * @return true, jeśli orb jest prawidłowy dla slotu.
+     * @return {@code true}, jeśli orb jest prawidłowy dla danego slotu.
      */
     public boolean isValidOrb(OrbTemplate orb, String slotKey) {
         if (orb == null) return false;
@@ -139,8 +132,7 @@ public class EquipmentValidator {
     }
 
     /**
-     * Ogranicza poziom ulepszenia orba do jego maksymalnej dozwolonej wartości.
-     * @return Poprawny poziom ulepszenia.
+     * @return Poziom ulepszenia orba, ograniczony do jego maksymalnej dozwolonej wartości.
      */
     public int sanitizeOrbLevel(int requestedLevel, OrbTemplate orb) {
         if (orb.getSize() == null) return requestedLevel;
@@ -148,16 +140,14 @@ public class EquipmentValidator {
     }
 
     /**
-     * Sprawdza, czy bonus drifu jest typu "obrażenia od żywiołów".
-     * @return true, jeśli bonus jest od żywiołów.
+     * @return {@code true}, jeśli bonus drifu jest typu "obrażenia od żywiołów".
      */
     public boolean isElementalDamage(DRIF_BONUS_TYPE type) {
         return rules.isElementalDamage(type);
     }
 
     /**
-     * Sprawdza, czy drif z obrażeniami od żywiołów jest w dozwolonym slocie (tylko broń).
-     * @return true, jeśli pozycja drifu jest prawidłowa.
+     * @return {@code true}, jeśli pozycja drifu z obrażeniami od żywiołów jest prawidłowa.
      */
     public boolean isElementalDrifPositionValid(DrifTemplate drif, String slotKey) {
         if (drif == null || drif.getBonusType() == null) return false;
@@ -168,8 +158,7 @@ public class EquipmentValidator {
     }
 
     /**
-     * Sprawdza, czy rozmiar drifu jest dozwolony dla danego tieru przedmiotu.
-     * @return true, jeśli rozmiar drifu jest prawidłowy.
+     * @return {@code true}, jeśli rozmiar drifu jest dozwolony dla danego tieru przedmiotu.
      */
     public boolean isValidDrifSizeForTier(DrifTemplate drif, ItemTemplate item) {
         if (drif == null || drif.getSize() == null || item == null || item.getTier() == null) {
