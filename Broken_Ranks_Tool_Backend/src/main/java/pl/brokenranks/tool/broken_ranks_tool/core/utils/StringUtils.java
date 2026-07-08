@@ -3,19 +3,16 @@ package pl.brokenranks.tool.broken_ranks_tool.core.utils;
 import lombok.experimental.UtilityClass;
 
 /**
- * Klasa narzędziowa zawierająca pomocnicze metody do operacji na stringach.
- * Adnotacja {@link UtilityClass} z Lomboka tworzy prywatny konstruktor,
- * aby zapobiec tworzeniu instancji tej klasy.
+ * Klasa narzędziowa do operacji na stringach.
  */
 @UtilityClass
 public class StringUtils {
 
     /**
-     * Konwertuje liczbę rzymską (w postaci stringa) na liczbę całkowitą.
-     * Obsługuje liczby od I do XII.
+     * Konwertuje liczbę rzymską na liczbę całkowitą.
      *
-     * @param roman Liczba rzymska jako string.
-     * @return Odpowiednik w postaci liczby całkowitej lub 0, jeśli format jest nieprawidłowy.
+     * @param roman Liczba rzymska jako string (np. "I", "XII").
+     * @return Odpowiednik w postaci liczby całkowitej lub 0 dla nieprawidłowego formatu.
      */
     public static int convertRomanToInteger(String roman) {
         if (roman == null || roman.isEmpty()) {

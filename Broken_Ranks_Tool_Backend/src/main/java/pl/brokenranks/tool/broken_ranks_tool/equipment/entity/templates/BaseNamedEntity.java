@@ -8,8 +8,8 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 /**
- * Abstrakcyjna klasa bazowa dla encji, które posiadają nazwę.
- * Rozszerza {@link BaseEntity} o pole {@code name}.
+ * Rozszerza {@link BaseEntity} o pole {@code name}, aby zapewnić spójną nazwę
+ * dla encji, które jej wymagają.
  */
 @MappedSuperclass
 @Getter

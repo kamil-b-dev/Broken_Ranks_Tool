@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Kontroler API do pobierania globalnych reguł i słowników gry.
+ * Udostępnia endpoint API do pobierania globalnych reguł i słowników gry.
  */
 @RestController
 @RequestMapping("/api/rules")
@@ -29,11 +29,7 @@ public class RulesController {
     private final EquipmentRulesRegistry registry;
 
     /**
-     * Zwraca obiekt zawierający zasady tworzenia ekwipunku,
-     * takie jak tłumaczenia bonusów, moce bazowe drifów, reguły dla slotów itp.
-     * Wynik jest cachowany w celu poprawy wydajności.
-     *
-     * @return ResponseEntity z mapą zawierającą reguły gry.
+     * @return ResponseEntity z mapą zawierającą zagregowane reguły gry.
      */
     @GetMapping
     @Cacheable("gameRules")

@@ -9,7 +9,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCal
 import java.util.Map;
 
 /**
- * Kontroler odpowiedzialny za obsługę żądań związanych z kalkulatorem statystyk.
+ * Udostępnia endpoint HTTP dla serwisu {@link EquipmentStatsCalculatorService}.
  */
 @RestController
 @RequestMapping("/api/calculator")
@@ -20,10 +20,9 @@ public class CalculatorController {
     private final EquipmentStatsCalculatorService calculatorService;
 
     /**
-     * Endpoint POST do obliczania statystyk ekwipunku.
-     * Przyjmuje konfigurację ekwipunku i zwraca obliczone statystyki.
+     * Endpoint API do obliczania statystyk ekwipunku.
      *
-     * @param request Ciało żądania zawierające dane o ekwipunku.
+     * @param request Ciało żądania zawierające konfigurację ekwipunku.
      * @return ResponseEntity z mapą obliczonych i sformatowanych statystyk.
      */
     @PostMapping("/calculate")

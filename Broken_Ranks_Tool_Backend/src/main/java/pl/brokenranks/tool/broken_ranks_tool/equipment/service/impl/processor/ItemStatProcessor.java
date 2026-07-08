@@ -12,8 +12,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Procesor odpowiedzialny za obliczanie i dodawanie statystyk pochodzących bezpośrednio z przedmiotu.
- * Obsługuje modyfikatory z gwiazdek i losową dystrybucję statystyk.
+ * Przetwarza statystyki bazowe przedmiotu, uwzględniając modyfikatory z gwiazdek
+ * oraz losową dystrybucję dodatkowych punktów statystyk.
  */
 @Component
 @RequiredArgsConstructor

@@ -20,8 +20,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Procesor odpowiedzialny za obliczanie i dodawanie statystyk pochodzących z drifów.
- * Obsługuje modyfikatory z przedmiotu, kary za powielanie drifów oraz ich poziomy ulepszenia.
+ * Przetwarza statystyki pochodzące z drifów, uwzględniając ich poziomy,
+ * modyfikatory z przedmiotu oraz kary za powielanie tego samego typu bonusu.
  */
 @Component
 @RequiredArgsConstructor
