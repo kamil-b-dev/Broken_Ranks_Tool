@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.brokenranks.tool.broken_ranks_tool.core.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.core.enums.RARITY;
+import pl.brokenranks.tool.broken_ranks_tool.core.enums.STAT_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.core.utils.StringUtils;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
@@ -13,6 +14,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.rules.EquipmentRu
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -26,6 +28,20 @@ import java.util.Set;
 public class EquipmentValidator {
 
     private final EquipmentRulesRegistry rules;
+
+    /**
+     * Waliduje, czy nazwy statystyk postaci podane w żądaniu są dozwolone.
+     * @throws IllegalArgumentException w przypadku wykrycia nieprawidłowej nazwy.
+     */
+    public void validateCharacterStats(Map<String, Integer> characterStats) {
+        if (characterStats != null) {
+            for (String statName : characterStats.keySet()) {
+                if (!STAT_TYPE.isValid(statName)) {
+                    throw new IllegalArgumentException("Wykryto nieprawidłową nazwę statystyki postaci: " + statName);
+                }
+            }
+        }
+    }
 
     /**
      * Waliduje, czy podana konfiguracja drifów jest zgodna z regułami dla danego przedmiotu.
