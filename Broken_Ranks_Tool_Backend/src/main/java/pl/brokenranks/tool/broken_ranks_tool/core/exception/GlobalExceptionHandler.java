@@ -9,20 +9,19 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Globalny handler wyjątków dla całej aplikacji.
- * Przechwytuje określone wyjątki i zwraca spójne, sformatowane odpowiedzi HTTP.
- * Dzięki adnotacji {@link RestControllerAdvice} działa dla wszystkich kontrolerów.
+ * Centralizuje obsługę wyjątków w aplikacji, aby zapewnić spójny format
+ * odpowiedzi błędów dla wszystkich endpointów API.
  */
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
 
     /**
-     * Przechwytuje wyjątki {@link IllegalArgumentException}, które są często używane
-     * do sygnalizowania nieprawidłowych danych wejściowych od użytkownika.
+     * Obsługuje wyjątki {@link IllegalArgumentException}, które w tej aplikacji
+     * są używane do sygnalizowania nieprawidłowych danych wejściowych (np. prób oszustwa).
      *
      * @param ex Przechwycony wyjątek.
-     * @return Odpowiedź HTTP 400 (Bad Request) z komunikatem błędu.
+     * @return Odpowiedź HTTP 400 (Bad Request) ze szczegółami błędu.
      */
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, String>> handleIllegalArgumentException(IllegalArgumentException ex) {

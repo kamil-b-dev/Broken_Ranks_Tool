@@ -11,7 +11,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.repository.ItemTemplateRe
 import java.util.List;
 
 /**
- * Kontroler API do pobierania szablonów przedmiotów (ItemTemplate).
+ * Udostępnia endpointy API do pobierania szablonów przedmiotów.
  */
 @RestController
 @RequestMapping("/api/items")
@@ -22,10 +22,7 @@ public class ItemTemplatesController {
     private final ItemTemplateRepository itemRepository;
 
     /**
-     * Zwraca listę wszystkich dostępnych szablonów przedmiotów.
-     * Wynik jest cachowany w celu poprawy wydajności.
-     *
-     * @return ResponseEntity z listą wszystkich przedmiotów.
+     * @return ResponseEntity z listą wszystkich szablonów przedmiotów.
      */
     @GetMapping
     @Cacheable("allItems")
@@ -34,11 +31,8 @@ public class ItemTemplatesController {
     }
 
     /**
-     * Zwraca listę szablonów przedmiotów przefiltrowaną po podanej kategorii.
-     * Wynik jest cachowany dla każdej kategorii.
-     *
-     * @param category Kategoria przedmiotów do odfiltrowania.
-     * @return ResponseEntity z listą przedmiotów lub 404 Not Found, jeśli żadne przedmioty nie pasują.
+     * @param category Kategoria, po której filtrowane są przedmioty.
+     * @return ResponseEntity z listą przedmiotów lub 404 Not Found.
      */
     @GetMapping("/category/{category}")
     @Cacheable(value = "itemsByCategory", key = "#category")

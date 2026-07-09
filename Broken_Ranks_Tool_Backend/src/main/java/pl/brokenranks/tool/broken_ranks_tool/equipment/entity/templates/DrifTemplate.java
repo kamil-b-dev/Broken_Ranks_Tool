@@ -7,8 +7,7 @@ import pl.brokenranks.tool.broken_ranks_tool.core.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.core.enums.DRIF_SIZE;
 
 /**
- * Encja reprezentująca szablon drifu (DrifTemplate).
- * Mapuje się na tabelę 'drif_templates' przechowującą wszystkie możliwe do zdobycia drify w grze.
+ * Reprezentuje szablon drifu.
  */
 @Entity
 @Table(name = "drif_templates")

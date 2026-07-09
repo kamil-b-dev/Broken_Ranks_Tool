@@ -8,8 +8,7 @@ import pl.brokenranks.tool.broken_ranks_tool.core.enums.ORB_CATEGORY;
 import pl.brokenranks.tool.broken_ranks_tool.core.enums.ORB_SIZE;
 
 /**
- * Encja reprezentująca szablon orba (OrbTemplate).
- * Mapuje się na tabelę 'orb_templates' przechowującą wszystkie możliwe do zdobycia orby w grze.
+ * Reprezentuje szablon orba.
  */
 @Entity
 @Table(name = "orb_templates")

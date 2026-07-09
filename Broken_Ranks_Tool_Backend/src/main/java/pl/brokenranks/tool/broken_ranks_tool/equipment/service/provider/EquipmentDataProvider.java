@@ -18,8 +18,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Serwis odpowiedzialny za dostarczanie i agregację danych o ekwipunku z bazy danych.
- * Optymalizuje pobieranie danych, aby uniknąć problemu N+1 zapytań.
+ * Przygotowuje wszystkie szablony ekwipunku potrzebne do przeprowadzenia obliczeń.
+ * Celem tej klasy jest optymalizacja wydajności poprzez pobranie wszystkich
+ * potrzebnych danych w kilku zbiorczych zapytaniach, aby zapobiec problemowi N+1.
  */
 @Service
 @RequiredArgsConstructor
@@ -30,11 +31,10 @@ public class EquipmentDataProvider {
     private final DrifTemplateRepository drifRepository;
 
     /**
-     * Buduje kontekst obliczeniowy, pobierając wszystkie niezbędne szablony
-     * (przedmioty, orby, drify) za pomocą jednego zapytania dla każdego typu.
+     * Tworzy kontekst obliczeniowy na podstawie danych z żądania.
      *
      * @param slots Kolekcja danych o slotach z żądania.
-     * @return Obiekt {@link CalculationContext} zawierający mapy szablonów po ich ID.
+     * @return Obiekt kontekstu zawierający mapy szablonów po ich ID.
      */
     public CalculationContext buildContext(Collection<SlotData> slots) {
         List<Long> itemIds = slots.stream().map(SlotData::getItemId).filter(Objects::nonNull).toList();
@@ -49,12 +49,12 @@ public class EquipmentDataProvider {
     }
 
     /**
-     * Rekord przechowujący kontekst obliczeniowy - mapy z szablonami ekwipunku.
-     * Używany do przekazywania wszystkich potrzebnych danych w jednym obiekcie.
+     * Niemutowalny kontener grupujący wszystkie dane wejściowe potrzebne do obliczeń.
+     * Użycie tego obiektu upraszcza przekazywanie kontekstu pomiędzy komponentami kalkulatora.
      *
-     * @param items Mapa szablonów przedmiotów (ID -> ItemTemplate).
-     * @param orbs  Mapa szablonów orbów (ID -> OrbTemplate).
-     * @param drifs Mapa szablonów drifów (ID -> DrifTemplate).
+     * @param items Mapa szablonów przedmiotów dostępnych w tej sesji.
+     * @param orbs  Mapa szablonów orbów dostępnych w tej sesji.
+     * @param drifs Mapa szablonów drifów dostępnych w tej sesji.
      */
     public record CalculationContext(
             Map<Long, ItemTemplate> items,

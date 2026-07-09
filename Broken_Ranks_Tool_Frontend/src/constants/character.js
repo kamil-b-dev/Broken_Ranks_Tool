@@ -3,7 +3,7 @@ export const STAT_CONFIG = {
     "Zręczność": { base: 10, ratio: 1 },
     "Moc": { base: 10, ratio: 1 },
     "Wiedza": { base: 10, ratio: 1 },
-    "Pż": { base: 200, ratio: 10 },
+    "PŻ": { base: 200, ratio: 10 },
     "Mana": { base: 200, ratio: 10 },
     "Kondycja": { base: 200, ratio: 10 }
 };
@@ -13,7 +13,7 @@ export const INITIAL_SPENT_POINTS = {
     "Zręczność": 0,
     "Moc": 0,
     "Wiedza": 0,
-    "Pż": 0,
+    "PŻ": 0,
     "Mana": 0,
     "Kondycja": 0
 };

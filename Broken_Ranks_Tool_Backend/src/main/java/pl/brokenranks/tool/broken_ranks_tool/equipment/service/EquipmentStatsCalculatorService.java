@@ -4,16 +4,16 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import java.util.Map;
 
 /**
- * Serwis odpowiedzialny za obliczanie całkowitych statystyk ekwipunku postaci.
+ * Definiuje abstrakcję dla mechanizmu obliczania statystyk,
+ * aby oddzielić logikę biznesową od warstwy API.
  */
 public interface EquipmentStatsCalculatorService {
 
     /**
-     * Oblicza i formatuje statystyki na podstawie wybranego ekwipunku i statystyk bazowych postaci.
+     * Przetwarza żądanie i oblicza finalne statystyki.
      *
-     * @param request Obiekt DTO zawierający szczegóły wybranego ekwipunku (przedmioty, orby, drify)
-     *                oraz bazowe statystyki postaci.
-     * @return Mapa, gdzie kluczem jest nazwa statystyki, a wartością sformatowana wartość (np. "120" lub "15.5%").
+     * @param request Obiekt DTO z konfiguracją ekwipunku.
+     * @return Mapa sformatowanych statystyk.
      */
     Map<String, String> calculateTotalStats(EquipmentRequest request);
 

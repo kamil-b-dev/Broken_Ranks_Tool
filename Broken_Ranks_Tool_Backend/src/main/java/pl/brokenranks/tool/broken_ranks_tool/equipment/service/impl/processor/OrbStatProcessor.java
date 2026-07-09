@@ -9,8 +9,8 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.Calcul
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentValidator;
 
 /**
- * Procesor odpowiedzialny za obliczanie i dodawanie statystyk pochodzących z orbów.
- * Obsługuje modyfikatory z gwiazdek przedmiotu oraz poziom ulepszenia samego orba.
+ * Przetwarza statystyki pochodzące z orbów, uwzględniając ich poziom
+ * oraz modyfikatory z gwiazdek przedmiotu.
  */
 @Component
 @RequiredArgsConstructor

@@ -10,17 +10,15 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Centralny rejestr przechowujący i udostępniający globalne reguły związane z ekwipunkiem.
- * Klasa ta jest komponentem Springa i jest wstrzykiwana do innych serwisów,
- * które potrzebują dostępu do reguł.
+ * Centralizuje logikę i stałe definiujące reguły gry związane z ekwipunkiem.
+ * Ułatwia zarządzanie zasadami i zapewnia ich spójność w całej aplikacji.
  */
 @Component
 @Getter
 public class EquipmentRulesRegistry {
 
     /**
-     * Mapa przechowująca definicje wbudowanych drifów dla przedmiotów epickich.
-     * Kluczem jest nazwa przedmiotu, wartością jest lista typów bonusów.
+     * Definiuje wbudowane drify dla konkretnych przedmiotów epickich.
      */
     public static final Map<String, List<String>> EPIC_BUILTIN_DRIFS = Map.of(
             "Allenor", List.of(DRIF_BONUS_TYPE.DAMAGE_PHYSICAL.name(), DRIF_BONUS_TYPE.CRITICAL_CHANCE.name()),
@@ -69,36 +67,36 @@ public class EquipmentRulesRegistry {
     );
 
     /**
-     * Sprawdza, czy dany typ przedmiotu jest dozwolony w określonym slocie.
+     * Sprawdza, czy kategoria przedmiotu pasuje do dozwolonych kategorii dla danego slotu.
      * @param category Kategoria przedmiotu.
-     * @param slotKey Klucz identyfikujący slot (np. "helmet").
-     * @return true, jeśli przedmiot jest dozwolony, w przeciwnym razie false.
+     * @param slotKey Klucz identyfikujący slot.
+     * @return {@code true}, jeśli przedmiot jest dozwolony.
      */
     public boolean isItemAllowedInSlot(ITEM_CATEGORY category, String slotKey) {
         return slotItemRules.getOrDefault(slotKey, List.of()).contains(category);
     }
 
     /**
-     * Sprawdza, czy dany typ orba jest dozwolony w określonym slocie.
+     * Sprawdza, czy kategoria orba pasuje do dozwolonych kategorii dla danego slotu.
      * @param category Kategoria orba.
-     * @param slotKey Klucz identyfikujący slot (np. "weapon").
-     * @return true, jeśli orb jest dozwolony, w przeciwnym razie false.
+     * @param slotKey Klucz identyfikujący slot.
+     * @return {@code true}, jeśli orb jest dozwolony.
      */
     public boolean isOrbAllowedInSlot(ORB_CATEGORY category, String slotKey) {
         return slotOrbRules.getOrDefault(slotKey, List.of()).contains(category);
     }
 
     /**
-     * Sprawdza, czy dany typ bonusu jest klasyfikowany jako obrażenia od żywiołów.
+     * Sprawdza, czy typ bonusu jest klasyfikowany jako obrażenia od żywiołów.
      * @param type Typ bonusu drifu.
-     * @return true, jeśli bonus to obrażenia od żywiołów, w przeciwnym razie false.
+     * @return {@code true}, jeśli bonus jest od żywiołów.
      */
     public boolean isElementalDamage(DRIF_BONUS_TYPE type) {
         return elementalDamageTypes.contains(type);
     }
 
     /**
-     * Oblicza karę (mnożnik) za posiadanie dużej liczby drifów tego samego typu.
+     * Zwraca mnożnik kary za posiadanie więcej niż 3 drifów tego samego typu.
      * @param count Liczba posiadanych drifów danego typu.
      * @return Mnożnik kary (wartość od 0.5 do 1.0).
      */

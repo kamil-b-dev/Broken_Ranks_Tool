@@ -7,10 +7,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * Konwerter atrybutów JPA, który konwertuje obiekt {@link Map} na {@link String} i z powrotem.
- * Umożliwia przechowywanie mapy w pojedynczej kolumnie tekstowej w bazie danych.
- * Adnotacja {@link Converter} nie ma ustawionego {@code autoApply = true}, więc musi być
- * jawnie zadeklarowana nad polem w encji, np. {@code @Convert(converter = MapToStringConverter.class)}.
+ * Konwerter atrybutów JPA, który umożliwia zapis obiektu {@link Map}
+ * w pojedynczej kolumnie tekstowej w bazie danych, co jest obejściem
+ * dla braku natywnego wsparcia dla typów JSON w SQLite.
  */
 @Converter
 public class MapToStringConverter implements AttributeConverter<Map<String, Double>, String> {
@@ -19,9 +18,6 @@ public class MapToStringConverter implements AttributeConverter<Map<String, Doub
     private static final String DELIMITER_KEY_VALUE = ":";
 
     /**
-     * Konwertuje mapę na pojedynczy string w celu zapisu do bazy danych.
-     * Format: "klucz1:wartość1;klucz2:wartość2"
-     *
      * @param attribute Mapa do konwersji.
      * @return Sformatowany string lub pusty string, jeśli mapa jest pusta/null.
      */
@@ -36,8 +32,6 @@ public class MapToStringConverter implements AttributeConverter<Map<String, Doub
     }
 
     /**
-     * Konwertuje string z bazy danych z powrotem na obiekt mapy.
-     *
      * @param dbData Dane w formacie string z bazy danych.
      * @return Zrekonstruowana mapa lub pusta mapa, jeśli dane są puste/null.
      */

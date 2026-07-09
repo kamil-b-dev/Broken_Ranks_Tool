@@ -12,8 +12,8 @@ import java.util.*;
  * Nie jest komponentem Springa - nowa instancja jest tworzona dla każdego obliczenia.
  */
 public class StatsAccumulator {
-    private final Map<String, Double> flatStats = new HashMap<>();
-    private final Map<String, Double> percentStats = new HashMap<>();
+    private final Map<String, Double> flatStats = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+    private final Map<String, Double> percentStats = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
     /**
      * Dodaje wartość statystyki na podstawie surowego stringa (np. "10%" lub "25").

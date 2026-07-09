@@ -10,7 +10,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.repository.DrifTemplateRe
 import java.util.List;
 
 /**
- * Kontroler API do pobierania szablonów drifów (DrifTemplate).
+ * Udostępnia endpointy API do pobierania szablonów drifów.
  */
 @RestController
 @RequestMapping("/api/drifs")
@@ -21,10 +21,7 @@ public class DrifTemplatesController {
     private final DrifTemplateRepository drifRepository;
 
     /**
-     * Zwraca listę wszystkich dostępnych szablonów drifów.
-     * Wynik jest cachowany w celu poprawy wydajności.
-     *
-     * @return ResponseEntity z listą wszystkich drifów.
+     * @return ResponseEntity z listą wszystkich szablonów drifów.
      */
     @GetMapping
     @Cacheable("allDrifs")
