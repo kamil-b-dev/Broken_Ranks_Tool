@@ -2,8 +2,9 @@ package pl.brokenranks.tool.broken_ranks_tool.equipment.service.impl.processor;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import pl.brokenranks.tool.broken_ranks_tool.core.constants.StatConstants;
 import pl.brokenranks.tool.broken_ranks_tool.core.enums.ITEM_STAR;
+import pl.brokenranks.tool.broken_ranks_tool.core.enums.RESISTANCE_STAT_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.core.enums.SPECIAL_STAT_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.core.utils.RandomProvider;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.CalculationState;
@@ -25,8 +26,8 @@ public class ItemStatProcessor {
         double baseStarDrifMod = starMod.getDrifMod();
         double itemDatabaseDrifBonus = 0.0;
 
-        if (item.getStats() != null && item.getStats().containsKey(StatConstants.DRIF_BONUS_STAT_NAME)) {
-            itemDatabaseDrifBonus = ((Number) item.getStats().get(StatConstants.DRIF_BONUS_STAT_NAME)).doubleValue() / 100.0;
+        if (item.getStats() != null && item.getStats().containsKey(SPECIAL_STAT_TYPE.DRIF_BONUS.getDescription())) {
+            itemDatabaseDrifBonus = item.getStats().get(SPECIAL_STAT_TYPE.DRIF_BONUS.getDescription()) / 100.0;
         }
 
         return baseStarDrifMod + itemDatabaseDrifBonus;
@@ -42,7 +43,7 @@ public class ItemStatProcessor {
 
         if (statMod == 0.0) {
             item.getStats().forEach((statName, statValue) ->
-                    state.getAccumulator().addFlatValue(statName, ((Number) statValue).doubleValue()));
+                    state.getAccumulator().addFlatValue(statName, statValue));
             return;
         }
 
@@ -50,25 +51,16 @@ public class ItemStatProcessor {
         Map<String, Integer> baseResists = new HashMap<>();
 
         item.getStats().forEach((statName, statValue) -> {
-            if (isSpecialStat(statName)) {
-                state.getAccumulator().addFlatValue(statName, ((Number) statValue).doubleValue());
-            } else if (isResistanceStat(statName)) {
-                baseResists.put(statName, ((Number) statValue).intValue());
+            if (SPECIAL_STAT_TYPE.fromDescription(statName).isPresent()) {
+                state.getAccumulator().addFlatValue(statName, statValue);
+            } else if (RESISTANCE_STAT_TYPE.fromDescription(statName).isPresent()) {
+                baseResists.put(statName, statValue.intValue());
             } else {
-                baseStats.put(statName, ((Number) statValue).intValue());
+                baseStats.put(statName, statValue.intValue());
             }
         });
 
         state.getAccumulator().distributeRandomly(baseStats, statMod, randomProvider);
         state.getAccumulator().distributeRandomly(baseResists, statMod, randomProvider);
-    }
-
-    private boolean isSpecialStat(String statName) {
-        String lowerCaseStatName = statName.toLowerCase();
-        return StatConstants.SPECIAL_STAT_KEYWORDS.stream().anyMatch(lowerCaseStatName::contains);
-    }
-
-    private boolean isResistanceStat(String statName) {
-        return statName.toLowerCase().contains(StatConstants.RESISTANCE_KEYWORD);
     }
 }
