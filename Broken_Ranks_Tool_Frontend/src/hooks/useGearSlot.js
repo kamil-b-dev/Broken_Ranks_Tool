@@ -26,17 +26,21 @@ export const useGearSlot = ({ slotKey, items, orbs, drifs, allSlots, gameRules, 
     const [selectedItem, setSelectedItem] = useState("");
     const [itemStars, setItemStars] = useState(1);
     const [hoverStars, setHoverStars] = useState(0);
-    const [selectedOrb, setSelectedOrb] = useState("");
-    const [orbLevel, setOrbLevel] = useState("");
+
+    const [orbSlots, setOrbSlots] = useState({
+        orb1: { id: "", level: "", type: "" },
+        orb2: { id: "", level: "", type: "" },
+    });
+
     const [selectedDrifs, setSelectedDrifs] = useState([]);
     const [drifTypes, setDrifTypes] = useState({});
     const [drifLevels, setDrifLevels] = useState({});
     const [builtInLvls, setBuiltInLvls] = useState([1, 1]);
-    const [orbType, setOrbType] = useState("");
     const [dragOverZone, setDragOverZone] = useState(null);
 
     const fullSelectedItem = useMemo(() => items.find(i => i.id.toString() === selectedItem.toString()), [items, selectedItem]);
     const tierVal = fullSelectedItem ? (ROMAN_TO_INT[fullSelectedItem.tier] || 0) : 0;
+    const isLegendary = fullSelectedItem?.rarity?.toUpperCase() === 'LEGENDARY';
     const isEpicOrSet = fullSelectedItem && ['EPIC', 'SET'].includes(fullSelectedItem.rarity?.toUpperCase());
 
     const builtInDrifs = useMemo(() => {
@@ -55,24 +59,38 @@ export const useGearSlot = ({ slotKey, items, orbs, drifs, allSlots, gameRules, 
     }, [isEpicOrSet, fullSelectedItem?.name, epicBuiltInDrifs, drifs, bonusTranslations]);
 
     const globalUsedOrbs = useMemo(() => Object.entries(allSlots)
-        .filter(([k, v]) => k !== slotKey && v?.orbId)
-        .map(([k, v]) => orbs.find(o => o.id.toString() === v.orbId.toString())?.bonusType)
+        .filter(([k, v]) => k !== slotKey && v?.orbIds)
+        .flatMap(([k, v]) => v.orbIds)
+        .map(orbId => orbs.find(o => o.id.toString() === orbId.toString())?.bonusType)
         .filter(Boolean), [allSlots, slotKey, orbs]);
 
     const allowedOrbCategories = slotOrbRules[slotKey] || [];
 
-    const availableOrbs = useMemo(() => {
+    const availableOrbs1 = useMemo(() => {
         return orbs.filter(o => {
             const orbTierVal = ROMAN_TO_INT[o.tier] || 0;
-            const isAllowedByCategory = allowedOrbCategories.includes(o.category);
+            const isAllowed = allowedOrbCategories.includes(o.category) || (isLegendary && o.category === 'OFENSIVE');
             const isNotUsedGlobally = !globalUsedOrbs.includes(o.bonusType);
             const isTierValid = tierVal > 0 ? orbTierVal <= tierVal : true;
-            return isAllowedByCategory && isNotUsedGlobally && isTierValid;
+            return isAllowed && isNotUsedGlobally && isTierValid;
         });
-    }, [orbs, globalUsedOrbs, allowedOrbCategories, tierVal]);
+    }, [orbs, globalUsedOrbs, allowedOrbCategories, tierVal, isLegendary]);
 
+    const availableOrbs2 = useMemo(() => {
+        if (!isLegendary) return [];
+        const firstOrbBonusType = orbs.find(o => o.id.toString() === orbSlots.orb1.id)?.bonusType;
+        return orbs.filter(o => {
+            const orbTierVal = ROMAN_TO_INT[o.tier] || 0;
+            const isAllowed = o.category === 'OFENSIVE';
+            const isNotUsedGlobally = !globalUsedOrbs.includes(o.bonusType);
+            const isNotUsedInSlot1 = o.bonusType !== firstOrbBonusType;
+            const isTierValid = tierVal > 0 ? orbTierVal <= tierVal : true;
+            return isAllowed && isNotUsedGlobally && isNotUsedInSlot1 && isTierValid;
+        });
+    }, [orbs, globalUsedOrbs, tierVal, isLegendary, orbSlots.orb1.id]);
 
-    const groupedOrbs = useMemo(() => groupByType(availableOrbs), [availableOrbs]);
+    const groupedOrbs1 = useMemo(() => groupByType(availableOrbs1), [availableOrbs1]);
+    const groupedOrbs2 = useMemo(() => groupByType(availableOrbs2), [availableOrbs2]);
 
     const hasGlobalElemental = useMemo(() => Object.entries(allSlots)
         .filter(([k, v]) => k !== slotKey && v?.drifIds)
@@ -123,10 +141,6 @@ export const useGearSlot = ({ slotKey, items, orbs, drifs, allSlots, gameRules, 
     const isAtMaxCapacity = currentPowerUsed === itemCapacity && itemCapacity > 0;
     const capacityPercentage = itemCapacity > 0 ? Math.min((currentPowerUsed / itemCapacity) * 100, 100) : 0;
 
-    const currentOrbObj = useMemo(() => orbs.find(o => o.id.toString() === selectedOrb.toString()), [orbs, selectedOrb]);
-    const isSubOrb = currentOrbObj?.size?.toUpperCase() === "SUBORB";
-    const availableOrbLevels = isSubOrb ? [1] : [1, 2, 3];
-
     useEffect(() => {
         const validDrifIds = selectedDrifs.slice(0, maxDrifs).filter(id => id !== "");
         const validDrifLevels = {};
@@ -141,15 +155,18 @@ export const useGearSlot = ({ slotKey, items, orbs, drifs, allSlots, gameRules, 
             }
         });
 
+        const orbIds = [orbSlots.orb1.id, isLegendary ? orbSlots.orb2.id : null].filter(Boolean);
+        const orbLevels = [orbSlots.orb1.level, isLegendary ? orbSlots.orb2.level : null].filter(Boolean).map(l => parseInt(l));
+
         onUpdate(slotKey, {
             itemId: selectedItem || null,
             itemStars: itemStars,
-            orbId: selectedOrb || null,
-            orbLevel: orbLevel ? parseInt(orbLevel) : null,
+            orbIds: orbIds,
+            orbLevels: orbLevels,
             drifIds: allDrifIds,
             drifLevels: validDrifLevels
         });
-    }, [selectedItem, itemStars, selectedOrb, orbLevel, selectedDrifs, drifLevels, maxDrifs, builtInLvls, builtInDrifs, slotKey, onUpdate]);
+    }, [selectedItem, itemStars, orbSlots, isLegendary, selectedDrifs, drifLevels, maxDrifs, builtInLvls, builtInDrifs, slotKey, onUpdate]);
 
     const handleDragOver = (e, zone) => { e.preventDefault(); setDragOverZone(zone); };
     const handleDragLeave = () => setDragOverZone(null);
@@ -157,18 +174,21 @@ export const useGearSlot = ({ slotKey, items, orbs, drifs, allSlots, gameRules, 
     const handleItemDrop = (data) => {
         setSelectedItem(data.id.toString());
         setBuiltInLvls([1, 1]);
-        setSelectedOrb(""); setOrbLevel("");
+        setOrbSlots({ orb1: { id: "", level: "", type: "" }, orb2: { id: "", level: "", type: "" } });
         setSelectedDrifs([]); setDrifTypes({}); setDrifLevels({});
     };
 
-    const handleOrbDrop = (data) => {
-        if (!selectedItem || (allowedOrbCategories.length > 0 && !allowedOrbCategories.includes(data.category))) return;
-        const orbTierVal = ROMAN_TO_INT[data.tier] || 0;
-        if (tierVal > 0 && orbTierVal > tierVal) return;
+    const handleOrbDrop = (data, orbSlotKey) => {
+        if (!selectedItem) return;
 
-        setOrbType(data.name || data.bonusType);
-        setSelectedOrb(data.id.toString());
-        setOrbLevel("1");
+        const isMainSlot = orbSlotKey === 'orb1';
+        const available = isMainSlot ? availableOrbs1 : availableOrbs2;
+        if (!available.some(o => o.id === data.id)) return;
+
+        setOrbSlots(prev => ({
+            ...prev,
+            [orbSlotKey]: { id: data.id.toString(), level: "1", type: data.name || data.bonusType }
+        }));
     };
 
     const handleDrifDrop = (data, zone) => {
@@ -190,8 +210,8 @@ export const useGearSlot = ({ slotKey, items, orbs, drifs, allSlots, gameRules, 
 
             if (data.dragType === "items" && zone === "item") {
                 handleItemDrop(data);
-            } else if (data.dragType === "orbs" && zone === "orb") {
-                handleOrbDrop(data);
+            } else if (data.dragType === "orbs" && (zone === "orb1" || zone === "orb2")) {
+                handleOrbDrop(data, zone);
             } else if (data.dragType === "drifs" && zone.startsWith("drif-")) {
                 handleDrifDrop(data, zone);
             }
@@ -202,11 +222,11 @@ export const useGearSlot = ({ slotKey, items, orbs, drifs, allSlots, gameRules, 
 
     return {
         selectedItem, setSelectedItem, itemStars, setItemStars, builtInLvls, setBuiltInLvls,
-        isEpicOrSet, builtInDrifs, hoverStars, setHoverStars, selectedOrb, setSelectedOrb,
-        orbLevel, setOrbLevel, selectedDrifs, setSelectedDrifs, drifTypes, setDrifTypes,
-        drifLevels, setDrifLevels, orbType, setOrbType, dragOverZone, groupedOrbs,
+        isEpicOrSet, isLegendary, builtInDrifs, hoverStars, setHoverStars, orbSlots, setOrbSlots,
+        selectedDrifs, setSelectedDrifs, drifTypes, setDrifTypes,
+        drifLevels, setDrifLevels, dragOverZone, groupedOrbs1, groupedOrbs2,
         fullSelectedItem, maxDrifs, maxDrifIndex, itemCapacity, currentPowerUsed, isOverCapacity,
-        isAtMaxCapacity, capacityPercentage, isSubOrb, availableOrbLevels, handleDragOver,
+        isAtMaxCapacity, capacityPercentage, handleDragOver,
         handleDragLeave, handleDrop, groupByType
     };
 };

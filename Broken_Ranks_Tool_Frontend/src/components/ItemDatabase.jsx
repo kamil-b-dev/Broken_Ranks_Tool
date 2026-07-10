@@ -6,7 +6,7 @@ const getRarityColor = (rarity) => {
     switch(rarity.toUpperCase()) {
         case 'SET': return "bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-green-600 font-bold";
         case 'EPIC': return "bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-yellow-600 font-bold";
-        case 'LEGENDARY': return "bg-clip-text text-transparent bg-gradient-to-r from-amber-300 to-amber-600 font-bold";
+        case 'LEGENDARY': return "bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-orange-600 font-bold";
         case 'RARE': return "bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-blue-600 font-bold";
         default: return "bg-clip-text text-transparent bg-gradient-to-r from-stone-400 to-stone-500 font-bold";
     }

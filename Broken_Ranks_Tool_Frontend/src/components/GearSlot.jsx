@@ -6,7 +6,7 @@ const getRarityColor = (rarity) => {
     switch (rarity.toUpperCase()) {
         case 'SET': return "text-green-700 font-bold";
         case 'EPIC': return "text-yellow-500 font-bold";
-        case 'LEGENDARY': return "text-amber-600 font-bold";
+        case 'LEGENDARY': return "text-orange-500 font-bold";
         case 'RARE': return "text-blue-700 font-bold";
         default: return "text-stone-300";
     }
@@ -44,7 +44,7 @@ const DRIF_MULTIPLIERS = {
 const ItemSelectorSection = ({ label, items, fullSelectedItem, dragOverZone, handleDragOver, handleDragLeave, handleDrop, hookData }) => {
     const {
         selectedItem, setSelectedItem, itemStars, setItemStars, setBuiltInLvls,
-        hoverStars, setHoverStars, setSelectedOrb, setOrbLevel, setOrbType,
+        hoverStars, setHoverStars, setOrbSlots,
         setSelectedDrifs, setDrifTypes, setDrifLevels
     } = hookData;
 
@@ -60,7 +60,7 @@ const ItemSelectorSection = ({ label, items, fullSelectedItem, dragOverZone, han
                 onChange={(e) => {
                     setSelectedItem(e.target.value);
                     setItemStars(1); setBuiltInLvls([1, 1]); setHoverStars(0);
-                    setSelectedOrb(""); setOrbLevel(""); setOrbType("");
+                    setOrbSlots({ orb1: { id: "", level: "", type: "" }, orb2: { id: "", level: "", type: "" } });
                     setSelectedDrifs([]); setDrifTypes({}); setDrifLevels({});
                 }}
                 className={`w-full bg-black/80 text-xs font-serif border border-rose-900/70 focus:border-rose-500 p-1.5 outline-none text-center cursor-pointer shadow-inner ${fullSelectedItem ? getRarityColor(fullSelectedItem.rarity) : "text-stone-300"}`}
@@ -95,59 +95,59 @@ const ItemSelectorSection = ({ label, items, fullSelectedItem, dragOverZone, han
     );
 };
 
-const OrbSelectorSection = ({ selectedItem, dragOverZone, handleDragOver, handleDragLeave, handleDrop, hookData, bonusTranslations }) => {
-    const { orbType, setOrbType, selectedOrb, setSelectedOrb, orbLevel, setOrbLevel, isSubOrb, groupedOrbs, availableOrbLevels } = hookData;
+const OrbSlot = ({ slotKey, selectedItem, dragOverZone, handleDragOver, handleDragLeave, handleDrop, orbState, setOrbState, groupedOrbs, bonusTranslations }) => {
+    const currentOrbObj = groupedOrbs[orbState.type]?.find(o => o.id.toString() === orbState.id);
+    const isSubOrb = currentOrbObj?.size?.toUpperCase() === "SUBORB";
+    const availableOrbLevels = isSubOrb ? [1] : [1, 2, 3];
 
     return (
-        <div className="w-full flex flex-col items-center mt-1">
-            <span className="text-[10px] font-serif font-bold text-rose-800/80 uppercase tracking-widest mb-1 pointer-events-none drop-shadow-md">Orb</span>
-            <div
-                className={`flex gap-1 w-full items-center mb-1 p-1.5 bg-black/60 border transition-colors shadow-[inset_0_0_15px_rgba(0,0,0,0.8)] ${dragOverZone === 'orb' ? 'border-amber-700/50 bg-amber-950/20' : 'border-rose-900/70'}`}
-                onDragOver={(e) => handleDragOver(e, 'orb')}
-                onDragLeave={handleDragLeave}
-                onDrop={(e) => handleDrop(e, 'orb')}
+        <div
+            className={`flex gap-1 w-full items-center mb-1 p-1.5 bg-black/60 border transition-colors shadow-[inset_0_0_15px_rgba(0,0,0,0.8)] ${dragOverZone === slotKey ? 'border-amber-700/50 bg-amber-950/20' : 'border-rose-900/70'}`}
+            onDragOver={(e) => handleDragOver(e, slotKey)}
+            onDragLeave={handleDragLeave}
+            onDrop={(e) => handleDrop(e, slotKey)}
+        >
+            <select
+                value={orbState.type}
+                onChange={(e) => setOrbState({ type: e.target.value, id: "", level: "" })}
+                disabled={!selectedItem}
+                className="flex-[3] min-w-0 bg-transparent text-rose-700 font-serif p-1 text-xs border-b border-rose-900/70 focus:border-rose-500 outline-none text-center cursor-pointer disabled:opacity-30"
             >
-                <select
-                    value={orbType}
-                    onChange={(e) => { setOrbType(e.target.value); setSelectedOrb(""); setOrbLevel(""); }}
-                    disabled={!selectedItem}
-                    className="flex-[3] min-w-0 bg-transparent text-rose-700 font-serif p-1 text-xs border-b border-rose-900/70 focus:border-rose-500 outline-none text-center cursor-pointer disabled:opacity-30"
-                >
-                    <option value="" className="bg-stone-950 text-stone-500">Rodzaj</option>
-                    {Object.keys(groupedOrbs).map(type => (
-                        <option key={type} value={type} className="bg-stone-950 text-stone-300">
-                            {formatGroupLabel(type, groupedOrbs[type], bonusTranslations)}
-                        </option>
-                    ))}
-                </select>
+                <option value="" className="bg-stone-950 text-stone-500">Rodzaj</option>
+                {Object.keys(groupedOrbs).map(type => (
+                    <option key={type} value={type} className="bg-stone-950 text-stone-300">
+                        {formatGroupLabel(type, groupedOrbs[type], bonusTranslations)}
+                    </option>
+                ))}
+            </select>
 
-                <select
-                    value={selectedOrb}
-                    onChange={(e) => { setSelectedOrb(e.target.value); if (isSubOrb) { setOrbLevel("1"); } else { setOrbLevel(""); } }}
-                    disabled={!orbType}
-                    className="flex-[3] min-w-0 bg-transparent text-stone-300 font-serif p-1 text-xs border-b border-rose-900/70 focus:border-rose-500 outline-none text-center disabled:opacity-30 cursor-pointer"
-                >
-                    <option value="" className="bg-stone-950 text-stone-500">Wielkość</option>
-                    {orbType && groupedOrbs[orbType]?.map((orb) => (
-                        <option key={orb.id} value={orb.id} className="text-stone-300 bg-stone-950">{orb.size || orb.tier}</option>
-                    ))}
-                </select>
+            <select
+                value={orbState.id}
+                onChange={(e) => setOrbState(prev => ({ ...prev, id: e.target.value, level: isSubOrb ? "1" : "" }))}
+                disabled={!orbState.type}
+                className="flex-[3] min-w-0 bg-transparent text-stone-300 font-serif p-1 text-xs border-b border-rose-900/70 focus:border-rose-500 outline-none text-center disabled:opacity-30 cursor-pointer"
+            >
+                <option value="" className="bg-stone-950 text-stone-500">Wielkość</option>
+                {orbState.type && groupedOrbs[orbState.type]?.map((orb) => (
+                    <option key={orb.id} value={orb.id} className="text-stone-300 bg-stone-950">{orb.size || orb.tier}</option>
+                ))}
+            </select>
 
-                <select
-                    value={orbLevel}
-                    onChange={(e) => setOrbLevel(e.target.value)}
-                    disabled={!selectedOrb || isSubOrb}
-                    className="flex-[2] min-w-0 bg-transparent text-stone-300 font-serif p-1 text-xs border-b border-rose-900/70 focus:border-rose-500 outline-none text-center disabled:opacity-30 cursor-pointer"
-                >
-                    <option value="" className="bg-stone-950 text-stone-500">lvl</option>
-                    {availableOrbLevels.map(num => (
-                        <option key={num} value={num.toString()} className="bg-stone-950 text-stone-300">{num}</option>
-                    ))}
-                </select>
-            </div>
+            <select
+                value={orbState.level}
+                onChange={(e) => setOrbState(prev => ({ ...prev, level: e.target.value }))}
+                disabled={!orbState.id || isSubOrb}
+                className="flex-[2] min-w-0 bg-transparent text-stone-300 font-serif p-1 text-xs border-b border-rose-900/70 focus:border-rose-500 outline-none text-center disabled:opacity-30 cursor-pointer"
+            >
+                <option value="" className="bg-stone-950 text-stone-500">lvl</option>
+                {availableOrbLevels.map(num => (
+                    <option key={num} value={num.toString()} className="bg-stone-950 text-stone-300">{num}</option>
+                ))}
+            </select>
         </div>
     );
 };
+
 
 const DrifsSection = ({ drifs, fullSelectedItem, dragOverZone, handleDragOver, handleDragLeave, handleDrop, hookData, bonusTranslations, drifBasePowers }) => {
     const {
@@ -207,9 +207,10 @@ const DrifsSection = ({ drifs, fullSelectedItem, dragOverZone, handleDragOver, h
                     const localUsedBonusTypes = selectedDrifs.map((dId, i) => i !== index && dId ? drifs.find(dr => dr.id.toString() === dId.toString())?.bonusType : null).filter(Boolean);
 
                     const allowedDrifs = drifs.filter(drif => {
+                        if (!drif.size) return false;
                         if (localUsedBonusTypes.includes(drif.bonusType)) return false;
-                        const drifSizeIdx = sizeIndexMap[drif.size?.toUpperCase()] || 0;
-                        if (drifSizeIdx > maxDrifIndex) return false;
+                        const drifSizeIdx = sizeIndexMap[drif.size.toUpperCase()] ?? -1;
+                        if (drifSizeIdx === -1 || drifSizeIdx > maxDrifIndex) return false;
                         return true;
                     });
 
@@ -253,9 +254,10 @@ const DrifsSection = ({ drifs, fullSelectedItem, dragOverZone, handleDragOver, h
                             >
                                 <option value="" className="bg-stone-950 text-stone-500">Wielkość</option>
                                 {currentType && currentGroupedDrifs[currentType]?.map((d) => {
+                                    const multiplier = d.size ? (DRIF_MULTIPLIERS[d.size.toUpperCase()] || 1) : 1;
                                     const basePwr = drifBasePowers[d.bonusType] || 0;
                                     const minPwr = basePwr * 1;
-                                    const maxPwr = basePwr * (DRIF_MULTIPLIERS[d.size?.toUpperCase()] || 1);
+                                    const maxPwr = basePwr * multiplier;
                                     const labelPwr = minPwr === maxPwr ? `${minPwr}p` : `${minPwr}-${maxPwr}p`;
                                     return <option key={d.id} value={d.id} className="bg-stone-950 text-stone-300">{d.size || d.tier} ({labelPwr})</option>;
                                 })}
@@ -289,7 +291,10 @@ const GearSlot = (props) => {
     const { bonusTranslations = {}, drifBasePowers = {} } = gameRules || {};
 
     const hookData = useGearSlot(props);
-    const { isOverCapacity, fullSelectedItem, selectedItem, dragOverZone, handleDragOver, handleDragLeave, handleDrop } = hookData;
+    const {
+        isOverCapacity, fullSelectedItem, selectedItem, dragOverZone, handleDragOver, handleDragLeave, handleDrop,
+        isLegendary, orbSlots, setOrbSlots, groupedOrbs1, groupedOrbs2
+    } = hookData;
 
     if (!gameRules) return <div className="w-64 p-3 text-xs text-stone-500 font-serif text-center border border-stone-800 bg-black">Ładowanie potęgi...</div>;
 
@@ -307,11 +312,30 @@ const GearSlot = (props) => {
                 hookData={hookData}
             />
 
-            <OrbSelectorSection
-                selectedItem={selectedItem}
-                dragOverZone={dragOverZone} handleDragOver={handleDragOver} handleDragLeave={handleDragLeave} handleDrop={handleDrop}
-                hookData={hookData} bonusTranslations={bonusTranslations}
-            />
+            <div className="w-full flex flex-col items-center mt-1">
+                <span className="text-[10px] font-serif font-bold text-rose-800/80 uppercase tracking-widest mb-1 pointer-events-none drop-shadow-md">Orb</span>
+                <OrbSlot
+                    slotKey="orb1"
+                    selectedItem={selectedItem}
+                    dragOverZone={dragOverZone} handleDragOver={handleDragOver} handleDragLeave={handleDragLeave} handleDrop={handleDrop}
+                    orbState={orbSlots.orb1}
+                    setOrbState={(state) => setOrbSlots(prev => ({ ...prev, orb1: typeof state === 'function' ? state(prev.orb1) : state }))}
+                    groupedOrbs={groupedOrbs1}
+                    bonusTranslations={bonusTranslations}
+                />
+                {isLegendary && (
+                    <OrbSlot
+                        slotKey="orb2"
+                        selectedItem={selectedItem}
+                        dragOverZone={dragOverZone} handleDragOver={handleDragOver} handleDragLeave={handleDragLeave} handleDrop={handleDrop}
+                        orbState={orbSlots.orb2}
+                        setOrbState={(state) => setOrbSlots(prev => ({ ...prev, orb2: typeof state === 'function' ? state(prev.orb2) : state }))}
+                        groupedOrbs={groupedOrbs2}
+                        bonusTranslations={bonusTranslations}
+                    />
+                )}
+            </div>
+
 
             <DrifsSection
                 drifs={drifs} fullSelectedItem={fullSelectedItem}
