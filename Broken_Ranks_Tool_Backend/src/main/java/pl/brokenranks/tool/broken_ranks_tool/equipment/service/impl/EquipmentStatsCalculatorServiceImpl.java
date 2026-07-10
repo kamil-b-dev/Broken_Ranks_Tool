@@ -88,7 +88,7 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
         double finalDrifMod = itemProcessor.calculateFinalDrifMod(item, starLevel);
 
         itemProcessor.process(item, starLevel, state);
-        orbProcessor.process(slotKey, slotData, starLevel, state);
+        orbProcessor.process(slotKey, slotData, item, starLevel, state);
         drifProcessor.process(slotKey, slotData, item, finalDrifMod, state);
     }
 

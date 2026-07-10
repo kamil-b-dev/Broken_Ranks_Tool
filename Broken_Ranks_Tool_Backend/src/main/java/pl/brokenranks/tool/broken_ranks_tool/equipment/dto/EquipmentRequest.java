@@ -29,8 +29,8 @@ public class EquipmentRequest {
     public static class SlotData {
         private Long itemId;
         private Integer itemStars;
-        private Long orbId;
-        private Integer orbLevel;
+        private List<Long> orbIds;
+        private List<Integer> orbLevels;
         private List<Long> drifIds;
         private Map<String, Integer> drifLevels;
     }
