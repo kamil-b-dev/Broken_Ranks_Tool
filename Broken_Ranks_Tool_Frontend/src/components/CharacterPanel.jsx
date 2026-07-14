@@ -1,6 +1,16 @@
 import { useState, useEffect } from "react";
 import { STAT_CONFIG, INITIAL_SPENT_POINTS } from "../constants/character";
 
+/**
+ * Komponent panelu do zarządzania statystykami bazowymi postaci.
+ * Umożliwia użytkownikowi przydzielanie punktów statystyk i zmianę poziomu postaci,
+ * co wpływa na dostępne punkty.
+ *
+ * @param {object} props
+ * @param {Function} props.onStatsChange Funkcja zwrotna wywoływana przy każdej zmianie statystyk,
+ *                                       przekazująca zaktualizowane statystyki postaci.
+ * @returns {JSX.Element}
+ */
 const CharacterPanel = ({ onStatsChange }) => {
     const [level, setLevel] = useState(1);
     const [spentPoints, setSpentPoints] = useState(INITIAL_SPENT_POINTS);

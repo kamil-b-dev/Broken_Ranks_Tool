@@ -41,6 +41,18 @@ const DRIF_MULTIPLIERS = {
     "ARCYDRIF": 4,
 };
 
+/**
+ * @param {{
+ *  label: string,
+ *  items: Array<object>,
+ *  fullSelectedItem: object | undefined,
+ *  dragOverZone: string | null,
+ *  handleDragOver: Function,
+ *  handleDragLeave: Function,
+ *  handleDrop: Function,
+ *  hookData: object
+ * }} props
+ */
 const ItemSelectorSection = ({ label, items, fullSelectedItem, dragOverZone, handleDragOver, handleDragLeave, handleDrop, hookData }) => {
     const {
         selectedItem, setSelectedItem, itemStars, setItemStars, setBuiltInLvls,
@@ -95,6 +107,20 @@ const ItemSelectorSection = ({ label, items, fullSelectedItem, dragOverZone, han
     );
 };
 
+/**
+ * @param {{
+ *  slotKey: string,
+ *  selectedItem: string,
+ *  dragOverZone: string | null,
+ *  handleDragOver: Function,
+ *  handleDragLeave: Function,
+ *  handleDrop: Function,
+ *  orbState: object,
+ *  setOrbState: Function,
+ *  groupedOrbs: object,
+ *  bonusTranslations: object
+ * }} props
+ */
 const OrbSlot = ({ slotKey, selectedItem, dragOverZone, handleDragOver, handleDragLeave, handleDrop, orbState, setOrbState, groupedOrbs, bonusTranslations }) => {
     const currentOrbObj = groupedOrbs[orbState.type]?.find(o => o.id.toString() === orbState.id);
     const isSubOrb = currentOrbObj?.size?.toUpperCase() === "SUBORB";
@@ -148,7 +174,19 @@ const OrbSlot = ({ slotKey, selectedItem, dragOverZone, handleDragOver, handleDr
     );
 };
 
-
+/**
+ * @param {{
+ *  drifs: Array<object>,
+ *  fullSelectedItem: object | undefined,
+ *  dragOverZone: string | null,
+ *  handleDragOver: Function,
+ *  handleDragLeave: Function,
+ *  handleDrop: Function,
+ *  hookData: object,
+ *  bonusTranslations: object,
+ *  drifBasePowers: object
+ * }} props
+ */
 const DrifsSection = ({ drifs, fullSelectedItem, dragOverZone, handleDragOver, handleDragLeave, handleDrop, hookData, bonusTranslations, drifBasePowers }) => {
     const {
         isEpicOrSet, builtInDrifs, builtInLvls, setBuiltInLvls, maxDrifs, maxDrifIndex, itemCapacity,
@@ -286,6 +324,16 @@ const DrifsSection = ({ drifs, fullSelectedItem, dragOverZone, handleDragOver, h
     );
 };
 
+/**
+ * Główny komponent reprezentujący pojedynczy slot na ekwipunek (np. Hełm, Broń).
+ * Jego rolą jest orkiestracja i wyświetlanie sub-komponentów dla przedmiotu, orbów i drifów.
+ * @param {object} props
+ * @param {string} props.label Nazwa slotu (np. "Hełm").
+ * @param {Array<object>} props.items Lista dostępnych przedmiotów dla tego slotu.
+ * @param {Array<object>} props.drifs Lista wszystkich dostępnych drifów.
+ * @param {object} props.gameRules Obiekt z globalnymi regułami gry.
+ * @returns {JSX.Element}
+ */
 const GearSlot = (props) => {
     const { label, items, drifs, gameRules } = props;
     const { bonusTranslations = {}, drifBasePowers = {} } = gameRules || {};
