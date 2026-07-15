@@ -18,6 +18,16 @@ const formatStatValue = (val) => {
     return val;
 };
 
+/**
+ * Komponent, którego rolą jest wyświetlanie finalnych, obliczonych statystyk.
+ * Kategoryzuje otrzymane statystyki na podstawowe, z orbów i z drifów.
+ *
+ * @param {object} props
+ * @param {object | null} props.stats Obiekt ze statystykami do wyświetlenia.
+ * @param {Function} props.onCalculate Funkcja wywoływana po kliknięciu przycisku "Przelicz".
+ * @param {object} props.gameRules Obiekt z regułami gry, potrzebny do kategoryzacji.
+ * @returns {JSX.Element}
+ */
 const StatsPanel = ({ stats, onCalculate, gameRules }) => {
     const basicStats = [];
     const drifStats = [];

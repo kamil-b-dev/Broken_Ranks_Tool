@@ -38,8 +38,18 @@ public class EquipmentDataProvider {
      */
     public CalculationContext buildContext(Collection<SlotData> slots) {
         List<Long> itemIds = slots.stream().map(SlotData::getItemId).filter(Objects::nonNull).toList();
-        List<Long> orbIds = slots.stream().map(SlotData::getOrbId).filter(Objects::nonNull).toList();
-        List<Long> drifIds = slots.stream().map(SlotData::getDrifIds).filter(Objects::nonNull).flatMap(List::stream).filter(Objects::nonNull).toList();
+        List<Long> orbIds = slots.stream()
+                .map(SlotData::getOrbIds)
+                .filter(Objects::nonNull)
+                .flatMap(List::stream)
+                .filter(Objects::nonNull)
+                .toList();
+        List<Long> drifIds = slots.stream()
+                .map(SlotData::getDrifIds)
+                .filter(Objects::nonNull)
+                .flatMap(List::stream)
+                .filter(Objects::nonNull)
+                .toList();
 
         return new CalculationContext(
                 itemRepository.findAllById(itemIds).stream().collect(Collectors.toMap(ItemTemplate::getId, Function.identity())),

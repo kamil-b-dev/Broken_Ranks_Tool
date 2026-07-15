@@ -4,7 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.brokenranks.tool.broken_ranks_tool.core.enums.DRIF_BONUS_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.core.enums.ORB_CATEGORY;
 import pl.brokenranks.tool.broken_ranks_tool.core.enums.RARITY;
+import pl.brokenranks.tool.broken_ranks_tool.core.enums.STAT_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.core.utils.StringUtils;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
@@ -13,7 +15,9 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.rules.EquipmentRu
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Odpowiada za walidację logiki biznesowej i reguł gry.
@@ -26,6 +30,44 @@ import java.util.Set;
 public class EquipmentValidator {
 
     private final EquipmentRulesRegistry rules;
+
+    /**
+     * Waliduje, czy nazwy statystyk postaci podane w żądaniu są dozwolone.
+     * @throws IllegalArgumentException w przypadku wykrycia nieprawidłowej nazwy.
+     */
+    public void validateCharacterStats(Map<String, Integer> characterStats) {
+        if (characterStats != null) {
+            for (String statName : characterStats.keySet()) {
+                if (!STAT_TYPE.isValid(statName)) {
+                    throw new IllegalArgumentException("Wykryto nieprawidłową nazwę statystyki postaci: " + statName);
+                }
+            }
+        }
+    }
+
+    /**
+     * Waliduje, czy podana konfiguracja orbów jest zgodna z regułami dla danego przedmiotu.
+     * @throws IllegalArgumentException w przypadku wykrycia naruszenia reguł.
+     */
+    public void validateOrbsSecurity(ItemTemplate item, List<OrbTemplate> orbs) {
+        if (orbs == null || orbs.isEmpty()) {
+            return;
+        }
+
+        if (orbs.size() > 1 && item.getRarity() != RARITY.LEGENDARY) {
+            throw new IllegalArgumentException("Tylko przedmioty legendarne mogą mieć więcej niż jeden orb.");
+        }
+
+        if (orbs.size() > 2) {
+            throw new IllegalArgumentException("Przedmiot nie może mieć więcej niż dwóch orbów.");
+        }
+
+        Set<ORB_CATEGORY> uniqueOrbCategories = orbs.stream().map(OrbTemplate::getCategory).collect(Collectors.toSet());
+        if (uniqueOrbCategories.size() < orbs.size()) {
+            log.warn("[SECURITY] Wykryto próbę użycia dwóch takich samych orbów w jednym przedmiocie.");
+        }
+    }
+
 
     /**
      * Waliduje, czy podana konfiguracja drifów jest zgodna z regułami dla danego przedmiotu.
@@ -122,14 +164,24 @@ public class EquipmentValidator {
     /**
      * @return {@code true}, jeśli orb jest prawidłowy dla danego slotu.
      */
-    public boolean isValidOrb(OrbTemplate orb, String slotKey) {
+    public boolean isValidOrb(OrbTemplate orb, String slotKey, boolean isSecondOrb) {
         if (orb == null) return false;
-        if (!rules.isOrbAllowedInSlot(orb.getCategory(), slotKey)) {
-            log.warn("[SECURITY] Odrzucono Orb {} ze slotu {}", orb.getCategory(), slotKey);
-            return false;
+
+        // Dla drugiego orba (w legendarnym itemie) dozwolone są tylko orby ofensywne
+        if (isSecondOrb) {
+            if (orb.getCategory() != ORB_CATEGORY.OFENSIVE) {
+                log.warn("[SECURITY] Odrzucono drugi Orb {} - nie jest ofensywny", orb.getCategory());
+                return false;
+            }
+        } else {
+            if (!rules.isOrbAllowedInSlot(orb.getCategory(), slotKey)) {
+                log.warn("[SECURITY] Odrzucono Orb {} ze slotu {}", orb.getCategory(), slotKey);
+                return false;
+            }
         }
         return true;
     }
+
 
     /**
      * @return Poziom ulepszenia orba, ograniczony do jego maksymalnej dozwolonej wartości.

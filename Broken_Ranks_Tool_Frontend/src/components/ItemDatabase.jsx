@@ -6,7 +6,7 @@ const getRarityColor = (rarity) => {
     switch(rarity.toUpperCase()) {
         case 'SET': return "bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-green-600 font-bold";
         case 'EPIC': return "bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-yellow-600 font-bold";
-        case 'LEGENDARY': return "bg-clip-text text-transparent bg-gradient-to-r from-amber-300 to-amber-600 font-bold";
+        case 'LEGENDARY': return "bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-orange-600 font-bold";
         case 'RARE': return "bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-blue-600 font-bold";
         default: return "bg-clip-text text-transparent bg-gradient-to-r from-stone-400 to-stone-500 font-bold";
     }
@@ -55,6 +55,19 @@ const calculateDoubleIncrement = (incrementStr) => {
     return (hasPlus ? '+' : '') + val;
 };
 
+/**
+ * Komponent bazy danych, którego rolą jest umożliwienie użytkownikowi
+ * przeglądania, filtrowania i przeciągania przedmiotów, orbów i drifów
+ * do odpowiednich slotów ekwipunku.
+ *
+ * @param {object} props
+ * @param {Array<object>} props.items Lista wszystkich przedmiotów.
+ * @param {Array<object>} props.orbs Lista wszystkich orbów.
+ * @param {Array<object>} props.drifs Lista wszystkich drifów.
+ * @param {object} props.categoryNames Mapa tłumaczeń dla kategorii przedmiotów.
+ * @param {object} props.gameRules Obiekt z globalnymi regułami gry.
+ * @returns {JSX.Element}
+ */
 const ItemDatabase = ({ items = [], orbs = [], drifs = [], categoryNames = {}, gameRules = {} }) => {
     const [activeTab, setActiveTab] = useState("items");
     const [searchTerm, setSearchTerm] = useState("");

@@ -3,7 +3,6 @@ package pl.brokenranks.tool.broken_ranks_tool.equipment.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.brokenranks.tool.broken_ranks_tool.core.enums.DRIF_BONUS_TYPE;
-import pl.brokenranks.tool.broken_ranks_tool.core.enums.STAT_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
@@ -37,6 +36,8 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
             return Collections.emptyMap();
         }
 
+        validator.validateCharacterStats(request.getCharacterStats());
+
         CalculationContext ctx = dataProvider.buildContext(request.getSlots().values());
         CalculationState state = new CalculationState(ctx);
 
@@ -58,11 +59,6 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
 
     private void applyCharacterStats(CalculationState state, Map<String, Integer> characterStats) {
         if (characterStats != null) {
-            for (String statName : characterStats.keySet()) {
-                if (!STAT_TYPE.isValid(statName)) {
-                    throw new IllegalArgumentException("Wykryto nieprawidłową nazwę statystyki postaci: " + statName);
-                }
-            }
             characterStats.forEach((stat, val) ->
                     state.getAccumulator().addFlatValue(stat, val.doubleValue()));
         }
@@ -92,7 +88,7 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
         double finalDrifMod = itemProcessor.calculateFinalDrifMod(item, starLevel);
 
         itemProcessor.process(item, starLevel, state);
-        orbProcessor.process(slotKey, slotData, starLevel, state);
+        orbProcessor.process(slotKey, slotData, item, starLevel, state);
         drifProcessor.process(slotKey, slotData, item, finalDrifMod, state);
     }
 
