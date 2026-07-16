@@ -11,37 +11,35 @@ export const EquipmentProvider = ({ children }) => {
     const [orbCategories, setOrbCategories] = useState({});
     const [drifCategories, setDrifCategories] = useState({});
     const [gameRules, setGameRules] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     const [requestData, setRequestData] = useState({ slots: {}, characterStats: {} });
     const [stats, setStats] = useState(null);
 
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchInitialData = async () => {
             try {
-                const [itemsRes, orbsRes, drifsRes, rulesRes, orbCatRes, drifCatRes] = await Promise.all([
-                    apiClient.get("/items"),
-                    apiClient.get("/orbs"),
-                    apiClient.get("/drifs"),
-                    apiClient.get("/rules"),
-                    apiClient.get("/dictionaries/orb-categories"),
-                    apiClient.get("/dictionaries/drif-categories")
-                ]);
-                setData({ items: itemsRes.data, orbs: orbsRes.data, drifs: drifsRes.data });
-                setGameRules(rulesRes.data);
-                setOrbCategories(orbCatRes.data);
-                setDrifCategories(drifCatRes.data);
-            } catch (error) {
-                console.error("Błąd ładowania danych mroku:", error);
-            }
+                setLoading(true);
+                const response = await apiClient.get("/initial-data");
+                const initialData = response.data;
 
-            try {
-                const catRes = await apiClient.get("/dictionaries/categories");
-                setCategoryNames(catRes.data);
+                setData({
+                    items: initialData.items || [],
+                    orbs: initialData.orbs || [],
+                    drifs: initialData.drifs || []
+                });
+                setGameRules(initialData.gameRules || {});
+                setCategoryNames(initialData.dictionaries?.itemCategories || {});
+                setOrbCategories(initialData.dictionaries?.orbCategories || {});
+                setDrifCategories(initialData.dictionaries?.drifCategories || {});
+
             } catch (error) {
-                console.warn("Błąd ładowania słowników:", error);
+                console.error("Błąd ładowania danych startowych:", error);
+            } finally {
+                setLoading(false);
             }
         };
-        fetchData();
+        fetchInitialData();
     }, []);
 
     const handleSlotUpdate = (slotKey, slotData) => {
@@ -85,6 +83,7 @@ export const EquipmentProvider = ({ children }) => {
         orbCategories,
         drifCategories,
         gameRules,
+        loading,
         requestData,
         stats,
         handleSlotUpdate,
