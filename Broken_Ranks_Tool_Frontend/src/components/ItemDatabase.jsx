@@ -117,27 +117,31 @@ const ItemDatabase = ({ items = [], orbs = [], drifs = [], categoryNames = {}, o
                 const matchesTier = selectedTier === "Wszystkie" || itemOrVariants.tier === selectedTier;
                 const matchesStat = selectedStat === "Wszystkie" || (itemOrVariants.stats && itemOrVariants.stats[selectedStat] !== undefined);
                 return matchesSearch && matchesTier && matchesStat;
-            } else { // Orbs or Drifs
-                const baseItem = itemOrVariants[0];
-                const translatedName = bonusTranslations[baseItem.bonusType] || baseItem.bonusType || "";
-                const matchesSearch = (baseItem.name?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
-                    translatedName.toLowerCase().includes(searchTerm.toLowerCase());
-                
-                let matchesCategory = true;
-                if (activeTab === "orbs") {
-                    matchesCategory = selectedOrbCategory === "Wszystkie" || baseItem.category === selectedOrbCategory;
-                } else if (activeTab === "drifs") {
-                    matchesCategory = selectedDrifCategory === "Wszystkie" || baseItem.category === selectedDrifCategory;
-                }
+            }
 
+            const baseItem = itemOrVariants[0];
+            if (!baseItem) return false;
+
+            const translatedName = bonusTranslations[baseItem.bonusType] || baseItem.bonusType || "";
+            const matchesSearch = (baseItem.name?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+                translatedName.toLowerCase().includes(searchTerm.toLowerCase());
+
+            if (activeTab === "orbs") {
+                const matchesOrbCategory = selectedOrbCategory === "Wszystkie" || baseItem.category === selectedOrbCategory;
+                return matchesSearch && matchesOrbCategory;
+            }
+
+            if (activeTab === "drifs") {
+                const matchesDrifCategory = selectedDrifCategory === "Wszystkie" || baseItem.category === selectedDrifCategory;
                 let matchesBasePower = true;
-                if (activeTab === "drifs" && selectedBasePower) {
+                if (selectedBasePower) {
                     const power = drifBasePowers[baseItem.bonusType];
                     matchesBasePower = power !== undefined && power.toString() === selectedBasePower;
                 }
-
-                return matchesSearch && matchesCategory && matchesBasePower;
+                return matchesSearch && matchesDrifCategory && matchesBasePower;
             }
+            
+            return false;
         });
 
         if (matchedItems.length > 0) acc[category] = matchedItems;
