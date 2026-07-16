@@ -4,7 +4,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import pl.brokenranks.tool.broken_ranks_tool.core.enums.DRIF_CATEGORY;
 import pl.brokenranks.tool.broken_ranks_tool.core.enums.ITEM_CATEGORY;
+import pl.brokenranks.tool.broken_ranks_tool.core.enums.ORB_CATEGORY;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -27,6 +29,30 @@ public class DictionaryController {
                 .collect(Collectors.toMap(
                         Enum::name,
                         ITEM_CATEGORY::getDescription
+                ));
+    }
+
+    /**
+     * @return Mapa tłumaczeń dla kategorii orbów.
+     */
+    @GetMapping("/orb-categories")
+    public Map<String, String> getOrbCategoryDictionary() {
+        return Arrays.stream(ORB_CATEGORY.values())
+                .collect(Collectors.toMap(
+                        Enum::name,
+                        ORB_CATEGORY::getDescription
+                ));
+    }
+
+    /**
+     * @return Mapa tłumaczeń dla kategorii drifów.
+     */
+    @GetMapping("/drif-categories")
+    public Map<String, String> getDrifCategoryDictionary() {
+        return Arrays.stream(DRIF_CATEGORY.values())
+                .collect(Collectors.toMap(
+                        Enum::name,
+                        DRIF_CATEGORY::getDescription
                 ));
     }
 }

@@ -8,6 +8,8 @@ export const useEquipment = () => useContext(EquipmentContext);
 export const EquipmentProvider = ({ children }) => {
     const [data, setData] = useState({ items: [], orbs: [], drifs: [] });
     const [categoryNames, setCategoryNames] = useState({});
+    const [orbCategories, setOrbCategories] = useState({});
+    const [drifCategories, setDrifCategories] = useState({});
     const [gameRules, setGameRules] = useState(null);
 
     const [requestData, setRequestData] = useState({ slots: {}, characterStats: {} });
@@ -16,14 +18,18 @@ export const EquipmentProvider = ({ children }) => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [itemsRes, orbsRes, drifsRes, rulesRes] = await Promise.all([
+                const [itemsRes, orbsRes, drifsRes, rulesRes, orbCatRes, drifCatRes] = await Promise.all([
                     apiClient.get("/items"),
                     apiClient.get("/orbs"),
                     apiClient.get("/drifs"),
-                    apiClient.get("/rules")
+                    apiClient.get("/rules"),
+                    apiClient.get("/dictionaries/orb-categories"),
+                    apiClient.get("/dictionaries/drif-categories")
                 ]);
                 setData({ items: itemsRes.data, orbs: orbsRes.data, drifs: drifsRes.data });
                 setGameRules(rulesRes.data);
+                setOrbCategories(orbCatRes.data);
+                setDrifCategories(drifCatRes.data);
             } catch (error) {
                 console.error("Błąd ładowania danych mroku:", error);
             }
@@ -46,8 +52,8 @@ export const EquipmentProvider = ({ children }) => {
                 [slotKey]: {
                     itemId: slotData.itemId,
                     itemStars: slotData.itemStars,
-                    orbId: slotData.orbId,
-                    orbLevel: slotData.orbLevel,
+                    orbIds: slotData.orbIds,
+                    orbLevels: slotData.orbLevels,
                     drifIds: slotData.drifIds,
                     drifLevels: slotData.drifLevels,
                 }
@@ -76,6 +82,8 @@ export const EquipmentProvider = ({ children }) => {
     const value = {
         data,
         categoryNames,
+        orbCategories,
+        drifCategories,
         gameRules,
         requestData,
         stats,
