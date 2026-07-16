@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { ROMAN_ORDER, SIZE_ORDER} from  "../utils/GearRules.jsx"
+import { ROMAN_ORDER, SIZE_ORDER } from "../utils/GearRules.jsx";
 
 const getRarityColor = (rarity) => {
     if (!rarity) return "bg-clip-text text-transparent bg-gradient-to-r from-stone-400 to-stone-500 font-bold";
@@ -55,23 +55,13 @@ const calculateDoubleIncrement = (incrementStr) => {
     return (hasPlus ? '+' : '') + val;
 };
 
-/**
- * Komponent bazy danych, którego rolą jest umożliwienie użytkownikowi
- * przeglądania, filtrowania i przeciągania przedmiotów, orbów i drifów
- * do odpowiednich slotów ekwipunku.
- *
- * @param {object} props
- * @param {Array<object>} props.items Lista wszystkich przedmiotów.
- * @param {Array<object>} props.orbs Lista wszystkich orbów.
- * @param {Array<object>} props.drifs Lista wszystkich drifów.
- * @param {object} props.categoryNames Mapa tłumaczeń dla kategorii przedmiotów.
- * @param {object} props.gameRules Obiekt z globalnymi regułami gry.
- * @returns {JSX.Element}
- */
-const ItemDatabase = ({ items = [], orbs = [], drifs = [], categoryNames = {}, gameRules = {} }) => {
+const ItemDatabase = ({ items = [], orbs = [], drifs = [], categoryNames = {}, orbCategories = {}, drifCategories = {}, gameRules = {} }) => {
     const [activeTab, setActiveTab] = useState("items");
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("Wszystkie");
+    const [selectedOrbCategory, setSelectedOrbCategory] = useState("Wszystkie");
+    const [selectedDrifCategory, setSelectedDrifCategory] = useState("Wszystkie");
+    const [selectedBasePower, setSelectedBasePower] = useState("");
     const [selectedTier, setSelectedTier] = useState("Wszystkie");
     const [selectedStat, setSelectedStat] = useState("Wszystkie");
 
@@ -98,7 +88,6 @@ const ItemDatabase = ({ items = [], orbs = [], drifs = [], categoryNames = {}, g
             orbs.forEach(orb => {
                 if (!orbsByType[orb.bonusType]) orbsByType[orb.bonusType] = [];
                 orbsByType[orb.bonusType].push(orb);
-                if (orb.tier || orb.size) tiersSet.add(orb.tier || orb.size);
             });
             groups["Orby"] = Object.values(orbsByType).map(v => sortVariants(deduplicateVariants(v)));
         } else if (activeTab === "drifs") {
@@ -106,7 +95,6 @@ const ItemDatabase = ({ items = [], orbs = [], drifs = [], categoryNames = {}, g
             drifs.forEach(drif => {
                 if (!drifsByType[drif.bonusType]) drifsByType[drif.bonusType] = [];
                 drifsByType[drif.bonusType].push(drif);
-                if (drif.size) tiersSet.add(drif.size);
             });
             groups["Drify"] = Object.values(drifsByType).map(v => sortVariants(deduplicateVariants(v)));
         }
@@ -129,13 +117,26 @@ const ItemDatabase = ({ items = [], orbs = [], drifs = [], categoryNames = {}, g
                 const matchesTier = selectedTier === "Wszystkie" || itemOrVariants.tier === selectedTier;
                 const matchesStat = selectedStat === "Wszystkie" || (itemOrVariants.stats && itemOrVariants.stats[selectedStat] !== undefined);
                 return matchesSearch && matchesTier && matchesStat;
-            } else {
+            } else { // Orbs or Drifs
                 const baseItem = itemOrVariants[0];
                 const translatedName = bonusTranslations[baseItem.bonusType] || baseItem.bonusType || "";
                 const matchesSearch = (baseItem.name?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
                     translatedName.toLowerCase().includes(searchTerm.toLowerCase());
-                const hasMatchingTier = selectedTier === "Wszystkie" || itemOrVariants.some(v => (v.tier || v.size) === selectedTier);
-                return matchesSearch && hasMatchingTier;
+                
+                let matchesCategory = true;
+                if (activeTab === "orbs") {
+                    matchesCategory = selectedOrbCategory === "Wszystkie" || baseItem.category === selectedOrbCategory;
+                } else if (activeTab === "drifs") {
+                    matchesCategory = selectedDrifCategory === "Wszystkie" || baseItem.category === selectedDrifCategory;
+                }
+
+                let matchesBasePower = true;
+                if (activeTab === "drifs" && selectedBasePower) {
+                    const power = drifBasePowers[baseItem.bonusType];
+                    matchesBasePower = power !== undefined && power.toString() === selectedBasePower;
+                }
+
+                return matchesSearch && matchesCategory && matchesBasePower;
             }
         });
 
@@ -159,6 +160,9 @@ const ItemDatabase = ({ items = [], orbs = [], drifs = [], categoryNames = {}, g
         setActiveTab(tab);
         setSearchTerm("");
         setSelectedCategory("Wszystkie");
+        setSelectedOrbCategory("Wszystkie");
+        setSelectedDrifCategory("Wszystkie");
+        setSelectedBasePower("");
         setSelectedTier("Wszystkie");
         setSelectedStat("Wszystkie");
     };
@@ -166,6 +170,9 @@ const ItemDatabase = ({ items = [], orbs = [], drifs = [], categoryNames = {}, g
     const clearFilters = () => {
         setSearchTerm("");
         setSelectedCategory("Wszystkie");
+        setSelectedOrbCategory("Wszystkie");
+        setSelectedDrifCategory("Wszystkie");
+        setSelectedBasePower("");
         setSelectedTier("Wszystkie");
         setSelectedStat("Wszystkie");
     };
@@ -174,7 +181,7 @@ const ItemDatabase = ({ items = [], orbs = [], drifs = [], categoryNames = {}, g
         <div className="bg-gradient-to-b from-stone-900 to-black p-6 border-2 border-stone-800 shadow-[0_0_30px_rgba(0,0,0,0.9)] flex flex-col h-full relative">
             <div className="flex justify-between items-end border-b-4 border-double border-rose-900/70 pb-3 mb-4 shrink-0">
                 <h3 className="text-xl font-serif font-bold text-stone-300 uppercase tracking-widest drop-shadow-[0_2px_5px_rgba(0,0,0,1)]">Baza Danych</h3>
-                {(searchTerm || selectedCategory !== "Wszystkie" || selectedTier !== "Wszystkie" || selectedStat !== "Wszystkie") && (
+                {(searchTerm || selectedCategory !== "Wszystkie" || selectedTier !== "Wszystkie" || selectedStat !== "Wszystkie" || selectedOrbCategory !== "Wszystkie" || selectedDrifCategory !== "Wszystkie" || selectedBasePower) && (
                     <button onClick={clearFilters} className="text-xs text-rose-800 hover:text-rose-600 transition-colors font-serif font-bold uppercase tracking-widest">
                         Wyczyść filtry
                     </button>
@@ -217,31 +224,64 @@ const ItemDatabase = ({ items = [], orbs = [], drifs = [], categoryNames = {}, g
 
                 <div className="flex gap-2">
                     {activeTab === "items" && (
+                        <>
+                            <select
+                                value={selectedCategory}
+                                onChange={(e) => setSelectedCategory(e.target.value)}
+                                className="flex-1 min-w-0 bg-black/60 text-stone-400 font-serif p-2 text-xs border border-stone-800 focus:border-rose-900 outline-none cursor-pointer shadow-[inset_0_0_10px_rgba(0,0,0,1)]"
+                            >
+                                {allCategories.map(cat => <option key={cat} value={cat} className="bg-stone-900 text-stone-300">{cat}</option>)}
+                            </select>
+                            <select
+                                value={selectedTier}
+                                onChange={(e) => setSelectedTier(e.target.value)}
+                                className="flex-1 min-w-0 bg-black/60 text-stone-400 font-serif font-bold uppercase tracking-wider p-2 text-xs border border-stone-800 focus:border-rose-900 outline-none cursor-pointer shadow-[inset_0_0_10px_rgba(0,0,0,1)]"
+                            >
+                                {allTiers.map(tier => <option key={tier} value={tier} className="bg-stone-900 text-stone-300">{tier === "Wszystkie" ? "Tier..." : tier}</option>)}
+                            </select>
+                            <select
+                                value={selectedStat}
+                                onChange={(e) => setSelectedStat(e.target.value)}
+                                className="flex-1 min-w-0 bg-black/60 text-stone-400 font-serif p-2 text-xs border border-stone-800 focus:border-rose-900 outline-none cursor-pointer shadow-[inset_0_0_10px_rgba(0,0,0,1)]"
+                            >
+                                {allStats.map(stat => <option key={stat} value={stat} className="bg-stone-900 text-stone-300">{stat === "Wszystkie" ? "Staty..." : stat}</option>)}
+                            </select>
+                        </>
+                    )}
+
+                    {activeTab === "orbs" && (
                         <select
-                            value={selectedCategory}
-                            onChange={(e) => setSelectedCategory(e.target.value)}
+                            value={selectedOrbCategory}
+                            onChange={(e) => setSelectedOrbCategory(e.target.value)}
                             className="flex-1 min-w-0 bg-black/60 text-stone-400 font-serif p-2 text-xs border border-stone-800 focus:border-rose-900 outline-none cursor-pointer shadow-[inset_0_0_10px_rgba(0,0,0,1)]"
                         >
-                            {allCategories.map(cat => <option key={cat} value={cat} className="bg-stone-900 text-stone-300">{cat}</option>)}
+                            <option value="Wszystkie">Kategoria...</option>
+                            {Object.entries(orbCategories).map(([key, description]) => (
+                                <option key={key} value={key} className="bg-stone-900 text-stone-300">{description}</option>
+                            ))}
                         </select>
                     )}
 
-                    <select
-                        value={selectedTier}
-                        onChange={(e) => setSelectedTier(e.target.value)}
-                        className="flex-1 min-w-0 bg-black/60 text-stone-400 font-serif font-bold uppercase tracking-wider p-2 text-xs border border-stone-800 focus:border-rose-900 outline-none cursor-pointer shadow-[inset_0_0_10px_rgba(0,0,0,1)]"
-                    >
-                        {allTiers.map(tier => <option key={tier} value={tier} className="bg-stone-900 text-stone-300">{tier === "Wszystkie" ? (activeTab === "items" ? "Tier..." : "Wielkość...") : tier}</option>)}
-                    </select>
-
-                    {activeTab === "items" && (
-                        <select
-                            value={selectedStat}
-                            onChange={(e) => setSelectedStat(e.target.value)}
-                            className="flex-1 min-w-0 bg-black/60 text-stone-400 font-serif p-2 text-xs border border-stone-800 focus:border-rose-900 outline-none cursor-pointer shadow-[inset_0_0_10px_rgba(0,0,0,1)]"
-                        >
-                            {allStats.map(stat => <option key={stat} value={stat} className="bg-stone-900 text-stone-300">{stat === "Wszystkie" ? "Staty..." : stat}</option>)}
-                        </select>
+                    {activeTab === "drifs" && (
+                        <>
+                            <select
+                                value={selectedDrifCategory}
+                                onChange={(e) => setSelectedDrifCategory(e.target.value)}
+                                className="flex-1 min-w-0 bg-black/60 text-stone-400 font-serif p-2 text-xs border border-stone-800 focus:border-rose-900 outline-none cursor-pointer shadow-[inset_0_0_10px_rgba(0,0,0,1)]"
+                            >
+                                <option value="Wszystkie">Kategoria...</option>
+                                {Object.entries(drifCategories).map(([key, description]) => (
+                                    <option key={key} value={key} className="bg-stone-900 text-stone-300">{description}</option>
+                                ))}
+                            </select>
+                            <input
+                                type="number"
+                                placeholder="Moc bazowa..."
+                                value={selectedBasePower}
+                                onChange={(e) => setSelectedBasePower(e.target.value)}
+                                className="flex-1 min-w-0 bg-black/60 text-stone-400 font-serif p-2 text-xs border border-stone-800 focus:border-rose-900 outline-none cursor-pointer shadow-[inset_0_0_10px_rgba(0,0,0,1)]"
+                            />
+                        </>
                     )}
                 </div>
             </div>
