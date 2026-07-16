@@ -12,6 +12,7 @@ function App() {
     const {
         data,
         categoryNames,
+        orbCategories,
         gameRules,
         requestData,
         stats,
@@ -90,6 +91,7 @@ function App() {
                                 orbs={data.orbs}
                                 drifs={data.drifs}
                                 categoryNames={categoryNames}
+                                orbCategories={orbCategories}
                                 gameRules={gameRules || {}}
                             />
                         </div>
