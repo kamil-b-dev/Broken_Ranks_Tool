@@ -13,6 +13,7 @@ function App() {
         data,
         categoryNames,
         orbCategories,
+        drifCategories,
         gameRules,
         requestData,
         stats,
@@ -92,6 +93,7 @@ function App() {
                                 drifs={data.drifs}
                                 categoryNames={categoryNames}
                                 orbCategories={orbCategories}
+                                drifCategories={drifCategories}
                                 gameRules={gameRules || {}}
                             />
                         </div>
