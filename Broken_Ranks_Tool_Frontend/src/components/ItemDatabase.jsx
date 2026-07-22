@@ -261,7 +261,7 @@ const ItemDatabase = ({ items = [], orbs = [], drifs = [], categoryNames = {}, o
                         >
                             <option value="Wszystkie">Kategoria...</option>
                             {Object.entries(orbCategories).map(([key, description]) => (
-                                <option key={key} value={key} className="bg-stone-900 text-stone-300">{description}</option>
+                                <option key={key} value={key}>{description}</option>
                             ))}
                         </select>
                     )}

@@ -37,5 +37,5 @@ public enum ORB_BONUS_TYPE {
     DMG_BOOST_CHAMPION_ELITE("Wieksze obrazenia na czempiony i elity"),
     DMG_BOOST_BOSS("Wieksze obrazenia na bossy");
 
-    private final String name;
+    private final String description;
 }

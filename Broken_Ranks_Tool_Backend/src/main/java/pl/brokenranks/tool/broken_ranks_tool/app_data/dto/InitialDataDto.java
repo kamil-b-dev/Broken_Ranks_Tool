@@ -1,8 +1,9 @@
-package pl.brokenranks.tool.broken_ranks_tool.equipment.dto;
+package pl.brokenranks.tool.broken_ranks_tool.app_data.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.DrifTemplateDto;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.OrbTemplate;
 

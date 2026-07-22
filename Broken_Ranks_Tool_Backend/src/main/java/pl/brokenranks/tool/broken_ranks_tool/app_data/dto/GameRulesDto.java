@@ -1,4 +1,4 @@
-package pl.brokenranks.tool.broken_ranks_tool.equipment.dto;
+package pl.brokenranks.tool.broken_ranks_tool.app_data.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,7 +13,6 @@ import java.util.Map;
 @AllArgsConstructor
 public class GameRulesDto {
     private Map<String, List<String>> epicBuiltInDrifs;
-
     private Map<String, List<ORB_CATEGORY>> slotOrbRules;
     private Map<String, String> bonusTranslations;
     private Map<String, Integer> drifBasePowers;
