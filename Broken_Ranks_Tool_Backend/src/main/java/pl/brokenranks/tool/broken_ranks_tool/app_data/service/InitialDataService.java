@@ -1,15 +1,16 @@
-package pl.brokenranks.tool.broken_ranks_tool.equipment.service;
+package pl.brokenranks.tool.broken_ranks_tool.app_data.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import pl.brokenranks.tool.broken_ranks_tool.app_data.dto.DictionariesDto;
+import pl.brokenranks.tool.broken_ranks_tool.app_data.dto.GameRulesDto;
+import pl.brokenranks.tool.broken_ranks_tool.app_data.dto.InitialDataDto;
 import pl.brokenranks.tool.broken_ranks_tool.core.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.core.enums.DRIF_CATEGORY;
 import pl.brokenranks.tool.broken_ranks_tool.core.enums.ITEM_CATEGORY;
+import pl.brokenranks.tool.broken_ranks_tool.core.enums.ORB_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.core.enums.ORB_CATEGORY;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.DictionariesDto;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.DrifTemplateDto;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.GameRulesDto;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.InitialDataDto;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.repository.DrifTemplateRepository;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.repository.ItemTemplateRepository;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.repository.OrbTemplateRepository;
@@ -42,7 +43,7 @@ public class InitialDataService {
 
         var bonusTranslations = Stream.of(
                         getEnumMap(DRIF_BONUS_TYPE.class, DRIF_BONUS_TYPE::getDescription),
-                        getEnumMap(ORB_CATEGORY.class, ORB_CATEGORY::getDescription)
+                        getEnumMap(ORB_BONUS_TYPE.class, ORB_BONUS_TYPE::getDescription)
                 )
                 .flatMap(map -> map.entrySet().stream())
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (v1, v2) -> v1));

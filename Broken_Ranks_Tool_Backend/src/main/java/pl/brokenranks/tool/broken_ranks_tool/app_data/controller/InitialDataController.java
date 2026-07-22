@@ -1,4 +1,4 @@
-package pl.brokenranks.tool.broken_ranks_tool.equipment.controller;
+package pl.brokenranks.tool.broken_ranks_tool.app_data.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.InitialDataDto;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.InitialDataService;
+import pl.brokenranks.tool.broken_ranks_tool.app_data.dto.InitialDataDto;
+import pl.brokenranks.tool.broken_ranks_tool.app_data.service.InitialDataService;
 
 @RestController
 @RequestMapping("/api")

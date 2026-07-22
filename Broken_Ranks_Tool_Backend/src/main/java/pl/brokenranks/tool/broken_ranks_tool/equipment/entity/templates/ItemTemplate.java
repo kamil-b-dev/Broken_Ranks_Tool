@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import pl.brokenranks.tool.broken_ranks_tool.core.converters.MapToStringConverter;
+import pl.brokenranks.tool.broken_ranks_tool.core.entity.BaseNamedEntity;
 import pl.brokenranks.tool.broken_ranks_tool.core.enums.ITEM_CATEGORY;
 import pl.brokenranks.tool.broken_ranks_tool.core.enums.RARITY;
 
@@ -21,7 +22,7 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
-public class ItemTemplate extends  BaseNamedEntity {
+public class ItemTemplate extends BaseNamedEntity {
 
     @Enumerated(EnumType.STRING)
     private ITEM_CATEGORY category;

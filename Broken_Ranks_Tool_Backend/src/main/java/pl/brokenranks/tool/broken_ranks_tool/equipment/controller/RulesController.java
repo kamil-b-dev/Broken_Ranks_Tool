@@ -37,7 +37,7 @@ public class RulesController {
         Map<String, Object> response = new HashMap<>();
 
         Map<String, String> orbTranslations = Arrays.stream(ORB_BONUS_TYPE.values())
-                .collect(Collectors.toMap(Enum::name, ORB_BONUS_TYPE::getName));
+                .collect(Collectors.toMap(Enum::name, ORB_BONUS_TYPE::getDescription));
 
         Map<String, String> drifTranslations = Arrays.stream(DRIF_BONUS_TYPE.values())
                 .collect(Collectors.toMap(Enum::name, DRIF_BONUS_TYPE::getDescription));
