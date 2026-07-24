@@ -9,17 +9,18 @@ const DRIF_MULTIPLIERS = {
 };
 
 /**
- * @param {{
- *  drifs: Array<object>,
- *  fullSelectedItem: object | undefined,
- *  dragOverZone: string | null,
- *  handleDragOver: Function,
- *  handleDragLeave: Function,
- *  handleDrop: Function,
- *  hookData: object,
- *  bonusTranslations: object,
- *  drifBasePowers: object
- * }} props
+ * Komponent sekcji do zarządzania drifami w przedmiocie.
+ * @param {object} props
+ * @param {Array<object>} props.drifs Lista wszystkich dostępnych drifów.
+ * @param {object} props.fullSelectedItem Pełny obiekt wybranego przedmiotu.
+ * @param {string|null} props.dragOverZone Aktualna strefa, nad którą jest przeciągany element.
+ * @param {Function} props.handleDragOver Funkcja obsługująca zdarzenie onDragOver.
+ * @param {Function} props.handleDragLeave Funkcja obsługująca zdarzenie onDragLeave.
+ * @param {Function} props.handleDrop Funkcja obsługująca zdarzenie onDrop.
+ * @param {object} props.hookData Obiekt z danymi i funkcjami z hooka useGearSlot.
+ * @param {object} props.bonusTranslations Mapa tłumaczeń dla bonusów.
+ * @param {object} props.drifBasePowers Mapa mocy bazowych dla drifów.
+ * @returns {JSX.Element}
  */
 const DrifSection = ({ drifs, fullSelectedItem, dragOverZone, handleDragOver, handleDragLeave, handleDrop, hookData, bonusTranslations, drifBasePowers }) => {
     const {
@@ -79,6 +80,8 @@ const DrifSection = ({ drifs, fullSelectedItem, dragOverZone, handleDragOver, ha
                     const localUsedBonusTypes = selectedDrifs.map((dId, i) => i !== index && dId ? drifs.find(dr => dr.id.toString() === dId.toString())?.bonusType : null).filter(Boolean);
 
                     const allowedDrifs = drifs.filter(drif => {
+                        if (drifId && drif.id.toString() === drifId.toString()) return true;
+
                         if (!drif.size) return false;
                         if (localUsedBonusTypes.includes(drif.bonusType)) return false;
                         const drifSizeIdx = sizeIndexMap[drif.size.toUpperCase()] ?? -1;

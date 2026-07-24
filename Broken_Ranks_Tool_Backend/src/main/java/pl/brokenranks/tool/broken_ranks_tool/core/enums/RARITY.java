@@ -3,6 +3,9 @@ package pl.brokenranks.tool.broken_ranks_tool.core.enums;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+/**
+ * Reprezentuje wszystkie możliwe poziomy rzadkości przedmiotów w grze.
+ */
 @Getter
 @AllArgsConstructor
 public enum RARITY {

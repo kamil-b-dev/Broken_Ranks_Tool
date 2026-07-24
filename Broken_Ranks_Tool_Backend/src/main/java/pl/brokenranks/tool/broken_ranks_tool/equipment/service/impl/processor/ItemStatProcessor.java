@@ -21,6 +21,13 @@ import java.util.Map;
 public class ItemStatProcessor {
     private final RandomProvider randomProvider;
 
+    /**
+     * Oblicza finalny modyfikator dla drifów, sumując bonus z gwiazdek i ewentualny
+     * bonus wbudowany w przedmiot.
+     * @param item Szablon przedmiotu.
+     * @param starLevel Poziom ulepszenia przedmiotu.
+     * @return Finalny modyfikator procentowy dla drifów.
+     */
     public double calculateFinalDrifMod(ItemTemplate item, int starLevel) {
         ITEM_STAR starMod = ITEM_STAR.fromLevel(starLevel);
         double baseStarDrifMod = starMod.getDrifMod();
@@ -33,6 +40,13 @@ public class ItemStatProcessor {
         return baseStarDrifMod + itemDatabaseDrifBonus;
     }
 
+    /**
+     * Przetwarza statystyki przedmiotu, rozdzielając je na specjalne, odporności i bazowe,
+     * a następnie losowo dystrybuuje pulę bonusową.
+     * @param item Szablon przedmiotu.
+     * @param starLevel Poziom ulepszenia przedmiotu.
+     * @param state Aktualny stan obliczeń.
+     */
     public void process(ItemTemplate item, int starLevel, CalculationState state) {
         if (item.getStats() == null || item.getStats().isEmpty()) {
             return;

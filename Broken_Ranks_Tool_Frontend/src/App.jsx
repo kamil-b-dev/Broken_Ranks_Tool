@@ -3,9 +3,16 @@ import GearSlot from "./components/GearSlot";
 import ItemDatabase from "./components/ItemDatabase";
 import StatsPanel from "./components/StatsPanel";
 import CharacterPanel from "./components/CharacterPanel";
+import OptimizerPanel from "./components/OptimizerPanel";
 import { useEquipment } from "./context/EquipmentContext";
 import { SLOTS } from "./constants/equipment";
 
+/**
+ * Główny komponent aplikacji, który orkiestruje wszystkie pod-komponenty.
+ * Odpowiada za główny layout, pobieranie danych z kontekstu i przekazywanie ich
+ * do odpowiednich komponentów potomnych.
+ * @returns {JSX.Element}
+ */
 function App() {
     const [activeTab, setActiveTab] = useState("database");
 
@@ -17,6 +24,7 @@ function App() {
         gameRules,
         requestData,
         stats,
+        optimizationTrigger,
         handleSlotUpdate,
         handleCharacterStatsUpdate,
         calculateStats
@@ -56,6 +64,7 @@ function App() {
                                 allSlots={requestData.slots || {}}
                                 onUpdate={handleSlotUpdate}
                                 gameRules={gameRules}
+                                optimizationTrigger={optimizationTrigger}
                             />
                         ))}
                     </div>
@@ -71,7 +80,17 @@ function App() {
                                     : "text-stone-500 hover:text-stone-300 hover:bg-stone-900/50 border-b-2 border-transparent"
                             }`}
                         >
-                            Baza Przedmiotów
+                            Baza Przedmiotow
+                        </button>
+                        <button
+                            onClick={() => setActiveTab("optimizer")}
+                            className={`flex-1 py-3 text-sm font-bold uppercase tracking-widest transition-all ${
+                                activeTab === "optimizer"
+                                    ? "bg-purple-950/40 border-b-2 border-purple-700 text-purple-400"
+                                    : "text-stone-500 hover:text-stone-300 hover:bg-stone-900/50 border-b-2 border-transparent"
+                            }`}
+                        >
+                            Optymalizator
                         </button>
                         <button
                             onClick={() => setActiveTab("character")}
@@ -97,7 +116,9 @@ function App() {
                                 gameRules={gameRules || {}}
                             />
                         </div>
-
+                        <div className={`xl:absolute xl:inset-0 flex flex-col w-full h-full ${activeTab === "optimizer" ? "flex" : "hidden"}`}>
+                            <OptimizerPanel />
+                        </div>
                         <div className={`xl:absolute xl:inset-0 flex flex-col w-full h-full ${activeTab === "character" ? "flex" : "hidden"}`}>
                             <CharacterPanel onStatsChange={handleCharacterStatsUpdate} />
                         </div>
