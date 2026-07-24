@@ -55,6 +55,19 @@ const calculateDoubleIncrement = (incrementStr) => {
     return (hasPlus ? '+' : '') + val;
 };
 
+/**
+ * Komponent bazy danych, umożliwiający przeglądanie, filtrowanie i przeciąganie
+ * przedmiotów, orbów i drifów do odpowiednich slotów ekwipunku.
+ * @param {object} props
+ * @param {Array<object>} props.items Lista wszystkich przedmiotów.
+ * @param {Array<object>} props.orbs Lista wszystkich orbów.
+ * @param {Array<object>} props.drifs Lista wszystkich drifów.
+ * @param {object} props.categoryNames Mapa tłumaczeń dla kategorii przedmiotów.
+ * @param {object} props.orbCategories Mapa tłumaczeń dla kategorii orbów.
+ * @param {object} props.drifCategories Mapa tłumaczeń dla kategorii drifów.
+ * @param {object} props.gameRules Obiekt z globalnymi regułami gry.
+ * @returns {JSX.Element}
+ */
 const ItemDatabase = ({ items = [], orbs = [], drifs = [], categoryNames = {}, orbCategories = {}, drifCategories = {}, gameRules = {} }) => {
     const [activeTab, setActiveTab] = useState("items");
     const [searchTerm, setSearchTerm] = useState("");
@@ -261,7 +274,7 @@ const ItemDatabase = ({ items = [], orbs = [], drifs = [], categoryNames = {}, o
                         >
                             <option value="Wszystkie">Kategoria...</option>
                             {Object.entries(orbCategories).map(([key, description]) => (
-                                <option key={key} value={key} className="bg-stone-900 text-stone-300">{description}</option>
+                                <option key={key} value={key}>{description}</option>
                             ))}
                         </select>
                     )}

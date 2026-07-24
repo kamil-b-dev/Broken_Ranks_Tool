@@ -20,8 +20,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Odpowiada za walidację logiki biznesowej i reguł gry.
- * Celem tej klasy jest zapewnienie, że dane wejściowe i operacje
+ * Serwis odpowiedzialny za walidację logiki biznesowej i reguł gry
+ * związanych z ekwipunkiem. Zapewnia, że dane wejściowe i operacje
  * są zgodne z zasadami (np. pojemność drifów, dozwolone sloty).
  */
 @Service
@@ -33,6 +33,7 @@ public class EquipmentValidator {
 
     /**
      * Waliduje, czy nazwy statystyk postaci podane w żądaniu są dozwolone.
+     * @param characterStats Mapa statystyk postaci do walidacji.
      * @throws IllegalArgumentException w przypadku wykrycia nieprawidłowej nazwy.
      */
     public void validateCharacterStats(Map<String, Integer> characterStats) {
@@ -47,6 +48,9 @@ public class EquipmentValidator {
 
     /**
      * Waliduje, czy podana konfiguracja orbów jest zgodna z regułami dla danego przedmiotu.
+     * Sprawdza liczbę orbów, rzadkość przedmiotu oraz unikalność kategorii orbów.
+     * @param item Szablon przedmiotu, do którego orby są przypisane.
+     * @param orbs Lista szablonów orbów do walidacji.
      * @throws IllegalArgumentException w przypadku wykrycia naruszenia reguł.
      */
     public void validateOrbsSecurity(ItemTemplate item, List<OrbTemplate> orbs) {
@@ -68,11 +72,33 @@ public class EquipmentValidator {
         }
     }
 
+    /**
+     * Oblicza całkowitą pojemność drifów dla przedmiotu, uwzględniając bonusy z gwiazdek.
+     * @param item Szablon przedmiotu.
+     * @param itemStars Poziom ulepszenia przedmiotu.
+     * @return Całkowita pojemność drifów.
+     */
+    public int calculateItemCapacity(ItemTemplate item, int itemStars) {
+        int baseCapacity = item.getCapacity() != null ? item.getCapacity() : 0;
+        if (baseCapacity == 0) return 0;
+
+        int capacityBonus = 0;
+        if (itemStars >= 7 && itemStars < 8) capacityBonus = 1;
+        else if (itemStars >= 8 && itemStars < 9) capacityBonus = 2;
+        else if (itemStars >= 9) capacityBonus = 4;
+
+        return baseCapacity + capacityBonus;
+    }
+
 
     /**
      * Waliduje, czy podana konfiguracja drifów jest zgodna z regułami dla danego przedmiotu.
      * Sprawdza m.in. unikalność bonusów i limit pojemności.
      *
+     * @param item Szablon przedmiotu, do którego drify są przypisane.
+     * @param itemStars Poziom ulepszenia przedmiotu.
+     * @param drifs Lista szablonów drifów do walidacji.
+     * @param drifLevels Lista poziomów dla każdego drifu.
      * @throws IllegalArgumentException w przypadku wykrycia naruszenia reguł.
      */
     public void validateDrifsSecurity(ItemTemplate item, int itemStars, List<DrifTemplate> drifs, List<Integer> drifLevels) {
@@ -93,7 +119,7 @@ public class EquipmentValidator {
             int level = i < drifLevels.size() ? drifLevels.get(i) : 1;
 
             if (!uniqueBonuses.add(drif.getBonusType())) {
-                log.error("[SECURITY] Oszustwo! Próba powielenia drifu: {}", drif.getBonusType());
+                log.error("[SECURITY] Oszustwo API! Próba powielenia drifu: {}", drif.getBonusType());
                 throw new IllegalArgumentException("Wykryto zduplikowany typ drifu w jednym przedmiocie: " + drif.getBonusType().name());
             }
 
@@ -106,22 +132,18 @@ public class EquipmentValidator {
             currentPowerUsed += (basePower * multiplier);
         }
 
-        int baseCapacity = item.getCapacity() != null ? item.getCapacity() : 0;
-        if (baseCapacity > 0) {
-            int capacityBonus = 0;
-            if (itemStars >= 7 && itemStars < 8) capacityBonus = 1;
-            else if (itemStars >= 8 && itemStars < 9) capacityBonus = 2;
-            else if (itemStars >= 9) capacityBonus = 4;
-
-            int totalItemCapacity = baseCapacity + capacityBonus;
-
-            if (currentPowerUsed > totalItemCapacity) {
-                log.error("[SECURITY] Oszustwo! Przekroczono pojemność. Użyto: {}, Max: {}", currentPowerUsed, totalItemCapacity);
-                throw new IllegalArgumentException("Przekroczono dopuszczalną pojemność drifów w przedmiocie!");
-            }
+        int totalItemCapacity = calculateItemCapacity(item, itemStars);
+        if (totalItemCapacity > 0 && currentPowerUsed > totalItemCapacity) {
+            log.error("[SECURITY] Oszustwo API! Przekroczono pojemność. Użyto: {}, Max: {}", currentPowerUsed, totalItemCapacity);
+            throw new IllegalArgumentException("Przekroczono dopuszczalną pojemność drifów w przedmiocie!");
         }
     }
 
+    /**
+     * Zwraca efektywny mnożnik mocy drifu na podstawie jego poziomu.
+     * @param level Poziom drifu.
+     * @return Mnożnik mocy.
+     */
     private int getEffectiveMultiplier(int level) {
         if (level <= 6) return 1;
         if (level <= 11) return 2;
@@ -130,31 +152,31 @@ public class EquipmentValidator {
     }
 
     /**
-     * @return {@code true}, jeśli przedmiot może być umieszczony w danym slocie.
+     * Sprawdza, czy przedmiot może być umieszczony w danym slocie.
+     * @param item Szablon przedmiotu.
+     * @param slotKey Klucz identyfikujący slot.
+     * @return {@code true}, jeśli przedmiot jest dozwolony w slocie.
      */
     public boolean isValidItem(ItemTemplate item, String slotKey) {
         if (item == null) return false;
-        if (!rules.isItemAllowedInSlot(item.getCategory(), slotKey)) {
-            log.warn("[SECURITY] Odrzucono przedmiot {} ze slotu {}", item.getCategory(), slotKey);
-            return false;
-        }
-        return true;
+        return rules.isItemAllowedInSlot(item.getCategory(), slotKey);
     }
 
     /**
+     * Sprawdza, czy drif jest poprawny (nie jest nullem i ma zdefiniowany typ bonusu).
+     * @param drif Szablon drifu.
+     * @param slotKey Klucz identyfikujący slot (nieużywany w tej metodzie, ale zachowany dla spójności sygnatury).
      * @return {@code true}, jeśli drif jest poprawny.
      */
     public boolean isValidDrif(DrifTemplate drif, String slotKey) {
-        if (drif == null) return false;
-        if (drif.getBonusType() == null) {
-            log.warn("[SECURITY] Odrzucono drif o ID {} - brak zdefiniowanego typu bonusu!", drif.getId());
-            return false;
-        }
-        return true;
+        return drif != null && drif.getBonusType() != null;
     }
 
     /**
-     * @return Poziom ulepszenia drifu, ograniczony do jego maksymalnej dozwolonej wartości.
+     * Ogranicza żądany poziom drifu do jego maksymalnej dozwolonej wartości.
+     * @param requestedLevel Żądany poziom drifu.
+     * @param drif Szablon drifu.
+     * @return Zsanityzowany poziom drifu.
      */
     public int sanitizeDrifLevel(int requestedLevel, DrifTemplate drif) {
         if (drif.getSize() == null) return requestedLevel;
@@ -162,29 +184,26 @@ public class EquipmentValidator {
     }
 
     /**
-     * @return {@code true}, jeśli orb jest prawidłowy dla danego slotu.
+     * Sprawdza, czy orb jest prawidłowy dla danego slotu.
+     * @param orb Szablon orba.
+     * @param slotKey Klucz identyfikujący slot.
+     * @param isSecondOrb Czy jest to drugi orb w przedmiocie (dla legendarnych).
+     * @return {@code true}, jeśli orb jest prawidłowy.
      */
     public boolean isValidOrb(OrbTemplate orb, String slotKey, boolean isSecondOrb) {
         if (orb == null) return false;
-
-        // Dla drugiego orba (w legendarnym itemie) dozwolone są tylko orby ofensywne
         if (isSecondOrb) {
-            if (orb.getCategory() != ORB_CATEGORY.OFENSIVE) {
-                log.warn("[SECURITY] Odrzucono drugi Orb {} - nie jest ofensywny", orb.getCategory());
-                return false;
-            }
+            return orb.getCategory() == ORB_CATEGORY.OFENSIVE;
         } else {
-            if (!rules.isOrbAllowedInSlot(orb.getCategory(), slotKey)) {
-                log.warn("[SECURITY] Odrzucono Orb {} ze slotu {}", orb.getCategory(), slotKey);
-                return false;
-            }
+            return rules.isOrbAllowedInSlot(orb.getCategory(), slotKey);
         }
-        return true;
     }
 
-
     /**
-     * @return Poziom ulepszenia orba, ograniczony do jego maksymalnej dozwolonej wartości.
+     * Ogranicza żądany poziom orba do jego maksymalnej dozwolonej wartości.
+     * @param requestedLevel Żądany poziom orba.
+     * @param orb Szablon orba.
+     * @return Zsanityzowany poziom orba.
      */
     public int sanitizeOrbLevel(int requestedLevel, OrbTemplate orb) {
         if (orb.getSize() == null) return requestedLevel;
@@ -192,14 +211,19 @@ public class EquipmentValidator {
     }
 
     /**
-     * @return {@code true}, jeśli bonus drifu jest typu "obrażenia od żywiołów".
+     * Sprawdza, czy typ bonusu drifu jest klasyfikowany jako obrażenia od żywiołów.
+     * @param type Typ bonusu drifu.
+     * @return {@code true}, jeśli bonus jest od żywiołów.
      */
     public boolean isElementalDamage(DRIF_BONUS_TYPE type) {
         return rules.isElementalDamage(type);
     }
 
     /**
-     * @return {@code true}, jeśli pozycja drifu z obrażeniami od żywiołów jest prawidłowa.
+     * Sprawdza, czy pozycja drifu z obrażeniami od żywiołów jest prawidłowa (tylko w broni).
+     * @param drif Szablon drifu.
+     * @param slotKey Klucz identyfikujący slot.
+     * @return {@code true}, jeśli drif żywiołowy jest w prawidłowym slocie.
      */
     public boolean isElementalDrifPositionValid(DrifTemplate drif, String slotKey) {
         if (drif == null || drif.getBonusType() == null) return false;
@@ -210,20 +234,24 @@ public class EquipmentValidator {
     }
 
     /**
-     * @return {@code true}, jeśli rozmiar drifu jest dozwolony dla danego tieru przedmiotu.
+     * Sprawdza, czy rozmiar drifu jest dozwolony dla danego tieru przedmiotu.
+     * @param drif Szablon drifu.
+     * @param item Szablon przedmiotu.
+     * @return {@code true}, jeśli rozmiar drifu jest dozwolony.
      */
     public boolean isValidDrifSizeForTier(DrifTemplate drif, ItemTemplate item) {
-        if (drif == null || drif.getSize() == null || item == null || item.getTier() == null) {
-            return false;
-        }
+        if (drif == null || drif.getSize() == null || item == null) return false;
 
         if (item.getRarity() == RARITY.EPIC || item.getRarity() == RARITY.SET) {
             return true;
         }
 
-        int tierLvl = StringUtils.convertRomanToInteger(item.getTier());
-        int allowedSizeIndex;
+        int tierLvl = 1;
+        if (item.getTier() != null) {
+            tierLvl = StringUtils.convertRomanToInteger(item.getTier());
+        }
 
+        int allowedSizeIndex;
         if (tierLvl >= 10) allowedSizeIndex = 3;
         else if (tierLvl >= 7) allowedSizeIndex = 2;
         else if (tierLvl >= 4) allowedSizeIndex = 1;

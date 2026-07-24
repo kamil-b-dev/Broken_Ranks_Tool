@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { ROMAN_TO_INT, SIZE_INDEX } from "../utils/GearRules";
 
 const getEffectiveMultiplier = (level) => {
@@ -20,6 +20,21 @@ const groupByType = (itemsList) => {
     }, {});
 };
 
+/**
+ * Niestandardowy hook zarządzający logiką pojedynczego slotu na ekwipunek.
+ * Hermetyzuje całą złożoność związaną z wyborem przedmiotów, orbów, drifów,
+ * walidacją reguł gry oraz komunikacją ze stanem globalnym.
+ *
+ * @param {object} props - Właściwości konfiguracyjne dla hooka.
+ * @param {string} props.slotKey - Unikalny klucz identyfikujący slot (np. "helmet").
+ * @param {Array<object>} props.items - Lista dostępnych przedmiotów dla tego slotu.
+ * @param {Array<object>} props.orbs - Lista wszystkich dostępnych orbów.
+ * @param {Array<object>} props.drifs - Lista wszystkich dostępnych drifów.
+ * @param {object} props.allSlots - Obiekt zawierający aktualny stan wszystkich slotów ekwipunku.
+ * @param {object} props.gameRules - Obiekt z globalnymi regułami gry.
+ * @param {Function} props.onUpdate - Funkcja zwrotna wywoływana przy każdej zmianie w slocie.
+ * @returns {object} Obiekt zawierający wszystkie dane i funkcje potrzebne komponentowi `GearSlot`.
+ */
 export const useGearSlot = ({ slotKey, items, orbs, drifs, allSlots, gameRules, onUpdate }) => {
     const { slotOrbRules = {}, elementalTypes = [], drifBasePowers = {}, epicBuiltInDrifs = {}, bonusTranslations = {} } = gameRules || {};
 
@@ -38,10 +53,47 @@ export const useGearSlot = ({ slotKey, items, orbs, drifs, allSlots, gameRules, 
     const [builtInLvls, setBuiltInLvls] = useState([1, 1]);
     const [dragOverZone, setDragOverZone] = useState(null);
 
+    const isSyncingFromExternal = useRef(false);
+
     const fullSelectedItem = useMemo(() => items.find(i => i.id.toString() === selectedItem.toString()), [items, selectedItem]);
     const tierVal = fullSelectedItem ? (ROMAN_TO_INT[fullSelectedItem.tier] || 0) : 0;
     const isLegendary = fullSelectedItem?.rarity?.toUpperCase() === 'LEGENDARY';
     const isEpicOrSet = fullSelectedItem && ['EPIC', 'SET'].includes(fullSelectedItem.rarity?.toUpperCase());
+
+    useEffect(() => {
+        const externalData = allSlots[slotKey];
+        if (externalData && externalData.drifIds) {
+            const currentStr = selectedDrifs.map(id => id || "").join(",");
+            const externalStr = externalData.drifIds.map(id => id || "").join(",");
+
+            if (currentStr !== externalStr) {
+                isSyncingFromExternal.current = true;
+
+                const newSelectedDrifs = [];
+                const newDrifTypes = {};
+                const newDrifLevels = {};
+
+                externalData.drifIds.forEach((dId, index) => {
+                    if (dId) {
+                        newSelectedDrifs[index] = dId.toString();
+                        const drifObj = drifs.find(d => d.id.toString() === dId.toString());
+                        if (drifObj) {
+                            newDrifTypes[index] = drifObj.name || drifObj.description || drifObj.bonusType;
+                        }
+                        newDrifLevels[index] = (externalData.drifLevels && externalData.drifLevels[index])
+                            ? parseInt(externalData.drifLevels[index])
+                            : 21;
+                    } else {
+                        newSelectedDrifs[index] = "";
+                    }
+                });
+
+                setSelectedDrifs(newSelectedDrifs);
+                setDrifTypes(newDrifTypes);
+                setDrifLevels(newDrifLevels);
+            }
+        }
+    }, [allSlots, slotKey, drifs]);
 
     const builtInDrifs = useMemo(() => {
         if (!isEpicOrSet) return [];
@@ -142,6 +194,11 @@ export const useGearSlot = ({ slotKey, items, orbs, drifs, allSlots, gameRules, 
     const capacityPercentage = itemCapacity > 0 ? Math.min((currentPowerUsed / itemCapacity) * 100, 100) : 0;
 
     useEffect(() => {
+        if (isSyncingFromExternal.current) {
+            isSyncingFromExternal.current = false;
+            return;
+        }
+
         const validDrifIds = selectedDrifs.slice(0, maxDrifs).filter(id => id !== "");
         const validDrifLevels = {};
         for (let i = 0; i < maxDrifs; i++) { if (drifLevels[i]) validDrifLevels[i] = drifLevels[i]; }
@@ -166,7 +223,7 @@ export const useGearSlot = ({ slotKey, items, orbs, drifs, allSlots, gameRules, 
             drifIds: allDrifIds,
             drifLevels: validDrifLevels
         });
-    }, [selectedItem, itemStars, orbSlots, isLegendary, selectedDrifs, drifLevels, maxDrifs, builtInLvls, builtInDrifs, slotKey, onUpdate]);
+    }, [selectedItem, itemStars, orbSlots, isLegendary, selectedDrifs, drifLevels, maxDrifs, builtInLvls, builtInDrifs, slotKey]);
 
     const handleDragOver = (e, zone) => { e.preventDefault(); setDragOverZone(zone); };
     const handleDragLeave = () => setDragOverZone(null);

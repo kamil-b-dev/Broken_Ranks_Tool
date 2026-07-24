@@ -22,6 +22,14 @@ public class OrbStatProcessor {
 
     private final EquipmentValidator validator;
 
+    /**
+     * Przetwarza orby dla danego slotu, waliduje je i dodaje ich statystyki do akumulatora.
+     * @param slotKey Klucz identyfikujący slot ekwipunku (np. "helmet").
+     * @param slot Dane o slocie z żądania.
+     * @param item Szablon przedmiotu osadzonego w slocie.
+     * @param itemStars Poziom ulepszenia przedmiotu.
+     * @param state Aktualny stan obliczeń.
+     */
     public void process(String slotKey, SlotData slot, ItemTemplate item, int itemStars, CalculationState state) {
         if (slot.getOrbIds() == null || slot.getOrbIds().isEmpty()) {
             return;

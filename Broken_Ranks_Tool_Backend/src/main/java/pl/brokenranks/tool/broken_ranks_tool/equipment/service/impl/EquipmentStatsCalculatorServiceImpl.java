@@ -20,6 +20,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Główna implementacja serwisu do obliczania statystyk ekwipunku.
+ * Orkiestruje cały proces, od walidacji, przez przygotowanie danych,
+ * aż po wywołanie poszczególnych procesorów statystyk.
+ */
 @Service
 @RequiredArgsConstructor
 class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorService {
