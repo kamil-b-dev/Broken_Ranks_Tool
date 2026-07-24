@@ -1,3 +1,9 @@
+/**
+ * Formatuje surową wartość statystyki do wyświetlenia.
+ * Zaokrągla liczby do dwóch miejsc po przecinku i obsługuje wartości procentowe.
+ * @param {number|string|null|undefined} val Wartość do sformatowania.
+ * @returns {number|string|null|undefined} Sformatowana wartość.
+ */
 const formatStatValue = (val) => {
     if (val === undefined || val === null) return val;
 

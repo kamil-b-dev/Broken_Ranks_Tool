@@ -3,6 +3,9 @@ package pl.brokenranks.tool.broken_ranks_tool.core.enums;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+/**
+ * Reprezentuje wszystkie możliwe typy bonusów dostępne z orbów.
+ */
 @Getter
 @AllArgsConstructor
 public enum ORB_BONUS_TYPE {

@@ -21,6 +21,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Serwis odpowiedzialny za agregację i dostarczanie wszystkich danych
+ * potrzebnych do inicjalizacji aplikacji na frontendzie.
+ */
 @Service
 @RequiredArgsConstructor
 public class InitialDataService {
@@ -30,6 +34,11 @@ public class InitialDataService {
     private final DrifTemplateRepository drifRepository;
     private final EquipmentRulesRegistry rulesRegistry;
 
+    /**
+     * Zbiera wszystkie niezbędne dane z różnych źródeł (repozytoria, rejestry reguł)
+     * i pakuje je w jeden, zbiorczy obiekt DTO.
+     * @return {@link InitialDataDto} zawierający komplet danych startowych.
+     */
     public InitialDataDto getInitialData() {
         var items = itemRepository.findAll();
         var orbs = orbRepository.findAll();
@@ -59,6 +68,14 @@ public class InitialDataService {
         return new InitialDataDto(items, orbs, drifs, gameRules, dictionaries);
     }
 
+    /**
+     * Generyczna metoda pomocnicza do tworzenia mapy tłumaczeń z dowolnego enuma,
+     * który posiada metodę {@code getDescription()}.
+     * @param enumClass Klasa enuma do przetworzenia.
+     * @param descriptionExtractor Funkcja do ekstrakcji opisu z instancji enuma.
+     * @return Mapa, gdzie kluczem jest nazwa enuma, a wartością jego opis.
+     * @param <T> Typ enuma.
+     */
     private <T extends Enum<T>> Map<String, String> getEnumMap(Class<T> enumClass, java.util.function.Function<T, String> descriptionExtractor) {
         return Arrays.stream(enumClass.getEnumConstants())
                 .collect(Collectors.toMap(Enum::name, descriptionExtractor));
