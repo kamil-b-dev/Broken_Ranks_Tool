@@ -37,7 +37,7 @@ public class Chromosome {
     }
 
     /**
-     * Tworzy głęboką kopię chromosomu. Jest to kluczowe, aby uniknąć
+     * Tworzy kopię chromosomu. Jest to kluczowe, aby uniknąć
      * modyfikacji tego samego obiektu w różnych częściach algorytmu.
      * @return Nowa, niezależna instancja chromosomu.
      */

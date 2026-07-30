@@ -2,14 +2,13 @@ package pl.brokenranks.tool.broken_ranks_tool.optimization.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import pl.brokenranks.tool.broken_ranks_tool.core.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.core.enums.RARITY;
 import pl.brokenranks.tool.broken_ranks_tool.core.utils.StringUtils;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.repository.DrifTemplateRepository;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.repository.ItemTemplateRepository;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentValidator;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentFacade;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.ModsOptimizationService;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationResponse;
@@ -19,7 +18,6 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.service.genetic.Fitnes
 
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -30,13 +28,11 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class GeneticModsOptimizationServiceImpl implements ModsOptimizationService {
 
-    private final DrifTemplateRepository drifRepository;
-    private final ItemTemplateRepository itemRepository;
+    private final EquipmentFacade equipmentFacade;
     private final FitnessCalculator fitnessCalculator;
-    private final EquipmentValidator validator;
 
-    private static final int POPULATION_SIZE = 100;
-    private static final int MAX_GENERATIONS = 50;
+    private static final int POPULATION_SIZE = 300;
+    private static final int MAX_GENERATIONS = 500;
     private static final double MUTATION_RATE = 0.3;
     private static final int TOURNAMENT_SIZE = 5;
 
@@ -56,9 +52,8 @@ public class GeneticModsOptimizationServiceImpl implements ModsOptimizationServi
             return new OptimizationResponse(new EquipmentRequest(), new OptimizationSummary(false, "Brak przedmiotów do optymalizacji.", 0, 0, 0));
         }
 
-        List<DrifTemplate> allDrifs = drifRepository.findAll();
-        Map<Long, ItemTemplate> itemTemplates = itemRepository.findAllById(itemIds).stream()
-                .collect(Collectors.toMap(ItemTemplate::getId, Function.identity()));
+        List<DrifTemplate> allDrifs = equipmentFacade.getAllDrifs();
+        Map<Long, ItemTemplate> itemTemplates = equipmentFacade.getItemTemplates(itemIds);
 
         Set<String> slotsWithItems = originalSlots.entrySet().stream()
                 .filter(entry -> entry.getValue() != null && entry.getValue().getItemId() != null)
@@ -83,10 +78,21 @@ public class GeneticModsOptimizationServiceImpl implements ModsOptimizationServi
             maxDrifsPerSlot.put(slot, calculateMaxDrifs(item, itemStars));
 
             List<DrifTemplate> allowed = allDrifs.stream()
-                    .filter(d -> validator.isValidDrifSizeForTier(d, item))
-                    .filter(d -> validator.isElementalDrifPositionValid(d, slot))
+                    .filter(d -> equipmentFacade.isValidDrifSizeForTier(d, item))
+                    .filter(d -> equipmentFacade.isElementalDrifPositionValid(d, slot))
                     .collect(Collectors.toList());
-            validDrifsPerSlot.put(slot, allowed);
+
+            Map<DRIF_BONUS_TYPE, DrifTemplate> highestSizeDrifs = new HashMap<>();
+            for (DrifTemplate d : allowed) {
+                highestSizeDrifs.compute(d.getBonusType(), (k, currentBest) -> {
+                    if (currentBest == null) return d;
+                    int currentSize = currentBest.getSize() != null ? currentBest.getSize().ordinal() : -1;
+                    int newSize = d.getSize() != null ? d.getSize().ordinal() : -1;
+                    return newSize > currentSize ? d : currentBest;
+                });
+            }
+
+            validDrifsPerSlot.put(slot, new ArrayList<>(highestSizeDrifs.values()));
         }
 
         List<Chromosome> population = new ArrayList<>();
@@ -124,7 +130,7 @@ public class GeneticModsOptimizationServiceImpl implements ModsOptimizationServi
         long endTime = System.nanoTime();
         double executionTime = (endTime - startTime) / 1_000_000_000.0;
 
-        return buildResponse(bestChromosome, request, executionTime);
+        return buildResponse(bestChromosome, request, itemTemplates, executionTime);
     }
 
     private int calculateMaxDrifs(ItemTemplate item, int itemStars) {
@@ -207,7 +213,7 @@ public class GeneticModsOptimizationServiceImpl implements ModsOptimizationServi
         }
     }
 
-    private OptimizationResponse buildResponse(Chromosome best, OptimizationRequest request, double executionTime) {
+    private OptimizationResponse buildResponse(Chromosome best, OptimizationRequest request, Map<Long, ItemTemplate> itemTemplates, double executionTime) {
         EquipmentRequest optimizedSetup = new EquipmentRequest();
         Map<String, EquipmentRequest.SlotData> finalSlots = new HashMap<>(request.getOriginalSlots());
         int totalDrifs = 0;
@@ -215,25 +221,47 @@ public class GeneticModsOptimizationServiceImpl implements ModsOptimizationServi
         if (best != null && best.getGenes() != null) {
             for (Map.Entry<String, List<DrifTemplate>> geneEntry : best.getGenes().entrySet()) {
                 String slotKey = geneEntry.getKey();
-                List<DrifTemplate> drifsInSlot = geneEntry.getValue();
+                List<DrifTemplate> rawDrifsInSlot = geneEntry.getValue();
 
                 EquipmentRequest.SlotData slotData = finalSlots.get(slotKey);
                 if (slotData == null) {
                     slotData = new EquipmentRequest.SlotData();
                 }
 
-                slotData.setDrifIds(drifsInSlot.stream()
+                List<DrifTemplate> validDrifs = new ArrayList<>();
+                Set<DRIF_BONUS_TYPE> seen = new HashSet<>();
+                for (DrifTemplate d : rawDrifsInSlot) {
+                    if (d != null && seen.add(d.getBonusType())) {
+                        validDrifs.add(d);
+                    }
+                }
+
+                int itemStars = slotData.getItemStars() != null ? slotData.getItemStars() : 1;
+                ItemTemplate item = itemTemplates.get(Long.valueOf(String.valueOf(slotData.getItemId())));
+                int itemCapacity = item != null ? equipmentFacade.calculateItemCapacity(item, itemStars) : 0;
+
+                int[] optimalMultipliers = fitnessCalculator.calculateOptimalMultipliers(validDrifs, itemCapacity, request.getPrioritizedBonuses());
+
+                slotData.setDrifIds(validDrifs.stream()
                         .map(DrifTemplate::getId)
                         .collect(Collectors.toList()));
 
                 Map<String, Integer> drifLevels = new HashMap<>();
-                for (int i = 0; i < drifsInSlot.size(); i++) {
-                    DrifTemplate drif = drifsInSlot.get(i);
-                    int maxLvl = drif.getSize() != null ? drif.getSize().getMaxLevel() : 21;
-                    drifLevels.put(String.valueOf(i), maxLvl);
+                for (int i = 0; i < validDrifs.size(); i++) {
+                    DrifTemplate drif = validDrifs.get(i);
+                    int mult = optimalMultipliers[i];
+                    int maxLvlForSize = drif.getSize() != null ? drif.getSize().getMaxLevel() : 21;
+
+                    int lvl = 1;
+                    if (mult == 4) lvl = 21;
+                    else if (mult == 3) lvl = 16;
+                    else if (mult == 2) lvl = 11;
+                    else if (mult == 1) lvl = 6;
+
+                    drifLevels.put(String.valueOf(i), Math.min(lvl, maxLvlForSize));
                 }
                 slotData.setDrifLevels(drifLevels);
-                totalDrifs += drifsInSlot.size();
+                totalDrifs += validDrifs.size();
                 finalSlots.put(slotKey, slotData);
             }
         }
