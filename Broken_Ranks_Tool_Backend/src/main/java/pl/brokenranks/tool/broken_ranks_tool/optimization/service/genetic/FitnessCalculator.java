@@ -6,7 +6,7 @@ import pl.brokenranks.tool.broken_ranks_tool.core.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentValidator;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentFacade;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 
 import java.util.*;
@@ -20,12 +20,15 @@ import java.util.*;
 @RequiredArgsConstructor
 public class FitnessCalculator {
 
-    private final EquipmentValidator validator;
+    private final EquipmentFacade equipmentFacade;
 
-    private static final double PRIORITY_BONUS_WEIGHT = 10000.0;
+    private static final double BASE_REWARD = 3000.0;
+    private static final double PRIORITY_BONUS_WEIGHT = 5000.0;
     private static final double BASE_POWER_WEIGHT = 100.0;
-    private static final double CAPACITY_PENALTY_WEIGHT = -500.0;
+    private static final double CAPACITY_PENALTY_WEIGHT = -800.0;
+    private static final double CAPACITY_FILLING_BONUS = 50.0;
     private static final double DUPLICATE_PENALTY = -5000.0;
+    private static final double OVERCAP_PENALTY = -2000.0;
 
     /**
      * Oblicza wartość funkcji przystosowania dla danego chromosomu.
@@ -39,11 +42,13 @@ public class FitnessCalculator {
     public double calculateFitness(Chromosome chromosome, OptimizationRequest request, Map<Long, ItemTemplate> itemTemplates) {
         double fitness = 0;
 
-        Map<DRIF_BONUS_TYPE, List<Double>> globalDrifScores = new EnumMap<>(DRIF_BONUS_TYPE.class);
+        Map<DRIF_BONUS_TYPE, Integer> globalDrifCounts = new HashMap<>();
+        Map<DRIF_BONUS_TYPE, Double> globalRawScores = new HashMap<>();
+        Map<DRIF_BONUS_TYPE, Double> globalStatTotals = new HashMap<>();
 
         for (Map.Entry<String, List<DrifTemplate>> entry : chromosome.getGenes().entrySet()) {
             String slotKey = entry.getKey();
-            List<DrifTemplate> drifsInSlot = entry.getValue();
+            List<DrifTemplate> rawDrifsInSlot = entry.getValue();
 
             EquipmentRequest.SlotData slotData = request.getOriginalSlots().get(slotKey);
             if (slotData == null || slotData.getItemId() == null) continue;
@@ -53,58 +58,148 @@ public class FitnessCalculator {
             if (item == null) continue;
 
             int itemStars = slotData.getItemStars() != null ? slotData.getItemStars() : 1;
-            int itemCapacity = validator.calculateItemCapacity(item, itemStars);
+            int itemCapacity = equipmentFacade.calculateItemCapacity(item, itemStars);
             int currentPowerUsed = 0;
+
+            List<DrifTemplate> validDrifsInSlot = new ArrayList<>();
             Set<DRIF_BONUS_TYPE> slotUsedBonusTypes = new HashSet<>();
 
-            for (DrifTemplate drif : drifsInSlot) {
+            for (DrifTemplate drif : rawDrifsInSlot) {
                 if (drif == null) continue;
-
                 if (!slotUsedBonusTypes.add(drif.getBonusType())) {
                     fitness += DUPLICATE_PENALTY;
-                    continue;
+                } else {
+                    validDrifsInSlot.add(drif);
+                }
+            }
+
+            int[] optimalMultipliers = calculateOptimalMultipliers(validDrifsInSlot, itemCapacity, request.getPrioritizedBonuses());
+
+            for (int i = 0; i < validDrifsInSlot.size(); i++) {
+                DrifTemplate drif = validDrifsInSlot.get(i);
+                int mult = optimalMultipliers[i];
+
+                globalDrifCounts.merge(drif.getBonusType(), 1, Integer::sum);
+
+                double actualStatValue = calculateDrifValue(drif, mult);
+                double currentTotal = globalStatTotals.getOrDefault(drif.getBonusType(), 0.0);
+                Integer cap = drif.getBonusType().getMaxCap();
+
+                double usableRatio = 1.0;
+                if (cap != null) {
+                    if (currentTotal >= cap) {
+                        usableRatio = 0.0;
+                        fitness += OVERCAP_PENALTY;
+                    } else if (currentTotal + actualStatValue > cap) {
+                        usableRatio = (cap - currentTotal) / actualStatValue;
+                        fitness += OVERCAP_PENALTY * (1.0 - usableRatio);
+                    }
                 }
 
-                double drifFitnessValue = 0;
+                globalStatTotals.put(drif.getBonusType(), currentTotal + actualStatValue);
+
+                double drifFitnessValue = BASE_REWARD;
                 int priorityIndex = request.getPrioritizedBonuses().indexOf(drif.getBonusType());
                 if (priorityIndex != -1) {
                     drifFitnessValue += PRIORITY_BONUS_WEIGHT * (request.getPrioritizedBonuses().size() - priorityIndex);
-                } else {
-                    drifFitnessValue += 2000.0;
                 }
 
-                drifFitnessValue += drif.getBonusType().getBasePower() * BASE_POWER_WEIGHT;
+                drifFitnessValue += drif.getBonusType().getBasePower() * mult * BASE_POWER_WEIGHT;
 
                 double starBonusMultiplier = 1.0 + (itemStars * 0.1);
-                double finalDrifScore = drifFitnessValue * starBonusMultiplier;
 
-                globalDrifScores.computeIfAbsent(drif.getBonusType(), k -> new ArrayList<>()).add(finalDrifScore);
+                double finalRawDrifScore = (drifFitnessValue * starBonusMultiplier) * usableRatio;
 
-                int maxLvl = drif.getSize() != null ? drif.getSize().getMaxLevel() : 21;
-                currentPowerUsed += drif.getBonusType().getBasePower() * getEffectiveMultiplier(maxLvl);
+                globalRawScores.merge(drif.getBonusType(), finalRawDrifScore, Double::sum);
+
+                currentPowerUsed += drif.getBonusType().getBasePower() * mult;
             }
 
-            if (itemCapacity > 0 && currentPowerUsed > itemCapacity) {
-                fitness += CAPACITY_PENALTY_WEIGHT * (currentPowerUsed - itemCapacity);
+            if (itemCapacity > 0) {
+                if (currentPowerUsed > itemCapacity) {
+                    fitness += CAPACITY_PENALTY_WEIGHT * (currentPowerUsed - itemCapacity);
+                } else {
+                    int usedCapacity = Math.min(currentPowerUsed, itemCapacity);
+                    fitness += usedCapacity * CAPACITY_FILLING_BONUS;
+                }
             }
         }
 
-        for (List<Double> scores : globalDrifScores.values()) {
-            scores.sort(Collections.reverseOrder());
-
-            for (int i = 0; i < scores.size(); i++) {
-                fitness += scores.get(i) * getDiminishingMultiplier(i);
-            }
+        for (Map.Entry<DRIF_BONUS_TYPE, Double> entry : globalRawScores.entrySet()) {
+            int count = globalDrifCounts.get(entry.getKey());
+            double penalty = getDrifPenalty(count);
+            fitness += entry.getValue() * penalty;
         }
 
         return fitness;
     }
 
-    /**
-     * Zwraca efektywny mnożnik mocy drifu na podstawie jego poziomu.
-     * @param level Poziom drifu.
-     * @return Mnożnik mocy (1, 2, 3 lub 4).
-     */
+    private double calculateDrifValue(DrifTemplate drif, int mult) {
+        if (drif.getBaseValue() == null || drif.getIncrement() == null) return 0.0;
+        try {
+            double base = Double.parseDouble(drif.getBaseValue().replace("%", "").replace(",", ".").trim());
+            double inc = Double.parseDouble(drif.getIncrement().replace("%", "").replace(",", ".").trim());
+
+            int level = 1;
+            if (mult == 4) level = 21;
+            else if (mult == 3) level = 16;
+            else if (mult == 2) level = 11;
+            else if (mult == 1) level = 6;
+
+            double total = base;
+            for (int i = 2; i <= level; i++) {
+                if (i >= 19 && i <= 21) {
+                    total += (inc * 2);
+                } else {
+                    total += inc;
+                }
+            }
+            return total;
+        } catch (NumberFormatException e) {
+            return 0.0;
+        }
+    }
+
+    public int[] calculateOptimalMultipliers(List<DrifTemplate> drifs, int capacity, List<DRIF_BONUS_TYPE> priorities) {
+        int[] mults = new int[drifs.size()];
+        for (int i = 0; i < drifs.size(); i++) {
+            DrifTemplate drif = drifs.get(i);
+            int maxLvl = drif.getSize() != null ? drif.getSize().getMaxLevel() : 21;
+            mults[i] = getEffectiveMultiplier(maxLvl);
+        }
+
+        if (capacity <= 0) return mults;
+
+        while (true) {
+            int currentPower = 0;
+            for (int i = 0; i < drifs.size(); i++) {
+                currentPower += drifs.get(i).getBonusType().getBasePower() * mults[i];
+            }
+            if (currentPower <= capacity) break;
+
+            int targetIndex = -1;
+            int worstPriority = -2;
+
+            for (int i = 0; i < drifs.size(); i++) {
+                if (mults[i] > 1) {
+                    int pIdx = priorities.indexOf(drifs.get(i).getBonusType());
+                    int pVal = pIdx == -1 ? 999 : pIdx;
+                    if (pVal > worstPriority) {
+                        worstPriority = pVal;
+                        targetIndex = i;
+                    }
+                }
+            }
+
+            if (targetIndex != -1) {
+                mults[targetIndex]--;
+            } else {
+                break;
+            }
+        }
+        return mults;
+    }
+
     private int getEffectiveMultiplier(int level) {
         if (level <= 6) return 1;
         if (level <= 11) return 2;
@@ -112,19 +207,18 @@ public class FitnessCalculator {
         return 4;
     }
 
-    /**
-     * Zwraca mnożnik punktowy symulujący malejące przyrosty (Diminishing Returns)
-     * w przypadku posiadania wielu drifów tego samego typu.
-     * @param drifsOfSameTypeAlreadyPlaced Liczba już umieszczonych drifów tego samego typu (indeks pętli).
-     * @return Mnożnik kary (wartość od 1.0 do 0.2).
-     */
-    private double getDiminishingMultiplier(int drifsOfSameTypeAlreadyPlaced) {
-        switch (drifsOfSameTypeAlreadyPlaced) {
-            case 0: return 1.0;
-            case 1: return 0.8;
-            case 2: return 0.6;
-            case 3: return 0.4;
-            default: return 0.2;
-        }
+    public double getDrifPenalty(int count) {
+        if (count <= 3) return 1.0;
+        return switch (count) {
+            case 4 -> 0.95;
+            case 5 -> 0.87;
+            case 6 -> 0.80;
+            case 7 -> 0.74;
+            case 8 -> 0.69;
+            case 9 -> 0.64;
+            case 10 -> 0.59;
+            case 11 -> 0.54;
+            default -> 0.50;
+        };
     }
 }
