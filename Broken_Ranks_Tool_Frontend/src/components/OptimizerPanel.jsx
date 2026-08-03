@@ -1,6 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useEquipment } from '../context/EquipmentContext';
 
+/**
+ * Komponent panelu optymalizatora drifów.
+ * Umożliwia użytkownikowi wybór i priorytetyzację bonusów (statystyk),
+ * które mają być użyte w procesie optymalizacji drifów.
+ * Użytkownik może przeciągać i upuszczać bonusy, aby ustawić ich kolejność,
+ * a następnie uruchomić proces optymalizacji, który jest obsługiwany
+ * przez `useEquipment` context.
+ *
+ * @returns {JSX.Element}
+ */
 const OptimizerPanel = () => {
     const { gameRules, runDrifOptimization } = useEquipment();
 
