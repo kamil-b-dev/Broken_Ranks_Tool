@@ -2,18 +2,22 @@ import React from "react";
 import { formatGroupLabel } from "../../utils/formatters";
 
 /**
- * @param {{
- *  slotKey: string,
- *  selectedItem: string,
- *  dragOverZone: string | null,
- *  handleDragOver: Function,
- *  handleDragLeave: Function,
- *  handleDrop: Function,
- *  orbState: object,
- *  setOrbState: Function,
- *  groupedOrbs: object,
- *  bonusTranslations: object
- * }} props
+ * Komponent sekcji orba w slocie ekwipunku.
+ * Umożliwia wybór rodzaju, wielkości i poziomu orba.
+ * Obsługuje również logikę przeciągania i upuszczania orbów.
+ *
+ * @param {object} props
+ * @param {string} props.slotKey Klucz identyfikujący slot orba (np. "orb1").
+ * @param {object} props.selectedItem Aktualnie wybrany przedmiot w slocie.
+ * @param {string|null} props.dragOverZone Strefa, nad którą aktualnie przeciągany jest element.
+ * @param {Function} props.handleDragOver Funkcja obsługująca zdarzenie przeciągania nad strefą.
+ * @param {Function} props.handleDragLeave Funkcja obsługująca zdarzenie opuszczenia strefy przeciągania.
+ * @param {Function} props.handleDrop Funkcja obsługująca zdarzenie upuszczenia elementu.
+ * @param {object} props.orbState Stan aktualnie wybranego orba (typ, id, poziom).
+ * @param {Function} props.setOrbState Funkcja do aktualizacji stanu orba.
+ * @param {object} props.groupedOrbs Orby pogrupowane według typu.
+ * @param {object} props.bonusTranslations Tłumaczenia nazw bonusów.
+ * @returns {JSX.Element}
  */
 const OrbSection = ({ slotKey, selectedItem, dragOverZone, handleDragOver, handleDragLeave, handleDrop, orbState, setOrbState, groupedOrbs, bonusTranslations }) => {
     const currentOrbObj = groupedOrbs[orbState.type]?.find(o => o.id.toString() === orbState.id);
