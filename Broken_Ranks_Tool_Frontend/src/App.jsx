@@ -11,7 +11,8 @@ import { SLOTS } from "./constants/equipment";
  * Główny komponent aplikacji, który orkiestruje wszystkie pod-komponenty.
  * Odpowiada za główny layout, pobieranie danych z kontekstu i przekazywanie ich
  * do odpowiednich komponentów potomnych.
- * @returns {JSX.Element}
+ *
+ * @returns {JSX.Element} Wyrenderowany główny widok aplikacji
  */
 function App() {
     const [activeTab, setActiveTab] = useState("database");
@@ -45,9 +46,9 @@ function App() {
     }, [data.items]);
 
     return (
-        <div className="w-full max-w-[1600px] mx-auto p-6 flex flex-col gap-6 font-serif">
-            <div className="grid grid-cols-1 xl:grid-cols-10 gap-6">
-                <div className="xl:col-span-7 bg-gradient-to-b from-stone-900 to-black p-6 border-2 border-stone-800 shadow-[0_0_30px_rgba(0,0,0,0.9)] flex flex-col">
+        <div className="w-full max-w-[1920px] mx-auto p-4 xl:p-8 flex flex-col gap-6 xl:gap-8 font-serif">
+            <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 xl:gap-8">
+                <div className="xl:col-span-8 bg-gradient-to-b from-stone-900 to-black p-6 xl:p-8 border-2 border-stone-800 shadow-[0_0_30px_rgba(0,0,0,0.9)] flex flex-col">
                     <h1 className="text-3xl font-bold text-center text-stone-300 uppercase tracking-[0.2em] mb-8 shrink-0 border-b-4 border-double border-red-900/70 pb-4 drop-shadow-[0_2px_5px_rgba(0,0,0,1)]">
                         Broken Ranks Tool
                     </h1>
@@ -70,7 +71,7 @@ function App() {
                     </div>
                 </div>
 
-                <div className="xl:col-span-3 flex flex-col gap-4 relative min-h-[600px] xl:min-h-0">
+                <div className="xl:col-span-4 flex flex-col gap-4 relative min-h-[600px] xl:min-h-0">
                     <div className="flex bg-black/60 p-1 border border-stone-800 shadow-[inset_0_0_10px_rgba(0,0,0,1)] shrink-0">
                         <button
                             onClick={() => setActiveTab("database")}
