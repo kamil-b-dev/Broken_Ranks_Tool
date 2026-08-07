@@ -11,7 +11,7 @@ export const useEquipment = () => useContext(EquipmentContext);
 
 /**
  * Dostawca kontekstu, który zarządza całym stanem aplikacji związanym z ekwipunkiem,
- * danymi z gry oraz komunikacją z backendem.
+ * danymi z gry, blokadami optymalizacji oraz komunikacją z backendem.
  * @param {object} props
  * @param {React.ReactNode} props.children Komponenty potomne, które będą miały dostęp do kontekstu.
  * @returns {JSX.Element}
@@ -28,6 +28,9 @@ export const EquipmentProvider = ({ children }) => {
     const [stats, setStats] = useState(null);
 
     const [optimizationTrigger, setOptimizationTrigger] = useState(0);
+
+    const [lockedSlots, setLockedSlots] = useState([]);
+    const [lockedDrifs, setLockedDrifs] = useState({});
 
     useEffect(() => {
         const fetchInitialData = async () => {
@@ -86,6 +89,40 @@ export const EquipmentProvider = ({ children }) => {
     };
 
     /**
+     * Przełącza stan blokady całego slotu (np. całego hełmu).
+     * Jeśli slot jest zablokowany, algorytm genetyczny go nie zmodyfikuje.
+     * @param {string} slotKey Klucz identyfikujący slot (np. "helmet").
+     */
+    const toggleSlotLock = (slotKey) => {
+        setLockedSlots(prev =>
+            prev.includes(slotKey)
+                ? prev.filter(key => key !== slotKey)
+                : [...prev, slotKey]
+        );
+    };
+
+    /**
+     * Przełącza stan blokady pojedynczego drifu wewnątrz slotu.
+     * @param {string} slotKey Klucz identyfikujący slot (np. "helmet").
+     * @param {number} drifIndex Indeks zablokowanego drifu w tablicy (0, 1, 2...).
+     */
+    const toggleDrifLock = (slotKey, drifIndex) => {
+        setLockedDrifs(prev => {
+            const currentSlotLocks = prev[slotKey] || [];
+            const isLocked = currentSlotLocks.includes(drifIndex);
+
+            const updatedSlotLocks = isLocked
+                ? currentSlotLocks.filter(idx => idx !== drifIndex)
+                : [...currentSlotLocks, drifIndex];
+
+            return {
+                ...prev,
+                [slotKey]: updatedSlotLocks
+            };
+        });
+    };
+
+    /**
      * Wysyła aktualną konfigurację ekwipunku do backendu w celu obliczenia statystyk.
      */
     const calculateStats = async () => {
@@ -104,9 +141,11 @@ export const EquipmentProvider = ({ children }) => {
 
     /**
      * Uruchamia proces optymalizacji drifów na backendzie.
-     * @param {Array<string>} prioritizedBonuses Posortowana lista kluczy bonusów do priorytetyzacji.
+     * @param {object} optimizationConfig Konfiguracja z panelu optymalizatora.
+     * @param {object} optimizationConfig.priorities Mapa modyfikatorów i ich wag (np. { DOUBLE_ATTACK: 15 }).
+     * @param {object} optimizationConfig.targetQuantities Mapa twardych limitów ilościowych min/max dla modyfikatorów.
      */
-    const runDrifOptimization = async (prioritizedBonuses) => {
+    const runDrifOptimization = async (optimizationConfig) => {
         if (!requestData.slots || Object.values(requestData.slots).every(s => !s.itemId)) {
             alert("Wybierz przynajmniej jeden przedmiot, aby uruchomić optymalizację.");
             return;
@@ -114,7 +153,10 @@ export const EquipmentProvider = ({ children }) => {
 
         const optimizationRequest = {
             originalSlots: requestData.slots,
-            prioritizedBonuses,
+            priorities: optimizationConfig.priorities || {},
+            targetQuantities: optimizationConfig.targetQuantities || {},
+            lockedSlots: lockedSlots,
+            lockedDrifs: lockedDrifs
         };
 
         try {
@@ -149,8 +191,12 @@ export const EquipmentProvider = ({ children }) => {
         requestData,
         stats,
         optimizationTrigger,
+        lockedSlots,
+        lockedDrifs,
         handleSlotUpdate,
         handleCharacterStatsUpdate,
+        toggleSlotLock,
+        toggleDrifLock,
         calculateStats,
         runDrifOptimization
     };
