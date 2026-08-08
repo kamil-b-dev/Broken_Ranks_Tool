@@ -1,20 +1,22 @@
-import { createContext, useState, useEffect, useContext } from "react";
+import { createContext, useState, useEffect, useContext, useCallback } from "react";
 import apiClient from "../api/axiosConfig";
 
 const EquipmentContext = createContext();
 
 /**
- * Hook do łatwego dostępu do kontekstu ekwipunku.
- * @returns {object} Obiekt kontekstu.
+ * Niestandardowy hook zapewniający łatwy dostęp do kontekstu ekwipunku.
+ * @returns {object} Obiekt kontekstu ekwipunku.
  */
 export const useEquipment = () => useContext(EquipmentContext);
 
 /**
- * Dostawca kontekstu, który zarządza całym stanem aplikacji związanym z ekwipunkiem,
- * danymi z gry oraz komunikacją z backendem.
- * @param {object} props
- * @param {React.ReactNode} props.children Komponenty potomne, które będą miały dostęp do kontekstu.
- * @returns {JSX.Element}
+ * Dostawca kontekstu, który zarządza całym stanem aplikacji.
+ * Odpowiada za pobieranie danych początkowych, aktualizowanie slotów na sprzęt,
+ * zarządzanie statystykami postaci i uruchamianie optymalizacji.
+ *
+ * @param {object} props - Właściwości komponentu.
+ * @param {React.ReactNode} props.children - Komponenty potomne, które będą renderowane wewnątrz dostawcy.
+ * @returns {JSX.Element} Komponent dostawcy.
  */
 export const EquipmentProvider = ({ children }) => {
     const [data, setData] = useState({ items: [], orbs: [], drifs: [] });
@@ -28,6 +30,9 @@ export const EquipmentProvider = ({ children }) => {
     const [stats, setStats] = useState(null);
 
     const [optimizationTrigger, setOptimizationTrigger] = useState(0);
+
+    const [lockedSlots, setLockedSlots] = useState([]);
+    const [lockedDrifs, setLockedDrifs] = useState({});
 
     useEffect(() => {
         const fetchInitialData = async () => {
@@ -47,7 +52,7 @@ export const EquipmentProvider = ({ children }) => {
                 setDrifCategories(initialData.dictionaries?.drifCategories || {});
 
             } catch (error) {
-                console.error("Błąd ładowania danych startowych:", error);
+                console.error("Błąd podczas ładowania danych początkowych:", error);
             } finally {
                 setLoading(false);
             }
@@ -56,11 +61,13 @@ export const EquipmentProvider = ({ children }) => {
     }, []);
 
     /**
-     * Aktualizuje dane dla pojedynczego slotu ekwipunku.
-     * @param {string} slotKey Klucz identyfikujący slot (np. "helmet").
-     * @param {object} slotData Nowe dane dla slotu.
+     * Funkcja zwrotna do aktualizacji danych konkretnego slota na sprzęt.
+     * Opakowana w `useCallback`, aby zapobiec ponownemu tworzeniu przy każdym renderowaniu,
+     * co pozwala uniknąć potencjalnych nieskończonych pętli w komponentach potomnych.
+     * @param {string} slotKey - Klucz slota do aktualizacji.
+     * @param {object} slotData - Nowe dane dla slota.
      */
-    const handleSlotUpdate = (slotKey, slotData) => {
+    const handleSlotUpdate = useCallback((slotKey, slotData) => {
         setRequestData((prev) => ({
             ...prev,
             slots: {
@@ -75,20 +82,53 @@ export const EquipmentProvider = ({ children }) => {
                 }
             }
         }));
-    };
+    }, []);
 
     /**
-     * Aktualizuje statystyki bazowe postaci.
-     * @param {object} newStats Nowe statystyki postaci.
+     * Funkcja zwrotna do aktualizacji bazowych statystyk postaci.
+     * @param {object} newStats - Nowe statystyki postaci.
      */
-    const handleCharacterStatsUpdate = (newStats) => {
+    const handleCharacterStatsUpdate = useCallback((newStats) => {
         setRequestData((prev) => ({ ...prev, characterStats: newStats }));
-    };
+    }, []);
 
     /**
-     * Wysyła aktualną konfigurację ekwipunku do backendu w celu obliczenia statystyk.
+     * Przełącza stan blokady slota na sprzęt na potrzeby optymalizacji.
+     * @param {string} slotKey - Klucz slota do zablokowania lub odblokowania.
      */
-    const calculateStats = async () => {
+    const toggleSlotLock = useCallback((slotKey) => {
+        setLockedSlots(prev =>
+            prev.includes(slotKey)
+                ? prev.filter(key => key !== slotKey)
+                : [...prev, slotKey]
+        );
+    }, []);
+
+    /**
+     * Przełącza stan blokady konkretnego drifa w slocie na sprzęt na potrzeby optymalizacji.
+     * @param {string} slotKey - Klucz slota zawierającego drif.
+     * @param {number} drifIndex - Indeks drifa do zablokowania lub odblokowania.
+     */
+    const toggleDrifLock = useCallback((slotKey, drifIndex) => {
+        setLockedDrifs(prev => {
+            const currentSlotLocks = prev[slotKey] || [];
+            const isLocked = currentSlotLocks.includes(drifIndex);
+
+            const updatedSlotLocks = isLocked
+                ? currentSlotLocks.filter(idx => idx !== drifIndex)
+                : [...currentSlotLocks, drifIndex];
+
+            return {
+                ...prev,
+                [slotKey]: updatedSlotLocks
+            };
+        });
+    }, []);
+
+    /**
+     * Wysyła aktualne dane ekwipunku i postaci do backendu w celu obliczenia ostatecznych statystyk.
+     */
+    const calculateStats = useCallback(async () => {
         try {
             const response = await apiClient.post("/calculator/calculate", requestData);
             setStats(response.data);
@@ -98,15 +138,17 @@ export const EquipmentProvider = ({ children }) => {
             } else {
                 alert("Błąd połączenia z serwerem obliczeniowym.");
             }
-            console.error("Błąd kalkulacji potęgi:", error);
+            console.error("Błąd podczas obliczania mocy:", error);
         }
-    };
+    }, [requestData]);
 
     /**
-     * Uruchamia proces optymalizacji drifów na backendzie.
-     * @param {Array<string>} prioritizedBonuses Posortowana lista kluczy bonusów do priorytetyzacji.
+     * Uruchamia proces optymalizacji drifów na podstawie priorytetów zdefiniowanych przez użytkownika i zablokowanych przedmiotów.
+     * @param {object} optimizationConfig - Konfiguracja dla optymalizacji.
+     * @param {object} optimizationConfig.priorities - Priorytety statystyk dla optymalizatora.
+     * @param {object} optimizationConfig.targetQuantities - Docelowe ilości dla określonych statystyk.
      */
-    const runDrifOptimization = async (prioritizedBonuses) => {
+    const runDrifOptimization = useCallback(async (optimizationConfig) => {
         if (!requestData.slots || Object.values(requestData.slots).every(s => !s.itemId)) {
             alert("Wybierz przynajmniej jeden przedmiot, aby uruchomić optymalizację.");
             return;
@@ -114,7 +156,10 @@ export const EquipmentProvider = ({ children }) => {
 
         const optimizationRequest = {
             originalSlots: requestData.slots,
-            prioritizedBonuses,
+            priorities: optimizationConfig.priorities || {},
+            targetQuantities: optimizationConfig.targetQuantities || {},
+            lockedSlots: lockedSlots,
+            lockedDrifs: lockedDrifs
         };
 
         try {
@@ -137,7 +182,7 @@ export const EquipmentProvider = ({ children }) => {
             alert("Wystąpił krytyczny błąd podczas optymalizacji.");
             console.error("Błąd optymalizacji drifów:", error);
         }
-    };
+    }, [requestData.slots, lockedSlots, lockedDrifs]);
 
     const value = {
         data,
@@ -149,8 +194,12 @@ export const EquipmentProvider = ({ children }) => {
         requestData,
         stats,
         optimizationTrigger,
+        lockedSlots,
+        lockedDrifs,
         handleSlotUpdate,
         handleCharacterStatsUpdate,
+        toggleSlotLock,
+        toggleDrifLock,
         calculateStats,
         runDrifOptimization
     };

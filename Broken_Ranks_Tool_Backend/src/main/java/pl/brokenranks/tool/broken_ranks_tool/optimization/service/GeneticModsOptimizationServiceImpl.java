@@ -8,16 +8,20 @@ import pl.brokenranks.tool.broken_ranks_tool.core.utils.StringUtils;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentFacade;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.repository.DrifTemplateRepository;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.repository.ItemTemplateRepository;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentValidator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.ModsOptimizationService;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationResponse;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationSummary;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.service.genetic.Chromosome;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.service.genetic.FitnessCalculator;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.service.genetic.HillClimbingPostProcessor;
 
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -28,11 +32,14 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class GeneticModsOptimizationServiceImpl implements ModsOptimizationService {
 
-    private final EquipmentFacade equipmentFacade;
+    private final DrifTemplateRepository drifRepository;
+    private final ItemTemplateRepository itemRepository;
     private final FitnessCalculator fitnessCalculator;
+    private final EquipmentValidator validator;
+    private final HillClimbingPostProcessor postProcessor;
 
-    private static final int POPULATION_SIZE = 300;
-    private static final int MAX_GENERATIONS = 500;
+    private static final int POPULATION_SIZE = 100;
+    private static final int MAX_GENERATIONS = 50;
     private static final double MUTATION_RATE = 0.3;
     private static final int TOURNAMENT_SIZE = 5;
 
@@ -52,8 +59,9 @@ public class GeneticModsOptimizationServiceImpl implements ModsOptimizationServi
             return new OptimizationResponse(new EquipmentRequest(), new OptimizationSummary(false, "Brak przedmiotów do optymalizacji.", 0, 0, 0));
         }
 
-        List<DrifTemplate> allDrifs = equipmentFacade.getAllDrifs();
-        Map<Long, ItemTemplate> itemTemplates = equipmentFacade.getItemTemplates(itemIds);
+        List<DrifTemplate> allDrifs = drifRepository.findAll();
+        Map<Long, ItemTemplate> itemTemplates = itemRepository.findAllById(itemIds).stream()
+                .collect(Collectors.toMap(ItemTemplate::getId, Function.identity()));
 
         Set<String> slotsWithItems = originalSlots.entrySet().stream()
                 .filter(entry -> entry.getValue() != null && entry.getValue().getItemId() != null)
@@ -62,11 +70,20 @@ public class GeneticModsOptimizationServiceImpl implements ModsOptimizationServi
 
         Map<String, List<DrifTemplate>> validDrifsPerSlot = new HashMap<>();
         Map<String, Integer> maxDrifsPerSlot = new HashMap<>();
+        Map<String, List<DrifTemplate>> originalGenes = new HashMap<>();
 
         for (String slot : slotsWithItems) {
             EquipmentRequest.SlotData slotData = originalSlots.get(slot);
             Long itemId = slotData.getItemId();
             ItemTemplate item = itemTemplates.get(itemId);
+
+            List<DrifTemplate> originalDrifsInSlot = new ArrayList<>();
+            if (slotData.getDrifIds() != null) {
+                for (Long drifId : slotData.getDrifIds()) {
+                    allDrifs.stream().filter(d -> d.getId().equals(drifId)).findFirst().ifPresent(originalDrifsInSlot::add);
+                }
+            }
+            originalGenes.put(slot, originalDrifsInSlot);
 
             if (item == null || item.getRarity() == RARITY.EPIC || item.getRarity() == RARITY.SET) {
                 validDrifsPerSlot.put(slot, new ArrayList<>());
@@ -78,8 +95,8 @@ public class GeneticModsOptimizationServiceImpl implements ModsOptimizationServi
             maxDrifsPerSlot.put(slot, calculateMaxDrifs(item, itemStars));
 
             List<DrifTemplate> allowed = allDrifs.stream()
-                    .filter(d -> equipmentFacade.isValidDrifSizeForTier(d, item))
-                    .filter(d -> equipmentFacade.isElementalDrifPositionValid(d, slot))
+                    .filter(d -> validator.isValidDrifSizeForTier(d, item))
+                    .filter(d -> validator.isElementalDrifPositionValid(d, slot))
                     .collect(Collectors.toList());
 
             Map<DRIF_BONUS_TYPE, DrifTemplate> highestSizeDrifs = new HashMap<>();
@@ -97,7 +114,7 @@ public class GeneticModsOptimizationServiceImpl implements ModsOptimizationServi
 
         List<Chromosome> population = new ArrayList<>();
         for (int i = 0; i < POPULATION_SIZE; i++) {
-            population.add(createRandomChromosome(slotsWithItems, validDrifsPerSlot, maxDrifsPerSlot));
+            population.add(createRandomChromosome(slotsWithItems, validDrifsPerSlot, maxDrifsPerSlot, originalGenes, request));
         }
 
         Chromosome bestChromosome = null;
@@ -120,11 +137,15 @@ public class GeneticModsOptimizationServiceImpl implements ModsOptimizationServi
             while (newPopulation.size() < POPULATION_SIZE) {
                 Chromosome parent1 = tournamentSelection(population);
                 Chromosome parent2 = tournamentSelection(population);
-                Chromosome child = crossover(parent1, parent2);
-                mutate(child, validDrifsPerSlot, maxDrifsPerSlot);
+                Chromosome child = crossover(parent1, parent2, originalGenes, request);
+                mutate(child, validDrifsPerSlot, maxDrifsPerSlot, originalGenes, request);
                 newPopulation.add(child);
             }
             population = newPopulation;
+        }
+
+        if (bestChromosome != null) {
+            bestChromosome = postProcessor.refine(bestChromosome, request, itemTemplates, validDrifsPerSlot, maxDrifsPerSlot);
         }
 
         long endTime = System.nanoTime();
@@ -133,6 +154,13 @@ public class GeneticModsOptimizationServiceImpl implements ModsOptimizationServi
         return buildResponse(bestChromosome, request, itemTemplates, executionTime);
     }
 
+    /**
+     * Oblicza maksymalną liczbę drifów, jaka może zostać włożona do danego przedmiotu.
+     *
+     * @param item Szablon przedmiotu.
+     * @param itemStars Liczba gwiazdek przedmiotu.
+     * @return Maksymalna dopuszczalna liczba drifów.
+     */
     private int calculateMaxDrifs(ItemTemplate item, int itemStars) {
         if (item == null || item.getRarity() == RARITY.EPIC || item.getRarity() == RARITY.SET) return 0;
         int tierVal = 1;
@@ -148,7 +176,53 @@ public class GeneticModsOptimizationServiceImpl implements ModsOptimizationServi
         return max;
     }
 
-    private Chromosome createRandomChromosome(Set<String> slots, Map<String, List<DrifTemplate>> validDrifsPerSlot, Map<String, Integer> maxDrifsPerSlot) {
+    /**
+     * Wymusza ograniczenia na chromosomie, upewniając się, że zablokowane sloty
+     * oraz pojedyncze zablokowane drify nie ulegają zmianie w procesie ewolucji.
+     *
+     * @param chromosome Chromosom poddawany weryfikacji.
+     * @param originalGenes Mapa oryginalnego ułożenia drifów przed optymalizacją.
+     * @param request Obiekt żądania zawierający informacje o nałożonych blokadach.
+     */
+    private void enforceLocks(Chromosome chromosome, Map<String, List<DrifTemplate>> originalGenes, OptimizationRequest request) {
+        for (String slot : chromosome.getGenes().keySet()) {
+            if (request.getLockedSlots() != null && request.getLockedSlots().contains(slot)) {
+                List<DrifTemplate> originalSlot = originalGenes.getOrDefault(slot, new ArrayList<>());
+                chromosome.getGenes().put(slot, new ArrayList<>(originalSlot));
+                continue;
+            }
+
+            if (request.getLockedDrifs() != null && request.getLockedDrifs().containsKey(slot)) {
+                Set<Integer> lockedIndices = request.getLockedDrifs().get(slot);
+                List<DrifTemplate> currentDrifs = chromosome.getGenes().get(slot);
+                List<DrifTemplate> originalDrifs = originalGenes.getOrDefault(slot, new ArrayList<>());
+
+                for (Integer index : lockedIndices) {
+                    if (index < originalDrifs.size()) {
+                        while (currentDrifs.size() <= index) {
+                            currentDrifs.add(null);
+                        }
+                        currentDrifs.set(index, originalDrifs.get(index));
+                    }
+                }
+
+                currentDrifs.removeIf(Objects::isNull);
+            }
+        }
+    }
+
+    /**
+     * Tworzy losowy chromosom początkowy uwzględniający dopuszczalne typy drifów
+     * oraz nałożone przez gracza blokady.
+     *
+     * @param slots Zestaw identyfikatorów dostępnych slotów.
+     * @param validDrifsPerSlot Mapa dopuszczalnych drifów dla każdego ze slotów.
+     * @param maxDrifsPerSlot Mapa maksymalnej ilości drifów dla każdego ze slotów.
+     * @param originalGenes Mapa oryginalnych drifów niezbędna do egzekwowania blokad.
+     * @param request Obiekt żądania optymalizacyjnego.
+     * @return Nowo utworzony, losowy chromosom.
+     */
+    private Chromosome createRandomChromosome(Set<String> slots, Map<String, List<DrifTemplate>> validDrifsPerSlot, Map<String, Integer> maxDrifsPerSlot, Map<String, List<DrifTemplate>> originalGenes, OptimizationRequest request) {
         Chromosome chromosome = new Chromosome();
         slots.forEach(slot -> {
             List<DrifTemplate> allowed = validDrifsPerSlot.get(slot);
@@ -163,9 +237,17 @@ public class GeneticModsOptimizationServiceImpl implements ModsOptimizationServi
             }
             chromosome.getGenes().put(slot, randomDrifs);
         });
+
+        enforceLocks(chromosome, originalGenes, request);
         return chromosome;
     }
 
+    /**
+     * Wybiera najlepszego chromosomu spośród losowo dobranej grupy w procesie selekcji turniejowej.
+     *
+     * @param population Aktualna populacja chromosomów.
+     * @return Najlepszy chromosom ze zwycięskiego turnieju.
+     */
     private Chromosome tournamentSelection(List<Chromosome> population) {
         Chromosome best = null;
         for (int i = 0; i < TOURNAMENT_SIZE; i++) {
@@ -177,7 +259,17 @@ public class GeneticModsOptimizationServiceImpl implements ModsOptimizationServi
         return best != null ? best.copy() : new Chromosome();
     }
 
-    private Chromosome crossover(Chromosome parent1, Chromosome parent2) {
+    /**
+     * Dokonuje krzyżowania dwóch chromosomów rodzicielskich, tworząc nowego potomka.
+     * Krzyżowanie respektuje zdefiniowane blokady slotów i drifów.
+     *
+     * @param parent1 Pierwszy chromosom rodzicielski.
+     * @param parent2 Drugi chromosom rodzicielski.
+     * @param originalGenes Mapa oryginalnych drifów niezbędna do egzekwowania blokad.
+     * @param request Obiekt żądania optymalizacyjnego.
+     * @return Chromosom potomny powstały po krzyżowaniu.
+     */
+    private Chromosome crossover(Chromosome parent1, Chromosome parent2, Map<String, List<DrifTemplate>> originalGenes, OptimizationRequest request) {
         Chromosome child = new Chromosome();
         for (String slot : parent1.getGenes().keySet()) {
             if (ThreadLocalRandom.current().nextBoolean()) {
@@ -186,12 +278,29 @@ public class GeneticModsOptimizationServiceImpl implements ModsOptimizationServi
                 child.getGenes().put(slot, new ArrayList<>(parent2.getGenes().get(slot)));
             }
         }
+
+        enforceLocks(child, originalGenes, request);
         return child;
     }
 
-    private void mutate(Chromosome chromosome, Map<String, List<DrifTemplate>> validDrifsPerSlot, Map<String, Integer> maxDrifsPerSlot) {
+    /**
+     * Wprowadza losowe mutacje w podanym chromosomie.
+     * Mutacja może usunąć, dodać lub podmienić drif, z zachowaniem narzuconych przez użytkownika blokad.
+     *
+     * @param chromosome Chromosom poddawany mutacji.
+     * @param validDrifsPerSlot Mapa dopuszczalnych drifów dla każdego ze slotów.
+     * @param maxDrifsPerSlot Mapa maksymalnej ilości drifów dla każdego ze slotów.
+     * @param originalGenes Mapa oryginalnych drifów niezbędna do egzekwowania blokad.
+     * @param request Obiekt żądania optymalizacyjnego.
+     */
+    private void mutate(Chromosome chromosome, Map<String, List<DrifTemplate>> validDrifsPerSlot, Map<String, Integer> maxDrifsPerSlot, Map<String, List<DrifTemplate>> originalGenes, OptimizationRequest request) {
         for (String slot : chromosome.getGenes().keySet()) {
             if (ThreadLocalRandom.current().nextDouble() < MUTATION_RATE) {
+
+                if (request.getLockedSlots() != null && request.getLockedSlots().contains(slot)) {
+                    continue;
+                }
+
                 List<DrifTemplate> drifsInSlot = chromosome.getGenes().get(slot);
                 List<DrifTemplate> allowed = validDrifsPerSlot.get(slot);
                 int maxAllowed = maxDrifsPerSlot.getOrDefault(slot, 0);
@@ -199,20 +308,37 @@ public class GeneticModsOptimizationServiceImpl implements ModsOptimizationServi
                 if (allowed == null || allowed.isEmpty() || maxAllowed == 0) continue;
 
                 int action = ThreadLocalRandom.current().nextInt(3);
+
+                Set<Integer> lockedIndices = request.getLockedDrifs() != null ? request.getLockedDrifs().getOrDefault(slot, new HashSet<>()) : new HashSet<>();
+
                 if (action == 0 && !drifsInSlot.isEmpty()) {
-                    drifsInSlot.remove(ThreadLocalRandom.current().nextInt(drifsInSlot.size()));
+                    int idxToRemove = ThreadLocalRandom.current().nextInt(drifsInSlot.size());
+                    if (!lockedIndices.contains(idxToRemove)) {
+                        drifsInSlot.remove(idxToRemove);
+                    }
                 } else if (action == 1 && drifsInSlot.size() < maxAllowed) {
                     drifsInSlot.add(allowed.get(ThreadLocalRandom.current().nextInt(allowed.size())));
                 } else if (!drifsInSlot.isEmpty()) {
-                    drifsInSlot.set(
-                            ThreadLocalRandom.current().nextInt(drifsInSlot.size()),
-                            allowed.get(ThreadLocalRandom.current().nextInt(allowed.size()))
-                    );
+                    int idxToReplace = ThreadLocalRandom.current().nextInt(drifsInSlot.size());
+                    if (!lockedIndices.contains(idxToReplace)) {
+                        drifsInSlot.set(idxToReplace, allowed.get(ThreadLocalRandom.current().nextInt(allowed.size())));
+                    }
                 }
             }
         }
+
+        enforceLocks(chromosome, originalGenes, request);
     }
 
+    /**
+     * Konwertuje najlepszy chromosom na strukturę odpowiedzi DTO wysyłaną z powrotem do frontendu.
+     *
+     * @param best Najlepszy chromosom znaleziony przez algorytm.
+     * @param request Oryginalne żądanie optymalizacji.
+     * @param itemTemplates Mapa wszystkich załadowanych przedmiotów.
+     * @param executionTime Czas wykonania całego procesu w sekundach.
+     * @return Ostateczna odpowiedź zawierająca optymalne ułożenie.
+     */
     private OptimizationResponse buildResponse(Chromosome best, OptimizationRequest request, Map<Long, ItemTemplate> itemTemplates, double executionTime) {
         EquipmentRequest optimizedSetup = new EquipmentRequest();
         Map<String, EquipmentRequest.SlotData> finalSlots = new HashMap<>(request.getOriginalSlots());
@@ -238,9 +364,9 @@ public class GeneticModsOptimizationServiceImpl implements ModsOptimizationServi
 
                 int itemStars = slotData.getItemStars() != null ? slotData.getItemStars() : 1;
                 ItemTemplate item = itemTemplates.get(Long.valueOf(String.valueOf(slotData.getItemId())));
-                int itemCapacity = item != null ? equipmentFacade.calculateItemCapacity(item, itemStars) : 0;
+                int itemCapacity = item != null ? validator.calculateItemCapacity(item, itemStars) : 0;
 
-                int[] optimalMultipliers = fitnessCalculator.calculateOptimalMultipliers(validDrifs, itemCapacity, request.getPrioritizedBonuses());
+                int[] optimalMultipliers = fitnessCalculator.calculateOptimalMultipliers(validDrifs, itemCapacity, request.getPriorities());
 
                 slotData.setDrifIds(validDrifs.stream()
                         .map(DrifTemplate::getId)

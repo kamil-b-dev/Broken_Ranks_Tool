@@ -1,21 +1,25 @@
 import React from "react";
 import { useGearSlot } from "../hooks/useGearSlot.js";
+import { useEquipment } from "../context/EquipmentContext";
 import ItemSection from "./gear_slot/ItemSection.jsx";
 import OrbSection from "./gear_slot/OrbSection.jsx";
 import DrifSection from "./gear_slot/DrifSection.jsx";
 
 /**
- * Główny komponent reprezentujący pojedynczy slot na ekwipunek (np. Hełm, Broń).
- * Jego rolą jest orkiestracja i wyświetlanie sub-komponentów dla przedmiotu, orbów i drifów.
- * @param {object} props
- * @param {string} props.label Nazwa slotu (np. "Hełm").
- * @param {Array<object>} props.items Lista dostępnych przedmiotów dla tego slotu.
- * @param {Array<object>} props.drifs Lista wszystkich dostępnych drifów.
- * @param {object} props.gameRules Obiekt z globalnymi regułami gry.
- * @returns {JSX.Element}
+ * Główny komponent reprezentujący pojedynczy slot na ekwipunek w interfejsie użytkownika.
+ * Agreguje i zarządza sekcjami dla przedmiotu, orbów i drifów, korzystając z logiki
+ * dostarczanej przez hook `useGearSlot`.
+ *
+ * @param {object} props - Właściwości przekazywane do komponentu.
+ * @param {string} props.label - Etykieta slota (np. "Hełm").
+ * @param {Array<object>} props.items - Lista dostępnych przedmiotów dla tego slota.
+ * @param {Array<object>} props.drifs - Lista wszystkich dostępnych drifów.
+ * @param {object} props.gameRules - Obiekt z regułami gry.
+ * @param {string} props.slotKey - Unikalny klucz identyfikujący slot (np. "helmet").
+ * @returns {JSX.Element} Wyrenderowany komponent slota na ekwipunek.
  */
 const GearSlot = (props) => {
-    const { label, items, drifs, gameRules } = props;
+    const { label, items, drifs, gameRules, slotKey } = props;
     const { bonusTranslations = {}, drifBasePowers = {} } = gameRules || {};
 
     const hookData = useGearSlot(props);
@@ -24,15 +28,44 @@ const GearSlot = (props) => {
         isLegendary, orbSlots, setOrbSlots, groupedOrbs1, groupedOrbs2
     } = hookData;
 
-    if (!gameRules) return <div className="w-64 p-3 text-xs text-stone-500 font-serif text-center border border-stone-800 bg-black">Ładowanie potęgi...</div>;
+    const { lockedSlots, toggleSlotLock } = useEquipment();
+
+    const isSlotLocked = lockedSlots?.includes(slotKey) || false;
+
+    if (!gameRules) return <div className="w-64 p-3 text-xs text-stone-500 font-serif text-center border border-stone-800 bg-black">Ładowanie reguł...</div>;
 
     const slotClasses = `flex flex-col items-center gap-3 w-64 p-4 bg-gradient-to-b from-stone-900 to-black transition-all duration-200 border-2 relative overflow-hidden shadow-[inset_0_0_20px_rgba(0,0,0,0.9),0_0_15px_rgba(0,0,0,0.8)] 
-        ${isOverCapacity ? "border-red-600 shadow-[inset_0_0_40px_rgba(153,27,27,0.4),0_0_20px_rgba(153,27,27,0.6)]" : "border-rose-900/80"}`;
+        ${isOverCapacity ? "border-red-600 shadow-[inset_0_0_40px_rgba(153,27,27,0.4),0_0_20px_rgba(153,27,27,0.6)]" : "border-rose-900/80"}
+        ${isSlotLocked ? "opacity-90 grayscale-[0.3]" : ""}`;
 
     return (
         <div className={slotClasses}>
             <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-red-900 via-rose-700 to-red-900"></div>
-            <span className="text-xs font-serif font-bold text-stone-400 uppercase tracking-[0.2em] pointer-events-none drop-shadow-[0_2px_2px_rgba(0,0,0,1)]">{label}</span>
+
+            <div className="flex w-full justify-between items-center px-1 mb-1 relative z-10">
+                <span className="text-xs font-serif font-bold text-stone-400 uppercase tracking-[0.2em] pointer-events-none drop-shadow-[0_2px_2px_rgba(0,0,0,1)]">
+                    {label}
+                </span>
+
+                {fullSelectedItem && (
+                    <button
+                        onClick={() => toggleSlotLock(slotKey)}
+                        type="button"
+                        className={`transition-colors p-1 rounded-sm ${isSlotLocked ? 'text-red-500 hover:text-red-400 bg-red-950/40 border border-red-900/50' : 'text-stone-600 hover:text-stone-300'}`}
+                        title={isSlotLocked ? "Odblokuj slot" : "Zablokuj slot w optymalizatorze"}
+                    >
+                        {isSlotLocked ? (
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                            </svg>
+                        ) : (
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                            </svg>
+                        )}
+                    </button>
+                )}
+            </div>
 
             <ItemSection
                 label={label}
@@ -76,6 +109,7 @@ const GearSlot = (props) => {
             </div>
 
             <DrifSection
+                slotKey={slotKey}
                 drifs={drifs}
                 fullSelectedItem={fullSelectedItem}
                 dragOverZone={dragOverZone}
