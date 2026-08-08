@@ -1,6 +1,12 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { ROMAN_TO_INT, SIZE_INDEX } from "../utils/GearRules";
 
+/**
+ * Oblicza efektywny mnożnik dla mocy drifa na podstawie jego poziomu.
+ * Mnożnik wzrasta na określonych progach poziomów.
+ * @param {number|string} level - Poziom drifa.
+ * @returns {number} Efektywny mnożnik.
+ */
 const getEffectiveMultiplier = (level) => {
     const lvl = parseInt(level) || 1;
     if (lvl <= 6) return 1;
@@ -9,6 +15,11 @@ const getEffectiveMultiplier = (level) => {
     return 4;
 };
 
+/**
+ * Grupuje listę przedmiotów według ich typu (nazwa, opis lub bonusType).
+ * @param {Array<object>} itemsList - Lista przedmiotów do grupowania.
+ * @returns {object} Obiekt, w którym kluczami są typy przedmiotów, a wartościami tablice przedmiotów.
+ */
 const groupByType = (itemsList) => {
     if (!itemsList || !Array.isArray(itemsList)) return {};
     return itemsList.reduce((acc, item) => {
@@ -21,21 +32,56 @@ const groupByType = (itemsList) => {
 };
 
 /**
- * Niestandardowy hook zarządzający logiką pojedynczego slotu na ekwipunek.
- * Hermetyzuje całą złożoność związaną z wyborem przedmiotów, orbów, drifów,
- * walidacją reguł gry oraz komunikacją ze stanem globalnym.
+ * Niestandardowy hook do zarządzania stanem i logiką pojedynczego slota na ekwipunek.
+ * Hermetyzuje wybór przedmiotów, zarządzanie orbami i drifami, walidację reguł gry
+ * oraz komunikację ze stanem globalnym.
  *
- * @param {object} props - Właściwości konfiguracyjne dla hooka.
- * @param {string} props.slotKey - Unikalny klucz identyfikujący slot (np. "helmet").
- * @param {Array<object>} props.items - Lista dostępnych przedmiotów dla tego slotu.
- * @param {Array<object>} props.orbs - Lista wszystkich dostępnych orbów.
+ * @param {object} props - Właściwości dla hooka.
+ * @param {string} props.slotKey - Unikalny klucz dla tego slota (np. 'weapon', 'helmet').
+ * @param {Array<object>} props.items - Lista wszystkich dostępnych przedmiotów dla tego slota.
+ * @param {Array<object>} props.orbs - Lista wszystkich dostępnych orb.
  * @param {Array<object>} props.drifs - Lista wszystkich dostępnych drifów.
- * @param {object} props.allSlots - Obiekt zawierający aktualny stan wszystkich slotów ekwipunku.
- * @param {object} props.gameRules - Obiekt z globalnymi regułami gry.
- * @param {Function} props.onUpdate - Funkcja zwrotna wywoływana przy każdej zmianie w slocie.
- * @returns {object} Obiekt zawierający wszystkie dane i funkcje potrzebne komponentowi `GearSlot`.
+ * @param {object} props.allSlots - Obiekt zawierający aktualny stan wszystkich slotów na ekwipunek.
+ * @param {object} props.gameRules - Obiekt zawierający reguły gry, takie jak restrykcje orb, typy żywiołów itp.
+ * @param {function} props.onUpdate - Funkcja zwrotna do aktualizacji stanu globalnego, gdy ten slot się zmienia.
+ * @param {any} props.optimizationTrigger - Wartość, która zmienia się po zakończeniu procesu optymalizacji, wywołując synchronizację stanu.
+ * @returns {object} Obiekt zawierający stan i handlery dla komponentu GearSlot.
+ * @property {string} selectedItem - ID aktualnie wybranego przedmiotu.
+ * @property {function} setSelectedItem - Setter stanu dla wybranego przedmiotu.
+ * @property {number} itemStars - Poziom gwiazdek wybranego przedmiotu.
+ * @property {function} setItemStars - Setter stanu dla poziomu gwiazdek przedmiotu.
+ * @property {Array<number>} builtInLvls - Poziomy wbudowanych drifów dla przedmiotów epickich/setowych.
+ * @property {function} setBuiltInLvls - Setter stanu dla poziomów wbudowanych drifów.
+ * @property {boolean} isEpicOrSet - Prawda, jeśli wybrany przedmiot ma rzadkość Epic lub Set.
+ * @property {boolean} isLegendary - Prawda, jeśli wybrany przedmiot ma rzadkość Legendary.
+ * @property {Array<object>} builtInDrifs - Lista wbudowanych drifów dla wybranego przedmiotu.
+ * @property {number} hoverStars - Poziom gwiazdek wskazywany przez najechanie na komponent oceny gwiazdkowej.
+ * @property {function} setHoverStars - Setter stanu dla poziomu gwiazdek przy najechaniu.
+ * @property {object} orbSlots - Obiekt stanu dla wybranych orb.
+ * @property {function} setOrbSlots - Setter stanu dla slotów na orby.
+ * @property {Array<string>} selectedDrifs - Tablica ID wybranych drifów.
+ * @property {function} setSelectedDrifs - Setter stanu dla wybranych drifów.
+ * @property {object} drifTypes - Obiekt mapujący indeks slota drifa na jego typ/nazwę.
+ * @property {function} setDrifTypes - Setter stanu dla typów drifów.
+ * @property {object} drifLevels - Obiekt mapujący indeks slota drifa na jego poziom.
+ * @property {function} setDrifLevels - Setter stanu dla poziomów drifów.
+ * @property {string|null} dragOverZone - Identyfikator strefy, nad którą aktualnie przeciągany jest element.
+ * @property {object} groupedOrbs1 - Dostępne orby dla pierwszego slota, pogrupowane według typu.
+ * @property {object} groupedOrbs2 - Dostępne orby dla drugiego slota (przedmioty legendarne), pogrupowane według typu.
+ * @property {object|undefined} fullSelectedItem - Pełny obiekt wybranego przedmiotu.
+ * @property {number} maxDrifs - Maksymalna liczba drifów dozwolona dla wybranego przedmiotu.
+ * @property {number} maxDrifIndex - Maksymalny indeks rozmiaru dla dozwolonych drifów.
+ * @property {number} itemCapacity - Całkowita pojemność wybranego przedmiotu na drify.
+ * @property {number} currentPowerUsed - Aktualna moc zużywana przez wybrane drify.
+ * @property {boolean} isOverCapacity - Prawda, jeśli aktualnie zużywana moc przekracza pojemność przedmiotu.
+ * @property {boolean} isAtMaxCapacity - Prawda, jeśli aktualnie zużywana moc jest równa pojemności przedmiotu.
+ * @property {number} capacityPercentage - Procent wykorzystanej pojemności przedmiotu.
+ * @property {function} handleDragOver - Handler przeciągania i upuszczania, gdy element jest przeciągany nad strefą upuszczania.
+ * @property {function} handleDragLeave - Handler przeciągania i upuszczania, gdy przeciągany element opuszcza strefę upuszczania.
+ * @property {function} handleDrop - Handler przeciągania i upuszczania, gdy element jest upuszczany na strefę.
+ * @property {function} groupByType - Funkcja narzędziowa do grupowania przedmiotów według typu.
  */
-export const useGearSlot = ({ slotKey, items, orbs, drifs, allSlots, gameRules, onUpdate }) => {
+export const useGearSlot = ({ slotKey, items, orbs, drifs, allSlots, gameRules, onUpdate, optimizationTrigger }) => {
     const { slotOrbRules = {}, elementalTypes = [], drifBasePowers = {}, epicBuiltInDrifs = {}, bonusTranslations = {} } = gameRules || {};
 
     const [selectedItem, setSelectedItem] = useState("");
@@ -63,37 +109,33 @@ export const useGearSlot = ({ slotKey, items, orbs, drifs, allSlots, gameRules, 
     useEffect(() => {
         const externalData = allSlots[slotKey];
         if (externalData && externalData.drifIds) {
-            const currentStr = selectedDrifs.map(id => id || "").join(",");
-            const externalStr = externalData.drifIds.map(id => id || "").join(",");
+            isSyncingFromExternal.current = true;
 
-            if (currentStr !== externalStr) {
-                isSyncingFromExternal.current = true;
+            const newSelectedDrifs = [];
+            const newDrifTypes = {};
+            const newDrifLevels = {};
 
-                const newSelectedDrifs = [];
-                const newDrifTypes = {};
-                const newDrifLevels = {};
-
-                externalData.drifIds.forEach((dId, index) => {
-                    if (dId) {
-                        newSelectedDrifs[index] = dId.toString();
-                        const drifObj = drifs.find(d => d.id.toString() === dId.toString());
-                        if (drifObj) {
-                            newDrifTypes[index] = drifObj.name || drifObj.description || drifObj.bonusType;
-                        }
-                        newDrifLevels[index] = (externalData.drifLevels && externalData.drifLevels[index])
-                            ? parseInt(externalData.drifLevels[index])
-                            : 21;
-                    } else {
-                        newSelectedDrifs[index] = "";
+            externalData.drifIds.forEach((dId, index) => {
+                if (dId) {
+                    newSelectedDrifs[index] = dId.toString();
+                    const drifObj = drifs.find(d => d.id.toString() === dId.toString());
+                    if (drifObj) {
+                        newDrifTypes[index] = drifObj.name || drifObj.description || drifObj.bonusType;
                     }
-                });
+                    newDrifLevels[index] = (externalData.drifLevels && externalData.drifLevels[index])
+                        ? parseInt(externalData.drifLevels[index])
+                        : 21;
+                } else {
+                    newSelectedDrifs[index] = "";
+                }
+            });
 
-                setSelectedDrifs(newSelectedDrifs);
-                setDrifTypes(newDrifTypes);
-                setDrifLevels(newDrifLevels);
-            }
+            setSelectedDrifs(newSelectedDrifs);
+            setDrifTypes(newDrifTypes);
+            setDrifLevels(newDrifLevels);
         }
-    }, [allSlots, slotKey, drifs]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [optimizationTrigger, drifs]);
 
     const builtInDrifs = useMemo(() => {
         if (!isEpicOrSet) return [];
@@ -163,6 +205,8 @@ export const useGearSlot = ({ slotKey, items, orbs, drifs, allSlots, gameRules, 
         return max;
     }, [fullSelectedItem, tierVal, itemStars, isEpicOrSet]);
 
+
+
     const maxDrifIndex = useMemo(() => {
         if (!fullSelectedItem || isEpicOrSet) return -1;
         if (tierVal >= 10) return 3;
@@ -199,11 +243,14 @@ export const useGearSlot = ({ slotKey, items, orbs, drifs, allSlots, gameRules, 
             return;
         }
 
-        const validDrifIds = selectedDrifs.slice(0, maxDrifs).filter(id => id !== "");
+        const allDrifIds = [];
         const validDrifLevels = {};
-        for (let i = 0; i < maxDrifs; i++) { if (drifLevels[i]) validDrifLevels[i] = drifLevels[i]; }
 
-        const allDrifIds = [...validDrifIds];
+        for (let i = 0; i < maxDrifs; i++) {
+            allDrifIds.push(selectedDrifs[i] || "");
+            if (drifLevels[i]) validDrifLevels[i] = drifLevels[i];
+        }
+
         builtInDrifs.forEach((bDrif, idx) => {
             if (bDrif.id) {
                 const appendedIndex = allDrifIds.length;
@@ -223,7 +270,7 @@ export const useGearSlot = ({ slotKey, items, orbs, drifs, allSlots, gameRules, 
             drifIds: allDrifIds,
             drifLevels: validDrifLevels
         });
-    }, [selectedItem, itemStars, orbSlots, isLegendary, selectedDrifs, drifLevels, maxDrifs, builtInLvls, builtInDrifs, slotKey]);
+    }, [selectedItem, itemStars, orbSlots, isLegendary, selectedDrifs, drifLevels, maxDrifs, builtInLvls, builtInDrifs, slotKey, onUpdate]);
 
     const handleDragOver = (e, zone) => { e.preventDefault(); setDragOverZone(zone); };
     const handleDragLeave = () => setDragOverZone(null);
@@ -258,6 +305,8 @@ export const useGearSlot = ({ slotKey, items, orbs, drifs, allSlots, gameRules, 
         setSelectedDrifs(prev => { const n = [...prev]; n[idx] = data.id.toString(); return n; });
         setDrifLevels(prev => ({ ...prev, [idx]: 1 }));
     };
+
+
 
     const handleDrop = (e, zone) => {
         e.preventDefault();

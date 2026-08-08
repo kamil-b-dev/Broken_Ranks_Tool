@@ -12,7 +12,8 @@ import java.util.Set;
 /**
  * DTO dla żądania optymalizacji modyfikacji (drifów).
  * Zawiera dane o ekwipunku bazowym oraz zaawansowane parametry sterujące
- * algorytmem genetycznym, takie jak wagi priorytetów, limity ilościowe i blokady.
+ * algorytmem genetycznym, takie jak wagi priorytetów, limity ilościowe, blokady
+ * oraz wymuszanie maksymalnych wartości (Cap).
  */
 @Data
 public class OptimizationRequest {
@@ -51,6 +52,12 @@ public class OptimizationRequest {
      * którego algorytm ma nie usuwać ani nie zamieniać (np. [0, 2]).
      */
     private Map<String, Set<Integer>> lockedDrifs;
+
+    /**
+     * Zestaw typów bonusów, dla których algorytm ma bezwzględnie wymusić
+     * osiągnięcie maksymalnego limitu (capa) zdefiniowanego w regułach gry.
+     */
+    private Set<DRIF_BONUS_TYPE> forceCapBonuses;
 
     /**
      * Klasa pomocnicza (DTO) reprezentująca przedział ilościowy (minimum i maksimum).

@@ -39,4 +39,10 @@ public class GameRulesDto {
      * Klucz: nazwa enuma (np. "CRITICAL_CHANCE"), Wartość: moc bazowa.
      */
     private Map<String, Integer> drifBasePowers;
+
+    /**
+     * Mapa maksymalnych limitów (capów) dla każdego typu bonusu drifu.
+     * Klucz: nazwa enuma, Wartość: maksymalny limit (lub null w przypadku braku limitu).
+     */
+    private Map<String, Integer> drifMaxCaps;
 }
