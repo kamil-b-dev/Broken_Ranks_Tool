@@ -14,7 +14,7 @@ import java.util.*;
 /**
  * Klasa odpowiedzialna za obliczanie funkcji przystosowania (fitness) dla chromosomu.
  * Ocenia, jak "dobre" jest dane ułożenie drifów, biorąc pod uwagę wagi priorytetów użytkownika,
- * wymagane ilości drifów i reguły gry.
+ * wymagane ilości drifów, reguły gry oraz wymuszenia maksymalnych limitów (Cap).
  */
 @Component
 @RequiredArgsConstructor
@@ -34,7 +34,7 @@ public class FitnessCalculator {
     /**
      * Oblicza wartość funkcji przystosowania dla danego chromosomu.
      * Im wyższa wartość, tym lepsze ułożenie drifów.
-     * Uwzględnia teraz wagi priorytetów (1-30) oraz twarde limity ilościowe.
+     * Uwzględnia wagi priorytetów (1-30), twarde limity ilościowe oraz wymuszanie Capa.
      *
      * @param chromosome Chromosom do oceny.
      * @param request Oryginalne żądanie optymalizacji, zawierające priorytety i limity.
@@ -146,9 +146,28 @@ public class FitnessCalculator {
             }
         }
 
+        if (request.getForceCapBonuses() != null) {
+            for (DRIF_BONUS_TYPE type : request.getForceCapBonuses()) {
+                Integer cap = type.getMaxCap();
+                if (cap != null) {
+                    double actualTotal = globalStatTotals.getOrDefault(type, 0.0);
+                    if (actualTotal < cap) {
+                        fitness += QUANTITY_CONSTRAINT_PENALTY;
+                    }
+                }
+            }
+        }
+
         return fitness;
     }
 
+    /**
+     * Oblicza wartość przyrostu statystyki z drifu dla określonego mnożnika (poziomu).
+     *
+     * @param drif Szablon drifu.
+     * @param mult Mnożnik (1-4) odzwierciedlający odpowiednio 6, 11, 16 i 21 poziom drifu.
+     * @return Wartość całkowita statystyki wnoszona przez ten drif.
+     */
     private double calculateDrifValue(DrifTemplate drif, int mult) {
         if (drif.getBaseValue() == null || drif.getIncrement() == null) return 0.0;
         try {
@@ -224,6 +243,12 @@ public class FitnessCalculator {
         return mults;
     }
 
+    /**
+     * Zwraca optymalny mnożnik redukujący obciążenie na podstawie maksymalnego poziomu drifu.
+     *
+     * @param level Maksymalny poziom dla danego rozmiaru drifu.
+     * @return Mnożnik (od 1 do 4).
+     */
     private int getEffectiveMultiplier(int level) {
         if (level <= 6) return 1;
         if (level <= 11) return 2;
@@ -231,6 +256,12 @@ public class FitnessCalculator {
         return 4;
     }
 
+    /**
+     * Zwraca wartość kary nakładanej w zależności od liczby drifów tego samego typu w ekwipunku.
+     *
+     * @param count Liczba drifów danego typu.
+     * @return Współczynnik kary (od 0.50 do 1.0).
+     */
     public double getDrifPenalty(int count) {
         if (count <= 3) return 1.0;
         return switch (count) {

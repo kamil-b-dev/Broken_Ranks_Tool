@@ -1,6 +1,6 @@
 import React from "react";
 import { getDrifMaxLvl, formatGroupLabel } from "../../utils/formatters";
-import { useEquipment } from "../../context/EquipmentContext"; // Import kontekstu dla blokad
+import { useEquipment } from "../../context/EquipmentContext";
 
 const DRIF_MULTIPLIERS = {
     "SUBDRIF": 1,
@@ -10,19 +10,22 @@ const DRIF_MULTIPLIERS = {
 };
 
 /**
- * Komponent sekcji do zarządzania drifami w przedmiocie.
- * @param {object} props
- * @param {string} props.slotKey Klucz identyfikujący slot (np. "helmet").
- * @param {Array<object>} props.drifs Lista wszystkich dostępnych drifów.
- * @param {object} props.fullSelectedItem Pełny obiekt wybranego przedmiotu.
- * @param {string|null} props.dragOverZone Aktualna strefa, nad którą jest przeciągany element.
- * @param {Function} props.handleDragOver Funkcja obsługująca zdarzenie onDragOver.
- * @param {Function} props.handleDragLeave Funkcja obsługująca zdarzenie onDragLeave.
- * @param {Function} props.handleDrop Funkcja obsługująca zdarzenie onDrop.
- * @param {object} props.hookData Obiekt z danymi i funkcjami z hooka useGearSlot.
- * @param {object} props.bonusTranslations Mapa tłumaczeń dla bonusów.
- * @param {object} props.drifBasePowers Mapa mocy bazowych dla drifów.
- * @returns {JSX.Element}
+ * Komponent renderujący sekcję do zarządzania drifami w slocie ekwipunku.
+ * Odpowiada za wyświetlanie wbudowanych drifów (dla przedmiotów epickich/setowych)
+ * oraz slotów na standardowe drify, wraz z ich pojemnością, poziomami i możliwością blokowania.
+ *
+ * @param {object} props - Właściwości komponentu.
+ * @param {string} props.slotKey - Klucz identyfikujący nadrzędny slot ekwipunku.
+ * @param {Array<object>} props.drifs - Pełna lista dostępnych drifów w grze.
+ * @param {object|null} props.fullSelectedItem - Pełny obiekt wybranego przedmiotu.
+ * @param {string|null} props.dragOverZone - Strefa, nad którą aktualnie przeciągany jest element.
+ * @param {function} props.handleDragOver - Funkcja obsługująca zdarzenie `onDragOver`.
+ * @param {function} props.handleDragLeave - Funkcja obsługująca zdarzenie `onDragLeave`.
+ * @param {function} props.handleDrop - Funkcja obsługująca zdarzenie `onDrop`.
+ * @param {object} props.hookData - Dane i funkcje z hooka `useGearSlot`.
+ * @param {object} props.bonusTranslations - Słownik tłumaczeń nazw bonusów.
+ * @param {object} props.drifBasePowers - Obiekt z bazową mocą dla każdego typu drifa.
+ * @returns {JSX.Element} Wyrenderowana sekcja zarządzania drifami.
  */
 const DrifSection = ({ slotKey, drifs, fullSelectedItem, dragOverZone, handleDragOver, handleDragLeave, handleDrop, hookData, bonusTranslations, drifBasePowers }) => {
     const {
@@ -35,6 +38,11 @@ const DrifSection = ({ slotKey, drifs, fullSelectedItem, dragOverZone, handleDra
 
     const isParentSlotLocked = lockedSlots?.includes(slotKey) || false;
 
+    /**
+     * Sprawdza, czy dany drif jest zablokowany, uwzględniając blokadę nadrzędnego slota.
+     * @param {number} index - Indeks drifa do sprawdzenia.
+     * @returns {boolean} - `true`, jeśli drif jest zablokowany.
+     */
     const isDrifLocked = (index) => {
         if (isParentSlotLocked) return true;
         const locksForSlot = lockedDrifs?.[slotKey] || [];
@@ -89,7 +97,10 @@ const DrifSection = ({ slotKey, drifs, fullSelectedItem, dragOverZone, handleDra
                 {!isEpicOrSet && Array.from({ length: maxDrifs }).map((_, index) => {
                     const drifId = selectedDrifs[index] || "";
                     const currentType = drifTypes[index] || "";
-                    const localUsedBonusTypes = selectedDrifs.map((dId, i) => i !== index && dId ? drifs.find(dr => dr.id.toString() === dId.toString())?.bonusType : null).filter(Boolean);
+
+                    const localUsedBonusTypes = selectedDrifs
+                        .map((dId, i) => i !== index && dId ? drifs.find(dr => dr.id.toString() === dId.toString())?.bonusType : null)
+                        .filter(Boolean);
 
                     const allowedDrifs = drifs.filter(drif => {
                         if (drifId && drif.id.toString() === drifId.toString()) return true;
@@ -122,7 +133,7 @@ const DrifSection = ({ slotKey, drifs, fullSelectedItem, dragOverZone, handleDra
                                 onChange={(e) => {
                                     setDrifTypes(prev => ({ ...prev, [index]: e.target.value }));
                                     setSelectedDrifs(prev => { const next = [...prev]; next[index] = ""; return next; });
-                                    setDrifLevels(prev => ({ ...prev, [index]: parseInt("") }));
+                                    setDrifLevels(prev => ({ ...prev, [index]: "" }));
                                 }}
                                 className={`flex-[3] min-w-0 bg-transparent text-amber-600 font-serif p-1 text-xs border-b outline-none text-center ${drifLocked ? 'opacity-70 cursor-not-allowed border-red-900/50' : 'border-rose-900/70 focus:border-rose-500 cursor-pointer'} ${isOverCapacity && !drifLocked ? 'border-red-500/80' : ''}`}
                             >
@@ -139,7 +150,7 @@ const DrifSection = ({ slotKey, drifs, fullSelectedItem, dragOverZone, handleDra
                                 disabled={!currentType || drifLocked}
                                 onChange={(e) => {
                                     setSelectedDrifs(prev => { const next = [...prev]; next[index] = e.target.value; return next; });
-                                    setDrifLevels(prev => ({ ...prev, [index]: parseInt("") }));
+                                    setDrifLevels(prev => ({ ...prev, [index]: 1 }));
                                 }}
                                 className={`flex-[3] min-w-0 bg-transparent text-stone-300 font-serif p-1 text-xs border-b outline-none text-center disabled:opacity-30 ${drifLocked ? 'cursor-not-allowed border-red-900/50' : 'border-rose-900/70 focus:border-rose-500 cursor-pointer'} ${isOverCapacity && !drifLocked ? 'border-red-500/80' : ''}`}
                             >
@@ -168,6 +179,7 @@ const DrifSection = ({ slotKey, drifs, fullSelectedItem, dragOverZone, handleDra
 
                             <button
                                 onClick={() => toggleDrifLock(slotKey, index)}
+                                type="button"
                                 disabled={isParentSlotLocked || !drifId}
                                 className={`p-1 flex-[0.5] flex justify-center items-center transition-colors 
                                     ${drifLocked ? 'text-red-500 hover:text-red-400' : 'text-stone-700 hover:text-stone-400'} 
