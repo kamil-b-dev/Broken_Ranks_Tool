@@ -108,14 +108,30 @@ export const useGearSlot = ({ slotKey, items, orbs, drifs, allSlots, gameRules, 
 
     useEffect(() => {
         const externalData = allSlots[slotKey];
-        if (externalData && externalData.drifIds) {
+        if (externalData) {
             isSyncingFromExternal.current = true;
+
+            setSelectedItem(externalData.itemId?.toString() || "");
+            setItemStars(Number(externalData.itemStars) || 1);
+
+            const importedOrbIds = externalData.orbIds || [];
+            const importedOrbLevels = externalData.orbLevels || [];
+            const toOrbState = (index) => {
+                const id = importedOrbIds[index];
+                const orb = id ? orbs.find(candidate => candidate.id.toString() === id.toString()) : null;
+                return {
+                    id: id?.toString() || "",
+                    level: id ? String(importedOrbLevels[index] || 1) : "",
+                    type: orb?.name || orb?.bonusType || ""
+                };
+            };
+            setOrbSlots({ orb1: toOrbState(0), orb2: toOrbState(1) });
 
             const newSelectedDrifs = [];
             const newDrifTypes = {};
             const newDrifLevels = {};
 
-            externalData.drifIds.forEach((dId, index) => {
+            (externalData.drifIds || []).forEach((dId, index) => {
                 if (dId) {
                     newSelectedDrifs[index] = dId.toString();
                     const drifObj = drifs.find(d => d.id.toString() === dId.toString());
@@ -133,9 +149,20 @@ export const useGearSlot = ({ slotKey, items, orbs, drifs, allSlots, gameRules, 
             setSelectedDrifs(newSelectedDrifs);
             setDrifTypes(newDrifTypes);
             setDrifLevels(newDrifLevels);
+        } else {
+            isSyncingFromExternal.current = true;
+            setSelectedItem("");
+            setItemStars(1);
+            setOrbSlots({
+                orb1: { id: "", level: "", type: "" },
+                orb2: { id: "", level: "", type: "" }
+            });
+            setSelectedDrifs([]);
+            setDrifTypes({});
+            setDrifLevels({});
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [optimizationTrigger, drifs]);
+    }, [optimizationTrigger, drifs, orbs]);
 
     const builtInDrifs = useMemo(() => {
         if (!isEpicOrSet) return [];
