@@ -90,6 +90,10 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
         }
         greedyState = fillResidualCapacity(greedyState, context);
         greedyState = repairForcedCaps(greedyState, context);
+        greedyState = maximizeDrifSizes(greedyState, context);
+        greedyState = repairForcedCaps(greedyState, context);
+        greedyState = allocateRemainingLevelsByPriority(greedyState, context);
+        greedyState = repairForcedCaps(greedyState, context);
 
         List<VariantCandidate> candidates = new ArrayList<>();
         // Wynik bazowy jest zawsze kompletny. Ciężkie lokalne przeszukiwanie
@@ -579,6 +583,85 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
             state = bestState;
         }
         return state;
+    }
+
+    /** Zamienia każdy niezablokowany drif na największy odpowiednik dozwolony dla przedmiotu. */
+    private BuildState maximizeDrifSizes(BuildState state, OptimizationContext context) {
+        for (SlotContext slot : context.slots) {
+            if (!slot.optimizable() || isSlotLocked(slot, context.request())) continue;
+            List<Placement> placements = state.slots.get(slot.key());
+            for (int index = 0; index < Math.min(placements.size(), slot.maxDrifs()); index++) {
+                Placement current = placements.get(index);
+                if (current == null || current.locked() || slot.lockedIndices().contains(index)) continue;
+
+                DrifTemplate largest = slot.candidates().stream()
+                        .filter(candidate -> candidate.getBonusType() == current.drif().getBonusType())
+                        .max(Comparator
+                                .comparingInt((DrifTemplate candidate) -> candidate.getSize().getMaxLevel())
+                                .thenComparing(DrifTemplate::getId, Comparator.reverseOrder()))
+                        .orElse(current.drif());
+                int level = Math.min(current.level(), largest.getSize().getMaxLevel());
+                placements.set(index, new Placement(largest, level, false));
+            }
+        }
+        return state;
+    }
+
+    /**
+     * Przechodzi po każdym slocie i przeznacza wolną pojemność najpierw na
+     * drify o najwyższym priorytecie. Dla każdego z nich wybiera najwyższy
+     * poziom mieszczący się w pojemności i niewykraczający poza ustawiony cel.
+     */
+    private BuildState allocateRemainingLevelsByPriority(BuildState state, OptimizationContext context) {
+        for (SlotContext slot : context.slots) {
+            if (!slot.optimizable() || isSlotLocked(slot, context.request())) continue;
+            List<Placement> placements = state.slots.get(slot.key());
+            List<Integer> indices = new ArrayList<>();
+            for (int index = 0; index < Math.min(placements.size(), slot.maxDrifs()); index++) {
+                Placement placement = placements.get(index);
+                if (placement != null && !placement.locked() && !slot.lockedIndices().contains(index)) {
+                    indices.add(index);
+                }
+            }
+            indices.sort(Comparator
+                    .comparingInt((Integer index) -> priorityOf(
+                            placements.get(index).drif().getBonusType(), context.request())).reversed()
+                    .thenComparing(index -> placements.get(index).drif().getBonusType().name())
+                    .thenComparingInt(Integer::intValue));
+
+            for (Integer index : indices) {
+                Placement current = placements.get(index);
+                int availablePower = slot.capacity() - usedPowerExcept(placements, index);
+                int selectedLevel = current.level();
+                for (int level = current.drif().getSize().getMaxLevel(); level > current.level(); level--) {
+                    if (power(current.drif(), level) > availablePower) continue;
+                    BuildState trial = state.copy();
+                    trial.slots.get(slot.key()).set(index,
+                            new Placement(current.drif(), level, false));
+                    if (!respectsTargetAfterLevelIncrease(state, trial,
+                            current.drif().getBonusType(), context)) continue;
+                    selectedLevel = level;
+                    break;
+                }
+                if (selectedLevel != current.level()) {
+                    placements.set(index, new Placement(current.drif(), selectedLevel, false));
+                }
+            }
+        }
+        return state;
+    }
+
+    private boolean respectsTargetAfterLevelIncrease(BuildState current, BuildState trial,
+                                                     DRIF_BONUS_TYPE type,
+                                                     OptimizationContext context) {
+        Double target = targetFor(type, context.request());
+        if (target == null) return true;
+        double currentValue = calculatedValue(current, type, context);
+        double trialValue = calculatedValue(trial, type, context);
+        if (currentValue <= target + CAP_TOLERANCE) {
+            return trialValue <= target + CAP_TOLERANCE;
+        }
+        return Math.abs(trialValue - target) < Math.abs(currentValue - target);
     }
 
     private boolean isBetterCapValue(double candidate, double current, double target) {
