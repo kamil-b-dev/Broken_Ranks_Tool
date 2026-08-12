@@ -11,7 +11,7 @@ import { STAT_CONFIG, INITIAL_SPENT_POINTS } from "../constants/character";
  *                                       przekazująca zaktualizowane statystyki postaci.
  * @returns {JSX.Element}
  */
-const CharacterPanel = ({ onStatsChange }) => {
+const CharacterPanel = ({ onStatsChange, externalConfig, syncTrigger }) => {
     const [level, setLevel] = useState(1);
     const [spentPoints, setSpentPoints] = useState(INITIAL_SPENT_POINTS);
 
@@ -24,8 +24,22 @@ const CharacterPanel = ({ onStatsChange }) => {
         Object.keys(STAT_CONFIG).forEach(name => {
             finalStats[name] = STAT_CONFIG[name].base + (spentPoints[name] * STAT_CONFIG[name].ratio);
         });
-        onStatsChange(finalStats);
+        onStatsChange(finalStats, { level, spentPoints });
     }, [spentPoints, level, onStatsChange]);
+
+    useEffect(() => {
+        if (!externalConfig) return;
+        const importedLevel = Math.min(140, Math.max(1, Number(externalConfig.level) || 1));
+        const importedSpent = {};
+        Object.keys(STAT_CONFIG).forEach(name => {
+            importedSpent[name] = Math.max(0, Number(externalConfig.spentPoints?.[name]) || 0);
+        });
+        setLevel(importedLevel);
+        setSpentPoints(importedSpent);
+        // Synchronizacja ma następować wyłącznie po wczytaniu pliku. Zmiany
+        // lokalne aktualizują externalConfig i nie mogą ponownie ustawiać stanu.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [syncTrigger]);
 
     const handleAddPoint = (statName, amount) => {
         if (amount > 0 && pointsLeft < amount) return;
