@@ -1,8 +1,8 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator;
 
 import lombok.Getter;
-import pl.brokenranks.tool.broken_ranks_tool.core.enums.DRIF_BONUS_TYPE;
-import pl.brokenranks.tool.broken_ranks_tool.core.enums.ORB_BONUS_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ORB_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.provider.EquipmentDataProvider.CalculationContext;
 
 import java.util.HashMap;
