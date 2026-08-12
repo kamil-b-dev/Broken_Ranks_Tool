@@ -5,7 +5,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.DrifTemplateDto;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.repository.DrifTemplateRepository;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.DrifTemplateRepository;
 
 import java.util.List;
 import java.util.stream.Collectors;

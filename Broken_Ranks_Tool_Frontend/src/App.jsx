@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import GearSlot from "./components/GearSlot";
 import ItemDatabase from "./components/ItemDatabase";
 import StatsPanel from "./components/StatsPanel";
@@ -26,10 +26,27 @@ function App() {
         requestData,
         stats,
         optimizationTrigger,
+        characterConfig,
         handleSlotUpdate,
         handleCharacterStatsUpdate,
-        calculateStats
+        calculateStats,
+        saveBuildToFile,
+        loadBuildFromFile
     } = useEquipment();
+    const buildFileInputRef = useRef(null);
+
+    const handleBuildFileChange = async (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        try {
+            await loadBuildFromFile(file);
+            alert("Build został poprawnie wczytany.");
+        } catch (error) {
+            alert(`Nie udało się wczytać buildu: ${error.message}`);
+        } finally {
+            event.target.value = "";
+        }
+    };
 
     const itemsBySlot = useMemo(() => {
         const grouped = {};
@@ -52,6 +69,30 @@ function App() {
                 <h1 className="text-3xl font-bold text-center text-stone-300 uppercase tracking-[0.2em] mb-6 border-b-4 border-double border-red-900/70 pb-4 drop-shadow-[0_2px_5px_rgba(0,0,0,1)]">
                     Broken Ranks Tool
                 </h1>
+
+                <div className="flex flex-wrap justify-center gap-3 mb-4">
+                    <button
+                        type="button"
+                        onClick={saveBuildToFile}
+                        className="px-4 py-2 bg-black border border-amber-900/70 text-amber-600 hover:text-amber-400 hover:border-amber-600 text-xs font-bold uppercase tracking-widest transition-colors"
+                    >
+                        Zapisz build (.json)
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => buildFileInputRef.current?.click()}
+                        className="px-4 py-2 bg-black border border-stone-700 text-stone-400 hover:text-stone-200 hover:border-stone-500 text-xs font-bold uppercase tracking-widest transition-colors"
+                    >
+                        Wczytaj build
+                    </button>
+                    <input
+                        ref={buildFileInputRef}
+                        type="file"
+                        accept="application/json,.json"
+                        onChange={handleBuildFileChange}
+                        className="hidden"
+                    />
+                </div>
 
                 <div className="flex bg-black border-2 border-stone-800 shadow-[0_0_20px_rgba(0,0,0,0.8)] rounded-sm overflow-hidden w-full max-w-2xl mx-auto">
                     <button
@@ -135,7 +176,11 @@ function App() {
                                 />
                             </div>
                             <div className={`xl:absolute xl:inset-0 flex flex-col w-full h-full ${builderTab === "character" ? "flex" : "hidden"}`}>
-                                <CharacterPanel onStatsChange={handleCharacterStatsUpdate} />
+                                <CharacterPanel
+                                    onStatsChange={handleCharacterStatsUpdate}
+                                    externalConfig={characterConfig}
+                                    syncTrigger={optimizationTrigger}
+                                />
                             </div>
                         </div>
                     </div>

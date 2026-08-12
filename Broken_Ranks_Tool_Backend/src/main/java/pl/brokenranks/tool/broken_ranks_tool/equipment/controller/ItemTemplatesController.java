@@ -4,9 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pl.brokenranks.tool.broken_ranks_tool.core.enums.ITEM_CATEGORY;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ITEM_CATEGORY;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.repository.ItemTemplateRepository;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.ItemTemplateRepository;
 
 import java.util.List;
 

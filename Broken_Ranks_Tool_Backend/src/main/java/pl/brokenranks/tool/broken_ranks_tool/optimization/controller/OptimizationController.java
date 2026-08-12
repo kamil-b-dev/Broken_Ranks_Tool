@@ -3,7 +3,7 @@ package pl.brokenranks.tool.broken_ranks_tool.optimization.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.ModsOptimizationService;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.service.ModsOptimizationService;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationResponse;
 

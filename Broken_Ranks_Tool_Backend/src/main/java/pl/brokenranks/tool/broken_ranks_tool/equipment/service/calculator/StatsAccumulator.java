@@ -1,6 +1,6 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator;
 
-import pl.brokenranks.tool.broken_ranks_tool.core.utils.RandomProvider;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.random.RandomProvider;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
