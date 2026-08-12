@@ -30,6 +30,8 @@ export const EquipmentProvider = ({ children }) => {
     const [stats, setStats] = useState(null);
 
     const [optimizationTrigger, setOptimizationTrigger] = useState(0);
+    const [optimizationVariants, setOptimizationVariants] = useState([]);
+    const [optimizationSuggestions, setOptimizationSuggestions] = useState([]);
 
     const [lockedSlots, setLockedSlots] = useState([]);
     const [lockedDrifs, setLockedDrifs] = useState({});
@@ -158,17 +160,21 @@ export const EquipmentProvider = ({ children }) => {
             originalSlots: requestData.slots,
             priorities: optimizationConfig.priorities || {},
             targetQuantities: optimizationConfig.targetQuantities || {},
+            targetValues: optimizationConfig.targetValues || {},
+            forceCapBonuses: optimizationConfig.forceCapBonuses || [],
             lockedSlots: lockedSlots,
             lockedDrifs: lockedDrifs
         };
 
         try {
             const response = await apiClient.post("/optimizer/drifs", optimizationRequest);
-            const { optimizedSetup, summary } = response.data;
+            const { optimizedSetup, summary, variants = [], suggestions = [] } = response.data;
 
             console.log("ODPOWIEDŹ Z BACKENDU:", response.data);
 
             if (summary.success && optimizedSetup && optimizedSetup.slots) {
+                setOptimizationVariants(variants);
+                setOptimizationSuggestions(suggestions);
                 setRequestData(prev => ({
                     ...prev,
                     slots: optimizedSetup.slots
@@ -179,10 +185,23 @@ export const EquipmentProvider = ({ children }) => {
                 alert(`Optymalizacja nie powiodła się: ${summary.message}`);
             }
         } catch (error) {
-            alert("Wystąpił krytyczny błąd podczas optymalizacji.");
+            const backendMessage = error.response?.data?.summary?.message
+                || error.response?.data?.message
+                || error.response?.data?.error;
+            const message = backendMessage
+                || (error.code === "ECONNABORTED"
+                    ? "Przekroczono limit czasu optymalizacji."
+                    : error.message);
+            alert(`Optymalizacja nie powiodła się: ${message}`);
             console.error("Błąd optymalizacji drifów:", error);
         }
     }, [requestData.slots, lockedSlots, lockedDrifs]);
+
+    const applyOptimizationVariant = useCallback((setup) => {
+        if (!setup?.slots) return;
+        setRequestData(prev => ({ ...prev, slots: setup.slots }));
+        setOptimizationTrigger(prev => prev + 1);
+    }, []);
 
     const value = {
         data,
@@ -194,6 +213,8 @@ export const EquipmentProvider = ({ children }) => {
         requestData,
         stats,
         optimizationTrigger,
+        optimizationVariants,
+        optimizationSuggestions,
         lockedSlots,
         lockedDrifs,
         handleSlotUpdate,
@@ -201,7 +222,8 @@ export const EquipmentProvider = ({ children }) => {
         toggleSlotLock,
         toggleDrifLock,
         calculateStats,
-        runDrifOptimization
+        runDrifOptimization,
+        applyOptimizationVariant
     };
 
     return (

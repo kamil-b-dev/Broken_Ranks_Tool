@@ -5,6 +5,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * DTO dla odpowiedzi z wynikiem optymalizacji.
  */
@@ -22,4 +25,15 @@ public class OptimizationResponse {
      * Podsumowanie wyników optymalizacji.
      */
     private OptimizationSummary summary;
+
+    /** Alternatywne ścieżki optymalizacji posortowane od najlepszego wyniku. */
+    private List<OptimizationVariant> variants = new ArrayList<>();
+
+    /** Sugestie dotyczące ograniczeń lub dalszych możliwych zmian. */
+    private List<String> suggestions = new ArrayList<>();
+
+    public OptimizationResponse(EquipmentRequest optimizedSetup, OptimizationSummary summary) {
+        this.optimizedSetup = optimizedSetup;
+        this.summary = summary;
+    }
 }

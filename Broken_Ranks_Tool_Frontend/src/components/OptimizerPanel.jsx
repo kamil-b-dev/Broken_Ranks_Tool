@@ -12,7 +12,8 @@ import { SLOTS } from '../constants/equipment';
 const OptimizerPanel = () => {
     const {
         gameRules, runDrifOptimization, requestData, data,
-        lockedSlots, lockedDrifs, toggleSlotLock, toggleDrifLock
+        optimizationVariants, optimizationSuggestions,
+        applyOptimizationVariant, lockedSlots, lockedDrifs, toggleSlotLock, toggleDrifLock
     } = useEquipment();
 
     const [availableBonuses, setAvailableBonuses] = useState([]);
@@ -38,7 +39,7 @@ const OptimizerPanel = () => {
      * @param {object} bonus - Obiekt bonusu do priorytetyzacji.
      */
     const handleSelectBonus = (bonus) => {
-        setPrioritizedBonuses(prev => [...prev, { ...bonus, weight: 15, min: 0, max: 99, forceCap: false }]);
+        setPrioritizedBonuses(prev => [...prev, { ...bonus, weight: 15, min: 0, max: 12, targetValue: '', forceCap: false }]);
         setAvailableBonuses(prev => prev.filter(b => b.key !== bonus.key));
     };
 
@@ -86,16 +87,24 @@ const OptimizerPanel = () => {
 
         const priorities = {};
         const targetQuantities = {};
+        const targetValues = {};
         const forceCapBonuses = [];
 
         prioritizedBonuses.forEach(b => {
             priorities[b.key] = parseInt(b.weight, 10);
 
-            if (b.min > 0 || b.max < 99) {
-                targetQuantities[b.key] = {
-                    min: parseInt(b.min, 10),
-                    max: parseInt(b.max, 10)
-                };
+            const parsedMin = parseInt(b.min, 10);
+            const parsedMax = parseInt(b.max, 10);
+            const min = Math.min(12, Math.max(0, Number.isNaN(parsedMin) ? 0 : parsedMin));
+            const max = Math.min(12, Math.max(min, Number.isNaN(parsedMax) ? 12 : parsedMax));
+
+            // Wysyłamy zakres dla każdego priorytetu, również 0–12.
+            // Dzięki temu backend dostaje dokładnie stan widoczny w UI,
+            // a puste lub chwilowo tekstowe wartości nie tworzą zakresu 0–0.
+            targetQuantities[b.key] = { min, max };
+
+            if (b.targetValue !== '' && b.targetValue !== null && b.targetValue !== undefined && !b.forceCap) {
+                targetValues[b.key] = parseFloat(b.targetValue);
             }
 
             if (b.forceCap) {
@@ -103,7 +112,7 @@ const OptimizerPanel = () => {
             }
         });
 
-        await runDrifOptimization({ priorities, targetQuantities, forceCapBonuses });
+        await runDrifOptimization({ priorities, targetQuantities, targetValues, forceCapBonuses });
         setIsOptimizing(false);
     };
 
@@ -287,7 +296,7 @@ const OptimizerPanel = () => {
                                                         <div className="flex items-center gap-1.5 bg-stone-950 border border-stone-700 rounded-sm px-1.5 py-0.5 focus-within:border-purple-600 transition-colors">
                                                             <span className="text-[9px] text-stone-500">MIN</span>
                                                             <input
-                                                                type="number" min="0" max="20" value={bonus.min}
+                                                                type="number" min="0" max="12" value={bonus.min}
                                                                 onChange={(e) => handleUpdateBonus(bonus.key, 'min', e.target.value)}
                                                                 className="w-7 bg-transparent text-stone-200 text-xs outline-none text-center font-bold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                                             />
@@ -296,12 +305,25 @@ const OptimizerPanel = () => {
                                                         <div className="flex items-center gap-1.5 bg-stone-950 border border-stone-700 rounded-sm px-1.5 py-0.5 focus-within:border-purple-600 transition-colors">
                                                             <span className="text-[9px] text-stone-500">MAX</span>
                                                             <input
-                                                                type="number" min="0" max="99" value={bonus.max}
+                                                                type="number" min="0" max="12" value={bonus.max}
                                                                 onChange={(e) => handleUpdateBonus(bonus.key, 'max', e.target.value)}
                                                                 className="w-7 bg-transparent text-stone-200 text-xs outline-none text-center font-bold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                                             />
                                                         </div>
                                                     </div>
+                                                </div>
+
+                                                <div className="flex items-center justify-between gap-3 pt-2 border-t border-stone-800/50">
+                                                    <span className="text-[10px] text-stone-500 uppercase tracking-wider whitespace-nowrap">Cel wartości:</span>
+                                                    <input
+                                                        type="number"
+                                                        step="0.01"
+                                                        value={bonus.targetValue}
+                                                        disabled={bonus.forceCap}
+                                                        placeholder={hasCap ? String(maxCap) : 'opcjonalnie'}
+                                                        onChange={(e) => handleUpdateBonus(bonus.key, 'targetValue', e.target.value)}
+                                                        className="w-24 bg-stone-950 border border-stone-700 rounded-sm px-2 py-1 text-xs text-stone-200 outline-none text-right disabled:opacity-40 focus:border-purple-600"
+                                                    />
                                                 </div>
 
                                                 <div className="flex items-center justify-between gap-3 pt-2 border-t border-stone-800/50">
@@ -330,6 +352,30 @@ const OptimizerPanel = () => {
                     </div>
                 </div>
             </div>
+
+            {(optimizationVariants.length > 0 || optimizationSuggestions.length > 0) && (
+                <div className="mt-6 pt-4 border-t border-stone-800/80 relative z-10">
+                    {optimizationVariants.length > 0 && (
+                        <div className="flex flex-wrap gap-2 justify-center mb-3">
+                            {optimizationVariants.map((variant) => (
+                                <button
+                                    key={variant.name}
+                                    onClick={() => applyOptimizationVariant(variant.setup)}
+                                    className="px-3 py-2 bg-stone-950 border border-purple-900/60 hover:border-purple-500 text-stone-300 text-[10px] uppercase tracking-wider rounded-sm"
+                                    title={variant.description}
+                                >
+                                    {variant.name}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                    {optimizationSuggestions.length > 0 && (
+                        <div className="text-center text-[10px] text-stone-500">
+                            {optimizationSuggestions.slice(0, 3).join(' • ')}
+                        </div>
+                    )}
+                </div>
+            )}
 
             <div className="flex justify-center mt-6 pt-4 border-t border-stone-800/80 shrink-0 relative z-10 w-full max-w-xl mx-auto">
                 <button
