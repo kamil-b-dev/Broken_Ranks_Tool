@@ -3,15 +3,15 @@ package pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import pl.brokenranks.tool.broken_ranks_tool.core.enums.DRIF_BONUS_TYPE;
-import pl.brokenranks.tool.broken_ranks_tool.core.enums.ORB_CATEGORY;
-import pl.brokenranks.tool.broken_ranks_tool.core.enums.RARITY;
-import pl.brokenranks.tool.broken_ranks_tool.core.enums.STAT_TYPE;
-import pl.brokenranks.tool.broken_ranks_tool.core.utils.StringUtils;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ORB_CATEGORY;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.RARITY;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.STAT_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.util.RomanNumeralParser;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.OrbTemplate;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.rules.EquipmentRulesRegistry;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRulesRegistry;
 
 import java.util.HashSet;
 import java.util.List;
@@ -248,7 +248,7 @@ public class EquipmentValidator {
 
         int tierLvl = 1;
         if (item.getTier() != null) {
-            tierLvl = StringUtils.convertRomanToInteger(item.getTier());
+            tierLvl = RomanNumeralParser.convertRomanToInteger(item.getTier());
         }
 
         int allowedSizeIndex;

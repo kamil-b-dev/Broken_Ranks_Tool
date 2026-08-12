@@ -6,9 +6,9 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest.Slot
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.OrbTemplate;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.repository.DrifTemplateRepository;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.repository.ItemTemplateRepository;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.repository.OrbTemplateRepository;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.DrifTemplateRepository;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.ItemTemplateRepository;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.OrbTemplateRepository;
 
 import java.util.Collection;
 import java.util.List;
