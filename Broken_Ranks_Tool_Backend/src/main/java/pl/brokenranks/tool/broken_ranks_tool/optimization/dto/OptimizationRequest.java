@@ -3,7 +3,7 @@ package pl.brokenranks.tool.broken_ranks_tool.optimization.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import pl.brokenranks.tool.broken_ranks_tool.core.enums.DRIF_BONUS_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 
 import java.util.Map;
@@ -12,8 +12,8 @@ import java.util.Set;
 /**
  * DTO dla żądania optymalizacji modyfikacji (drifów).
  * Zawiera dane o ekwipunku bazowym oraz zaawansowane parametry sterujące
- * algorytmem genetycznym, takie jak wagi priorytetów, limity ilościowe, blokady
- * oraz wymuszanie maksymalnych wartości (Cap).
+ * takie jak wagi priorytetów, limity ilościowe, blokady oraz wymuszanie
+ * maksymalnych wartości (Cap).
  */
 @Data
 public class OptimizationRequest {
@@ -38,6 +38,9 @@ public class OptimizationRequest {
      * Wartość: Obiekt zawierający minimalną i maksymalną pożądaną liczbę sztuk drifów tego typu.
      */
     private Map<DRIF_BONUS_TYPE, QuantityRange> targetQuantities;
+
+    /** Docelowe wartości końcowe dla wybranych modyfikatorów. */
+    private Map<DRIF_BONUS_TYPE, Double> targetValues;
 
     /**
      * Zestaw kluczy slotów (np. "helmet", "armor"), które mają zostać wykluczone z optymalizacji.
