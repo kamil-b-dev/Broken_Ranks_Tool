@@ -39,7 +39,7 @@ const OptimizerPanel = () => {
      * @param {object} bonus - Obiekt bonusu do priorytetyzacji.
      */
     const handleSelectBonus = (bonus) => {
-        setPrioritizedBonuses(prev => [...prev, { ...bonus, weight: 15, min: 0, max: 12, targetValue: '', forceCap: false }]);
+        setPrioritizedBonuses(prev => [...prev, { ...bonus, weight: 15, min: 0, max: 12, targetValue: '', forceCap: false, critical: false }]);
         setAvailableBonuses(prev => prev.filter(b => b.key !== bonus.key));
     };
 
@@ -89,6 +89,7 @@ const OptimizerPanel = () => {
         const targetQuantities = {};
         const targetValues = {};
         const forceCapBonuses = [];
+        const criticalBonuses = [];
 
         prioritizedBonuses.forEach(b => {
             priorities[b.key] = parseInt(b.weight, 10);
@@ -110,9 +111,13 @@ const OptimizerPanel = () => {
             if (b.forceCap) {
                 forceCapBonuses.push(b.key);
             }
+
+            if (b.critical) {
+                criticalBonuses.push(b.key);
+            }
         });
 
-        await runDrifOptimization({ priorities, targetQuantities, targetValues, forceCapBonuses });
+        await runDrifOptimization({ priorities, targetQuantities, targetValues, forceCapBonuses, criticalBonuses });
         setIsOptimizing(false);
     };
 
@@ -342,6 +347,24 @@ const OptimizerPanel = () => {
                                                     ) : (
                                                         <span className="text-[9px] text-stone-600 uppercase tracking-widest italic">Brak limitu</span>
                                                     )}
+                                                </div>
+
+                                                <div className="flex items-center justify-between gap-3 pt-2 border-t border-stone-800/50">
+                                                    <span
+                                                        className="text-[10px] text-stone-500 uppercase tracking-wider whitespace-nowrap"
+                                                        title="Algorytm ma zawsze zachować co najmniej jeden taki mod, ale nie będzie sztucznie dążył do jego capa."
+                                                    >
+                                                        Krytyczny mod:
+                                                    </span>
+                                                    <button
+                                                        onClick={() => handleUpdateBonus(bonus.key, 'critical', !bonus.critical)}
+                                                        title="Zachowaj co najmniej jeden drif tego modyfikatora bez wymuszania capa"
+                                                        className={`w-5 h-5 flex items-center justify-center border rounded-sm transition-all ${bonus.critical ? 'bg-amber-900 border-amber-500 text-amber-100 shadow-[0_0_8px_rgba(245,158,11,0.4)]' : 'bg-stone-950 border-stone-700 text-transparent hover:border-amber-800'}`}
+                                                    >
+                                                        <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                                                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293z" clipRule="evenodd" />
+                                                        </svg>
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
