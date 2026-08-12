@@ -63,6 +63,13 @@ public class OptimizationRequest {
     private Set<DRIF_BONUS_TYPE> forceCapBonuses;
 
     /**
+     * Modyfikatory oznaczone przez gracza jako krytyczne. Krytyczny mod musi
+     * pozostać reprezentowany w wyniku, ale ta flaga sama w sobie nie wymusza
+     * osiągnięcia capa ani konkretnej liczby drifów.
+     */
+    private Set<DRIF_BONUS_TYPE> criticalBonuses;
+
+    /**
      * Klasa pomocnicza (DTO) reprezentująca przedział ilościowy (minimum i maksimum).
      */
     @Data
