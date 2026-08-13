@@ -45,4 +45,10 @@ public class GameRulesDto {
      * Klucz: nazwa enuma, Wartość: maksymalny limit (lub null w przypadku braku limitu).
      */
     private Map<String, Integer> drifMaxCaps;
+
+    /**
+     * Mapa kategorii dla kaĹĽdego typu bonusu drifu.
+     * Klucz: nazwa enuma bonusu, wartoĹ›Ä‡: nazwa enuma {@code DRIF_CATEGORY}.
+     */
+    private Map<String, String> drifBonusCategories;
 }

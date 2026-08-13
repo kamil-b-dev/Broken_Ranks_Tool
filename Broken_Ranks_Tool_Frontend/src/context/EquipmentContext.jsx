@@ -32,8 +32,6 @@ export const EquipmentProvider = ({ children }) => {
     const [stats, setStats] = useState(null);
 
     const [optimizationTrigger, setOptimizationTrigger] = useState(0);
-    const [optimizationVariants, setOptimizationVariants] = useState([]);
-    const [optimizationSuggestions, setOptimizationSuggestions] = useState([]);
 
     const [lockedSlots, setLockedSlots] = useState([]);
     const [lockedDrifs, setLockedDrifs] = useState({});
@@ -173,8 +171,6 @@ export const EquipmentProvider = ({ children }) => {
         setLockedDrifs(build.lockedDrifs && typeof build.lockedDrifs === "object"
             ? JSON.parse(JSON.stringify(build.lockedDrifs)) : {});
         setStats(null);
-        setOptimizationVariants([]);
-        setOptimizationSuggestions([]);
         setOptimizationTrigger(prev => prev + 1);
     }, [data.items, data.orbs, data.drifs]);
 
@@ -253,13 +249,11 @@ export const EquipmentProvider = ({ children }) => {
 
         try {
             const response = await apiClient.post("/optimizer/drifs", optimizationRequest);
-            const { optimizedSetup, summary, variants = [], suggestions = [] } = response.data;
+            const { optimizedSetup, summary } = response.data;
 
             console.log("ODPOWIEDŹ Z BACKENDU:", response.data);
 
             if (summary.success && optimizedSetup && optimizedSetup.slots) {
-                setOptimizationVariants(variants);
-                setOptimizationSuggestions(suggestions);
                 setRequestData(prev => ({
                     ...prev,
                     slots: optimizedSetup.slots
@@ -282,12 +276,6 @@ export const EquipmentProvider = ({ children }) => {
         }
     }, [requestData.slots, lockedSlots, lockedDrifs]);
 
-    const applyOptimizationVariant = useCallback((setup) => {
-        if (!setup?.slots) return;
-        setRequestData(prev => ({ ...prev, slots: setup.slots }));
-        setOptimizationTrigger(prev => prev + 1);
-    }, []);
-
     const value = {
         data,
         categoryNames,
@@ -298,8 +286,6 @@ export const EquipmentProvider = ({ children }) => {
         requestData,
         stats,
         optimizationTrigger,
-        optimizationVariants,
-        optimizationSuggestions,
         lockedSlots,
         lockedDrifs,
         characterConfig,
@@ -309,7 +295,6 @@ export const EquipmentProvider = ({ children }) => {
         toggleDrifLock,
         calculateStats,
         runDrifOptimization,
-        applyOptimizationVariant,
         saveBuildToFile,
         loadBuildFromFile
     };
