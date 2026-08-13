@@ -63,12 +63,16 @@ public class InitialDataService {
             drifMaxCaps.put(type.name(), type.getMaxCap());
         }
 
+        Map<String, String> drifBonusCategories = Arrays.stream(DRIF_BONUS_TYPE.values())
+                .collect(Collectors.toMap(Enum::name, type -> type.getCategory().name()));
+
         var gameRules = new GameRulesDto(
                 EquipmentRulesRegistry.EPIC_BUILTIN_DRIFS,
                 rulesRegistry.getSlotOrbRules(),
                 bonusTranslations,
                 Arrays.stream(DRIF_BONUS_TYPE.values()).collect(Collectors.toMap(Enum::name, DRIF_BONUS_TYPE::getBasePower)),
-                drifMaxCaps
+                drifMaxCaps,
+                drifBonusCategories
         );
 
         return new InitialDataDto(items, orbs, drifs, gameRules, dictionaries);
