@@ -1,6 +1,62 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useEquipment } from '../context/EquipmentContext';
 import { SLOTS } from '../constants/equipment';
+
+const OPTIMIZER_CONFIG_FORMAT = 'broken-ranks-tool-optimizer-config';
+const OPTIMIZER_CONFIG_VERSION = 1;
+const DRIF_CATEGORY_ORDER = ['OFENSIVE', 'DEFENSIVE', 'UTILITY'];
+const DRIF_CATEGORY_LABELS = {
+    OFENSIVE: 'Ofensywne',
+    DEFENSIVE: 'Defensywne',
+    UTILITY: 'UĹĽytkowe'
+};
+const DRIF_BONUS_CATEGORY_FALLBACK = {
+    CC_PROTECTION: 'DEFENSIVE',
+    CRITICAL_DAMAGE_CHANCE_REDUCTION: 'DEFENSIVE',
+    CRITICAL_DAMAGE_REDUCTION: 'DEFENSIVE',
+    DAMAGE_REDUCTION: 'DEFENSIVE',
+    DAMAGE_REDUCTION_CHANCE: 'DEFENSIVE',
+    DEFENSE_MELEE: 'DEFENSIVE',
+    DEFENSE_MENTAL: 'DEFENSIVE',
+    DEFENSE_RANGE: 'DEFENSIVE',
+    DODGE_CHANCE: 'DEFENSIVE',
+    DOUBLE_DEFENSE_ROLL_CHANCE: 'DEFENSIVE',
+    PASIVE_DAMAGE_REDUCTION: 'DEFENSIVE',
+    PERCENTAGE_DAMAGE_REDUCTION: 'DEFENSIVE',
+    CRITICAL_CHANCE: 'OFENSIVE',
+    DAMAGE_ENERGY: 'OFENSIVE',
+    DAMAGE_FIRE: 'OFENSIVE',
+    DAMAGE_FROST: 'OFENSIVE',
+    DAMAGE_MAGIC: 'OFENSIVE',
+    DAMAGE_PHYSICAL: 'OFENSIVE',
+    DOUBLE_ATTACK_CHANCE: 'OFENSIVE',
+    DOUBLE_HIT_ROLL_CHANCE: 'OFENSIVE',
+    HIT_CHANCE_MELEE: 'OFENSIVE',
+    HIT_CHANCE_MENTAL: 'OFENSIVE',
+    HIT_CHANCE_RANGED: 'OFENSIVE',
+    MENTAL_DEFENSE_REDUCTION: 'OFENSIVE',
+    DISPELL_CHANCE: 'UTILITY',
+    MANA_REGEN: 'UTILITY',
+    MANA_STEAL: 'UTILITY',
+    MANA_USAGE_REDUCTION: 'UTILITY',
+    STAMINA_REGEN: 'UTILITY',
+    STAMINA_USAGE_REDUCTION: 'UTILITY'
+};
+
+const createBonusOption = ([key, value], drifBonusCategories = {}) => ({
+    key,
+    value,
+    categoryKey: drifBonusCategories[key] || DRIF_BONUS_CATEGORY_FALLBACK[key] || ''
+});
+
+const sortBonusesByCategory = (bonuses) => [...bonuses].sort((left, right) => {
+    const leftCategoryIndex = DRIF_CATEGORY_ORDER.indexOf(left.categoryKey);
+    const rightCategoryIndex = DRIF_CATEGORY_ORDER.indexOf(right.categoryKey);
+    const categoryDifference = (leftCategoryIndex === -1 ? Number.MAX_SAFE_INTEGER : leftCategoryIndex)
+        - (rightCategoryIndex === -1 ? Number.MAX_SAFE_INTEGER : rightCategoryIndex);
+
+    return categoryDifference || left.value.localeCompare(right.value, 'pl');
+});
 
 /**
  * Komponent optymalizatora drifów.
@@ -11,28 +67,32 @@ import { SLOTS } from '../constants/equipment';
  */
 const OptimizerPanel = () => {
     const {
-        gameRules, runDrifOptimization, requestData, data,
-        optimizationVariants, optimizationSuggestions,
-        applyOptimizationVariant, lockedSlots, lockedDrifs, toggleSlotLock, toggleDrifLock
+        gameRules, drifCategories, runDrifOptimization, requestData, data,
+        lockedSlots, lockedDrifs, toggleSlotLock, toggleDrifLock
     } = useEquipment();
 
     const [availableBonuses, setAvailableBonuses] = useState([]);
     const [prioritizedBonuses, setPrioritizedBonuses] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
+    const [selectedCategory, setSelectedCategory] = useState('ALL');
     const [isOptimizing, setIsOptimizing] = useState(false);
+    const [prioritySortDirection, setPrioritySortDirection] = useState('desc');
+    const configInputRef = useRef(null);
 
     useEffect(() => {
         if (gameRules?.bonusTranslations) {
             const allBonuses = Object.entries(gameRules.bonusTranslations)
-                .map(([key, value]) => ({ key, value }))
+                .map(([key, value]) => createBonusOption([key, value], gameRules.drifBonusCategories))
                 .filter(b => gameRules.drifBasePowers[b.key] !== undefined);
-            setAvailableBonuses(allBonuses);
+            setAvailableBonuses(sortBonusesByCategory(allBonuses));
         }
-    }, [gameRules]);
+    }, [gameRules, drifCategories]);
 
-    const filteredAvailableBonuses = availableBonuses.filter(b =>
-        b.value.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredAvailableBonuses = availableBonuses.filter(b => {
+        const matchesCategory = selectedCategory === 'ALL' || b.categoryKey === selectedCategory;
+        const matchesSearch = b.value.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesCategory && matchesSearch;
+    });
 
     /**
      * Przenosi wybrany bonus z listy dostępnych do listy priorytetów.
@@ -48,7 +108,7 @@ const OptimizerPanel = () => {
      * @param {object} bonus - Obiekt bonusu do usunięcia z priorytetów.
      */
     const handleRemoveBonus = (bonus) => {
-        setAvailableBonuses(prev => [...prev, { key: bonus.key, value: bonus.value }].sort((a, b) => a.value.localeCompare(b.value)));
+        setAvailableBonuses(prev => sortBonusesByCategory([...prev, createBonusOption([bonus.key, bonus.value], gameRules?.drifBonusCategories)]));
         setPrioritizedBonuses(prev => prev.filter(b => b.key !== bonus.key));
     };
 
@@ -57,8 +117,11 @@ const OptimizerPanel = () => {
      */
     const handleClearAll = () => {
         setAvailableBonuses(prev => {
-            const combined = [...prev, ...prioritizedBonuses.map(b => ({ key: b.key, value: b.value }))];
-            return combined.sort((a, b) => a.value.localeCompare(b.value));
+            const combined = [
+                ...prev,
+                ...prioritizedBonuses.map(b => createBonusOption([b.key, b.value], gameRules?.drifBonusCategories))
+            ];
+            return sortBonusesByCategory(combined);
         });
         setPrioritizedBonuses([]);
     };
@@ -76,6 +139,111 @@ const OptimizerPanel = () => {
             }
             return b;
         }));
+    };
+
+    /** Sortuje priorytety według wagi, zachowując kolejność przy remisach. */
+    const handleSortByPriority = () => {
+        setPrioritizedBonuses(prev => {
+            const direction = prioritySortDirection === 'desc' ? 1 : -1;
+            return prev
+                .map((bonus, index) => ({ bonus, index }))
+                .sort((left, right) => {
+                    const weightDifference = (Number(right.bonus.weight) - Number(left.bonus.weight)) * direction;
+                    return weightDifference || left.index - right.index;
+                })
+                .map(({ bonus }) => bonus);
+        });
+        setPrioritySortDirection(prev => prev === 'desc' ? 'asc' : 'desc');
+    };
+
+    const handleSaveConfiguration = () => {
+        const payload = {
+            format: OPTIMIZER_CONFIG_FORMAT,
+            version: OPTIMIZER_CONFIG_VERSION,
+            exportedAt: new Date().toISOString(),
+            priorities: prioritizedBonuses.map(({ key, weight, min, max, targetValue, forceCap, critical }) => ({
+                key,
+                weight: Number(weight),
+                min: Number(min),
+                max: Number(max),
+                targetValue: targetValue === '' ? '' : Number(targetValue),
+                forceCap: Boolean(forceCap),
+                critical: Boolean(critical)
+            }))
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `broken-ranks-priorytety-${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    };
+
+    const handleLoadConfiguration = async (event) => {
+        const file = event.target.files?.[0];
+        event.target.value = '';
+        if (!file) return;
+        if (file.size > 1024 * 1024) {
+            alert('Plik konfiguracji jest zbyt duży.');
+            return;
+        }
+
+        try {
+            const payload = JSON.parse(await file.text());
+            if (payload?.format !== OPTIMIZER_CONFIG_FORMAT || payload?.version !== OPTIMIZER_CONFIG_VERSION
+                    || !Array.isArray(payload.priorities)) {
+                throw new Error('Nieobsługiwany format lub wersja pliku konfiguracji.');
+            }
+
+            const knownBonuses = new Map(Object.entries(gameRules?.bonusTranslations || {})
+                .filter(([key]) => gameRules?.drifBasePowers?.[key] !== undefined)
+                .map(entry => {
+                    const bonus = createBonusOption(entry, gameRules?.drifBonusCategories);
+                    return [bonus.key, bonus];
+                }));
+            const usedKeys = new Set();
+            const imported = payload.priorities.flatMap(entry => {
+                if (!entry || typeof entry.key !== 'string' || usedKeys.has(entry.key)) return [];
+                const bonus = knownBonuses.get(entry.key);
+                if (!bonus) return [];
+                usedKeys.add(entry.key);
+
+                const parsedWeight = Number(entry.weight);
+                const parsedMin = Number(entry.min);
+                const parsedMax = Number(entry.max);
+                const min = Math.max(0, Math.min(12, Number.isFinite(parsedMin) ? Math.trunc(parsedMin) : 0));
+                const max = Math.max(min, Math.min(12, Number.isFinite(parsedMax) ? Math.trunc(parsedMax) : 12));
+                const targetValue = entry.targetValue === '' || entry.targetValue === null || entry.targetValue === undefined
+                    ? '' : (Number.isFinite(Number(entry.targetValue)) ? Number(entry.targetValue) : '');
+
+                return [{
+                    key: entry.key,
+                    value: bonus.value,
+                    categoryKey: bonus.categoryKey,
+                    weight: Math.max(1, Math.min(30, Number.isFinite(parsedWeight) ? Math.trunc(parsedWeight) : 15)),
+                    min,
+                    max,
+                    targetValue,
+                    forceCap: Boolean(entry.forceCap),
+                    critical: Boolean(entry.critical)
+                }];
+            });
+
+            if (imported.length === 0 && payload.priorities.length > 0) {
+                throw new Error('Plik nie zawiera bonusów dostępnych w aktualnej wersji danych gry.');
+            }
+
+            setPrioritizedBonuses(imported);
+            setAvailableBonuses(sortBonusesByCategory([...knownBonuses.entries()]
+                .filter(([key]) => !usedKeys.has(key))
+                .map(([, bonus]) => bonus)));
+            alert(`Wczytano konfigurację: ${imported.length} priorytetów.`);
+        } catch (error) {
+            alert(`Nie udało się wczytać konfiguracji: ${error.message || 'niepoprawny plik JSON.'}`);
+        }
     };
 
     /**
@@ -225,6 +393,30 @@ const OptimizerPanel = () => {
                         />
                     </div>
 
+                    <div className="flex flex-wrap gap-1 mb-2 shrink-0" role="group" aria-label="Filtruj bonusy według kategorii">
+                        {['ALL', ...DRIF_CATEGORY_ORDER].map(categoryKey => {
+                            const isSelected = selectedCategory === categoryKey;
+                            const label = categoryKey === 'ALL'
+                                ? 'Wszystkie'
+                                : (drifCategories?.[categoryKey] || DRIF_CATEGORY_LABELS[categoryKey]);
+
+                            return (
+                                <button
+                                    key={categoryKey}
+                                    type="button"
+                                    onClick={() => setSelectedCategory(categoryKey)}
+                                    className={`flex-1 min-w-[70px] px-2 py-1.5 border rounded-sm text-[10px] uppercase tracking-wider font-serif transition-colors ${isSelected
+                                        ? 'bg-purple-900/60 border-purple-500 text-purple-100'
+                                        : 'bg-stone-950/80 border-stone-700 text-stone-500 hover:border-purple-800 hover:text-stone-200'
+                                    }`}
+                                    aria-pressed={isSelected}
+                                >
+                                    {label}
+                                </button>
+                            );
+                        })}
+                    </div>
+
                     <div className="overflow-y-auto pr-2 flex-1 min-h-0 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-stone-800 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-purple-800/70">
                         {filteredAvailableBonuses.length === 0 ? (
                             <p className="text-center text-stone-600 italic mt-4 text-xs font-serif">Brak wyników...</p>
@@ -245,14 +437,45 @@ const OptimizerPanel = () => {
                         <h4 className="text-stone-300 font-serif font-bold uppercase tracking-widest text-xs">
                             Priorytety i Limity
                         </h4>
-                        {prioritizedBonuses.length > 0 && (
+                        <div className="flex items-center gap-1.5 shrink-0">
+                            <input
+                                ref={configInputRef}
+                                type="file"
+                                accept="application/json,.json"
+                                onChange={handleLoadConfiguration}
+                                className="hidden"
+                            />
                             <button
-                                onClick={handleClearAll}
-                                className="text-[10px] bg-red-950/60 hover:bg-red-900 text-red-400 hover:text-red-100 border border-red-900/50 px-2 py-1 rounded-sm transition-all uppercase tracking-wider font-serif shrink-0"
+                                onClick={() => configInputRef.current?.click()}
+                                className="text-[10px] bg-stone-900 hover:bg-stone-800 text-stone-300 hover:text-purple-300 border border-stone-700 hover:border-purple-800 px-2 py-1 rounded-sm transition-all uppercase tracking-wider font-serif"
+                                title="Wczytaj priorytety i limity z pliku JSON"
                             >
-                                Wyczyść
+                                Wczytaj
                             </button>
-                        )}
+                            <button
+                                onClick={handleSaveConfiguration}
+                                className="text-[10px] bg-stone-900 hover:bg-stone-800 text-stone-300 hover:text-purple-300 border border-stone-700 hover:border-purple-800 px-2 py-1 rounded-sm transition-all uppercase tracking-wider font-serif"
+                                title="Zapisz priorytety i limity do pliku JSON"
+                            >
+                                Zapisz
+                            </button>
+                            <button
+                                onClick={handleSortByPriority}
+                                disabled={prioritizedBonuses.length < 2}
+                                className="text-[10px] bg-stone-900 hover:bg-stone-800 text-stone-300 hover:text-purple-300 border border-stone-700 hover:border-purple-800 px-2 py-1 rounded-sm transition-all uppercase tracking-wider font-serif disabled:opacity-40 disabled:cursor-not-allowed"
+                                title={`Sortuj według wagi ${prioritySortDirection === 'desc' ? 'malejąco' : 'rosnąco'}`}
+                            >
+                                Priorytet {prioritySortDirection === 'desc' ? '↓' : '↑'}
+                            </button>
+                            {prioritizedBonuses.length > 0 && (
+                                <button
+                                    onClick={handleClearAll}
+                                    className="text-[10px] bg-red-950/60 hover:bg-red-900 text-red-400 hover:text-red-100 border border-red-900/50 px-2 py-1 rounded-sm transition-all uppercase tracking-wider font-serif"
+                                >
+                                    Wyczyść
+                                </button>
+                            )}
+                        </div>
                     </div>
 
                     <div className="overflow-y-auto pr-2 flex-1 min-h-0 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-stone-800 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-purple-800/70">
@@ -375,30 +598,6 @@ const OptimizerPanel = () => {
                     </div>
                 </div>
             </div>
-
-            {(optimizationVariants.length > 0 || optimizationSuggestions.length > 0) && (
-                <div className="mt-6 pt-4 border-t border-stone-800/80 relative z-10">
-                    {optimizationVariants.length > 0 && (
-                        <div className="flex flex-wrap gap-2 justify-center mb-3">
-                            {optimizationVariants.map((variant) => (
-                                <button
-                                    key={variant.name}
-                                    onClick={() => applyOptimizationVariant(variant.setup)}
-                                    className="px-3 py-2 bg-stone-950 border border-purple-900/60 hover:border-purple-500 text-stone-300 text-[10px] uppercase tracking-wider rounded-sm"
-                                    title={variant.description}
-                                >
-                                    {variant.name}
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                    {optimizationSuggestions.length > 0 && (
-                        <div className="text-center text-[10px] text-stone-500">
-                            {optimizationSuggestions.slice(0, 3).join(' • ')}
-                        </div>
-                    )}
-                </div>
-            )}
 
             <div className="flex justify-center mt-6 pt-4 border-t border-stone-800/80 shrink-0 relative z-10 w-full max-w-xl mx-auto">
                 <button
