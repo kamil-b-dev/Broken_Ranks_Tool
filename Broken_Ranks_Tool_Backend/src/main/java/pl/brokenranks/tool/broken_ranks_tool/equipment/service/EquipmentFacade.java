@@ -8,47 +8,42 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Fasada dla modułu ekwipunku.
- * Zapewnia uproszczony, wysokopoziomowy interfejs dostępu do logiki i danych
- * związanych z ekwipunkiem, ukrywając wewnętrzną złożoność podsystemu.
- * Jest to jedyny punkt kontaktu dla zewnętrznych modułów (np. 'optimization').
+ * Provides a high-level equipment API while hiding subsystem complexity.
+ * This is the integration point for external modules such as optimization.
  */
 public interface EquipmentFacade {
 
     /**
-     * Pobiera mapę szablonów przedmiotów na podstawie podanej kolekcji ID.
-     * @param ids Kolekcja ID przedmiotów do pobrania.
-     * @return Mapa, gdzie kluczem jest ID przedmiotu, a wartością jego szablon.
+     * Returns item templates keyed by their identifiers.
+     * @param ids Item identifiers to load.
+     * @return Templates keyed by item identifier.
      */
     Map<Long, ItemTemplate> getItemTemplates(Collection<Long> ids);
 
-    /**
-     * Pobiera listę wszystkich dostępnych szablonów drifów.
-     * @return Lista wszystkich drifów.
-     */
+    /** @return All available drif templates. */
     List<DrifTemplate> getAllDrifs();
 
     /**
-     * Oblicza całkowitą pojemność drifów dla przedmiotu.
-     * @param item Szablon przedmiotu.
-     * @param itemStars Poziom ulepszenia przedmiotu.
-     * @return Całkowita pojemność drifów.
+     * Calculates the total drif capacity for an item and upgrade level.
+     * @param item Item template.
+     * @param itemStars Item upgrade level.
+     * @return Total available drif capacity.
      */
     int calculateItemCapacity(ItemTemplate item, int itemStars);
 
     /**
-     * Sprawdza, czy rozmiar drifu jest dozwolony dla danego tieru przedmiotu.
-     * @param drif Szablon drifu.
-     * @param item Szablon przedmiotu.
-     * @return {@code true}, jeśli rozmiar drifu jest dozwolony.
+     * Returns whether a drif size is allowed for an item tier.
+     * @param drif Drif template to check.
+     * @param item Target item template.
+     * @return Whether the drif size is allowed.
      */
     boolean isValidDrifSizeForTier(DrifTemplate drif, ItemTemplate item);
 
     /**
-     * Sprawdza, czy pozycja drifu z obrażeniami od żywiołów jest prawidłowa.
-     * @param drif Szablon drifu.
-     * @param slotKey Klucz identyfikujący slot.
-     * @return {@code true}, jeśli drif żywiołowy jest w prawidłowym slocie.
+     * Returns whether an elemental drif is placed in a valid slot.
+     * @param drif Drif template to check.
+     * @param slotKey Equipment slot identifier.
+     * @return Whether the elemental drif placement is valid.
      */
     boolean isElementalDrifPositionValid(DrifTemplate drif, String slotKey);
 }

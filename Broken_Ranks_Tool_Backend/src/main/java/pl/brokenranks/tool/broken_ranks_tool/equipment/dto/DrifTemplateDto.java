@@ -22,6 +22,11 @@ public class DrifTemplateDto {
     private int price;
     private DRIF_CATEGORY category;
 
+    /**
+     * Creates an API DTO from a persisted drif template.
+     * @param entity Drif template entity to convert.
+     * @return DTO containing the client-facing drif data.
+     */
     public static DrifTemplateDto fromEntity(DrifTemplate entity) {
         return new DrifTemplateDto(
                 entity.getId(),

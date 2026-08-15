@@ -12,17 +12,13 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * Udostępnia endpointy API do pobierania podstawowych słowników.
- */
+/** Exposes API endpoints for the core translation dictionaries. */
 @RestController
 @RequestMapping("/api/dictionaries")
 @CrossOrigin(origins = "*")
 public class DictionaryController {
 
-    /**
-     * @return Mapa tłumaczeń dla kategorii przedmiotów.
-     */
+    /** @return Translations for item categories keyed by enum name. */
     @GetMapping("/categories")
     public Map<String, String> getCategoryDictionary() {
         return Arrays.stream(ITEM_CATEGORY.values())
@@ -32,9 +28,7 @@ public class DictionaryController {
                 ));
     }
 
-    /**
-     * @return Mapa tłumaczeń dla kategorii orbów.
-     */
+    /** @return Translations for orb categories keyed by enum name. */
     @GetMapping("/orb-categories")
     public Map<String, String> getOrbCategoryDictionary() {
         return Arrays.stream(ORB_CATEGORY.values())
@@ -44,9 +38,7 @@ public class DictionaryController {
                 ));
     }
 
-    /**
-     * @return Mapa tłumaczeń dla kategorii drifów.
-     */
+    /** @return Translations for drif categories keyed by enum name. */
     @GetMapping("/drif-categories")
     public Map<String, String> getDrifCategoryDictionary() {
         return Arrays.stream(DRIF_CATEGORY.values())

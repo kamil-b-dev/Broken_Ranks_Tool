@@ -56,17 +56,16 @@ const calculateDoubleIncrement = (incrementStr) => {
 };
 
 /**
- * Komponent bazy danych, umożliwiający przeglądanie, filtrowanie i przeciąganie
- * przedmiotów, orbów i drifów do odpowiednich slotów ekwipunku.
- * @param {object} props
- * @param {Array<object>} props.items Lista wszystkich przedmiotów.
- * @param {Array<object>} props.orbs Lista wszystkich orbów.
- * @param {Array<object>} props.drifs Lista wszystkich drifów.
- * @param {object} props.categoryNames Mapa tłumaczeń dla kategorii przedmiotów.
- * @param {object} props.orbCategories Mapa tłumaczeń dla kategorii orbów.
- * @param {object} props.drifCategories Mapa tłumaczeń dla kategorii drifów.
- * @param {object} props.gameRules Obiekt z globalnymi regułami gry.
- * @returns {JSX.Element}
+ * Provides searchable equipment data and drag-and-drop selection.
+ * @param {object} props Component properties.
+ * @param {Array<object>} props.items Available item templates.
+ * @param {Array<object>} props.orbs Available orb templates.
+ * @param {Array<object>} props.drifs Available drif templates.
+ * @param {object} props.categoryNames Item category translations.
+ * @param {object} props.orbCategories Orb category translations.
+ * @param {object} props.drifCategories Drif category translations.
+ * @param {object} props.gameRules Rules used by filters and drag-and-drop behavior.
+ * @returns {JSX.Element} The searchable equipment database.
  */
 const ItemDatabase = ({ items = [], orbs = [], drifs = [], categoryNames = {}, orbCategories = {}, drifCategories = {}, gameRules = {} }) => {
     const [activeTab, setActiveTab] = useState("items");

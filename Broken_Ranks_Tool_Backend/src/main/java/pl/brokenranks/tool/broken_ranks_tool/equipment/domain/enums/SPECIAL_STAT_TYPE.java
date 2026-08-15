@@ -9,10 +9,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/**
- * Reprezentuje specjalne typy statystyk, które nie podlegają
- * standardowemu przetwarzaniu (np. losowej dystrybucji).
- */
+/** Defines special statistics excluded from standard processing. */
 @Getter
 @AllArgsConstructor
 public enum SPECIAL_STAT_TYPE {
@@ -31,11 +28,9 @@ public enum SPECIAL_STAT_TYPE {
             ));
 
     /**
-     * Bezpiecznie konwertuje string na odpowiedni typ enuma.
-     * Wyszukiwanie ignoruje wielkość liter.
-     *
-     * @param description Polska nazwa statystyki.
-     * @return Optional zawierający znaleziony typ lub pusty, jeśli nazwa jest nieprawidłowa.
+     * Resolves a special statistic type case-insensitively from its localized description.
+     * @param description Localized statistic description.
+     * @return Matching special statistic type, or empty when unknown.
      */
     public static Optional<SPECIAL_STAT_TYPE> fromDescription(String description) {
         if (description == null) {

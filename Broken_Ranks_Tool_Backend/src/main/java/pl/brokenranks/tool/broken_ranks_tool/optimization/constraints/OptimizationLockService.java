@@ -11,24 +11,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Centralizuje ograniczenia wynikające z blokad ustawionych przez użytkownika.
- *
- * <p>Algorytm optymalizacyjny może zmieniać tylko elementy niezablokowane.
- * Zablokowany slot jest kopiowany w całości, a zablokowane drify pozostają na
- * tych samych indeksach razem z ich poziomami.</p>
- */
+/** Applies user locks so optimization changes only unlocked equipment elements. */
 @Component
 public class OptimizationLockService {
 
     /**
-     * Nakłada blokady na wynik algorytmu, nie zmieniając niezablokowanych pól.
-     * Metoda zwraca niezależną kopię mapy i obiektów slotów.
-     *
-     * @param originalSlots konfiguracja wejściowa użytkownika
-     * @param candidateSlots konfiguracja utworzona przez algorytm
-     * @param request żądanie zawierające blokady
-     * @return wynik z zachowanymi blokadami
+     * Applies locks to an independent copy of the candidate equipment setup.
+     * @param originalSlots User's original equipment setup.
+     * @param candidateSlots Setup produced by the optimizer.
+     * @param request Optimization request containing lock definitions.
+     * @return Candidate setup with locked values preserved.
      */
     public Map<String, EquipmentRequest.SlotData> enforce(
             Map<String, EquipmentRequest.SlotData> originalSlots,
@@ -74,9 +66,11 @@ public class OptimizationLockService {
     }
 
     /**
-     * Sprawdza, czy wynik nie zmienił żadnego zablokowanego elementu.
-     * Jest to zabezpieczenie diagnostyczne, które można wykorzystać w testach
-     * oraz przed zwróceniem odpowiedzi z nowego algorytmu.
+     * Verifies that the candidate did not change any locked element.
+     * @param originalSlots User's original equipment setup.
+     * @param candidateSlots Setup produced by the optimizer.
+     * @param request Optimization request containing lock definitions.
+     * @return Whether all locked values are unchanged.
      */
     public boolean isValid(
             Map<String, EquipmentRequest.SlotData> originalSlots,

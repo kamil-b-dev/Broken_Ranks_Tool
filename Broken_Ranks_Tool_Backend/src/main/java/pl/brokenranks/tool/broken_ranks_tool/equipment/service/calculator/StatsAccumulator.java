@@ -6,22 +6,16 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
 
-/**
- * Klasa pomocnicza odpowiedzialna za akumulację i obliczanie statystyk.
- * Przechowuje statystyki w postaci płaskiej i procentowej, a na końcu je formatuje.
- * Nie jest komponentem Springa - nowa instancja jest tworzona dla każdego obliczenia.
- */
+/** Accumulates flat and percentage statistics for one calculation. */
 public class StatsAccumulator {
     private final Map<String, Double> flatStats = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
     private final Map<String, Double> percentStats = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
     /**
-     * Dodaje wartość statystyki na podstawie surowego stringa (np. "10%" lub "25").
-     * Automatycznie parsuje wartość i decyduje, czy jest to statystyka płaska czy procentowa.
-     *
-     * @param statName   Nazwa statystyki.
-     * @param rawValue   Surowa wartość w postaci stringa.
-     * @param multiplier Mnożnik, przez który zostanie przemnożona wartość.
+     * Adds a raw statistic value, automatically handling flat and percentage formats.
+     * @param statName Business statistic name.
+     * @param rawValue Raw value such as `10%` or `25`.
+     * @param multiplier Value multiplier applied before accumulation.
      */
     public void addRawValue(String statName, String rawValue, double multiplier) {
         if (rawValue == null || rawValue.isBlank()) return;
@@ -42,21 +36,19 @@ public class StatsAccumulator {
     }
 
     /**
-     * Dodaje płaską wartość do statystyk.
-     *
-     * @param statName Nazwa statystyki.
-     * @param value    Wartość do dodania.
+     * Adds a flat value to a statistic.
+     * @param statName Business statistic name.
+     * @param value Flat value to add.
      */
     public void addFlatValue(String statName, double value) {
         flatStats.merge(statName, value, Double::sum);
     }
 
     /**
-     * Rozdziela pulę bonusowych punktów statystyk losowo pomiędzy podane statystyki bazowe.
-     *
-     * @param baseValues     Mapa statystyk bazowych do rozdzielenia.
-     * @param multiplier     Mnożnik, który określa wielkość puli bonusowej.
-     * @param randomProvider Dostawca losowości.
+     * Distributes a bonus pool randomly across the supplied base statistics.
+     * @param baseValues Base statistics receiving the pool.
+     * @param multiplier Multiplier determining pool size.
+     * @param randomProvider Random source used for distribution.
      */
     public void distributeRandomly(Map<String, Integer> baseValues, double multiplier, RandomProvider randomProvider) {
         if (baseValues.isEmpty()) return;
@@ -76,10 +68,8 @@ public class StatsAccumulator {
     }
 
     /**
-     * Formatuje zebrane statystyki do ostatecznej, czytelnej formy.
-     * Używa {@link BigDecimal} do precyzyjnego zaokrąglania.
-     *
-     * @return Mapa sformatowanych statystyk gotowa do wyświetlenia.
+     * Formats accumulated statistics for display using precise decimal rounding.
+     * @return Display-ready statistics map.
      */
     public Map<String, String> getFormattedResults() {
         Map<String, String> finalStats = new HashMap<>();

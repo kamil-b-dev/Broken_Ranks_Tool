@@ -3,10 +3,7 @@ package pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-/**
- * Reprezentuje ogólną kategorię bonusu, pozwalając na grupowanie
- * i filtrowanie statystyk (np. ofensywne, defensywne).
- */
+/** Groups drif bonuses for filtering and business rules. */
 @Getter
 @RequiredArgsConstructor
 public enum DRIF_CATEGORY {

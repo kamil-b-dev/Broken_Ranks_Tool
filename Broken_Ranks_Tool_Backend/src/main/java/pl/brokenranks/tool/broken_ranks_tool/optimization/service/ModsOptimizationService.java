@@ -5,12 +5,9 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRespon
 
 public interface ModsOptimizationService {
     /**
-     * Uruchamia proces optymalizacji modyfikacji (np. drifów) na podstawie
-     * podanych przez użytkownika kryteriów i priorytetów.
-     *
-     * @param request DTO z żądaniem optymalizacji.
-     * @return DTO z wynikiem optymalizacji, zawierające zoptymalizowaną
-     *         konfigurację ekwipunku oraz podsumowanie.
+     * Optimizes equipment modifications according to user priorities and constraints.
+     * @param request Baseline equipment, priorities, targets, and locks.
+     * @return Optimized setup with a result summary and optional suggestions.
      */
     OptimizationResponse optimize(OptimizationRequest request);
 }

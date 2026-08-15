@@ -2,17 +2,14 @@ package pl.brokenranks.tool.broken_ranks_tool.equipment.domain.util;
 
 import lombok.experimental.UtilityClass;
 
-/**
- * Klasa narzędziowa do operacji na stringach.
- */
+/** Utility methods for parsing Roman numeral strings. */
 @UtilityClass
 public class RomanNumeralParser {
 
     /**
-     * Konwertuje liczbę rzymską na liczbę całkowitą.
-     *
-     * @param roman Liczba rzymska jako string (np. "I", "XII").
-     * @return Odpowiednik w postaci liczby całkowitej lub 0 dla nieprawidłowego formatu.
+     * Converts a Roman numeral to an integer.
+     * @param roman Roman numeral string, such as `I` or `XII`.
+     * @return Parsed integer, or zero for invalid input.
      */
     public static int convertRomanToInteger(String roman) {
         if (roman == null || roman.isEmpty()) {

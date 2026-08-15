@@ -8,20 +8,15 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Centralizuje obsługę wyjątków w aplikacji, aby zapewnić spójny format
- * odpowiedzi błędów dla wszystkich endpointów API.
- */
+/** Provides a consistent error response format for all API endpoints. */
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
 
     /**
-     * Obsługuje wyjątki {@link IllegalArgumentException}, które w tej aplikacji
-     * są używane do sygnalizowania nieprawidłowych danych wejściowych (np. prób oszustwa).
-     *
-     * @param ex Przechwycony wyjątek.
-     * @return Odpowiedź HTTP 400 (Bad Request) ze szczegółami błędu.
+     * Converts invalid input exceptions into an HTTP 400 response.
+     * @param ex Exception containing the validation or security message.
+     * @return HTTP 400 response with a stable error and message structure.
      */
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, String>> handleIllegalArgumentException(IllegalArgumentException ex) {

@@ -8,9 +8,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ORB_BONUS_TY
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ORB_CATEGORY;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ORB_SIZE;
 
-/**
- * Reprezentuje szablon orba.
- */
+/** Defines a reusable orb template. */
 @Entity
 @Table(name = "orb_templates")
 @Getter

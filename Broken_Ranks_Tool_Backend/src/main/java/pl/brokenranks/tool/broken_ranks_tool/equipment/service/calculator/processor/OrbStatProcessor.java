@@ -12,24 +12,14 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.Equipme
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Przetwarza statystyki pochodzące z orbów, uwzględniając ich poziom
- * oraz modyfikatory z gwiazdek przedmiotu.
- */
+/** Calculates orb statistics using orb levels and item star modifiers. */
 @Component
 @RequiredArgsConstructor
 public class OrbStatProcessor {
 
     private final EquipmentValidator validator;
 
-    /**
-     * Przetwarza orby dla danego slotu, waliduje je i dodaje ich statystyki do akumulatora.
-     * @param slotKey Klucz identyfikujący slot ekwipunku (np. "helmet").
-     * @param slot Dane o slocie z żądania.
-     * @param item Szablon przedmiotu osadzonego w slocie.
-     * @param itemStars Poziom ulepszenia przedmiotu.
-     * @param state Aktualny stan obliczeń.
-     */
+    /** Validates the slot's orbs and adds their statistics to the accumulator. */
     public void process(String slotKey, SlotData slot, ItemTemplate item, int itemStars, CalculationState state) {
         if (slot.getOrbIds() == null || slot.getOrbIds().isEmpty()) {
             return;
