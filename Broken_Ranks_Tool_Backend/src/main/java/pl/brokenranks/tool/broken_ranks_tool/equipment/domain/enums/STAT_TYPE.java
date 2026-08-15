@@ -9,10 +9,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/**
- * Reprezentuje wszystkie dozwolone typy statystyk bazowych i głównych,
- * zapewniając mechanizm do walidacji i normalizacji nazw.
- */
+/** Defines valid base and primary statistic types for validation and normalization. */
 @Getter
 @RequiredArgsConstructor
 public enum STAT_TYPE {
@@ -34,11 +31,9 @@ public enum STAT_TYPE {
             ));
 
     /**
-     * Bezpiecznie konwertuje string (np. z bazy danych lub API) na odpowiedni typ enuma.
-     * Wyszukiwanie ignoruje wielkość liter.
-     *
-     * @param description Polska nazwa statystyki (np. "Siła", "PŻ").
-     * @return Optional zawierający znaleziony STAT_TYPE lub pusty, jeśli nazwa jest nieprawidłowa.
+     * Resolves a statistic type case-insensitively from its localized description.
+     * @param description Localized statistic description.
+     * @return Matching statistic type, or empty when the description is unknown.
      */
     public static Optional<STAT_TYPE> fromDescription(String description) {
         if (description == null) {
@@ -48,9 +43,9 @@ public enum STAT_TYPE {
     }
 
     /**
-     * Sprawdza, czy podana nazwa statystyki jest prawidłową, dozwoloną nazwą.
-     * @param description Nazwa statystyki do sprawdzenia.
-     * @return true, jeśli nazwa jest prawidłowa.
+     * Returns whether the description identifies a valid statistic type.
+     * @param description Localized statistic description.
+     * @return Whether the description is supported.
      */
     public static boolean isValid(String description) {
         return fromDescription(description).isPresent();

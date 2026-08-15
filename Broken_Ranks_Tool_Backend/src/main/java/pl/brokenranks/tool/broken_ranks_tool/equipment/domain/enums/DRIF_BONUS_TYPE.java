@@ -3,9 +3,7 @@ package pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-/**
- * Reprezentuje wszystkie możliwe typy bonusów dostępne z drifów.
- */
+/** Defines all bonus types available from drifs. */
 @Getter
 @RequiredArgsConstructor
 public enum DRIF_BONUS_TYPE {

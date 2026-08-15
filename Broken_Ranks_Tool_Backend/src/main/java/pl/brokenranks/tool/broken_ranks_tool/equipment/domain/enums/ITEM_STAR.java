@@ -3,10 +3,7 @@ package pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-/**
- * Reprezentuje poziomy ulepszenia (gwiazdki) przedmiotów oraz
- * związane z nimi modyfikatory do statystyk, orbów i drifów.
- */
+/** Defines item upgrade levels and their stat, orb, and drif modifiers. */
 @Getter
 @AllArgsConstructor
 public enum ITEM_STAR {
@@ -26,9 +23,9 @@ public enum ITEM_STAR {
     private final double drifMod;
 
     /**
-     * Zwraca odpowiednią stałą enuma na podstawie podanego poziomu.
-     * @param level Poziom ulepszenia (1-9).
-     * @return Odpowiadająca stała {@code ITEM_STAR}, lub {@code BRONZE_1} jako domyślna.
+     * Returns the enum constant for an upgrade level.
+     * @param level Upgrade level from 1 to 9.
+     * @return Matching star constant, or {@code BRONZE_1} as the default.
      */
     public static ITEM_STAR fromLevel(int level) {
         for (ITEM_STAR star : values()) {

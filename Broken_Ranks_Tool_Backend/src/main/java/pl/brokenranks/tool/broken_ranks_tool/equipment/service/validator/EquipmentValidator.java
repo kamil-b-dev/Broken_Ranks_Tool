@@ -20,11 +20,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/**
- * Serwis odpowiedzialny za walidację logiki biznesowej i reguł gry
- * związanych z ekwipunkiem. Zapewnia, że dane wejściowe i operacje
- * są zgodne z zasadami (np. pojemność drifów, dozwolone sloty).
- */
+/** Validates equipment input against business and game rules. */
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -33,9 +29,9 @@ public class EquipmentValidator {
     private final EquipmentRulesRegistry rules;
 
     /**
-     * Waliduje, czy nazwy statystyk postaci podane w żądaniu są dozwolone.
-     * @param characterStats Mapa statystyk postaci do walidacji.
-     * @throws IllegalArgumentException w przypadku wykrycia nieprawidłowej nazwy.
+     * Validates that requested character statistic names are supported.
+     * @param characterStats Character statistics keyed by business name.
+     * @throws IllegalArgumentException If a statistic name is unsupported.
      */
     public void validateCharacterStats(Map<String, Integer> characterStats) {
         if (characterStats != null) {
@@ -48,11 +44,10 @@ public class EquipmentValidator {
     }
 
     /**
-     * Waliduje, czy podana konfiguracja orbów jest zgodna z regułami dla danego przedmiotu.
-     * Sprawdza liczbę orbów, rzadkość przedmiotu oraz unikalność bonusów orbów.
-     * @param item Szablon przedmiotu, do którego orby są przypisane.
-     * @param orbs Lista szablonów orbów do walidacji.
-     * @throws IllegalArgumentException w przypadku wykrycia naruszenia reguł.
+     * Validates orb count, item rarity, and duplicate orb bonuses.
+     * @param item Item receiving the orbs.
+     * @param orbs Orb templates to validate.
+     * @throws IllegalArgumentException If the orb configuration violates a game rule.
      */
     public void validateOrbsSecurity(ItemTemplate item, List<OrbTemplate> orbs) {
         if (orbs == null || orbs.isEmpty()) {
@@ -77,10 +72,10 @@ public class EquipmentValidator {
     }
 
     /**
-     * Oblicza całkowitą pojemność drifów dla przedmiotu, uwzględniając bonusy z gwiazdek.
-     * @param item Szablon przedmiotu.
-     * @param itemStars Poziom ulepszenia przedmiotu.
-     * @return Całkowita pojemność drifów.
+     * Calculates an item's total drif capacity, including star bonuses.
+     * @param item Item template.
+     * @param itemStars Item upgrade level.
+     * @return Total available drif capacity.
      */
     public int calculateItemCapacity(ItemTemplate item, int itemStars) {
         int baseCapacity = item.getCapacity() != null ? item.getCapacity() : 0;
@@ -96,14 +91,13 @@ public class EquipmentValidator {
 
 
     /**
-     * Waliduje, czy podana konfiguracja drifów jest zgodna z regułami dla danego przedmiotu.
-     * Sprawdza m.in. unikalność bonusów i limit pojemności.
-     *
-     * @param item Szablon przedmiotu, do którego drify są przypisane.
-     * @param itemStars Poziom ulepszenia przedmiotu.
-     * @param drifs Lista szablonów drifów do walidacji.
-     * @param drifLevels Lista poziomów dla każdego drifu.
-     * @throws IllegalArgumentException w przypadku wykrycia naruszenia reguł.
+     * Validates drif uniqueness, elemental placement, levels, and capacity limits.
+     * @param slotKey Equipment slot identifier.
+     * @param item Item receiving the drifs.
+     * @param itemStars Item upgrade level.
+     * @param drifs Drif templates to validate.
+     * @param drifLevels Requested level for each drif position.
+     * @throws IllegalArgumentException If the drif configuration violates a game rule.
      */
     public void validateDrifsSecurity(String slotKey, ItemTemplate item, int itemStars,
                                       List<DrifTemplate> drifs, List<Integer> drifLevels) {
@@ -149,9 +143,9 @@ public class EquipmentValidator {
     }
 
     /**
-     * Zwraca efektywny mnożnik mocy drifu na podstawie jego poziomu.
-     * @param level Poziom drifu.
-     * @return Mnożnik mocy.
+     * Returns the effective drif power multiplier for a level.
+     * @param level Drif level.
+     * @return Effective power multiplier.
      */
     private int getEffectiveMultiplier(int level) {
         if (level <= 6) return 1;
@@ -161,10 +155,10 @@ public class EquipmentValidator {
     }
 
     /**
-     * Sprawdza, czy przedmiot może być umieszczony w danym slocie.
-     * @param item Szablon przedmiotu.
-     * @param slotKey Klucz identyfikujący slot.
-     * @return {@code true}, jeśli przedmiot jest dozwolony w slocie.
+     * Returns whether an item is allowed in the requested slot.
+     * @param item Item template to check.
+     * @param slotKey Equipment slot identifier.
+     * @return Whether the item is allowed.
      */
     public boolean isValidItem(ItemTemplate item, String slotKey) {
         if (item == null) return false;
@@ -172,20 +166,20 @@ public class EquipmentValidator {
     }
 
     /**
-     * Sprawdza, czy drif jest poprawny (nie jest nullem i ma zdefiniowany typ bonusu).
-     * @param drif Szablon drifu.
-     * @param slotKey Klucz identyfikujący slot (nieużywany w tej metodzie, ale zachowany dla spójności sygnatury).
-     * @return {@code true}, jeśli drif jest poprawny.
+     * Returns whether a drif is non-null and has a defined bonus type.
+     * @param drif Drif template to check.
+     * @param slotKey Equipment slot identifier retained for signature consistency.
+     * @return Whether the drif can be processed.
      */
     public boolean isValidDrif(DrifTemplate drif, String slotKey) {
         return drif != null && drif.getBonusType() != null;
     }
 
     /**
-     * Ogranicza żądany poziom drifu do jego maksymalnej dozwolonej wartości.
-     * @param requestedLevel Żądany poziom drifu.
-     * @param drif Szablon drifu.
-     * @return Zsanityzowany poziom drifu.
+     * Clamps a requested drif level to its supported maximum.
+     * @param requestedLevel Requested drif level.
+     * @param drif Drif template defining the maximum.
+     * @return Sanitized drif level.
      */
     public int sanitizeDrifLevel(int requestedLevel, DrifTemplate drif) {
         if (drif.getSize() == null) return requestedLevel;
@@ -193,11 +187,11 @@ public class EquipmentValidator {
     }
 
     /**
-     * Sprawdza, czy orb jest prawidłowy dla danego slotu.
-     * @param orb Szablon orba.
-     * @param slotKey Klucz identyfikujący slot.
-     * @param isSecondOrb Czy jest to drugi orb w przedmiocie (dla legendarnych).
-     * @return {@code true}, jeśli orb jest prawidłowy.
+     * Returns whether an orb is valid for the requested slot.
+     * @param orb Orb template to check.
+     * @param slotKey Equipment slot identifier.
+     * @param isSecondOrb Whether this is the second orb on a legendary item.
+     * @return Whether the orb is valid.
      */
     public boolean isValidOrb(OrbTemplate orb, String slotKey, boolean isSecondOrb) {
         if (orb == null) return false;
@@ -209,10 +203,10 @@ public class EquipmentValidator {
     }
 
     /**
-     * Ogranicza żądany poziom orba do jego maksymalnej dozwolonej wartości.
-     * @param requestedLevel Żądany poziom orba.
-     * @param orb Szablon orba.
-     * @return Zsanityzowany poziom orba.
+     * Clamps a requested orb level to its supported maximum.
+     * @param requestedLevel Requested orb level.
+     * @param orb Orb template defining the maximum.
+     * @return Sanitized orb level.
      */
     public int sanitizeOrbLevel(int requestedLevel, OrbTemplate orb) {
         if (orb.getSize() == null) return requestedLevel;
@@ -220,19 +214,19 @@ public class EquipmentValidator {
     }
 
     /**
-     * Sprawdza, czy typ bonusu drifu jest klasyfikowany jako obrażenia od żywiołów.
-     * @param type Typ bonusu drifu.
-     * @return {@code true}, jeśli bonus jest od żywiołów.
+     * Returns whether a drif bonus represents elemental damage.
+     * @param type Drif bonus type.
+     * @return Whether the bonus is elemental damage.
      */
     public boolean isElementalDamage(DRIF_BONUS_TYPE type) {
         return rules.isElementalDamage(type);
     }
 
     /**
-     * Sprawdza, czy pozycja drifu z obrażeniami od żywiołów jest prawidłowa (tylko w broni).
-     * @param drif Szablon drifu.
-     * @param slotKey Klucz identyfikujący slot.
-     * @return {@code true}, jeśli drif żywiołowy jest w prawidłowym slocie.
+     * Returns whether an elemental drif is placed in the weapon slot.
+     * @param drif Drif template to check.
+     * @param slotKey Equipment slot identifier.
+     * @return Whether the elemental placement is valid.
      */
     public boolean isElementalDrifPositionValid(DrifTemplate drif, String slotKey) {
         if (drif == null || drif.getBonusType() == null) return false;
@@ -243,10 +237,10 @@ public class EquipmentValidator {
     }
 
     /**
-     * Sprawdza, czy rozmiar drifu jest dozwolony dla danego tieru przedmiotu.
-     * @param drif Szablon drifu.
-     * @param item Szablon przedmiotu.
-     * @return {@code true}, jeśli rozmiar drifu jest dozwolony.
+     * Returns whether a drif size is allowed for the item's tier.
+     * @param drif Drif template to check.
+     * @param item Item template defining the tier.
+     * @return Whether the drif size is allowed.
      */
     public boolean isValidDrifSizeForTier(DrifTemplate drif, ItemTemplate item) {
         if (drif == null || drif.getSize() == null || item == null) return false;

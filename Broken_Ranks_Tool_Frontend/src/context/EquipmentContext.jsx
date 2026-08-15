@@ -6,21 +6,19 @@ const BUILD_FILE_FORMAT = "broken-ranks-tool-build";
 const BUILD_FILE_VERSION = 1;
 
 /**
- * Niestandardowy hook zapewniający łatwy dostęp do kontekstu ekwipunku.
- * @returns {object} Obiekt kontekstu ekwipunku.
+ * Provides access to the equipment context.
+ * @returns {object} Shared equipment state, actions, and derived values.
  */
 // Provider and hook intentionally live together because the context is private to this module.
 // eslint-disable-next-line react-refresh/only-export-components
 export const useEquipment = () => useContext(EquipmentContext);
 
 /**
- * Dostawca kontekstu, który zarządza całym stanem aplikacji.
- * Odpowiada za pobieranie danych początkowych, aktualizowanie slotów na sprzęt,
- * zarządzanie statystykami postaci i uruchamianie optymalizacji.
+ * Provides application state for equipment, character stats, and optimization.
  *
- * @param {object} props - Właściwości komponentu.
- * @param {React.ReactNode} props.children - Komponenty potomne, które będą renderowane wewnątrz dostawcy.
- * @returns {JSX.Element} Komponent dostawcy.
+ * @param {object} props Provider properties.
+ * @param {React.ReactNode} props.children Nested application components.
+ * @returns {JSX.Element} The context provider.
  */
 export const EquipmentProvider = ({ children }) => {
     const [data, setData] = useState({ items: [], orbs: [], drifs: [] });
@@ -68,13 +66,11 @@ export const EquipmentProvider = ({ children }) => {
         fetchInitialData();
     }, []);
 
-    /**
-     * Funkcja zwrotna do aktualizacji danych konkretnego slota na sprzęt.
-     * Opakowana w `useCallback`, aby zapobiec ponownemu tworzeniu przy każdym renderowaniu,
-     * co pozwala uniknąć potencjalnych nieskończonych pętli w komponentach potomnych.
-     * @param {string} slotKey - Klucz slota do aktualizacji.
-     * @param {object} slotData - Nowe dane dla slota.
-     */
+/**
+ * Updates the equipment data for a single slot.
+ * @param {string} slotKey Equipment slot identifier.
+ * @param {object} slotData New slot data.
+ */
     const handleSlotUpdate = useCallback((slotKey, slotData) => {
         setRequestData((prev) => ({
             ...prev,
@@ -92,16 +88,16 @@ export const EquipmentProvider = ({ children }) => {
         }));
     }, []);
 
-    /**
-     * Funkcja zwrotna do aktualizacji bazowych statystyk postaci.
-     * @param {object} newStats - Nowe statystyki postaci.
-     */
+/**
+ * Updates the character's base statistics.
+ * @param {object} newStats New character statistics.
+ */
     const handleCharacterStatsUpdate = useCallback((newStats, newConfig = null) => {
         setRequestData((prev) => ({ ...prev, characterStats: newStats }));
         if (newConfig) setCharacterConfig(newConfig);
     }, []);
 
-    /** Pobiera kompletny build jako wersjonowany plik JSON. */
+/** Exports the complete build as a versioned JSON file for later import. */
     const saveBuildToFile = useCallback(() => {
         const payload = {
             format: BUILD_FILE_FORMAT,
@@ -127,7 +123,11 @@ export const EquipmentProvider = ({ children }) => {
         window.setTimeout(() => URL.revokeObjectURL(url), 1000);
     }, [requestData, characterConfig, lockedSlots, lockedDrifs]);
 
-    /** Wczytuje i waliduje build utworzony przez aplikację. */
+/**
+ * Loads and validates a build created by the application.
+ * @param {File} file JSON build file selected by the user.
+ * @throws {Error} If the file is missing, invalid, unsupported, or references unknown data.
+ */
     const loadBuildFromFile = useCallback(async (file) => {
         if (!file) throw new Error("Nie wybrano pliku buildu.");
         if (file.size > 5 * 1024 * 1024) throw new Error("Plik buildu jest zbyt duży.");
@@ -179,10 +179,10 @@ export const EquipmentProvider = ({ children }) => {
         setOptimizationTrigger(prev => prev + 1);
     }, [data.items, data.orbs, data.drifs]);
 
-    /**
-     * Przełącza stan blokady slota na sprzęt na potrzeby optymalizacji.
-     * @param {string} slotKey - Klucz slota do zablokowania lub odblokowania.
-     */
+/**
+ * Toggles an equipment slot lock used by the optimizer.
+ * @param {string} slotKey Equipment slot identifier.
+ */
     const toggleSlotLock = useCallback((slotKey) => {
         setLockedSlots(prev =>
             prev.includes(slotKey)
@@ -191,11 +191,11 @@ export const EquipmentProvider = ({ children }) => {
         );
     }, []);
 
-    /**
-     * Przełącza stan blokady konkretnego drifa w slocie na sprzęt na potrzeby optymalizacji.
-     * @param {string} slotKey - Klucz slota zawierającego drif.
-     * @param {number} drifIndex - Indeks drifa do zablokowania lub odblokowania.
-     */
+/**
+ * Toggles a drif lock within an equipment slot.
+ * @param {string} slotKey Equipment slot identifier.
+ * @param {number} drifIndex Drif position within the slot.
+ */
     const toggleDrifLock = useCallback((slotKey, drifIndex) => {
         setLockedDrifs(prev => {
             const currentSlotLocks = prev[slotKey] || [];
@@ -212,9 +212,10 @@ export const EquipmentProvider = ({ children }) => {
         });
     }, []);
 
-    /**
-     * Wysyła aktualne dane ekwipunku i postaci do backendu w celu obliczenia ostatecznych statystyk.
-     */
+/**
+ * Sends the current equipment and character data to calculate final statistics.
+ * Updates the shared statistics state or reports the backend error to the user.
+ */
     const calculateStats = useCallback(async () => {
         try {
             const response = await apiClient.post("/calculator/calculate", requestData);
@@ -229,12 +230,10 @@ export const EquipmentProvider = ({ children }) => {
         }
     }, [requestData]);
 
-    /**
-     * Uruchamia proces optymalizacji drifów na podstawie priorytetów zdefiniowanych przez użytkownika i zablokowanych przedmiotów.
-     * @param {object} optimizationConfig - Konfiguracja dla optymalizacji.
-     * @param {object} optimizationConfig.priorities - Priorytety statystyk dla optymalizatora.
-     * @param {object} optimizationConfig.targetQuantities - Docelowe ilości dla określonych statystyk.
-     */
+/**
+ * Starts drif optimization using user priorities and locked equipment.
+ * @param {object} optimizationConfig User priorities, quantity targets, and value targets.
+ */
     const runDrifOptimization = useCallback(async (optimizationConfig) => {
         if (!requestData.slots || Object.values(requestData.slots).every(s => !s.itemId)) {
             alert("Wybierz przynajmniej jeden przedmiot, aby uruchomić optymalizację.");

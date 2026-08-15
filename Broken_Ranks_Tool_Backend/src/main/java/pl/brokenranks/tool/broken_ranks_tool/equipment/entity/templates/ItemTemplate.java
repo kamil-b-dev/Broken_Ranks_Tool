@@ -10,11 +10,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.RARITY;
 
 import java.util.Map;
 
-/**
- * Reprezentuje szablon przedmiotu.
- * Ta klasa została stworzona, aby oddzielić bazowe właściwości przedmiotu
- * od konkretnych instancji, które mogą istnieć w ekwipunku graczy.
- */
+/** Defines shared item properties independently from user-owned item instances. */
 @Entity
 @Table(name = "item_templates")
 @Getter

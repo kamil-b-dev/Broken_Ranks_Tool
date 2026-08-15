@@ -9,82 +9,44 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * DTO dla żądania optymalizacji modyfikacji (drifów).
- * Zawiera dane o ekwipunku bazowym oraz zaawansowane parametry sterujące
- * takie jak wagi priorytetów, limity ilościowe, blokady oraz wymuszanie
- * maksymalnych wartości (Cap).
- */
+/** Request DTO for drif optimization, priorities, limits, locks, and caps. */
 @Data
 public class OptimizationRequest {
 
-    /**
-     * Kompletna, oryginalna mapa slotów z frontendu.
-     * Backend użyje jej jako bazy do przeprowadzenia optymalizacji.
-     */
+    /** Original equipment setup used as the optimization baseline. */
     private Map<String, EquipmentRequest.SlotData> originalSlots;
 
-    /**
-     * Mapa wag priorytetów dla poszczególnych typów bonusów.
-     * Klucz: Typ bonusu zdefiniowany przez gracza.
-     * Wartość: Punktowa waga (np. od 1 do 30), określająca jak mocno algorytm
-     * powinien faworyzować ten modyfikator.
-     */
+    /** Priority weights keyed by the bonus type selected by the user. */
     private Map<DRIF_BONUS_TYPE, Integer> priorities;
 
-    /**
-     * Oczekiwane widełki ilościowe dla konkretnych drifów (ograniczenia twarde).
-     * Klucz: Typ bonusu.
-     * Wartość: Obiekt zawierający minimalną i maksymalną pożądaną liczbę sztuk drifów tego typu.
-     */
+    /** Hard minimum and maximum quantity ranges for selected drif bonuses. */
     private Map<DRIF_BONUS_TYPE, QuantityRange> targetQuantities;
 
-    /** Docelowe wartości końcowe dla wybranych modyfikatorów. */
+    /** Target final values for selected modifiers. */
     private Map<DRIF_BONUS_TYPE, Double> targetValues;
 
-    /**
-     * Zestaw kluczy slotów (np. "helmet", "armor"), które mają zostać wykluczone z optymalizacji.
-     * Algorytm skopiuje obecne drify w tych slotach w 100% i nie będzie ich modyfikował.
-     */
+    /** Slot keys excluded from optimization and copied unchanged. */
     private Set<String> lockedSlots;
 
-    /**
-     * Mapa zablokowanych pojedynczych drifów w poszczególnych slotach.
-     * Klucz: Identyfikator slotu (np. "weapon").
-     * Wartość: Zestaw indeksów określających pozycję włożonego drifu,
-     * którego algorytm ma nie usuwać ani nie zamieniać (np. [0, 2]).
-     */
+    /** Locked drif indexes keyed by equipment slot. */
     private Map<String, Set<Integer>> lockedDrifs;
 
-    /**
-     * Zestaw typów bonusów, dla których algorytm ma bezwzględnie wymusić
-     * osiągnięcie maksymalnego limitu (capa) zdefiniowanego w regułach gry.
-     */
+    /** Bonus types for which the optimizer must reach the game-rule cap. */
     private Set<DRIF_BONUS_TYPE> forceCapBonuses;
 
-    /**
-     * Modyfikatory oznaczone przez gracza jako krytyczne. Krytyczny mod musi
-     * pozostać reprezentowany w wyniku, ale ta flaga sama w sobie nie wymusza
-     * osiągnięcia capa ani konkretnej liczby drifów.
-     */
+    /** Critical modifiers that must remain represented without forcing a cap. */
     private Set<DRIF_BONUS_TYPE> criticalBonuses;
 
-    /**
-     * Klasa pomocnicza (DTO) reprezentująca przedział ilościowy (minimum i maksimum).
-     */
+    /** DTO representing a minimum and maximum quantity range. */
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
     public static class QuantityRange {
 
-        /**
-         * Minimalna oczekiwana liczba sztuk drifów danego typu.
-         */
+        /** Minimum expected quantity for the bonus type. */
         private int min;
 
-        /**
-         * Maksymalna dopuszczalna liczba sztuk drifów danego typu.
-         */
+        /** Maximum allowed quantity for the bonus type. */
         private int max;
     }
 }

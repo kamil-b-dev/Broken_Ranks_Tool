@@ -2,20 +2,17 @@ import React from "react";
 import { getRarityColor, getStarColor } from "../../utils/formatters";
 
 /**
- * Komponent sekcji przedmiotu w slocie ekwipunku.
- * Umożliwia wybór przedmiotu z listy oraz ustawienie jego poziomu wzmocnienia (gwiazdek).
- * Obsługuje również logikę przeciągania i upuszczania przedmiotów.
- *
- * @param {object} props
- * @param {string} props.label Nazwa slotu (np. "Hełm").
- * @param {Array<object>} props.items Lista dostępnych przedmiotów dla tego slotu.
- * @param {object|undefined} props.fullSelectedItem Pełny obiekt aktualnie wybranego przedmiotu.
- * @param {string|null} props.dragOverZone Strefa, nad którą aktualnie przeciągany jest element.
- * @param {Function} props.handleDragOver Funkcja obsługująca zdarzenie przeciągania nad strefą.
- * @param {Function} props.handleDragLeave Funkcja obsługująca zdarzenie opuszczenia strefy przeciągania.
- * @param {Function} props.handleDrop Funkcja obsługująca zdarzenie upuszczenia elementu.
- * @param {object} props.hookData Obiekt z danymi i funkcjami z hooka `useGearSlot`.
- * @returns {JSX.Element}
+ * Renders item selection, upgrade level, and drag-and-drop behavior for a slot.
+ * @param {object} props Component properties.
+ * @param {string} props.label User-facing slot label.
+ * @param {Array<object>} props.items Items available for the slot.
+ * @param {object|undefined} props.fullSelectedItem Currently selected item.
+ * @param {string|null} props.dragOverZone Active drag-and-drop zone.
+ * @param {Function} props.handleDragOver Drag-over event handler.
+ * @param {Function} props.handleDragLeave Drag-leave event handler.
+ * @param {Function} props.handleDrop Drop event handler.
+ * @param {object} props.hookData State and actions returned by `useGearSlot`.
+ * @returns {JSX.Element} The item section.
  */
 const ItemSection = ({ label, items, fullSelectedItem, dragOverZone, handleDragOver, handleDragLeave, handleDrop, hookData }) => {
     const {

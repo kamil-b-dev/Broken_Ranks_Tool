@@ -5,25 +5,18 @@ import lombok.NoArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 
 
-/**
- * DTO dla odpowiedzi z wynikiem optymalizacji.
- */
+/** Response DTO containing the optimization result. */
 @Data
 @NoArgsConstructor
 public class OptimizationResponse {
-    /**
-     * Kompletna, zoptymalizowana konfiguracja ekwipunku, gotowa do użycia
-     * przez frontend do zaktualizowania stanu i interfejsu.
-     */
+    /** Complete optimized setup consumed by the frontend. */
     private EquipmentRequest optimizedSetup;
 
-    /**
-     * Podsumowanie wyników optymalizacji.
-     */
+    /** Optimization summary and metadata. */
     private OptimizationSummary summary;
 
-    /** Alternatywne ścieżki optymalizacji posortowane od najlepszego wyniku. */
-    /** Sugestie dotyczące ograniczeń lub dalszych możliwych zmian. */
+    /** Alternative optimization paths ordered by result quality. */
+    /** Suggestions about constraints or possible next changes. */
     public OptimizationResponse(EquipmentRequest optimizedSetup, OptimizationSummary summary) {
         this.optimizedSetup = optimizedSetup;
         this.summary = summary;

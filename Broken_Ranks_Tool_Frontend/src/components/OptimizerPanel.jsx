@@ -59,11 +59,8 @@ const sortBonusesByCategory = (bonuses) => [...bonuses].sort((left, right) => {
 });
 
 /**
- * Komponent optymalizatora drifów.
- * Udostępnia uproszczony widok ekwipunku z możliwością blokowania,
- * listę dostępnych bonusów oraz panel priorytetów z konfiguracją limitów.
- *
- * @returns {JSX.Element} Wyrenderowany komponent panelu optymalizatora.
+ * Provides drif priorities, target limits, and equipment locking for optimization.
+ * @returns {JSX.Element} The optimizer panel.
  */
 const OptimizerPanel = () => {
     const {
@@ -94,27 +91,19 @@ const OptimizerPanel = () => {
         return matchesCategory && matchesSearch;
     });
 
-    /**
-     * Przenosi wybrany bonus z listy dostępnych do listy priorytetów.
-     * @param {object} bonus - Obiekt bonusu do priorytetyzacji.
-     */
+    /** Moves a selected bonus into the priority list. */
     const handleSelectBonus = (bonus) => {
         setPrioritizedBonuses(prev => [...prev, { ...bonus, weight: 15, min: 0, max: 12, targetValue: '', forceCap: false, critical: false }]);
         setAvailableBonuses(prev => prev.filter(b => b.key !== bonus.key));
     };
 
-    /**
-     * Usuwa bonus z listy priorytetów i zwraca go do listy dostępnych.
-     * @param {object} bonus - Obiekt bonusu do usunięcia z priorytetów.
-     */
+    /** Removes a bonus from the priority list and restores it to available choices. */
     const handleRemoveBonus = (bonus) => {
         setAvailableBonuses(prev => sortBonusesByCategory([...prev, createBonusOption([bonus.key, bonus.value], gameRules?.drifBonusCategories)]));
         setPrioritizedBonuses(prev => prev.filter(b => b.key !== bonus.key));
     };
 
-    /**
-     * Czyści wszystkie bonusy z listy priorytetów.
-     */
+    /** Clears all configured priorities. */
     const handleClearAll = () => {
         setAvailableBonuses(prev => {
             const combined = [
@@ -126,12 +115,7 @@ const OptimizerPanel = () => {
         setPrioritizedBonuses([]);
     };
 
-    /**
-     * Aktualizuje określoną właściwość bonusu na liście priorytetów.
-     * @param {string} key - Klucz identyfikujący bonus.
-     * @param {string} field - Nazwa pola do aktualizacji (np. 'weight', 'min', 'max').
-     * @param {string|number|boolean} value - Nowa wartość dla pola.
-     */
+    /** Updates one field of a configured priority. */
     const handleUpdateBonus = (key, field, value) => {
         setPrioritizedBonuses(prev => prev.map(b => {
             if (b.key === key) {
@@ -141,7 +125,7 @@ const OptimizerPanel = () => {
         }));
     };
 
-    /** Sortuje priorytety według wagi, zachowując kolejność przy remisach. */
+    /** Sorts priorities by weight while preserving tie order. */
     const handleSortByPriority = () => {
         setPrioritizedBonuses(prev => {
             const direction = prioritySortDirection === 'desc' ? 1 : -1;
@@ -246,9 +230,7 @@ const OptimizerPanel = () => {
         }
     };
 
-    /**
-     * Buduje strukturę żądania i uruchamia proces optymalizacji na backendzie.
-     */
+    /** Builds the request and starts the backend optimization process. */
     const handleOptimizeClick = async () => {
         if (prioritizedBonuses.length === 0) return;
         setIsOptimizing(true);

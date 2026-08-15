@@ -17,11 +17,7 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/**
- * Przygotowuje wszystkie szablony ekwipunku potrzebne do przeprowadzenia obliczeń.
- * Celem tej klasy jest optymalizacja wydajności poprzez pobranie wszystkich
- * potrzebnych danych w kilku zbiorczych zapytaniach, aby zapobiec problemowi N+1.
- */
+/** Loads equipment templates in batches to avoid N+1 queries during calculations. */
 @Service
 @RequiredArgsConstructor
 public class EquipmentDataProvider {
@@ -31,10 +27,9 @@ public class EquipmentDataProvider {
     private final DrifTemplateRepository drifRepository;
 
     /**
-     * Tworzy kontekst obliczeniowy na podstawie danych z żądania.
-     *
-     * @param slots Kolekcja danych o slotach z żądania.
-     * @return Obiekt kontekstu zawierający mapy szablonów po ich ID.
+     * Builds a calculation context from the requested equipment slots.
+     * @param slots Requested equipment slot data.
+     * @return Context containing templates indexed by identifier.
      */
     public CalculationContext buildContext(Collection<SlotData> slots) {
         List<Long> itemIds = slots.stream().map(SlotData::getItemId).filter(Objects::nonNull).toList();
@@ -58,14 +53,7 @@ public class EquipmentDataProvider {
         );
     }
 
-    /**
-     * Niemutowalny kontener grupujący wszystkie dane wejściowe potrzebne do obliczeń.
-     * Użycie tego obiektu upraszcza przekazywanie kontekstu pomiędzy komponentami kalkulatora.
-     *
-     * @param items Mapa szablonów przedmiotów dostępnych w tej sesji.
-     * @param orbs  Mapa szablonów orbów dostępnych w tej sesji.
-     * @param drifs Mapa szablonów drifów dostępnych w tej sesji.
-     */
+    /** Immutable container for the templates required by the calculation pipeline. */
     public record CalculationContext(
             Map<Long, ItemTemplate> items,
             Map<Long, OrbTemplate> orbs,

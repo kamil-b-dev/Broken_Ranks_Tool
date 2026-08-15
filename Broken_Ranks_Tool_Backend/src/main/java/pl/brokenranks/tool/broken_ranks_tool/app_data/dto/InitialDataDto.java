@@ -9,36 +9,23 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.OrbTempl
 
 import java.util.List;
 
-/**
- * Główne DTO agregujące wszystkie dane potrzebne do inicjalizacji
- * aplikacji na frontendzie. Wysyłane jako odpowiedź z endpointu /api/initial-data.
- */
+/** Aggregates all data returned by the {@code /api/initial-data} endpoint. */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class InitialDataDto {
-    /**
-     * Lista wszystkich szablonów przedmiotów.
-     */
+    /** All available item templates. */
     private List<ItemTemplate> items;
 
-    /**
-     * Lista wszystkich szablonów orbów.
-     */
+    /** All available orb templates. */
     private List<OrbTemplate> orbs;
 
-    /**
-     * Lista wszystkich szablonów drifów (jako DTO).
-     */
+    /** All available drif templates represented as DTOs. */
     private List<DrifTemplateDto> drifs;
 
-    /**
-     * Obiekt zawierający wszystkie reguły gry.
-     */
+    /** Game rules required by the frontend. */
     private GameRulesDto gameRules;
 
-    /**
-     * Obiekt zawierający wszystkie słowniki i tłumaczenia.
-     */
+    /** Translation dictionaries required by the frontend. */
     private DictionariesDto dictionaries;
 }

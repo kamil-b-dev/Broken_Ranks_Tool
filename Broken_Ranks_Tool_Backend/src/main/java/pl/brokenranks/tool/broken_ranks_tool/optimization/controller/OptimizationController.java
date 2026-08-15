@@ -16,9 +16,9 @@ public class OptimizationController {
     private final ModsOptimizationService optimizationService;
 
     /**
-     * Uruchamia proces optymalizacji drifów na podstawie podanych priorytetów.
-     * @param request DTO z żądaniem optymalizacji.
-     * @return ResponseEntity z obiektem DTO zawierającym zoptymalizowaną konfigurację.
+     * Starts drif optimization using the submitted priorities and constraints.
+     * @param request Optimization priorities, targets, locks, and baseline equipment.
+     * @return HTTP response containing the optimized setup and summary.
      */
     @PostMapping("/drifs")
     public ResponseEntity<OptimizationResponse> optimizeDrifs(@RequestBody OptimizationRequest request) {

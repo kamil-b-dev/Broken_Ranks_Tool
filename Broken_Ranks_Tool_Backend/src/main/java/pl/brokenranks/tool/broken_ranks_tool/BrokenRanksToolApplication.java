@@ -4,9 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
 
-/**
- * Główny punkt wejścia i klasa konfiguracyjna aplikacji Spring Boot.
- */
+/** Main entry point and configuration class for the Spring Boot application. */
 @SpringBootApplication
 @EnableCaching
 public class BrokenRanksToolApplication {
