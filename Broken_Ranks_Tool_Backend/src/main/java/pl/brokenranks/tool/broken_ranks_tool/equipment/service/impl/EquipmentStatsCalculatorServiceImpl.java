@@ -33,6 +33,7 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
 
     @Override
     public Map<String, String> calculateTotalStats(EquipmentRequest request) {
+        validator.validateRequest(request);
         if (request.getSlots() == null || request.getSlots().isEmpty()) {
             return Collections.emptyMap();
         }
@@ -78,7 +79,8 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
             return;
         }
 
-        int starLevel = (slotData.getItemStars() != null) ? slotData.getItemStars() : 1;
+        int requestedStarLevel = slotData.getItemStars() != null ? slotData.getItemStars() : 1;
+        int starLevel = validator.sanitizeItemStars(requestedStarLevel);
 
         List<DrifTemplate> drifsForSlot = new ArrayList<>();
         List<Integer> levelsForSlot = new ArrayList<>();

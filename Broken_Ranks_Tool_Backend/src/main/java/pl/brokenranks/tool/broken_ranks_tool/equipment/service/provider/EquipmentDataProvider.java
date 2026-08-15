@@ -32,24 +32,33 @@ public class EquipmentDataProvider {
      * @return Context containing templates indexed by identifier.
      */
     public CalculationContext buildContext(Collection<SlotData> slots) {
-        List<Long> itemIds = slots.stream().map(SlotData::getItemId).filter(Objects::nonNull).toList();
+        List<Long> itemIds = slots.stream()
+                .filter(Objects::nonNull)
+                .map(SlotData::getItemId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
         List<Long> orbIds = slots.stream()
+                .filter(Objects::nonNull)
                 .map(SlotData::getOrbIds)
                 .filter(Objects::nonNull)
                 .flatMap(List::stream)
                 .filter(Objects::nonNull)
+                .distinct()
                 .toList();
         List<Long> drifIds = slots.stream()
+                .filter(Objects::nonNull)
                 .map(SlotData::getDrifIds)
                 .filter(Objects::nonNull)
                 .flatMap(List::stream)
                 .filter(Objects::nonNull)
+                .distinct()
                 .toList();
 
         return new CalculationContext(
-                itemRepository.findAllById(itemIds).stream().collect(Collectors.toMap(ItemTemplate::getId, Function.identity())),
-                orbRepository.findAllById(orbIds).stream().collect(Collectors.toMap(OrbTemplate::getId, Function.identity())),
-                drifRepository.findAllById(drifIds).stream().collect(Collectors.toMap(DrifTemplate::getId, Function.identity()))
+                itemRepository.findAllById(itemIds).stream().collect(Collectors.toMap(ItemTemplate::getId, Function.identity(), (first, ignored) -> first)),
+                orbRepository.findAllById(orbIds).stream().collect(Collectors.toMap(OrbTemplate::getId, Function.identity(), (first, ignored) -> first)),
+                drifRepository.findAllById(drifIds).stream().collect(Collectors.toMap(DrifTemplate::getId, Function.identity(), (first, ignored) -> first))
         );
     }
 

@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { ROMAN_ORDER, SIZE_ORDER } from "../utils/GearRules.jsx";
+import { ROMAN_ORDER, SIZE_ORDER } from "../utils/GearRules";
 
 const getRarityColor = (rarity) => {
     if (!rarity) return "bg-clip-text text-transparent bg-gradient-to-r from-stone-400 to-stone-500 font-bold";

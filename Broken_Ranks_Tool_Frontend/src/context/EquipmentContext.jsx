@@ -255,8 +255,6 @@ export const EquipmentProvider = ({ children }) => {
             const response = await apiClient.post("/optimizer/drifs", optimizationRequest);
             const { optimizedSetup, summary } = response.data;
 
-            console.log("ODPOWIEDŹ Z BACKENDU:", response.data);
-
             if (summary.success && optimizedSetup && optimizedSetup.slots) {
                 setRequestData(prev => ({
                     ...prev,

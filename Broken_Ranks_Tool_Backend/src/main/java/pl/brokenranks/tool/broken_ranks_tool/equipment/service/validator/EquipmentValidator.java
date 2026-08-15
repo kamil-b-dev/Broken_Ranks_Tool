@@ -9,6 +9,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ORB_BONUS_TY
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.RARITY;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.STAT_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.util.RomanNumeralParser;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.OrbTemplate;
@@ -29,15 +30,31 @@ public class EquipmentValidator {
     private final EquipmentRulesRegistry rules;
 
     /**
+     * Validates the request envelope before the calculation pipeline accesses it.
+     * @param request Equipment calculation request.
+     * @throws IllegalArgumentException If the request is missing required structures.
+     */
+    public void validateRequest(EquipmentRequest request) {
+        if (request == null || request.getSlots() == null) {
+            throw new IllegalArgumentException("Żądanie musi zawierać konfigurację slotów.");
+        }
+        request.getSlots().forEach((slotKey, slotData) -> {
+            if (slotKey == null || slotKey.isBlank() || slotData == null) {
+                throw new IllegalArgumentException("Konfiguracja zawiera nieprawidłowy slot.");
+            }
+        });
+    }
+
+    /**
      * Validates that requested character statistic names are supported.
      * @param characterStats Character statistics keyed by business name.
      * @throws IllegalArgumentException If a statistic name is unsupported.
      */
     public void validateCharacterStats(Map<String, Integer> characterStats) {
         if (characterStats != null) {
-            for (String statName : characterStats.keySet()) {
-                if (!STAT_TYPE.isValid(statName)) {
-                    throw new IllegalArgumentException("Wykryto nieprawidłową nazwę statystyki postaci: " + statName);
+            for (Map.Entry<String, Integer> entry : characterStats.entrySet()) {
+                if (!STAT_TYPE.isValid(entry.getKey()) || entry.getValue() == null) {
+                    throw new IllegalArgumentException("Wykryto nieprawidłową statystykę postaci: " + entry.getKey());
                 }
             }
         }
@@ -81,10 +98,11 @@ public class EquipmentValidator {
         int baseCapacity = item.getCapacity() != null ? item.getCapacity() : 0;
         if (baseCapacity == 0) return 0;
 
+        int normalizedStars = sanitizeItemStars(itemStars);
         int capacityBonus = 0;
-        if (itemStars >= 7 && itemStars < 8) capacityBonus = 1;
-        else if (itemStars >= 8 && itemStars < 9) capacityBonus = 2;
-        else if (itemStars >= 9) capacityBonus = 4;
+        if (normalizedStars == 7) capacityBonus = 1;
+        else if (normalizedStars == 8) capacityBonus = 2;
+        else if (normalizedStars == 9) capacityBonus = 4;
 
         return baseCapacity + capacityBonus;
     }
@@ -115,7 +133,8 @@ public class EquipmentValidator {
 
         for (int i = 0; i < drifs.size(); i++) {
             DrifTemplate drif = drifs.get(i);
-            int level = i < drifLevels.size() ? drifLevels.get(i) : 1;
+            int requestedLevel = i < drifLevels.size() && drifLevels.get(i) != null ? drifLevels.get(i) : 1;
+            int level = sanitizeDrifLevel(requestedLevel, drif);
 
             if (!isElementalDrifPositionValid(drif, slotKey)) {
                 throw new IllegalArgumentException("Drify żywiołowe mogą znajdować się wyłącznie w broni.");
@@ -182,8 +201,8 @@ public class EquipmentValidator {
      * @return Sanitized drif level.
      */
     public int sanitizeDrifLevel(int requestedLevel, DrifTemplate drif) {
-        if (drif.getSize() == null) return requestedLevel;
-        return Math.min(requestedLevel, drif.getSize().getMaxLevel());
+        if (drif.getSize() == null) return Math.max(1, requestedLevel);
+        return Math.max(1, Math.min(requestedLevel, drif.getSize().getMaxLevel()));
     }
 
     /**
@@ -209,8 +228,17 @@ public class EquipmentValidator {
      * @return Sanitized orb level.
      */
     public int sanitizeOrbLevel(int requestedLevel, OrbTemplate orb) {
-        if (orb.getSize() == null) return requestedLevel;
-        return Math.min(requestedLevel, orb.getSize().getMaxLevel());
+        if (orb.getSize() == null) return Math.max(1, requestedLevel);
+        return Math.max(1, Math.min(requestedLevel, orb.getSize().getMaxLevel()));
+    }
+
+    /**
+     * Normalizes an item upgrade level to the supported game range.
+     * @param requestedLevel Requested item upgrade level.
+     * @return A value between 1 and 9.
+     */
+    public int sanitizeItemStars(int requestedLevel) {
+        return Math.max(1, Math.min(requestedLevel, 9));
     }
 
     /**
