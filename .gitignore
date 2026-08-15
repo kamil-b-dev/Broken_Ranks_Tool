@@ -19,6 +19,29 @@ target/
 *.iml
 *.ipr
 
+# Local Codex instructions
+AGENTS.md
+
+# Local Codex and agent metadata
+.codex/
+.agents/
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+*.local
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+*.bak
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/

@@ -88,7 +88,7 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
         List<Integer> levelsForSlot = new ArrayList<>();
         prepareDrifsForSlot(slotData, ctx, drifsForSlot, levelsForSlot);
 
-        validator.validateDrifsSecurity(item, starLevel, drifsForSlot, levelsForSlot);
+        validator.validateDrifsSecurity(slotKey, item, starLevel, drifsForSlot, levelsForSlot);
 
         double finalDrifMod = itemProcessor.calculateFinalDrifMod(item, starLevel);
 
