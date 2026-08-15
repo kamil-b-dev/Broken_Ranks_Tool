@@ -1,8 +1,7 @@
 /**
- * Formatuje surową wartość statystyki do wyświetlenia.
- * Zaokrągla liczby do dwóch miejsc po przecinku i obsługuje wartości procentowe.
- * @param {number|string|null|undefined} val Wartość do sformatowania.
- * @returns {number|string|null|undefined} Sformatowana wartość.
+ * Formats a raw statistic value for display, including percentage values.
+ * @param {number|string|null|undefined} val Raw statistic value.
+ * @returns {number|string|null|undefined} Display-ready value.
  */
 const formatStatValue = (val) => {
     if (val === undefined || val === null) return val;
@@ -25,14 +24,12 @@ const formatStatValue = (val) => {
 };
 
 /**
- * Komponent, którego rolą jest wyświetlanie finalnych, obliczonych statystyk.
- * Kategoryzuje otrzymane statystyki na podstawowe, z orbów i z drifów.
- *
- * @param {object} props
- * @param {object | null} props.stats Obiekt ze statystykami do wyświetlenia.
- * @param {Function} props.onCalculate Funkcja wywoływana po kliknięciu przycisku "Przelicz".
- * @param {object} props.gameRules Obiekt z regułami gry, potrzebny do kategoryzacji.
- * @returns {JSX.Element}
+ * Displays calculated statistics grouped by their equipment source.
+ * @param {object} props Component properties.
+ * @param {object|null} props.stats Calculated statistics to display.
+ * @param {Function} props.onCalculate Callback for recalculating statistics.
+ * @param {object} props.gameRules Rules used to categorize statistics.
+ * @returns {JSX.Element} The statistics panel.
  */
 const StatsPanel = ({ stats, onCalculate, gameRules }) => {
     const basicStats = [];

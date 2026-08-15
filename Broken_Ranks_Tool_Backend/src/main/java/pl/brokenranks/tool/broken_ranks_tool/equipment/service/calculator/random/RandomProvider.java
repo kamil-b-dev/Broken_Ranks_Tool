@@ -1,18 +1,13 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.random;
 
-/**
- * Definiuje abstrakcję dla dostawcy liczb losowych, aby umożliwić
- * wstrzykiwanie zależności i mockowanie losowości w testach.
- */
+/** Abstracts random number generation for dependency injection and testing. */
 public interface RandomProvider {
     /**
-     * @param bound Górna granica.
-     * @return Losowa liczba całkowita.
+     * @param bound Exclusive upper bound.
+     * @return A random integer below the supplied bound.
      */
     int nextInt(int bound);
 
-    /**
-     * @return Losowa liczba zmiennoprzecinkowa między 0.0 a 1.0.
-     */
+    /** @return A random floating-point value between 0.0 and 1.0. */
     double nextDouble();
 }

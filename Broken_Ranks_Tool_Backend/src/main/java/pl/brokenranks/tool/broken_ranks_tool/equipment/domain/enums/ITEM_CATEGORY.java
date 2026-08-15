@@ -3,10 +3,7 @@ package pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-/**
- * Reprezentuje wszystkie możliwe kategorie (typy) przedmiotów w grze,
- * które odpowiadają slotom ekwipunku.
- */
+/** Defines the item categories mapped to equipment slots. */
 @Getter
 @AllArgsConstructor
 public enum ITEM_CATEGORY {

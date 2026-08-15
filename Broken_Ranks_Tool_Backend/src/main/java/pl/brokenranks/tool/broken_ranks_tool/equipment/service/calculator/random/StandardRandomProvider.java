@@ -3,10 +3,7 @@ package pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.rando
 import org.springframework.stereotype.Component;
 import java.util.Random;
 
-/**
- * Domyślna, produkcyjna implementacja {@link RandomProvider},
- * która deleguje wywołania do standardowej klasy {@link java.util.Random}.
- */
+/** Production {@link RandomProvider} backed by {@link java.util.Random}. */
 @Component
 public class StandardRandomProvider implements RandomProvider {
     private final Random random = new Random();

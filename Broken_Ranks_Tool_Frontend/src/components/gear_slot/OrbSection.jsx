@@ -2,22 +2,19 @@ import React from "react";
 import { formatGroupLabel } from "../../utils/formatters";
 
 /**
- * Komponent sekcji orba w slocie ekwipunku.
- * Umożliwia wybór rodzaju, wielkości i poziomu orba.
- * Obsługuje również logikę przeciągania i upuszczania orbów.
- *
- * @param {object} props
- * @param {string} props.slotKey Klucz identyfikujący slot orba (np. "orb1").
- * @param {object} props.selectedItem Aktualnie wybrany przedmiot w slocie.
- * @param {string|null} props.dragOverZone Strefa, nad którą aktualnie przeciągany jest element.
- * @param {Function} props.handleDragOver Funkcja obsługująca zdarzenie przeciągania nad strefą.
- * @param {Function} props.handleDragLeave Funkcja obsługująca zdarzenie opuszczenia strefy przeciągania.
- * @param {Function} props.handleDrop Funkcja obsługująca zdarzenie upuszczenia elementu.
- * @param {object} props.orbState Stan aktualnie wybranego orba (typ, id, poziom).
- * @param {Function} props.setOrbState Funkcja do aktualizacji stanu orba.
- * @param {object} props.groupedOrbs Orby pogrupowane według typu.
- * @param {object} props.bonusTranslations Tłumaczenia nazw bonusów.
- * @returns {JSX.Element}
+ * Renders orb selection, leveling, and drag-and-drop behavior for a slot.
+ * @param {object} props Component properties.
+ * @param {string} props.slotKey Orb slot identifier.
+ * @param {object} props.selectedItem Item currently selected in the parent slot.
+ * @param {string|null} props.dragOverZone Active drag-and-drop zone.
+ * @param {Function} props.handleDragOver Drag-over event handler.
+ * @param {Function} props.handleDragLeave Drag-leave event handler.
+ * @param {Function} props.handleDrop Drop event handler.
+ * @param {object} props.orbState Selected orb type, identifier, and level.
+ * @param {Function} props.setOrbState Callback for updating orb state.
+ * @param {object} props.groupedOrbs Orbs grouped by bonus type.
+ * @param {object} props.bonusTranslations Bonus display translations.
+ * @returns {JSX.Element} The orb section.
  */
 const OrbSection = ({ slotKey, selectedItem, dragOverZone, handleDragOver, handleDragLeave, handleDrop, orbState, setOrbState, groupedOrbs, bonusTranslations }) => {
     const currentOrbObj = groupedOrbs[orbState.type]?.find(o => o.id.toString() === orbState.id);

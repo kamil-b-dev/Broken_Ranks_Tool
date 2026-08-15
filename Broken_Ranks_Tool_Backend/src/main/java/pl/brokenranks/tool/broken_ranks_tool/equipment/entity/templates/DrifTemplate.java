@@ -7,9 +7,7 @@ import pl.brokenranks.tool.broken_ranks_tool.core.entity.BaseNamedEntity;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_SIZE;
 
-/**
- * Reprezentuje szablon drifu.
- */
+/** Defines a reusable drif template. */
 @Entity
 @Table(name = "drif_templates")
 @Getter

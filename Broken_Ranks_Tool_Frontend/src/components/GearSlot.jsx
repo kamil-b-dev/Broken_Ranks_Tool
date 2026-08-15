@@ -6,17 +6,15 @@ import OrbSection from "./gear_slot/OrbSection.jsx";
 import DrifSection from "./gear_slot/DrifSection.jsx";
 
 /**
- * Główny komponent reprezentujący pojedynczy slot na ekwipunek w interfejsie użytkownika.
- * Agreguje i zarządza sekcjami dla przedmiotu, orbów i drifów, korzystając z logiki
- * dostarczanej przez hook `useGearSlot`.
+ * Renders one equipment slot with item, orb, and drif sections.
  *
- * @param {object} props - Właściwości przekazywane do komponentu.
- * @param {string} props.label - Etykieta slota (np. "Hełm").
- * @param {Array<object>} props.items - Lista dostępnych przedmiotów dla tego slota.
- * @param {Array<object>} props.drifs - Lista wszystkich dostępnych drifów.
- * @param {object} props.gameRules - Obiekt z regułami gry.
- * @param {string} props.slotKey - Unikalny klucz identyfikujący slot (np. "helmet").
- * @returns {JSX.Element} Wyrenderowany komponent slota na ekwipunek.
+ * @param {object} props Component properties.
+ * @param {string} props.label User-facing slot label.
+ * @param {Array<object>} props.items Items available for the slot.
+ * @param {Array<object>} props.drifs Drifs available for the slot.
+ * @param {object} props.gameRules Rules used by the slot sections.
+ * @param {string} props.slotKey Stable equipment slot identifier.
+ * @returns {JSX.Element} The rendered equipment slot.
  */
 const GearSlot = (props) => {
     const { label, items, drifs, gameRules, slotKey } = props;

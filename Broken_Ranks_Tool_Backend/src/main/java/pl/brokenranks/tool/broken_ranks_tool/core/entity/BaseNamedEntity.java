@@ -7,10 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
-/**
- * Rozszerza {@link BaseEntity} o pole {@code name}, aby zapewnić spójną nazwę
- * dla encji, które jej wymagają.
- */
+/** Extends {@link BaseEntity} with a shared name field. */
 @MappedSuperclass
 @Getter
 @Setter

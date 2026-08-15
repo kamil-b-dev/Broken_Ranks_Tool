@@ -9,9 +9,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/**
- * Reprezentuje wszystkie typy odporności i pancerzy w grze.
- */
+/** Defines all resistance and armor statistics. */
 @Getter
 @AllArgsConstructor
 public enum RESISTANCE_STAT_TYPE {
@@ -33,11 +31,9 @@ public enum RESISTANCE_STAT_TYPE {
             ));
 
     /**
-     * Bezpiecznie konwertuje string na odpowiedni typ enuma.
-     * Wyszukiwanie ignoruje wielkość liter.
-     *
-     * @param description Polska nazwa odporności.
-     * @return Optional zawierający znaleziony typ lub pusty, jeśli nazwa jest nieprawidłowa.
+     * Resolves a resistance type case-insensitively from its localized description.
+     * @param description Localized resistance description.
+     * @return Matching resistance type, or empty when the description is unknown.
      */
     public static Optional<RESISTANCE_STAT_TYPE> fromDescription(String description) {
         if (description == null) {

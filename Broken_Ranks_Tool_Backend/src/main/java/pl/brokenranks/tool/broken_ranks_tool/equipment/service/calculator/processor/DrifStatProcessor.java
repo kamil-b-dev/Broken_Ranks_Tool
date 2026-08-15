@@ -19,10 +19,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Przetwarza statystyki pochodzące z drifów, uwzględniając ich poziomy,
- * modyfikatory z przedmiotu oraz kary za powielanie tego samego typu bonusu.
- */
+/** Calculates drif statistics, item modifiers, and duplicate-bonus penalties. */
 @Component
 @RequiredArgsConstructor
 public class DrifStatProcessor {

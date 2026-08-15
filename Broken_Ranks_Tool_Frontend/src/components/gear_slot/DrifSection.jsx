@@ -1,31 +1,22 @@
 import React from "react";
+import { DRIF_MULTIPLIERS, SIZE_INDEX } from "../../utils/GearRules";
 import { getDrifMaxLvl, formatGroupLabel } from "../../utils/formatters";
 import { useEquipment } from "../../context/EquipmentContext";
 
-const DRIF_MULTIPLIERS = {
-    "SUBDRIF": 1,
-    "BIDRIF": 2,
-    "MAGNIDRIF": 3,
-    "ARCYDRIF": 4,
-};
-
 /**
- * Komponent renderujący sekcję do zarządzania drifami w slocie ekwipunku.
- * Odpowiada za wyświetlanie wbudowanych drifów (dla przedmiotów epickich/setowych)
- * oraz slotów na standardowe drify, wraz z ich pojemnością, poziomami i możliwością blokowania.
- *
- * @param {object} props - Właściwości komponentu.
- * @param {string} props.slotKey - Klucz identyfikujący nadrzędny slot ekwipunku.
- * @param {Array<object>} props.drifs - Pełna lista dostępnych drifów w grze.
- * @param {object|null} props.fullSelectedItem - Pełny obiekt wybranego przedmiotu.
- * @param {string|null} props.dragOverZone - Strefa, nad którą aktualnie przeciągany jest element.
- * @param {function} props.handleDragOver - Funkcja obsługująca zdarzenie `onDragOver`.
- * @param {function} props.handleDragLeave - Funkcja obsługująca zdarzenie `onDragLeave`.
- * @param {function} props.handleDrop - Funkcja obsługująca zdarzenie `onDrop`.
- * @param {object} props.hookData - Dane i funkcje z hooka `useGearSlot`.
- * @param {object} props.bonusTranslations - Słownik tłumaczeń nazw bonusów.
- * @param {object} props.drifBasePowers - Obiekt z bazową mocą dla każdego typu drifa.
- * @returns {JSX.Element} Wyrenderowana sekcja zarządzania drifami.
+ * Renders built-in and standard drif slots, capacity, levels, and locks.
+ * @param {object} props Component properties.
+ * @param {string} props.slotKey Parent equipment slot identifier.
+ * @param {Array<object>} props.drifs Available drif templates.
+ * @param {object|null} props.fullSelectedItem Currently selected item.
+ * @param {string|null} props.dragOverZone Active drag-and-drop zone.
+ * @param {Function} props.handleDragOver Drag-over event handler.
+ * @param {Function} props.handleDragLeave Drag-leave event handler.
+ * @param {Function} props.handleDrop Drop event handler.
+ * @param {object} props.hookData State and actions returned by `useGearSlot`.
+ * @param {object} props.bonusTranslations Bonus display translations.
+ * @param {object} props.drifBasePowers Base power by drif bonus type.
+ * @returns {JSX.Element} The drif section.
  */
 const DrifSection = ({ slotKey, drifs, fullSelectedItem, dragOverZone, handleDragOver, handleDragLeave, handleDrop, hookData, bonusTranslations, drifBasePowers }) => {
     const {
@@ -38,18 +29,16 @@ const DrifSection = ({ slotKey, drifs, fullSelectedItem, dragOverZone, handleDra
 
     const isParentSlotLocked = lockedSlots?.includes(slotKey) || false;
 
-    /**
-     * Sprawdza, czy dany drif jest zablokowany, uwzględniając blokadę nadrzędnego slota.
-     * @param {number} index - Indeks drifa do sprawdzenia.
-     * @returns {boolean} - `true`, jeśli drif jest zablokowany.
-     */
+/**
+ * Returns whether a drif is locked directly or through its parent slot.
+ * @param {number} index Drif position within the slot.
+ * @returns {boolean} Whether the drif is locked.
+ */
     const isDrifLocked = (index) => {
         if (isParentSlotLocked) return true;
         const locksForSlot = lockedDrifs?.[slotKey] || [];
         return locksForSlot.includes(index);
     };
-
-    const sizeIndexMap = { "SUBDRIF": 0, "BIDRIF": 1, "MAGNIDRIF": 2, "ARCYDRIF": 3 };
 
     return (
         <div className="w-full flex flex-col items-center mt-1">
@@ -107,7 +96,7 @@ const DrifSection = ({ slotKey, drifs, fullSelectedItem, dragOverZone, handleDra
 
                         if (!drif.size) return false;
                         if (localUsedBonusTypes.includes(drif.bonusType)) return false;
-                        const drifSizeIdx = sizeIndexMap[drif.size.toUpperCase()] ?? -1;
+                        const drifSizeIdx = SIZE_INDEX[drif.size.toUpperCase()] ?? -1;
                         if (drifSizeIdx === -1 || drifSizeIdx > maxDrifIndex) return false;
                         return true;
                     });

@@ -5,15 +5,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import javax.sql.DataSource;
 
-/**
- * Konfiguracja źródła danych (DataSource) dla bazy SQLite.
- */
+/** Configures the SQLite data source. */
 @Configuration
 public class SQLiteConfig {
 
     /**
-     * Definiuje bean {@link DataSource}, aby Spring mógł zarządzać połączeniami z bazą danych.
-     * @return Skonfigurowane źródło danych.
+     * Creates the {@link DataSource} managed by Spring.
+     * @return Configured SQLite data source.
      */
     @Bean
     public DataSource dataSource() {

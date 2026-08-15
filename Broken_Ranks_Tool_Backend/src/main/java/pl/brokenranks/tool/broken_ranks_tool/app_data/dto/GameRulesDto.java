@@ -8,47 +8,26 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ORB_CATEGORY
 import java.util.List;
 import java.util.Map;
 
-/**
- * DTO grupujące wszystkie reguły gry potrzebne do działania logiki
- * frontendowej (np. wbudowane drify, zasady slotowania orbów).
- */
+/** Groups the game rules required by frontend equipment logic. */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class GameRulesDto {
-    /**
-     * Mapa wbudowanych drifów dla przedmiotów epickich i setowych.
-     * Klucz: nazwa przedmiotu, Wartość: lista typów bonusów drifów.
-     */
+    /** Built-in drifs for epic and set items, keyed by item name. */
     private Map<String, List<String>> epicBuiltInDrifs;
 
-    /**
-     * Mapa reguł slotowania orbów.
-     * Klucz: klucz slotu (np. "weapon"), Wartość: lista dozwolonych kategorii orbów.
-     */
+    /** Orb slotting rules keyed by equipment slot. */
     private Map<String, List<ORB_CATEGORY>> slotOrbRules;
 
-    /**
-     * Mapa tłumaczeń dla wszystkich typów bonusów (drifów i orbów).
-     * Klucz: nazwa enuma (np. "CRITICAL_CHANCE"), Wartość: polski opis (np. "Szansa na krytyk").
-     */
+    /** Translations for all drif and orb bonus types, keyed by enum name. */
     private Map<String, String> bonusTranslations;
 
-    /**
-     * Mapa mocy bazowych dla każdego typu bonusu drifu.
-     * Klucz: nazwa enuma (np. "CRITICAL_CHANCE"), Wartość: moc bazowa.
-     */
+    /** Base power values for each drif bonus type. */
     private Map<String, Integer> drifBasePowers;
 
-    /**
-     * Mapa maksymalnych limitów (capów) dla każdego typu bonusu drifu.
-     * Klucz: nazwa enuma, Wartość: maksymalny limit (lub null w przypadku braku limitu).
-     */
+    /** Maximum caps for each drif bonus type, or null when no cap exists. */
     private Map<String, Integer> drifMaxCaps;
 
-    /**
-     * Mapa kategorii dla kaĹĽdego typu bonusu drifu.
-     * Klucz: nazwa enuma bonusu, wartoĹ›Ä‡: nazwa enuma {@code DRIF_CATEGORY}.
-     */
+    /** Drif bonus categories keyed by bonus enum name. */
     private Map<String, String> drifBonusCategories;
 }
