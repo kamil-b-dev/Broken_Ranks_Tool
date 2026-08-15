@@ -1,13 +1,7 @@
 import React from "react";
+import { DRIF_MULTIPLIERS, SIZE_INDEX } from "../../utils/GearRules";
 import { getDrifMaxLvl, formatGroupLabel } from "../../utils/formatters";
 import { useEquipment } from "../../context/EquipmentContext";
-
-const DRIF_MULTIPLIERS = {
-    "SUBDRIF": 1,
-    "BIDRIF": 2,
-    "MAGNIDRIF": 3,
-    "ARCYDRIF": 4,
-};
 
 /**
  * Renders built-in and standard drif slots, capacity, levels, and locks.
@@ -45,8 +39,6 @@ const DrifSection = ({ slotKey, drifs, fullSelectedItem, dragOverZone, handleDra
         const locksForSlot = lockedDrifs?.[slotKey] || [];
         return locksForSlot.includes(index);
     };
-
-    const sizeIndexMap = { "SUBDRIF": 0, "BIDRIF": 1, "MAGNIDRIF": 2, "ARCYDRIF": 3 };
 
     return (
         <div className="w-full flex flex-col items-center mt-1">
@@ -104,7 +96,7 @@ const DrifSection = ({ slotKey, drifs, fullSelectedItem, dragOverZone, handleDra
 
                         if (!drif.size) return false;
                         if (localUsedBonusTypes.includes(drif.bonusType)) return false;
-                        const drifSizeIdx = sizeIndexMap[drif.size.toUpperCase()] ?? -1;
+                        const drifSizeIdx = SIZE_INDEX[drif.size.toUpperCase()] ?? -1;
                         if (drifSizeIdx === -1 || drifSizeIdx > maxDrifIndex) return false;
                         return true;
                     });

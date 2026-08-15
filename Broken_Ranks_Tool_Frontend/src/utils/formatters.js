@@ -18,7 +18,7 @@ export const getRarityColor = (rarity) => {
  * Returns the Tailwind CSS text color for an upgrade star.
  * @param {number} starValue Upgrade star value from 1 to 9.
  * @param {boolean} isFilled Whether the star is currently filled.
- * @returns {string} Tailwind CSS classes for the text color.
+ * @returns {string} Tailwind CSS classes for the star.
  */
 export const getStarColor = (starValue, isFilled) => {
     if (!isFilled) return "text-stone-700";
@@ -53,3 +53,10 @@ export const getDrifMaxLvl = (size) => {
 export const formatGroupLabel = (type, items, translations) => {
     return translations[type] || type;
 };
+
+/**
+ * Returns the Tailwind CSS text color for an upgrade star.
+ * @param {number} starValue Upgrade star value from 1 to 9.
+ * @param {boolean} isFilled Whether the star is currently filled.
+ * @returns {string} Tailwind CSS classes for the text color.
+ */

@@ -34,6 +34,7 @@ class EquipmentValidatorTests {
         assertEquals(11, validator.calculateItemCapacity(item, 7));
         assertEquals(12, validator.calculateItemCapacity(item, 8));
         assertEquals(14, validator.calculateItemCapacity(item, 9));
+        assertEquals(14, validator.calculateItemCapacity(item, 99));
         assertEquals(0, validator.calculateItemCapacity(item(null), 9));
     }
 
@@ -69,6 +70,8 @@ class EquipmentValidatorTests {
         assertFalse(validator.isElementalDrifPositionValid(fire, "helmet"));
         assertTrue(validator.isValidDrifSizeForTier(fire, helmet));
         assertEquals(6, validator.sanitizeDrifLevel(20, drif(DRIF_BONUS_TYPE.DAMAGE_FIRE, DRIF_SIZE.SUBDRIF)));
+        assertEquals(1, validator.sanitizeDrifLevel(-5, drif(DRIF_BONUS_TYPE.DAMAGE_FIRE, DRIF_SIZE.SUBDRIF)));
+        assertEquals(1, validator.sanitizeOrbLevel(-5, orb(ORB_CATEGORY.DEFENSIVE)));
     }
 
     @Test
