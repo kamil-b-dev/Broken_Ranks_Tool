@@ -23,6 +23,7 @@ function App() {
         orbCategories,
         drifCategories,
         gameRules,
+        initialDataError,
         requestData,
         stats,
         optimizationTrigger,
@@ -117,6 +118,12 @@ function App() {
                     </button>
                 </div>
             </div>
+
+            {initialDataError && (
+                <div role="alert" className="w-full border border-red-900/70 bg-red-950/40 px-4 py-3 text-center text-sm text-red-300 shadow-inner">
+                    Nie udało się załadować danych gry: {initialDataError}
+                </div>
+            )}
 
             <div className={`flex-1 w-full flex-col ${mainView === "builder" ? "flex" : "hidden"}`}>
                 <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 xl:gap-8 flex-1">

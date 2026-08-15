@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ORB_CATEGORY;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ORB_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.RARITY;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.STAT_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.util.RomanNumeralParser;
@@ -48,7 +49,7 @@ public class EquipmentValidator {
 
     /**
      * Waliduje, czy podana konfiguracja orbów jest zgodna z regułami dla danego przedmiotu.
-     * Sprawdza liczbę orbów, rzadkość przedmiotu oraz unikalność kategorii orbów.
+     * Sprawdza liczbę orbów, rzadkość przedmiotu oraz unikalność bonusów orbów.
      * @param item Szablon przedmiotu, do którego orby są przypisane.
      * @param orbs Lista szablonów orbów do walidacji.
      * @throws IllegalArgumentException w przypadku wykrycia naruszenia reguł.
@@ -66,9 +67,12 @@ public class EquipmentValidator {
             throw new IllegalArgumentException("Przedmiot nie może mieć więcej niż dwóch orbów.");
         }
 
-        Set<ORB_CATEGORY> uniqueOrbCategories = orbs.stream().map(OrbTemplate::getCategory).collect(Collectors.toSet());
-        if (uniqueOrbCategories.size() < orbs.size()) {
-            log.warn("[SECURITY] Wykryto próbę użycia dwóch takich samych orbów w jednym przedmiocie.");
+        Set<ORB_BONUS_TYPE> uniqueOrbBonuses = orbs.stream()
+                .map(OrbTemplate::getBonusType)
+                .collect(Collectors.toSet());
+        if (uniqueOrbBonuses.size() < orbs.size()) {
+            log.error("[SECURITY] Wykryto próbę użycia dwóch orbów z tym samym bonusem.");
+            throw new IllegalArgumentException("Nie można użyć dwóch orbów z tym samym bonusem.");
         }
     }
 
@@ -101,7 +105,8 @@ public class EquipmentValidator {
      * @param drifLevels Lista poziomów dla każdego drifu.
      * @throws IllegalArgumentException w przypadku wykrycia naruszenia reguł.
      */
-    public void validateDrifsSecurity(ItemTemplate item, int itemStars, List<DrifTemplate> drifs, List<Integer> drifLevels) {
+    public void validateDrifsSecurity(String slotKey, ItemTemplate item, int itemStars,
+                                      List<DrifTemplate> drifs, List<Integer> drifLevels) {
         if (item == null || drifs == null || drifs.isEmpty()) {
             return;
         }
@@ -117,6 +122,10 @@ public class EquipmentValidator {
         for (int i = 0; i < drifs.size(); i++) {
             DrifTemplate drif = drifs.get(i);
             int level = i < drifLevels.size() ? drifLevels.get(i) : 1;
+
+            if (!isElementalDrifPositionValid(drif, slotKey)) {
+                throw new IllegalArgumentException("Drify żywiołowe mogą znajdować się wyłącznie w broni.");
+            }
 
             if (!uniqueBonuses.add(drif.getBonusType())) {
                 log.error("[SECURITY] Oszustwo API! Próba powielenia drifu: {}", drif.getBonusType());
