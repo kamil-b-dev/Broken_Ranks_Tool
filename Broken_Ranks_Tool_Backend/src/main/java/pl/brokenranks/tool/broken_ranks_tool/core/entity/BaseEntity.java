@@ -10,10 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
-/**
- * Wprowadzono wspólną klasę bazową, aby ujednolicić sposób definicji
- * klucza głównego we wszystkich encjach i uniknąć powielania tego kodu.
- */
+/** Defines the shared primary-key structure for persisted entities. */
 @MappedSuperclass
 @Getter
 @Setter

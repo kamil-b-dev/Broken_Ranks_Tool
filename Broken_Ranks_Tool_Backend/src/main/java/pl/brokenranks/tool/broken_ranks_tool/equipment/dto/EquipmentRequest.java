@@ -4,27 +4,17 @@ import lombok.Data;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Data Transfer Object (DTO) dla żądania obliczenia statystyk.
- * Reprezentuje strukturę danych przesyłaną do API kalkulatora.
- */
+/** Request DTO sent to the equipment statistics calculator. */
 @Data
 public class EquipmentRequest {
 
-    /**
-     * Mapa przechowująca dane o poszczególnych slotach ekwipunku.
-     * Kluczem jest nazwa slotu (np. "helmet", "weapon").
-     */
+    /** Equipment slot data keyed by slot name. */
     private Map<String, SlotData> slots;
 
-    /**
-     * Mapa przechowująca bazowe statystyki postaci (np. Siła, Zręczność).
-     */
+    /** Character base statistics keyed by statistic name. */
     private Map<String, Integer> characterStats;
 
-    /**
-     * Wewnętrzna klasa reprezentująca dane dla pojedynczego slotu ekwipunku.
-     */
+    /** Request data for one equipment slot. */
     @Data
     public static class SlotData {
         private Long itemId;

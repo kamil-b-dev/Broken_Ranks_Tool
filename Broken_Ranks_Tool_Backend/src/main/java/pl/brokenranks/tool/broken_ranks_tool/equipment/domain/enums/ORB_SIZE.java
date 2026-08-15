@@ -3,10 +3,7 @@ package pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-/**
- * Reprezentuje rozmiar orba, który determinuje jego maksymalny
- * możliwy do osiągnięcia poziom ulepszenia.
- */
+/** Defines orb sizes and their maximum upgrade levels. */
 @Getter
 @AllArgsConstructor
 public enum ORB_SIZE {

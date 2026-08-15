@@ -17,9 +17,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-/**
- * Udostępnia endpoint API do pobierania globalnych reguł i słowników gry.
- */
+/** Exposes the API endpoint for global game rules and dictionaries. */
 @RestController
 @RequestMapping("/api/rules")
 @CrossOrigin(origins = "*")
@@ -28,9 +26,7 @@ public class RulesController {
 
     private final EquipmentRulesRegistry registry;
 
-    /**
-     * @return ResponseEntity z mapą zawierającą zagregowane reguły gry.
-     */
+    /** @return HTTP 200 with aggregated game rules and translation dictionaries. */
     @GetMapping
     @Cacheable("gameRules")
     public ResponseEntity<Map<String, Object>> getGameRules() {

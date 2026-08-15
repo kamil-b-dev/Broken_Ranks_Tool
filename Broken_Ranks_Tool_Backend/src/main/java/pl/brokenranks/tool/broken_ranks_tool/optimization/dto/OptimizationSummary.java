@@ -4,9 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * DTO zawierające metadane i podsumowanie wyników procesu optymalizacji.
- */
+/** Contains optimization metadata and result summary. */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

@@ -19,10 +19,8 @@ public class InitialDataController {
     private final InitialDataService initialDataService;
 
     /**
-     * Zwraca wszystkie dane potrzebne do inicjalizacji aplikacji na frontendzie.
-     * Wynik jest cachowany, aby zapewnić szybką odpowiedź przy kolejnych żądaniach.
-     *
-     * @return ResponseEntity z obiektem DTO zawierającym wszystkie dane startowe.
+     * Returns cached startup data required by the frontend.
+     * @return HTTP 200 with item, orb, drif, rule, and dictionary data.
      */
     @GetMapping("/initial-data")
     @Cacheable("initialData")

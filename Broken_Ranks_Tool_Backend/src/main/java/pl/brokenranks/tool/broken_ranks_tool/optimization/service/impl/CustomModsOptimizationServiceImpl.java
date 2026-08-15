@@ -35,15 +35,7 @@ import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/**
- * Heurystyczny algorytm optymalizacji drifów.
- *
- * <p>Algorytm najpierw przydziela drify zachłannie, odwiedzając przedmioty
- * według bonusu do drifów i wybierając najlepszy dostępny przyrost celu.
- * Następnie tworzy szybkie warianty lokalne: podbicie poziomów, balans zamian
- * oraz ograniczenie kar globalnych. Wszystkie warianty przechodzą przez ten
- * sam moduł blokad.</p>
- */
+/** Heuristic optimizer that balances drif priorities, caps, capacity, and locks. */
 @Service
 @RequiredArgsConstructor
 public class CustomModsOptimizationServiceImpl implements ModsOptimizationService {
@@ -62,6 +54,12 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
     private final OptimizationLockService lockService;
     private final EquipmentStatsCalculatorService calculatorService;
 
+    /**
+     * Builds the best equipment configuration within the requested priorities,
+     * quantity targets, caps, capacity limits, and locks.
+     * @param request Optimization request from the client.
+     * @return Optimized setup, summary, or a business error response when constraints cannot be met.
+     */
     @Override
     public OptimizationResponse optimize(OptimizationRequest request) {
         long startTime = System.nanoTime();
@@ -115,13 +113,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
         return best;
     }
 
-    /**
-     * Przeszukiwanie wiązkowe. Dla każdej wolnej pozycji rozwijanych jest kilka
-     * alternatywnych stanów: pusta pozycja oraz różne drify i poziomy. Po każdym
-     * kroku pozostają najlepsze stany, ale z zachowaniem różnych profili ilości
-     * modów, dzięki czemu wariant z mniejszą liczbą drifów nie znika wyłącznie
-     * przez lokalnie wyższy wynik innej ścieżki.
-     */
+    /** Expands multiple candidate states per free position while preserving quantity profiles. */
     private List<BuildState> buildBeamStates(OptimizationContext context, int beamWidth) {
         BuildState initial = createInitialState(context);
         if (!satisfyMinimums(initial, context)) return List.of();
@@ -360,12 +352,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
         return state;
     }
 
-    /**
-     * Rezerwuje co najmniej jeden drif dla każdego moda oznaczonego jako
-     * krytyczny. Jest to cel jakościowy, a nie ukryty cap: algorytm nie musi
-     * dobijać takiego moda do maksymalnej wartości, ale nie może go całkowicie
-     * poświęcić na rzecz innych bonusów.
-     */
+    /** Reserves at least one drif for every modifier marked as critical. */
     private void satisfyCriticalBonuses(BuildState state, OptimizationContext context) {
         List<DRIF_BONUS_TYPE> criticalTypes = context.request().getPriorities().keySet().stream()
                 .filter(type -> isCritical(type, context.request()))
@@ -408,13 +395,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
         }
     }
 
-    /**
-     * Deterministycznie wykorzystuje tylko bezpieczną, pozostałą pojemność.
-     * Kandydat nadal musi respektować limity, brak duplikatów w przedmiocie,
-     * ograniczenia elementalne oraz osiągnięte cele wartościowe. Dopuszczamy
-     * niewielki spadek wyniku, aby lekki drif mógł zostać dodany do wolnego
-     * miejsca, ale nie poświęcamy przez to istotnych bonusów.
-     */
+    /** Fills only safe remaining capacity while preserving limits and achieved targets. */
     private BuildState fillResidualCapacity(BuildState state, OptimizationContext context) {
         int maxSteps = context.slots.stream().mapToInt(SlotContext::maxDrifs).sum();
         for (int step = 0; step < maxSteps; step++) {
@@ -467,11 +448,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
         return state;
     }
 
-    /**
-     * Najpierw rezerwuje miejsca dla celów wartościowych, zwłaszcza dla
-     * wymuszonych capów. Dzięki temu wysoki priorytet nie może zapełnić całego
-     * ekwipunku innym modem zanim krytyczny cel zostanie osiągnięty.
-     */
+    /** Reserves capacity for value targets, especially forced caps, before lower priorities. */
     private void satisfyTargetValues(BuildState state, OptimizationContext context) {
         List<DRIF_BONUS_TYPE> targets = context.request().getPriorities().keySet().stream()
                 .filter(type -> targetFor(type, context.request()) != null)
@@ -531,11 +508,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
         return value < target ? target - value : (value - target) * 0.05;
     }
 
-    /**
-     * Koryguje końcówkę capa na podstawie faktycznego kalkulatora. Zmieniamy
-     * wyłącznie poziom albo usuwamy drifa z tego samego typu, nigdy nie ruszając
-     * blokad ani minimów. Jest to mały, deterministyczny etap lokalny.
-     */
+    /** Repairs cap rounding using the real calculator without changing locks or minimums. */
     private BuildState repairForcedCaps(BuildState state, OptimizationContext context) {
         List<DRIF_BONUS_TYPE> caps = context.request().getPriorities().keySet().stream()
                 .filter(type -> isForcedCap(type, context.request()))
@@ -581,7 +554,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
         return state;
     }
 
-    /** Zamienia każdy niezablokowany drif na największy odpowiednik dozwolony dla przedmiotu. */
+    /** Replaces each unlocked drif with the largest version allowed for the item. */
     private BuildState maximizeDrifSizes(BuildState state, OptimizationContext context) {
         for (SlotContext slot : context.slots) {
             if (!slot.optimizable() || isSlotLocked(slot, context.request())) continue;
@@ -603,11 +576,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
         return state;
     }
 
-    /**
-     * Przechodzi po każdym slocie i przeznacza wolną pojemność najpierw na
-     * drify o najwyższym priorytecie. Dla każdego z nich wybiera najwyższy
-     * poziom mieszczący się w pojemności i niewykraczający poza ustawiony cel.
-     */
+    /** Allocates remaining capacity to the highest-priority drifs without exceeding targets. */
     private BuildState allocateRemainingLevelsByPriority(BuildState state, OptimizationContext context) {
         for (SlotContext slot : context.slots) {
             if (!slot.optimizable() || isSlotLocked(slot, context.request())) continue;
@@ -704,11 +673,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
         return directedValue(type, total * rules.getDrifPenalty(globalCount(state, type)), context.request());
     }
 
-    /**
-     * Wypełnia minima jako ograniczenia twarde przed rozpoczęciem optymalizacji
-     * dodatkowych miejsc. Jeżeli choć jedno minimum jest niewykonalne, zwraca
-     * {@code false} zamiast tworzyć pozornie poprawny wariant.
-     */
+    /** Fulfills hard minimum quantities before optimizing remaining capacity. */
     private boolean satisfyMinimums(BuildState state, OptimizationContext context) {
         while (true) {
             DRIF_BONUS_TYPE requiredType = null;
@@ -814,11 +779,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
         return state;
     }
 
-    /**
-     * Ograniczone, deterministyczne przeszukiwanie lokalne. KaĹĽdy zaakceptowany
-     * ruch musi poprawiaÄ‡ ten sam leksykograficzny zestaw kryteriĂłw, wiÄ™c wynik
-     * nie zaleĹĽy od losowania ani szybkoĹ›ci maszyny.
-     */
+    /** Performs bounded deterministic local search using one lexicographic score. */
     private BuildState refineDeterministically(BuildState state, OptimizationContext context) {
         for (int round = 0; round < 3 && !isDeadlineExceeded(context); round++) {
             String before = signature(state);
@@ -833,12 +794,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
         return state;
     }
 
-    /**
-     * Realizuje ruch zasugerowany dla capĂłw jako operacjÄ™ zĹ‚oĹĽonÄ…: zamiana
-     * drifu capa z modem na przedmiocie o lepszym bonusie oraz usuniÄ™cie innego,
-     * zbÄ™dnego drifu tego samego typu. Sama relokacja do lepszego bonusu tylko
-     * zwiÄ™kszaĹ‚aby overcap i dlatego nie jest akceptowana osobno.
-     */
+    /** Applies a cap move as a combined replacement and removal operation. */
     private BuildState consolidateForcedCaps(BuildState state, OptimizationContext context) {
         BuildState best = state;
         for (DRIF_BONUS_TYPE type : context.request().getPriorities().keySet().stream()
@@ -1222,12 +1178,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
         return setup;
     }
 
-    /**
-     * Ostateczna bariera bezpieczeństwa dla odpowiedzi API. Chroni również
-     * przed starym stanem wejściowym albo blokadą wskazującą indeks poza
-     * limitem przedmiotu. Przedmioty epickie/setowe pomijamy, ponieważ ich
-     * wbudowane drify nie są standardowymi slotami drifów.
-     */
+    /** Final API safety barrier for stale input, invalid locks, and capacity violations. */
     private void enforceDrifLimits(Map<String, EquipmentRequest.SlotData> slots,
                                    OptimizationContext context) {
         for (SlotContext slot : context.slots) {

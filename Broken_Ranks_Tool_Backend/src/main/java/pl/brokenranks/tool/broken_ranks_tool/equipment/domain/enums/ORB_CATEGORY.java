@@ -3,10 +3,7 @@ package pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-/**
- * Reprezentuje ogólną kategorię orba, pozwalając na grupowanie
- * i filtrowanie (np. ofensywne, defensywne).
- */
+/** Groups orb types for filtering and slotting rules. */
 @AllArgsConstructor
 @Getter
 public enum ORB_CATEGORY {

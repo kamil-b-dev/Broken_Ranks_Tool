@@ -20,11 +20,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Główna implementacja serwisu do obliczania statystyk ekwipunku.
- * Orkiestruje cały proces, od walidacji, przez przygotowanie danych,
- * aż po wywołanie poszczególnych procesorów statystyk.
- */
+/** Orchestrates validation, data preparation, and equipment statistic processors. */
 @Service
 @RequiredArgsConstructor
 class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorService {
@@ -37,6 +33,7 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
 
     @Override
     public Map<String, String> calculateTotalStats(EquipmentRequest request) {
+        validator.validateRequest(request);
         if (request.getSlots() == null || request.getSlots().isEmpty()) {
             return Collections.emptyMap();
         }
@@ -82,7 +79,8 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
             return;
         }
 
-        int starLevel = (slotData.getItemStars() != null) ? slotData.getItemStars() : 1;
+        int requestedStarLevel = slotData.getItemStars() != null ? slotData.getItemStars() : 1;
+        int starLevel = validator.sanitizeItemStars(requestedStarLevel);
 
         List<DrifTemplate> drifsForSlot = new ArrayList<>();
         List<Integer> levelsForSlot = new ArrayList<>();

@@ -8,10 +8,10 @@ import { useEquipment } from "./context/EquipmentContext";
 import { SLOTS } from "./constants/equipment";
 
 /**
- * Główny komponent aplikacji, orkiestrujący nawigację najwyższego poziomu.
- * Posiada globalny przełącznik widoków (Kreator vs Optymalizator).
+ * Root application component responsible for top-level navigation.
+ * Provides the global builder and optimizer view switch.
  *
- * @returns {JSX.Element} Wyrenderowany główny widok aplikacji
+ * @returns {JSX.Element} The rendered application view.
  */
 function App() {
     const [mainView, setMainView] = useState("builder");

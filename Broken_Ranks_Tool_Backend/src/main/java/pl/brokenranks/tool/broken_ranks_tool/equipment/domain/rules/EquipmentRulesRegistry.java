@@ -9,17 +9,12 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ORB_CATEGORY
 import java.util.List;
 import java.util.Map;
 
-/**
- * Centralizuje logikę i stałe definiujące reguły gry związane z ekwipunkiem.
- * Ułatwia zarządzanie zasadami i zapewnia ich spójność w całej aplikacji.
- */
+/** Centralizes equipment game rules and shared rule constants. */
 @Component
 @Getter
 public class EquipmentRulesRegistry {
 
-    /**
-     * Definiuje wbudowane drify dla konkretnych przedmiotów epickich.
-     */
+    /** Defines built-in drifs for specific epic items. */
     public static final Map<String, List<String>> EPIC_BUILTIN_DRIFS = Map.of(
             "Allenor", List.of(DRIF_BONUS_TYPE.DAMAGE_PHYSICAL.name(), DRIF_BONUS_TYPE.CRITICAL_CHANCE.name()),
             "Attawa", List.of(DRIF_BONUS_TYPE.CRITICAL_CHANCE.name(), DRIF_BONUS_TYPE.HIT_CHANCE_MENTAL.name()),
@@ -67,38 +62,38 @@ public class EquipmentRulesRegistry {
     );
 
     /**
-     * Sprawdza, czy kategoria przedmiotu pasuje do dozwolonych kategorii dla danego slotu.
-     * @param category Kategoria przedmiotu.
-     * @param slotKey Klucz identyfikujący slot.
-     * @return {@code true}, jeśli przedmiot jest dozwolony.
+     * Returns whether an item category is allowed in the requested slot.
+     * @param category Item category to check.
+     * @param slotKey Equipment slot identifier.
+     * @return Whether the category is allowed.
      */
     public boolean isItemAllowedInSlot(ITEM_CATEGORY category, String slotKey) {
         return slotItemRules.getOrDefault(slotKey, List.of()).contains(category);
     }
 
     /**
-     * Sprawdza, czy kategoria orba pasuje do dozwolonych kategorii dla danego slotu.
-     * @param category Kategoria orba.
-     * @param slotKey Klucz identyfikujący slot.
-     * @return {@code true}, jeśli orb jest dozwolony.
+     * Returns whether an orb category is allowed in the requested slot.
+     * @param category Orb category to check.
+     * @param slotKey Equipment slot identifier.
+     * @return Whether the category is allowed.
      */
     public boolean isOrbAllowedInSlot(ORB_CATEGORY category, String slotKey) {
         return slotOrbRules.getOrDefault(slotKey, List.of()).contains(category);
     }
 
     /**
-     * Sprawdza, czy typ bonusu jest klasyfikowany jako obrażenia od żywiołów.
-     * @param type Typ bonusu drifu.
-     * @return {@code true}, jeśli bonus jest od żywiołów.
+     * Returns whether a drif bonus represents elemental damage.
+     * @param type Drif bonus type.
+     * @return Whether the bonus is elemental damage.
      */
     public boolean isElementalDamage(DRIF_BONUS_TYPE type) {
         return elementalDamageTypes.contains(type);
     }
 
     /**
-     * Zwraca mnożnik kary za posiadanie więcej niż 3 drifów tego samego typu.
-     * @param count Liczba posiadanych drifów danego typu.
-     * @return Mnożnik kary (wartość od 0.5 do 1.0).
+     * Returns the penalty multiplier for more than three drifs of one type.
+     * @param count Number of drifs of the same bonus type.
+     * @return Penalty multiplier between 0.5 and 1.0.
      */
     public double getDrifPenalty(int count) {
         if (count <= 3) return 1.0;

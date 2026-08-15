@@ -1,7 +1,7 @@
 /**
- * Zwraca klasę Tailwind CSS dla koloru tekstu na podstawie rzadkości przedmiotu.
- * @param {string | undefined} rarity Rzadkość przedmiotu (np. "EPIC", "LEGENDARY").
- * @returns {string} Klasa CSS z kolorem tekstu.
+ * Returns the Tailwind CSS text color for an item's rarity.
+ * @param {string | undefined} rarity Item rarity, such as `EPIC` or `LEGENDARY`.
+ * @returns {string} Tailwind CSS classes for the text color.
  */
 export const getRarityColor = (rarity) => {
     if (!rarity) return "text-stone-300";
@@ -15,10 +15,10 @@ export const getRarityColor = (rarity) => {
 };
 
 /**
- * Zwraca klasę Tailwind CSS dla koloru gwiazdki ulepszenia.
- * @param {number} starValue Wartość gwiazdki (1-9).
- * @param {boolean} isFilled Czy gwiazdka ma być "wypełniona".
- * @returns {string} Klasa CSS z kolorem tekstu.
+ * Returns the Tailwind CSS text color for an upgrade star.
+ * @param {number} starValue Upgrade star value from 1 to 9.
+ * @param {boolean} isFilled Whether the star is currently filled.
+ * @returns {string} Tailwind CSS classes for the star.
  */
 export const getStarColor = (starValue, isFilled) => {
     if (!isFilled) return "text-stone-700";
@@ -28,9 +28,9 @@ export const getStarColor = (starValue, isFilled) => {
 };
 
 /**
- * Zwraca maksymalny poziom dla danego rozmiaru drifu.
- * @param {string | undefined} size Rozmiar drifu (np. "SUBDRIF").
- * @returns {number} Maksymalny poziom.
+ * Returns the maximum level allowed for a drif size.
+ * @param {string | undefined} size Drif size, such as `SUBDRIF`.
+ * @returns {number} Maximum allowed level.
  */
 export const getDrifMaxLvl = (size) => {
     if (!size) return 21;
@@ -44,12 +44,19 @@ export const getDrifMaxLvl = (size) => {
 };
 
 /**
- * Formatuje etykietę dla grupy w liście rozwijanej.
- * @param {string} type Typ grupy.
- * @param {Array} items Elementy w grupie.
- * @param {Object} translations Mapa tłumaczeń.
- * @returns {string} Sformatowana etykieta.
+ * Formats a group label for a dropdown list.
+ * @param {string} type Group type.
+ * @param {Array} items Items in the group.
+ * @param {Object} translations Translation map used for display.
+ * @returns {string} Formatted group label.
  */
 export const formatGroupLabel = (type, items, translations) => {
     return translations[type] || type;
 };
+
+/**
+ * Returns the Tailwind CSS text color for an upgrade star.
+ * @param {number} starValue Upgrade star value from 1 to 9.
+ * @param {boolean} isFilled Whether the star is currently filled.
+ * @returns {string} Tailwind CSS classes for the text color.
+ */

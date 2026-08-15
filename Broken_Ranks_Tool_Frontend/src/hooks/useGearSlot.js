@@ -2,10 +2,9 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { ROMAN_TO_INT, SIZE_INDEX } from "../utils/GearRules";
 
 /**
- * Oblicza efektywny mnożnik dla mocy drifa na podstawie jego poziomu.
- * Mnożnik wzrasta na określonych progach poziomów.
- * @param {number|string} level - Poziom drifa.
- * @returns {number} Efektywny mnożnik.
+ * Calculates the effective drif power multiplier for a level.
+ * @param {number|string} level Drif level.
+ * @returns {number} Effective power multiplier.
  */
 const getEffectiveMultiplier = (level) => {
     const lvl = parseInt(level) || 1;
@@ -16,9 +15,9 @@ const getEffectiveMultiplier = (level) => {
 };
 
 /**
- * Grupuje listę przedmiotów według ich typu (nazwa, opis lub bonusType).
- * @param {Array<object>} itemsList - Lista przedmiotów do grupowania.
- * @returns {object} Obiekt, w którym kluczami są typy przedmiotów, a wartościami tablice przedmiotów.
+ * Groups items by their display type, description, or bonus type.
+ * @param {Array<object>} itemsList Items to group.
+ * @returns {object} Groups keyed by item type.
  */
 const groupByType = (itemsList) => {
     if (!itemsList || !Array.isArray(itemsList)) return {};
@@ -32,54 +31,19 @@ const groupByType = (itemsList) => {
 };
 
 /**
- * Niestandardowy hook do zarządzania stanem i logiką pojedynczego slota na ekwipunek.
- * Hermetyzuje wybór przedmiotów, zarządzanie orbami i drifami, walidację reguł gry
- * oraz komunikację ze stanem globalnym.
+ * Manages state and business rules for a single equipment slot.
+ * Handles item, orb, and drif selection, capacity checks, and drag-and-drop state.
  *
- * @param {object} props - Właściwości dla hooka.
- * @param {string} props.slotKey - Unikalny klucz dla tego slota (np. 'weapon', 'helmet').
- * @param {Array<object>} props.items - Lista wszystkich dostępnych przedmiotów dla tego slota.
- * @param {Array<object>} props.orbs - Lista wszystkich dostępnych orb.
- * @param {Array<object>} props.drifs - Lista wszystkich dostępnych drifów.
- * @param {object} props.allSlots - Obiekt zawierający aktualny stan wszystkich slotów na ekwipunek.
- * @param {object} props.gameRules - Obiekt zawierający reguły gry, takie jak restrykcje orb, typy żywiołów itp.
- * @param {function} props.onUpdate - Funkcja zwrotna do aktualizacji stanu globalnego, gdy ten slot się zmienia.
- * @param {any} props.optimizationTrigger - Wartość, która zmienia się po zakończeniu procesu optymalizacji, wywołując synchronizację stanu.
- * @returns {object} Obiekt zawierający stan i handlery dla komponentu GearSlot.
- * @property {string} selectedItem - ID aktualnie wybranego przedmiotu.
- * @property {function} setSelectedItem - Setter stanu dla wybranego przedmiotu.
- * @property {number} itemStars - Poziom gwiazdek wybranego przedmiotu.
- * @property {function} setItemStars - Setter stanu dla poziomu gwiazdek przedmiotu.
- * @property {Array<number>} builtInLvls - Poziomy wbudowanych drifów dla przedmiotów epickich/setowych.
- * @property {function} setBuiltInLvls - Setter stanu dla poziomów wbudowanych drifów.
- * @property {boolean} isEpicOrSet - Prawda, jeśli wybrany przedmiot ma rzadkość Epic lub Set.
- * @property {boolean} isLegendary - Prawda, jeśli wybrany przedmiot ma rzadkość Legendary.
- * @property {Array<object>} builtInDrifs - Lista wbudowanych drifów dla wybranego przedmiotu.
- * @property {number} hoverStars - Poziom gwiazdek wskazywany przez najechanie na komponent oceny gwiazdkowej.
- * @property {function} setHoverStars - Setter stanu dla poziomu gwiazdek przy najechaniu.
- * @property {object} orbSlots - Obiekt stanu dla wybranych orb.
- * @property {function} setOrbSlots - Setter stanu dla slotów na orby.
- * @property {Array<string>} selectedDrifs - Tablica ID wybranych drifów.
- * @property {function} setSelectedDrifs - Setter stanu dla wybranych drifów.
- * @property {object} drifTypes - Obiekt mapujący indeks slota drifa na jego typ/nazwę.
- * @property {function} setDrifTypes - Setter stanu dla typów drifów.
- * @property {object} drifLevels - Obiekt mapujący indeks slota drifa na jego poziom.
- * @property {function} setDrifLevels - Setter stanu dla poziomów drifów.
- * @property {string|null} dragOverZone - Identyfikator strefy, nad którą aktualnie przeciągany jest element.
- * @property {object} groupedOrbs1 - Dostępne orby dla pierwszego slota, pogrupowane według typu.
- * @property {object} groupedOrbs2 - Dostępne orby dla drugiego slota (przedmioty legendarne), pogrupowane według typu.
- * @property {object|undefined} fullSelectedItem - Pełny obiekt wybranego przedmiotu.
- * @property {number} maxDrifs - Maksymalna liczba drifów dozwolona dla wybranego przedmiotu.
- * @property {number} maxDrifIndex - Maksymalny indeks rozmiaru dla dozwolonych drifów.
- * @property {number} itemCapacity - Całkowita pojemność wybranego przedmiotu na drify.
- * @property {number} currentPowerUsed - Aktualna moc zużywana przez wybrane drify.
- * @property {boolean} isOverCapacity - Prawda, jeśli aktualnie zużywana moc przekracza pojemność przedmiotu.
- * @property {boolean} isAtMaxCapacity - Prawda, jeśli aktualnie zużywana moc jest równa pojemności przedmiotu.
- * @property {number} capacityPercentage - Procent wykorzystanej pojemności przedmiotu.
- * @property {function} handleDragOver - Handler przeciągania i upuszczania, gdy element jest przeciągany nad strefą upuszczania.
- * @property {function} handleDragLeave - Handler przeciągania i upuszczania, gdy przeciągany element opuszcza strefę upuszczania.
- * @property {function} handleDrop - Handler przeciągania i upuszczania, gdy element jest upuszczany na strefę.
- * @property {function} groupByType - Funkcja narzędziowa do grupowania przedmiotów według typu.
+ * @param {object} props Hook configuration.
+ * @param {string} props.slotKey Equipment slot identifier.
+ * @param {Array<object>} props.items Items available for the slot.
+ * @param {Array<object>} props.orbs Available orb templates.
+ * @param {Array<object>} props.drifs Available drif templates.
+ * @param {object} props.allSlots Current state of all equipment slots.
+ * @param {object} props.gameRules Game rules used for slot and elemental restrictions.
+ * @param {function} props.onUpdate Callback for publishing slot changes.
+ * @param {*} props.optimizationTrigger Value used to synchronize optimizer results.
+ * @returns {object} Slot state, derived values, and event handlers for GearSlot.
  */
 export const useGearSlot = ({ slotKey, items, orbs, drifs, allSlots, gameRules, onUpdate, optimizationTrigger }) => {
     const { slotOrbRules = {}, elementalTypes = [], drifBasePowers = {}, epicBuiltInDrifs = {}, bonusTranslations = {} } = gameRules || {};
