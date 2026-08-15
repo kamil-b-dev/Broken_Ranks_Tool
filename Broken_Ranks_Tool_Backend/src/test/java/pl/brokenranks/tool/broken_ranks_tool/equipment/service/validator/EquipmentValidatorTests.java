@@ -43,10 +43,14 @@ class EquipmentValidatorTests {
         DrifTemplate critical = drif(DRIF_BONUS_TYPE.CRITICAL_CHANCE, DRIF_SIZE.SUBDRIF);
 
         assertThrows(IllegalArgumentException.class,
-                () -> validator.validateDrifsSecurity(item, 1, List.of(critical, critical), List.of(1, 1)));
+                () -> validator.validateDrifsSecurity("helmet", item, 1,
+                        List.of(critical, critical), List.of(1, 1)));
         assertThrows(IllegalArgumentException.class,
-                () -> validator.validateDrifsSecurity(item, 1,
+                () -> validator.validateDrifsSecurity("helmet", item, 1,
                         List.of(drif(DRIF_BONUS_TYPE.CRITICAL_CHANCE, DRIF_SIZE.ARCYDRIF)), List.of(21)));
+        assertThrows(IllegalArgumentException.class,
+                () -> validator.validateDrifsSecurity("helmet", item, 1,
+                        List.of(drif(DRIF_BONUS_TYPE.DAMAGE_FIRE, DRIF_SIZE.SUBDRIF)), List.of(1)));
     }
 
     @Test
@@ -83,6 +87,18 @@ class EquipmentValidatorTests {
     }
 
     @Test
+    void rejectsDuplicateOrbBonusesButAllowsTwoOffensiveLegendaryOrbsWithDifferentBonuses() {
+        ItemTemplate legendary = item(4, ITEM_CATEGORY.HELMET, RARITY.LEGENDARY, "XII");
+        OrbTemplate first = orb(ORB_CATEGORY.OFENSIVE, ORB_BONUS_TYPE.EXTRA_EXP);
+        OrbTemplate duplicate = orb(ORB_CATEGORY.OFENSIVE, ORB_BONUS_TYPE.EXTRA_EXP);
+        OrbTemplate different = orb(ORB_CATEGORY.OFENSIVE, ORB_BONUS_TYPE.EXTRA_GOLD);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> validator.validateOrbsSecurity(legendary, List.of(first, duplicate)));
+        assertDoesNotThrow(() -> validator.validateOrbsSecurity(legendary, List.of(first, different)));
+    }
+
+    @Test
     void recognizesOnlyAllowedCharacterStats() {
         assertDoesNotThrow(() -> validator.validateCharacterStats(Map.of("Siła", 10)));
         assertThrows(IllegalArgumentException.class,
@@ -116,11 +132,15 @@ class EquipmentValidatorTests {
     }
 
     private OrbTemplate orb(ORB_CATEGORY category) {
+        return orb(category, ORB_BONUS_TYPE.EXTRA_EXP);
+    }
+
+    private OrbTemplate orb(ORB_CATEGORY category, ORB_BONUS_TYPE bonusType) {
         return OrbTemplate.builder()
                 .id((long) category.ordinal() + 1)
                 .name(category.name())
                 .category(category)
-                .bonusType(ORB_BONUS_TYPE.EXTRA_EXP)
+                .bonusType(bonusType)
                 .size(ORB_SIZE.BIORB)
                 .build();
     }

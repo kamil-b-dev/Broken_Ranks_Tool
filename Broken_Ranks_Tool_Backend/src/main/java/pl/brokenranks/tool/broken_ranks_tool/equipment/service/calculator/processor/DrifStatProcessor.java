@@ -77,6 +77,7 @@ public class DrifStatProcessor {
             DrifTemplate drif = state.getContext().drifs().get(drifId);
 
             if (!validator.isValidDrif(drif, slotKey)) continue;
+            if (!validator.isElementalDrifPositionValid(drif, slotKey)) continue;
             if (!validator.isValidDrifSizeForTier(drif, item)) continue;
 
             if (processedDrifsForItem.contains(drif.getBonusType())) continue;

@@ -9,6 +9,8 @@ const BUILD_FILE_VERSION = 1;
  * Niestandardowy hook zapewniający łatwy dostęp do kontekstu ekwipunku.
  * @returns {object} Obiekt kontekstu ekwipunku.
  */
+// Provider and hook intentionally live together because the context is private to this module.
+// eslint-disable-next-line react-refresh/only-export-components
 export const useEquipment = () => useContext(EquipmentContext);
 
 /**
@@ -27,6 +29,7 @@ export const EquipmentProvider = ({ children }) => {
     const [drifCategories, setDrifCategories] = useState({});
     const [gameRules, setGameRules] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [initialDataError, setInitialDataError] = useState(null);
 
     const [requestData, setRequestData] = useState({ slots: {}, characterStats: {} });
     const [stats, setStats] = useState(null);
@@ -41,6 +44,7 @@ export const EquipmentProvider = ({ children }) => {
         const fetchInitialData = async () => {
             try {
                 setLoading(true);
+                setInitialDataError(null);
                 const response = await apiClient.get("/initial-data");
                 const initialData = response.data;
 
@@ -56,6 +60,7 @@ export const EquipmentProvider = ({ children }) => {
 
             } catch (error) {
                 console.error("Błąd podczas ładowania danych początkowych:", error);
+                setInitialDataError(error.response?.data?.message || "Nie udało się połączyć z backendem.");
             } finally {
                 setLoading(false);
             }
@@ -283,6 +288,7 @@ export const EquipmentProvider = ({ children }) => {
         drifCategories,
         gameRules,
         loading,
+        initialDataError,
         requestData,
         stats,
         optimizationTrigger,

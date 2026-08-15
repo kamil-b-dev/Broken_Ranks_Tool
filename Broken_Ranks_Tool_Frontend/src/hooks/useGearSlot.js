@@ -180,12 +180,15 @@ export const useGearSlot = ({ slotKey, items, orbs, drifs, allSlots, gameRules, 
     }, [isEpicOrSet, fullSelectedItem?.name, epicBuiltInDrifs, drifs, bonusTranslations]);
 
     const globalUsedOrbs = useMemo(() => Object.entries(allSlots)
-        .filter(([k, v]) => k !== slotKey && v?.orbIds)
-        .flatMap(([k, v]) => v.orbIds)
+        .filter(([key, value]) => key !== slotKey && value?.orbIds)
+        .flatMap(([, value]) => value.orbIds)
         .map(orbId => orbs.find(o => o.id.toString() === orbId.toString())?.bonusType)
         .filter(Boolean), [allSlots, slotKey, orbs]);
 
-    const allowedOrbCategories = slotOrbRules[slotKey] || [];
+    const allowedOrbCategories = useMemo(
+        () => slotOrbRules[slotKey] || [],
+        [slotOrbRules, slotKey]
+    );
 
     const availableOrbs1 = useMemo(() => {
         return orbs.filter(o => {
@@ -214,8 +217,8 @@ export const useGearSlot = ({ slotKey, items, orbs, drifs, allSlots, gameRules, 
     const groupedOrbs2 = useMemo(() => groupByType(availableOrbs2), [availableOrbs2]);
 
     const hasGlobalElemental = useMemo(() => Object.entries(allSlots)
-        .filter(([k, v]) => k !== slotKey && v?.drifIds)
-        .some(([k, v]) => v.drifIds.some(dId => {
+        .filter(([key, value]) => key !== slotKey && value?.drifIds)
+        .some(([, value]) => value.drifIds.some(dId => {
             const d = drifs.find(dr => dr.id.toString() === dId.toString());
             return d && elementalTypes.includes(d.bonusType);
         })), [allSlots, slotKey, drifs, elementalTypes]);
