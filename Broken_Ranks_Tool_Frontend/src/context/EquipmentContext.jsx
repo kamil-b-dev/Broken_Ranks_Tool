@@ -31,6 +31,7 @@ export const EquipmentProvider = ({ children }) => {
 
     const [requestData, setRequestData] = useState({ slots: {}, characterStats: {} });
     const [stats, setStats] = useState(null);
+    const [statSources, setStatSources] = useState({ drifCategories: {}, orbBonusTypes: [] });
 
     const [optimizationTrigger, setOptimizationTrigger] = useState(0);
 
@@ -176,6 +177,7 @@ export const EquipmentProvider = ({ children }) => {
         setLockedDrifs(build.lockedDrifs && typeof build.lockedDrifs === "object"
             ? JSON.parse(JSON.stringify(build.lockedDrifs)) : {});
         setStats(null);
+        setStatSources({ drifCategories: {}, orbBonusTypes: [] });
         setOptimizationTrigger(prev => prev + 1);
     }, [data.items, data.orbs, data.drifs]);
 
@@ -218,8 +220,13 @@ export const EquipmentProvider = ({ children }) => {
  */
     const calculateStats = useCallback(async () => {
         try {
+            setStats(null);
             const response = await apiClient.post("/calculator/calculate", requestData);
-            setStats(response.data);
+            setStats(response.data.stats || response.data);
+            setStatSources({
+                drifCategories: response.data.drifCategories || {},
+                orbBonusTypes: response.data.orbBonusTypes || []
+            });
         } catch (error) {
             if (error.response && error.response.data && error.response.data.message) {
                 alert(`BŁĄD ZAPISU: ${error.response.data.message}`);
@@ -288,6 +295,7 @@ export const EquipmentProvider = ({ children }) => {
         initialDataError,
         requestData,
         stats,
+        statSources,
         optimizationTrigger,
         lockedSlots,
         lockedDrifs,

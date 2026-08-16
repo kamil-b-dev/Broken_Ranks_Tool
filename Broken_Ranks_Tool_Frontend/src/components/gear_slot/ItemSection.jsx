@@ -28,8 +28,12 @@ const ItemSection = ({ label, items, fullSelectedItem, dragOverZone, handleDragO
             onDragLeave={handleDragLeave}
             onDrop={(e) => handleDrop(e, 'item')}
         >
+            <span className="text-[10px] font-serif font-bold text-stone-600 uppercase tracking-[0.18em]">
+                Przedmiot
+            </span>
             <select
                 value={selectedItem}
+                aria-label={`Wybierz przedmiot dla slotu ${label}`}
                 onChange={(e) => {
                     setSelectedItem(e.target.value);
                     setItemStars(1); setBuiltInLvls([1, 1]); setHoverStars(0);

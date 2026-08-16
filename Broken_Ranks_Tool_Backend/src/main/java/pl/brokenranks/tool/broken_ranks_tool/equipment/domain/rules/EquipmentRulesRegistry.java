@@ -41,15 +41,15 @@ public class EquipmentRulesRegistry {
     );
 
     private final Map<String, List<ORB_CATEGORY>> slotOrbRules = Map.ofEntries(
-            Map.entry("weapon", List.of(ORB_CATEGORY.OFENSIVE)),
-            Map.entry("shield", List.of(ORB_CATEGORY.OFENSIVE, ORB_CATEGORY.DEFENSIVE)),
+            Map.entry("weapon", List.of(ORB_CATEGORY.OFFENSIVE)),
+            Map.entry("shield", List.of(ORB_CATEGORY.OFFENSIVE, ORB_CATEGORY.DEFENSIVE)),
             Map.entry("helmet", List.of(ORB_CATEGORY.DEFENSIVE)),
             Map.entry("armor", List.of(ORB_CATEGORY.DEFENSIVE)),
             Map.entry("legs", List.of(ORB_CATEGORY.DEFENSIVE)),
             Map.entry("boots", List.of(ORB_CATEGORY.DEFENSIVE)),
-            Map.entry("cape", List.of(ORB_CATEGORY.OFENSIVE)),
-            Map.entry("belt", List.of(ORB_CATEGORY.OFENSIVE)),
-            Map.entry("gloves", List.of(ORB_CATEGORY.OFENSIVE)),
+            Map.entry("cape", List.of(ORB_CATEGORY.OFFENSIVE)),
+            Map.entry("belt", List.of(ORB_CATEGORY.OFFENSIVE)),
+            Map.entry("gloves", List.of(ORB_CATEGORY.OFFENSIVE)),
             Map.entry("ring1", List.of(ORB_CATEGORY.UTILITY)),
             Map.entry("ring2", List.of(ORB_CATEGORY.UTILITY)),
             Map.entry("necklace", List.of(ORB_CATEGORY.UTILITY))
