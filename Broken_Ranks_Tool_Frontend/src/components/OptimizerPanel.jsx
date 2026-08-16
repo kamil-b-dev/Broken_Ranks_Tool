@@ -152,7 +152,7 @@ const OptimizerPanel = () => {
 
     /** Moves a selected bonus into the priority list. */
     const handleSelectBonus = (bonus) => {
-        setPrioritizedBonuses(prev => [...prev, { ...bonus, weight: 15, min: 0, max: 12, forceCap: false, critical: false }]);
+        setPrioritizedBonuses(prev => [...prev, { ...bonus, weight: 15, min: 0, max: 12, forceCap: false, maximize: false }]);
         setAvailableBonuses(prev => prev.filter(b => b.key !== bonus.key));
     };
 
@@ -204,13 +204,13 @@ const OptimizerPanel = () => {
             format: OPTIMIZER_CONFIG_FORMAT,
             version: OPTIMIZER_CONFIG_VERSION,
             exportedAt: new Date().toISOString(),
-            priorities: prioritizedBonuses.map(({ key, weight, min, max, forceCap, critical }) => ({
+            priorities: prioritizedBonuses.map(({ key, weight, min, max, forceCap, maximize }) => ({
                 key,
                 weight: Number(weight),
                 min: Number(min),
                 max: Number(max),
                 forceCap: Boolean(forceCap),
-                critical: Boolean(critical)
+                maximize: Boolean(maximize)
             }))
         };
         const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
@@ -266,7 +266,7 @@ const OptimizerPanel = () => {
                     min,
                     max,
                     forceCap: Boolean(entry.forceCap),
-                    critical: Boolean(entry.critical)
+                    maximize: Boolean(entry.maximize ?? entry.critical)
                 }];
             });
 
@@ -295,7 +295,7 @@ const OptimizerPanel = () => {
         const priorities = {};
         const targetQuantities = {};
         const forceCapBonuses = [];
-        const criticalBonuses = [];
+        const maximizeBonuses = [];
 
         prioritizedBonuses.forEach(b => {
             priorities[b.key] = parseInt(b.weight, 10);
@@ -314,14 +314,14 @@ const OptimizerPanel = () => {
                 forceCapBonuses.push(b.key);
             }
 
-            if (b.critical) {
-                criticalBonuses.push(b.key);
+            if (b.maximize) {
+                maximizeBonuses.push(b.key);
             }
         });
 
         try {
             const result = await runDrifOptimization({
-                priorities, targetQuantities, forceCapBonuses, criticalBonuses
+                priorities, targetQuantities, forceCapBonuses, maximizeBonuses
             });
             setOptimizationStatus(result);
         } finally {
@@ -606,14 +606,14 @@ const OptimizerPanel = () => {
                                                 <div className="flex items-center justify-between gap-3 pt-2 border-t border-stone-800/50">
                                                     <span
                                                         className="text-[10px] text-stone-500 uppercase tracking-wider whitespace-nowrap"
-                                                        title="Algorytm ma zawsze zachować co najmniej jeden taki mod, ale nie będzie sztucznie dążył do jego capa."
+                                                        title="Algorytm będzie dążył do najwyższej możliwej wartości tego modyfikatora, po spełnieniu limitów ilościowych i wymuszonych capów."
                                                     >
-                                                        Krytyczny mod:
+                                                        Maksymalizuj mod:
                                                     </span>
                                                     <button
-                                                        onClick={() => handleUpdateBonus(bonus.key, 'critical', !bonus.critical)}
-                                                        title="Zachowaj co najmniej jeden drif tego modyfikatora bez wymuszania capa"
-                                                        className={`w-5 h-5 flex items-center justify-center border rounded-sm transition-all ${bonus.critical ? 'bg-amber-900 border-amber-500 text-amber-100 shadow-[0_0_8px_rgba(245,158,11,0.4)]' : 'bg-stone-950 border-stone-700 text-transparent hover:border-amber-800'}`}
+                                                        onClick={() => handleUpdateBonus(bonus.key, 'maximize', !bonus.maximize)}
+                                                        title="Maksymalizuj wartość moda, wykorzystując najpierw przedmioty z najwyższym bonusem do drifów"
+                                                        className={`w-5 h-5 flex items-center justify-center border rounded-sm transition-all ${bonus.maximize ? 'bg-amber-900 border-amber-500 text-amber-100 shadow-[0_0_8px_rgba(245,158,11,0.4)]' : 'bg-stone-950 border-stone-700 text-transparent hover:border-amber-800'}`}
                                                     >
                                                         <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
                                                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293z" clipRule="evenodd" />

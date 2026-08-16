@@ -213,7 +213,7 @@ export const EquipmentProvider = ({ children }) => {
             priorities: optimizationConfig.priorities || {},
             targetQuantities: optimizationConfig.targetQuantities || {},
             forceCapBonuses: optimizationConfig.forceCapBonuses || [],
-            criticalBonuses: optimizationConfig.criticalBonuses || [],
+            maximizeBonuses: optimizationConfig.maximizeBonuses || [],
             lockedSlots: lockedSlots,
             lockedDrifs: lockedDrifs
         };

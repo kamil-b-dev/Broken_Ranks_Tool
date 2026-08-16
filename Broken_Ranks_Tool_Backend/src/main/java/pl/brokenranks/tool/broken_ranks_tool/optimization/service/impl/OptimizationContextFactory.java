@@ -37,7 +37,8 @@ final class OptimizationContextFactory {
     private final EquipmentValidator validator;
     private final ItemStatProcessor itemStatProcessor;
 
-    OptimizationContext create(OptimizationRequest request, int maxSearchSteps) {
+    OptimizationContext create(OptimizationRequest request, int beamSearchSteps,
+                               int maximizationSearchSteps, int refinementSearchSteps) {
         List<Long> itemIds = request.getOriginalSlots().values().stream()
                 .filter(Objects::nonNull)
                 .map(EquipmentRequest.SlotData::getItemId)
@@ -68,8 +69,9 @@ final class OptimizationContextFactory {
                         .toList();
 
         return new OptimizationContext(request, items, drifs, slots, slotsByDrifBonus,
-                sortedPriorities, sortedQuantities, new SearchBudget(maxSearchSteps),
-                new EnumMap<>(DRIF_BONUS_TYPE.class), new HashMap<>(),
+                sortedPriorities, sortedQuantities, new SearchBudget(beamSearchSteps),
+                new SearchBudget(maximizationSearchSteps), new SearchBudget(refinementSearchSteps),
+                new EnumMap<>(DRIF_BONUS_TYPE.class), new EnumMap<>(DRIF_BONUS_TYPE.class), new HashMap<>(),
                 new HashMap<>(), new HashMap<>());
     }
 

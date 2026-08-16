@@ -17,8 +17,8 @@ class OptimizationRequestConstraints {
         return request.getForceCapBonuses() != null && request.getForceCapBonuses().contains(type);
     }
 
-    static boolean isCritical(DRIF_BONUS_TYPE type, OptimizationRequest request) {
-        return request.getCriticalBonuses() != null && request.getCriticalBonuses().contains(type);
+    static boolean isMaximized(DRIF_BONUS_TYPE type, OptimizationRequest request) {
+        return request.getMaximizeBonuses() != null && request.getMaximizeBonuses().contains(type);
     }
 
     static int maxQuantity(DRIF_BONUS_TYPE type, OptimizationRequest request) {
@@ -38,8 +38,20 @@ class OptimizationRequestConstraints {
         return null;
     }
 
+    /**
+     * Returns the natural upper bound for a maximized modifier when the game
+     * defines one. Modifiers without a cap are maximized until another limit stops them.
+     */
+    static Double maximizationTargetFor(DRIF_BONUS_TYPE type, OptimizationRequest request) {
+        if (isMaximized(type, request) && type.getMaxCap() != null) {
+            return (double) Math.abs(type.getMaxCap());
+        }
+        return null;
+    }
+
     static double directedValue(DRIF_BONUS_TYPE type, double value, OptimizationRequest request) {
-        if (isForcedCap(type, request) && type.getMaxCap() != null && type.getMaxCap() < 0) {
+        if ((isForcedCap(type, request) || isMaximized(type, request))
+                && type.getMaxCap() != null && type.getMaxCap() < 0) {
             return -value;
         }
         return value;
