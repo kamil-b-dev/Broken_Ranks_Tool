@@ -35,18 +35,11 @@ class OptimizationRequestConstraints {
         if (isForcedCap(type, request) && type.getMaxCap() != null) {
             return (double) Math.abs(type.getMaxCap());
         }
-        if (request.getTargetValues() != null && request.getTargetValues().containsKey(type)) {
-            return Math.abs(request.getTargetValues().get(type));
-        }
         return null;
     }
 
     static double directedValue(DRIF_BONUS_TYPE type, double value, OptimizationRequest request) {
         if (isForcedCap(type, request) && type.getMaxCap() != null && type.getMaxCap() < 0) {
-            return -value;
-        }
-        if (request.getTargetValues() != null && request.getTargetValues().get(type) != null
-                && request.getTargetValues().get(type) < 0) {
             return -value;
         }
         return value;

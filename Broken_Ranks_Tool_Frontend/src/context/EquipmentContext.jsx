@@ -197,19 +197,21 @@ export const EquipmentProvider = ({ children }) => {
 
 /**
  * Starts drif optimization using user priorities and locked equipment.
- * @param {object} optimizationConfig User priorities, quantity targets, and value targets.
+ * @param {object} optimizationConfig User priorities and quantity targets.
  */
     const runDrifOptimization = useCallback(async (optimizationConfig) => {
         if (!requestData.slots || Object.values(requestData.slots).every(s => !s.itemId)) {
-            alert("Wybierz przynajmniej jeden przedmiot, aby uruchomić optymalizację.");
-            return;
+            return {
+                success: false,
+                message: "Wybierz przynajmniej jeden przedmiot, aby uruchomić optymalizację.",
+                applied: false
+            };
         }
 
         const optimizationRequest = {
             originalSlots: requestData.slots,
             priorities: optimizationConfig.priorities || {},
             targetQuantities: optimizationConfig.targetQuantities || {},
-            targetValues: optimizationConfig.targetValues || {},
             forceCapBonuses: optimizationConfig.forceCapBonuses || [],
             criticalBonuses: optimizationConfig.criticalBonuses || [],
             lockedSlots: lockedSlots,
@@ -226,13 +228,9 @@ export const EquipmentProvider = ({ children }) => {
                     slots: optimizedSetup.slots
                 }));
                 setOptimizationTrigger(prev => prev + 1);
-                if (summary.success) {
-                    alert(`Optymalizacja zakończona! Umieszczono ${summary.drifsPlaced} drifów.`);
-                } else {
-                    alert(`Optymalizacja nie powiodła się: ${summary.message}\nZastosowano najlepszy znaleziony build.`);
-                }
+                return { ...summary, applied: true };
             } else {
-                alert(`Optymalizacja nie powiodła się: ${summary.message}`);
+                return { ...summary, applied: false };
             }
         } catch (error) {
             const backendMessage = error.response?.data?.summary?.message
@@ -242,8 +240,8 @@ export const EquipmentProvider = ({ children }) => {
                 || (error.code === "ECONNABORTED"
                     ? "Przekroczono limit czasu optymalizacji."
                     : error.message);
-            alert(`Optymalizacja nie powiodła się: ${message}`);
             console.error("Błąd optymalizacji drifów:", error);
+            return { success: false, message, applied: false };
         }
     }, [requestData.slots, lockedSlots, lockedDrifs]);
 

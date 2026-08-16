@@ -61,6 +61,9 @@ public class InitialDataService {
 
         Map<String, String> drifBonusCategories = Arrays.stream(DRIF_BONUS_TYPE.values())
                 .collect(Collectors.toMap(Enum::name, type -> type.getCategory().name()));
+        Map<Integer, Double> drifPenaltyMultipliers = java.util.stream.IntStream.rangeClosed(1, 12)
+                .boxed()
+                .collect(Collectors.toMap(count -> count, rulesRegistry::getDrifPenalty));
 
         var gameRules = new GameRulesDto(
                 EquipmentRulesRegistry.EPIC_BUILTIN_DRIFS,
@@ -68,7 +71,8 @@ public class InitialDataService {
                 bonusTranslations,
                 Arrays.stream(DRIF_BONUS_TYPE.values()).collect(Collectors.toMap(Enum::name, DRIF_BONUS_TYPE::getBasePower)),
                 drifMaxCaps,
-                drifBonusCategories
+                drifBonusCategories,
+                drifPenaltyMultipliers
         );
 
         return new InitialDataDto(items, orbs, drifs, gameRules, dictionaries);

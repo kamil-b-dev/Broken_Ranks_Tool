@@ -53,9 +53,6 @@ final class OptimizationStateEvaluator {
                 double progress = Math.min(directedValue / target, 1.0);
                 result += progress * weight * 1000.0;
                 if (directedValue < target) result -= (target - directedValue) * weight * 25.0;
-                if (directedValue > target && !isForcedCap(type, context.request())) {
-                    result -= (directedValue - target) * weight * 5.0;
-                }
             } else {
                 result += directedValue * weight * 100.0;
             }
@@ -119,9 +116,9 @@ final class OptimizationStateEvaluator {
         Metrics metrics = evaluation.metrics;
         int hardViolations = metrics.overflowPower();
         int missingCritical = 0;
+        double criticalPlacementBonus = 0.0;
         double forcedCapDeficit = 0.0;
         double forcedCapExcess = 0.0;
-        double targetDeficit = 0.0;
         double weightedUtility = 0.0;
 
         for (Map.Entry<DRIF_BONUS_TYPE, OptimizationRequest.QuantityRange> entry
@@ -135,26 +132,25 @@ final class OptimizationStateEvaluator {
             DRIF_BONUS_TYPE type = entry.getKey();
             int priority = Math.max(1, entry.getValue() != null ? entry.getValue() : 1);
             int count = metrics.counts().getOrDefault(type, 0);
-            if (isCritical(type, context.request()) && count == 0) missingCritical++;
+            if (isCritical(type, context.request())) {
+                if (count == 0) missingCritical++;
+                else criticalPlacementBonus += highestCriticalPlacementBonus(state, type, context);
+            }
 
             double value = calculatedValue(metrics, type, context);
             Double target = targetFor(type, context.request());
             if (target != null) {
                 double deficit = Math.max(0.0, target - value);
-                if (isForcedCap(type, context.request())) {
-                    forcedCapDeficit += deficit * priority;
-                    forcedCapExcess += Math.max(0.0, value - target) * priority;
-                } else {
-                    targetDeficit += deficit * priority;
-                }
+                forcedCapDeficit += deficit * priority;
+                forcedCapExcess += Math.max(0.0, value - target) * priority;
                 weightedUtility += Math.min(value, target) * priority;
             } else {
                 weightedUtility += value * priority;
             }
         }
 
-        Quality quality = new Quality(hardViolations, forcedCapDeficit, missingCritical, targetDeficit,
-                weightedUtility, metrics.penaltyLoss(), forcedCapExcess,
+        Quality quality = new Quality(hardViolations, forcedCapDeficit, missingCritical,
+                criticalPlacementBonus, weightedUtility, metrics.penaltyLoss(), forcedCapExcess,
                 metrics.capacityUtilization(), metrics.totalPower());
         evaluation.quality = quality;
         return quality;
@@ -167,7 +163,7 @@ final class OptimizationStateEvaluator {
         if (comparison != 0) return comparison;
         comparison = Integer.compare(right.missingCritical(), left.missingCritical());
         if (comparison != 0) return comparison;
-        comparison = Double.compare(right.targetDeficit(), left.targetDeficit());
+        comparison = Double.compare(right.criticalPlacementBonus(), left.criticalPlacementBonus());
         if (comparison != 0) return comparison;
         comparison = Double.compare(left.weightedUtility(), right.weightedUtility());
         if (comparison != 0) return comparison;
@@ -178,6 +174,20 @@ final class OptimizationStateEvaluator {
         comparison = Double.compare(left.capacityUtilization(), right.capacityUtilization());
         if (comparison != 0) return comparison;
         return Integer.compare(left.totalPower(), right.totalPower());
+    }
+
+    /** Returns the highest item drif bonus that contains the critical modifier. */
+    private double highestCriticalPlacementBonus(BuildState state, DRIF_BONUS_TYPE type,
+                                                 OptimizationContext context) {
+        for (Map.Entry<Double, List<SlotContext>> entry : context.slotsByDrifBonus().entrySet()) {
+            boolean containsCriticalType = entry.getValue().stream()
+                    .map(slot -> state.slots.getOrDefault(slot.key(), List.<Placement>of()))
+                    .flatMap(List::stream)
+                    .filter(java.util.Objects::nonNull)
+                    .anyMatch(placement -> placement.drif().getBonusType() == type);
+            if (containsCriticalType) return entry.getKey();
+        }
+        return 0.0;
     }
 
     private double calculatedValue(Metrics metrics, DRIF_BONUS_TYPE type,

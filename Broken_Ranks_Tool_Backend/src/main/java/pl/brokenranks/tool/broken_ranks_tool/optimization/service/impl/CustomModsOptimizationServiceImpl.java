@@ -103,15 +103,16 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
         greedyState = maximizeDrifSizes(greedyState, context);
         greedyState = allocateRemainingLevelsByPriority(greedyState, context);
         greedyState = repairForcedCaps(greedyState, context);
+        greedyState = prioritizeCriticalPlacements(greedyState, context);
 
         EquipmentRequest optimizedSetup = resultAssembler.toSetup(greedyState, context);
         String validationError = resultAssembler.validateFinalResult(greedyState, context);
         if (validationError != null) {
             return failedResponse(validationError, elapsedSeconds(startTime));
         }
-        String forcedCapWarning = resultAssembler.forcedCapWarning(greedyState, context);
+        List<String> forcedCapWarnings = resultAssembler.forcedCapWarnings(greedyState, context);
         OptimizationSummary summary = resultAssembler.createSummary(
-                greedyState, context, elapsedSeconds(startTime), forcedCapWarning);
+                greedyState, context, elapsedSeconds(startTime), forcedCapWarnings);
         return new OptimizationResponse(optimizedSetup, summary);
     }
 
@@ -233,12 +234,11 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
     private BuildState buildGreedyState(OptimizationContext context) {
         BuildState state = initialStateFactory.create(context);
         resultAssembler.calibrateCalculatorBaseline(state, context);
+        satisfyCriticalBonuses(state, context);
         if (!satisfyMinimums(state, context)) {
             return null;
         }
-
-        satisfyCriticalBonuses(state, context);
-        satisfyTargetValues(state, context);
+        satisfyForcedCaps(state, context);
 
         Map<DRIF_BONUS_TYPE, Integer> globalCounts = new HashMap<>();
         for (List<Placement> placements : state.slots.values()) {
@@ -287,7 +287,10 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
         return state;
     }
 
-    /** Reserves at least one drif for every modifier marked as critical. */
+    /**
+     * Reserves at least one drif for every critical modifier, using items with
+     * the highest drif bonus first.
+     */
     private void satisfyCriticalBonuses(BuildState state, OptimizationContext context) {
         List<DRIF_BONUS_TYPE> criticalTypes = context.request().getPriorities().keySet().stream()
                 .filter(type -> isCritical(type, context.request()))
@@ -299,34 +302,95 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
 
         for (DRIF_BONUS_TYPE type : criticalTypes) {
             if (globalCount(state, type, context) > 0) continue;
-            RequiredPlacementChoice best = null;
-            for (SlotContext slot : context.slots()) {
-                if (!slot.optimizable() || isSlotLocked(slot, context.request())) continue;
-                List<Placement> placements = state.slots.get(slot.key());
-                if (!hasFreeDrifPosition(placements, slot) || containsBonus(placements, type)) continue;
+            if (globalCount(state, type, context) >= maxQuantity(type, context.request())) continue;
 
-                for (DrifTemplate candidate : slot.candidates()) {
-                    if (candidate.getBonusType() != type
-                            || globalCount(state, type, context) >= maxQuantity(type, context.request())
-                            || containsAnotherElemental(state, candidate, null)) continue;
+            for (List<SlotContext> slots : context.slotsByDrifBonus().values()) {
+                boolean placed = false;
+                for (SlotContext slot : slots) {
+                    if (!slot.optimizable() || isSlotLocked(slot, context.request())) continue;
+                    List<Placement> placements = state.slots.get(slot.key());
+                    if (!hasFreeDrifPosition(placements, slot) || containsBonus(placements, type)) continue;
+
+                    DrifTemplate candidate = slot.candidates().stream()
+                            .filter(drif -> drif.getBonusType() == type)
+                            .findFirst()
+                            .orElse(null);
+                    if (candidate == null || containsAnotherElemental(state, candidate, null)) continue;
+
                     Integer level = highestFittingLevel(state, slot, candidate);
                     if (level == null) continue;
 
-                    BuildState trial = state.copy();
-                    putNextFree(trial, slot, new Placement(candidate, level, false));
-                    double gain = score(trial, context) - score(state, context);
-                    RequiredPlacementChoice choice = new RequiredPlacementChoice(slot, candidate, level, gain);
-                    if (best == null || gain > best.gain() + MIN_ACCEPTED_GAIN
-                            || (Math.abs(gain - best.gain()) <= MIN_ACCEPTED_GAIN
-                            && isEarlierPlacement(slot, candidate, level, best, context))) {
-                        best = choice;
+                    putNextFree(state, slot, new Placement(candidate, level, false));
+                    placed = true;
+                    break;
+                }
+                if (placed) break;
+            }
+        }
+    }
+
+    /** Moves critical modifiers to the best available item by drif bonus after search refinement. */
+    private BuildState prioritizeCriticalPlacements(BuildState state, OptimizationContext context) {
+        for (DRIF_BONUS_TYPE type : context.request().getPriorities().keySet().stream()
+                .filter(candidate -> isCritical(candidate, context.request()))
+                .sorted(Comparator
+                        .comparing((DRIF_BONUS_TYPE candidate) -> priorityOf(candidate, context.request()),
+                                Comparator.reverseOrder())
+                        .thenComparing(Enum::name))
+                .toList()) {
+            SlotContext sourceSlot = null;
+            int sourceIndex = -1;
+            boolean hasLockedCriticalPlacement = false;
+
+            for (SlotContext slot : context.slots()) {
+                List<Placement> placements = state.slots.get(slot.key());
+                for (int index = 0; index < placements.size(); index++) {
+                    Placement placement = placements.get(index);
+                    if (placement == null || placement.drif().getBonusType() != type) continue;
+                    if (placement.locked() || slot.lockedIndices().contains(index)) {
+                        hasLockedCriticalPlacement = true;
+                        continue;
+                    }
+                    if (sourceSlot == null || slot.drifBonus() > sourceSlot.drifBonus()) {
+                        sourceSlot = slot;
+                        sourceIndex = index;
                     }
                 }
             }
-            if (best != null) {
-                putNextFree(state, best.slot(), new Placement(best.drif(), best.level(), false));
+            if (hasLockedCriticalPlacement || sourceSlot == null) continue;
+
+            boolean moved = false;
+            for (Map.Entry<Double, List<SlotContext>> entry : context.slotsByDrifBonus().entrySet()) {
+                if (entry.getKey() <= sourceSlot.drifBonus() + MIN_ACCEPTED_GAIN) break;
+                for (SlotContext targetSlot : entry.getValue()) {
+                    if (!targetSlot.optimizable() || isSlotLocked(targetSlot, context.request())) continue;
+
+                    BuildState trial = state.copy();
+                    trial.setPlacement(sourceSlot.key(), sourceIndex, null);
+                    List<Placement> targetPlacements = trial.slots.get(targetSlot.key());
+                    if (!hasFreeDrifPosition(targetPlacements, targetSlot)
+                            || containsBonus(targetPlacements, type)) continue;
+
+                    DrifTemplate candidate = targetSlot.candidates().stream()
+                            .filter(drif -> drif.getBonusType() == type)
+                            .findFirst()
+                            .orElse(null);
+                    if (candidate == null || containsAnotherElemental(trial, candidate, candidate)) continue;
+
+                    Integer level = highestFittingLevel(trial, targetSlot, candidate);
+                    if (level == null) continue;
+                    putNextFree(trial, targetSlot, new Placement(candidate, level, false));
+                    if (!fitsCapacity(trial.slots.get(targetSlot.key()), targetSlot)
+                            || !minimumsSatisfied(trial, context)) continue;
+
+                    state = trial;
+                    moved = true;
+                    break;
+                }
+                if (moved) break;
             }
         }
+        return state;
     }
 
     /** Fills only safe remaining capacity while preserving limits and achieved targets. */
@@ -381,13 +445,13 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
         return state;
     }
 
-    /** Reserves capacity for value targets, especially forced caps, before lower priorities. */
-    private void satisfyTargetValues(BuildState state, OptimizationContext context) {
+    /** Reserves capacity for modifiers whose game-rule cap must be reached. */
+    private void satisfyForcedCaps(BuildState state, OptimizationContext context) {
         List<DRIF_BONUS_TYPE> targets = context.request().getPriorities().keySet().stream()
+                .filter(type -> isForcedCap(type, context.request()))
                 .filter(type -> targetFor(type, context.request()) != null)
                 .sorted(Comparator
-                        .comparing((DRIF_BONUS_TYPE type) -> isForcedCap(type, context.request()), Comparator.reverseOrder())
-                        .thenComparing(type -> context.request().getPriorities().getOrDefault(type, 0), Comparator.reverseOrder())
+                        .comparing((DRIF_BONUS_TYPE type) -> context.request().getPriorities().getOrDefault(type, 0), Comparator.reverseOrder())
                         .thenComparing(Enum::name))
                 .toList();
 
@@ -848,7 +912,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
 
     private OptimizationResponse failedResponse(String message, double seconds) {
         return new OptimizationResponse(new EquipmentRequest(),
-                new OptimizationSummary(false, message, 0, 0, seconds));
+                new OptimizationSummary(false, message, 0, 0, seconds, List.of()));
     }
 
     private boolean isSlotLocked(SlotContext slot, OptimizationRequest request) {
