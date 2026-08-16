@@ -164,11 +164,12 @@ const StatSummaryColumn = ({ title, accent, categories }) => {
  * @param {object} props Component properties.
  * @param {object|null} props.stats Calculated statistics to display.
  * @param {Function} props.onCalculate Callback for recalculating statistics.
+ * @param {boolean} props.isCalculating Whether a new calculation is in progress.
  * @param {object} props.gameRules Rules providing localized bonus names.
  * @param {object} props.statSources Exact bonus sources returned with the calculation result.
  * @returns {JSX.Element} The statistics panel.
  */
-const StatsPanel = ({ stats, onCalculate, gameRules, statSources = {} }) => {
+const StatsPanel = ({ stats, onCalculate, isCalculating = false, gameRules, statSources = {} }) => {
     const groups = {
         attributes: [], offense: [], defense: [], other: [],
         OFFENSIVE: [], DEFENSIVE: [], UTILITY: [],
@@ -250,10 +251,12 @@ const StatsPanel = ({ stats, onCalculate, gameRules, statSources = {} }) => {
                     </h3>
                 </div>
                 <button
-                    className="w-full md:w-auto px-6 py-3 bg-gradient-to-b from-red-900 to-black border border-red-800 hover:from-red-800 hover:border-red-600 text-stone-200 font-serif font-bold text-sm uppercase tracking-widest transition-all shadow-[0_0_15px_rgba(153,27,27,0.35)] hover:shadow-[0_0_25px_rgba(220,38,38,0.45)]"
+                    type="button"
+                    className="w-full md:w-auto px-6 py-3 bg-gradient-to-b from-red-900 to-black border border-red-800 hover:from-red-800 hover:border-red-600 text-stone-200 font-serif font-bold text-sm uppercase tracking-widest transition-all shadow-[0_0_15px_rgba(153,27,27,0.35)] hover:shadow-[0_0_25px_rgba(220,38,38,0.45)] disabled:cursor-wait disabled:opacity-70 disabled:hover:from-red-900 disabled:hover:border-red-800 disabled:hover:shadow-[0_0_15px_rgba(153,27,27,0.35)]"
                     onClick={onCalculate}
+                    disabled={isCalculating}
                 >
-                    Przelicz statystyki
+                    {isCalculating ? "Przeliczanie..." : "Przelicz statystyki"}
                 </button>
             </div>
 

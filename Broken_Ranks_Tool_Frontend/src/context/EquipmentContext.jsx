@@ -32,6 +32,7 @@ export const EquipmentProvider = ({ children }) => {
     const [requestData, setRequestData] = useState({ slots: {}, characterStats: {} });
     const [stats, setStats] = useState(null);
     const [statSources, setStatSources] = useState({ drifCategories: {}, orbBonusTypes: [] });
+    const [isCalculatingStats, setIsCalculatingStats] = useState(false);
 
     const [optimizationTrigger, setOptimizationTrigger] = useState(0);
 
@@ -219,8 +220,8 @@ export const EquipmentProvider = ({ children }) => {
  * Updates the shared statistics state or reports the backend error to the user.
  */
     const calculateStats = useCallback(async () => {
+        setIsCalculatingStats(true);
         try {
-            setStats(null);
             const response = await apiClient.post("/calculator/calculate", requestData);
             setStats(response.data.stats || response.data);
             setStatSources({
@@ -234,6 +235,8 @@ export const EquipmentProvider = ({ children }) => {
                 alert("Błąd połączenia z serwerem obliczeniowym.");
             }
             console.error("Błąd podczas obliczania mocy:", error);
+        } finally {
+            setIsCalculatingStats(false);
         }
     }, [requestData]);
 
@@ -262,13 +265,17 @@ export const EquipmentProvider = ({ children }) => {
             const response = await apiClient.post("/optimizer/drifs", optimizationRequest);
             const { optimizedSetup, summary } = response.data;
 
-            if (summary.success && optimizedSetup && optimizedSetup.slots) {
+            if (optimizedSetup && optimizedSetup.slots) {
                 setRequestData(prev => ({
                     ...prev,
                     slots: optimizedSetup.slots
                 }));
                 setOptimizationTrigger(prev => prev + 1);
-                alert(`Optymalizacja zakończona! Umieszczono ${summary.drifsPlaced} drifów.`);
+                if (summary.success) {
+                    alert(`Optymalizacja zakończona! Umieszczono ${summary.drifsPlaced} drifów.`);
+                } else {
+                    alert(`Optymalizacja nie powiodła się: ${summary.message}\nZastosowano najlepszy znaleziony build.`);
+                }
             } else {
                 alert(`Optymalizacja nie powiodła się: ${summary.message}`);
             }
@@ -296,6 +303,7 @@ export const EquipmentProvider = ({ children }) => {
         requestData,
         stats,
         statSources,
+        isCalculatingStats,
         optimizationTrigger,
         lockedSlots,
         lockedDrifs,
