@@ -27,6 +27,7 @@ function App() {
         requestData,
         stats,
         statSources,
+        isCalculatingStats,
         optimizationTrigger,
         characterConfig,
         handleSlotUpdate,
@@ -218,6 +219,7 @@ function App() {
                 <StatsPanel
                     stats={stats}
                     onCalculate={calculateStats}
+                    isCalculating={isCalculatingStats}
                     gameRules={gameRules}
                     statSources={statSources}
                 />

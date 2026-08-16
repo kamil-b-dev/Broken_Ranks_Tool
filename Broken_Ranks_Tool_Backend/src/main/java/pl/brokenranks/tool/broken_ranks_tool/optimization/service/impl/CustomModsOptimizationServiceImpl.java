@@ -109,8 +109,9 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
         if (validationError != null) {
             return failedResponse(validationError, elapsedSeconds(startTime));
         }
+        String forcedCapWarning = resultAssembler.forcedCapWarning(greedyState, context);
         OptimizationSummary summary = resultAssembler.createSummary(
-                greedyState, context, elapsedSeconds(startTime));
+                greedyState, context, elapsedSeconds(startTime), forcedCapWarning);
         return new OptimizationResponse(optimizedSetup, summary);
     }
 
