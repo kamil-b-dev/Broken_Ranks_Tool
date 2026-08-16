@@ -74,7 +74,17 @@ final class OptimizationResultAssembler {
                 warnings.isEmpty() ? "Optymalizacja zakończona."
                         : "Nie udało się osiągnąć wymuszonego capa dla co najmniej jednego modyfikatora.",
                 metrics.counts().values().stream().mapToInt(Integer::intValue).sum(),
-                metrics.totalPower(), executionTime, warnings);
+                metrics.totalPower(), executionTime, warnings, itemDrifBonusMap(context));
+    }
+
+    private Map<Double, List<OptimizationSummary.ItemDrifBonus>> itemDrifBonusMap(
+            OptimizationContext context) {
+        Map<Double, List<OptimizationSummary.ItemDrifBonus>> result = new LinkedHashMap<>();
+        context.slotsByDrifBonus().forEach((bonus, slots) -> result.put(bonus, slots.stream()
+                .map(slot -> new OptimizationSummary.ItemDrifBonus(
+                        slot.key(), slot.item().getName()))
+                .toList()));
+        return result;
     }
 
     String validateFinalResult(BuildState state, OptimizationContext context) {

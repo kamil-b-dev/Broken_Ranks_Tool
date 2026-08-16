@@ -49,6 +49,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
     private final EquipmentRulesRegistry rules;
     private final OptimizationStateEvaluator stateEvaluator;
     private final OptimizationResultAssembler resultAssembler;
+    private final OptimizationLargeNeighborhoodSearch largeNeighborhoodSearch;
     private final OptimizationContextFactory contextFactory;
     private final OptimizationInitialStateFactory initialStateFactory;
 
@@ -65,6 +66,8 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
         this.stateEvaluator = new OptimizationStateEvaluator(rules);
         this.resultAssembler = new OptimizationResultAssembler(
                 lockService, calculatorService, stateEvaluator);
+        this.largeNeighborhoodSearch = new OptimizationLargeNeighborhoodSearch(
+                rules, stateEvaluator, resultAssembler);
         this.contextFactory = new OptimizationContextFactory(
                 drifRepository, itemRepository, validator, itemStatProcessor);
         this.initialStateFactory = new OptimizationInitialStateFactory(validator);
@@ -111,6 +114,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
         greedyState = allocateRemainingLevelsByPriority(greedyState, context);
         greedyState = repairForcedCaps(greedyState, context);
         greedyState = maximizeSelectedBonuses(greedyState, context);
+        greedyState = largeNeighborhoodSearch.improve(greedyState, context);
 
         EquipmentRequest optimizedSetup = resultAssembler.toSetup(greedyState, context);
         String validationError = resultAssembler.validateFinalResult(greedyState, context);
@@ -949,7 +953,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
 
     private OptimizationResponse failedResponse(String message, double seconds) {
         return new OptimizationResponse(new EquipmentRequest(),
-                new OptimizationSummary(false, message, 0, 0, seconds, List.of()));
+                new OptimizationSummary(false, message, 0, 0, seconds, List.of(), Map.of()));
     }
 
     private boolean isSlotLocked(SlotContext slot, OptimizationRequest request) {
