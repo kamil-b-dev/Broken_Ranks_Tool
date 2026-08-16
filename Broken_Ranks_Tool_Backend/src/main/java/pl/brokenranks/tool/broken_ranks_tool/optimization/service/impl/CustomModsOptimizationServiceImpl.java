@@ -137,11 +137,11 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
                     }
 
                     // Pusta pozycja jest pełnoprawną alternatywą.
-                    expanded.add(state.copy());
+                    expanded.add(state);
 
                     for (DrifTemplate candidate : slot.candidates()) {
                         if (containsBonus(placements, candidate.getBonusType())
-                                || globalCount(state, candidate.getBonusType())
+                                || globalCount(state, candidate.getBonusType(), context)
                                 >= maxQuantity(candidate.getBonusType(), context.request())
                                 || containsAnotherElemental(state, candidate, null)) {
                             continue;
@@ -149,7 +149,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
 
                         for (Integer level : candidateLevels(state, slot, candidate)) {
                             BuildState trial = state.copy();
-                            trial.slots.get(slot.key()).set(index, new Placement(candidate, level, false));
+                            trial.setPlacement(slot.key(), index, new Placement(candidate, level, false));
                             if (fitsCapacity(trial.slots.get(slot.key()), slot)) {
                                 expanded.add(trial);
                             }
@@ -220,7 +220,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
     private String globalCountSignature(BuildState state, OptimizationContext context) {
         return context.request().getPriorities().keySet().stream()
                 .sorted(Comparator.comparing(Enum::name))
-                .map(type -> type.name() + "=" + globalCount(state, type))
+                .map(type -> type.name() + "=" + globalCount(state, type, context))
                 .collect(Collectors.joining("|"));
     }
 
@@ -281,8 +281,16 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
                 .comparing((DrifTemplate drif) -> priorityOf(drif.getBonusType(), request), Comparator.reverseOrder())
                 .thenComparing(drif -> drif.getBonusType().name())
                 .thenComparing(DrifTemplate::getId)));
-        return new OptimizationContext(request, items, drifs, slots, new SearchBudget(MAX_SEARCH_STEPS),
-                new EnumMap<>(DRIF_BONUS_TYPE.class), new HashMap<>(), new HashMap<>());
+        List<Map.Entry<DRIF_BONUS_TYPE, Integer>> sortedPriorities = request.getPriorities().entrySet().stream()
+                .sorted(Map.Entry.comparingByKey(Comparator.comparing(Enum::name)))
+                .toList();
+        List<Map.Entry<DRIF_BONUS_TYPE, OptimizationRequest.QuantityRange>> sortedQuantities =
+                safeQuantities(request).entrySet().stream()
+                        .sorted(Map.Entry.comparingByKey(Comparator.comparing(Enum::name)))
+                        .toList();
+        return new OptimizationContext(request, items, drifs, slots, sortedPriorities, sortedQuantities,
+                new SearchBudget(MAX_SEARCH_STEPS), new EnumMap<>(DRIF_BONUS_TYPE.class),
+                new HashMap<>(), new HashMap<>(), new HashMap<>());
     }
 
     private DrifTemplate preferLargerDrif(DrifTemplate left, DrifTemplate right) {
@@ -335,7 +343,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
                     if (level == null) continue;
 
                     BuildState trial = state.copy();
-                    putNextFree(trial.slots.get(slot.key()), new Placement(candidate, level, false), slot.lockedIndices(), slot.maxDrifs());
+                    putNextFree(trial, slot, new Placement(candidate, level, false));
                     double candidateScore = score(trial, context) - score(state, context);
                     if (best == null || candidateScore > best.gain() + MIN_ACCEPTED_GAIN
                             || (Math.abs(candidateScore - best.gain()) <= MIN_ACCEPTED_GAIN
@@ -345,7 +353,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
                 }
 
                 if (best == null || best.gain() <= MIN_ACCEPTED_GAIN) break;
-                putNextFree(state.slots.get(slot.key()), new Placement(best.drif(), best.level(), false), slot.lockedIndices(), slot.maxDrifs());
+                putNextFree(state, slot, new Placement(best.drif(), best.level(), false));
                 globalCounts.merge(best.drif().getBonusType(), 1, Integer::sum);
             }
         }
@@ -356,14 +364,14 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
     private void satisfyCriticalBonuses(BuildState state, OptimizationContext context) {
         List<DRIF_BONUS_TYPE> criticalTypes = context.request().getPriorities().keySet().stream()
                 .filter(type -> isCritical(type, context.request()))
-                .filter(type -> globalCount(state, type) == 0)
+                .filter(type -> globalCount(state, type, context) == 0)
                 .sorted(Comparator
                         .comparing((DRIF_BONUS_TYPE type) -> context.request().getPriorities().getOrDefault(type, 0), Comparator.reverseOrder())
                         .thenComparing(Enum::name))
                 .toList();
 
         for (DRIF_BONUS_TYPE type : criticalTypes) {
-            if (globalCount(state, type) > 0) continue;
+            if (globalCount(state, type, context) > 0) continue;
             RequiredPlacementChoice best = null;
             for (SlotContext slot : context.slots) {
                 if (!slot.optimizable() || isSlotLocked(slot, context.request())) continue;
@@ -372,13 +380,13 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
 
                 for (DrifTemplate candidate : slot.candidates()) {
                     if (candidate.getBonusType() != type
-                            || globalCount(state, type) >= maxQuantity(type, context.request())
+                            || globalCount(state, type, context) >= maxQuantity(type, context.request())
                             || containsAnotherElemental(state, candidate, null)) continue;
                     Integer level = highestFittingLevel(state, slot, candidate);
                     if (level == null) continue;
 
                     BuildState trial = state.copy();
-                    putNextFree(trial.slots.get(slot.key()), new Placement(candidate, level, false), slot.lockedIndices(), slot.maxDrifs());
+                    putNextFree(trial, slot, new Placement(candidate, level, false));
                     double gain = score(trial, context) - score(state, context);
                     RequiredPlacementChoice choice = new RequiredPlacementChoice(slot, candidate, level, gain);
                     if (best == null || gain > best.gain() + MIN_ACCEPTED_GAIN
@@ -389,8 +397,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
                 }
             }
             if (best != null) {
-                putNextFree(state.slots.get(best.slot().key()),
-                        new Placement(best.drif(), best.level(), false), best.slot().lockedIndices(), best.slot().maxDrifs());
+                putNextFree(state, best.slot(), new Placement(best.drif(), best.level(), false));
             }
         }
     }
@@ -412,18 +419,18 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
                     Double target = targetFor(type, context.request());
                     if (target != null && calculatedValue(state, type, context) >= target - TARGET_TOLERANCE) continue;
                     if (containsBonus(placements, type)
-                            || globalCount(state, type) >= maxQuantity(type, context.request())
+                            || globalCount(state, type, context) >= maxQuantity(type, context.request())
                             || containsAnotherElemental(state, candidate, null)) continue;
 
                     Integer level = highestFittingLevel(state, slot, candidate);
                     if (level == null) continue;
                     BuildState trial = state.copy();
-                    putNextFree(trial.slots.get(slot.key()), new Placement(candidate, level, false), slot.lockedIndices(), slot.maxDrifs());
+                    putNextFree(trial, slot, new Placement(candidate, level, false));
                     if (!minimumsSatisfied(trial, context)) continue;
 
                     double gain = score(trial, context) - score(state, context);
                     int candidatePower = power(candidate, level);
-                    int currentCount = globalCount(state, type);
+                    int currentCount = globalCount(state, type, context);
                     boolean lightOptionalDrif = candidatePower <= 1 && currentCount < 3;
                     if (gain < -MAX_RESIDUAL_FILL_LOSS && !lightOptionalDrif) continue;
 
@@ -442,8 +449,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
             }
 
             if (best == null || bestSlot == null) break;
-            putNextFree(state.slots.get(bestSlot.key()),
-                    new Placement(best.drif(), best.level(), false), bestSlot.lockedIndices(), bestSlot.maxDrifs());
+            putNextFree(state, bestSlot, new Placement(best.drif(), best.level(), false));
         }
         return state;
     }
@@ -474,7 +480,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
                     for (DrifTemplate candidate : slot.candidates()) {
                         if (candidate.getBonusType() != type
                                 || containsBonus(placements, type)
-                                || globalCount(state, type) >= maxQuantity(type, context.request())
+                                || globalCount(state, type, context) >= maxQuantity(type, context.request())
                                 || containsAnotherElemental(state, candidate, null)) continue;
 
                         Integer highestLevel = highestFittingLevel(state, slot, candidate);
@@ -484,7 +490,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
                         // dokładnej wartości odbywa się później.
                         for (Integer level : List.of(highestLevel)) {
                             BuildState trial = state.copy();
-                            putNextFree(trial.slots.get(slot.key()), new Placement(candidate, level, false), slot.lockedIndices(), slot.maxDrifs());
+                            putNextFree(trial, slot, new Placement(candidate, level, false));
                             double resultingValue = currentValue(trial, type, context);
                             double distance = targetDistance(resultingValue, target);
                             if (best == null || distance < bestDistance - MIN_ACCEPTED_GAIN
@@ -498,8 +504,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
                 }
 
                 if (best == null) break;
-                putNextFree(state.slots.get(best.slot().key()),
-                        new Placement(best.drif(), best.level(), false), best.slot().lockedIndices(), best.slot().maxDrifs());
+                putNextFree(state, best.slot(), new Placement(best.drif(), best.level(), false));
             }
         }
     }
@@ -531,7 +536,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
                                 || placement.drif().getBonusType() != type) continue;
 
                         BuildState trial = state.copy();
-                        trial.slots.get(slot.key()).set(index, null);
+                        trial.setPlacement(slot.key(), index, null);
                         normalizeSlotLevelsByPriority(trial, slot, context);
                         if (!minimumsSatisfied(trial, context)) continue;
                         double trialValue = calculatedValue(trial, type, context);
@@ -570,7 +575,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
                                 .thenComparing(DrifTemplate::getId, Comparator.reverseOrder()))
                         .orElse(current.drif());
                 int level = Math.min(current.level(), largest.getSize().getMaxLevel());
-                placements.set(index, new Placement(largest, level, false));
+                state.setPlacement(slot.key(), index, new Placement(largest, level, false));
             }
         }
         return state;
@@ -593,7 +598,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
             Placement placement = placements.get(index);
             if (placement == null || placement.locked() || slot.lockedIndices().contains(index)) continue;
             int baseTierMax = Math.min(6, placement.drif().getSize().getMaxLevel());
-            placements.set(index, new Placement(placement.drif(), baseTierMax, false));
+            state.setPlacement(slot.key(), index, new Placement(placement.drif(), baseTierMax, false));
             indices.add(index);
         }
         indices.sort(Comparator
@@ -606,12 +611,16 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
             Placement current = placements.get(index);
             int availablePower = slot.capacity() - usedPowerExcept(placements, index);
             int selectedLevel = highestLevelForPower(current.drif(), availablePower);
-            placements.set(index, new Placement(current.drif(), selectedLevel, false));
+            state.setPlacement(slot.key(), index, new Placement(current.drif(), selectedLevel, false));
         }
     }
 
     private double calculatedValue(BuildState state, DRIF_BONUS_TYPE type, OptimizationContext context) {
-        return currentValue(state, type, context)
+        return calculatedValue(metrics(state, context), type, context);
+    }
+
+    private double calculatedValue(Metrics metrics, DRIF_BONUS_TYPE type, OptimizationContext context) {
+        return directedValue(type, metrics.searchValues().getOrDefault(type, 0.0), context.request())
                 + context.calculatorBaseline().getOrDefault(type, 0.0);
     }
 
@@ -662,15 +671,8 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
     }
 
     private double currentValue(BuildState state, DRIF_BONUS_TYPE type, OptimizationContext context) {
-        double total = 0.0;
-        for (SlotContext slot : context.slots) {
-            for (Placement placement : state.slots.getOrDefault(slot.key(), List.of())) {
-                if (placement != null && placement.drif().getBonusType() == type) {
-                    total += calculateDrifValue(placement.drif(), placement.level()) * (1.0 + slot.drifBonus());
-                }
-            }
-        }
-        return directedValue(type, total * rules.getDrifPenalty(globalCount(state, type)), context.request());
+        return directedValue(type, metrics(state, context).searchValues().getOrDefault(type, 0.0),
+                context.request());
     }
 
     /** Fulfills hard minimum quantities before optimizing remaining capacity. */
@@ -680,9 +682,8 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
             int fewestOptions = Integer.MAX_VALUE;
 
             for (Map.Entry<DRIF_BONUS_TYPE, OptimizationRequest.QuantityRange> entry
-                    : safeQuantities(context.request()).entrySet().stream()
-                    .sorted(Map.Entry.comparingByKey(Comparator.comparing(Enum::name))).toList()) {
-                int deficit = entry.getValue().getMin() - globalCount(state, entry.getKey());
+                    : context.sortedQuantities()) {
+                int deficit = entry.getValue().getMin() - globalCount(state, entry.getKey(), context);
                 if (deficit <= 0) continue;
 
                 int options = countFeasiblePlacements(state, entry.getKey(), context);
@@ -703,7 +704,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
                 for (DrifTemplate candidate : slot.candidates()) {
                     if (candidate.getBonusType() != requiredType
                             || containsBonus(placements, requiredType)
-                            || globalCount(state, requiredType) >= maxQuantity(requiredType, context.request())
+                            || globalCount(state, requiredType, context) >= maxQuantity(requiredType, context.request())
                             || containsAnotherElemental(state, candidate, null)) {
                         continue;
                     }
@@ -712,7 +713,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
                     if (level == null) continue;
 
                     BuildState trial = state.copy();
-                    putNextFree(trial.slots.get(slot.key()), new Placement(candidate, level, false), slot.lockedIndices(), slot.maxDrifs());
+                    putNextFree(trial, slot, new Placement(candidate, level, false));
                     double gain = score(trial, context) - score(state, context);
                     if (best == null || gain > best.gain() + MIN_ACCEPTED_GAIN
                             || (Math.abs(gain - best.gain()) <= MIN_ACCEPTED_GAIN
@@ -723,8 +724,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
             }
 
             if (best == null) return false;
-            putNextFree(state.slots.get(best.slot().key()),
-                    new Placement(best.drif(), best.level(), false), best.slot().lockedIndices(), best.slot().maxDrifs());
+            putNextFree(state, best.slot(), new Placement(best.drif(), best.level(), false));
         }
     }
 
@@ -824,9 +824,9 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
                                     || containsBonusExcept(targetPlacements, type, targetIndex)) continue;
 
                             BuildState relocated = state.copy();
-                            relocated.slots.get(source.key()).set(sourceIndex,
+                            relocated.setPlacement(source.key(), sourceIndex,
                                     new Placement(other.drif(), Math.min(6, other.drif().getSize().getMaxLevel()), false));
-                            relocated.slots.get(targetSlot.key()).set(targetIndex,
+                            relocated.setPlacement(targetSlot.key(), targetIndex,
                                     new Placement(capPlacement.drif(), Math.min(6, capPlacement.drif().getSize().getMaxLevel()), false));
                             normalizeSlotLevelsByPriority(relocated, source, context);
                             normalizeSlotLevelsByPriority(relocated, targetSlot, context);
@@ -842,7 +842,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
                                             || removable.drif().getBonusType() != type
                                             || (removalSlot.key().equals(targetSlot.key()) && removalIndex == targetIndex)) continue;
                                     BuildState trial = relocated.copy();
-                                    trial.slots.get(removalSlot.key()).set(removalIndex, null);
+                                    trial.setPlacement(removalSlot.key(), removalIndex, null);
                                     normalizeSlotLevelsByPriority(trial, removalSlot, context);
                                     if (!minimumsSatisfied(trial, context)
                                             || calculatedValue(trial, type, context) < target - TARGET_TOLERANCE) continue;
@@ -873,12 +873,12 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
                         if (isDeadlineExceeded(context)) return state;
                         if (candidate.getBonusType() == current.drif().getBonusType()) continue;
                         if (containsBonusExcept(placements, candidate.getBonusType(), index)) continue;
-                        if (globalCountExcept(state, candidate.getBonusType(), current.drif().getBonusType())
+                        if (globalCountExcept(state, candidate.getBonusType(), current.drif().getBonusType(), context)
                                 >= maxQuantity(candidate.getBonusType(), context.request())) continue;
                         if (containsAnotherElemental(state, candidate, current.drif())) continue;
 
                         BuildState trial = state.copy();
-                        trial.slots.get(slot.key()).set(index,
+                        trial.setPlacement(slot.key(), index,
                                 new Placement(candidate, Math.min(6, candidate.getSize().getMaxLevel()), false));
                         normalizeSlotLevelsByPriority(trial, slot, context);
                         if (!fitsCapacity(trial.slots.get(slot.key()), slot)) continue;
@@ -919,9 +919,9 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
                                 || containsBonusExcept(secondPlacements, firstPlacement.drif().getBonusType(), j)) continue;
 
                         BuildState trial = state.copy();
-                        trial.slots.get(firstSlot.key()).set(i, new Placement(secondPlacement.drif(),
+                        trial.setPlacement(firstSlot.key(), i, new Placement(secondPlacement.drif(),
                                 Math.min(6, secondPlacement.drif().getSize().getMaxLevel()), false));
-                        trial.slots.get(secondSlot.key()).set(j, new Placement(firstPlacement.drif(),
+                        trial.setPlacement(secondSlot.key(), j, new Placement(firstPlacement.drif(),
                                 Math.min(6, firstPlacement.drif().getSize().getMaxLevel()), false));
                         normalizeSlotLevelsByPriority(trial, firstSlot, context);
                         normalizeSlotLevelsByPriority(trial, secondSlot, context);
@@ -950,7 +950,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
                     if (isDeadlineExceeded(context)) return state;
                     if (placements.get(index) == null || slot.lockedIndices().contains(index)) continue;
                     BuildState trial = state.copy();
-                    trial.slots.get(slot.key()).set(index, null);
+                    trial.setPlacement(slot.key(), index, null);
                     normalizeSlotLevelsByPriority(trial, slot, context);
                     if (!minimumsSatisfied(trial, context)) continue;
                     if (isBetterState(trial, state, context)) {
@@ -1001,7 +1001,10 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
     }
 
     private Quality quality(BuildState state, OptimizationContext context) {
-        Metrics metrics = metrics(state, context);
+        StateEvaluation evaluation = evaluation(state, context);
+        if (evaluation.quality != null) return evaluation.quality;
+
+        Metrics metrics = evaluation.metrics;
         int hardViolations = metrics.overflowPower();
         int missingCritical = 0;
         double forcedCapDeficit = 0.0;
@@ -1022,7 +1025,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
             int count = metrics.counts().getOrDefault(type, 0);
             if (isCritical(type, context.request()) && count == 0) missingCritical++;
 
-            double value = calculatedValue(state, type, context);
+            double value = calculatedValue(metrics, type, context);
             Double target = targetFor(type, context.request());
             if (target != null) {
                 double deficit = Math.max(0.0, target - value);
@@ -1037,20 +1040,24 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
                 weightedUtility += value * priority;
             }
         }
-        return new Quality(hardViolations, forcedCapDeficit, missingCritical, targetDeficit,
+        Quality quality = new Quality(hardViolations, forcedCapDeficit, missingCritical, targetDeficit,
                 weightedUtility, metrics.penaltyLoss(), forcedCapExcess,
                 metrics.capacityUtilization(), metrics.totalPower());
+        evaluation.quality = quality;
+        return quality;
     }
 
     private double score(BuildState state, OptimizationContext context) {
-        Metrics metrics = metrics(state, context);
+        StateEvaluation evaluation = evaluation(state, context);
+        if (evaluation.score != null) return evaluation.score;
+
+        Metrics metrics = evaluation.metrics;
         double result = 0;
 
-        for (Map.Entry<DRIF_BONUS_TYPE, Integer> priority : context.request().getPriorities().entrySet().stream()
-                .sorted(Map.Entry.comparingByKey(Comparator.comparing(Enum::name))).toList()) {
+        for (Map.Entry<DRIF_BONUS_TYPE, Integer> priority : context.sortedPriorities()) {
             DRIF_BONUS_TYPE type = priority.getKey();
             int weight = Math.max(1, priority.getValue() != null ? priority.getValue() : 1);
-            double directedValue = calculatedValue(state, type, context);
+            double directedValue = calculatedValue(metrics, type, context);
             Double target = targetFor(type, context.request());
 
             if (target != null && target > 0) {
@@ -1072,8 +1079,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
         }
 
         for (Map.Entry<DRIF_BONUS_TYPE, OptimizationRequest.QuantityRange> entry
-                : safeQuantities(context.request()).entrySet().stream()
-                .sorted(Map.Entry.comparingByKey(Comparator.comparing(Enum::name))).toList()) {
+                : context.sortedQuantities()) {
             int count = metrics.counts().getOrDefault(entry.getKey(), 0);
             int min = clampQuantity(entry.getValue().getMin());
             int max = clampQuantity(entry.getValue().getMax());
@@ -1083,21 +1089,28 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
 
         result -= metrics.overflowPower() * 100000.0;
         result += metrics.totalPower() * 0.25;
+        evaluation.score = result;
         return result;
     }
 
     private Metrics metrics(BuildState state, OptimizationContext context) {
+        return evaluation(state, context).metrics;
+    }
+
+    private StateEvaluation evaluation(BuildState state, OptimizationContext context) {
         String key = signature(state);
-        Metrics cached = context.metricsCache().get(key);
+        StateEvaluation cached = context.evaluationCache().get(key);
         if (cached != null) return cached;
-        Metrics calculated = calculateMetrics(state, context);
-        context.metricsCache().put(key, calculated);
+        StateEvaluation calculated = new StateEvaluation(calculateMetrics(state, context));
+        context.evaluationCache().put(key, calculated);
         return calculated;
     }
 
     private Metrics calculateMetrics(BuildState state, OptimizationContext context) {
         Map<DRIF_BONUS_TYPE, Integer> counts = new LinkedHashMap<>();
         Map<DRIF_BONUS_TYPE, Double> rawValues = new LinkedHashMap<>();
+        Map<DRIF_BONUS_TYPE, Integer> searchCounts = new LinkedHashMap<>();
+        Map<DRIF_BONUS_TYPE, Double> searchRawValues = new LinkedHashMap<>();
         int totalPower = 0;
         int overflowPower = 0;
         int usedCapacity = 0;
@@ -1109,30 +1122,42 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
             Set<DRIF_BONUS_TYPE> unique = new HashSet<>();
             for (Placement placement : placements) {
                 if (placement == null || placement.drif() == null) continue;
+                DRIF_BONUS_TYPE type = placement.drif().getBonusType();
+                double drifValue = drifValue(placement.drif(), placement.level(), context)
+                        * (1.0 + slot.drifBonus());
+                searchCounts.merge(type, 1, Integer::sum);
+                searchRawValues.merge(type, drifValue, Double::sum);
                 if (!unique.add(placement.drif().getBonusType())) continue;
                 int power = power(placement.drif(), placement.level());
                 used += power;
                 totalPower += power;
-                counts.merge(placement.drif().getBonusType(), 1, Integer::sum);
-                rawValues.merge(placement.drif().getBonusType(),
-                        calculateDrifValue(placement.drif(), placement.level()) * (1.0 + slot.drifBonus()),
-                        Double::sum);
+                counts.merge(type, 1, Integer::sum);
+                rawValues.merge(type, drifValue, Double::sum);
             }
             usedCapacity += Math.min(used, slot.capacity());
             totalCapacity += slot.capacity();
             overflowPower += Math.max(0, used - slot.capacity());
         }
 
-        Map<DRIF_BONUS_TYPE, Double> values = new LinkedHashMap<>();
+        Map<DRIF_BONUS_TYPE, Double> searchValues = new LinkedHashMap<>();
         double penaltyLoss = 0;
         for (Map.Entry<DRIF_BONUS_TYPE, Double> entry : rawValues.entrySet()) {
             double penalty = rules.getDrifPenalty(counts.getOrDefault(entry.getKey(), 0));
-            values.put(entry.getKey(), entry.getValue() * penalty);
             penaltyLoss += Math.abs(entry.getValue()) * (1.0 - penalty);
+        }
+        for (Map.Entry<DRIF_BONUS_TYPE, Double> entry : searchRawValues.entrySet()) {
+            double penalty = rules.getDrifPenalty(searchCounts.getOrDefault(entry.getKey(), 0));
+            searchValues.put(entry.getKey(), entry.getValue() * penalty);
         }
 
         double utilization = totalCapacity > 0 ? (double) usedCapacity / totalCapacity : 0.0;
-        return new Metrics(counts, values, totalPower, overflowPower, utilization, penaltyLoss);
+        return new Metrics(counts, searchCounts, searchValues,
+                totalPower, overflowPower, utilization, penaltyLoss);
+    }
+
+    private double drifValue(DrifTemplate drif, int level, OptimizationContext context) {
+        return context.drifValueCache().computeIfAbsent(new DrifLevelKey(drif.getId(), level),
+                ignored -> calculateDrifValue(drif, level));
     }
 
     private OptimizationSummary createSummary(BuildState state, OptimizationContext context, double executionTime) {
@@ -1358,13 +1383,13 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
         return false;
     }
 
-    private int globalCount(BuildState state, DRIF_BONUS_TYPE type) {
-        return (int) state.slots.values().stream().flatMap(List::stream).filter(Objects::nonNull)
-                .filter(p -> p.drif().getBonusType() == type).count();
+    private int globalCount(BuildState state, DRIF_BONUS_TYPE type, OptimizationContext context) {
+        return metrics(state, context).searchCounts().getOrDefault(type, 0);
     }
 
-    private int globalCountExcept(BuildState state, DRIF_BONUS_TYPE candidate, DRIF_BONUS_TYPE replaced) {
-        return Math.max(0, globalCount(state, candidate) - (candidate == replaced ? 1 : 0));
+    private int globalCountExcept(BuildState state, DRIF_BONUS_TYPE candidate,
+                                  DRIF_BONUS_TYPE replaced, OptimizationContext context) {
+        return Math.max(0, globalCount(state, candidate, context) - (candidate == replaced ? 1 : 0));
     }
 
     private int maxQuantity(DRIF_BONUS_TYPE type, OptimizationRequest request) {
@@ -1375,7 +1400,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
     private boolean minimumsSatisfied(BuildState state, OptimizationContext context) {
         for (Map.Entry<DRIF_BONUS_TYPE, OptimizationRequest.QuantityRange> entry
                 : safeQuantities(context.request()).entrySet()) {
-            if (globalCount(state, entry.getKey()) < entry.getValue().getMin()) return false;
+            if (globalCount(state, entry.getKey(), context) < entry.getValue().getMin()) return false;
         }
         return true;
     }
@@ -1423,12 +1448,12 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
         return Math.max(0, Math.min(MAX_GLOBAL_DRIFS_PER_TYPE, value));
     }
 
-    private void putNextFree(List<Placement> placements, Placement placement,
-                             Set<Integer> lockedIndices, int maxDrifs) {
-        int hardLimit = Math.max(0, maxDrifs);
+    private void putNextFree(BuildState state, SlotContext slot, Placement placement) {
+        List<Placement> placements = state.slots.get(slot.key());
+        int hardLimit = Math.max(0, slot.maxDrifs());
         for (int i = 0; i < Math.min(placements.size(), hardLimit); i++) {
-            if (!lockedIndices.contains(i) && placements.get(i) == null) {
-                placements.set(i, placement);
+            if (!slot.lockedIndices().contains(i) && placements.get(i) == null) {
+                state.setPlacement(slot.key(), i, placement);
                 return;
             }
         }
@@ -1462,10 +1487,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
     }
 
     private String signature(BuildState state) {
-        return state.slots.entrySet().stream().sorted(Map.Entry.comparingByKey())
-                .map(entry -> entry.getKey() + ":" + entry.getValue().stream()
-                        .map(p -> p == null ? "_" : p.drif().getId() + "@" + p.level()).collect(Collectors.joining(",")))
-                .collect(Collectors.joining("|"));
+        return state.signature();
     }
 
     private Map<String, EquipmentRequest.SlotData> deepCopySlots(Map<String, EquipmentRequest.SlotData> source) {
@@ -1510,18 +1532,43 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
 
     private record OptimizationContext(OptimizationRequest request, Map<Long, ItemTemplate> items,
                                         Map<Long, DrifTemplate> drifs, List<SlotContext> slots,
+                                        List<Map.Entry<DRIF_BONUS_TYPE, Integer>> sortedPriorities,
+                                        List<Map.Entry<DRIF_BONUS_TYPE, OptimizationRequest.QuantityRange>> sortedQuantities,
                                         SearchBudget searchBudget,
                                         Map<DRIF_BONUS_TYPE, Double> calculatorBaseline,
                                         Map<String, Map<String, String>> calculatorCache,
-                                        Map<String, Metrics> metricsCache) { }
+                                        Map<String, StateEvaluation> evaluationCache,
+                                        Map<DrifLevelKey, Double> drifValueCache) { }
 
     private static final class BuildState {
         private final Map<String, List<Placement>> slots = new HashMap<>();
+        private String cachedSignature;
 
         private BuildState copy() {
             BuildState copy = new BuildState();
             slots.forEach((key, values) -> copy.slots.put(key, new ArrayList<>(values)));
+            copy.cachedSignature = cachedSignature;
             return copy;
+        }
+
+        private String signature() {
+            if (cachedSignature == null) {
+                cachedSignature = slots.entrySet().stream().sorted(Map.Entry.comparingByKey())
+                        .map(entry -> entry.getKey() + ":" + entry.getValue().stream()
+                                .map(p -> p == null ? "_" : p.drif().getId() + "@" + p.level())
+                                .collect(Collectors.joining(",")))
+                        .collect(Collectors.joining("|"));
+            }
+            return cachedSignature;
+        }
+
+        private void invalidate() {
+            cachedSignature = null;
+        }
+
+        private void setPlacement(String slotKey, int index, Placement placement) {
+            slots.get(slotKey).set(index, placement);
+            invalidate();
         }
     }
 
@@ -1541,7 +1588,21 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
                            double targetDeficit, double weightedUtility, double penaltyLoss,
                            double forcedCapExcess, double capacityUtilization, int totalPower) { }
 
-    private record Metrics(Map<DRIF_BONUS_TYPE, Integer> counts, Map<DRIF_BONUS_TYPE, Double> values,
+    private static final class StateEvaluation {
+        private final Metrics metrics;
+        private Quality quality;
+        private Double score;
+
+        private StateEvaluation(Metrics metrics) {
+            this.metrics = metrics;
+        }
+    }
+
+    private record DrifLevelKey(Long drifId, int level) { }
+
+    private record Metrics(Map<DRIF_BONUS_TYPE, Integer> counts,
+                           Map<DRIF_BONUS_TYPE, Integer> searchCounts,
+                           Map<DRIF_BONUS_TYPE, Double> searchValues,
                            int totalPower, int overflowPower, double capacityUtilization,
                            double penaltyLoss) { }
 }
