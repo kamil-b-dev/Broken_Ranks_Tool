@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useEquipment } from '../context/EquipmentContext';
 import { SLOTS } from '../constants/equipment';
 
@@ -43,6 +43,22 @@ const DRIF_BONUS_CATEGORY_FALLBACK = {
     STAMINA_USAGE_REDUCTION: 'UTILITY'
 };
 
+/**
+ * Matches the backend duplicate-drif penalty and keeps the panel correct
+ * while an older backend response without penalty multipliers is cached.
+ */
+const getDrifPenaltyMultiplier = (count, multipliers = {}) => {
+    const providedMultiplier = Number(multipliers?.[count]);
+    if (Number.isFinite(providedMultiplier)) return providedMultiplier;
+    if (count <= 3) return 1;
+
+    const fallbackMultipliers = {
+        4: 0.95, 5: 0.87, 6: 0.80, 7: 0.74, 8: 0.69,
+        9: 0.64, 10: 0.59, 11: 0.54
+    };
+    return fallbackMultipliers[count] ?? 0.50;
+};
+
 const createBonusOption = ([key, value], drifBonusCategories = {}) => ({
     key,
     value,
@@ -75,6 +91,7 @@ const OptimizerPanel = () => {
     const [isOptimizing, setIsOptimizing] = useState(false);
     const [optimizationElapsedSeconds, setOptimizationElapsedSeconds] = useState(0);
     const [lastOptimizationDurationSeconds, setLastOptimizationDurationSeconds] = useState(null);
+    const [optimizationStatus, setOptimizationStatus] = useState(null);
     const [prioritySortDirection, setPrioritySortDirection] = useState('desc');
     const configInputRef = useRef(null);
     const optimizationStartTimeRef = useRef(null);
@@ -107,9 +124,35 @@ const OptimizerPanel = () => {
         return matchesCategory && matchesSearch;
     });
 
+    const currentModDetails = useMemo(() => {
+        const counts = {};
+        const drifsById = new Map(data.drifs.map(drif => [String(drif.id), drif]));
+
+        Object.values(requestData.slots || {}).forEach(slot => {
+            const typesInSlot = new Set();
+            (slot?.drifIds || []).forEach(drifId => {
+                const drif = drifsById.get(String(drifId));
+                if (drif?.bonusType && !typesInSlot.has(drif.bonusType)) {
+                    typesInSlot.add(drif.bonusType);
+                    counts[drif.bonusType] = (counts[drif.bonusType] || 0) + 1;
+                }
+            });
+        });
+
+        return prioritizedBonuses.map(bonus => {
+            const count = counts[bonus.key] || 0;
+            const multiplier = getDrifPenaltyMultiplier(count, gameRules?.drifPenaltyMultipliers);
+            return {
+                ...bonus,
+                count,
+                penaltyPercent: Math.max(0, (1 - multiplier) * 100)
+            };
+        });
+    }, [data.drifs, gameRules?.drifPenaltyMultipliers, prioritizedBonuses, requestData.slots]);
+
     /** Moves a selected bonus into the priority list. */
     const handleSelectBonus = (bonus) => {
-        setPrioritizedBonuses(prev => [...prev, { ...bonus, weight: 15, min: 0, max: 12, targetValue: '', forceCap: false, critical: false }]);
+        setPrioritizedBonuses(prev => [...prev, { ...bonus, weight: 15, min: 0, max: 12, forceCap: false, maximize: false }]);
         setAvailableBonuses(prev => prev.filter(b => b.key !== bonus.key));
     };
 
@@ -161,14 +204,13 @@ const OptimizerPanel = () => {
             format: OPTIMIZER_CONFIG_FORMAT,
             version: OPTIMIZER_CONFIG_VERSION,
             exportedAt: new Date().toISOString(),
-            priorities: prioritizedBonuses.map(({ key, weight, min, max, targetValue, forceCap, critical }) => ({
+            priorities: prioritizedBonuses.map(({ key, weight, min, max, forceCap, maximize }) => ({
                 key,
                 weight: Number(weight),
                 min: Number(min),
                 max: Number(max),
-                targetValue: targetValue === '' ? '' : Number(targetValue),
                 forceCap: Boolean(forceCap),
-                critical: Boolean(critical)
+                maximize: Boolean(maximize)
             }))
         };
         const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
@@ -216,9 +258,6 @@ const OptimizerPanel = () => {
                 const parsedMax = Number(entry.max);
                 const min = Math.max(0, Math.min(12, Number.isFinite(parsedMin) ? Math.trunc(parsedMin) : 0));
                 const max = Math.max(min, Math.min(12, Number.isFinite(parsedMax) ? Math.trunc(parsedMax) : 12));
-                const targetValue = entry.targetValue === '' || entry.targetValue === null || entry.targetValue === undefined
-                    ? '' : (Number.isFinite(Number(entry.targetValue)) ? Number(entry.targetValue) : '');
-
                 return [{
                     key: entry.key,
                     value: bonus.value,
@@ -226,9 +265,8 @@ const OptimizerPanel = () => {
                     weight: Math.max(1, Math.min(30, Number.isFinite(parsedWeight) ? Math.trunc(parsedWeight) : 15)),
                     min,
                     max,
-                    targetValue,
                     forceCap: Boolean(entry.forceCap),
-                    critical: Boolean(entry.critical)
+                    maximize: Boolean(entry.maximize ?? entry.critical)
                 }];
             });
 
@@ -256,9 +294,8 @@ const OptimizerPanel = () => {
 
         const priorities = {};
         const targetQuantities = {};
-        const targetValues = {};
         const forceCapBonuses = [];
-        const criticalBonuses = [];
+        const maximizeBonuses = [];
 
         prioritizedBonuses.forEach(b => {
             priorities[b.key] = parseInt(b.weight, 10);
@@ -273,21 +310,20 @@ const OptimizerPanel = () => {
             // a puste lub chwilowo tekstowe wartości nie tworzą zakresu 0–0.
             targetQuantities[b.key] = { min, max };
 
-            if (b.targetValue !== '' && b.targetValue !== null && b.targetValue !== undefined && !b.forceCap) {
-                targetValues[b.key] = parseFloat(b.targetValue);
-            }
-
             if (b.forceCap) {
                 forceCapBonuses.push(b.key);
             }
 
-            if (b.critical) {
-                criticalBonuses.push(b.key);
+            if (b.maximize) {
+                maximizeBonuses.push(b.key);
             }
         });
 
         try {
-            await runDrifOptimization({ priorities, targetQuantities, targetValues, forceCapBonuses, criticalBonuses });
+            const result = await runDrifOptimization({
+                priorities, targetQuantities, forceCapBonuses, maximizeBonuses
+            });
+            setOptimizationStatus(result);
         } finally {
             const durationSeconds = Math.floor((performance.now() - startedAt) / 1000);
             setOptimizationElapsedSeconds(durationSeconds);
@@ -299,7 +335,7 @@ const OptimizerPanel = () => {
 
     return (
         <div className="bg-gradient-to-b from-stone-900 to-black p-5 border-2 border-stone-800 shadow-[0_0_30px_rgba(0,0,0,0.9)] flex flex-col h-full relative">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 xl:gap-8 flex-1 min-h-[700px]">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 xl:gap-8 flex-1 min-h-[700px]">
 
                 <div className="flex flex-col gap-2 h-full min-h-0 border-r border-stone-800/60 pr-4 xl:pr-6">
                     <div className="flex items-center justify-center border-b border-stone-700 pb-2 mb-2 min-h-[34px] shrink-0">
@@ -550,19 +586,6 @@ const OptimizerPanel = () => {
                                                 </div>
 
                                                 <div className="flex items-center justify-between gap-3 pt-2 border-t border-stone-800/50">
-                                                    <span className="text-[10px] text-stone-500 uppercase tracking-wider whitespace-nowrap">Cel wartości:</span>
-                                                    <input
-                                                        type="number"
-                                                        step="0.01"
-                                                        value={bonus.targetValue}
-                                                        disabled={bonus.forceCap}
-                                                        placeholder={hasCap ? String(maxCap) : 'opcjonalnie'}
-                                                        onChange={(e) => handleUpdateBonus(bonus.key, 'targetValue', e.target.value)}
-                                                        className="w-24 bg-stone-950 border border-stone-700 rounded-sm px-2 py-1 text-xs text-stone-200 outline-none text-right disabled:opacity-40 focus:border-purple-600"
-                                                    />
-                                                </div>
-
-                                                <div className="flex items-center justify-between gap-3 pt-2 border-t border-stone-800/50">
                                                     <span className="text-[10px] text-stone-500 uppercase tracking-wider whitespace-nowrap">
                                                         {hasCap ? `Wymuś Max Cap (${maxCap > 0 ? '+' : ''}${maxCap}%):` : 'Wymuś Max Cap:'}
                                                     </span>
@@ -583,14 +606,14 @@ const OptimizerPanel = () => {
                                                 <div className="flex items-center justify-between gap-3 pt-2 border-t border-stone-800/50">
                                                     <span
                                                         className="text-[10px] text-stone-500 uppercase tracking-wider whitespace-nowrap"
-                                                        title="Algorytm ma zawsze zachować co najmniej jeden taki mod, ale nie będzie sztucznie dążył do jego capa."
+                                                        title="Algorytm będzie dążył do najwyższej możliwej wartości tego modyfikatora, po spełnieniu limitów ilościowych i wymuszonych capów."
                                                     >
-                                                        Krytyczny mod:
+                                                        Maksymalizuj mod:
                                                     </span>
                                                     <button
-                                                        onClick={() => handleUpdateBonus(bonus.key, 'critical', !bonus.critical)}
-                                                        title="Zachowaj co najmniej jeden drif tego modyfikatora bez wymuszania capa"
-                                                        className={`w-5 h-5 flex items-center justify-center border rounded-sm transition-all ${bonus.critical ? 'bg-amber-900 border-amber-500 text-amber-100 shadow-[0_0_8px_rgba(245,158,11,0.4)]' : 'bg-stone-950 border-stone-700 text-transparent hover:border-amber-800'}`}
+                                                        onClick={() => handleUpdateBonus(bonus.key, 'maximize', !bonus.maximize)}
+                                                        title="Maksymalizuj wartość moda, wykorzystując najpierw przedmioty z najwyższym bonusem do drifów"
+                                                        className={`w-5 h-5 flex items-center justify-center border rounded-sm transition-all ${bonus.maximize ? 'bg-amber-900 border-amber-500 text-amber-100 shadow-[0_0_8px_rgba(245,158,11,0.4)]' : 'bg-stone-950 border-stone-700 text-transparent hover:border-amber-800'}`}
                                                     >
                                                         <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
                                                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293z" clipRule="evenodd" />
@@ -605,6 +628,105 @@ const OptimizerPanel = () => {
                         )}
                     </div>
                 </div>
+
+                <aside className="flex flex-col gap-4 h-full min-h-0 border-l border-stone-800/60 pl-4 xl:pl-6">
+                    <div className="flex items-center justify-center border-b border-stone-700 pb-2 min-h-[34px] shrink-0">
+                        <h4 className="text-stone-300 font-serif font-bold uppercase tracking-widest text-xs">
+                            Informacje z optymalizacji
+                        </h4>
+                    </div>
+
+                    <div className="overflow-y-auto pr-2 flex-1 min-h-0 space-y-4 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-stone-800 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-purple-800/70">
+                        <section className="bg-black/40 border border-stone-800 rounded-sm p-3">
+                            <h5 className="text-[10px] text-stone-400 uppercase tracking-widest font-semibold mb-2">
+                                Status
+                            </h5>
+                            {isOptimizing ? (
+                                <div className="flex items-center gap-2 text-xs text-purple-300">
+                                    <svg className="animate-spin h-4 w-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    <span>Optymalizacja trwa ({optimizationElapsedSeconds} s).</span>
+                                </div>
+                            ) : optimizationStatus ? (
+                                <div className={`text-xs leading-relaxed ${optimizationStatus.success ? 'text-emerald-300' : 'text-amber-300'}`}>
+                                    <p>{optimizationStatus.message}</p>
+                                    {optimizationStatus.warnings?.length > 0 && (
+                                        <ul className="mt-2 space-y-1.5 border-l-2 border-amber-700/70 pl-2.5 text-amber-200">
+                                            {optimizationStatus.warnings.map((warning, index) => (
+                                                <li key={`${warning}-${index}`}>{warning}</li>
+                                            ))}
+                                        </ul>
+                                    )}
+                                    {optimizationStatus.applied && !optimizationStatus.success && (
+                                        <p className="mt-2 text-stone-400">Zastosowano najlepszy znaleziony układ.</p>
+                                    )}
+                                    <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1 text-[10px] uppercase tracking-wide">
+                                        {optimizationStatus.drifsPlaced !== undefined && (
+                                            <>
+                                                <dt className="text-stone-500">Umieszczono</dt>
+                                                <dd className="text-right text-stone-200 tabular-nums">{optimizationStatus.drifsPlaced} drifów</dd>
+                                            </>
+                                        )}
+                                        {(optimizationStatus.executionTimeSeconds ?? lastOptimizationDurationSeconds) !== null && (
+                                            <>
+                                                <dt className="text-stone-500">Czas</dt>
+                                                <dd className="text-right text-stone-200 tabular-nums">
+                                                    {(optimizationStatus.executionTimeSeconds ?? lastOptimizationDurationSeconds).toFixed?.(2)
+                                                        ?? optimizationStatus.executionTimeSeconds ?? lastOptimizationDurationSeconds} s
+                                                </dd>
+                                            </>
+                                        )}
+                                    </dl>
+                                </div>
+                            ) : (
+                                <p className="text-xs text-stone-600 italic leading-relaxed">
+                                    Wynik i ostrzeżenia z kolejnej optymalizacji pojawią się tutaj.
+                                </p>
+                            )}
+                        </section>
+
+                        <section className="bg-black/40 border border-stone-800 rounded-sm p-3">
+                            <h5 className="text-[10px] text-stone-400 uppercase tracking-widest font-semibold mb-3">
+                                Aktualne mody i kara
+                            </h5>
+                            {currentModDetails.length === 0 ? (
+                                <p className="text-xs text-stone-600 italic leading-relaxed">
+                                    Dodaj mod do priorytetów, aby zobaczyć jego aktualną liczbę i karę.
+                                </p>
+                            ) : (
+                                <div className="space-y-2">
+                                    {currentModDetails.map(bonus => (
+                                        <div key={bonus.key} className="border-b border-stone-800/70 pb-2 last:border-0 last:pb-0">
+                                            <div className="flex items-start justify-between gap-2 text-xs">
+                                                <span className="text-stone-300 leading-tight">{bonus.value}</span>
+                                                <span className="text-purple-300 font-bold tabular-nums shrink-0">×{bonus.count}</span>
+                                            </div>
+                                            <div className="flex justify-between mt-1 text-[10px] uppercase tracking-wide">
+                                                <span className="text-stone-600">Limit {bonus.min}–{bonus.max}</span>
+                                                <span className={bonus.penaltyPercent > 0 ? 'text-amber-400' : 'text-emerald-500'}>
+                                                    {bonus.penaltyPercent > 0
+                                                        ? `Kara −${bonus.penaltyPercent.toFixed(0)}%`
+                                                        : 'Bez kary'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </section>
+
+                        <section className="border border-dashed border-stone-700/80 rounded-sm p-3">
+                            <h5 className="text-[10px] text-stone-500 uppercase tracking-widest font-semibold mb-2">
+                                Kolejne warianty
+                            </h5>
+                            <p className="text-xs text-stone-600 italic leading-relaxed">
+                                Tu pojawią się podpowiedzi zamian i alternatywne konfiguracje.
+                            </p>
+                        </section>
+                    </div>
+                </aside>
             </div>
 
             <div className="flex justify-center mt-6 pt-4 border-t border-stone-800/80 shrink-0 relative z-10 w-full max-w-xl mx-auto">
@@ -627,11 +749,6 @@ const OptimizerPanel = () => {
                     )}
                 </button>
             </div>
-            {lastOptimizationDurationSeconds !== null && !isOptimizing && (
-                <p className="text-center text-[10px] text-stone-500 uppercase tracking-widest mt-2">
-                    Ostatnia optymalizacja: <span className="text-purple-400 tabular-nums">{lastOptimizationDurationSeconds} s</span>
-                </p>
-            )}
         </div>
     );
 };

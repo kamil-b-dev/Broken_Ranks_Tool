@@ -32,34 +32,28 @@ public class EquipmentDataProvider {
      * @return Context containing templates indexed by identifier.
      */
     public CalculationContext buildContext(Collection<SlotData> slots) {
-        List<Long> itemIds = slots.stream()
-                .filter(Objects::nonNull)
-                .map(SlotData::getItemId)
-                .filter(Objects::nonNull)
-                .distinct()
-                .toList();
-        List<Long> orbIds = slots.stream()
-                .filter(Objects::nonNull)
-                .map(SlotData::getOrbIds)
-                .filter(Objects::nonNull)
-                .flatMap(List::stream)
-                .filter(Objects::nonNull)
-                .distinct()
-                .toList();
-        List<Long> drifIds = slots.stream()
-                .filter(Objects::nonNull)
-                .map(SlotData::getDrifIds)
-                .filter(Objects::nonNull)
-                .flatMap(List::stream)
-                .filter(Objects::nonNull)
-                .distinct()
-                .toList();
+        List<Long> itemIds = collectIds(slots,
+                slot -> slot.getItemId() == null ? List.of() : List.of(slot.getItemId()));
+        List<Long> orbIds = collectIds(slots, SlotData::getOrbIds);
+        List<Long> drifIds = collectIds(slots, SlotData::getDrifIds);
 
         return new CalculationContext(
                 itemRepository.findAllById(itemIds).stream().collect(Collectors.toMap(ItemTemplate::getId, Function.identity(), (first, ignored) -> first)),
                 orbRepository.findAllById(orbIds).stream().collect(Collectors.toMap(OrbTemplate::getId, Function.identity(), (first, ignored) -> first)),
                 drifRepository.findAllById(drifIds).stream().collect(Collectors.toMap(DrifTemplate::getId, Function.identity(), (first, ignored) -> first))
         );
+    }
+
+    private List<Long> collectIds(Collection<SlotData> slots,
+                                  Function<SlotData, Collection<Long>> idExtractor) {
+        return slots.stream()
+                .filter(Objects::nonNull)
+                .map(idExtractor)
+                .filter(Objects::nonNull)
+                .flatMap(Collection::stream)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
     }
 
     /** Immutable container for the templates required by the calculation pipeline. */
