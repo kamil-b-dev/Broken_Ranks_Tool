@@ -1,6 +1,7 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.service.impl;
 
 import lombok.experimental.UtilityClass;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.util.DrifPowerRules;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 
 import java.util.List;
@@ -27,7 +28,7 @@ class DrifOptimizationMath {
     static int highestLevelForPower(DrifTemplate drif, int availablePower) {
         int affordableMultiplier = Math.max(1,
                 Math.min(4, availablePower / Math.max(1, drif.getBonusType().getBasePower())));
-        int sizeMultiplier = effectiveMultiplier(drif.getSize().getMaxLevel());
+        int sizeMultiplier = DrifPowerRules.effectiveMultiplier(drif.getSize().getMaxLevel());
         int multiplier = Math.min(affordableMultiplier, sizeMultiplier);
         return switch (multiplier) {
             case 1 -> Math.min(6, drif.getSize().getMaxLevel());
@@ -62,14 +63,7 @@ class DrifOptimizationMath {
     }
 
     static int power(DrifTemplate drif, int level) {
-        return drif.getBonusType().getBasePower() * effectiveMultiplier(level);
-    }
-
-    static int effectiveMultiplier(int level) {
-        if (level <= 6) return 1;
-        if (level <= 11) return 2;
-        if (level <= 16) return 3;
-        return 4;
+        return DrifPowerRules.power(drif.getBonusType().getBasePower(), level);
     }
 
     static double calculateDrifValue(DrifTemplate drif, int level) {

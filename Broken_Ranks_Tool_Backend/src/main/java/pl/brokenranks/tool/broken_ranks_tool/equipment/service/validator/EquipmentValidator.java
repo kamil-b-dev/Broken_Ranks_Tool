@@ -9,6 +9,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ORB_BONUS_TY
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.RARITY;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.STAT_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.util.RomanNumeralParser;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.util.DrifPowerRules;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
@@ -150,8 +151,7 @@ public class EquipmentValidator {
             }
 
             int basePower = drif.getBonusType().getBasePower();
-            int multiplier = getEffectiveMultiplier(level);
-            currentPowerUsed += (basePower * multiplier);
+            currentPowerUsed += DrifPowerRules.power(basePower, level);
         }
 
         int totalItemCapacity = calculateItemCapacity(item, itemStars);
@@ -159,18 +159,6 @@ public class EquipmentValidator {
             log.error("[SECURITY] Oszustwo API! Przekroczono pojemność. Użyto: {}, Max: {}", currentPowerUsed, totalItemCapacity);
             throw new IllegalArgumentException("Przekroczono dopuszczalną pojemność drifów w przedmiocie!");
         }
-    }
-
-    /**
-     * Returns the effective drif power multiplier for a level.
-     * @param level Drif level.
-     * @return Effective power multiplier.
-     */
-    private int getEffectiveMultiplier(int level) {
-        if (level <= 6) return 1;
-        if (level <= 11) return 2;
-        if (level <= 16) return 3;
-        return 4;
     }
 
     /**

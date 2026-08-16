@@ -285,7 +285,8 @@ export const useGearSlot = ({ slotKey, items, orbs, drifs, allSlots, gameRules, 
     };
 
     const handleDrifDrop = (data, zone) => {
-        if (!selectedItem || maxDrifs === 0 || SIZE_INDEX[data.size?.toUpperCase()] > maxDrifIndex) return;
+        const drifSizeIndex = SIZE_INDEX[data.size?.toUpperCase()] ?? -1;
+        if (!selectedItem || maxDrifs === 0 || drifSizeIndex < 0 || drifSizeIndex > maxDrifIndex) return;
 
         const idx = parseInt(zone.split('-')[1]);
         if (elementalTypes.includes(data.bonusType) && (slotKey !== "weapon" || hasGlobalElemental)) return;

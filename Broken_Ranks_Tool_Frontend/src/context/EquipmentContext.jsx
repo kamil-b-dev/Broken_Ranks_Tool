@@ -1,9 +1,11 @@
-import { createContext, useState, useEffect, useContext, useCallback } from "react";
+import { createContext, useState, useEffect, useContext, useCallback, useMemo } from "react";
 import apiClient from "../api/axiosConfig";
+import {
+    createBuildPayload,
+    parseBuildFile
+} from "../utils/buildFile";
 
 const EquipmentContext = createContext();
-const BUILD_FILE_FORMAT = "broken-ranks-tool-build";
-const BUILD_FILE_VERSION = 1;
 
 /**
  * Provides access to the equipment context.
@@ -11,7 +13,11 @@ const BUILD_FILE_VERSION = 1;
  */
 // Provider and hook intentionally live together because the context is private to this module.
 // eslint-disable-next-line react-refresh/only-export-components
-export const useEquipment = () => useContext(EquipmentContext);
+export const useEquipment = () => {
+    const context = useContext(EquipmentContext);
+    if (!context) throw new Error("useEquipment musi być użyty wewnątrz EquipmentProvider.");
+    return context;
+};
 
 /**
  * Provides application state for equipment, character stats, and optimization.
@@ -101,17 +107,7 @@ export const EquipmentProvider = ({ children }) => {
 
 /** Exports the complete build as a versioned JSON file for later import. */
     const saveBuildToFile = useCallback(() => {
-        const payload = {
-            format: BUILD_FILE_FORMAT,
-            version: BUILD_FILE_VERSION,
-            exportedAt: new Date().toISOString(),
-            build: {
-                requestData,
-                characterConfig,
-                lockedSlots,
-                lockedDrifs
-            }
-        };
+        const payload = createBuildPayload({ requestData, characterConfig, lockedSlots, lockedDrifs });
         const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
@@ -131,56 +127,15 @@ export const EquipmentProvider = ({ children }) => {
  * @throws {Error} If the file is missing, invalid, unsupported, or references unknown data.
  */
     const loadBuildFromFile = useCallback(async (file) => {
-        if (!file) throw new Error("Nie wybrano pliku buildu.");
-        if (file.size > 5 * 1024 * 1024) throw new Error("Plik buildu jest zbyt duży.");
-
-        let payload;
-        try {
-            payload = JSON.parse(await file.text());
-        } catch {
-            throw new Error("Plik nie zawiera poprawnego JSON-a.");
-        }
-        if (payload?.format !== BUILD_FILE_FORMAT || payload?.version !== BUILD_FILE_VERSION) {
-            throw new Error("Nieobsługiwany format lub wersja pliku buildu.");
-        }
-
-        const build = payload.build;
-        const importedRequest = build?.requestData;
-        if (!importedRequest || typeof importedRequest !== "object"
-                || !importedRequest.slots || typeof importedRequest.slots !== "object"
-                || Array.isArray(importedRequest.slots)) {
-            throw new Error("Plik nie zawiera poprawnej konfiguracji slotów.");
-        }
-
-        const knownItems = new Set(data.items.map(item => String(item.id)));
-        const knownOrbs = new Set(data.orbs.map(orb => String(orb.id)));
-        const knownDrifs = new Set(data.drifs.map(drif => String(drif.id)));
-        Object.entries(importedRequest.slots).forEach(([slotKey, slot]) => {
-            if (!slot || typeof slot !== "object") throw new Error(`Niepoprawne dane slota ${slotKey}.`);
-            if (slot.itemId != null && !knownItems.has(String(slot.itemId))) {
-                throw new Error(`Build odwołuje się do nieznanego przedmiotu w slocie ${slotKey}.`);
-            }
-            (slot.orbIds || []).filter(Boolean).forEach(id => {
-                if (!knownOrbs.has(String(id))) throw new Error(`Build zawiera nieznany orb w slocie ${slotKey}.`);
-            });
-            (slot.drifIds || []).filter(Boolean).forEach(id => {
-                if (!knownDrifs.has(String(id))) throw new Error(`Build zawiera nieznany drif w slocie ${slotKey}.`);
-            });
-        });
-
-        const clonedRequest = JSON.parse(JSON.stringify({
-            slots: importedRequest.slots,
-            characterStats: importedRequest.characterStats || {}
-        }));
-        setRequestData(clonedRequest);
-        setCharacterConfig(build.characterConfig || null);
-        setLockedSlots(Array.isArray(build.lockedSlots) ? [...build.lockedSlots] : []);
-        setLockedDrifs(build.lockedDrifs && typeof build.lockedDrifs === "object"
-            ? JSON.parse(JSON.stringify(build.lockedDrifs)) : {});
+        const importedBuild = await parseBuildFile(file, data);
+        setRequestData(importedBuild.requestData);
+        setCharacterConfig(importedBuild.characterConfig);
+        setLockedSlots(importedBuild.lockedSlots);
+        setLockedDrifs(importedBuild.lockedDrifs);
         setStats(null);
         setStatSources({ drifCategories: {}, orbBonusTypes: [] });
         setOptimizationTrigger(prev => prev + 1);
-    }, [data.items, data.orbs, data.drifs]);
+    }, [data]);
 
 /**
  * Toggles an equipment slot lock used by the optimizer.
@@ -292,7 +247,7 @@ export const EquipmentProvider = ({ children }) => {
         }
     }, [requestData.slots, lockedSlots, lockedDrifs]);
 
-    const value = {
+    const value = useMemo(() => ({
         data,
         categoryNames,
         orbCategories,
@@ -316,7 +271,12 @@ export const EquipmentProvider = ({ children }) => {
         runDrifOptimization,
         saveBuildToFile,
         loadBuildFromFile
-    };
+    }), [
+        data, categoryNames, orbCategories, drifCategories, gameRules, loading, initialDataError,
+        requestData, stats, statSources, isCalculatingStats, optimizationTrigger, lockedSlots,
+        lockedDrifs, characterConfig, handleSlotUpdate, handleCharacterStatsUpdate, toggleSlotLock,
+        toggleDrifLock, calculateStats, runDrifOptimization, saveBuildToFile, loadBuildFromFile
+    ]);
 
     return (
         <EquipmentContext.Provider value={value}>
