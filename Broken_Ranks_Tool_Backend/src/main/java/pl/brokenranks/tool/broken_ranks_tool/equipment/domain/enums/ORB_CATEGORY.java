@@ -7,7 +7,7 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 public enum ORB_CATEGORY {
-    OFENSIVE("Ofensywne"),
+    OFFENSIVE("Ofensywne"),
     DEFENSIVE("Defensywne"),
     UTILITY("Użytkowe");
 
