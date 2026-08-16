@@ -953,7 +953,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
 
     private OptimizationResponse failedResponse(String message, double seconds) {
         return new OptimizationResponse(new EquipmentRequest(),
-                new OptimizationSummary(false, message, 0, 0, seconds, List.of()));
+                new OptimizationSummary(false, message, 0, 0, seconds, List.of(), Map.of()));
     }
 
     private boolean isSlotLocked(SlotContext slot, OptimizationRequest request) {

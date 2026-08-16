@@ -25,11 +25,12 @@ import static pl.brokenranks.tool.broken_ranks_tool.optimization.service.impl.Op
 @RequiredArgsConstructor
 final class OptimizationLargeNeighborhoodSearch {
 
-    private static final long MAX_DURATION_NANOS = 1_500_000_000L;
-    private static final int MAX_GENERATED_STATES = 20_000;
+    private static final int MAX_GENERATED_STATES = 80_000;
     private static final int GROUP_BEAM_WIDTH = 24;
     private static final int ACTUAL_FINALISTS_PER_GROUP = 4;
-    private static final int DIRECTED_FINALISTS = 8;
+    private static final int DIRECTED_FINALISTS = 24;
+    private static final int MAX_CAP_REPAIRS_PER_SWAP = 24;
+    private static final int MAX_MINIMUM_REPAIRS_PER_CAP = 12;
     private static final int MAX_ROUNDS = 2;
     private static final double MIN_ACTUAL_GAIN = 0.000_001;
 
@@ -39,12 +40,8 @@ final class OptimizationLargeNeighborhoodSearch {
 
     /** Returns the best calculator-verified state found within the bounded neighborhoods. */
     BuildState improve(BuildState initial, OptimizationContext context) {
-        SearchControl control = new SearchControl(
-                System.nanoTime() + MAX_DURATION_NANOS, MAX_GENERATED_STATES);
+        SearchControl control = new SearchControl(MAX_GENERATED_STATES);
         BuildState best = improveDirectedMoves(initial, context, control);
-        if (hasMaximizedTypes(context) && best.signature().equals(initial.signature())) {
-            return initial;
-        }
         List<List<SlotContext>> groups = buildGroups(context.slots());
 
         for (int round = 0; round < MAX_ROUNDS && !control.exhausted(); round++) {
@@ -123,6 +120,88 @@ final class OptimizationLargeNeighborhoodSearch {
                         || !fitsCapacity(trial.slots.get(high.key()), high)
                         || !stateEvaluator.minimumsSatisfied(trial, context)) continue;
                 candidates.add(trial);
+                if (displaced != null
+                        && isForcedCap(displaced.drif().getBonusType(), context.request())) {
+                    addForcedCapRepairs(trial, displaced.drif().getBonusType(),
+                            context, control, candidates);
+                }
+            }
+        }
+    }
+
+    private void addForcedCapRepairs(BuildState state, DRIF_BONUS_TYPE capType,
+                                     OptimizationContext context, SearchControl control,
+                                     List<BuildState> candidates) {
+        if (stateEvaluator.globalCount(state, capType, context)
+                >= maxQuantity(capType, context.request())) return;
+        int repairs = 0;
+        for (SlotContext slot : context.slots()) {
+            if (repairs >= MAX_CAP_REPAIRS_PER_SWAP || control.exhausted()) return;
+            if (!slot.optimizable() || isSlotLocked(slot, context)) continue;
+            DrifTemplate capDrif = slot.candidates().stream()
+                    .filter(candidate -> candidate.getBonusType() == capType)
+                    .findFirst().orElse(null);
+            if (capDrif == null) continue;
+            List<Placement> placements = state.slots.get(slot.key());
+            if (containsBonusExcept(placements, capType, -1)) continue;
+
+            for (int position = 0;
+                 position < Math.min(slot.maxDrifs(), placements.size()); position++) {
+                Placement removed = placements.get(position);
+                if (!isMovable(removed, slot, position)
+                        || (removed != null && (isForcedCap(
+                        removed.drif().getBonusType(), context.request())
+                        || isMaximized(removed.drif().getBonusType(), context.request())))) continue;
+
+                for (Integer level : fittingLevels(placements, slot, capDrif, position)) {
+                    if (!control.tryConsume()) return;
+                    BuildState repaired = state.copy();
+                    repaired.setPlacement(slot.key(), position,
+                            new Placement(capDrif, level, false));
+                    if (!fitsCapacity(repaired.slots.get(slot.key()), slot)) continue;
+                    repairs++;
+                    if (stateEvaluator.minimumsSatisfied(repaired, context)) {
+                        candidates.add(repaired);
+                    } else if (removed != null) {
+                        addMinimumRepairs(repaired, removed, slot.key(), context,
+                                control, candidates);
+                    }
+                    if (repairs >= MAX_CAP_REPAIRS_PER_SWAP) return;
+                }
+            }
+        }
+    }
+
+    private void addMinimumRepairs(BuildState state, Placement missing,
+                                   String excludedSlotKey, OptimizationContext context,
+                                   SearchControl control, List<BuildState> candidates) {
+        int repairs = 0;
+        for (SlotContext slot : context.slots()) {
+            if (repairs >= MAX_MINIMUM_REPAIRS_PER_CAP || control.exhausted()) return;
+            if (slot.key().equals(excludedSlotKey) || !slot.optimizable()
+                    || isSlotLocked(slot, context) || !accepts(slot, missing)) continue;
+            List<Placement> placements = state.slots.get(slot.key());
+            if (containsBonusExcept(placements, missing.drif().getBonusType(), -1)) continue;
+
+            for (int position = 0;
+                 position < Math.min(slot.maxDrifs(), placements.size()); position++) {
+                Placement victim = placements.get(position);
+                if (!isMovable(victim, slot, position)
+                        || (victim != null && (isForcedCap(
+                        victim.drif().getBonusType(), context.request())
+                        || isMaximized(victim.drif().getBonusType(), context.request())))) continue;
+                for (Integer level : fittingLevels(
+                        placements, slot, missing.drif(), position)) {
+                    if (!control.tryConsume()) return;
+                    BuildState repaired = state.copy();
+                    repaired.setPlacement(slot.key(), position,
+                            new Placement(missing.drif(), level, false));
+                    if (!fitsCapacity(repaired.slots.get(slot.key()), slot)
+                            || !stateEvaluator.minimumsSatisfied(repaired, context)) continue;
+                    candidates.add(repaired);
+                    repairs++;
+                    if (repairs >= MAX_MINIMUM_REPAIRS_PER_CAP) return;
+                }
             }
         }
     }
@@ -387,11 +466,9 @@ final class OptimizationLargeNeighborhoodSearch {
                                  double weightedUtility) { }
 
     private static final class SearchControl {
-        private final long deadlineNanos;
         private int remainingStates;
 
-        private SearchControl(long deadlineNanos, int remainingStates) {
-            this.deadlineNanos = deadlineNanos;
+        private SearchControl(int remainingStates) {
             this.remainingStates = remainingStates;
         }
 
@@ -402,7 +479,7 @@ final class OptimizationLargeNeighborhoodSearch {
         }
 
         private boolean exhausted() {
-            return remainingStates <= 0 || System.nanoTime() >= deadlineNanos;
+            return remainingStates <= 0;
         }
     }
 }
