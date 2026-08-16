@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Map;
 
 /** Contains optimization metadata and result summary. */
 @Data
@@ -19,4 +20,10 @@ public class OptimizationSummary {
 
     /** Non-fatal optimization warnings, including every forced cap that was not reached. */
     private List<String> warnings;
+
+    /** Items grouped by the drif bonus map used by the optimizer. */
+    private Map<Double, List<ItemDrifBonus>> itemsByDrifBonus;
+
+    /** Identifies an item within an optimizer slot. */
+    public record ItemDrifBonus(String slotKey, String itemName) { }
 }

@@ -67,6 +67,10 @@ class CustomModsOptimizationServiceImplTests {
         EquipmentRequest.SlotData result = response.getOptimizedSetup().getSlots().get("helmet");
         assertEquals(List.of(criticalChance.getId()), result.getDrifIds());
         assertEquals(16, result.getDrifLevels().get("0"));
+        assertEquals("Test XII", response.getSummary().getItemsByDrifBonus()
+                .get(0.0).getFirst().itemName());
+        assertEquals("helmet", response.getSummary().getItemsByDrifBonus()
+                .get(0.0).getFirst().slotKey());
         verify(calculator, atMost(4)).calculateTotalStats(any());
     }
 
