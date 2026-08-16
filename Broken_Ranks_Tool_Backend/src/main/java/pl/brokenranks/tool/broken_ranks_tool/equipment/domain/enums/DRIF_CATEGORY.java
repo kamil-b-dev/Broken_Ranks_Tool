@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum DRIF_CATEGORY {
-    OFENSIVE("Ofensywne"),
+    OFFENSIVE("Ofensywne"),
     DEFENSIVE("Defensywne"),
     UTILITY("Użytkowe");
 

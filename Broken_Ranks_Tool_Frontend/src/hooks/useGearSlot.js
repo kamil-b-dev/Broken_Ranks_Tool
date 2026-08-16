@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { ROMAN_TO_INT, SIZE_INDEX } from "../utils/GearRules";
 
 /**
@@ -63,8 +63,6 @@ export const useGearSlot = ({ slotKey, items, orbs, drifs, allSlots, gameRules, 
     const [builtInLvls, setBuiltInLvls] = useState([1, 1]);
     const [dragOverZone, setDragOverZone] = useState(null);
 
-    const isSyncingFromExternal = useRef(false);
-
     const fullSelectedItem = useMemo(() => items.find(i => i.id.toString() === selectedItem.toString()), [items, selectedItem]);
     const tierVal = fullSelectedItem ? (ROMAN_TO_INT[fullSelectedItem.tier] || 0) : 0;
     const isLegendary = fullSelectedItem?.rarity?.toUpperCase() === 'LEGENDARY';
@@ -73,8 +71,6 @@ export const useGearSlot = ({ slotKey, items, orbs, drifs, allSlots, gameRules, 
     useEffect(() => {
         const externalData = allSlots[slotKey];
         if (externalData) {
-            isSyncingFromExternal.current = true;
-
             setSelectedItem(externalData.itemId?.toString() || "");
             setItemStars(Number(externalData.itemStars) || 1);
 
@@ -114,7 +110,9 @@ export const useGearSlot = ({ slotKey, items, orbs, drifs, allSlots, gameRules, 
             setDrifTypes(newDrifTypes);
             setDrifLevels(newDrifLevels);
         } else {
-            isSyncingFromExternal.current = true;
+            if (Object.keys(allSlots || {}).length === 0) {
+                return;
+            }
             setSelectedItem("");
             setItemStars(1);
             setOrbSlots({
@@ -157,7 +155,7 @@ export const useGearSlot = ({ slotKey, items, orbs, drifs, allSlots, gameRules, 
     const availableOrbs1 = useMemo(() => {
         return orbs.filter(o => {
             const orbTierVal = ROMAN_TO_INT[o.tier] || 0;
-            const isAllowed = allowedOrbCategories.includes(o.category) || (isLegendary && o.category === 'OFENSIVE');
+            const isAllowed = allowedOrbCategories.includes(o.category) || (isLegendary && o.category === 'OFFENSIVE');
             const isNotUsedGlobally = !globalUsedOrbs.includes(o.bonusType);
             const isTierValid = tierVal > 0 ? orbTierVal <= tierVal : true;
             return isAllowed && isNotUsedGlobally && isTierValid;
@@ -169,7 +167,7 @@ export const useGearSlot = ({ slotKey, items, orbs, drifs, allSlots, gameRules, 
         const firstOrbBonusType = orbs.find(o => o.id.toString() === orbSlots.orb1.id)?.bonusType;
         return orbs.filter(o => {
             const orbTierVal = ROMAN_TO_INT[o.tier] || 0;
-            const isAllowed = o.category === 'OFENSIVE';
+            const isAllowed = o.category === 'OFFENSIVE';
             const isNotUsedGlobally = !globalUsedOrbs.includes(o.bonusType);
             const isNotUsedInSlot1 = o.bonusType !== firstOrbBonusType;
             const isTierValid = tierVal > 0 ? orbTierVal <= tierVal : true;
@@ -232,11 +230,6 @@ export const useGearSlot = ({ slotKey, items, orbs, drifs, allSlots, gameRules, 
     const capacityPercentage = itemCapacity > 0 ? Math.min((currentPowerUsed / itemCapacity) * 100, 100) : 0;
 
     useEffect(() => {
-        if (isSyncingFromExternal.current) {
-            isSyncingFromExternal.current = false;
-            return;
-        }
-
         const allDrifIds = [];
         const validDrifLevels = {};
 

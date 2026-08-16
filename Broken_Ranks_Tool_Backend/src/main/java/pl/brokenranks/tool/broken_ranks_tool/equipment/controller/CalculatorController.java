@@ -3,10 +3,10 @@ package pl.brokenranks.tool.broken_ranks_tool.equipment.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.CalculationResultDto;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCalculatorService;
 
-import java.util.Map;
 
 /** Exposes the HTTP endpoint for {@link EquipmentStatsCalculatorService}. */
 @RestController
@@ -23,8 +23,8 @@ public class CalculatorController {
      * @return HTTP 200 with formatted statistics, or an error response for invalid input.
      */
     @PostMapping("/calculate")
-    public ResponseEntity<Map<String, String>> calculateStats(@RequestBody EquipmentRequest request) {
-        Map<String, String> result = calculatorService.calculateTotalStats(request);
+    public ResponseEntity<CalculationResultDto> calculateStats(@RequestBody EquipmentRequest request) {
+        CalculationResultDto result = calculatorService.calculateWithSources(request);
         return ResponseEntity.ok(result);
     }
 }

@@ -215,7 +215,7 @@ public class EquipmentValidator {
     public boolean isValidOrb(OrbTemplate orb, String slotKey, boolean isSecondOrb) {
         if (orb == null) return false;
         if (isSecondOrb) {
-            return orb.getCategory() == ORB_CATEGORY.OFENSIVE;
+            return orb.getCategory() == ORB_CATEGORY.OFFENSIVE;
         } else {
             return rules.isOrbAllowedInSlot(orb.getCategory(), slotKey);
         }

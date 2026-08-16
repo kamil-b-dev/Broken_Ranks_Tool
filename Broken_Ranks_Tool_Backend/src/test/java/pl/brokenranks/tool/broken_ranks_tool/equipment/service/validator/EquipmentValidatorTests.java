@@ -59,7 +59,7 @@ class EquipmentValidatorTests {
         ItemTemplate helmet = item(4, ITEM_CATEGORY.HELMET, RARITY.RARE, "XII");
         DrifTemplate fire = drif(DRIF_BONUS_TYPE.DAMAGE_FIRE, DRIF_SIZE.ARCYDRIF);
         OrbTemplate defensiveOrb = orb(ORB_CATEGORY.DEFENSIVE);
-        OrbTemplate offensiveOrb = orb(ORB_CATEGORY.OFENSIVE);
+        OrbTemplate offensiveOrb = orb(ORB_CATEGORY.OFFENSIVE);
 
         assertTrue(validator.isValidItem(helmet, "helmet"));
         assertFalse(validator.isValidItem(helmet, "weapon"));
@@ -78,7 +78,7 @@ class EquipmentValidatorTests {
     void rejectsTooManyOrbsOnNonLegendaryItems() {
         ItemTemplate rare = item(4, ITEM_CATEGORY.HELMET, RARITY.RARE, "XII");
         OrbTemplate first = orb(ORB_CATEGORY.DEFENSIVE);
-        OrbTemplate second = orb(ORB_CATEGORY.OFENSIVE);
+        OrbTemplate second = orb(ORB_CATEGORY.OFFENSIVE);
         OrbTemplate third = orb(ORB_CATEGORY.UTILITY);
 
         assertThrows(IllegalArgumentException.class,
@@ -92,9 +92,9 @@ class EquipmentValidatorTests {
     @Test
     void rejectsDuplicateOrbBonusesButAllowsTwoOffensiveLegendaryOrbsWithDifferentBonuses() {
         ItemTemplate legendary = item(4, ITEM_CATEGORY.HELMET, RARITY.LEGENDARY, "XII");
-        OrbTemplate first = orb(ORB_CATEGORY.OFENSIVE, ORB_BONUS_TYPE.EXTRA_EXP);
-        OrbTemplate duplicate = orb(ORB_CATEGORY.OFENSIVE, ORB_BONUS_TYPE.EXTRA_EXP);
-        OrbTemplate different = orb(ORB_CATEGORY.OFENSIVE, ORB_BONUS_TYPE.EXTRA_GOLD);
+        OrbTemplate first = orb(ORB_CATEGORY.OFFENSIVE, ORB_BONUS_TYPE.EXTRA_EXP);
+        OrbTemplate duplicate = orb(ORB_CATEGORY.OFFENSIVE, ORB_BONUS_TYPE.EXTRA_EXP);
+        OrbTemplate different = orb(ORB_CATEGORY.OFFENSIVE, ORB_BONUS_TYPE.EXTRA_GOLD);
 
         assertThrows(IllegalArgumentException.class,
                 () -> validator.validateOrbsSecurity(legendary, List.of(first, duplicate)));
