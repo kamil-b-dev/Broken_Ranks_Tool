@@ -73,8 +73,24 @@ const OptimizerPanel = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCategory, setSelectedCategory] = useState('ALL');
     const [isOptimizing, setIsOptimizing] = useState(false);
+    const [optimizationElapsedSeconds, setOptimizationElapsedSeconds] = useState(0);
+    const [lastOptimizationDurationSeconds, setLastOptimizationDurationSeconds] = useState(null);
     const [prioritySortDirection, setPrioritySortDirection] = useState('desc');
     const configInputRef = useRef(null);
+    const optimizationStartTimeRef = useRef(null);
+
+    useEffect(() => {
+        if (!isOptimizing) return undefined;
+
+        const timerId = window.setInterval(() => {
+            if (optimizationStartTimeRef.current === null) return;
+            setOptimizationElapsedSeconds(Math.floor(
+                (performance.now() - optimizationStartTimeRef.current) / 1000
+            ));
+        }, 250);
+
+        return () => window.clearInterval(timerId);
+    }, [isOptimizing]);
 
     useEffect(() => {
         if (gameRules?.bonusTranslations) {
@@ -234,6 +250,9 @@ const OptimizerPanel = () => {
     const handleOptimizeClick = async () => {
         if (prioritizedBonuses.length === 0) return;
         setIsOptimizing(true);
+        setOptimizationElapsedSeconds(0);
+        const startedAt = performance.now();
+        optimizationStartTimeRef.current = startedAt;
 
         const priorities = {};
         const targetQuantities = {};
@@ -267,8 +286,15 @@ const OptimizerPanel = () => {
             }
         });
 
-        await runDrifOptimization({ priorities, targetQuantities, targetValues, forceCapBonuses, criticalBonuses });
-        setIsOptimizing(false);
+        try {
+            await runDrifOptimization({ priorities, targetQuantities, targetValues, forceCapBonuses, criticalBonuses });
+        } finally {
+            const durationSeconds = Math.floor((performance.now() - startedAt) / 1000);
+            setOptimizationElapsedSeconds(durationSeconds);
+            setLastOptimizationDurationSeconds(durationSeconds);
+            optimizationStartTimeRef.current = null;
+            setIsOptimizing(false);
+        }
     };
 
     return (
@@ -594,12 +620,18 @@ const OptimizerPanel = () => {
                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                             </svg>
                             KALKULACJA W TLE...
+                            <span className="text-purple-300 tabular-nums">({optimizationElapsedSeconds} s)</span>
                         </>
                     ) : (
                         "URUCHOM OPTYMALIZACJĘ"
                     )}
                 </button>
             </div>
+            {lastOptimizationDurationSeconds !== null && !isOptimizing && (
+                <p className="text-center text-[10px] text-stone-500 uppercase tracking-widest mt-2">
+                    Ostatnia optymalizacja: <span className="text-purple-400 tabular-nums">{lastOptimizationDurationSeconds} s</span>
+                </p>
+            )}
         </div>
     );
 };
