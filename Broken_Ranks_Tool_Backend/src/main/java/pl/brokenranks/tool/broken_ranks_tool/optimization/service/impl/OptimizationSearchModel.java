@@ -41,6 +41,7 @@ class OptimizationSearchModel {
             Map<Long, ItemTemplate> items,
             Map<Long, DrifTemplate> drifs,
             List<SlotContext> slots,
+            Map<Double, List<SlotContext>> slotsByDrifBonus,
             List<Map.Entry<DRIF_BONUS_TYPE, Integer>> sortedPriorities,
             List<Map.Entry<DRIF_BONUS_TYPE, OptimizationRequest.QuantityRange>> sortedQuantities,
             SearchBudget searchBudget,
@@ -89,7 +90,7 @@ class OptimizationSearchModel {
     }
 
     record Quality(int hardViolations, double forcedCapDeficit, int missingCritical,
-                   double targetDeficit, double weightedUtility, double penaltyLoss,
+                   double criticalPlacementBonus, double weightedUtility, double penaltyLoss,
                    double forcedCapExcess, double capacityUtilization, int totalPower) { }
 
     @RequiredArgsConstructor

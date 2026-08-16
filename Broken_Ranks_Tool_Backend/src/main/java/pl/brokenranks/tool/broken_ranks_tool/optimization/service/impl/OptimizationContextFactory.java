@@ -55,6 +55,9 @@ final class OptimizationContextFactory {
                         (left, right) -> left, LinkedHashMap::new));
 
         List<SlotContext> slots = buildSlots(request, items, drifs);
+        Map<Double, List<SlotContext>> slotsByDrifBonus = slots.stream()
+                .collect(Collectors.groupingBy(SlotContext::drifBonus,
+                        LinkedHashMap::new, Collectors.toList()));
         List<Map.Entry<DRIF_BONUS_TYPE, Integer>> sortedPriorities =
                 request.getPriorities().entrySet().stream()
                         .sorted(Map.Entry.comparingByKey(Comparator.comparing(Enum::name)))
@@ -64,7 +67,7 @@ final class OptimizationContextFactory {
                         .sorted(Map.Entry.comparingByKey(Comparator.comparing(Enum::name)))
                         .toList();
 
-        return new OptimizationContext(request, items, drifs, slots,
+        return new OptimizationContext(request, items, drifs, slots, slotsByDrifBonus,
                 sortedPriorities, sortedQuantities, new SearchBudget(maxSearchSteps),
                 new EnumMap<>(DRIF_BONUS_TYPE.class), new HashMap<>(),
                 new HashMap<>(), new HashMap<>());

@@ -22,9 +22,6 @@ public class OptimizationRequest {
     /** Hard minimum and maximum quantity ranges for selected drif bonuses. */
     private Map<DRIF_BONUS_TYPE, QuantityRange> targetQuantities;
 
-    /** Target final values for selected modifiers. */
-    private Map<DRIF_BONUS_TYPE, Double> targetValues;
-
     /** Slot keys excluded from optimization and copied unchanged. */
     private Set<String> lockedSlots;
 

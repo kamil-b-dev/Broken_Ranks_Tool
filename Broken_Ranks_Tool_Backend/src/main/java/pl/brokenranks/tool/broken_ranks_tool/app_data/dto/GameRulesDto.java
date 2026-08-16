@@ -30,4 +30,7 @@ public class GameRulesDto {
 
     /** Drif bonus categories keyed by bonus enum name. */
     private Map<String, String> drifBonusCategories;
+
+    /** Penalty multipliers keyed by the number of drifs with the same modifier. */
+    private Map<Integer, Double> drifPenaltyMultipliers;
 }
