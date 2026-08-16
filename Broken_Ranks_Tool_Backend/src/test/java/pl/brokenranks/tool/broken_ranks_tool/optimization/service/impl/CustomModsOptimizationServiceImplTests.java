@@ -18,6 +18,8 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.constraints.Optimizati
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationResponse;
 
+import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -35,6 +37,7 @@ import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.service.impl.OptimizationSearchModel.*;
 
 class CustomModsOptimizationServiceImplTests {
 
@@ -229,7 +232,7 @@ class CustomModsOptimizationServiceImplTests {
     }
 
     @Test
-    void placesCriticalModOnItemWithHighestDrifBonusBeforeHigherRawGainSlots() {
+    void maximizesSelectedModOnItemWithHighestDrifBonusBeforeHigherRawGainSlots() {
         ItemTemplate helmet = item(1L, 4, ITEM_CATEGORY.HELMET);
         ItemTemplate armor = item(2L, 16, ITEM_CATEGORY.ARMOR);
         DrifTemplate criticalChance = drif(10L, DRIF_BONUS_TYPE.CRITICAL_CHANCE, 2.0, 4.0);
@@ -246,16 +249,66 @@ class CustomModsOptimizationServiceImplTests {
                 "armor", slot(armor.getId())
         ));
         request.setTargetQuantities(Map.of(
-                DRIF_BONUS_TYPE.CRITICAL_CHANCE, new OptimizationRequest.QuantityRange(0, 1)
+                DRIF_BONUS_TYPE.CRITICAL_CHANCE, new OptimizationRequest.QuantityRange(0, 2)
         ));
-        request.setCriticalBonuses(Set.of(DRIF_BONUS_TYPE.CRITICAL_CHANCE));
+        request.setMaximizeBonuses(Set.of(DRIF_BONUS_TYPE.CRITICAL_CHANCE));
 
         OptimizationResponse response = service.optimize(request);
 
         assertTrue(response.getSummary().isSuccess());
         assertEquals(List.of(criticalChance.getId()),
                 response.getOptimizedSetup().getSlots().get("helmet").getDrifIds());
-        assertTrue(response.getOptimizedSetup().getSlots().get("armor").getDrifIds().isEmpty());
+        assertEquals(List.of(criticalChance.getId()),
+                response.getOptimizedSetup().getSlots().get("armor").getDrifIds());
+    }
+
+    @Test
+    void replacesLowerPriorityModWhenMaximizedModImprovesFinalValue() {
+        ItemTemplate item = item(1L, 6);
+        DrifTemplate mentalDefense = drif(10L, DRIF_BONUS_TYPE.DEFENSE_MENTAL, 9.0, 1.5);
+        DrifTemplate magicDamage = drif(11L, DRIF_BONUS_TYPE.DAMAGE_MAGIC, 3.0, 0.5);
+        EquipmentStatsCalculatorService calculator = mock(EquipmentStatsCalculatorService.class);
+        when(calculator.calculateTotalStats(any())).thenReturn(Map.of());
+        CustomModsOptimizationServiceImpl service = service(
+                item, List.of(mentalDefense, magicDamage), calculator);
+
+        OptimizationRequest request = request(item.getId(), Map.of(
+                DRIF_BONUS_TYPE.DAMAGE_MAGIC, 30,
+                DRIF_BONUS_TYPE.DEFENSE_MENTAL, 5
+        ));
+        request.setTargetQuantities(Map.of(
+                DRIF_BONUS_TYPE.DAMAGE_MAGIC, new OptimizationRequest.QuantityRange(0, 1),
+                DRIF_BONUS_TYPE.DEFENSE_MENTAL, new OptimizationRequest.QuantityRange(0, 12)
+        ));
+        request.setMaximizeBonuses(Set.of(DRIF_BONUS_TYPE.DAMAGE_MAGIC));
+
+        EquipmentRequest.SlotData original = request.getOriginalSlots().get("helmet");
+        SlotContext slot = new SlotContext("helmet", original, item, 6, 3, 0.0,
+                new ArrayList<>(List.of(magicDamage, mentalDefense)), Set.of(), false);
+        OptimizationContext context = new OptimizationContext(
+                request,
+                Map.of(item.getId(), item),
+                Map.of(mentalDefense.getId(), mentalDefense, magicDamage.getId(), magicDamage),
+                List.of(slot),
+                Map.of(0.0, List.of(slot)),
+                request.getPriorities().entrySet().stream().toList(),
+                request.getTargetQuantities().entrySet().stream().toList(),
+                new SearchBudget(10), new SearchBudget(100), new SearchBudget(10),
+                new EnumMap<>(DRIF_BONUS_TYPE.class), new EnumMap<>(DRIF_BONUS_TYPE.class),
+                new HashMap<>(), new HashMap<>(), new HashMap<>()
+        );
+        BuildState state = new BuildState();
+        List<Placement> placements = new ArrayList<>();
+        placements.add(new Placement(mentalDefense, 21, false));
+        placements.add(null);
+        placements.add(null);
+        state.slots.put("helmet", placements);
+
+        BuildState result = service.maximizeSelectedBonuses(state, context);
+
+        Placement replacement = result.slots.get("helmet").get(0);
+        assertEquals(magicDamage.getId(), replacement.drif().getId());
+        assertEquals(11, replacement.level());
     }
 
     private CustomModsOptimizationServiceImpl service(ItemTemplate item, List<DrifTemplate> drifs,
@@ -303,7 +356,7 @@ class CustomModsOptimizationServiceImplTests {
         request.setLockedSlots(Set.of());
         request.setLockedDrifs(Map.of());
         request.setForceCapBonuses(Set.of());
-        request.setCriticalBonuses(Set.of());
+        request.setMaximizeBonuses(Set.of());
         return request;
     }
 

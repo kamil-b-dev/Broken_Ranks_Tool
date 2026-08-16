@@ -126,6 +126,15 @@ final class OptimizationResultAssembler {
         return warnings;
     }
 
+    /** Returns the final calculator value in the optimization direction. */
+    double actualValue(BuildState state, DRIF_BONUS_TYPE type, OptimizationContext context) {
+        Map<String, String> stats = actualStats(state, context);
+        if (!stats.containsKey(type.name())) {
+            return stateEvaluator.calculatedValue(state, type, context);
+        }
+        return directedValue(type, parseCalculatedValue(stats.get(type.name())), context.request());
+    }
+
     private Map<String, String> actualStats(BuildState state, OptimizationContext context) {
         String key = state.signature();
         Map<String, String> cached = context.calculatorCache().get(key);

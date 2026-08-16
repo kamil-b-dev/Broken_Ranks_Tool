@@ -31,8 +31,8 @@ public class OptimizationRequest {
     /** Bonus types for which the optimizer must reach the game-rule cap. */
     private Set<DRIF_BONUS_TYPE> forceCapBonuses;
 
-    /** Critical modifiers that must remain represented without forcing a cap. */
-    private Set<DRIF_BONUS_TYPE> criticalBonuses;
+    /** Bonus types whose value should be maximized within the remaining constraints. */
+    private Set<DRIF_BONUS_TYPE> maximizeBonuses;
 
     /** DTO representing a minimum and maximum quantity range. */
     @Data
