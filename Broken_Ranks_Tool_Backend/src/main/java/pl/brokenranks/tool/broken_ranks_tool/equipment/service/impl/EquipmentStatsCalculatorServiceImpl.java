@@ -3,6 +3,7 @@ package pl.brokenranks.tool.broken_ranks_tool.equipment.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.CalculationResultDto;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
@@ -19,6 +20,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /** Orchestrates validation, data preparation, and equipment statistic processors. */
 @Service
@@ -33,9 +36,14 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
 
     @Override
     public Map<String, String> calculateTotalStats(EquipmentRequest request) {
+        return calculateWithSources(request).stats();
+    }
+
+    @Override
+    public CalculationResultDto calculateWithSources(EquipmentRequest request) {
         validator.validateRequest(request);
         if (request.getSlots() == null || request.getSlots().isEmpty()) {
-            return Collections.emptyMap();
+            return new CalculationResultDto(Collections.emptyMap(), Collections.emptyMap(), Collections.emptySet());
         }
 
         validator.validateCharacterStats(request.getCharacterStats());
@@ -50,7 +58,19 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
 
         processSlots(request, ctx, state);
 
-        return state.getAccumulator().getFormattedResults();
+        Map<String, String> drifCategories = ctx.drifs().values().stream()
+                .filter(drif -> drif.getBonusType() != null && drif.getBonusType().getCategory() != null)
+                .collect(Collectors.toMap(
+                        drif -> drif.getBonusType().name(),
+                        drif -> drif.getBonusType().getCategory().name(),
+                        (first, ignored) -> first
+                ));
+        Set<String> orbBonusTypes = ctx.orbs().values().stream()
+                .filter(orb -> orb.getBonusType() != null)
+                .map(orb -> orb.getBonusType().name())
+                .collect(Collectors.toSet());
+
+        return new CalculationResultDto(state.getAccumulator().getFormattedResults(), drifCategories, orbBonusTypes);
     }
 
     private void initializeDefaultStats(CalculationState state) {

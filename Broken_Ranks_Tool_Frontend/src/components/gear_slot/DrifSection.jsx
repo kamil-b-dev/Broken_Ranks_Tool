@@ -118,6 +118,7 @@ const DrifSection = ({ slotKey, drifs, fullSelectedItem, dragOverZone, handleDra
                         >
                             <select
                                 value={currentType}
+                                aria-label={`Wybierz rodzaj drifa ${index + 1}`}
                                 disabled={drifLocked}
                                 onChange={(e) => {
                                     setDrifTypes(prev => ({ ...prev, [index]: e.target.value }));
@@ -136,6 +137,7 @@ const DrifSection = ({ slotKey, drifs, fullSelectedItem, dragOverZone, handleDra
 
                             <select
                                 value={drifId}
+                                aria-label={`Wybierz wielkość drifa ${index + 1}`}
                                 disabled={!currentType || drifLocked}
                                 onChange={(e) => {
                                     setSelectedDrifs(prev => { const next = [...prev]; next[index] = e.target.value; return next; });
@@ -156,6 +158,7 @@ const DrifSection = ({ slotKey, drifs, fullSelectedItem, dragOverZone, handleDra
 
                             <select
                                 value={drifLevels[index] || ""}
+                                aria-label={`Wybierz poziom drifa ${index + 1}`}
                                 disabled={!drifId || drifLocked}
                                 onChange={(e) => setDrifLevels(prev => ({ ...prev, [index]: parseInt(e.target.value) }))}
                                 className={`flex-[2] min-w-0 bg-transparent text-stone-300 font-serif p-1 text-xs border-b outline-none text-center disabled:opacity-30 ${drifLocked ? 'cursor-not-allowed border-red-900/50' : 'border-rose-900/70 focus:border-rose-500 cursor-pointer'} ${isOverCapacity && !drifLocked ? 'border-red-500/80' : ''}`}

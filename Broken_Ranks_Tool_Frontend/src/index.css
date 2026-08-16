@@ -2,6 +2,266 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+    color-scheme: dark;
+    font-synthesis: none;
+}
+
+html {
+    min-width: 320px;
+    background: #0d0d0e;
+}
+
 body {
-    @apply bg-neutral-900 text-gray-200 font-sans;
+    @apply text-gray-200 font-sans;
+    min-width: 320px;
+    min-height: 100vh;
+    background:
+        radial-gradient(circle at 50% -20%, rgba(122, 29, 29, 0.23), transparent 38rem),
+        radial-gradient(circle at 5% 30%, rgba(115, 81, 27, 0.11), transparent 28rem),
+        linear-gradient(135deg, #161414 0%, #0d0d0e 48%, #111112 100%);
+    background-attachment: fixed;
+}
+
+body::before {
+    position: fixed;
+    z-index: -1;
+    inset: 0;
+    content: "";
+    opacity: 0.24;
+    pointer-events: none;
+    background-image:
+        linear-gradient(115deg, transparent 0 47%, rgba(255, 255, 255, 0.018) 48%, transparent 49%),
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.015) 0 1px, transparent 1px 5px);
+    mix-blend-mode: soft-light;
+}
+
+::selection {
+    background: rgba(162, 41, 41, 0.65);
+    color: #fff9ed;
+}
+
+button,
+select,
+input {
+    -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+select:focus-visible,
+input:focus-visible {
+    outline: 2px solid rgba(217, 119, 6, 0.85);
+    outline-offset: 2px;
+}
+
+.app-shell {
+    position: relative;
+    isolation: isolate;
+}
+
+.app-masthead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: 1.25rem 1.5rem;
+    border: 1px solid rgba(120, 82, 39, 0.34);
+    border-top-color: rgba(180, 136, 71, 0.6);
+    background:
+        linear-gradient(90deg, rgba(20, 17, 16, 0.96), rgba(10, 10, 11, 0.86)),
+        linear-gradient(135deg, rgba(127, 30, 30, 0.15), transparent 45%);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), inset 0 1px rgba(255, 245, 220, 0.05);
+}
+
+.brand-lockup {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.brand-crest {
+    display: grid;
+    width: 3.25rem;
+    height: 3.25rem;
+    flex: 0 0 auto;
+    place-items: center;
+    border: 1px solid rgba(188, 143, 65, 0.75);
+    color: #f0c978;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    background: linear-gradient(145deg, rgba(127, 35, 35, 0.55), rgba(18, 14, 13, 0.95));
+    box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.5), 0 0 18px rgba(135, 36, 36, 0.18);
+    clip-path: polygon(25% 0, 75% 0, 100% 25%, 100% 75%, 75% 100%, 25% 100%, 0 75%, 0 25%);
+    line-height: 1;
+}
+
+.brand-lockup > div:last-child {
+    min-width: 0;
+}
+
+.brand-lockup h1,
+.workbench-heading h2 {
+    margin: 0;
+    color: #ede7dc;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.brand-lockup h1 {
+    font-size: clamp(1.35rem, 2.2vw, 2rem);
+    letter-spacing: 0.14em;
+    line-height: 1.1;
+}
+
+.brand-kicker,
+.section-kicker {
+    margin: 0 0 0.3rem;
+    color: #b67b35;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+}
+
+.brand-subtitle {
+    margin: 0.35rem 0 0;
+    color: #918b83;
+    font-size: 0.78rem;
+}
+
+.header-actions {
+    display: flex;
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.55rem;
+}
+
+.header-action {
+    padding: 0.65rem 0.8rem;
+    border: 1px solid rgba(104, 99, 91, 0.58);
+    color: #bbb6af;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    background: rgba(0, 0, 0, 0.38);
+    transition: border-color 150ms ease, color 150ms ease, background-color 150ms ease;
+}
+
+.header-action:hover {
+    border-color: rgba(184, 177, 163, 0.78);
+    color: #f3efe7;
+    background: rgba(53, 47, 43, 0.5);
+}
+
+.header-action-primary {
+    border-color: rgba(165, 104, 35, 0.7);
+    color: #dca84c;
+}
+
+.header-action-primary:hover {
+    border-color: #d89c3a;
+    color: #f5c66e;
+    background: rgba(113, 65, 17, 0.25);
+}
+
+.main-switch {
+    overflow: hidden;
+    border: 1px solid rgba(102, 91, 80, 0.56);
+    background: rgba(4, 4, 5, 0.78);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.32), inset 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.workbench {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(115, 88, 62, 0.45);
+    background: linear-gradient(155deg, rgba(31, 27, 25, 0.98), rgba(9, 9, 10, 0.98) 60%);
+    box-shadow: 0 18px 38px rgba(0, 0, 0, 0.34), inset 0 1px rgba(255, 243, 219, 0.04);
+}
+
+.workbench::before {
+    position: absolute;
+    top: 0;
+    right: 12%;
+    left: 12%;
+    height: 1px;
+    content: "";
+    background: linear-gradient(90deg, transparent, rgba(188, 130, 52, 0.55), transparent);
+}
+
+.workbench-heading {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(133, 75, 47, 0.48);
+}
+
+.workbench-heading h2 {
+    font-size: 1.12rem;
+    letter-spacing: 0.12em;
+}
+
+.workbench-help {
+    max-width: 22rem;
+    margin: 0;
+    color: #827b73;
+    font-size: 0.72rem;
+    line-height: 1.5;
+    text-align: right;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+    width: 7px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.38);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    border: 1px solid #171313;
+    background: #56322d;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #8a493b;
+}
+
+@media (max-width: 700px) {
+    .app-masthead,
+    .workbench-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .app-masthead {
+        padding: 1rem;
+    }
+
+    .header-actions {
+        width: 100%;
+        justify-content: stretch;
+    }
+
+    .header-action {
+        flex: 1;
+    }
+
+    .brand-subtitle {
+        max-width: 23rem;
+    }
+
+    .workbench-help {
+        max-width: none;
+        text-align: left;
+    }
 }

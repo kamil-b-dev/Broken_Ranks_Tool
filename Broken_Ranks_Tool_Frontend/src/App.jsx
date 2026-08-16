@@ -26,6 +26,7 @@ function App() {
         initialDataError,
         requestData,
         stats,
+        statSources,
         optimizationTrigger,
         characterConfig,
         handleSlotUpdate,
@@ -64,27 +65,31 @@ function App() {
     }, [data.items]);
 
     return (
-        <div className="w-full max-w-[1920px] mx-auto p-4 xl:p-8 flex flex-col gap-6 xl:gap-8 font-serif min-h-screen">
+        <div className="app-shell w-full max-w-[1920px] mx-auto p-4 md:p-6 xl:p-8 flex flex-col gap-6 xl:gap-8 min-h-screen">
 
-            <div className="shrink-0">
-                <h1 className="text-3xl font-bold text-center text-stone-300 uppercase tracking-[0.2em] mb-6 border-b-4 border-double border-red-900/70 pb-4 drop-shadow-[0_2px_5px_rgba(0,0,0,1)]">
-                    Broken Ranks Tool
-                </h1>
+            <header className="app-masthead shrink-0">
+                <div className="brand-lockup">
+                    <div className="brand-crest" aria-hidden="true">BR</div>
+                    <div>
+                        <h1>Broken Ranks Tool</h1>
+                        <p className="brand-subtitle">Zbuduj ekwipunek, ustaw drify i sprawdź gotową konfigurację.</p>
+                    </div>
+                </div>
 
-                <div className="flex flex-wrap justify-center gap-3 mb-4">
+                <div className="header-actions">
                     <button
                         type="button"
                         onClick={saveBuildToFile}
-                        className="px-4 py-2 bg-black border border-amber-900/70 text-amber-600 hover:text-amber-400 hover:border-amber-600 text-xs font-bold uppercase tracking-widest transition-colors"
+                        className="header-action header-action-primary"
                     >
-                        Zapisz build (.json)
+                        <span aria-hidden="true">↓</span> Zapisz build
                     </button>
                     <button
                         type="button"
                         onClick={() => buildFileInputRef.current?.click()}
-                        className="px-4 py-2 bg-black border border-stone-700 text-stone-400 hover:text-stone-200 hover:border-stone-500 text-xs font-bold uppercase tracking-widest transition-colors"
+                        className="header-action"
                     >
-                        Wczytaj build
+                        <span aria-hidden="true">↑</span> Wczytaj build
                     </button>
                     <input
                         ref={buildFileInputRef}
@@ -94,27 +99,31 @@ function App() {
                         className="hidden"
                     />
                 </div>
+            </header>
 
-                <div className="flex bg-black border-2 border-stone-800 shadow-[0_0_20px_rgba(0,0,0,0.8)] rounded-sm overflow-hidden w-full max-w-2xl mx-auto">
+            <div className="shrink-0">
+                <div className="main-switch flex w-full max-w-2xl mx-auto">
                     <button
                         onClick={() => setMainView("builder")}
-                        className={`flex-1 py-4 text-sm font-bold uppercase tracking-[0.15em] transition-all ${
+                        className={`flex-1 py-3.5 text-sm font-bold uppercase tracking-[0.15em] transition-all ${
                             mainView === "builder"
-                                ? "bg-stone-900 border-b-2 border-red-800 text-stone-200 shadow-inner"
-                                : "text-stone-600 hover:text-stone-300 hover:bg-stone-900/50 border-b-2 border-transparent"
+                                ? "bg-stone-900/90 border-b-2 border-red-700 text-stone-100 shadow-inner"
+                                : "text-stone-500 hover:text-stone-200 hover:bg-stone-900/50 border-b-2 border-transparent"
                         }`}
                     >
-                        Kreator Ekwipunku
+                        <span className="block text-[10px] tracking-[0.25em] text-red-800 mb-0.5">I</span>
+                        Kreator ekwipunku
                     </button>
                     <button
                         onClick={() => setMainView("optimizer")}
-                        className={`flex-1 py-4 text-sm font-bold uppercase tracking-[0.15em] transition-all ${
+                        className={`flex-1 py-3.5 text-sm font-bold uppercase tracking-[0.15em] transition-all ${
                             mainView === "optimizer"
-                                ? "bg-purple-950/30 border-b-2 border-purple-600 text-purple-400 shadow-inner"
-                                : "text-stone-600 hover:text-stone-300 hover:bg-stone-900/50 border-b-2 border-transparent"
+                                ? "bg-purple-950/30 border-b-2 border-purple-500 text-purple-300 shadow-inner"
+                                : "text-stone-500 hover:text-stone-200 hover:bg-stone-900/50 border-b-2 border-transparent"
                         }`}
                     >
-                        Optymalizator Drifów
+                        <span className="block text-[10px] tracking-[0.25em] text-purple-800 mb-0.5">II</span>
+                        Optymalizator drifów
                     </button>
                 </div>
             </div>
@@ -127,8 +136,15 @@ function App() {
 
             <div className={`flex-1 w-full flex-col ${mainView === "builder" ? "flex" : "hidden"}`}>
                 <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 xl:gap-8 flex-1">
-                    <div className="xl:col-span-8 bg-gradient-to-b from-stone-900 to-black p-6 xl:p-8 border-2 border-stone-800 shadow-[0_0_30px_rgba(0,0,0,0.9)] flex flex-col">
-                        <div className="flex flex-wrap justify-center gap-4 xl:gap-6 pb-4">
+                    <section className="workbench xl:col-span-8 p-5 md:p-6 xl:p-8 flex flex-col">
+                        <div className="workbench-heading">
+                            <div>
+                                <p className="section-kicker">Konfiguracja</p>
+                                <h2>Ekwipunek</h2>
+                            </div>
+                            <p className="workbench-help">Wybierz przedmiot lub przeciągnij go z bazy. Złota obwódka oznacza aktywne pole.</p>
+                        </div>
+                        <div className="flex flex-wrap justify-center gap-4 xl:gap-6 pt-2 pb-3">
                             {SLOTS.map((slot) => (
                                 <GearSlot
                                     key={slot.key}
@@ -144,7 +160,7 @@ function App() {
                                 />
                             ))}
                         </div>
-                    </div>
+                    </section>
 
                     <div className="xl:col-span-4 flex flex-col gap-4 relative min-h-[600px] xl:min-h-0">
                         <div className="flex bg-black/60 p-1 border border-stone-800 shadow-[inset_0_0_10px_rgba(0,0,0,1)] shrink-0">
@@ -199,7 +215,12 @@ function App() {
             </div>
 
             <div className="w-full shrink-0">
-                <StatsPanel stats={stats} onCalculate={calculateStats} gameRules={gameRules} />
+                <StatsPanel
+                    stats={stats}
+                    onCalculate={calculateStats}
+                    gameRules={gameRules}
+                    statSources={statSources}
+                />
             </div>
         </div>
     );
