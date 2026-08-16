@@ -68,33 +68,39 @@ final class OptimizationResultAssembler {
     }
 
     OptimizationSummary createSummary(BuildState state, OptimizationContext context,
-                                       double executionTime) {
+                                       double executionTime, String warning) {
         Metrics metrics = stateEvaluator.metrics(state, context);
-        return new OptimizationSummary(true, "Optymalizacja zakończona.",
+        return new OptimizationSummary(warning == null,
+                warning == null ? "Optymalizacja zakończona." : warning,
                 metrics.counts().values().stream().mapToInt(Integer::intValue).sum(),
                 metrics.totalPower(), executionTime);
     }
 
     String validateFinalResult(BuildState state, OptimizationContext context) {
         if (!stateEvaluator.minimumsSatisfied(state, context)) {
-            return "KoĹ„cowy wynik nie speĹ‚nia minimalnych limitĂłw iloĹ›ciowych.";
+            return "Końcowy wynik nie spełnia minimalnych limitów ilościowych.";
         }
         for (SlotContext slot : context.slots()) {
             List<Placement> placements = state.slots.getOrDefault(slot.key(), List.of());
             if (slot.optimizable() && countPlaced(placements) > slot.maxDrifs()) {
-                return "KoĹ„cowy wynik przekracza limit drifĂłw w slocie " + slot.key() + ".";
+                return "Końcowy wynik przekracza limit drifów w slocie " + slot.key() + ".";
             }
             if (slot.optimizable() && usedPower(placements) > slot.capacity()) {
-                return "KoĹ„cowy wynik przekracza pojemnoĹ›Ä‡ w slocie " + slot.key() + ".";
+                return "Końcowy wynik przekracza pojemność w slocie " + slot.key() + ".";
             }
             Set<DRIF_BONUS_TYPE> unique = new HashSet<>();
             for (Placement placement : placements) {
                 if (placement != null && !unique.add(placement.drif().getBonusType())) {
-                    return "KoĹ„cowy wynik zawiera zduplikowany mod w slocie " + slot.key() + ".";
+                    return "Końcowy wynik zawiera zduplikowany mod w slocie " + slot.key() + ".";
                 }
             }
         }
 
+        return null;
+    }
+
+    /** Returns a non-fatal warning when the best valid build cannot reach a forced cap. */
+    String forcedCapWarning(BuildState state, OptimizationContext context) {
         Map<String, String> actual = actualStats(state, context);
         for (DRIF_BONUS_TYPE type : context.request().getPriorities().keySet().stream()
                 .filter(candidate -> isForcedCap(candidate, context.request()))
@@ -103,13 +109,13 @@ final class OptimizationResultAssembler {
             Double target = targetFor(type, context.request());
             if (target == null) continue;
             if (!actual.containsKey(type.name())) {
-                return "Kalkulator nie zwrĂłciĹ‚ wartoĹ›ci wymaganego capa: "
+                return "Kalkulator nie zwrócił wartości wymaganego capa: "
                         + type.getDescription() + ".";
             }
             double value = directedValue(type, parseCalculatedValue(actual.get(type.name())),
                     context.request());
             if (value < target - TARGET_TOLERANCE) {
-                return "Nie udaĹ‚o siÄ™ osiÄ…gnÄ…Ä‡ wymuszonego capa dla " + type.getDescription()
+                return "Nie udało się osiągnąć wymuszonego capa dla " + type.getDescription()
                         + " (" + String.format(java.util.Locale.ROOT, "%.2f", value) + "/"
                         + String.format(java.util.Locale.ROOT, "%.2f", target) + ").";
             }

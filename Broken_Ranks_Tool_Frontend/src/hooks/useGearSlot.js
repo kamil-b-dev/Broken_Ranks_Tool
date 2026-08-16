@@ -144,6 +144,7 @@ export const useGearSlot = ({ slotKey, items, orbs, drifs, allSlots, gameRules, 
     const globalUsedOrbs = useMemo(() => Object.entries(allSlots)
         .filter(([key, value]) => key !== slotKey && value?.orbIds)
         .flatMap(([, value]) => value.orbIds)
+        .filter(Boolean)
         .map(orbId => orbs.find(o => o.id.toString() === orbId.toString())?.bonusType)
         .filter(Boolean), [allSlots, slotKey, orbs]);
 
@@ -181,6 +182,7 @@ export const useGearSlot = ({ slotKey, items, orbs, drifs, allSlots, gameRules, 
     const hasGlobalElemental = useMemo(() => Object.entries(allSlots)
         .filter(([key, value]) => key !== slotKey && value?.drifIds)
         .some(([, value]) => value.drifIds.some(dId => {
+            if (!dId) return false;
             const d = drifs.find(dr => dr.id.toString() === dId.toString());
             return d && elementalTypes.includes(d.bonusType);
         })), [allSlots, slotKey, drifs, elementalTypes]);

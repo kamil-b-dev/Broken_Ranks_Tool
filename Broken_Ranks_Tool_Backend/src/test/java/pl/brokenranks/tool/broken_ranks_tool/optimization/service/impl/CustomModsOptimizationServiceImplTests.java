@@ -26,6 +26,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -63,6 +65,27 @@ class CustomModsOptimizationServiceImplTests {
         assertEquals(List.of(criticalChance.getId()), result.getDrifIds());
         assertEquals(16, result.getDrifLevels().get("0"));
         verify(calculator, atMost(2)).calculateTotalStats(any());
+    }
+
+    @Test
+    void returnsBestBuildWithWarningWhenForcedCapCannotBeReached() {
+        ItemTemplate item = item(1L, 4);
+        DrifTemplate criticalChance = drif(10L, DRIF_BONUS_TYPE.CRITICAL_CHANCE, 2.0, 4.0);
+        EquipmentStatsCalculatorService calculator = mock(EquipmentStatsCalculatorService.class);
+        when(calculator.calculateTotalStats(any()))
+                .thenReturn(Map.of(DRIF_BONUS_TYPE.CRITICAL_CHANCE.name(), "10%"));
+
+        CustomModsOptimizationServiceImpl service = service(item, List.of(criticalChance), calculator);
+        OptimizationRequest request = request(item.getId(), Map.of(DRIF_BONUS_TYPE.CRITICAL_CHANCE, 30));
+        request.setForceCapBonuses(Set.of(DRIF_BONUS_TYPE.CRITICAL_CHANCE));
+
+        OptimizationResponse response = service.optimize(request);
+
+        assertFalse(response.getSummary().isSuccess());
+        assertTrue(response.getSummary().getMessage().contains("Nie udało się osiągnąć wymuszonego capa"));
+        assertNotNull(response.getOptimizedSetup());
+        EquipmentRequest.SlotData result = response.getOptimizedSetup().getSlots().get("helmet");
+        assertEquals(List.of(criticalChance.getId()), result.getDrifIds());
     }
 
     @Test
