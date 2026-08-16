@@ -6,6 +6,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRul
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -27,6 +28,24 @@ final class OptimizationStateEvaluator {
         int comparison = compareQuality(quality(candidate, context), quality(current, context));
         if (comparison != 0) return comparison > 0;
         return candidate.signature().compareTo(current.signature()) < 0;
+    }
+
+    /** Compares only hard constraints, forced caps, and maximization objectives. */
+    boolean isBetterMaximizationState(BuildState candidate, BuildState current,
+                                      OptimizationContext context) {
+        Quality candidateQuality = quality(candidate, context);
+        Quality currentQuality = quality(current, context);
+        if (candidateQuality.hardViolations() != currentQuality.hardViolations()) {
+            return candidateQuality.hardViolations() < currentQuality.hardViolations();
+        }
+        int comparison = Double.compare(
+                currentQuality.forcedCapDeficit(), candidateQuality.forcedCapDeficit());
+        if (comparison != 0) return comparison > 0;
+        comparison = Double.compare(candidateQuality.minimumMaximizedProgress(),
+                currentQuality.minimumMaximizedProgress());
+        if (comparison != 0) return comparison > 0;
+        return Double.compare(candidateQuality.maximizedUtility(),
+                currentQuality.maximizedUtility()) > 0;
     }
 
     Comparator<BuildState> stateComparator(OptimizationContext context) {
@@ -53,18 +72,10 @@ final class OptimizationStateEvaluator {
                 double progress = Math.min(directedValue / target, 1.0);
                 result += progress * weight * 1000.0;
                 if (directedValue < target) result -= (target - directedValue) * weight * 25.0;
-                if (directedValue > target && !isForcedCap(type, context.request())) {
-                    result -= (directedValue - target) * weight * 5.0;
-                }
             } else {
                 result += directedValue * weight * 100.0;
             }
 
-            if (isCritical(type, context.request())) {
-                int count = metrics.counts().getOrDefault(type, 0);
-                if (count == 0) result -= 200000.0;
-                else result += Math.min(count, 3) * weight * 75.0;
-            }
         }
 
         for (Map.Entry<DRIF_BONUS_TYPE, OptimizationRequest.QuantityRange> entry
@@ -118,10 +129,11 @@ final class OptimizationStateEvaluator {
 
         Metrics metrics = evaluation.metrics;
         int hardViolations = metrics.overflowPower();
-        int missingCritical = 0;
+        double minimumMaximizedProgress = Double.POSITIVE_INFINITY;
+        double maximizedUtility = 0.0;
+        boolean hasMaximizedTypes = false;
         double forcedCapDeficit = 0.0;
         double forcedCapExcess = 0.0;
-        double targetDeficit = 0.0;
         double weightedUtility = 0.0;
 
         for (Map.Entry<DRIF_BONUS_TYPE, OptimizationRequest.QuantityRange> entry
@@ -134,26 +146,31 @@ final class OptimizationStateEvaluator {
         for (Map.Entry<DRIF_BONUS_TYPE, Integer> entry : context.request().getPriorities().entrySet()) {
             DRIF_BONUS_TYPE type = entry.getKey();
             int priority = Math.max(1, entry.getValue() != null ? entry.getValue() : 1);
-            int count = metrics.counts().getOrDefault(type, 0);
-            if (isCritical(type, context.request()) && count == 0) missingCritical++;
-
             double value = calculatedValue(metrics, type, context);
+            boolean maximized = isMaximized(type, context.request());
+            if (maximized) {
+                hasMaximizedTypes = true;
+                double scale = maximizationScale(type, context);
+                double progress = scale > 0.0 ? Math.max(0.0, value) / scale : 0.0;
+                minimumMaximizedProgress = Math.min(minimumMaximizedProgress, progress);
+                maximizedUtility += progress * priority;
+            }
+
             Double target = targetFor(type, context.request());
             if (target != null) {
                 double deficit = Math.max(0.0, target - value);
-                if (isForcedCap(type, context.request())) {
-                    forcedCapDeficit += deficit * priority;
-                    forcedCapExcess += Math.max(0.0, value - target) * priority;
-                } else {
-                    targetDeficit += deficit * priority;
-                }
+                forcedCapDeficit += deficit * priority;
+                forcedCapExcess += Math.max(0.0, value - target) * priority;
                 weightedUtility += Math.min(value, target) * priority;
             } else {
                 weightedUtility += value * priority;
             }
         }
 
-        Quality quality = new Quality(hardViolations, forcedCapDeficit, missingCritical, targetDeficit,
+        if (!hasMaximizedTypes) minimumMaximizedProgress = 0.0;
+
+        Quality quality = new Quality(hardViolations, forcedCapDeficit,
+                minimumMaximizedProgress, maximizedUtility,
                 weightedUtility, metrics.penaltyLoss(), forcedCapExcess,
                 metrics.capacityUtilization(), metrics.totalPower());
         evaluation.quality = quality;
@@ -165,10 +182,6 @@ final class OptimizationStateEvaluator {
         if (comparison != 0) return comparison;
         comparison = Double.compare(right.forcedCapDeficit(), left.forcedCapDeficit());
         if (comparison != 0) return comparison;
-        comparison = Integer.compare(right.missingCritical(), left.missingCritical());
-        if (comparison != 0) return comparison;
-        comparison = Double.compare(right.targetDeficit(), left.targetDeficit());
-        if (comparison != 0) return comparison;
         comparison = Double.compare(left.weightedUtility(), right.weightedUtility());
         if (comparison != 0) return comparison;
         comparison = Double.compare(right.penaltyLoss(), left.penaltyLoss());
@@ -178,6 +191,45 @@ final class OptimizationStateEvaluator {
         comparison = Double.compare(left.capacityUtilization(), right.capacityUtilization());
         if (comparison != 0) return comparison;
         return Integer.compare(left.totalPower(), right.totalPower());
+    }
+
+    /**
+     * Estimates a common scale for comparing different maximized modifiers.
+     * The estimate is an optimistic per-slot upper bound and is used only for
+     * balancing multiple objectives, not as a hard target.
+     */
+    double maximizationScale(DRIF_BONUS_TYPE type, OptimizationContext context) {
+        Double naturalTarget = maximizationTargetFor(type, context.request());
+        if (naturalTarget != null) return naturalTarget;
+
+        return context.maximizationScaleCache().computeIfAbsent(type, ignored -> {
+            List<Double> contributions = new ArrayList<>();
+            for (SlotContext slot : context.slots()) {
+                if (!slot.optimizable()) continue;
+                DrifTemplate candidate = slot.candidates().stream()
+                        .filter(drif -> drif.getBonusType() == type)
+                        .findFirst()
+                        .orElse(null);
+                if (candidate == null) continue;
+                int level = highestLevelForPower(candidate, slot.capacity());
+                if (level <= 0) continue;
+                double contribution = drifValue(candidate, level, context)
+                        * (1.0 + slot.drifBonus());
+                contributions.add(Math.max(0.0,
+                        directedValue(type, contribution, context.request())));
+            }
+            contributions.sort(Comparator.reverseOrder());
+
+            int limit = Math.min(maxQuantity(type, context.request()), contributions.size());
+            double prefix = 0.0;
+            double best = 0.0;
+            for (int count = 1; count <= limit; count++) {
+                prefix += contributions.get(count - 1);
+                best = Math.max(best, prefix * rules.getDrifPenalty(count));
+            }
+            return Math.max(1.0,
+                    best + Math.max(0.0, context.calculatorBaseline().getOrDefault(type, 0.0)));
+        });
     }
 
     private double calculatedValue(Metrics metrics, DRIF_BONUS_TYPE type,

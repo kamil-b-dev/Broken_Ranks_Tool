@@ -37,7 +37,8 @@ final class OptimizationContextFactory {
     private final EquipmentValidator validator;
     private final ItemStatProcessor itemStatProcessor;
 
-    OptimizationContext create(OptimizationRequest request, int maxSearchSteps) {
+    OptimizationContext create(OptimizationRequest request, int beamSearchSteps,
+                               int maximizationSearchSteps, int refinementSearchSteps) {
         List<Long> itemIds = request.getOriginalSlots().values().stream()
                 .filter(Objects::nonNull)
                 .map(EquipmentRequest.SlotData::getItemId)
@@ -55,6 +56,9 @@ final class OptimizationContextFactory {
                         (left, right) -> left, LinkedHashMap::new));
 
         List<SlotContext> slots = buildSlots(request, items, drifs);
+        Map<Double, List<SlotContext>> slotsByDrifBonus = slots.stream()
+                .collect(Collectors.groupingBy(SlotContext::drifBonus,
+                        LinkedHashMap::new, Collectors.toList()));
         List<Map.Entry<DRIF_BONUS_TYPE, Integer>> sortedPriorities =
                 request.getPriorities().entrySet().stream()
                         .sorted(Map.Entry.comparingByKey(Comparator.comparing(Enum::name)))
@@ -64,9 +68,10 @@ final class OptimizationContextFactory {
                         .sorted(Map.Entry.comparingByKey(Comparator.comparing(Enum::name)))
                         .toList();
 
-        return new OptimizationContext(request, items, drifs, slots,
-                sortedPriorities, sortedQuantities, new SearchBudget(maxSearchSteps),
-                new EnumMap<>(DRIF_BONUS_TYPE.class), new HashMap<>(),
+        return new OptimizationContext(request, items, drifs, slots, slotsByDrifBonus,
+                sortedPriorities, sortedQuantities, new SearchBudget(beamSearchSteps),
+                new SearchBudget(maximizationSearchSteps), new SearchBudget(refinementSearchSteps),
+                new EnumMap<>(DRIF_BONUS_TYPE.class), new EnumMap<>(DRIF_BONUS_TYPE.class), new HashMap<>(),
                 new HashMap<>(), new HashMap<>());
     }
 

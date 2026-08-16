@@ -41,10 +41,14 @@ class OptimizationSearchModel {
             Map<Long, ItemTemplate> items,
             Map<Long, DrifTemplate> drifs,
             List<SlotContext> slots,
+            Map<Double, List<SlotContext>> slotsByDrifBonus,
             List<Map.Entry<DRIF_BONUS_TYPE, Integer>> sortedPriorities,
             List<Map.Entry<DRIF_BONUS_TYPE, OptimizationRequest.QuantityRange>> sortedQuantities,
-            SearchBudget searchBudget,
+            SearchBudget beamSearchBudget,
+            SearchBudget maximizationSearchBudget,
+            SearchBudget refinementSearchBudget,
             Map<DRIF_BONUS_TYPE, Double> calculatorBaseline,
+            Map<DRIF_BONUS_TYPE, Double> maximizationScaleCache,
             Map<String, Map<String, String>> calculatorCache,
             Map<String, StateEvaluation> evaluationCache,
             Map<DrifLevelKey, Double> drifValueCache) { }
@@ -83,13 +87,20 @@ class OptimizationSearchModel {
     static final class SearchBudget {
         private int remaining;
 
-        boolean consume() {
-            return remaining-- <= 0;
+        boolean tryConsume() {
+            if (remaining <= 0) return false;
+            remaining--;
+            return true;
+        }
+
+        boolean exhausted() {
+            return remaining <= 0;
         }
     }
 
-    record Quality(int hardViolations, double forcedCapDeficit, int missingCritical,
-                   double targetDeficit, double weightedUtility, double penaltyLoss,
+    record Quality(int hardViolations, double forcedCapDeficit,
+                   double minimumMaximizedProgress, double maximizedUtility,
+                   double weightedUtility, double penaltyLoss,
                    double forcedCapExcess, double capacityUtilization, int totalPower) { }
 
     @RequiredArgsConstructor

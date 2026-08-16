@@ -68,12 +68,13 @@ final class OptimizationResultAssembler {
     }
 
     OptimizationSummary createSummary(BuildState state, OptimizationContext context,
-                                       double executionTime, String warning) {
+                                       double executionTime, List<String> warnings) {
         Metrics metrics = stateEvaluator.metrics(state, context);
-        return new OptimizationSummary(warning == null,
-                warning == null ? "Optymalizacja zakończona." : warning,
+        return new OptimizationSummary(warnings.isEmpty(),
+                warnings.isEmpty() ? "Optymalizacja zakończona."
+                        : "Nie udało się osiągnąć wymuszonego capa dla co najmniej jednego modyfikatora.",
                 metrics.counts().values().stream().mapToInt(Integer::intValue).sum(),
-                metrics.totalPower(), executionTime);
+                metrics.totalPower(), executionTime, warnings);
     }
 
     String validateFinalResult(BuildState state, OptimizationContext context) {
@@ -99,9 +100,10 @@ final class OptimizationResultAssembler {
         return null;
     }
 
-    /** Returns a non-fatal warning when the best valid build cannot reach a forced cap. */
-    String forcedCapWarning(BuildState state, OptimizationContext context) {
+    /** Returns non-fatal warnings for every forced cap the best valid build cannot reach. */
+    List<String> forcedCapWarnings(BuildState state, OptimizationContext context) {
         Map<String, String> actual = actualStats(state, context);
+        List<String> warnings = new ArrayList<>();
         for (DRIF_BONUS_TYPE type : context.request().getPriorities().keySet().stream()
                 .filter(candidate -> isForcedCap(candidate, context.request()))
                 .sorted(Comparator.comparing(Enum::name))
@@ -109,18 +111,28 @@ final class OptimizationResultAssembler {
             Double target = targetFor(type, context.request());
             if (target == null) continue;
             if (!actual.containsKey(type.name())) {
-                return "Kalkulator nie zwrócił wartości wymaganego capa: "
-                        + type.getDescription() + ".";
+                warnings.add("Kalkulator nie zwrócił wartości wymaganego capa: "
+                        + type.getDescription() + ".");
+                continue;
             }
             double value = directedValue(type, parseCalculatedValue(actual.get(type.name())),
                     context.request());
             if (value < target - TARGET_TOLERANCE) {
-                return "Nie udało się osiągnąć wymuszonego capa dla " + type.getDescription()
+                warnings.add("Nie udało się osiągnąć wymuszonego capa dla " + type.getDescription()
                         + " (" + String.format(java.util.Locale.ROOT, "%.2f", value) + "/"
-                        + String.format(java.util.Locale.ROOT, "%.2f", target) + ").";
+                        + String.format(java.util.Locale.ROOT, "%.2f", target) + ").");
             }
         }
-        return null;
+        return warnings;
+    }
+
+    /** Returns the final calculator value in the optimization direction. */
+    double actualValue(BuildState state, DRIF_BONUS_TYPE type, OptimizationContext context) {
+        Map<String, String> stats = actualStats(state, context);
+        if (!stats.containsKey(type.name())) {
+            return stateEvaluator.calculatedValue(state, type, context);
+        }
+        return directedValue(type, parseCalculatedValue(stats.get(type.name())), context.request());
     }
 
     private Map<String, String> actualStats(BuildState state, OptimizationContext context) {
