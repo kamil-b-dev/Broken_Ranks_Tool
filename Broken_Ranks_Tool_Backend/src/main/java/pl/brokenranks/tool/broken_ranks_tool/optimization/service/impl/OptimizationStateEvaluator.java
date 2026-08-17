@@ -270,15 +270,19 @@ final class OptimizationStateEvaluator {
                 searchCounts.merge(type, 1, Integer::sum);
                 searchRawValues.merge(type, drifValue, Double::sum);
                 if (!unique.add(type)) continue;
-                int placementPower = power(placement.drif(), placement.level());
-                used += placementPower;
-                totalPower += placementPower;
+                if (!slot.special()) {
+                    int placementPower = power(placement.drif(), placement.level());
+                    used += placementPower;
+                    totalPower += placementPower;
+                }
                 counts.merge(type, 1, Integer::sum);
                 rawValues.merge(type, drifValue, Double::sum);
             }
-            usedCapacity += Math.min(used, slot.capacity());
-            totalCapacity += slot.capacity();
-            overflowPower += Math.max(0, used - slot.capacity());
+            if (!slot.special()) {
+                usedCapacity += Math.min(used, slot.capacity());
+                totalCapacity += slot.capacity();
+                overflowPower += Math.max(0, used - slot.capacity());
+            }
         }
 
         Map<DRIF_BONUS_TYPE, Double> searchValues = new LinkedHashMap<>();
