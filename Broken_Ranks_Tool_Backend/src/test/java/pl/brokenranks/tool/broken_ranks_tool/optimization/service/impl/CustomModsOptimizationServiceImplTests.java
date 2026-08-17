@@ -71,6 +71,9 @@ class CustomModsOptimizationServiceImplTests {
                 .get(0.0).getFirst().itemName());
         assertEquals("helmet", response.getSummary().getItemsByDrifBonus()
                 .get(0.0).getFirst().slotKey());
+        assertTrue(response.getSummary().getNextVariants().getFirst().main());
+        assertEquals(result.getDrifIds(), response.getSummary().getNextVariants().getFirst()
+                .setup().getSlots().get("helmet").getDrifIds());
         verify(calculator, atMost(4)).calculateTotalStats(any());
     }
 
@@ -157,6 +160,74 @@ class CustomModsOptimizationServiceImplTests {
 
         OptimizationResponse repeated = service.optimize(request);
         assertEquals(response.getOptimizedSetup().getSlots(), repeated.getOptimizedSetup().getSlots());
+    }
+
+    @Test
+    void preservesDrifsLockedByForcedBonusMaximizationThroughAllStages() {
+        ItemTemplate item = item(1L, 24);
+        DrifTemplate magic = drif(10L, DRIF_BONUS_TYPE.DAMAGE_MAGIC, 2.0, 1.0);
+        DrifTemplate ranged = drif(11L, DRIF_BONUS_TYPE.HIT_CHANCE_RANGED, 2.0, 1.0);
+        EquipmentStatsCalculatorService calculator = mock(EquipmentStatsCalculatorService.class);
+        when(calculator.calculateTotalStats(any())).thenReturn(Map.of(
+                DRIF_BONUS_TYPE.DAMAGE_MAGIC.name(), "10%",
+                DRIF_BONUS_TYPE.HIT_CHANCE_RANGED.name(), "10%"));
+        CustomModsOptimizationServiceImpl service = service(item, List.of(magic, ranged), calculator);
+        Map<DRIF_BONUS_TYPE, Integer> priorities = new LinkedHashMap<>();
+        priorities.put(DRIF_BONUS_TYPE.DAMAGE_MAGIC, 30);
+        priorities.put(DRIF_BONUS_TYPE.HIT_CHANCE_RANGED, 20);
+        OptimizationRequest request = request(item.getId(), priorities);
+        request.setTargetQuantities(Map.of(
+                DRIF_BONUS_TYPE.DAMAGE_MAGIC, new OptimizationRequest.QuantityRange(1, 1),
+                DRIF_BONUS_TYPE.HIT_CHANCE_RANGED, new OptimizationRequest.QuantityRange(1, 1)));
+        request.setMaximizeBonuses(Set.of(
+                DRIF_BONUS_TYPE.DAMAGE_MAGIC, DRIF_BONUS_TYPE.HIT_CHANCE_RANGED));
+        request.setForceMaximizationByDrifBonus(true);
+
+        OptimizationResponse response = service.optimize(request);
+
+        EquipmentRequest.SlotData result = response.getOptimizedSetup().getSlots().get("helmet");
+        assertEquals(List.of(magic.getId(), ranged.getId()), result.getDrifIds());
+        assertEquals(21, result.getDrifLevels().get("0"));
+        assertEquals(21, result.getDrifLevels().get("1"));
+    }
+
+    @Test
+    void countsUserLockedDrifTowardPrelockedMinimum() {
+        ItemTemplate helmet = item(1L, 12, ITEM_CATEGORY.HELMET);
+        ItemTemplate armor = item(2L, 12, ITEM_CATEGORY.ARMOR);
+        DrifTemplate magic = drif(10L, DRIF_BONUS_TYPE.DAMAGE_MAGIC, 2.0, 1.0);
+        EquipmentStatsCalculatorService calculator = mock(EquipmentStatsCalculatorService.class);
+        when(calculator.calculateTotalStats(any())).thenReturn(
+                Map.of(DRIF_BONUS_TYPE.DAMAGE_MAGIC.name(), "10%"));
+        CustomModsOptimizationServiceImpl service = service(
+                List.of(helmet, armor), List.of(magic), calculator,
+                Map.of(helmet.getId(), 0.0, armor.getId(), 0.75));
+        EquipmentRequest.SlotData lockedHelmet = slot(helmet.getId());
+        lockedHelmet.setDrifIds(List.of(magic.getId()));
+        lockedHelmet.setDrifLevels(Map.of("0", 21));
+        OptimizationRequest request = new OptimizationRequest();
+        request.setOriginalSlots(Map.of(
+                "helmet", lockedHelmet, "armor", slot(armor.getId())));
+        request.setPriorities(Map.of(DRIF_BONUS_TYPE.DAMAGE_MAGIC, 30));
+        request.setTargetQuantities(Map.of(DRIF_BONUS_TYPE.DAMAGE_MAGIC,
+                new OptimizationRequest.QuantityRange(2, 2)));
+        request.setLockedSlots(Set.of());
+        request.setLockedDrifs(Map.of("helmet", Set.of(0)));
+        request.setForceCapBonuses(Set.of());
+        request.setMaximizeBonuses(Set.of(DRIF_BONUS_TYPE.DAMAGE_MAGIC));
+        request.setForceMaximizationByDrifBonus(true);
+
+        OptimizationResponse response = service.optimize(request);
+
+        long magicCount = response.getOptimizedSetup().getSlots().values().stream()
+                .flatMap(slot -> slot.getDrifIds().stream())
+                .filter(magic.getId()::equals)
+                .count();
+        assertEquals(2, magicCount);
+        assertEquals(magic.getId(), response.getOptimizedSetup().getSlots()
+                .get("helmet").getDrifIds().getFirst());
+        assertEquals(magic.getId(), response.getOptimizedSetup().getSlots()
+                .get("armor").getDrifIds().getFirst());
     }
 
     @Test

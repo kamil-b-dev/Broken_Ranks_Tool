@@ -68,13 +68,135 @@ final class OptimizationResultAssembler {
     }
 
     OptimizationSummary createSummary(BuildState state, OptimizationContext context,
-                                       double executionTime, List<String> warnings) {
+                                       double executionTime, List<String> warnings,
+                                       List<BuildState> evaluatedStates) {
         Metrics metrics = stateEvaluator.metrics(state, context);
         return new OptimizationSummary(warnings.isEmpty(),
                 warnings.isEmpty() ? "Optymalizacja zakończona."
                         : "Nie udało się osiągnąć wymuszonego capa dla co najmniej jednego modyfikatora.",
                 metrics.counts().values().stream().mapToInt(Integer::intValue).sum(),
-                metrics.totalPower(), executionTime, warnings, itemDrifBonusMap(context));
+                metrics.totalPower(), executionTime, warnings, itemDrifBonusMap(context),
+                nextVariants(state, evaluatedStates, context));
+    }
+
+    private List<OptimizationSummary.OptimizationVariant> nextVariants(
+            BuildState finalState, List<BuildState> evaluatedStates, OptimizationContext context) {
+        OptimizationSummary.OptimizationVariant mainVariant =
+                new OptimizationSummary.OptimizationVariant(true, "Wynik główny",
+                        0.0, 0.0, List.of(), List.of(), toSetup(finalState, context));
+        List<VariantCandidate> candidates = new ArrayList<>();
+        if (context.request().getMaximizeBonuses() == null
+                || context.request().getMaximizeBonuses().isEmpty()) return List.of(mainVariant);
+        for (BuildState variant : evaluatedStates) {
+            if (variant.signature().equals(finalState.signature())) continue;
+            boolean decreasesMaximizedBonus = false;
+            DRIF_BONUS_TYPE bestImprovedType = null;
+            double bestFinalValue = 0.0;
+            double bestVariantValue = 0.0;
+            for (DRIF_BONUS_TYPE type : context.request().getMaximizeBonuses()) {
+                double finalValue = actualValue(finalState, type, context);
+                double variantValue = actualValue(variant, type, context);
+                if (variantValue < finalValue - TARGET_TOLERANCE) {
+                    decreasesMaximizedBonus = true;
+                    break;
+                }
+                if (variantValue - finalValue > bestVariantValue - bestFinalValue
+                        + TARGET_TOLERANCE) {
+                    bestImprovedType = type;
+                    bestFinalValue = finalValue;
+                    bestVariantValue = variantValue;
+                }
+            }
+            if (decreasesMaximizedBonus || bestImprovedType == null
+                    || bestVariantValue <= bestFinalValue + TARGET_TOLERANCE) continue;
+            List<OptimizationSummary.PlacementChange> changes = placementChanges(
+                    finalState, variant, context);
+            if (!changes.isEmpty()) {
+                candidates.add(new VariantCandidate(bestImprovedType, bestFinalValue,
+                        bestVariantValue, changes, variant.signature(), variant));
+            }
+        }
+        List<OptimizationSummary.OptimizationVariant> alternatives = candidates.stream()
+                .sorted(Comparator.comparingDouble(VariantCandidate::gain).reversed()
+                        .thenComparing(candidate -> candidate.type().name())
+                        .thenComparing(VariantCandidate::signature))
+                .limit(4)
+                .map(candidate -> new OptimizationSummary.OptimizationVariant(
+                        false, candidate.type().getDescription(), candidate.finalValue(),
+                        candidate.variantValue(), candidate.changes(),
+                        statChanges(finalState, candidate.state(), context),
+                        toSetup(candidate.state(), context)))
+                .toList();
+        List<OptimizationSummary.OptimizationVariant> result = new ArrayList<>();
+        result.add(mainVariant);
+        result.addAll(alternatives);
+        return result;
+    }
+
+    private List<OptimizationSummary.StatChange> statChanges(
+            BuildState finalState, BuildState variant, OptimizationContext context) {
+        Map<String, String> finalStats = actualStats(finalState, context);
+        Map<String, String> variantStats = actualStats(variant, context);
+        Set<String> drifStatKeys = context.drifs().values().stream()
+                .map(drif -> drif.getBonusType().name())
+                .collect(java.util.stream.Collectors.toSet());
+        Set<String> keys = new java.util.TreeSet<>();
+        keys.addAll(finalStats.keySet());
+        keys.addAll(variantStats.keySet());
+        return keys.stream()
+                .filter(drifStatKeys::contains)
+                .filter(key -> !sameStatValue(finalStats.get(key), variantStats.get(key)))
+                .map(key -> new OptimizationSummary.StatChange(
+                        key, finalStats.getOrDefault(key, "0"),
+                        variantStats.getOrDefault(key, "0")))
+                .toList();
+    }
+
+    private boolean sameStatValue(String left, String right) {
+        if (left == null || right == null) return left == right;
+        return Math.abs(parseCalculatedValue(left) - parseCalculatedValue(right))
+                <= TARGET_TOLERANCE;
+    }
+
+    private List<OptimizationSummary.PlacementChange> placementChanges(
+            BuildState finalState, BuildState variant, OptimizationContext context) {
+        List<OptimizationSummary.PlacementChange> changes = new ArrayList<>();
+        for (SlotContext slot : context.slots()) {
+            List<Placement> finalPlacements = finalState.slots.getOrDefault(slot.key(), List.of());
+            List<Placement> variantPlacements = variant.slots.getOrDefault(slot.key(), List.of());
+            int positions = Math.max(finalPlacements.size(), variantPlacements.size());
+            for (int position = 0; position < positions; position++) {
+                Placement from = position < finalPlacements.size() ? finalPlacements.get(position) : null;
+                Placement to = position < variantPlacements.size() ? variantPlacements.get(position) : null;
+                if (samePlacement(from, to)) continue;
+                changes.add(new OptimizationSummary.PlacementChange(
+                        slot.key(), slot.item().getName(), modifierName(from), level(from),
+                        modifierName(to), level(to)));
+            }
+        }
+        return changes;
+    }
+
+    private boolean samePlacement(Placement left, Placement right) {
+        if (left == null || right == null) return left == right;
+        return left.drif().getId().equals(right.drif().getId()) && left.level() == right.level();
+    }
+
+    private String modifierName(Placement placement) {
+        return placement != null ? placement.drif().getBonusType().getDescription() : null;
+    }
+
+    private Integer level(Placement placement) {
+        return placement != null ? placement.level() : null;
+    }
+
+    private record VariantCandidate(DRIF_BONUS_TYPE type, double finalValue,
+                                    double variantValue,
+                                    List<OptimizationSummary.PlacementChange> changes,
+                                    String signature, BuildState state) {
+        private double gain() {
+            return variantValue - finalValue;
+        }
     }
 
     private Map<Double, List<OptimizationSummary.ItemDrifBonus>> itemDrifBonusMap(
@@ -89,7 +211,7 @@ final class OptimizationResultAssembler {
 
     String validateFinalResult(BuildState state, OptimizationContext context) {
         if (!stateEvaluator.minimumsSatisfied(state, context)) {
-            return "Końcowy wynik nie spełnia minimalnych limitów ilościowych.";
+            return "Końcowy wynik nie spełnia limitów ilościowych.";
         }
         for (SlotContext slot : context.slots()) {
             List<Placement> placements = state.slots.getOrDefault(slot.key(), List.of());

@@ -195,6 +195,17 @@ export const EquipmentProvider = ({ children }) => {
         }
     }, [requestData]);
 
+    /** Applies a calculator-ready equipment setup selected from optimizer variants. */
+    const applyOptimizationSetup = useCallback((setup) => {
+        if (!setup?.slots) return false;
+        setRequestData(prev => ({
+            ...prev,
+            slots: setup.slots
+        }));
+        setOptimizationTrigger(prev => prev + 1);
+        return true;
+    }, []);
+
 /**
  * Starts drif optimization using user priorities and locked equipment.
  * @param {object} optimizationConfig User priorities and quantity targets.
@@ -214,6 +225,8 @@ export const EquipmentProvider = ({ children }) => {
             targetQuantities: optimizationConfig.targetQuantities || {},
             forceCapBonuses: optimizationConfig.forceCapBonuses || [],
             maximizeBonuses: optimizationConfig.maximizeBonuses || [],
+            forceMaximizationByDrifBonus:
+                Boolean(optimizationConfig.forceMaximizationByDrifBonus),
             lockedSlots: lockedSlots,
             lockedDrifs: lockedDrifs
         };
@@ -222,12 +235,7 @@ export const EquipmentProvider = ({ children }) => {
             const response = await apiClient.post("/optimizer/drifs", optimizationRequest);
             const { optimizedSetup, summary } = response.data;
 
-            if (optimizedSetup && optimizedSetup.slots) {
-                setRequestData(prev => ({
-                    ...prev,
-                    slots: optimizedSetup.slots
-                }));
-                setOptimizationTrigger(prev => prev + 1);
+            if (applyOptimizationSetup(optimizedSetup)) {
                 return { ...summary, applied: true };
             } else {
                 return { ...summary, applied: false };
@@ -243,7 +251,7 @@ export const EquipmentProvider = ({ children }) => {
             console.error("Błąd optymalizacji drifów:", error);
             return { success: false, message, applied: false };
         }
-    }, [requestData.slots, lockedSlots, lockedDrifs]);
+    }, [requestData.slots, lockedSlots, lockedDrifs, applyOptimizationSetup]);
 
     const value = useMemo(() => ({
         data,
@@ -266,6 +274,7 @@ export const EquipmentProvider = ({ children }) => {
         toggleSlotLock,
         toggleDrifLock,
         calculateStats,
+        applyOptimizationSetup,
         runDrifOptimization,
         saveBuildToFile,
         loadBuildFromFile
@@ -273,7 +282,8 @@ export const EquipmentProvider = ({ children }) => {
         data, categoryNames, orbCategories, drifCategories, gameRules, loading, initialDataError,
         requestData, stats, statSources, isCalculatingStats, optimizationTrigger, lockedSlots,
         lockedDrifs, characterConfig, handleSlotUpdate, handleCharacterStatsUpdate, toggleSlotLock,
-        toggleDrifLock, calculateStats, runDrifOptimization, saveBuildToFile, loadBuildFromFile
+        toggleDrifLock, calculateStats, applyOptimizationSetup, runDrifOptimization,
+        saveBuildToFile, loadBuildFromFile
     ]);
 
     return (

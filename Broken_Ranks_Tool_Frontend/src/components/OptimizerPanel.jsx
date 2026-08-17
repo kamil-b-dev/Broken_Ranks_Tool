@@ -78,10 +78,10 @@ const sortBonusesByCategory = (bonuses) => [...bonuses].sort((left, right) => {
  * Provides drif priorities, target limits, and equipment locking for optimization.
  * @returns {JSX.Element} The optimizer panel.
  */
-const OptimizerPanel = () => {
+const OptimizerPanel = ({ optimizerSettings }) => {
     const {
         gameRules, drifCategories, runDrifOptimization, requestData, data,
-        lockedSlots, lockedDrifs, toggleSlotLock, toggleDrifLock
+        lockedSlots, lockedDrifs, toggleSlotLock, toggleDrifLock, applyOptimizationSetup
     } = useEquipment();
 
     const [availableBonuses, setAvailableBonuses] = useState([]);
@@ -92,6 +92,7 @@ const OptimizerPanel = () => {
     const [optimizationElapsedSeconds, setOptimizationElapsedSeconds] = useState(0);
     const [lastOptimizationDurationSeconds, setLastOptimizationDurationSeconds] = useState(null);
     const [optimizationStatus, setOptimizationStatus] = useState(null);
+    const [activeVariantIndex, setActiveVariantIndex] = useState(0);
     const [prioritySortDirection, setPrioritySortDirection] = useState('desc');
     const configInputRef = useRef(null);
     const optimizationStartTimeRef = useRef(null);
@@ -321,9 +322,12 @@ const OptimizerPanel = () => {
 
         try {
             const result = await runDrifOptimization({
-                priorities, targetQuantities, forceCapBonuses, maximizeBonuses
+                priorities, targetQuantities, forceCapBonuses, maximizeBonuses,
+                forceMaximizationByDrifBonus:
+                    Boolean(optimizerSettings?.forceMaximizationByDrifBonus)
             });
             setOptimizationStatus(result);
+            setActiveVariantIndex(0);
         } finally {
             const durationSeconds = Math.floor((performance.now() - startedAt) / 1000);
             setOptimizationElapsedSeconds(durationSeconds);
@@ -762,9 +766,77 @@ const OptimizerPanel = () => {
                             <h5 className="text-[10px] text-stone-500 uppercase tracking-widest font-semibold mb-2">
                                 Kolejne warianty
                             </h5>
-                            <p className="text-xs text-stone-600 italic leading-relaxed">
-                                Tu pojawią się podpowiedzi zamian i alternatywne konfiguracje.
-                            </p>
+                            {optimizationStatus?.nextVariants?.length > 0 ? (
+                                <div className="space-y-3">
+                                    {optimizationStatus.nextVariants.map((variant, variantIndex) => (
+                                        <button
+                                            type="button"
+                                            key={`${variant.bonusName}-${variantIndex}`}
+                                            onClick={() => {
+                                                if (applyOptimizationSetup(variant.setup)) {
+                                                    setActiveVariantIndex(variantIndex);
+                                                }
+                                            }}
+                                            className={`block w-full text-left border rounded-sm p-2 transition-colors ${activeVariantIndex === variantIndex
+                                                ? 'border-purple-500/80 bg-purple-950/30'
+                                                : 'border-stone-800/70 bg-black/20 hover:border-stone-600'}`}
+                                        >
+                                            <div className="flex items-start justify-between gap-2 text-xs">
+                                                <span className="text-stone-300 leading-tight font-semibold">
+                                                    {variant.main ? 'Główny wynik' : variant.bonusName}
+                                                </span>
+                                                {variant.main ? (
+                                                    <span className="text-purple-300 text-[10px] uppercase tracking-wide">
+                                                        {activeVariantIndex === variantIndex ? 'Aktywny' : 'Ustaw'}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-emerald-400 font-bold tabular-nums shrink-0">
+                                                        {Number(variant.finalValue).toLocaleString('pl-PL', { maximumFractionDigits: 2 })}% → {Number(variant.variantValue).toLocaleString('pl-PL', { maximumFractionDigits: 2 })}%
+                                                    </span>
+                                                )}
+                                            </div>
+                                            {!variant.main && <ul className="mt-2 space-y-1">
+                                                {variant.changes.map((change, changeIndex) => {
+                                                    const slotLabel = SLOTS.find(slot => slot.key === change.slotKey)?.label || change.slotKey;
+                                                    const formatPlacement = (modifier, level) => modifier
+                                                        ? `${modifier}${level ? ` (${level})` : ''}`
+                                                        : 'puste miejsce';
+                                                    return (
+                                                        <li key={`${change.slotKey}-${changeIndex}`} className="text-[11px] text-stone-500 leading-snug">
+                                                            <span className="text-stone-400">{change.itemName}</span>
+                                                            {' '}({slotLabel}): {formatPlacement(change.fromModifier, change.fromLevel)} →{' '}
+                                                            <span className="text-purple-300">{formatPlacement(change.toModifier, change.toLevel)}</span>
+                                                        </li>
+                                                    );
+                                                })}
+                                            </ul>}
+                                            {!variant.main && variant.statChanges?.length > 0 && (
+                                                <div className="mt-2 pt-2 border-t border-stone-800/80 space-y-1">
+                                                    <div className="text-[9px] text-stone-600 uppercase tracking-wider">
+                                                        Zmiany statystyk
+                                                    </div>
+                                                    {variant.statChanges.map(change => (
+                                                        <div key={change.statKey} className="flex items-start justify-between gap-2 text-[11px] leading-snug">
+                                                            <span className="text-stone-400">
+                                                                {gameRules?.bonusTranslations?.[change.statKey] || change.statKey}
+                                                            </span>
+                                                            <span className="shrink-0 tabular-nums">
+                                                                <span className="text-stone-500">{change.finalValue}</span>
+                                                                <span className="text-stone-600"> → </span>
+                                                                <span className="text-purple-300">{change.variantValue}</span>
+                                                            </span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-xs text-stone-600 italic leading-relaxed">
+                                    Brak ocenionych wariantów poprawiających maksymalizowany mod.
+                                </p>
+                            )}
                         </section>
                     </div>
                 </aside>

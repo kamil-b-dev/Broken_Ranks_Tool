@@ -4,6 +4,7 @@ import ItemDatabase from "./components/ItemDatabase";
 import StatsPanel from "./components/StatsPanel";
 import CharacterPanel from "./components/CharacterPanel";
 import OptimizerPanel from "./components/OptimizerPanel";
+import OptimizerSettingsPanel from "./components/OptimizerSettingsPanel";
 import { useEquipment } from "./context/EquipmentContext";
 import { SLOTS } from "./constants/equipment";
 
@@ -16,6 +17,9 @@ import { SLOTS } from "./constants/equipment";
 function App() {
     const [mainView, setMainView] = useState("builder");
     const [builderTab, setBuilderTab] = useState("database");
+    const [optimizerSettings, setOptimizerSettings] = useState({
+        forceMaximizationByDrifBonus: false
+    });
 
     const {
         data,
@@ -211,8 +215,12 @@ function App() {
                 </div>
             </div>
 
-            <div className={`flex-1 w-full flex-col ${mainView === "optimizer" ? "flex" : "hidden"}`}>
-                <OptimizerPanel />
+            <div className={`flex-1 w-full flex-col gap-4 ${mainView === "optimizer" ? "flex" : "hidden"}`}>
+                <OptimizerSettingsPanel
+                    settings={optimizerSettings}
+                    onChange={setOptimizerSettings}
+                />
+                <OptimizerPanel optimizerSettings={optimizerSettings} />
             </div>
 
             <div className="w-full shrink-0">
