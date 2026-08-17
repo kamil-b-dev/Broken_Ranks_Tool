@@ -3,7 +3,7 @@
  * @returns {JSX.Element} Global optimizer settings panel.
  */
 const OptimizerSettingsPanel = ({ settings, onChange }) => (
-    <section className="w-full shrink-0 border border-red-950/80 bg-gradient-to-r from-black via-red-950/15 to-black px-4 py-3 shadow-[inset_0_0_20px_rgba(0,0,0,0.8)]">
+    <section className="w-full shrink-0 border border-purple-900/80 bg-gradient-to-r from-black via-purple-950/25 to-black px-4 py-3 shadow-[inset_0_0_24px_rgba(55,20,90,0.28)]">
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-5">
             <div className="shrink-0 sm:border-r sm:border-stone-800 sm:pr-5">
                 <h3 className="text-xs text-stone-300 font-serif font-bold uppercase tracking-widest">
@@ -18,7 +18,7 @@ const OptimizerSettingsPanel = ({ settings, onChange }) => (
                         ...settings,
                         forceMaximizationByDrifBonus: event.target.checked
                     })}
-                    className="h-4 w-4 accent-red-800"
+                    className="h-4 w-4 accent-purple-700"
                 />
                 <span className="text-[11px] text-stone-400 leading-relaxed">
                     Wymuś maksymalizację według bonusów do drifów
@@ -32,7 +32,7 @@ const OptimizerSettingsPanel = ({ settings, onChange }) => (
                         ...settings,
                         generateVariants: event.target.checked
                     })}
-                    className="h-4 w-4 accent-red-800"
+                    className="h-4 w-4 accent-purple-700"
                 />
                 <span className="text-[11px] text-stone-400 leading-relaxed">
                     Obliczaj dodatkowe warianty

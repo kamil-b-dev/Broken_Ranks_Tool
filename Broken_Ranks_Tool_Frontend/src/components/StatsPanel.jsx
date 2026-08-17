@@ -1,9 +1,9 @@
 const CHARACTER_STAT_NAMES = new Set(["Siła", "Zręczność", "Moc", "Wiedza", "PŻ", "Mana", "Kondycja"]);
 
 const DRIF_CATEGORY_CONFIG = {
-    OFFENSIVE: { title: "Drify ofensywne", accent: "amber" },
+    OFFENSIVE: { title: "Drify ofensywne", accent: "red" },
     DEFENSIVE: { title: "Drify defensywne", accent: "sky" },
-    UTILITY: { title: "Drify użytkowe", accent: "violet" }
+    UTILITY: { title: "Drify użytkowe", accent: "emerald" }
 };
 
 const DRIF_CATEGORY_FALLBACK = {
@@ -64,6 +64,12 @@ const ACCENT_CLASSES = {
         row: "border-amber-900/20 hover:bg-amber-900/10",
         value: "text-amber-400"
     },
+    red: {
+        card: "border-red-900/45",
+        heading: "text-red-400 border-red-900/45",
+        row: "border-red-900/25 hover:bg-red-950/25",
+        value: "text-red-400"
+    },
     sky: {
         card: "border-sky-900/45",
         heading: "text-sky-400 border-sky-900/45",
@@ -81,6 +87,12 @@ const ACCENT_CLASSES = {
         heading: "text-violet-400 border-violet-900/45",
         row: "border-violet-900/25 hover:bg-violet-950/25",
         value: "text-violet-300"
+    },
+    emerald: {
+        card: "border-emerald-900/45",
+        heading: "text-emerald-400 border-emerald-900/45",
+        row: "border-emerald-900/25 hover:bg-emerald-950/25",
+        value: "text-emerald-400"
     }
 };
 
@@ -121,7 +133,7 @@ const classifyOrb = (key) => (
 const sortByDisplayName = (left, right) => left.displayName.localeCompare(right.displayName, "pl");
 
 /** Renders a compact category of calculated statistics. */
-const StatCategoryCard = ({ category, values, accent }) => {
+const StatCategoryCard = ({ category, values, accent, colorLabels = false }) => {
     const styles = ACCENT_CLASSES[accent || category.accent];
 
     return (
@@ -132,7 +144,7 @@ const StatCategoryCard = ({ category, values, accent }) => {
             <div className="flex flex-col gap-1">
                 {values.map(({ key, val, displayName }) => (
                     <div key={key} className={`flex justify-between gap-3 items-center border-b p-2 transition-colors ${styles.row}`}>
-                        <span className="min-w-0 text-stone-400 text-xs font-serif uppercase tracking-wide">{displayName}</span>
+                        <span className={`min-w-0 text-xs font-serif uppercase tracking-wide ${colorLabels ? styles.value : 'text-stone-400'}`}>{displayName}</span>
                         <span className={`shrink-0 font-bold font-serif ${styles.value}`}>{val}</span>
                     </div>
                 ))}
@@ -142,7 +154,7 @@ const StatCategoryCard = ({ category, values, accent }) => {
 };
 
 /** Renders one of the three main statistic columns. */
-const StatSummaryColumn = ({ title, accent, categories }) => {
+const StatSummaryColumn = ({ title, accent, categories, categoryAccents = false }) => {
     const styles = ACCENT_CLASSES[accent];
 
     return (
@@ -152,7 +164,9 @@ const StatSummaryColumn = ({ title, accent, categories }) => {
             </div>
             <div className="space-y-3">
                 {categories.map(({ category, values }) => (
-                    <StatCategoryCard key={category.title} category={category} values={values} accent={accent} />
+                    <StatCategoryCard key={category.title} category={category} values={values}
+                                      accent={categoryAccents ? undefined : accent}
+                                      colorLabels={categoryAccents} />
                 ))}
             </div>
         </section>
@@ -229,7 +243,8 @@ const StatsPanel = ({ stats, onCalculate, isCalculating = false, gameRules, stat
         },
         {
             title: "Drify",
-            accent: "amber",
+            accent: "violet",
+            categoryAccents: true,
             categories: Object.entries(DRIF_CATEGORY_CONFIG)
                 .flatMap(([key, category]) => drifStatsByCategory[key].length > 0 ? [{ category, values: drifStatsByCategory[key] }] : [])
         },
@@ -268,8 +283,9 @@ const StatsPanel = ({ stats, onCalculate, isCalculating = false, gameRules, stat
                 </div>
             ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-                    {statColumns.map(({ title, accent, categories }) => (
-                        <StatSummaryColumn key={title} title={title} accent={accent} categories={categories} />
+                    {statColumns.map(({ title, accent, categories, categoryAccents }) => (
+                        <StatSummaryColumn key={title} title={title} accent={accent}
+                                           categories={categories} categoryAccents={categoryAccents} />
                     ))}
                 </div>
             )}
