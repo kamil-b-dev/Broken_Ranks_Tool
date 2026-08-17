@@ -18,7 +18,8 @@ function App() {
     const [mainView, setMainView] = useState("builder");
     const [builderTab, setBuilderTab] = useState("database");
     const [optimizerSettings, setOptimizerSettings] = useState({
-        forceMaximizationByDrifBonus: false
+        forceMaximizationByDrifBonus: false,
+        generateVariants: false
     });
 
     const {

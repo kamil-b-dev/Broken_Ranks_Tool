@@ -37,6 +37,9 @@ public class OptimizationRequest {
     /** Pre-locks maximum-level maximized drifs on items with the highest drif bonus. */
     private boolean forceMaximizationByDrifBonus;
 
+    /** Enables the additional post-optimization search for interactive alternatives. */
+    private boolean generateVariants;
+
     /** DTO representing a minimum and maximum quantity range. */
     @Data
     @NoArgsConstructor

@@ -74,6 +74,10 @@ const sortBonusesByCategory = (bonuses) => [...bonuses].sort((left, right) => {
     return categoryDifference || left.value.localeCompare(right.value, 'pl');
 });
 
+const numericStatValue = value => Number.parseFloat(
+    String(value ?? '0').replace('%', '').replace(',', '.').replace('+', '').trim()
+);
+
 /**
  * Provides drif priorities, target limits, and equipment locking for optimization.
  * @returns {JSX.Element} The optimizer panel.
@@ -324,7 +328,8 @@ const OptimizerPanel = ({ optimizerSettings }) => {
             const result = await runDrifOptimization({
                 priorities, targetQuantities, forceCapBonuses, maximizeBonuses,
                 forceMaximizationByDrifBonus:
-                    Boolean(optimizerSettings?.forceMaximizationByDrifBonus)
+                    Boolean(optimizerSettings?.forceMaximizationByDrifBonus),
+                generateVariants: Boolean(optimizerSettings?.generateVariants)
             });
             setOptimizationStatus(result);
             setActiveVariantIndex(0);
@@ -790,9 +795,14 @@ const OptimizerPanel = ({ optimizerSettings }) => {
                                                         {activeVariantIndex === variantIndex ? 'Aktywny' : 'Ustaw'}
                                                     </span>
                                                 ) : (
-                                                    <span className="text-emerald-400 font-bold tabular-nums shrink-0">
-                                                        {Number(variant.finalValue).toLocaleString('pl-PL', { maximumFractionDigits: 2 })}% → {Number(variant.variantValue).toLocaleString('pl-PL', { maximumFractionDigits: 2 })}%
-                                                    </span>
+                                                    <div className="text-right shrink-0">
+                                                        <div className="text-emerald-400 font-bold tabular-nums">
+                                                            {Number(variant.finalValue).toLocaleString('pl-PL', { maximumFractionDigits: 2 })}% → {Number(variant.variantValue).toLocaleString('pl-PL', { maximumFractionDigits: 2 })}%
+                                                        </div>
+                                                        <div className="mt-1 text-[9px] text-stone-500 uppercase tracking-wide tabular-nums">
+                                                            +{Number(variant.gain).toLocaleString('pl-PL', { maximumFractionDigits: 2 })} · strata {Number(variant.totalLoss).toLocaleString('pl-PL', { maximumFractionDigits: 2 })} · zmian {variant.changeCount} · ocena {Number(variant.score).toLocaleString('pl-PL', { maximumFractionDigits: 2 })}
+                                                        </div>
+                                                    </div>
                                                 )}
                                             </div>
                                             {!variant.main && <ul className="mt-2 space-y-1">
@@ -815,18 +825,30 @@ const OptimizerPanel = ({ optimizerSettings }) => {
                                                     <div className="text-[9px] text-stone-600 uppercase tracking-wider">
                                                         Zmiany statystyk
                                                     </div>
-                                                    {variant.statChanges.map(change => (
-                                                        <div key={change.statKey} className="flex items-start justify-between gap-2 text-[11px] leading-snug">
-                                                            <span className="text-stone-400">
-                                                                {gameRules?.bonusTranslations?.[change.statKey] || change.statKey}
-                                                            </span>
-                                                            <span className="shrink-0 tabular-nums">
-                                                                <span className="text-stone-500">{change.finalValue}</span>
-                                                                <span className="text-stone-600"> → </span>
-                                                                <span className="text-purple-300">{change.variantValue}</span>
-                                                            </span>
-                                                        </div>
-                                                    ))}
+                                                    {variant.statChanges.map(change => {
+                                                        const before = numericStatValue(change.finalValue);
+                                                        const after = numericStatValue(change.variantValue);
+                                                        const inverseDirection = Number(
+                                                            gameRules?.drifMaxCaps?.[change.statKey]
+                                                        ) < 0;
+                                                        const improves = inverseDirection
+                                                            ? after < before
+                                                            : after > before;
+                                                        return (
+                                                            <div key={change.statKey} className="flex items-start justify-between gap-2 text-[11px] leading-snug">
+                                                                <span className="text-stone-400">
+                                                                    {gameRules?.bonusTranslations?.[change.statKey] || change.statKey}
+                                                                </span>
+                                                                <span className="shrink-0 tabular-nums">
+                                                                    <span className="text-stone-500">{change.finalValue}</span>
+                                                                    <span className="text-stone-600"> → </span>
+                                                                    <span className={improves ? 'text-emerald-400' : 'text-red-400'}>
+                                                                        {change.variantValue}
+                                                                    </span>
+                                                                </span>
+                                                            </div>
+                                                        );
+                                                    })}
                                                 </div>
                                             )}
                                         </button>

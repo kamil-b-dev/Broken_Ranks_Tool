@@ -24,6 +24,10 @@ import static pl.brokenranks.tool.broken_ranks_tool.optimization.service.impl.Op
 @RequiredArgsConstructor
 final class OptimizationResultAssembler {
 
+    private static final int MAX_VARIANT_CHANGES = 5;
+    private static final int MAX_ALTERNATIVES = 4;
+    private static final double MIN_DIVERSITY = 0.35;
+
     private final OptimizationLockService lockService;
     private final EquipmentStatsCalculatorService calculatorService;
     private final OptimizationStateEvaluator stateEvaluator;
@@ -69,61 +73,53 @@ final class OptimizationResultAssembler {
 
     OptimizationSummary createSummary(BuildState state, OptimizationContext context,
                                        double executionTime, List<String> warnings,
-                                       List<BuildState> evaluatedStates) {
+                                       List<OptimizationVariantGenerator.GeneratedVariant> variants) {
         Metrics metrics = stateEvaluator.metrics(state, context);
         return new OptimizationSummary(warnings.isEmpty(),
                 warnings.isEmpty() ? "Optymalizacja zakończona."
                         : "Nie udało się osiągnąć wymuszonego capa dla co najmniej jednego modyfikatora.",
                 metrics.counts().values().stream().mapToInt(Integer::intValue).sum(),
                 metrics.totalPower(), executionTime, warnings, itemDrifBonusMap(context),
-                nextVariants(state, evaluatedStates, context));
+                nextVariants(state, variants, context));
     }
 
     private List<OptimizationSummary.OptimizationVariant> nextVariants(
-            BuildState finalState, List<BuildState> evaluatedStates, OptimizationContext context) {
+            BuildState finalState, List<OptimizationVariantGenerator.GeneratedVariant> variants,
+            OptimizationContext context) {
         OptimizationSummary.OptimizationVariant mainVariant =
                 new OptimizationSummary.OptimizationVariant(true, "Wynik główny",
-                        0.0, 0.0, List.of(), List.of(), toSetup(finalState, context));
+                        0.0, 0.0, 0.0, 0.0, 0, 0.0,
+                        List.of(), List.of(), toSetup(finalState, context));
         List<VariantCandidate> candidates = new ArrayList<>();
         if (context.request().getMaximizeBonuses() == null
                 || context.request().getMaximizeBonuses().isEmpty()) return List.of(mainVariant);
-        for (BuildState variant : evaluatedStates) {
+        for (OptimizationVariantGenerator.GeneratedVariant generated : variants) {
+            BuildState variant = generated.state();
             if (variant.signature().equals(finalState.signature())) continue;
-            boolean decreasesMaximizedBonus = false;
-            DRIF_BONUS_TYPE bestImprovedType = null;
-            double bestFinalValue = 0.0;
-            double bestVariantValue = 0.0;
-            for (DRIF_BONUS_TYPE type : context.request().getMaximizeBonuses()) {
-                double finalValue = actualValue(finalState, type, context);
-                double variantValue = actualValue(variant, type, context);
-                if (variantValue < finalValue - TARGET_TOLERANCE) {
-                    decreasesMaximizedBonus = true;
-                    break;
-                }
-                if (variantValue - finalValue > bestVariantValue - bestFinalValue
-                        + TARGET_TOLERANCE) {
-                    bestImprovedType = type;
-                    bestFinalValue = finalValue;
-                    bestVariantValue = variantValue;
-                }
-            }
-            if (decreasesMaximizedBonus || bestImprovedType == null
-                    || bestVariantValue <= bestFinalValue + TARGET_TOLERANCE) continue;
+            DRIF_BONUS_TYPE focus = generated.focus();
+            double finalValue = actualValue(finalState, focus, context);
+            double variantValue = actualValue(variant, focus, context);
+            if (variantValue <= finalValue + TARGET_TOLERANCE) continue;
             List<OptimizationSummary.PlacementChange> changes = placementChanges(
                     finalState, variant, context);
-            if (!changes.isEmpty()) {
-                candidates.add(new VariantCandidate(bestImprovedType, bestFinalValue,
-                        bestVariantValue, changes, variant.signature(), variant));
+            if (!changes.isEmpty() && changes.size() <= MAX_VARIANT_CHANGES) {
+                double loss = totalLoss(finalState, variant, focus, context);
+                candidates.add(new VariantCandidate(focus, finalValue,
+                        variantValue, loss, changes, variant.signature(), variant));
             }
         }
-        List<OptimizationSummary.OptimizationVariant> alternatives = candidates.stream()
-                .sorted(Comparator.comparingDouble(VariantCandidate::gain).reversed()
+        List<VariantCandidate> pareto = candidates.stream()
+                .filter(candidate -> candidates.stream().noneMatch(other -> dominates(other, candidate)))
+                .sorted(Comparator.comparingDouble(VariantCandidate::score).reversed()
                         .thenComparing(candidate -> candidate.type().name())
                         .thenComparing(VariantCandidate::signature))
-                .limit(4)
+                .toList();
+        List<VariantCandidate> selected = selectDiverse(pareto);
+        List<OptimizationSummary.OptimizationVariant> alternatives = selected.stream()
                 .map(candidate -> new OptimizationSummary.OptimizationVariant(
                         false, candidate.type().getDescription(), candidate.finalValue(),
-                        candidate.variantValue(), candidate.changes(),
+                        candidate.variantValue(), candidate.gain(), candidate.totalLoss(),
+                        candidate.changes().size(), candidate.score(), candidate.changes(),
                         statChanges(finalState, candidate.state(), context),
                         toSetup(candidate.state(), context)))
                 .toList();
@@ -131,6 +127,53 @@ final class OptimizationResultAssembler {
         result.add(mainVariant);
         result.addAll(alternatives);
         return result;
+    }
+
+    private double totalLoss(BuildState main, BuildState variant, DRIF_BONUS_TYPE focus,
+                             OptimizationContext context) {
+        return context.request().getMaximizeBonuses().stream()
+                .filter(type -> type != focus)
+                .mapToDouble(type -> Math.max(0.0,
+                        actualValue(main, type, context) - actualValue(variant, type, context)))
+                .sum();
+    }
+
+    private boolean dominates(VariantCandidate left, VariantCandidate right) {
+        if (left == right) return false;
+        boolean noWorse = left.gain() >= right.gain() - TARGET_TOLERANCE
+                && left.totalLoss() <= right.totalLoss() + TARGET_TOLERANCE
+                && left.changes().size() <= right.changes().size();
+        boolean better = left.gain() > right.gain() + TARGET_TOLERANCE
+                || left.totalLoss() < right.totalLoss() - TARGET_TOLERANCE
+                || left.changes().size() < right.changes().size();
+        return noWorse && better;
+    }
+
+    private List<VariantCandidate> selectDiverse(List<VariantCandidate> candidates) {
+        List<VariantCandidate> selected = new ArrayList<>();
+        for (VariantCandidate candidate : candidates) {
+            boolean diverse = selected.stream().allMatch(existing ->
+                    changeDistance(existing, candidate) >= MIN_DIVERSITY);
+            if (diverse) selected.add(candidate);
+            if (selected.size() == MAX_ALTERNATIVES) break;
+        }
+        return selected;
+    }
+
+    private double changeDistance(VariantCandidate left, VariantCandidate right) {
+        Set<String> leftKeys = changeKeys(left.changes());
+        Set<String> rightKeys = changeKeys(right.changes());
+        Set<String> union = new HashSet<>(leftKeys);
+        union.addAll(rightKeys);
+        Set<String> intersection = new HashSet<>(leftKeys);
+        intersection.retainAll(rightKeys);
+        return union.isEmpty() ? 0.0 : 1.0 - (double) intersection.size() / union.size();
+    }
+
+    private Set<String> changeKeys(List<OptimizationSummary.PlacementChange> changes) {
+        return changes.stream()
+                .map(change -> change.slotKey() + "|" + change.fromModifier() + "|" + change.toModifier())
+                .collect(java.util.stream.Collectors.toSet());
     }
 
     private List<OptimizationSummary.StatChange> statChanges(
@@ -192,10 +235,15 @@ final class OptimizationResultAssembler {
 
     private record VariantCandidate(DRIF_BONUS_TYPE type, double finalValue,
                                     double variantValue,
+                                    double totalLoss,
                                     List<OptimizationSummary.PlacementChange> changes,
                                     String signature, BuildState state) {
         private double gain() {
             return variantValue - finalValue;
+        }
+
+        private double score() {
+            return gain() / (1.0 + totalLoss + changes.size() * 0.25);
         }
     }
 

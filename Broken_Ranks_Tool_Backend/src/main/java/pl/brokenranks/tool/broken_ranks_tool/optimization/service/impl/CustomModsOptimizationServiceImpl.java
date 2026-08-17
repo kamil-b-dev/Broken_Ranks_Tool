@@ -50,6 +50,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
     private final OptimizationStateEvaluator stateEvaluator;
     private final OptimizationResultAssembler resultAssembler;
     private final OptimizationLargeNeighborhoodSearch largeNeighborhoodSearch;
+    private final OptimizationVariantGenerator variantGenerator;
     private final OptimizationContextFactory contextFactory;
     private final OptimizationInitialStateFactory initialStateFactory;
     private final MaximizedDrifBonusPrelock maximizedDrifBonusPrelock;
@@ -69,6 +70,8 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
                 lockService, calculatorService, stateEvaluator);
         this.largeNeighborhoodSearch = new OptimizationLargeNeighborhoodSearch(
                 rules, stateEvaluator, resultAssembler);
+        this.variantGenerator = new OptimizationVariantGenerator(
+                largeNeighborhoodSearch, stateEvaluator, resultAssembler);
         this.contextFactory = new OptimizationContextFactory(
                 drifRepository, itemRepository, validator, itemStatProcessor);
         this.initialStateFactory = new OptimizationInitialStateFactory(validator);
@@ -128,9 +131,13 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
             return failedResponse(validationError, elapsedSeconds(startTime));
         }
         List<String> forcedCapWarnings = resultAssembler.forcedCapWarnings(greedyState, context);
+        List<OptimizationVariantGenerator.GeneratedVariant> variants =
+                request.isGenerateVariants()
+                        ? variantGenerator.generate(greedyState, context)
+                        : List.of();
         OptimizationSummary summary = resultAssembler.createSummary(
                 greedyState, context, elapsedSeconds(startTime), forcedCapWarnings,
-                neighborhoodResult.evaluatedStates());
+                variants);
         return new OptimizationResponse(optimizedSetup, summary);
     }
 

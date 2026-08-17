@@ -227,6 +227,7 @@ export const EquipmentProvider = ({ children }) => {
             maximizeBonuses: optimizationConfig.maximizeBonuses || [],
             forceMaximizationByDrifBonus:
                 Boolean(optimizationConfig.forceMaximizationByDrifBonus),
+            generateVariants: Boolean(optimizationConfig.generateVariants),
             lockedSlots: lockedSlots,
             lockedDrifs: lockedDrifs
         };
