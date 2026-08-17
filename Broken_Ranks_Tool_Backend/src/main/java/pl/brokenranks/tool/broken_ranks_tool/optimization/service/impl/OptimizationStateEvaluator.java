@@ -114,7 +114,8 @@ final class OptimizationStateEvaluator {
     boolean minimumsSatisfied(BuildState state, OptimizationContext context) {
         for (Map.Entry<DRIF_BONUS_TYPE, OptimizationRequest.QuantityRange> entry
                 : safeQuantities(context.request()).entrySet()) {
-            if (globalCount(state, entry.getKey(), context) < entry.getValue().getMin()) return false;
+            int count = globalCount(state, entry.getKey(), context);
+            if (count < entry.getValue().getMin() || count > entry.getValue().getMax()) return false;
         }
         return true;
     }

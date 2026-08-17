@@ -52,6 +52,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
     private final OptimizationLargeNeighborhoodSearch largeNeighborhoodSearch;
     private final OptimizationContextFactory contextFactory;
     private final OptimizationInitialStateFactory initialStateFactory;
+    private final MaximizedDrifBonusPrelock maximizedDrifBonusPrelock;
 
     public CustomModsOptimizationServiceImpl(
             DrifTemplateRepository drifRepository,
@@ -71,6 +72,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
         this.contextFactory = new OptimizationContextFactory(
                 drifRepository, itemRepository, validator, itemStatProcessor);
         this.initialStateFactory = new OptimizationInitialStateFactory(validator);
+        this.maximizedDrifBonusPrelock = new MaximizedDrifBonusPrelock(rules);
     }
 
     /**
@@ -102,9 +104,11 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
 
         BuildState greedyState = buildGreedyState(context);
         if (greedyState == null) {
-            return failedResponse("Nie można spełnić wszystkich minimów ilościowych przy obecnych blokadach, slotach i pojemności.", elapsedSeconds(startTime));
+            return failedResponse("Nie można spełnić limitów ilościowych przy obecnych blokadach, slotach i pojemności.", elapsedSeconds(startTime));
         }
-        greedyState = selectBestGlobalState(greedyState, context);
+        if (!request.isForceMaximizationByDrifBonus()) {
+            greedyState = selectBestGlobalState(greedyState, context);
+        }
         greedyState = maximizeDrifSizes(greedyState, context);
         greedyState = allocateRemainingLevelsByPriority(greedyState, context);
         greedyState = repairForcedCaps(greedyState, context);
@@ -114,7 +118,9 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
         greedyState = allocateRemainingLevelsByPriority(greedyState, context);
         greedyState = repairForcedCaps(greedyState, context);
         greedyState = maximizeSelectedBonuses(greedyState, context);
-        greedyState = largeNeighborhoodSearch.improve(greedyState, context);
+        OptimizationLargeNeighborhoodSearch.SearchResult neighborhoodResult =
+                largeNeighborhoodSearch.improve(greedyState, context);
+        greedyState = neighborhoodResult.best();
 
         EquipmentRequest optimizedSetup = resultAssembler.toSetup(greedyState, context);
         String validationError = resultAssembler.validateFinalResult(greedyState, context);
@@ -123,7 +129,8 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
         }
         List<String> forcedCapWarnings = resultAssembler.forcedCapWarnings(greedyState, context);
         OptimizationSummary summary = resultAssembler.createSummary(
-                greedyState, context, elapsedSeconds(startTime), forcedCapWarnings);
+                greedyState, context, elapsedSeconds(startTime), forcedCapWarnings,
+                neighborhoodResult.evaluatedStates());
         return new OptimizationResponse(optimizedSetup, summary);
     }
 
@@ -245,6 +252,10 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
 
     private BuildState buildGreedyState(OptimizationContext context) {
         BuildState state = initialStateFactory.create(context);
+        if (context.request().isForceMaximizationByDrifBonus()
+                && context.request().getMaximizeBonuses() != null) {
+            maximizedDrifBonusPrelock.apply(state, context);
+        }
         resultAssembler.calibrateCalculatorBaseline(state, context);
         if (!satisfyMinimums(state, context)) {
             return null;
@@ -880,11 +891,13 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
                 for (int i = 0; i < firstPlacements.size(); i++) {
                     if (isDeadlineExceeded(context)) return state;
                     Placement firstPlacement = firstPlacements.get(i);
-                    if (firstPlacement == null || firstSlot.lockedIndices().contains(i)) continue;
+                    if (firstPlacement == null || firstPlacement.locked()
+                            || firstSlot.lockedIndices().contains(i)) continue;
                     for (int j = 0; j < secondPlacements.size(); j++) {
                         if (isDeadlineExceeded(context)) return state;
                         Placement secondPlacement = secondPlacements.get(j);
-                        if (secondPlacement == null || secondSlot.lockedIndices().contains(j)) continue;
+                        if (secondPlacement == null || secondPlacement.locked()
+                                || secondSlot.lockedIndices().contains(j)) continue;
                         if (!isValidForSlot(secondPlacement.drif(), firstSlot)
                                 || !isValidForSlot(firstPlacement.drif(), secondSlot)) continue;
                         if (containsBonusExcept(firstPlacements, secondPlacement.drif().getBonusType(), i)
@@ -920,7 +933,8 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
                 List<Placement> placements = state.slots.get(slot.key());
                 for (int index = 0; index < placements.size(); index++) {
                     if (isDeadlineExceeded(context)) return state;
-                    if (placements.get(index) == null || slot.lockedIndices().contains(index)) continue;
+                    if (placements.get(index) == null || placements.get(index).locked()
+                            || slot.lockedIndices().contains(index)) continue;
                     BuildState trial = state.copy();
                     trial.setPlacement(slot.key(), index, null);
                     normalizeSlotLevelsByPriority(trial, slot, context);
@@ -953,7 +967,8 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
 
     private OptimizationResponse failedResponse(String message, double seconds) {
         return new OptimizationResponse(new EquipmentRequest(),
-                new OptimizationSummary(false, message, 0, 0, seconds, List.of(), Map.of()));
+                new OptimizationSummary(false, message, 0, 0, seconds,
+                        List.of(), Map.of(), List.of()));
     }
 
     private boolean isSlotLocked(SlotContext slot, OptimizationRequest request) {

@@ -26,6 +26,11 @@ class OptimizationRequestConstraints {
         return range != null ? clampQuantity(range.getMax()) : MAX_GLOBAL_DRIFS_PER_TYPE;
     }
 
+    static int minQuantity(DRIF_BONUS_TYPE type, OptimizationRequest request) {
+        OptimizationRequest.QuantityRange range = safeQuantities(request).get(type);
+        return range != null ? clampQuantity(range.getMin()) : 0;
+    }
+
     static Map<DRIF_BONUS_TYPE, OptimizationRequest.QuantityRange> safeQuantities(
             OptimizationRequest request) {
         return request.getTargetQuantities() != null ? request.getTargetQuantities() : Map.of();
