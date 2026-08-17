@@ -99,6 +99,15 @@ class OptimizationLargeNeighborhoodSearchTests {
                 .anyMatch(state -> state.signature().equals(initial.signature())));
         assertTrue(result.evaluatedStates().stream()
                 .anyMatch(state -> state.signature().equals(improved.signature())));
+        BuildState prelocked = initial.copy();
+        prelocked.setPlacement("low", 0, new Placement(magic, 21, true));
+        List<OptimizationVariantGenerator.GeneratedVariant> variants =
+                new OptimizationVariantGenerator(search, evaluator, assembler)
+                        .generate(prelocked, context);
+        assertTrue(variants.stream().anyMatch(variant ->
+                variant.focus() == DRIF_BONUS_TYPE.DAMAGE_MAGIC
+                        && magic.getId().equals(variant.state().slots.get("high")
+                        .getFirst().drif().getId())));
     }
 
     @Test

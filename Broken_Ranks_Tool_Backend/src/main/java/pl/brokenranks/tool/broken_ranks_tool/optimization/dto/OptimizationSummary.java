@@ -34,6 +34,8 @@ public class OptimizationSummary {
     /** Describes a trade-off available relative to the selected final setup. */
     public record OptimizationVariant(boolean main, String bonusName,
                                       double finalValue, double variantValue,
+                                      double gain, double totalLoss,
+                                      int changeCount, double score,
                                       List<PlacementChange> changes,
                                       List<StatChange> statChanges,
                                       EquipmentRequest setup) { }

@@ -24,6 +24,20 @@ const OptimizerSettingsPanel = ({ settings, onChange }) => (
                     Wymuś maksymalizację według bonusów do drifów
                 </span>
             </label>
+            <label className="flex items-center gap-3 cursor-pointer select-none">
+                <input
+                    type="checkbox"
+                    checked={settings.generateVariants}
+                    onChange={event => onChange({
+                        ...settings,
+                        generateVariants: event.target.checked
+                    })}
+                    className="h-4 w-4 accent-red-800"
+                />
+                <span className="text-[11px] text-stone-400 leading-relaxed">
+                    Obliczaj dodatkowe warianty
+                </span>
+            </label>
         </div>
     </section>
 );

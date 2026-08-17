@@ -40,7 +40,11 @@ final class OptimizationLargeNeighborhoodSearch {
 
     /** Returns the best state and calculator-verified alternatives visited during the search. */
     SearchResult improve(BuildState initial, OptimizationContext context) {
-        SearchControl control = new SearchControl(MAX_GENERATED_STATES);
+        return improve(initial, context, MAX_GENERATED_STATES);
+    }
+
+    SearchResult improve(BuildState initial, OptimizationContext context, int maxGeneratedStates) {
+        SearchControl control = new SearchControl(Math.max(1, maxGeneratedStates));
         control.rememberEvaluated(initial);
         BuildState best = improveDirectedMoves(initial, context, control);
         List<List<SlotContext>> groups = buildGroups(context.slots());
