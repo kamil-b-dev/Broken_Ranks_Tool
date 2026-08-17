@@ -71,7 +71,7 @@ function App() {
     }, [data.items]);
 
     return (
-        <div className="app-shell w-full max-w-[1920px] mx-auto p-4 md:p-6 xl:p-8 flex flex-col gap-6 xl:gap-8 min-h-screen">
+        <div className={`app-shell app-shell-${mainView} w-full max-w-[1920px] mx-auto p-4 md:p-6 xl:p-8 flex flex-col gap-6 xl:gap-8 min-h-screen`}>
 
             <header className="app-masthead shrink-0">
                 <div className="brand-lockup">
@@ -140,7 +140,7 @@ function App() {
                 </div>
             )}
 
-            <div className={`flex-1 w-full flex-col ${mainView === "builder" ? "flex" : "hidden"}`}>
+            <div className={`builder-theme flex-1 w-full flex-col ${mainView === "builder" ? "flex" : "hidden"}`}>
                 <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 xl:gap-8 flex-1">
                     <section className="workbench xl:col-span-8 p-5 md:p-6 xl:p-8 flex flex-col">
                         <div className="workbench-heading">
@@ -148,7 +148,7 @@ function App() {
                                 <p className="section-kicker">Konfiguracja</p>
                                 <h2>Ekwipunek</h2>
                             </div>
-                            <p className="workbench-help">Wybierz przedmiot lub przeciągnij go z bazy. Złota obwódka oznacza aktywne pole.</p>
+                            <p className="workbench-help">Wybierz przedmiot lub przeciągnij go z bazy. Karmazynowa obwódka oznacza aktywne pole.</p>
                         </div>
                         <div className="flex flex-wrap justify-center gap-4 xl:gap-6 pt-2 pb-3">
                             {SLOTS.map((slot) => (
@@ -174,7 +174,7 @@ function App() {
                                 onClick={() => setBuilderTab("database")}
                                 className={`flex-1 py-3 text-sm font-bold uppercase tracking-widest transition-all ${
                                     builderTab === "database"
-                                        ? "bg-stone-800 border-b-2 border-stone-400 text-stone-200"
+                                        ? "bg-red-950/70 border-b-2 border-red-700 text-stone-100"
                                         : "text-stone-500 hover:text-stone-300 hover:bg-stone-900/50 border-b-2 border-transparent"
                                 }`}
                             >
@@ -184,7 +184,7 @@ function App() {
                                 onClick={() => setBuilderTab("character")}
                                 className={`flex-1 py-3 text-sm font-bold uppercase tracking-widest transition-all ${
                                     builderTab === "character"
-                                        ? "bg-amber-950/40 border-b-2 border-amber-700 text-amber-500"
+                                        ? "bg-red-950/70 border-b-2 border-red-700 text-stone-100"
                                         : "text-stone-500 hover:text-stone-300 hover:bg-stone-900/50 border-b-2 border-transparent"
                                 }`}
                             >
@@ -216,7 +216,7 @@ function App() {
                 </div>
             </div>
 
-            <div className={`flex-1 w-full flex-col gap-4 ${mainView === "optimizer" ? "flex" : "hidden"}`}>
+            <div className={`optimizer-theme flex-1 w-full flex-col gap-4 ${mainView === "optimizer" ? "flex" : "hidden"}`}>
                 <OptimizerSettingsPanel
                     settings={optimizerSettings}
                     onChange={setOptimizerSettings}
