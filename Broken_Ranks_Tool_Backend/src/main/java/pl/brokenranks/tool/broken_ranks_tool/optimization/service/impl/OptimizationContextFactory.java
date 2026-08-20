@@ -110,7 +110,7 @@ final class OptimizationContextFactory {
         int maxDrifs = special ? 0 : calculateMaxDrifs(item, stars);
         double drifBonus = itemStatProcessor.calculateFinalDrifMod(item, stars);
         List<DrifTemplate> candidates = special
-                ? List.of()
+                ? new ArrayList<>()
                 : candidatesForSlot(entry.getKey(), item, request, drifs);
         Set<Integer> lockedIndices = request.getLockedDrifs() != null
                 ? request.getLockedDrifs().getOrDefault(entry.getKey(), Set.of())

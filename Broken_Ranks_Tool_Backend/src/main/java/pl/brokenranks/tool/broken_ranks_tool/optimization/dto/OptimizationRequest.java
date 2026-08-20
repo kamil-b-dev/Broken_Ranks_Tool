@@ -34,6 +34,12 @@ public class OptimizationRequest {
     /** Bonus types whose value should be maximized within the remaining constraints. */
     private Set<DRIF_BONUS_TYPE> maximizeBonuses;
 
+    /** Pre-locks maximum-level maximized drifs on items with the highest drif bonus. */
+    private boolean forceMaximizationByDrifBonus;
+
+    /** Enables the additional post-optimization search for interactive alternatives. */
+    private boolean generateVariants;
+
     /** DTO representing a minimum and maximum quantity range. */
     @Data
     @NoArgsConstructor
