@@ -133,7 +133,8 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
         List<String> forcedCapWarnings = resultAssembler.forcedCapWarnings(greedyState, context);
         List<OptimizationVariantGenerator.GeneratedVariant> variants =
                 request.isGenerateVariants()
-                        ? variantGenerator.generate(greedyState, context)
+                        ? variantGenerator.generate(
+                                greedyState, context, neighborhoodResult.evaluatedStates())
                         : List.of();
         OptimizationSummary summary = resultAssembler.createSummary(
                 greedyState, context, elapsedSeconds(startTime), forcedCapWarnings,

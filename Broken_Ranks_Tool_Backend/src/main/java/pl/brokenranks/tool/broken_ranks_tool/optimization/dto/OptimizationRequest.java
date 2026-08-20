@@ -40,6 +40,9 @@ public class OptimizationRequest {
     /** Enables the additional post-optimization search for interactive alternatives. */
     private boolean generateVariants;
 
+    /** Maximum percentage loss allowed on another priority when selecting a variant. */
+    private Integer maxVariantLossPercent;
+
     /** DTO representing a minimum and maximum quantity range. */
     @Data
     @NoArgsConstructor

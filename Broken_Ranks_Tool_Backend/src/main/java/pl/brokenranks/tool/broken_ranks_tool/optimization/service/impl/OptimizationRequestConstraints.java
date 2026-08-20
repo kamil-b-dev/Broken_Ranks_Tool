@@ -66,7 +66,17 @@ class OptimizationRequestConstraints {
         return Math.max(0, Math.min(MAX_GLOBAL_DRIFS_PER_TYPE, value));
     }
 
+    static double maxVariantRelativeLoss(OptimizationRequest request) {
+        Integer percent = request.getMaxVariantLossPercent();
+        return (percent != null ? percent : 5) / 100.0;
+    }
+
     static String validateQuantityRanges(OptimizationRequest request) {
+        Integer maxVariantLossPercent = request.getMaxVariantLossPercent();
+        if (maxVariantLossPercent != null
+                && (maxVariantLossPercent < 0 || maxVariantLossPercent > 100)) {
+            return "Maksymalna dopuszczalna strata wariantu musi mieścić się w zakresie 0–100%.";
+        }
         if (request.getTargetQuantities() == null) return null;
         for (Map.Entry<DRIF_BONUS_TYPE, OptimizationRequest.QuantityRange> entry
                 : request.getTargetQuantities().entrySet()) {
