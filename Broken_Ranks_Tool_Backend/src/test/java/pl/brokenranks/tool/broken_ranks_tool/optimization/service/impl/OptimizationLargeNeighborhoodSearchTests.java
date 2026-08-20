@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -89,10 +90,24 @@ class OptimizationLargeNeighborhoodSearchTests {
         initial.slots.put("low", new ArrayList<>(List.of(new Placement(magic, 21, false))));
         initial.slots.put("high", new ArrayList<>(List.of(new Placement(defense, 21, false))));
 
-        BuildState improved = search.improve(initial, context);
+        OptimizationLargeNeighborhoodSearch.SearchResult result = search.improve(initial, context);
+        BuildState improved = result.best();
 
         assertEquals(magic.getId(), improved.slots.get("high").get(0).drif().getId());
         assertEquals(defense.getId(), improved.slots.get("low").get(0).drif().getId());
+        assertTrue(result.evaluatedStates().stream()
+                .anyMatch(state -> state.signature().equals(initial.signature())));
+        assertTrue(result.evaluatedStates().stream()
+                .anyMatch(state -> state.signature().equals(improved.signature())));
+        BuildState prelocked = initial.copy();
+        prelocked.setPlacement("low", 0, new Placement(magic, 21, true));
+        List<OptimizationVariantGenerator.GeneratedVariant> variants =
+                new OptimizationVariantGenerator(search, evaluator, assembler)
+                        .generate(prelocked, context);
+        assertTrue(variants.stream().anyMatch(variant ->
+                variant.focus() == DRIF_BONUS_TYPE.DAMAGE_MAGIC
+                        && magic.getId().equals(variant.state().slots.get("high")
+                        .getFirst().drif().getId())));
     }
 
     @Test
@@ -151,7 +166,7 @@ class OptimizationLargeNeighborhoodSearchTests {
         placements.add(null);
         initial.slots.put("helmet", placements);
 
-        BuildState improved = search.improve(initial, context);
+        BuildState improved = search.improve(initial, context).best();
 
         assertEquals(stronger.getId(), improved.slots.get("helmet").get(0).drif().getId());
     }
@@ -218,7 +233,7 @@ class OptimizationLargeNeighborhoodSearchTests {
         placements.add(null);
         initial.slots.put("helmet", placements);
 
-        BuildState improved = search.improve(initial, context);
+        BuildState improved = search.improve(initial, context).best();
 
         Placement replacement = improved.slots.get("helmet").get(0);
         assertEquals(magicDamage.getId(), replacement.drif().getId());

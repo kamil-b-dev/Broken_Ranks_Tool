@@ -74,14 +74,24 @@ const sortBonusesByCategory = (bonuses) => [...bonuses].sort((left, right) => {
     return categoryDifference || left.value.localeCompare(right.value, 'pl');
 });
 
+const numericStatValue = value => Number.parseFloat(
+    String(value ?? '0').replace('%', '').replace(',', '.').replace('+', '').trim()
+);
+
+const DRIF_CATEGORY_TEXT_CLASSES = {
+    OFFENSIVE: 'text-red-400 group-hover:text-red-300',
+    DEFENSIVE: 'text-sky-400 group-hover:text-sky-300',
+    UTILITY: 'text-emerald-400 group-hover:text-emerald-300'
+};
+
 /**
  * Provides drif priorities, target limits, and equipment locking for optimization.
  * @returns {JSX.Element} The optimizer panel.
  */
-const OptimizerPanel = () => {
+const OptimizerPanel = ({ optimizerSettings }) => {
     const {
         gameRules, drifCategories, runDrifOptimization, requestData, data,
-        lockedSlots, lockedDrifs, toggleSlotLock, toggleDrifLock
+        lockedSlots, lockedDrifs, toggleSlotLock, toggleDrifLock, applyOptimizationSetup
     } = useEquipment();
 
     const [availableBonuses, setAvailableBonuses] = useState([]);
@@ -92,7 +102,10 @@ const OptimizerPanel = () => {
     const [optimizationElapsedSeconds, setOptimizationElapsedSeconds] = useState(0);
     const [lastOptimizationDurationSeconds, setLastOptimizationDurationSeconds] = useState(null);
     const [optimizationStatus, setOptimizationStatus] = useState(null);
+    const [activeVariantIndex, setActiveVariantIndex] = useState(0);
     const [prioritySortDirection, setPrioritySortDirection] = useState('desc');
+    const [expandedPriorities, setExpandedPriorities] = useState(new Set());
+    const [activeMobileColumn, setActiveMobileColumn] = useState('priorities');
     const configInputRef = useRef(null);
     const optimizationStartTimeRef = useRef(null);
 
@@ -154,12 +167,19 @@ const OptimizerPanel = () => {
     const handleSelectBonus = (bonus) => {
         setPrioritizedBonuses(prev => [...prev, { ...bonus, weight: 15, min: 0, max: 12, forceCap: false, maximize: false }]);
         setAvailableBonuses(prev => prev.filter(b => b.key !== bonus.key));
+        setExpandedPriorities(new Set([bonus.key]));
+        setActiveMobileColumn('priorities');
     };
 
     /** Removes a bonus from the priority list and restores it to available choices. */
     const handleRemoveBonus = (bonus) => {
         setAvailableBonuses(prev => sortBonusesByCategory([...prev, createBonusOption([bonus.key, bonus.value], gameRules?.drifBonusCategories)]));
         setPrioritizedBonuses(prev => prev.filter(b => b.key !== bonus.key));
+        setExpandedPriorities(prev => {
+            const next = new Set(prev);
+            next.delete(bonus.key);
+            return next;
+        });
     };
 
     /** Clears all configured priorities. */
@@ -172,6 +192,7 @@ const OptimizerPanel = () => {
             return sortBonusesByCategory(combined);
         });
         setPrioritizedBonuses([]);
+        setExpandedPriorities(new Set());
     };
 
     /** Updates one field of a configured priority. */
@@ -275,6 +296,7 @@ const OptimizerPanel = () => {
             }
 
             setPrioritizedBonuses(imported);
+            setExpandedPriorities(imported.length > 0 ? new Set([imported[0].key]) : new Set());
             setAvailableBonuses(sortBonusesByCategory([...knownBonuses.entries()]
                 .filter(([key]) => !usedKeys.has(key))
                 .map(([, bonus]) => bonus)));
@@ -321,9 +343,13 @@ const OptimizerPanel = () => {
 
         try {
             const result = await runDrifOptimization({
-                priorities, targetQuantities, forceCapBonuses, maximizeBonuses
+                priorities, targetQuantities, forceCapBonuses, maximizeBonuses,
+                forceMaximizationByDrifBonus:
+                    Boolean(optimizerSettings?.forceMaximizationByDrifBonus),
+                generateVariants: Boolean(optimizerSettings?.generateVariants)
             });
             setOptimizationStatus(result);
+            setActiveVariantIndex(0);
         } finally {
             const durationSeconds = Math.floor((performance.now() - startedAt) / 1000);
             setOptimizationElapsedSeconds(durationSeconds);
@@ -333,25 +359,47 @@ const OptimizerPanel = () => {
         }
     };
 
-    return (
-        <div className="bg-gradient-to-b from-stone-900 to-black p-5 border-2 border-stone-800 shadow-[0_0_30px_rgba(0,0,0,0.9)] flex flex-col h-full relative">
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 xl:gap-8 flex-1 min-h-[700px]">
+    const togglePriorityExpanded = key => {
+        setExpandedPriorities(prev => {
+            const next = new Set(prev);
+            if (next.has(key)) next.delete(key);
+            else next.add(key);
+            return next;
+        });
+    };
 
-                <div className="flex flex-col gap-2 h-full min-h-0 border-r border-stone-800/60 pr-4 xl:pr-6">
+    return (
+        <div className="bg-gradient-to-b from-stone-900 to-black p-3 sm:p-5 border-2 border-stone-800 shadow-[0_0_30px_rgba(0,0,0,0.9)] flex flex-col h-full relative">
+            <nav className="xl:hidden grid grid-cols-4 gap-1 mb-3 shrink-0" aria-label="Sekcje optymalizatora">
+                {[
+                    ['slots', 'Przedmioty'], ['bonuses', 'Bonusy'],
+                    ['priorities', `Priorytety (${prioritizedBonuses.length})`], ['result', 'Wynik']
+                ].map(([key, label]) => (
+                    <button key={key} type="button" onClick={() => setActiveMobileColumn(key)}
+                            className={`px-2 py-2 border rounded-sm text-[9px] sm:text-[10px] uppercase tracking-wide transition-colors ${activeMobileColumn === key
+                                ? 'border-purple-500 bg-purple-950/50 text-purple-200'
+                                : 'border-stone-800 bg-black/30 text-stone-500'}`}>
+                        {label}
+                    </button>
+                ))}
+            </nav>
+            <div className="grid grid-cols-1 xl:grid-cols-4 gap-4 xl:gap-8 h-[calc(180vh-26.4rem)] min-h-[936px] max-h-[1620px]">
+
+                <div className={`optimizer-lock-column ${activeMobileColumn === 'slots' ? 'flex' : 'hidden'} xl:flex flex-col gap-2 h-full min-h-0 xl:border-r border-stone-800/60 xl:pr-6`}>
                     <div className="flex items-center justify-center border-b border-stone-700 pb-2 mb-2 min-h-[34px] shrink-0">
                         <h4 className="text-stone-300 font-serif font-bold uppercase tracking-widest text-xs">
                             Zablokowane Sloty
                         </h4>
                     </div>
 
-                    <div className="overflow-y-auto pr-2 flex-1 min-h-0 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-stone-800 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-purple-800/70">
+                    <div className="grid grid-cols-2 content-start gap-2 overflow-y-auto pr-2 flex-1 min-h-0 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-stone-800 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-purple-800/70">
                         {SLOTS.map(slot => {
                             const slotData = requestData.slots?.[slot.key];
                             const item = slotData?.itemId ? data.items.find(i => i.id.toString() === slotData.itemId.toString()) : null;
                             const isSlotLocked = lockedSlots?.includes(slot.key);
 
                             return (
-                                <div key={slot.key} className={`flex flex-col bg-stone-950/60 border mb-3 rounded-sm transition-all ${isSlotLocked ? 'border-red-900/50 shadow-[inset_0_0_15px_rgba(127,29,29,0.2)]' : 'border-stone-800/80 hover:border-stone-600'}`}>
+                                <div key={slot.key} className={`flex flex-col min-w-0 bg-stone-950/60 border rounded-sm transition-all ${isSlotLocked ? 'border-purple-700/60 shadow-[inset_0_0_15px_rgba(88,40,130,0.24)]' : 'border-stone-800/80 hover:border-purple-800'}`}>
                                     <div className="flex justify-between items-center bg-black/60 p-2 border-b border-stone-800/60">
                                         <span className={`text-[10px] font-bold uppercase tracking-widest ${isSlotLocked ? 'text-red-500' : 'text-stone-400'}`}>
                                             {slot.label}
@@ -420,7 +468,7 @@ const OptimizerPanel = () => {
                     </div>
                 </div>
 
-                <div className="flex flex-col gap-2 h-full min-h-0 border-r border-stone-800/60 pr-4 xl:pr-6">
+                <div className={`optimizer-bonus-column ${activeMobileColumn === 'bonuses' ? 'flex' : 'hidden'} xl:flex flex-col gap-2 h-full min-h-0 xl:border-r border-stone-800/60 xl:pr-6`}>
                     <div className="flex items-center justify-center border-b border-stone-700 pb-2 mb-2 min-h-[34px] shrink-0">
                         <h4 className="text-stone-300 font-serif font-bold uppercase tracking-widest text-xs">
                             Dostępne Bonusy
@@ -467,8 +515,8 @@ const OptimizerPanel = () => {
                         ) : (
                             filteredAvailableBonuses.map(bonus => (
                                 <div key={bonus.key} onClick={() => handleSelectBonus(bonus)}
-                                     className="flex justify-between items-center bg-black/40 p-2 border-b border-stone-800 hover:bg-stone-800/80 hover:border-purple-900/50 cursor-pointer transition-all group mb-[1px]">
-                                    <span className="text-stone-400 group-hover:text-stone-200 text-xs font-serif transition-colors">{bonus.value}</span>
+                                     className="optimizer-bonus-card flex justify-between items-center bg-black/40 p-2 border cursor-pointer transition-all group mb-1.5 rounded-sm shadow-sm">
+                                    <span className={`${DRIF_CATEGORY_TEXT_CLASSES[bonus.categoryKey] || 'text-stone-400 group-hover:text-stone-200'} text-xs font-serif transition-colors`}>{bonus.value}</span>
                                     <span className="text-stone-600 group-hover:text-purple-400 font-bold text-lg leading-none transition-colors shrink-0">+</span>
                                 </div>
                             ))
@@ -476,12 +524,12 @@ const OptimizerPanel = () => {
                     </div>
                 </div>
 
-                <div className="flex flex-col gap-2 h-full min-h-0">
+                <div className={`optimizer-priority-column ${activeMobileColumn === 'priorities' ? 'flex' : 'hidden'} xl:flex flex-col gap-2 h-full min-h-0`}>
                     <div className="flex items-center justify-between border-b border-stone-700 pb-2 mb-2 min-h-[34px] shrink-0">
                         <h4 className="text-stone-300 font-serif font-bold uppercase tracking-widest text-xs">
                             Priorytety i Limity
                         </h4>
-                        <div className="flex items-center gap-1.5 shrink-0">
+                        <div className="flex flex-wrap items-center justify-end gap-1.5">
                             <input
                                 ref={configInputRef}
                                 type="file"
@@ -513,6 +561,18 @@ const OptimizerPanel = () => {
                             </button>
                             {prioritizedBonuses.length > 0 && (
                                 <button
+                                    onClick={() => setExpandedPriorities(
+                                        expandedPriorities.size > 0
+                                            ? new Set()
+                                            : new Set(prioritizedBonuses.map(bonus => bonus.key))
+                                    )}
+                                    className="text-[10px] bg-stone-900 hover:bg-stone-800 text-stone-400 border border-stone-700 px-2 py-1 rounded-sm transition-all uppercase tracking-wider font-serif"
+                                >
+                                    {expandedPriorities.size > 0 ? 'Zwiń' : 'Rozwiń'}
+                                </button>
+                            )}
+                            {prioritizedBonuses.length > 0 && (
+                                <button
                                     onClick={handleClearAll}
                                     className="text-[10px] bg-red-950/60 hover:bg-red-900 text-red-400 hover:text-red-100 border border-red-900/50 px-2 py-1 rounded-sm transition-all uppercase tracking-wider font-serif"
                                 >
@@ -529,24 +589,36 @@ const OptimizerPanel = () => {
                             prioritizedBonuses.map((bonus, index) => {
                                 const maxCap = gameRules?.drifMaxCaps?.[bonus.key];
                                 const hasCap = maxCap !== null && maxCap !== undefined;
+                                const isExpanded = expandedPriorities.has(bonus.key);
 
                                 return (
                                     <div key={bonus.key} className="flex flex-col bg-stone-900/50 border border-purple-900/40 mb-3 rounded-sm shadow-md transition-colors relative overflow-hidden">
                                         <div className="absolute top-0 left-0 h-full bg-purple-900/10 pointer-events-none" style={{ width: `${(bonus.weight / 30) * 100}%` }}></div>
 
-                                        <div className="flex justify-between items-center bg-black/40 p-2 border-b border-purple-900/30 relative z-10">
-                                            <div className="flex items-center gap-2">
+                                        <div className={`flex justify-between items-center bg-black/40 p-2 relative z-10 ${isExpanded ? 'border-b border-purple-900/30' : ''}`}>
+                                            <button type="button" onClick={() => togglePriorityExpanded(bonus.key)}
+                                                    className="flex items-center gap-2 min-w-0 flex-1 text-left"
+                                                    aria-expanded={isExpanded}>
                                                 <span className="text-purple-500 font-bold text-xs">{index + 1}.</span>
-                                                <span className="text-stone-200 text-xs font-bold font-serif">{bonus.value}</span>
-                                            </div>
-                                            <button onClick={() => handleRemoveBonus(bonus)} className="text-stone-600 hover:text-red-500 transition-colors p-1" title="Usuń z priorytetów">
+                                                <span className="text-stone-200 text-xs font-bold font-serif truncate">{bonus.value}</span>
+                                                {!isExpanded && (
+                                                    <span className="ml-auto text-[9px] text-stone-500 uppercase tracking-wide whitespace-nowrap">
+                                                        waga {bonus.weight} · {bonus.min}–{bonus.max}
+                                                        {bonus.forceCap ? ' · cap' : ''}{bonus.maximize ? ' · max' : ''}
+                                                    </span>
+                                                )}
+                                                <svg className={`w-3 h-3 text-stone-500 shrink-0 transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            </button>
+                                            <button onClick={() => handleRemoveBonus(bonus)} className="ml-2 text-stone-600 hover:text-red-500 transition-colors p-1" title="Usuń z priorytetów">
                                                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                                 </svg>
                                             </button>
                                         </div>
 
-                                        <div className="flex flex-col gap-3 p-2 relative z-10">
+                                        {isExpanded && <div className="flex flex-col gap-3 p-2 relative z-10">
                                             <div className="flex flex-col gap-1">
                                                 <div className="flex justify-between items-end">
                                                     <span className="text-[10px] text-stone-400 uppercase tracking-wider font-semibold">Waga Priorytetu</span>
@@ -621,7 +693,7 @@ const OptimizerPanel = () => {
                                                     </button>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </div>}
                                     </div>
                                 );
                             })
@@ -629,7 +701,7 @@ const OptimizerPanel = () => {
                     </div>
                 </div>
 
-                <aside className="flex flex-col gap-4 h-full min-h-0 border-l border-stone-800/60 pl-4 xl:pl-6">
+                <aside className={`optimizer-info-column ${activeMobileColumn === 'result' ? 'flex' : 'hidden'} xl:flex flex-col gap-4 h-full min-h-0 xl:border-l border-stone-800/60 xl:pl-6`}>
                     <div className="flex items-center justify-center border-b border-stone-700 pb-2 min-h-[34px] shrink-0">
                         <h4 className="text-stone-300 font-serif font-bold uppercase tracking-widest text-xs">
                             Informacje z optymalizacji
@@ -762,19 +834,109 @@ const OptimizerPanel = () => {
                             <h5 className="text-[10px] text-stone-500 uppercase tracking-widest font-semibold mb-2">
                                 Kolejne warianty
                             </h5>
-                            <p className="text-xs text-stone-600 italic leading-relaxed">
-                                Tu pojawią się podpowiedzi zamian i alternatywne konfiguracje.
-                            </p>
+                            {optimizationStatus?.nextVariants?.length > 0 ? (
+                                <div className="space-y-3">
+                                    {optimizationStatus.nextVariants.map((variant, variantIndex) => (
+                                        <button
+                                            type="button"
+                                            key={`${variant.bonusName}-${variantIndex}`}
+                                            onClick={() => {
+                                                if (applyOptimizationSetup(variant.setup)) {
+                                                    setActiveVariantIndex(variantIndex);
+                                                }
+                                            }}
+                                            className={`block w-full text-left border rounded-sm p-2 transition-colors ${activeVariantIndex === variantIndex
+                                                ? 'border-purple-500/80 bg-purple-950/30'
+                                                : 'border-stone-800/70 bg-black/20 hover:border-stone-600'}`}
+                                        >
+                                            <div className="flex items-start justify-between gap-2 text-xs">
+                                                <span className="text-stone-300 leading-tight font-semibold">
+                                                    {variant.main ? 'Główny wynik' : variant.bonusName}
+                                                </span>
+                                                {variant.main ? (
+                                                    <span className="text-purple-300 text-[10px] uppercase tracking-wide">
+                                                        {activeVariantIndex === variantIndex ? 'Aktywny' : 'Ustaw'}
+                                                    </span>
+                                                ) : (
+                                                    <div className="text-right shrink-0">
+                                                        <div className="text-emerald-400 font-bold tabular-nums">
+                                                            {Number(variant.finalValue).toLocaleString('pl-PL', { maximumFractionDigits: 2 })}% → {Number(variant.variantValue).toLocaleString('pl-PL', { maximumFractionDigits: 2 })}%
+                                                        </div>
+                                                        <div className="mt-1 text-[9px] text-stone-500 uppercase tracking-wide tabular-nums">
+                                                            +{Number(variant.gain).toLocaleString('pl-PL', { maximumFractionDigits: 2 })} · strata {Number(variant.totalLoss).toLocaleString('pl-PL', { maximumFractionDigits: 2 })} · zmian {variant.changeCount} · ocena {Number(variant.score).toLocaleString('pl-PL', { maximumFractionDigits: 2 })}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            {!variant.main && <ul className="mt-2 space-y-1">
+                                                {variant.changes.map((change, changeIndex) => {
+                                                    const slotLabel = SLOTS.find(slot => slot.key === change.slotKey)?.label || change.slotKey;
+                                                    const formatPlacement = (modifier, level) => modifier
+                                                        ? `${modifier}${level ? ` (${level})` : ''}`
+                                                        : 'puste miejsce';
+                                                    return (
+                                                        <li key={`${change.slotKey}-${changeIndex}`} className="text-[11px] text-stone-500 leading-snug">
+                                                            <span className="text-stone-400">{change.itemName}</span>
+                                                            {' '}({slotLabel}): {formatPlacement(change.fromModifier, change.fromLevel)} →{' '}
+                                                            <span className="text-purple-300">{formatPlacement(change.toModifier, change.toLevel)}</span>
+                                                        </li>
+                                                    );
+                                                })}
+                                            </ul>}
+                                            {!variant.main && variant.statChanges?.length > 0 && (
+                                                <div className="mt-2 pt-2 border-t border-stone-800/80 space-y-1">
+                                                    <div className="text-[9px] text-stone-600 uppercase tracking-wider">
+                                                        Zmiany statystyk
+                                                    </div>
+                                                    {variant.statChanges.map(change => {
+                                                        const before = numericStatValue(change.finalValue);
+                                                        const after = numericStatValue(change.variantValue);
+                                                        const inverseDirection = Number(
+                                                            gameRules?.drifMaxCaps?.[change.statKey]
+                                                        ) < 0;
+                                                        const improves = inverseDirection
+                                                            ? after < before
+                                                            : after > before;
+                                                        return (
+                                                            <div key={change.statKey} className="flex items-start justify-between gap-2 text-[11px] leading-snug">
+                                                                <span className="text-stone-400">
+                                                                    {gameRules?.bonusTranslations?.[change.statKey] || change.statKey}
+                                                                </span>
+                                                                <span className="shrink-0 tabular-nums">
+                                                                    <span className="text-stone-500">{change.finalValue}</span>
+                                                                    <span className="text-stone-600"> → </span>
+                                                                    <span className={improves ? 'text-emerald-400' : 'text-red-400'}>
+                                                                        {change.variantValue}
+                                                                    </span>
+                                                                </span>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-xs text-stone-600 italic leading-relaxed">
+                                    Brak ocenionych wariantów poprawiających maksymalizowany mod.
+                                </p>
+                            )}
                         </section>
                     </div>
                 </aside>
             </div>
 
-            <div className="flex justify-center mt-6 pt-4 border-t border-stone-800/80 shrink-0 relative z-10 w-full max-w-xl mx-auto">
+            <div className="mt-4 pt-4 border-t border-stone-800/80">
+                <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                    <div className="hidden sm:flex flex-wrap items-center gap-x-4 gap-y-1 flex-1 text-[10px] uppercase tracking-wide text-stone-500">
+                        <span><strong className="text-stone-300">{prioritizedBonuses.length}</strong> priorytetów</span>
+                        {lastOptimizationDurationSeconds !== null && <span>Ostatnio: <strong className="text-stone-300">{lastOptimizationDurationSeconds} s</strong></span>}
+                    </div>
                 <button
                     onClick={handleOptimizeClick}
                     disabled={prioritizedBonuses.length === 0 || isOptimizing}
-                    className="w-full py-4 bg-gradient-to-b from-purple-900 to-black border border-purple-800 hover:from-purple-800 hover:to-black hover:border-purple-500 text-stone-200 font-serif font-bold text-sm uppercase tracking-[0.2em] transition-all shadow-[0_0_15px_rgba(128,0,128,0.3)] hover:shadow-[0_0_25px_rgba(160,32,240,0.5)] disabled:opacity-40 disabled:hover:from-purple-900 disabled:cursor-not-allowed flex items-center justify-center gap-3 rounded-sm"
+                    className="w-full sm:w-auto sm:min-w-[320px] px-8 py-4 bg-gradient-to-b from-purple-900 to-black border border-purple-800 hover:from-purple-800 hover:to-black hover:border-purple-500 text-stone-200 font-serif font-bold text-sm uppercase tracking-[0.2em] transition-all shadow-[0_0_15px_rgba(128,0,128,0.3)] hover:shadow-[0_0_25px_rgba(160,32,240,0.5)] disabled:opacity-40 disabled:hover:from-purple-900 disabled:cursor-not-allowed flex items-center justify-center gap-3 rounded-sm"
                 >
                     {isOptimizing ? (
                         <>
@@ -786,9 +948,10 @@ const OptimizerPanel = () => {
                             <span className="text-purple-300 tabular-nums">({optimizationElapsedSeconds} s)</span>
                         </>
                     ) : (
-                        "URUCHOM OPTYMALIZACJĘ"
+                        optimizationStatus ? "OPTYMALIZUJ PONOWNIE" : "URUCHOM OPTYMALIZACJĘ"
                     )}
                 </button>
+                </div>
             </div>
         </div>
     );

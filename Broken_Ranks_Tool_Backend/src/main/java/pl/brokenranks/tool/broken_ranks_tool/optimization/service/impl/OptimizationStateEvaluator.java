@@ -114,7 +114,8 @@ final class OptimizationStateEvaluator {
     boolean minimumsSatisfied(BuildState state, OptimizationContext context) {
         for (Map.Entry<DRIF_BONUS_TYPE, OptimizationRequest.QuantityRange> entry
                 : safeQuantities(context.request()).entrySet()) {
-            if (globalCount(state, entry.getKey(), context) < entry.getValue().getMin()) return false;
+            int count = globalCount(state, entry.getKey(), context);
+            if (count < entry.getValue().getMin() || count > entry.getValue().getMax()) return false;
         }
         return true;
     }
@@ -269,15 +270,19 @@ final class OptimizationStateEvaluator {
                 searchCounts.merge(type, 1, Integer::sum);
                 searchRawValues.merge(type, drifValue, Double::sum);
                 if (!unique.add(type)) continue;
-                int placementPower = power(placement.drif(), placement.level());
-                used += placementPower;
-                totalPower += placementPower;
+                if (!slot.special()) {
+                    int placementPower = power(placement.drif(), placement.level());
+                    used += placementPower;
+                    totalPower += placementPower;
+                }
                 counts.merge(type, 1, Integer::sum);
                 rawValues.merge(type, drifValue, Double::sum);
             }
-            usedCapacity += Math.min(used, slot.capacity());
-            totalCapacity += slot.capacity();
-            overflowPower += Math.max(0, used - slot.capacity());
+            if (!slot.special()) {
+                usedCapacity += Math.min(used, slot.capacity());
+                totalCapacity += slot.capacity();
+                overflowPower += Math.max(0, used - slot.capacity());
+            }
         }
 
         Map<DRIF_BONUS_TYPE, Double> searchValues = new LinkedHashMap<>();

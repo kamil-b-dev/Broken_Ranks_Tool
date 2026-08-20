@@ -194,7 +194,7 @@ const ItemDatabase = ({ items = [], orbs = [], drifs = [], categoryNames = {}, o
     };
 
     return (
-        <div className="bg-gradient-to-b from-stone-900 to-black p-6 border-2 border-stone-800 shadow-[0_0_30px_rgba(0,0,0,0.9)] flex flex-col h-full relative">
+        <div className="item-database-theme bg-gradient-to-b from-stone-900 to-black p-6 border-2 border-stone-800 shadow-[0_0_30px_rgba(0,0,0,0.9)] flex flex-col h-full relative">
             <div className="flex justify-between items-end border-b-4 border-double border-rose-900/70 pb-3 mb-4 shrink-0">
                 <h3 className="text-xl font-serif font-bold text-stone-300 uppercase tracking-widest drop-shadow-[0_2px_5px_rgba(0,0,0,1)]">Baza Danych</h3>
                 {(searchTerm || selectedCategory !== "Wszystkie" || selectedTier !== "Wszystkie" || selectedStat !== "Wszystkie" || selectedOrbCategory !== "Wszystkie" || selectedDrifCategory !== "Wszystkie" || selectedBasePower) && (
@@ -209,14 +209,10 @@ const ItemDatabase = ({ items = [], orbs = [], drifs = [], categoryNames = {}, o
                     const isActive = activeTab === tab;
                     const baseBtn = "flex-1 py-2 text-xs font-serif font-bold uppercase tracking-widest transition-all";
                     const bgClass = isActive
-                        ? (tab === "items" ? "bg-stone-800 border-b-2 border-stone-400"
-                            : tab === "orbs" ? "bg-rose-950/40 border-b-2 border-rose-800"
-                                : "bg-amber-950/40 border-b-2 border-orange-700")
+                        ? "bg-red-950/70 border-b-2 border-red-700"
                         : "hover:bg-stone-900/50 border-b-2 border-transparent";
                     const textClass = isActive
-                        ? (tab === "items" ? "bg-clip-text text-transparent bg-gradient-to-r from-stone-200 to-stone-400"
-                            : tab === "orbs" ? "bg-clip-text text-transparent bg-gradient-to-r from-red-400 to-rose-600"
-                                : "bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-amber-600")
+                        ? "text-stone-100"
                         : "text-stone-500 hover:text-stone-300";
 
                     return (
@@ -305,7 +301,7 @@ const ItemDatabase = ({ items = [], orbs = [], drifs = [], categoryNames = {}, o
             <div className="overflow-y-auto pr-2 space-y-4 flex-1 custom-scrollbar">
                 {Object.entries(filteredGroups).sort().map(([category, catItems]) => (
                     <div key={category}>
-                        <h4 className="text-stone-500 font-serif font-bold mb-2 text-xs uppercase tracking-[0.2em]">{category}</h4>
+                        <h4 className="database-category-heading text-stone-500 font-serif font-bold mb-2 text-xs uppercase tracking-[0.2em]">{category}</h4>
                         <ul className="text-sm space-y-1 pl-2 border-l border-stone-800">
                             {catItems.map((itemData, idx) => {
                                 if (activeTab === "items") {

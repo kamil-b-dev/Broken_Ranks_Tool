@@ -25,7 +25,7 @@ import static pl.brokenranks.tool.broken_ranks_tool.optimization.service.impl.Op
 @RequiredArgsConstructor
 final class OptimizationLargeNeighborhoodSearch {
 
-    private static final int MAX_GENERATED_STATES = 80_000;
+    private static final int MAX_GENERATED_STATES = 40_000;
     private static final int GROUP_BEAM_WIDTH = 24;
     private static final int ACTUAL_FINALISTS_PER_GROUP = 4;
     private static final int DIRECTED_FINALISTS = 24;
@@ -38,9 +38,14 @@ final class OptimizationLargeNeighborhoodSearch {
     private final OptimizationStateEvaluator stateEvaluator;
     private final OptimizationResultAssembler resultAssembler;
 
-    /** Returns the best calculator-verified state found within the bounded neighborhoods. */
-    BuildState improve(BuildState initial, OptimizationContext context) {
-        SearchControl control = new SearchControl(MAX_GENERATED_STATES);
+    /** Returns the best state and calculator-verified alternatives visited during the search. */
+    SearchResult improve(BuildState initial, OptimizationContext context) {
+        return improve(initial, context, MAX_GENERATED_STATES);
+    }
+
+    SearchResult improve(BuildState initial, OptimizationContext context, int maxGeneratedStates) {
+        SearchControl control = new SearchControl(Math.max(1, maxGeneratedStates));
+        control.rememberEvaluated(initial);
         BuildState best = improveDirectedMoves(initial, context, control);
         List<List<SlotContext>> groups = buildGroups(context.slots());
 
@@ -52,7 +57,7 @@ final class OptimizationLargeNeighborhoodSearch {
             }
             if (before.equals(best.signature())) break;
         }
-        return best;
+        return new SearchResult(best, control.evaluatedStates());
     }
 
     /**
@@ -80,17 +85,33 @@ final class OptimizationLargeNeighborhoodSearch {
             }
         }
 
-        List<BuildState> finalists = retainApproximateBeam(candidates, context).stream()
-                .limit(DIRECTED_FINALISTS)
-                .toList();
+        List<BuildState> finalists = directedFinalists(candidates, context);
         BuildState best = current;
         for (BuildState candidate : finalists) {
+            control.rememberEvaluated(candidate);
             if (!candidate.signature().equals(best.signature())
                     && isBetterActualState(candidate, best, context)) {
                 best = candidate;
             }
         }
         return best;
+    }
+
+    private List<BuildState> directedFinalists(List<BuildState> candidates,
+                                               OptimizationContext context) {
+        Map<String, BuildState> finalists = new LinkedHashMap<>();
+        retainApproximateBeam(candidates, context).stream()
+                .limit(DIRECTED_FINALISTS)
+                .forEach(state -> finalists.putIfAbsent(state.signature(), state));
+        if (context.request().getMaximizeBonuses() != null) {
+            for (DRIF_BONUS_TYPE type : context.request().getMaximizeBonuses()) {
+                candidates.stream()
+                        .max(Comparator.comparingDouble(
+                                state -> stateEvaluator.currentValue(state, type, context)))
+                        .ifPresent(state -> finalists.putIfAbsent(state.signature(), state));
+            }
+        }
+        return new ArrayList<>(finalists.values());
     }
 
     private void addDirectedSwaps(BuildState state, SlotContext low, SlotContext high,
@@ -247,6 +268,7 @@ final class OptimizationLargeNeighborhoodSearch {
         for (BuildState candidate : beam.stream()
                 .limit(ACTUAL_FINALISTS_PER_GROUP)
                 .toList()) {
+            control.rememberEvaluated(candidate);
             if (candidate.signature().equals(best.signature())) continue;
             if (isBetterActualState(candidate, best, context)) best = candidate;
         }
@@ -322,6 +344,7 @@ final class OptimizationLargeNeighborhoodSearch {
 
     private boolean isBetterActualState(BuildState candidate, BuildState current,
                                         OptimizationContext context) {
+        // Both states have been calculator-verified and can later become UI alternatives.
         ActualQuality candidateQuality = actualQuality(candidate, context);
         ActualQuality currentQuality = actualQuality(current, context);
         int comparison = compareLowerIsBetter(candidateQuality.forcedCapDeficit(),
@@ -465,8 +488,11 @@ final class OptimizationLargeNeighborhoodSearch {
                                  double maximizedProgress,
                                  double weightedUtility) { }
 
+    record SearchResult(BuildState best, List<BuildState> evaluatedStates) { }
+
     private static final class SearchControl {
         private int remainingStates;
+        private final Map<String, BuildState> evaluatedStates = new LinkedHashMap<>();
 
         private SearchControl(int remainingStates) {
             this.remainingStates = remainingStates;
@@ -480,6 +506,14 @@ final class OptimizationLargeNeighborhoodSearch {
 
         private boolean exhausted() {
             return remainingStates <= 0;
+        }
+
+        private List<BuildState> evaluatedStates() {
+            return new ArrayList<>(evaluatedStates.values());
+        }
+
+        private void rememberEvaluated(BuildState state) {
+            evaluatedStates.putIfAbsent(state.signature(), state);
         }
     }
 }
