@@ -228,6 +228,7 @@ export const EquipmentProvider = ({ children }) => {
             forceMaximizationByDrifBonus:
                 Boolean(optimizationConfig.forceMaximizationByDrifBonus),
             generateVariants: Boolean(optimizationConfig.generateVariants),
+            maxVariantLossPercent: Number(optimizationConfig.maxVariantLossPercent),
             lockedSlots: lockedSlots,
             lockedDrifs: lockedDrifs
         };

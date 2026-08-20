@@ -131,7 +131,7 @@ final class OptimizationResultAssembler {
 
     private double totalLoss(BuildState main, BuildState variant, DRIF_BONUS_TYPE focus,
                              OptimizationContext context) {
-        return context.request().getMaximizeBonuses().stream()
+        return context.request().getPriorities().keySet().stream()
                 .filter(type -> type != focus)
                 .mapToDouble(type -> Math.max(0.0,
                         actualValue(main, type, context) - actualValue(variant, type, context)))

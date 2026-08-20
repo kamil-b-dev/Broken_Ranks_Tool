@@ -88,7 +88,7 @@ const DRIF_CATEGORY_TEXT_CLASSES = {
  * Provides drif priorities, target limits, and equipment locking for optimization.
  * @returns {JSX.Element} The optimizer panel.
  */
-const OptimizerPanel = ({ optimizerSettings }) => {
+const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
     const {
         gameRules, drifCategories, runDrifOptimization, requestData, data,
         lockedSlots, lockedDrifs, toggleSlotLock, toggleDrifLock, applyOptimizationSetup
@@ -225,6 +225,10 @@ const OptimizerPanel = ({ optimizerSettings }) => {
             format: OPTIMIZER_CONFIG_FORMAT,
             version: OPTIMIZER_CONFIG_VERSION,
             exportedAt: new Date().toISOString(),
+            settings: {
+                maxVariantLossPercent: Math.max(0, Math.min(100,
+                    Number(optimizerSettings?.maxVariantLossPercent) || 0))
+            },
             priorities: prioritizedBonuses.map(({ key, weight, min, max, forceCap, maximize }) => ({
                 key,
                 weight: Number(weight),
@@ -300,6 +304,13 @@ const OptimizerPanel = ({ optimizerSettings }) => {
             setAvailableBonuses(sortBonusesByCategory([...knownBonuses.entries()]
                 .filter(([key]) => !usedKeys.has(key))
                 .map(([, bonus]) => bonus)));
+            const importedMaxLoss = Number(payload.settings?.maxVariantLossPercent);
+            if (Number.isFinite(importedMaxLoss)) {
+                onOptimizerSettingsChange(previous => ({
+                    ...previous,
+                    maxVariantLossPercent: Math.max(0, Math.min(100, Math.trunc(importedMaxLoss)))
+                }));
+            }
             alert(`Wczytano konfigurację: ${imported.length} priorytetów.`);
         } catch (error) {
             alert(`Nie udało się wczytać konfiguracji: ${error.message || 'niepoprawny plik JSON.'}`);
@@ -346,7 +357,9 @@ const OptimizerPanel = ({ optimizerSettings }) => {
                 priorities, targetQuantities, forceCapBonuses, maximizeBonuses,
                 forceMaximizationByDrifBonus:
                     Boolean(optimizerSettings?.forceMaximizationByDrifBonus),
-                generateVariants: Boolean(optimizerSettings?.generateVariants)
+                generateVariants: Boolean(optimizerSettings?.generateVariants),
+                maxVariantLossPercent: Math.max(0, Math.min(100,
+                    Number(optimizerSettings?.maxVariantLossPercent) || 0))
             });
             setOptimizationStatus(result);
             setActiveVariantIndex(0);
