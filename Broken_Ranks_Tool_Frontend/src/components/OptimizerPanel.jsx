@@ -1055,10 +1055,22 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                             )}
                         </section>
 
-                        <section className="border border-dashed border-stone-700/80 rounded-sm p-3">
-                            <h5 className="text-[10px] text-stone-500 uppercase tracking-widest font-semibold mb-2">
-                                Kolejne warianty
-                            </h5>
+                        <section className="border border-dashed border-stone-700/80 rounded-sm p-3 lg:col-span-2">
+                            <div className="mb-3 flex items-end justify-between gap-3">
+                                <div>
+                                    <h5 className="text-[10px] text-stone-400 uppercase tracking-widest font-semibold">
+                                        Warianty konfiguracji
+                                    </h5>
+                                    <p className="mt-1 text-[10px] text-stone-600">
+                                        Wybierz kartę, aby zastosować cały wariant w kalkulatorze.
+                                    </p>
+                                </div>
+                                {optimizationStatus?.nextVariants?.length > 0 && (
+                                    <span className="text-[9px] uppercase tracking-wider text-stone-600">
+                                        {optimizationStatus.nextVariants.length} konfiguracji
+                                    </span>
+                                )}
+                            </div>
                             {optimizationStatus?.nextVariants?.length > 0 ? (
                                 <div className="space-y-3">
                                     {optimizationStatus.nextVariants.map((variant, variantIndex) => (
@@ -1070,13 +1082,14 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                                                     setActiveVariantIndex(variantIndex);
                                                 }
                                             }}
-                                            className={`block w-full text-left border rounded-sm p-2 transition-colors ${activeVariantIndex === variantIndex
+                                            className={`block w-full text-left border rounded-sm p-3 transition-colors ${activeVariantIndex === variantIndex
                                                 ? 'border-purple-500/80 bg-purple-950/30'
                                                 : 'border-stone-800/70 bg-black/20 hover:border-stone-600'}`}
                                         >
                                             <div className="flex items-start justify-between gap-2 text-xs">
                                                 <span className="text-stone-300 leading-tight font-semibold">
-                                                    {variant.main ? 'Główny wynik' : variant.bonusName}
+                                                    <span className="mr-2 text-stone-600">#{variantIndex + 1}</span>
+                                                    {variant.main ? 'Wynik rekomendowany' : `Więcej: ${variant.bonusName}`}
                                                 </span>
                                                 {variant.main ? (
                                                     <span className="text-purple-300 text-[10px] uppercase tracking-wide">
@@ -1084,16 +1097,31 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                                                     </span>
                                                 ) : (
                                                     <div className="text-right shrink-0">
-                                                        <div className="text-emerald-400 font-bold tabular-nums">
+                                                        <div className="text-[9px] uppercase tracking-wider text-stone-600">Zmiana głównego bonusu</div>
+                                                        <div className="mt-0.5 text-emerald-400 font-bold tabular-nums">
                                                             {Number(variant.finalValue).toLocaleString('pl-PL', { maximumFractionDigits: 2 })}% → {Number(variant.variantValue).toLocaleString('pl-PL', { maximumFractionDigits: 2 })}%
-                                                        </div>
-                                                        <div className="mt-1 text-[9px] text-stone-500 uppercase tracking-wide tabular-nums">
-                                                            +{Number(variant.gain).toLocaleString('pl-PL', { maximumFractionDigits: 2 })} · strata {Number(variant.totalLoss).toLocaleString('pl-PL', { maximumFractionDigits: 2 })} · zmian {variant.changeCount} · ocena {Number(variant.score).toLocaleString('pl-PL', { maximumFractionDigits: 2 })}
                                                         </div>
                                                     </div>
                                                 )}
                                             </div>
+                                            {!variant.main && (
+                                                <dl className="mt-3 grid grid-cols-3 gap-1.5 text-center">
+                                                    <div className="border border-emerald-950/80 bg-emerald-950/20 p-1.5">
+                                                        <dt className="text-[8px] uppercase tracking-wider text-stone-600">Zysk</dt>
+                                                        <dd className="mt-0.5 text-[11px] font-bold text-emerald-400 tabular-nums">+{Number(variant.gain).toLocaleString('pl-PL', { maximumFractionDigits: 2 })}</dd>
+                                                    </div>
+                                                    <div className="border border-amber-950/80 bg-amber-950/20 p-1.5">
+                                                        <dt className="text-[8px] uppercase tracking-wider text-stone-600">Łączna strata</dt>
+                                                        <dd className="mt-0.5 text-[11px] font-bold text-amber-300 tabular-nums">−{Number(variant.totalLoss).toLocaleString('pl-PL', { maximumFractionDigits: 2 })}</dd>
+                                                    </div>
+                                                    <div className="border border-stone-800 bg-black/20 p-1.5">
+                                                        <dt className="text-[8px] uppercase tracking-wider text-stone-600">Zmiany</dt>
+                                                        <dd className="mt-0.5 text-[11px] font-bold text-stone-300 tabular-nums">{variant.changeCount}</dd>
+                                                    </div>
+                                                </dl>
+                                            )}
                                             {!variant.main && <ul className="mt-2 space-y-1">
+                                                <li className="pb-1 text-[9px] uppercase tracking-wider text-stone-600">Zmiany w przedmiotach</li>
                                                 {variant.changes.map((change, changeIndex) => {
                                                     const slotLabel = SLOTS.find(slot => slot.key === change.slotKey)?.label || change.slotKey;
                                                     const formatPlacement = (modifier, level) => modifier
@@ -1111,7 +1139,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                                             {!variant.main && variant.statChanges?.length > 0 && (
                                                 <div className="mt-2 pt-2 border-t border-stone-800/80 space-y-1">
                                                     <div className="text-[9px] text-stone-600 uppercase tracking-wider">
-                                                        Zmiany statystyk
+                                                        Wartości zweryfikowane przez kalkulator
                                                     </div>
                                                     {variant.statChanges.map(change => {
                                                         const before = numericStatValue(change.finalValue);
