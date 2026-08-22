@@ -780,7 +780,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
 
                                         {isExpanded && <div className="flex flex-col gap-3 p-2 relative z-10">
                                             {potential && (
-                                                <div className="flex items-center justify-between gap-3 border border-sky-950/80 bg-sky-950/20 px-2 py-1.5">
+                                                <div className="flex flex-wrap items-center justify-between gap-2 border border-sky-950/80 bg-sky-950/20 px-2 py-1.5">
                                                     <div>
                                                         <div className="text-[9px] uppercase tracking-wider text-sky-500">
                                                             Szacowany potencjalny zakres
@@ -791,6 +791,13 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                                                     </div>
                                                     <span className="shrink-0 text-xs font-bold text-sky-300 tabular-nums">
                                                         {formatPotentialValue(potential.potentialMinimum)}–{formatPotentialValue(potential.potentialMaximum)}
+                                                    </span>
+                                                    <span className={`shrink-0 border px-1.5 py-1 text-[9px] uppercase tracking-wider ${potential.penaltyPercent > 0
+                                                        ? 'border-amber-900/80 bg-amber-950/30 text-amber-300'
+                                                        : 'border-emerald-900/80 bg-emerald-950/30 text-emerald-400'}`}>
+                                                        {potential.penaltyPercent > 0
+                                                            ? `Kara −${potential.penaltyPercent.toFixed(0)}%`
+                                                            : 'Bez kary'}
                                                     </span>
                                                 </div>
                                             )}
