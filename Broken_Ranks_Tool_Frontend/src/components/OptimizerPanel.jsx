@@ -515,10 +515,10 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
 
     return (
         <div className="bg-gradient-to-b from-stone-900 to-black p-3 sm:p-5 border-2 border-stone-800 shadow-[0_0_30px_rgba(0,0,0,0.9)] flex flex-col h-full relative">
-            <nav className="xl:hidden grid grid-cols-4 gap-1 mb-3 shrink-0" aria-label="Sekcje optymalizatora">
+            <nav className="lg:hidden grid grid-cols-4 gap-1 mb-3 shrink-0" aria-label="Sekcje optymalizatora">
                 {[
                     ['slots', 'Przedmioty'], ['bonuses', 'Bonusy'],
-                    ['priorities', `Priorytety (${prioritizedBonuses.length})`], ['result', 'Wynik']
+                    ['priorities', `Priorytety (${prioritizedBonuses.length})`], ['result', 'Raport']
                 ].map(([key, label]) => (
                     <button key={key} type="button" onClick={() => setActiveMobileColumn(key)}
                             className={`px-2 py-2 border rounded-sm text-[9px] sm:text-[10px] uppercase tracking-wide transition-colors ${activeMobileColumn === key
@@ -528,9 +528,9 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                     </button>
                 ))}
             </nav>
-            <div className="grid grid-cols-1 xl:grid-cols-4 gap-4 xl:gap-8 h-[calc(180vh-26.4rem)] min-h-[936px] max-h-[1620px]">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 min-h-[936px] lg:min-h-0">
 
-                <div className={`optimizer-lock-column ${activeMobileColumn === 'slots' ? 'flex' : 'hidden'} xl:flex flex-col gap-2 h-full min-h-0 xl:border-r border-stone-800/60 xl:pr-6`}>
+                <div className={`optimizer-lock-column ${activeMobileColumn === 'slots' ? 'flex' : 'hidden'} lg:flex flex-col gap-2 h-[calc(180vh-26.4rem)] min-h-[936px] max-h-[1620px] lg:col-span-3 lg:h-[min(76vh,920px)] lg:min-h-[720px] lg:border-r border-stone-800/60 lg:pr-5`}>
                     <div className="flex items-center justify-center border-b border-stone-700 pb-2 mb-2 min-h-[34px] shrink-0">
                         <h4 className="text-stone-300 font-serif font-bold uppercase tracking-widest text-xs">
                             Zablokowane Sloty
@@ -613,7 +613,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                     </div>
                 </div>
 
-                <div className={`optimizer-bonus-column ${activeMobileColumn === 'bonuses' ? 'flex' : 'hidden'} xl:flex flex-col gap-2 h-full min-h-0 xl:border-r border-stone-800/60 xl:pr-6`}>
+                <div className={`optimizer-bonus-column ${activeMobileColumn === 'bonuses' ? 'flex' : 'hidden'} lg:flex flex-col gap-2 h-[calc(180vh-26.4rem)] min-h-[936px] max-h-[1620px] lg:col-span-3 lg:h-[min(76vh,920px)] lg:min-h-[720px] lg:border-r border-stone-800/60 lg:pr-5`}>
                     <div className="flex items-center justify-center border-b border-stone-700 pb-2 mb-2 min-h-[34px] shrink-0">
                         <h4 className="text-stone-300 font-serif font-bold uppercase tracking-widest text-xs">
                             Dostępne Bonusy
@@ -669,7 +669,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                     </div>
                 </div>
 
-                <div className={`optimizer-priority-column ${activeMobileColumn === 'priorities' ? 'flex' : 'hidden'} xl:flex flex-col gap-2 h-full min-h-0`}>
+                <div className={`optimizer-priority-column ${activeMobileColumn === 'priorities' ? 'flex' : 'hidden'} lg:flex flex-col gap-2 h-[calc(180vh-26.4rem)] min-h-[936px] max-h-[1620px] lg:col-span-6 lg:h-[min(76vh,920px)] lg:min-h-[720px]`}>
                     <div className="flex items-center justify-between border-b border-stone-700 pb-2 mb-2 min-h-[34px] shrink-0">
                         <h4 className="text-stone-300 font-serif font-bold uppercase tracking-widest text-xs">
                             Priorytety i Limity
@@ -879,14 +879,17 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                     </div>
                 </div>
 
-                <aside className={`optimizer-info-column ${activeMobileColumn === 'result' ? 'flex' : 'hidden'} xl:flex flex-col gap-4 h-full min-h-0 xl:border-l border-stone-800/60 xl:pl-6`}>
-                    <div className="flex items-center justify-center border-b border-stone-700 pb-2 min-h-[34px] shrink-0">
+                <aside className={`optimizer-info-column ${activeMobileColumn === 'result' ? 'flex' : 'hidden'} lg:flex flex-col gap-4 h-[calc(180vh-26.4rem)] min-h-[936px] max-h-[1620px] lg:col-span-12 lg:h-auto lg:min-h-0 lg:max-h-none lg:border-t border-stone-800/80 lg:pt-5`}>
+                    <div className="flex items-center justify-between border-b border-stone-700 pb-2 min-h-[34px] shrink-0">
                         <h4 className="text-stone-300 font-serif font-bold uppercase tracking-widest text-xs">
-                            Informacje z optymalizacji
+                            Raport optymalizacji
                         </h4>
+                        <span className="hidden lg:inline text-[10px] text-stone-600 uppercase tracking-widest">
+                            Cele, wynik i warianty
+                        </span>
                     </div>
 
-                    <div className="overflow-y-auto pr-2 flex-1 min-h-0 space-y-4 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-stone-800 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-purple-800/70">
+                    <div className="overflow-y-auto pr-2 flex-1 min-h-0 space-y-4 lg:overflow-visible lg:pr-0 lg:grid lg:grid-cols-3 lg:items-start lg:gap-4 lg:space-y-0 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-stone-800 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-purple-800/70">
                         <section className="bg-black/40 border border-stone-800 rounded-sm p-3">
                             <h5 className="text-[10px] text-stone-400 uppercase tracking-widest font-semibold mb-2">
                                 Status
