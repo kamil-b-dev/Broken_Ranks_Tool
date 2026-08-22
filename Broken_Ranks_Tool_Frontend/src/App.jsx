@@ -19,7 +19,8 @@ function App() {
     const [builderTab, setBuilderTab] = useState("database");
     const [optimizerSettings, setOptimizerSettings] = useState({
         forceMaximizationByDrifBonus: false,
-        generateVariants: false
+        generateVariants: false,
+        maxVariantLossPercent: 5
     });
 
     const {
@@ -221,7 +222,10 @@ function App() {
                     settings={optimizerSettings}
                     onChange={setOptimizerSettings}
                 />
-                <OptimizerPanel optimizerSettings={optimizerSettings} />
+                <OptimizerPanel
+                    optimizerSettings={optimizerSettings}
+                    onOptimizerSettingsChange={setOptimizerSettings}
+                />
             </div>
 
             <div className="w-full shrink-0">

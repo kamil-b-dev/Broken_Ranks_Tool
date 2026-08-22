@@ -142,7 +142,7 @@ final class OptimizationLargeNeighborhoodSearch {
                         || !stateEvaluator.minimumsSatisfied(trial, context)) continue;
                 candidates.add(trial);
                 if (displaced != null
-                        && isForcedCap(displaced.drif().getBonusType(), context.request())) {
+                        && isForcedTarget(displaced.drif().getBonusType(), context.request())) {
                     addForcedCapRepairs(trial, displaced.drif().getBonusType(),
                             context, control, candidates);
                 }
@@ -170,7 +170,7 @@ final class OptimizationLargeNeighborhoodSearch {
                  position < Math.min(slot.maxDrifs(), placements.size()); position++) {
                 Placement removed = placements.get(position);
                 if (!isMovable(removed, slot, position)
-                        || (removed != null && (isForcedCap(
+                        || (removed != null && (isForcedTarget(
                         removed.drif().getBonusType(), context.request())
                         || isMaximized(removed.drif().getBonusType(), context.request())))) continue;
 
@@ -208,7 +208,7 @@ final class OptimizationLargeNeighborhoodSearch {
                  position < Math.min(slot.maxDrifs(), placements.size()); position++) {
                 Placement victim = placements.get(position);
                 if (!isMovable(victim, slot, position)
-                        || (victim != null && (isForcedCap(
+                        || (victim != null && (isForcedTarget(
                         victim.drif().getBonusType(), context.request())
                         || isMaximized(victim.drif().getBonusType(), context.request())))) continue;
                 for (Integer level : fittingLevels(
@@ -408,7 +408,7 @@ final class OptimizationLargeNeighborhoodSearch {
     private double actualUtilityValue(BuildState state, DRIF_BONUS_TYPE type,
                                       OptimizationContext context) {
         double value = resultAssembler.actualValue(state, type, context);
-        if (!isForcedCap(type, context.request()) && !isMaximized(type, context.request())
+        if (!isForcedTarget(type, context.request()) && !isMaximized(type, context.request())
                 && type.getMaxCap() != null && type.getMaxCap() < 0) {
             return -value;
         }

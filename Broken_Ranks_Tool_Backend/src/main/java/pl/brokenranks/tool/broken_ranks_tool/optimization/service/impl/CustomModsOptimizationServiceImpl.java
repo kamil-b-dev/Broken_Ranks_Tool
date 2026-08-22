@@ -133,7 +133,8 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
         List<String> forcedCapWarnings = resultAssembler.forcedCapWarnings(greedyState, context);
         List<OptimizationVariantGenerator.GeneratedVariant> variants =
                 request.isGenerateVariants()
-                        ? variantGenerator.generate(greedyState, context)
+                        ? variantGenerator.generate(
+                                greedyState, context, neighborhoodResult.evaluatedStates())
                         : List.of();
         OptimizationSummary summary = resultAssembler.createSummary(
                 greedyState, context, elapsedSeconds(startTime), forcedCapWarnings,
@@ -506,7 +507,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
     /** Reserves capacity for modifiers whose game-rule cap must be reached. */
     private void satisfyForcedCaps(BuildState state, OptimizationContext context) {
         List<DRIF_BONUS_TYPE> targets = context.request().getPriorities().keySet().stream()
-                .filter(type -> isForcedCap(type, context.request()))
+                .filter(type -> isForcedTarget(type, context.request()))
                 .filter(type -> targetFor(type, context.request()) != null)
                 .sorted(Comparator
                         .comparing((DRIF_BONUS_TYPE type) -> context.request().getPriorities().getOrDefault(type, 0), Comparator.reverseOrder())
@@ -565,7 +566,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
     /** Repairs cap rounding using the real calculator without changing locks or minimums. */
     private BuildState repairForcedCaps(BuildState state, OptimizationContext context) {
         List<DRIF_BONUS_TYPE> caps = context.request().getPriorities().keySet().stream()
-                .filter(type -> isForcedCap(type, context.request()))
+                .filter(type -> isForcedTarget(type, context.request()))
                 .sorted(Comparator.comparing(Enum::name))
                 .toList();
 
@@ -788,7 +789,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
     private BuildState consolidateForcedCaps(BuildState state, OptimizationContext context) {
         BuildState best = state;
         for (DRIF_BONUS_TYPE type : context.request().getPriorities().keySet().stream()
-                .filter(candidate -> isForcedCap(candidate, context.request()))
+                .filter(candidate -> isForcedTarget(candidate, context.request()))
                 .sorted(Comparator.comparing(Enum::name)).toList()) {
             double target = targetFor(type, context.request());
             for (int first = 0; first < context.slots().size(); first++) {

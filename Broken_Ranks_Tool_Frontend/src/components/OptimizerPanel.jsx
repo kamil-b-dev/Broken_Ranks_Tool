@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useEquipment } from '../context/EquipmentContext';
 import { SLOTS } from '../constants/equipment';
+import { ROMAN_TO_INT, SIZE_INDEX } from '../utils/GearRules';
+import { getDrifMaxLvl } from '../utils/formatters';
 
 const OPTIMIZER_CONFIG_FORMAT = 'broken-ranks-tool-optimizer-config';
 const OPTIMIZER_CONFIG_VERSION = 1;
 const DRIF_CATEGORY_ORDER = ['OFFENSIVE', 'DEFENSIVE', 'UTILITY'];
+const ELEMENTAL_DRIF_TYPES = ['DAMAGE_ENERGY', 'DAMAGE_FIRE', 'DAMAGE_FROST'];
 const DRIF_CATEGORY_LABELS = {
     OFFENSIVE: 'Ofensywne',
     DEFENSIVE: 'Defensywne',
@@ -84,11 +87,49 @@ const DRIF_CATEGORY_TEXT_CLASSES = {
     UTILITY: 'text-emerald-400 group-hover:text-emerald-300'
 };
 
+const ITEM_STAR_DRIF_BONUS = { 7: 0.03, 8: 0.08, 9: 0.15 };
+
+const parsePercentage = value => {
+    const parsed = Number.parseFloat(String(value ?? '0').replace('%', '').replace(',', '.').trim());
+    return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const calculateDrifValue = (drif, level) => {
+    const baseValue = parsePercentage(drif?.baseValue);
+    const increment = parsePercentage(drif?.increment);
+    let value = baseValue;
+    for (let currentLevel = 2; currentLevel <= level; currentLevel += 1) {
+        value += currentLevel >= 19 ? increment * 2 : increment;
+    }
+    return value;
+};
+
+const maxDrifSizeIndexForTier = tier => {
+    if (tier >= 10) return SIZE_INDEX.ARCYDRIF;
+    if (tier >= 7) return SIZE_INDEX.MAGNIDRIF;
+    if (tier >= 4) return SIZE_INDEX.BIDRIF;
+    return SIZE_INDEX.SUBDRIF;
+};
+
+const highestLevelForCapacity = (drif, capacity, basePower) => {
+    const affordableMultiplier = Math.max(1, Math.min(4,
+        Math.floor(capacity / Math.max(1, basePower))));
+    const sizeMaxLevel = getDrifMaxLvl(drif?.size);
+    if (affordableMultiplier === 1) return Math.min(6, sizeMaxLevel);
+    if (affordableMultiplier === 2) return Math.min(11, sizeMaxLevel);
+    if (affordableMultiplier === 3) return Math.min(16, sizeMaxLevel);
+    return sizeMaxLevel;
+};
+
+const formatPotentialValue = value => `${Number(value).toLocaleString('pl-PL', {
+    maximumFractionDigits: 2
+})}%`;
+
 /**
  * Provides drif priorities, target limits, and equipment locking for optimization.
  * @returns {JSX.Element} The optimizer panel.
  */
-const OptimizerPanel = ({ optimizerSettings }) => {
+const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
     const {
         gameRules, drifCategories, runDrifOptimization, requestData, data,
         lockedSlots, lockedDrifs, toggleSlotLock, toggleDrifLock, applyOptimizationSetup
@@ -140,6 +181,7 @@ const OptimizerPanel = ({ optimizerSettings }) => {
     const currentModDetails = useMemo(() => {
         const counts = {};
         const drifsById = new Map(data.drifs.map(drif => [String(drif.id), drif]));
+        const itemsById = new Map(data.items.map(item => [String(item.id), item]));
 
         Object.values(requestData.slots || {}).forEach(slot => {
             const typesInSlot = new Set();
@@ -155,17 +197,77 @@ const OptimizerPanel = ({ optimizerSettings }) => {
         return prioritizedBonuses.map(bonus => {
             const count = counts[bonus.key] || 0;
             const multiplier = getDrifPenaltyMultiplier(count, gameRules?.drifPenaltyMultipliers);
+            const basePower = Number(gameRules?.drifBasePowers?.[bonus.key]) || 0;
+            const isElemental = ELEMENTAL_DRIF_TYPES.includes(bonus.key);
+            const matchingDrifs = data.drifs.filter(drif => drif.bonusType === bonus.key);
+            const eligiblePlacements = Object.entries(requestData.slots || {}).flatMap(([slotKey, slot]) => {
+                const item = itemsById.get(String(slot?.itemId));
+                if (!item || ['EPIC', 'SET'].includes(String(item.rarity).toUpperCase())
+                        || (isElemental && slotKey !== 'weapon')) return [];
+
+                const tier = ROMAN_TO_INT[item.tier] || 0;
+                const maxSizeIndex = maxDrifSizeIndexForTier(tier);
+                const drif = matchingDrifs
+                    .filter(candidate => (SIZE_INDEX[String(candidate.size).toUpperCase()] ?? -1) <= maxSizeIndex)
+                    .sort((left, right) => getDrifMaxLvl(right.size) - getDrifMaxLvl(left.size))[0];
+                if (!drif) return [];
+
+                const stars = Math.max(1, Math.min(9, Number(slot.itemStars) || 1));
+                const capacityBonus = stars === 7 ? 1 : stars === 8 ? 2 : stars === 9 ? 4 : 0;
+                const capacity = (Number(item.capacity) || 0) + capacityBonus;
+                if (capacity <= 0 || capacity < basePower) return [];
+
+                const itemDrifBonus = (Number(item.stats?.['Bonus drify']) || 0) / 100
+                    + (ITEM_STAR_DRIF_BONUS[stars] || 0);
+                return [{
+                    itemDrifBonus,
+                    minimumValue: calculateDrifValue(drif, Math.min(6, getDrifMaxLvl(drif.size)))
+                        * (1 + itemDrifBonus),
+                    maximumValue: calculateDrifValue(
+                        drif, highestLevelForCapacity(drif, capacity, basePower)
+                    ) * (1 + itemDrifBonus)
+                }];
+            });
+
+            const requestedMinimum = Math.max(0, Math.min(12, Number(bonus.min) || 0));
+            const requestedMaximum = Math.max(requestedMinimum,
+                Math.min(12, Number(bonus.max) || 0));
+            const minimumPlacements = [...eligiblePlacements]
+                .sort((left, right) => left.itemDrifBonus - right.itemDrifBonus)
+                .slice(0, requestedMinimum);
+            const maximumPlacements = [...eligiblePlacements]
+                .sort((left, right) => right.itemDrifBonus - left.itemDrifBonus)
+                .slice(0, requestedMaximum);
+            const minimumPenalty = getDrifPenaltyMultiplier(
+                minimumPlacements.length, gameRules?.drifPenaltyMultipliers);
+            const maximumPenalty = getDrifPenaltyMultiplier(
+                maximumPlacements.length, gameRules?.drifPenaltyMultipliers);
             return {
                 ...bonus,
                 count,
-                penaltyPercent: Math.max(0, (1 - multiplier) * 100)
+                penaltyPercent: Math.max(0, (1 - multiplier) * 100),
+                potentialMinimum: minimumPlacements.reduce(
+                    (sum, placement) => sum + placement.minimumValue, 0) * minimumPenalty,
+                potentialMaximum: maximumPlacements.reduce(
+                    (sum, placement) => sum + placement.maximumValue, 0) * maximumPenalty,
+                potentialMinimumCount: minimumPlacements.length,
+                potentialMaximumCount: maximumPlacements.length
             };
         });
-    }, [data.drifs, gameRules?.drifPenaltyMultipliers, prioritizedBonuses, requestData.slots]);
+    }, [data.drifs, data.items, gameRules, prioritizedBonuses, requestData.slots]);
 
     /** Moves a selected bonus into the priority list. */
     const handleSelectBonus = (bonus) => {
-        setPrioritizedBonuses(prev => [...prev, { ...bonus, weight: 15, min: 0, max: 12, forceCap: false, maximize: false }]);
+        setPrioritizedBonuses(prev => [...prev, {
+            ...bonus,
+            weight: 15,
+            min: 0,
+            max: 12,
+            forceCap: false,
+            forcePercentage: false,
+            forcedPercentage: '',
+            maximize: false
+        }]);
         setAvailableBonuses(prev => prev.filter(b => b.key !== bonus.key));
         setExpandedPriorities(new Set([bonus.key]));
         setActiveMobileColumn('priorities');
@@ -199,6 +301,12 @@ const OptimizerPanel = ({ optimizerSettings }) => {
     const handleUpdateBonus = (key, field, value) => {
         setPrioritizedBonuses(prev => prev.map(b => {
             if (b.key === key) {
+                if (field === 'forceCap' && value) {
+                    return { ...b, forceCap: true, forcePercentage: false };
+                }
+                if (field === 'forcePercentage' && value) {
+                    return { ...b, forcePercentage: true, forceCap: false };
+                }
                 return { ...b, [field]: value };
             }
             return b;
@@ -225,12 +333,20 @@ const OptimizerPanel = ({ optimizerSettings }) => {
             format: OPTIMIZER_CONFIG_FORMAT,
             version: OPTIMIZER_CONFIG_VERSION,
             exportedAt: new Date().toISOString(),
-            priorities: prioritizedBonuses.map(({ key, weight, min, max, forceCap, maximize }) => ({
+            settings: {
+                maxVariantLossPercent: Math.max(0, Math.min(100,
+                    Number(optimizerSettings?.maxVariantLossPercent) || 0))
+            },
+            priorities: prioritizedBonuses.map(({
+                key, weight, min, max, forceCap, forcePercentage, forcedPercentage, maximize
+            }) => ({
                 key,
                 weight: Number(weight),
                 min: Number(min),
                 max: Number(max),
                 forceCap: Boolean(forceCap),
+                forcePercentage: Boolean(forcePercentage),
+                forcedPercentage: forcePercentage ? Number(forcedPercentage) : null,
                 maximize: Boolean(maximize)
             }))
         };
@@ -279,6 +395,9 @@ const OptimizerPanel = ({ optimizerSettings }) => {
                 const parsedMax = Number(entry.max);
                 const min = Math.max(0, Math.min(12, Number.isFinite(parsedMin) ? Math.trunc(parsedMin) : 0));
                 const max = Math.max(min, Math.min(12, Number.isFinite(parsedMax) ? Math.trunc(parsedMax) : 12));
+                const parsedForcedPercentage = Number(entry.forcedPercentage);
+                const forcePercentage = !entry.forceCap && Boolean(entry.forcePercentage)
+                    && Number.isFinite(parsedForcedPercentage) && parsedForcedPercentage >= 0;
                 return [{
                     key: entry.key,
                     value: bonus.value,
@@ -287,6 +406,8 @@ const OptimizerPanel = ({ optimizerSettings }) => {
                     min,
                     max,
                     forceCap: Boolean(entry.forceCap),
+                    forcePercentage,
+                    forcedPercentage: forcePercentage ? parsedForcedPercentage : '',
                     maximize: Boolean(entry.maximize ?? entry.critical)
                 }];
             });
@@ -300,6 +421,13 @@ const OptimizerPanel = ({ optimizerSettings }) => {
             setAvailableBonuses(sortBonusesByCategory([...knownBonuses.entries()]
                 .filter(([key]) => !usedKeys.has(key))
                 .map(([, bonus]) => bonus)));
+            const importedMaxLoss = Number(payload.settings?.maxVariantLossPercent);
+            if (Number.isFinite(importedMaxLoss)) {
+                onOptimizerSettingsChange(previous => ({
+                    ...previous,
+                    maxVariantLossPercent: Math.max(0, Math.min(100, Math.trunc(importedMaxLoss)))
+                }));
+            }
             alert(`Wczytano konfigurację: ${imported.length} priorytetów.`);
         } catch (error) {
             alert(`Nie udało się wczytać konfiguracji: ${error.message || 'niepoprawny plik JSON.'}`);
@@ -309,6 +437,14 @@ const OptimizerPanel = ({ optimizerSettings }) => {
     /** Builds the request and starts the backend optimization process. */
     const handleOptimizeClick = async () => {
         if (prioritizedBonuses.length === 0) return;
+        const invalidPercentageTarget = prioritizedBonuses.find(bonus =>
+            bonus.forcePercentage && (bonus.forcedPercentage === ''
+                || !Number.isFinite(Number(bonus.forcedPercentage))
+                || Number(bonus.forcedPercentage) < 0));
+        if (invalidPercentageTarget) {
+            alert(`Podaj poprawny, nieujemny procent dla: ${invalidPercentageTarget.value}.`);
+            return;
+        }
         setIsOptimizing(true);
         setOptimizationElapsedSeconds(0);
         const startedAt = performance.now();
@@ -317,6 +453,7 @@ const OptimizerPanel = ({ optimizerSettings }) => {
         const priorities = {};
         const targetQuantities = {};
         const forceCapBonuses = [];
+        const forcedPercentageTargets = {};
         const maximizeBonuses = [];
 
         prioritizedBonuses.forEach(b => {
@@ -336,6 +473,11 @@ const OptimizerPanel = ({ optimizerSettings }) => {
                 forceCapBonuses.push(b.key);
             }
 
+            const forcedPercentage = Number(b.forcedPercentage);
+            if (b.forcePercentage && Number.isFinite(forcedPercentage) && forcedPercentage >= 0) {
+                forcedPercentageTargets[b.key] = forcedPercentage;
+            }
+
             if (b.maximize) {
                 maximizeBonuses.push(b.key);
             }
@@ -343,10 +485,13 @@ const OptimizerPanel = ({ optimizerSettings }) => {
 
         try {
             const result = await runDrifOptimization({
-                priorities, targetQuantities, forceCapBonuses, maximizeBonuses,
+                priorities, targetQuantities, forceCapBonuses, forcedPercentageTargets,
+                maximizeBonuses,
                 forceMaximizationByDrifBonus:
                     Boolean(optimizerSettings?.forceMaximizationByDrifBonus),
-                generateVariants: Boolean(optimizerSettings?.generateVariants)
+                generateVariants: Boolean(optimizerSettings?.generateVariants),
+                maxVariantLossPercent: Math.max(0, Math.min(100,
+                    Number(optimizerSettings?.maxVariantLossPercent) || 0))
             });
             setOptimizationStatus(result);
             setActiveVariantIndex(0);
@@ -604,7 +749,9 @@ const OptimizerPanel = ({ optimizerSettings }) => {
                                                 {!isExpanded && (
                                                     <span className="ml-auto text-[9px] text-stone-500 uppercase tracking-wide whitespace-nowrap">
                                                         waga {bonus.weight} · {bonus.min}–{bonus.max}
-                                                        {bonus.forceCap ? ' · cap' : ''}{bonus.maximize ? ' · max' : ''}
+                                                        {bonus.forceCap ? ' · cap' : ''}
+                                                        {bonus.forcePercentage ? ` · ${bonus.forcedPercentage}%` : ''}
+                                                        {bonus.maximize ? ' · max' : ''}
                                                     </span>
                                                 )}
                                                 <svg className={`w-3 h-3 text-stone-500 shrink-0 transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -673,6 +820,36 @@ const OptimizerPanel = ({ optimizerSettings }) => {
                                                     ) : (
                                                         <span className="text-[9px] text-stone-600 uppercase tracking-widest italic">Brak limitu</span>
                                                     )}
+                                                </div>
+
+                                                <div className="flex items-center justify-between gap-3 pt-2 border-t border-stone-800/50">
+                                                    <span className="text-[10px] text-stone-500 uppercase tracking-wider whitespace-nowrap">
+                                                        Wymuś konkretny %:
+                                                    </span>
+                                                    <div className="flex items-center gap-2">
+                                                        <div className={`flex items-center gap-1 bg-stone-950 border rounded-sm px-1.5 py-0.5 transition-colors ${bonus.forcePercentage ? 'border-purple-600' : 'border-stone-700'}`}>
+                                                            <input
+                                                                type="number"
+                                                                min="0"
+                                                                step="0.1"
+                                                                value={bonus.forcedPercentage}
+                                                                disabled={!bonus.forcePercentage}
+                                                                onChange={(e) => handleUpdateBonus(bonus.key, 'forcedPercentage', e.target.value)}
+                                                                aria-label={`Wymuszony procent dla ${bonus.value}`}
+                                                                className="w-14 bg-transparent text-stone-200 text-xs outline-none text-center font-bold disabled:text-stone-600 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                            />
+                                                            <span className="text-[10px] text-stone-500">%</span>
+                                                        </div>
+                                                        <button
+                                                            onClick={() => handleUpdateBonus(bonus.key, 'forcePercentage', !bonus.forcePercentage)}
+                                                            aria-label={`Wymuś konkretny procent dla ${bonus.value}`}
+                                                            className={`w-5 h-5 flex items-center justify-center border rounded-sm transition-all ${bonus.forcePercentage ? 'bg-purple-900 border-purple-500 text-stone-200 shadow-[0_0_8px_rgba(168,85,247,0.5)]' : 'bg-stone-950 border-stone-700 text-transparent hover:border-purple-800'}`}
+                                                        >
+                                                            <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                                                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
                                                 </div>
 
                                                 <div className="flex items-center justify-between gap-3 pt-2 border-t border-stone-800/50">
@@ -821,7 +998,16 @@ const OptimizerPanel = ({ optimizerSettings }) => {
                                                 <span className={bonus.penaltyPercent > 0 ? 'text-amber-400' : 'text-emerald-500'}>
                                                     {bonus.penaltyPercent > 0
                                                         ? `Kara −${bonus.penaltyPercent.toFixed(0)}%`
-                                                        : 'Bez kary'}
+                                                    : 'Bez kary'}
+                                                </span>
+                                            </div>
+                                            <div
+                                                className="flex items-center justify-between gap-2 mt-1.5 pt-1.5 border-t border-stone-800/50 text-[10px]"
+                                                title={`Zakres dla ${bonus.potentialMinimumCount}–${bonus.potentialMaximumCount} możliwych rozmieszczeń`}
+                                            >
+                                                <span className="text-stone-600 uppercase tracking-wide">Potencjalny zakres</span>
+                                                <span className="text-sky-300 font-bold tabular-nums shrink-0">
+                                                    {formatPotentialValue(bonus.potentialMinimum)}–{formatPotentialValue(bonus.potentialMaximum)}
                                                 </span>
                                             </div>
                                         </div>
