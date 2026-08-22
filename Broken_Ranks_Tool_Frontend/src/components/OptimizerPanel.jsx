@@ -121,10 +121,6 @@ const highestLevelForCapacity = (drif, capacity, basePower) => {
     return sizeMaxLevel;
 };
 
-const formatPotentialValue = value => `${Number(value).toLocaleString('pl-PL', {
-    maximumFractionDigits: 2
-})}%`;
-
 /**
  * Provides drif priorities, target limits, and equipment locking for optimization.
  * @returns {JSX.Element} The optimizer panel.
@@ -1002,41 +998,59 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                             )}
                         </section>
 
-                        <section className="bg-black/40 border border-stone-800 rounded-sm p-3">
+                        <section className="bg-black/40 border border-stone-800 rounded-sm p-3 lg:col-span-2">
                             <h5 className="text-[10px] text-stone-400 uppercase tracking-widest font-semibold mb-3">
-                                Aktualne mody i kara
+                                Realizacja priorytetów
                             </h5>
-                            {currentModDetails.length === 0 ? (
+                            {!optimizationStatus?.goalResults?.length ? (
                                 <p className="text-xs text-stone-600 italic leading-relaxed">
-                                    Dodaj mod do priorytetów, aby zobaczyć jego aktualną liczbę i karę.
+                                    {currentModDetails.length > 0
+                                        ? `Uruchom optymalizację, aby kalkulator ocenił ${currentModDetails.length} wybranych priorytetów.`
+                                        : 'Wyniki priorytetów pojawią się po optymalizacji.'}
                                 </p>
                             ) : (
-                                <div className="space-y-2">
-                                    {currentModDetails.map(bonus => (
-                                        <div key={bonus.key} className="border-b border-stone-800/70 pb-2 last:border-0 last:pb-0">
-                                            <div className="flex items-start justify-between gap-2 text-xs">
-                                                <span className="text-stone-300 leading-tight">{bonus.value}</span>
-                                                <span className="text-purple-300 font-bold tabular-nums shrink-0">×{bonus.count}</span>
+                                <div className="grid gap-2 xl:grid-cols-2">
+                                    {optimizationStatus.goalResults.map(goal => {
+                                        const targetOk = goal.targetSatisfied !== false;
+                                        const complete = goal.calculatorValue != null
+                                            && goal.quantitySatisfied && targetOk;
+                                        const maximumLabel = goal.maximumCount >= 2147483647 ? '∞' : goal.maximumCount;
+                                        return (
+                                            <div key={goal.statKey} className="border border-stone-800/80 bg-black/20 p-2.5">
+                                                <div className="flex items-start justify-between gap-3">
+                                                    <div>
+                                                        <div className="text-xs font-semibold text-stone-300">{goal.bonusName}</div>
+                                                        <div className="mt-1 text-[9px] uppercase tracking-wider text-stone-600">
+                                                            Priorytet {goal.priority}
+                                                        </div>
+                                                    </div>
+                                                    <span className={`shrink-0 border px-2 py-1 text-[9px] uppercase tracking-wider ${complete
+                                                        ? 'border-emerald-900/80 bg-emerald-950/30 text-emerald-400'
+                                                        : 'border-amber-900/80 bg-amber-950/30 text-amber-300'}`}>
+                                                        {complete ? 'Osiągnięty' : 'Częściowo'}
+                                                    </span>
+                                                </div>
+                                                <dl className="mt-2 grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 border-t border-stone-800/70 pt-2 text-[10px]">
+                                                    <dt className="text-stone-500">Wartość z kalkulatora</dt>
+                                                    <dd className="text-right font-bold text-purple-300 tabular-nums">
+                                                        {goal.calculatorValue ?? 'Brak danych'}
+                                                    </dd>
+                                                    <dt className="text-stone-500">Liczba drifów</dt>
+                                                    <dd className={goal.quantitySatisfied ? 'text-right text-emerald-400 tabular-nums' : 'text-right text-amber-300 tabular-nums'}>
+                                                        {goal.placedCount} / {goal.minimumCount}–{maximumLabel}
+                                                    </dd>
+                                                    {goal.targetLabel && (
+                                                        <>
+                                                            <dt className="text-stone-500">Cel wartości</dt>
+                                                            <dd className={goal.targetSatisfied ? 'text-right text-emerald-400 tabular-nums' : 'text-right text-amber-300 tabular-nums'}>
+                                                                {goal.targetLabel}
+                                                            </dd>
+                                                        </>
+                                                    )}
+                                                </dl>
                                             </div>
-                                            <div className="flex justify-between mt-1 text-[10px] uppercase tracking-wide">
-                                                <span className="text-stone-600">Limit {bonus.min}–{bonus.max}</span>
-                                                <span className={bonus.penaltyPercent > 0 ? 'text-amber-400' : 'text-emerald-500'}>
-                                                    {bonus.penaltyPercent > 0
-                                                        ? `Kara −${bonus.penaltyPercent.toFixed(0)}%`
-                                                    : 'Bez kary'}
-                                                </span>
-                                            </div>
-                                            <div
-                                                className="flex items-center justify-between gap-2 mt-1.5 pt-1.5 border-t border-stone-800/50 text-[10px]"
-                                                title={`Zakres dla ${bonus.potentialMinimumCount}–${bonus.potentialMaximumCount} możliwych rozmieszczeń`}
-                                            >
-                                                <span className="text-stone-600 uppercase tracking-wide">Potencjalny zakres</span>
-                                                <span className="text-sky-300 font-bold tabular-nums shrink-0">
-                                                    {formatPotentialValue(bonus.potentialMinimum)}–{formatPotentialValue(bonus.potentialMaximum)}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             )}
                         </section>
