@@ -178,7 +178,7 @@ class CustomModsOptimizationServiceImplTests {
         OptimizationResponse response = service.optimize(request);
 
         assertFalse(response.getSummary().isSuccess());
-        assertTrue(response.getSummary().getMessage().contains("Nie udało się osiągnąć wymuszonego capa"));
+        assertTrue(response.getSummary().getMessage().contains("Nie udało się osiągnąć docelowego capa"));
         assertNotNull(response.getOptimizedSetup());
         EquipmentRequest.SlotData result = response.getOptimizedSetup().getSlots().get("helmet");
         assertEquals(List.of(criticalChance.getId()), result.getDrifIds());

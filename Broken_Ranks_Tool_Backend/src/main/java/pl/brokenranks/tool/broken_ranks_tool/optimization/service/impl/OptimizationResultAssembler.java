@@ -75,12 +75,40 @@ final class OptimizationResultAssembler {
                                        double executionTime, List<String> warnings,
                                        List<OptimizationVariantGenerator.GeneratedVariant> variants) {
         Metrics metrics = stateEvaluator.metrics(state, context);
+        Map<String, String> calculatorStats = actualStats(state, context);
         return new OptimizationSummary(warnings.isEmpty(),
                 warnings.isEmpty() ? "Optymalizacja zakończona."
-                        : "Nie udało się osiągnąć wymuszonego capa dla co najmniej jednego modyfikatora.",
+                        : "Nie udało się osiągnąć docelowego capa dla co najmniej jednego modyfikatora.",
                 metrics.counts().values().stream().mapToInt(Integer::intValue).sum(),
                 metrics.totalPower(), executionTime, warnings, itemDrifBonusMap(context),
+                goalResults(metrics, calculatorStats, context),
                 nextVariants(state, variants, context));
+    }
+
+    private List<OptimizationSummary.GoalResult> goalResults(
+            Metrics metrics, Map<String, String> calculatorStats, OptimizationContext context) {
+        return context.request().getPriorities().entrySet().stream()
+                .sorted(Map.Entry.<DRIF_BONUS_TYPE, Integer>comparingByValue().reversed()
+                        .thenComparing(entry -> entry.getKey().name()))
+                .map(entry -> {
+                    DRIF_BONUS_TYPE type = entry.getKey();
+                    var range = context.request().getTargetQuantities().get(type);
+                    int count = metrics.counts().getOrDefault(type, 0);
+                    int minimum = range != null ? range.getMin() : 0;
+                    int maximum = range != null ? range.getMax() : Integer.MAX_VALUE;
+                    String calculatorValue = calculatorStats.get(type.name());
+                    Double target = targetFor(type, context.request());
+                    Boolean targetSatisfied = target == null || calculatorValue == null ? null
+                            : directedValue(type, parseCalculatedValue(calculatorValue), context.request())
+                            >= target - TARGET_TOLERANCE;
+                    String targetLabel = target == null ? null
+                            : String.format(java.util.Locale.ROOT, "%.2f%%", target);
+                    return new OptimizationSummary.GoalResult(
+                            type.name(), type.getDescription(), entry.getValue(), count,
+                            minimum, maximum, calculatorValue, targetLabel,
+                            count >= minimum && count <= maximum, targetSatisfied);
+                })
+                .toList();
     }
 
     private List<OptimizationSummary.OptimizationVariant> nextVariants(
@@ -299,7 +327,7 @@ final class OptimizationResultAssembler {
                     context.request());
             if (value < target - TARGET_TOLERANCE) {
                 String targetLabel = isForcedCap(type, context.request())
-                        ? "wymuszonego capa" : "wymuszonego procentu";
+                        ? "docelowego capa" : "wymuszonego procentu";
                 warnings.add("Nie udało się osiągnąć " + targetLabel + " dla " + type.getDescription()
                         + " (" + String.format(java.util.Locale.ROOT, "%.2f", value) + "/"
                         + String.format(java.util.Locale.ROOT, "%.2f", target) + ").");
