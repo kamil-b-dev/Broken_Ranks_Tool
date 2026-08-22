@@ -147,7 +147,6 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
     const [prioritySortDirection, setPrioritySortDirection] = useState('desc');
     const [expandedPriorities, setExpandedPriorities] = useState(new Set());
     const [activeMobileColumn, setActiveMobileColumn] = useState('priorities');
-    const [activeWorkspacePanel, setActiveWorkspacePanel] = useState('priorities');
     const configInputRef = useRef(null);
     const optimizationStartTimeRef = useRef(null);
 
@@ -306,7 +305,10 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                     return { ...b, forceCap: true, forcePercentage: false };
                 }
                 if (field === 'forcePercentage' && value) {
-                    return { ...b, forcePercentage: true, forceCap: false };
+                    return { ...b, forcePercentage: true, forceCap: false, maximize: false };
+                }
+                if (field === 'maximize' && value) {
+                    return { ...b, maximize: true, forcePercentage: false };
                 }
                 return { ...b, [field]: value };
             }
@@ -409,7 +411,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                     forceCap: Boolean(entry.forceCap),
                     forcePercentage,
                     forcedPercentage: forcePercentage ? parsedForcedPercentage : '',
-                    maximize: Boolean(entry.maximize ?? entry.critical)
+                    maximize: !forcePercentage && Boolean(entry.maximize ?? entry.critical)
                 }];
             });
 
@@ -447,8 +449,6 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
             return;
         }
         setIsOptimizing(true);
-        setActiveWorkspacePanel('report');
-        setActiveMobileColumn('result');
         setOptimizationElapsedSeconds(0);
         const startedAt = performance.now();
         optimizationStartTimeRef.current = startedAt;
@@ -481,7 +481,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                 forcedPercentageTargets[b.key] = forcedPercentage;
             }
 
-            if (b.maximize) {
+            if (b.maximize && !b.forcePercentage) {
                 maximizeBonuses.push(b.key);
             }
         });
@@ -672,20 +672,11 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                     </div>
                 </div>
 
-                <div className={`optimizer-priority-column ${activeMobileColumn === 'priorities' ? 'flex' : 'hidden'} ${activeWorkspacePanel === 'priorities' ? 'lg:flex' : 'lg:hidden'} flex-col gap-2 h-[calc(180vh-26.4rem)] min-h-[936px] max-h-[1620px] lg:col-span-6 lg:h-[min(76vh,920px)] lg:min-h-[720px]`}>
+                <div className={`optimizer-priority-column ${activeMobileColumn === 'priorities' ? 'flex' : 'hidden'} lg:flex flex-col gap-2 h-[calc(180vh-26.4rem)] min-h-[936px] max-h-[1620px] lg:col-span-3 lg:h-[min(76vh,920px)] lg:min-h-[720px] lg:border-r border-stone-800/60 lg:pr-5`}>
                     <div className="flex items-center justify-between border-b border-stone-700 pb-2 mb-2 min-h-[34px] shrink-0">
-                        <div className="flex items-center gap-2">
-                            <h4 className="text-stone-300 font-serif font-bold uppercase tracking-widest text-xs">
-                                Priorytety i Limity
-                            </h4>
-                            <button
-                                type="button"
-                                onClick={() => setActiveWorkspacePanel('report')}
-                                className="hidden lg:inline-flex border border-purple-900/70 bg-purple-950/30 px-2 py-1 text-[9px] uppercase tracking-wider text-purple-300 transition-colors hover:border-purple-500 hover:text-purple-100"
-                            >
-                                Pokaż raport →
-                            </button>
-                        </div>
+                        <h4 className="text-stone-300 font-serif font-bold uppercase tracking-widest text-xs">
+                            Priorytety i Limity
+                        </h4>
                         <div className="flex flex-wrap items-center justify-end gap-1.5">
                             <input
                                 ref={configInputRef}
@@ -783,21 +774,11 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                                                 <div className="flex flex-wrap items-center justify-between gap-2 border border-sky-950/80 bg-sky-950/20 px-2 py-1.5">
                                                     <div>
                                                         <div className="text-[9px] uppercase tracking-wider text-sky-500">
-                                                            Szacowany potencjalny zakres
-                                                        </div>
-                                                        <div className="mt-0.5 text-[9px] text-stone-600">
-                                                            Dla {potential.potentialMinimumCount}–{potential.potentialMaximumCount} możliwych rozmieszczeń
+                                                            Potencjalny zakres
                                                         </div>
                                                     </div>
                                                     <span className="shrink-0 text-xs font-bold text-sky-300 tabular-nums">
                                                         {formatPotentialValue(potential.potentialMinimum)}–{formatPotentialValue(potential.potentialMaximum)}
-                                                    </span>
-                                                    <span className={`shrink-0 border px-1.5 py-1 text-[9px] uppercase tracking-wider ${potential.penaltyPercent > 0
-                                                        ? 'border-amber-900/80 bg-amber-950/30 text-amber-300'
-                                                        : 'border-emerald-900/80 bg-emerald-950/30 text-emerald-400'}`}>
-                                                        {potential.penaltyPercent > 0
-                                                            ? `Kara −${potential.penaltyPercent.toFixed(0)}%`
-                                                            : 'Bez kary'}
                                                     </span>
                                                 </div>
                                             )}
@@ -914,26 +895,14 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                     </div>
                 </div>
 
-                <aside className={`optimizer-info-column ${activeMobileColumn === 'result' ? 'flex' : 'hidden'} ${activeWorkspacePanel === 'report' ? 'lg:flex' : 'lg:hidden'} flex-col gap-4 h-[calc(180vh-26.4rem)] min-h-[936px] max-h-[1620px] lg:col-span-6 lg:h-[min(76vh,920px)] lg:min-h-[720px]`}>
+                <aside className={`optimizer-info-column ${activeMobileColumn === 'result' ? 'flex' : 'hidden'} lg:flex flex-col gap-4 h-[calc(180vh-26.4rem)] min-h-[936px] max-h-[1620px] lg:col-span-3 lg:h-[min(76vh,920px)] lg:min-h-[720px]`}>
                     <div className="flex items-center justify-between border-b border-stone-700 pb-2 min-h-[34px] shrink-0">
-                        <div className="flex items-center gap-2">
-                            <h4 className="text-stone-300 font-serif font-bold uppercase tracking-widest text-xs">
-                                Raport optymalizacji
-                            </h4>
-                            <button
-                                type="button"
-                                onClick={() => setActiveWorkspacePanel('priorities')}
-                                className="hidden lg:inline-flex border border-stone-700 bg-stone-950/60 px-2 py-1 text-[9px] uppercase tracking-wider text-stone-400 transition-colors hover:border-purple-700 hover:text-purple-200"
-                            >
-                                ← Priorytety i limity
-                            </button>
-                        </div>
-                        <span className="hidden lg:inline text-[9px] text-stone-600 uppercase tracking-widest">
-                            Stan zachowany
-                        </span>
+                        <h4 className="text-stone-300 font-serif font-bold uppercase tracking-widest text-xs">
+                            Raport optymalizacji
+                        </h4>
                     </div>
 
-                    <div className="overflow-y-auto pr-2 flex-1 min-h-0 space-y-4 lg:grid lg:grid-cols-2 lg:items-start lg:gap-4 lg:space-y-0 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-stone-800 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-purple-800/70">
+                    <div className="overflow-y-auto pr-2 flex-1 min-h-0 space-y-4 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-stone-800 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-purple-800/70">
                         <section className="bg-black/40 border border-stone-800 rounded-sm p-3">
                             <h5 className="text-[10px] text-stone-400 uppercase tracking-widest font-semibold mb-2">
                                 Status
@@ -1038,9 +1007,24 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                             ) : (
                                 <div className="grid gap-2 xl:grid-cols-2">
                                     {optimizationStatus.goalResults.map(goal => {
-                                        const targetOk = goal.targetSatisfied !== false;
-                                        const complete = goal.calculatorValue != null
-                                            && goal.quantitySatisfied && targetOk;
+                                        const current = currentModDetails.find(detail => detail.key === goal.statKey);
+                                        const activeVariant = optimizationStatus.nextVariants?.[activeVariantIndex];
+                                        const activeStatChange = activeVariant?.statChanges?.find(
+                                            change => change.statKey === goal.statKey
+                                        );
+                                        const calculatorValue = activeStatChange?.variantValue ?? goal.calculatorValue;
+                                        const displayedCount = current?.count ?? goal.placedCount;
+                                        const quantitySatisfied = displayedCount >= goal.minimumCount
+                                            && displayedCount <= goal.maximumCount;
+                                        const targetValue = numericStatValue(goal.targetLabel);
+                                        const calculatedValue = numericStatValue(calculatorValue);
+                                        const inverseDirection = Number(gameRules?.drifMaxCaps?.[goal.statKey]) < 0;
+                                        const targetSatisfied = !goal.targetLabel || (inverseDirection
+                                            ? -calculatedValue >= targetValue
+                                            : calculatedValue >= targetValue);
+                                        const targetOk = targetSatisfied !== false;
+                                        const complete = calculatorValue != null
+                                            && quantitySatisfied && targetOk;
                                         const maximumLabel = goal.maximumCount >= 2147483647 ? '∞' : goal.maximumCount;
                                         return (
                                             <div key={goal.statKey} className="border border-stone-800/80 bg-black/20 p-2.5">
@@ -1058,18 +1042,20 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                                                     </span>
                                                 </div>
                                                 <dl className="mt-2 grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 border-t border-stone-800/70 pt-2 text-[10px]">
-                                                    <dt className="text-stone-500">Wartość z kalkulatora</dt>
-                                                    <dd className="text-right font-bold text-purple-300 tabular-nums">
-                                                        {goal.calculatorValue ?? 'Brak danych'}
-                                                    </dd>
                                                     <dt className="text-stone-500">Liczba drifów</dt>
-                                                    <dd className={goal.quantitySatisfied ? 'text-right text-emerald-400 tabular-nums' : 'text-right text-amber-300 tabular-nums'}>
-                                                        {goal.placedCount} / {goal.minimumCount}–{maximumLabel}
+                                                    <dd className={quantitySatisfied ? 'text-right text-emerald-400 tabular-nums' : 'text-right text-amber-300 tabular-nums'}>
+                                                        {displayedCount} / {goal.minimumCount}–{maximumLabel}
+                                                    </dd>
+                                                    <dt className="text-stone-500">Kara za liczbę modów</dt>
+                                                    <dd className={current?.penaltyPercent > 0 ? 'text-right text-amber-300 tabular-nums' : 'text-right text-emerald-400 tabular-nums'}>
+                                                        {current?.penaltyPercent > 0
+                                                            ? `−${current.penaltyPercent.toFixed(0)}%`
+                                                            : 'Bez kary'}
                                                     </dd>
                                                     {goal.targetLabel && (
                                                         <>
                                                             <dt className="text-stone-500">Cel wartości</dt>
-                                                            <dd className={goal.targetSatisfied ? 'text-right text-emerald-400 tabular-nums' : 'text-right text-amber-300 tabular-nums'}>
+                                                            <dd className={targetSatisfied ? 'text-right text-emerald-400 tabular-nums' : 'text-right text-amber-300 tabular-nums'}>
                                                                 {goal.targetLabel}
                                                             </dd>
                                                         </>
@@ -1083,21 +1069,9 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                         </section>
 
                         <section className="border border-dashed border-stone-700/80 rounded-sm p-3 lg:col-span-2">
-                            <div className="mb-3 flex items-end justify-between gap-3">
-                                <div>
-                                    <h5 className="text-[10px] text-stone-400 uppercase tracking-widest font-semibold">
-                                        Warianty konfiguracji
-                                    </h5>
-                                    <p className="mt-1 text-[10px] text-stone-600">
-                                        Wybierz kartę, aby zastosować cały wariant w kalkulatorze.
-                                    </p>
-                                </div>
-                                {optimizationStatus?.nextVariants?.length > 0 && (
-                                    <span className="text-[9px] uppercase tracking-wider text-stone-600">
-                                        {optimizationStatus.nextVariants.length} konfiguracji
-                                    </span>
-                                )}
-                            </div>
+                            <h5 className="text-[10px] text-stone-500 uppercase tracking-widest font-semibold mb-2">
+                                Kolejne warianty
+                            </h5>
                             {optimizationStatus?.nextVariants?.length > 0 ? (
                                 <div className="space-y-3">
                                     {optimizationStatus.nextVariants.map((variant, variantIndex) => (
@@ -1109,14 +1083,13 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                                                     setActiveVariantIndex(variantIndex);
                                                 }
                                             }}
-                                            className={`block w-full text-left border rounded-sm p-3 transition-colors ${activeVariantIndex === variantIndex
+                                            className={`block w-full text-left border rounded-sm p-2 transition-colors ${activeVariantIndex === variantIndex
                                                 ? 'border-purple-500/80 bg-purple-950/30'
                                                 : 'border-stone-800/70 bg-black/20 hover:border-stone-600'}`}
                                         >
                                             <div className="flex items-start justify-between gap-2 text-xs">
                                                 <span className="text-stone-300 leading-tight font-semibold">
-                                                    <span className="mr-2 text-stone-600">#{variantIndex + 1}</span>
-                                                    {variant.main ? 'Wynik rekomendowany' : `Więcej: ${variant.bonusName}`}
+                                                    {variant.main ? 'Główny wynik' : variant.bonusName}
                                                 </span>
                                                 {variant.main ? (
                                                     <span className="text-purple-300 text-[10px] uppercase tracking-wide">
@@ -1124,31 +1097,16 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                                                     </span>
                                                 ) : (
                                                     <div className="text-right shrink-0">
-                                                        <div className="text-[9px] uppercase tracking-wider text-stone-600">Zmiana głównego bonusu</div>
-                                                        <div className="mt-0.5 text-emerald-400 font-bold tabular-nums">
+                                                        <div className="text-emerald-400 font-bold tabular-nums">
                                                             {Number(variant.finalValue).toLocaleString('pl-PL', { maximumFractionDigits: 2 })}% → {Number(variant.variantValue).toLocaleString('pl-PL', { maximumFractionDigits: 2 })}%
+                                                        </div>
+                                                        <div className="mt-1 text-[9px] text-stone-500 uppercase tracking-wide tabular-nums">
+                                                            +{Number(variant.gain).toLocaleString('pl-PL', { maximumFractionDigits: 2 })} · strata {Number(variant.totalLoss).toLocaleString('pl-PL', { maximumFractionDigits: 2 })} · zmian {variant.changeCount} · ocena {Number(variant.score).toLocaleString('pl-PL', { maximumFractionDigits: 2 })}
                                                         </div>
                                                     </div>
                                                 )}
                                             </div>
-                                            {!variant.main && (
-                                                <dl className="mt-3 grid grid-cols-3 gap-1.5 text-center">
-                                                    <div className="border border-emerald-950/80 bg-emerald-950/20 p-1.5">
-                                                        <dt className="text-[8px] uppercase tracking-wider text-stone-600">Zysk</dt>
-                                                        <dd className="mt-0.5 text-[11px] font-bold text-emerald-400 tabular-nums">+{Number(variant.gain).toLocaleString('pl-PL', { maximumFractionDigits: 2 })}</dd>
-                                                    </div>
-                                                    <div className="border border-amber-950/80 bg-amber-950/20 p-1.5">
-                                                        <dt className="text-[8px] uppercase tracking-wider text-stone-600">Łączna strata</dt>
-                                                        <dd className="mt-0.5 text-[11px] font-bold text-amber-300 tabular-nums">−{Number(variant.totalLoss).toLocaleString('pl-PL', { maximumFractionDigits: 2 })}</dd>
-                                                    </div>
-                                                    <div className="border border-stone-800 bg-black/20 p-1.5">
-                                                        <dt className="text-[8px] uppercase tracking-wider text-stone-600">Zmiany</dt>
-                                                        <dd className="mt-0.5 text-[11px] font-bold text-stone-300 tabular-nums">{variant.changeCount}</dd>
-                                                    </div>
-                                                </dl>
-                                            )}
                                             {!variant.main && <ul className="mt-2 space-y-1">
-                                                <li className="pb-1 text-[9px] uppercase tracking-wider text-stone-600">Zmiany w przedmiotach</li>
                                                 {variant.changes.map((change, changeIndex) => {
                                                     const slotLabel = SLOTS.find(slot => slot.key === change.slotKey)?.label || change.slotKey;
                                                     const formatPlacement = (modifier, level) => modifier
@@ -1166,7 +1124,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                                             {!variant.main && variant.statChanges?.length > 0 && (
                                                 <div className="mt-2 pt-2 border-t border-stone-800/80 space-y-1">
                                                     <div className="text-[9px] text-stone-600 uppercase tracking-wider">
-                                                        Wartości zweryfikowane przez kalkulator
+                                                        Zmiany statystyk
                                                     </div>
                                                     {variant.statChanges.map(change => {
                                                         const before = numericStatValue(change.finalValue);
