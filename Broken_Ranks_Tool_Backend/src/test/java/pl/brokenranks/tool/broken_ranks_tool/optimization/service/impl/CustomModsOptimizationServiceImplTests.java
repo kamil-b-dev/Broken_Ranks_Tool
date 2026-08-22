@@ -119,6 +119,51 @@ class CustomModsOptimizationServiceImplTests {
     }
 
     @Test
+    void reachesUserDefinedPercentageUsingForcedCapLevelStrategy() {
+        ItemTemplate item = item(1L, 12);
+        DrifTemplate criticalChance = drif(10L, DRIF_BONUS_TYPE.CRITICAL_CHANCE, 2.0, 4.0);
+        EquipmentStatsCalculatorService calculator = mock(EquipmentStatsCalculatorService.class);
+        when(calculator.calculateTotalStats(any())).thenAnswer(invocation -> {
+            EquipmentRequest setup = invocation.getArgument(0);
+            EquipmentRequest.SlotData slot = setup.getSlots().get("helmet");
+            if (slot.getDrifIds() == null || slot.getDrifIds().isEmpty()) {
+                return Map.of(DRIF_BONUS_TYPE.CRITICAL_CHANCE.name(), "0%");
+            }
+            int level = slot.getDrifLevels().getOrDefault("0", 1);
+            double value = 2.0 + Math.max(0, level - 1) * 4.0;
+            return Map.of(DRIF_BONUS_TYPE.CRITICAL_CHANCE.name(), value + "%");
+        });
+
+        CustomModsOptimizationServiceImpl service = service(item, List.of(criticalChance), calculator);
+        OptimizationRequest request = request(item.getId(), Map.of(DRIF_BONUS_TYPE.CRITICAL_CHANCE, 30));
+        request.setForcedPercentageTargets(Map.of(DRIF_BONUS_TYPE.CRITICAL_CHANCE, 30.0));
+
+        OptimizationResponse response = service.optimize(request);
+
+        assertTrue(response.getSummary().isSuccess());
+        EquipmentRequest.SlotData result = response.getOptimizedSetup().getSlots().get("helmet");
+        assertEquals(List.of(criticalChance.getId()), result.getDrifIds());
+        assertEquals(16, result.getDrifLevels().get("0"));
+    }
+
+    @Test
+    void rejectsCapAndPercentageTargetForTheSameBonus() {
+        ItemTemplate item = item(1L, 12);
+        DrifTemplate criticalChance = drif(10L, DRIF_BONUS_TYPE.CRITICAL_CHANCE, 2.0, 4.0);
+        CustomModsOptimizationServiceImpl service = service(
+                item, List.of(criticalChance), mock(EquipmentStatsCalculatorService.class));
+        OptimizationRequest request = request(item.getId(), Map.of(DRIF_BONUS_TYPE.CRITICAL_CHANCE, 30));
+        request.setForceCapBonuses(Set.of(DRIF_BONUS_TYPE.CRITICAL_CHANCE));
+        request.setForcedPercentageTargets(Map.of(DRIF_BONUS_TYPE.CRITICAL_CHANCE, 30.0));
+
+        OptimizationResponse response = service.optimize(request);
+
+        assertFalse(response.getSummary().isSuccess());
+        assertTrue(response.getSummary().getMessage().contains(
+                "Nie można jednocześnie wymusić capa i własnego procentu"));
+    }
+
+    @Test
     void returnsBestBuildWithWarningWhenForcedCapCannotBeReached() {
         ItemTemplate item = item(1L, 4);
         DrifTemplate criticalChance = drif(10L, DRIF_BONUS_TYPE.CRITICAL_CHANCE, 2.0, 4.0);

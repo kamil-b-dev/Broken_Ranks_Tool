@@ -285,20 +285,22 @@ final class OptimizationResultAssembler {
         Map<String, String> actual = actualStats(state, context);
         List<String> warnings = new ArrayList<>();
         for (DRIF_BONUS_TYPE type : context.request().getPriorities().keySet().stream()
-                .filter(candidate -> isForcedCap(candidate, context.request()))
+                .filter(candidate -> isForcedTarget(candidate, context.request()))
                 .sorted(Comparator.comparing(Enum::name))
                 .toList()) {
             Double target = targetFor(type, context.request());
             if (target == null) continue;
             if (!actual.containsKey(type.name())) {
-                warnings.add("Kalkulator nie zwrócił wartości wymaganego capa: "
+                warnings.add("Kalkulator nie zwrócił wartości wymaganego celu: "
                         + type.getDescription() + ".");
                 continue;
             }
             double value = directedValue(type, parseCalculatedValue(actual.get(type.name())),
                     context.request());
             if (value < target - TARGET_TOLERANCE) {
-                warnings.add("Nie udało się osiągnąć wymuszonego capa dla " + type.getDescription()
+                String targetLabel = isForcedCap(type, context.request())
+                        ? "wymuszonego capa" : "wymuszonego procentu";
+                warnings.add("Nie udało się osiągnąć " + targetLabel + " dla " + type.getDescription()
                         + " (" + String.format(java.util.Locale.ROOT, "%.2f", value) + "/"
                         + String.format(java.util.Locale.ROOT, "%.2f", target) + ").");
             }

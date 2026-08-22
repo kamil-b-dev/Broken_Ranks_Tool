@@ -224,6 +224,7 @@ export const EquipmentProvider = ({ children }) => {
             priorities: optimizationConfig.priorities || {},
             targetQuantities: optimizationConfig.targetQuantities || {},
             forceCapBonuses: optimizationConfig.forceCapBonuses || [],
+            forcedPercentageTargets: optimizationConfig.forcedPercentageTargets || {},
             maximizeBonuses: optimizationConfig.maximizeBonuses || [],
             forceMaximizationByDrifBonus:
                 Boolean(optimizationConfig.forceMaximizationByDrifBonus),
