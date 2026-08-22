@@ -111,6 +111,10 @@ class OptimizationRequestConstraints {
                     return "Nie można jednocześnie wymusić capa i własnego procentu dla "
                             + entry.getKey().getDescription() + ".";
                 }
+                if (isMaximized(entry.getKey(), request)) {
+                    return "Nie można jednocześnie maksymalizować moda i wymusić własnego procentu dla "
+                            + entry.getKey().getDescription() + ".";
+                }
             }
         }
         return null;

@@ -25,11 +25,20 @@ public class OptimizationSummary {
     /** Items grouped by the drif bonus map used by the optimizer. */
     private Map<Double, List<ItemDrifBonus>> itemsByDrifBonus;
 
+    /** Calculator-verified outcome for every priority selected by the user. */
+    private List<GoalResult> goalResults;
+
     /** Calculator-verified alternatives that improve at least one maximized modifier. */
     private List<OptimizationVariant> nextVariants;
 
     /** Identifies an item within an optimizer slot. */
     public record ItemDrifBonus(String slotKey, String itemName) { }
+
+    /** Compares a requested optimization goal with the final calculator value. */
+    public record GoalResult(String statKey, String bonusName, int priority,
+                             int placedCount, int minimumCount, int maximumCount,
+                             String calculatorValue, String targetLabel,
+                             boolean quantitySatisfied, Boolean targetSatisfied) { }
 
     /** Describes a trade-off available relative to the selected final setup. */
     public record OptimizationVariant(boolean main, String bonusName,

@@ -305,7 +305,10 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                     return { ...b, forceCap: true, forcePercentage: false };
                 }
                 if (field === 'forcePercentage' && value) {
-                    return { ...b, forcePercentage: true, forceCap: false };
+                    return { ...b, forcePercentage: true, forceCap: false, maximize: false };
+                }
+                if (field === 'maximize' && value) {
+                    return { ...b, maximize: true, forcePercentage: false };
                 }
                 return { ...b, [field]: value };
             }
@@ -408,7 +411,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                     forceCap: Boolean(entry.forceCap),
                     forcePercentage,
                     forcedPercentage: forcePercentage ? parsedForcedPercentage : '',
-                    maximize: Boolean(entry.maximize ?? entry.critical)
+                    maximize: !forcePercentage && Boolean(entry.maximize ?? entry.critical)
                 }];
             });
 
@@ -478,7 +481,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                 forcedPercentageTargets[b.key] = forcedPercentage;
             }
 
-            if (b.maximize) {
+            if (b.maximize && !b.forcePercentage) {
                 maximizeBonuses.push(b.key);
             }
         });
@@ -515,10 +518,10 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
 
     return (
         <div className="bg-gradient-to-b from-stone-900 to-black p-3 sm:p-5 border-2 border-stone-800 shadow-[0_0_30px_rgba(0,0,0,0.9)] flex flex-col h-full relative">
-            <nav className="xl:hidden grid grid-cols-4 gap-1 mb-3 shrink-0" aria-label="Sekcje optymalizatora">
+            <nav className="lg:hidden grid grid-cols-4 gap-1 mb-3 shrink-0" aria-label="Sekcje optymalizatora">
                 {[
                     ['slots', 'Przedmioty'], ['bonuses', 'Bonusy'],
-                    ['priorities', `Priorytety (${prioritizedBonuses.length})`], ['result', 'Wynik']
+                    ['priorities', `Priorytety (${prioritizedBonuses.length})`], ['result', 'Raport']
                 ].map(([key, label]) => (
                     <button key={key} type="button" onClick={() => setActiveMobileColumn(key)}
                             className={`px-2 py-2 border rounded-sm text-[9px] sm:text-[10px] uppercase tracking-wide transition-colors ${activeMobileColumn === key
@@ -528,9 +531,9 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                     </button>
                 ))}
             </nav>
-            <div className="grid grid-cols-1 xl:grid-cols-4 gap-4 xl:gap-8 h-[calc(180vh-26.4rem)] min-h-[936px] max-h-[1620px]">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 min-h-[936px] lg:min-h-0">
 
-                <div className={`optimizer-lock-column ${activeMobileColumn === 'slots' ? 'flex' : 'hidden'} xl:flex flex-col gap-2 h-full min-h-0 xl:border-r border-stone-800/60 xl:pr-6`}>
+                <div className={`optimizer-lock-column ${activeMobileColumn === 'slots' ? 'flex' : 'hidden'} lg:flex flex-col gap-2 h-[calc(180vh-26.4rem)] min-h-[936px] max-h-[1620px] lg:col-span-3 lg:h-[min(76vh,920px)] lg:min-h-[720px] lg:border-r border-stone-800/60 lg:pr-5`}>
                     <div className="flex items-center justify-center border-b border-stone-700 pb-2 mb-2 min-h-[34px] shrink-0">
                         <h4 className="text-stone-300 font-serif font-bold uppercase tracking-widest text-xs">
                             Zablokowane Sloty
@@ -613,7 +616,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                     </div>
                 </div>
 
-                <div className={`optimizer-bonus-column ${activeMobileColumn === 'bonuses' ? 'flex' : 'hidden'} xl:flex flex-col gap-2 h-full min-h-0 xl:border-r border-stone-800/60 xl:pr-6`}>
+                <div className={`optimizer-bonus-column ${activeMobileColumn === 'bonuses' ? 'flex' : 'hidden'} lg:flex flex-col gap-2 h-[calc(180vh-26.4rem)] min-h-[936px] max-h-[1620px] lg:col-span-3 lg:h-[min(76vh,920px)] lg:min-h-[720px] lg:border-r border-stone-800/60 lg:pr-5`}>
                     <div className="flex items-center justify-center border-b border-stone-700 pb-2 mb-2 min-h-[34px] shrink-0">
                         <h4 className="text-stone-300 font-serif font-bold uppercase tracking-widest text-xs">
                             Dostępne Bonusy
@@ -669,7 +672,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                     </div>
                 </div>
 
-                <div className={`optimizer-priority-column ${activeMobileColumn === 'priorities' ? 'flex' : 'hidden'} xl:flex flex-col gap-2 h-full min-h-0`}>
+                <div className={`optimizer-priority-column ${activeMobileColumn === 'priorities' ? 'flex' : 'hidden'} lg:flex flex-col gap-2 h-[calc(180vh-26.4rem)] min-h-[936px] max-h-[1620px] lg:col-span-3 lg:h-[min(76vh,920px)] lg:min-h-[720px] lg:border-r border-stone-800/60 lg:pr-5`}>
                     <div className="flex items-center justify-between border-b border-stone-700 pb-2 mb-2 min-h-[34px] shrink-0">
                         <h4 className="text-stone-300 font-serif font-bold uppercase tracking-widest text-xs">
                             Priorytety i Limity
@@ -735,6 +738,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                                 const maxCap = gameRules?.drifMaxCaps?.[bonus.key];
                                 const hasCap = maxCap !== null && maxCap !== undefined;
                                 const isExpanded = expandedPriorities.has(bonus.key);
+                                const potential = currentModDetails.find(detail => detail.key === bonus.key);
 
                                 return (
                                     <div key={bonus.key} className="flex flex-col bg-stone-900/50 border border-purple-900/40 mb-3 rounded-sm shadow-md transition-colors relative overflow-hidden">
@@ -749,7 +753,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                                                 {!isExpanded && (
                                                     <span className="ml-auto text-[9px] text-stone-500 uppercase tracking-wide whitespace-nowrap">
                                                         waga {bonus.weight} · {bonus.min}–{bonus.max}
-                                                        {bonus.forceCap ? ' · cap' : ''}
+                                                        {bonus.forceCap ? ' · cel: cap' : ''}
                                                         {bonus.forcePercentage ? ` · ${bonus.forcedPercentage}%` : ''}
                                                         {bonus.maximize ? ' · max' : ''}
                                                     </span>
@@ -766,6 +770,18 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                                         </div>
 
                                         {isExpanded && <div className="flex flex-col gap-3 p-2 relative z-10">
+                                            {potential && (
+                                                <div className="flex flex-wrap items-center justify-between gap-2 border border-sky-950/80 bg-sky-950/20 px-2 py-1.5">
+                                                    <div>
+                                                        <div className="text-[9px] uppercase tracking-wider text-sky-500">
+                                                            Potencjalny zakres
+                                                        </div>
+                                                    </div>
+                                                    <span className="shrink-0 text-xs font-bold text-sky-300 tabular-nums">
+                                                        {formatPotentialValue(potential.potentialMinimum)}–{formatPotentialValue(potential.potentialMaximum)}
+                                                    </span>
+                                                </div>
+                                            )}
                                             <div className="flex flex-col gap-1">
                                                 <div className="flex justify-between items-end">
                                                     <span className="text-[10px] text-stone-400 uppercase tracking-wider font-semibold">Waga Priorytetu</span>
@@ -806,11 +822,12 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
 
                                                 <div className="flex items-center justify-between gap-3 pt-2 border-t border-stone-800/50">
                                                     <span className="text-[10px] text-stone-500 uppercase tracking-wider whitespace-nowrap">
-                                                        {hasCap ? `Wymuś Max Cap (${maxCap > 0 ? '+' : ''}${maxCap}%):` : 'Wymuś Max Cap:'}
+                                                        {hasCap ? `Dąż do capa (${maxCap > 0 ? '+' : ''}${maxCap}%):` : 'Dąż do capa:'}
                                                     </span>
                                                     {hasCap ? (
                                                         <button
                                                             onClick={() => handleUpdateBonus(bonus.key, 'forceCap', !bonus.forceCap)}
+                                                            aria-label={`Dąż do capa dla ${bonus.value}`}
                                                             className={`w-5 h-5 flex items-center justify-center border rounded-sm transition-all ${bonus.forceCap ? 'bg-purple-900 border-purple-500 text-stone-200 shadow-[0_0_8px_rgba(168,85,247,0.5)]' : 'bg-stone-950 border-stone-700 text-transparent hover:border-purple-800'}`}
                                                         >
                                                             <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
@@ -855,7 +872,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                                                 <div className="flex items-center justify-between gap-3 pt-2 border-t border-stone-800/50">
                                                     <span
                                                         className="text-[10px] text-stone-500 uppercase tracking-wider whitespace-nowrap"
-                                                        title="Algorytm będzie dążył do najwyższej możliwej wartości tego modyfikatora, po spełnieniu limitów ilościowych i wymuszonych capów."
+                                                        title="Algorytm będzie dążył do najwyższej możliwej wartości tego modyfikatora, po spełnieniu limitów ilościowych i celów capa."
                                                     >
                                                         Maksymalizuj mod:
                                                     </span>
@@ -878,10 +895,10 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                     </div>
                 </div>
 
-                <aside className={`optimizer-info-column ${activeMobileColumn === 'result' ? 'flex' : 'hidden'} xl:flex flex-col gap-4 h-full min-h-0 xl:border-l border-stone-800/60 xl:pl-6`}>
-                    <div className="flex items-center justify-center border-b border-stone-700 pb-2 min-h-[34px] shrink-0">
+                <aside className={`optimizer-info-column ${activeMobileColumn === 'result' ? 'flex' : 'hidden'} lg:flex flex-col gap-4 h-[calc(180vh-26.4rem)] min-h-[936px] max-h-[1620px] lg:col-span-3 lg:h-[min(76vh,920px)] lg:min-h-[720px]`}>
+                    <div className="flex items-center justify-between border-b border-stone-700 pb-2 min-h-[34px] shrink-0">
                         <h4 className="text-stone-300 font-serif font-bold uppercase tracking-widest text-xs">
-                            Informacje z optymalizacji
+                            Raport optymalizacji
                         </h4>
                     </div>
 
@@ -977,46 +994,81 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                             )}
                         </section>
 
-                        <section className="bg-black/40 border border-stone-800 rounded-sm p-3">
+                        <section className="bg-black/40 border border-stone-800 rounded-sm p-3 lg:col-span-2">
                             <h5 className="text-[10px] text-stone-400 uppercase tracking-widest font-semibold mb-3">
-                                Aktualne mody i kara
+                                Realizacja priorytetów
                             </h5>
-                            {currentModDetails.length === 0 ? (
+                            {!optimizationStatus?.goalResults?.length ? (
                                 <p className="text-xs text-stone-600 italic leading-relaxed">
-                                    Dodaj mod do priorytetów, aby zobaczyć jego aktualną liczbę i karę.
+                                    {currentModDetails.length > 0
+                                        ? `Uruchom optymalizację, aby kalkulator ocenił ${currentModDetails.length} wybranych priorytetów.`
+                                        : 'Wyniki priorytetów pojawią się po optymalizacji.'}
                                 </p>
                             ) : (
-                                <div className="space-y-2">
-                                    {currentModDetails.map(bonus => (
-                                        <div key={bonus.key} className="border-b border-stone-800/70 pb-2 last:border-0 last:pb-0">
-                                            <div className="flex items-start justify-between gap-2 text-xs">
-                                                <span className="text-stone-300 leading-tight">{bonus.value}</span>
-                                                <span className="text-purple-300 font-bold tabular-nums shrink-0">×{bonus.count}</span>
+                                <div className="grid gap-2 xl:grid-cols-2">
+                                    {optimizationStatus.goalResults.map(goal => {
+                                        const current = currentModDetails.find(detail => detail.key === goal.statKey);
+                                        const activeVariant = optimizationStatus.nextVariants?.[activeVariantIndex];
+                                        const activeStatChange = activeVariant?.statChanges?.find(
+                                            change => change.statKey === goal.statKey
+                                        );
+                                        const calculatorValue = activeStatChange?.variantValue ?? goal.calculatorValue;
+                                        const displayedCount = current?.count ?? goal.placedCount;
+                                        const quantitySatisfied = displayedCount >= goal.minimumCount
+                                            && displayedCount <= goal.maximumCount;
+                                        const targetValue = numericStatValue(goal.targetLabel);
+                                        const calculatedValue = numericStatValue(calculatorValue);
+                                        const inverseDirection = Number(gameRules?.drifMaxCaps?.[goal.statKey]) < 0;
+                                        const targetSatisfied = !goal.targetLabel || (inverseDirection
+                                            ? -calculatedValue >= targetValue
+                                            : calculatedValue >= targetValue);
+                                        const targetOk = targetSatisfied !== false;
+                                        const complete = calculatorValue != null
+                                            && quantitySatisfied && targetOk;
+                                        const maximumLabel = goal.maximumCount >= 2147483647 ? '∞' : goal.maximumCount;
+                                        return (
+                                            <div key={goal.statKey} className="border border-stone-800/80 bg-black/20 p-2.5">
+                                                <div className="flex items-start justify-between gap-3">
+                                                    <div>
+                                                        <div className="text-xs font-semibold text-stone-300">{goal.bonusName}</div>
+                                                        <div className="mt-1 text-[9px] uppercase tracking-wider text-stone-600">
+                                                            Priorytet {goal.priority}
+                                                        </div>
+                                                    </div>
+                                                    <span className={`shrink-0 border px-2 py-1 text-[9px] uppercase tracking-wider ${complete
+                                                        ? 'border-emerald-900/80 bg-emerald-950/30 text-emerald-400'
+                                                        : 'border-amber-900/80 bg-amber-950/30 text-amber-300'}`}>
+                                                        {complete ? 'Osiągnięty' : 'Częściowo'}
+                                                    </span>
+                                                </div>
+                                                <dl className="mt-2 grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 border-t border-stone-800/70 pt-2 text-[10px]">
+                                                    <dt className="text-stone-500">Liczba drifów</dt>
+                                                    <dd className={quantitySatisfied ? 'text-right text-emerald-400 tabular-nums' : 'text-right text-amber-300 tabular-nums'}>
+                                                        {displayedCount} / {goal.minimumCount}–{maximumLabel}
+                                                    </dd>
+                                                    <dt className="text-stone-500">Kara za liczbę modów</dt>
+                                                    <dd className={current?.penaltyPercent > 0 ? 'text-right text-amber-300 tabular-nums' : 'text-right text-emerald-400 tabular-nums'}>
+                                                        {current?.penaltyPercent > 0
+                                                            ? `−${current.penaltyPercent.toFixed(0)}%`
+                                                            : 'Bez kary'}
+                                                    </dd>
+                                                    {goal.targetLabel && (
+                                                        <>
+                                                            <dt className="text-stone-500">Cel wartości</dt>
+                                                            <dd className={targetSatisfied ? 'text-right text-emerald-400 tabular-nums' : 'text-right text-amber-300 tabular-nums'}>
+                                                                {goal.targetLabel}
+                                                            </dd>
+                                                        </>
+                                                    )}
+                                                </dl>
                                             </div>
-                                            <div className="flex justify-between mt-1 text-[10px] uppercase tracking-wide">
-                                                <span className="text-stone-600">Limit {bonus.min}–{bonus.max}</span>
-                                                <span className={bonus.penaltyPercent > 0 ? 'text-amber-400' : 'text-emerald-500'}>
-                                                    {bonus.penaltyPercent > 0
-                                                        ? `Kara −${bonus.penaltyPercent.toFixed(0)}%`
-                                                    : 'Bez kary'}
-                                                </span>
-                                            </div>
-                                            <div
-                                                className="flex items-center justify-between gap-2 mt-1.5 pt-1.5 border-t border-stone-800/50 text-[10px]"
-                                                title={`Zakres dla ${bonus.potentialMinimumCount}–${bonus.potentialMaximumCount} możliwych rozmieszczeń`}
-                                            >
-                                                <span className="text-stone-600 uppercase tracking-wide">Potencjalny zakres</span>
-                                                <span className="text-sky-300 font-bold tabular-nums shrink-0">
-                                                    {formatPotentialValue(bonus.potentialMinimum)}–{formatPotentialValue(bonus.potentialMaximum)}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             )}
                         </section>
 
-                        <section className="border border-dashed border-stone-700/80 rounded-sm p-3">
+                        <section className="border border-dashed border-stone-700/80 rounded-sm p-3 lg:col-span-2">
                             <h5 className="text-[10px] text-stone-500 uppercase tracking-widest font-semibold mb-2">
                                 Kolejne warianty
                             </h5>
