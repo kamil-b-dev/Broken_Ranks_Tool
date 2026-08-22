@@ -749,7 +749,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                                                 {!isExpanded && (
                                                     <span className="ml-auto text-[9px] text-stone-500 uppercase tracking-wide whitespace-nowrap">
                                                         waga {bonus.weight} · {bonus.min}–{bonus.max}
-                                                        {bonus.forceCap ? ' · cap' : ''}
+                                                        {bonus.forceCap ? ' · cel: cap' : ''}
                                                         {bonus.forcePercentage ? ` · ${bonus.forcedPercentage}%` : ''}
                                                         {bonus.maximize ? ' · max' : ''}
                                                     </span>
@@ -806,11 +806,12 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
 
                                                 <div className="flex items-center justify-between gap-3 pt-2 border-t border-stone-800/50">
                                                     <span className="text-[10px] text-stone-500 uppercase tracking-wider whitespace-nowrap">
-                                                        {hasCap ? `Wymuś Max Cap (${maxCap > 0 ? '+' : ''}${maxCap}%):` : 'Wymuś Max Cap:'}
+                                                        {hasCap ? `Dąż do capa (${maxCap > 0 ? '+' : ''}${maxCap}%):` : 'Dąż do capa:'}
                                                     </span>
                                                     {hasCap ? (
                                                         <button
                                                             onClick={() => handleUpdateBonus(bonus.key, 'forceCap', !bonus.forceCap)}
+                                                            aria-label={`Dąż do capa dla ${bonus.value}`}
                                                             className={`w-5 h-5 flex items-center justify-center border rounded-sm transition-all ${bonus.forceCap ? 'bg-purple-900 border-purple-500 text-stone-200 shadow-[0_0_8px_rgba(168,85,247,0.5)]' : 'bg-stone-950 border-stone-700 text-transparent hover:border-purple-800'}`}
                                                         >
                                                             <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
@@ -855,7 +856,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                                                 <div className="flex items-center justify-between gap-3 pt-2 border-t border-stone-800/50">
                                                     <span
                                                         className="text-[10px] text-stone-500 uppercase tracking-wider whitespace-nowrap"
-                                                        title="Algorytm będzie dążył do najwyższej możliwej wartości tego modyfikatora, po spełnieniu limitów ilościowych i wymuszonych capów."
+                                                        title="Algorytm będzie dążył do najwyższej możliwej wartości tego modyfikatora, po spełnieniu limitów ilościowych i celów capa."
                                                     >
                                                         Maksymalizuj mod:
                                                     </span>

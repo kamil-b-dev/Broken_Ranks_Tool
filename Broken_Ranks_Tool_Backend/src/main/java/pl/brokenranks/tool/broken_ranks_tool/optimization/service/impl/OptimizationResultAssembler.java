@@ -77,7 +77,7 @@ final class OptimizationResultAssembler {
         Metrics metrics = stateEvaluator.metrics(state, context);
         return new OptimizationSummary(warnings.isEmpty(),
                 warnings.isEmpty() ? "Optymalizacja zakończona."
-                        : "Nie udało się osiągnąć wymuszonego capa dla co najmniej jednego modyfikatora.",
+                        : "Nie udało się osiągnąć docelowego capa dla co najmniej jednego modyfikatora.",
                 metrics.counts().values().stream().mapToInt(Integer::intValue).sum(),
                 metrics.totalPower(), executionTime, warnings, itemDrifBonusMap(context),
                 nextVariants(state, variants, context));
@@ -299,7 +299,7 @@ final class OptimizationResultAssembler {
                     context.request());
             if (value < target - TARGET_TOLERANCE) {
                 String targetLabel = isForcedCap(type, context.request())
-                        ? "wymuszonego capa" : "wymuszonego procentu";
+                        ? "docelowego capa" : "wymuszonego procentu";
                 warnings.add("Nie udało się osiągnąć " + targetLabel + " dla " + type.getDescription()
                         + " (" + String.format(java.util.Locale.ROOT, "%.2f", value) + "/"
                         + String.format(java.util.Locale.ROOT, "%.2f", target) + ").");
