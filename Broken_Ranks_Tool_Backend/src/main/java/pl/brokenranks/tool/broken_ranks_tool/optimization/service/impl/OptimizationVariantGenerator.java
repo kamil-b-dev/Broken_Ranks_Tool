@@ -155,6 +155,7 @@ final class OptimizationVariantGenerator {
         copy.setLockedSlots(source.getLockedSlots());
         copy.setLockedDrifs(source.getLockedDrifs());
         copy.setForceCapBonuses(source.getForceCapBonuses());
+        copy.setForcedPercentageTargets(source.getForcedPercentageTargets());
         copy.setMaximizeBonuses(source.getMaximizeBonuses() != null
                 ? new LinkedHashSet<>(source.getMaximizeBonuses()) : Set.of());
         copy.setForceMaximizationByDrifBonus(source.isForceMaximizationByDrifBonus());
@@ -174,7 +175,7 @@ final class OptimizationVariantGenerator {
 
     private boolean forcedCapsSatisfied(BuildState state, OptimizationContext context) {
         for (DRIF_BONUS_TYPE type : context.request().getPriorities().keySet()) {
-            if (!isForcedCap(type, context.request())) continue;
+            if (!isForcedTarget(type, context.request())) continue;
             Double target = targetFor(type, context.request());
             if (target != null && resultAssembler.actualValue(state, type, context)
                     < target - TARGET_TOLERANCE) return false;

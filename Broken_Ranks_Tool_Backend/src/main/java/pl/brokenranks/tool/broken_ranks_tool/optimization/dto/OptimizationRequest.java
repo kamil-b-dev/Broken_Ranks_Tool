@@ -31,6 +31,9 @@ public class OptimizationRequest {
     /** Bonus types for which the optimizer must reach the game-rule cap. */
     private Set<DRIF_BONUS_TYPE> forceCapBonuses;
 
+    /** User-defined percentage targets keyed by the selected bonus type. */
+    private Map<DRIF_BONUS_TYPE, Double> forcedPercentageTargets;
+
     /** Bonus types whose value should be maximized within the remaining constraints. */
     private Set<DRIF_BONUS_TYPE> maximizeBonuses;
 
