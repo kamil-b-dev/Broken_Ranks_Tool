@@ -121,6 +121,10 @@ const highestLevelForCapacity = (drif, capacity, basePower) => {
     return sizeMaxLevel;
 };
 
+const formatPotentialValue = value => `${Number(value).toLocaleString('pl-PL', {
+    maximumFractionDigits: 2
+})}%`;
+
 /**
  * Provides drif priorities, target limits, and equipment locking for optimization.
  * @returns {JSX.Element} The optimizer panel.
@@ -743,6 +747,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                                 const maxCap = gameRules?.drifMaxCaps?.[bonus.key];
                                 const hasCap = maxCap !== null && maxCap !== undefined;
                                 const isExpanded = expandedPriorities.has(bonus.key);
+                                const potential = currentModDetails.find(detail => detail.key === bonus.key);
 
                                 return (
                                     <div key={bonus.key} className="flex flex-col bg-stone-900/50 border border-purple-900/40 mb-3 rounded-sm shadow-md transition-colors relative overflow-hidden">
@@ -774,6 +779,21 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                                         </div>
 
                                         {isExpanded && <div className="flex flex-col gap-3 p-2 relative z-10">
+                                            {potential && (
+                                                <div className="flex items-center justify-between gap-3 border border-sky-950/80 bg-sky-950/20 px-2 py-1.5">
+                                                    <div>
+                                                        <div className="text-[9px] uppercase tracking-wider text-sky-500">
+                                                            Szacowany potencjalny zakres
+                                                        </div>
+                                                        <div className="mt-0.5 text-[9px] text-stone-600">
+                                                            Dla {potential.potentialMinimumCount}–{potential.potentialMaximumCount} możliwych rozmieszczeń
+                                                        </div>
+                                                    </div>
+                                                    <span className="shrink-0 text-xs font-bold text-sky-300 tabular-nums">
+                                                        {formatPotentialValue(potential.potentialMinimum)}–{formatPotentialValue(potential.potentialMaximum)}
+                                                    </span>
+                                                </div>
+                                            )}
                                             <div className="flex flex-col gap-1">
                                                 <div className="flex justify-between items-end">
                                                     <span className="text-[10px] text-stone-400 uppercase tracking-wider font-semibold">Waga Priorytetu</span>
