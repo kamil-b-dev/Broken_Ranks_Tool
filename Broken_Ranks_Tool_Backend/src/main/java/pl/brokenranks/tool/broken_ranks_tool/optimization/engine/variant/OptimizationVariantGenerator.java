@@ -1,25 +1,25 @@
-package pl.brokenranks.tool.broken_ranks_tool.optimization.service.impl;
+package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.variant;
+
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultAssembler;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.neighborhood.OptimizationLargeNeighborhoodSearch;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.GeneratedOptimizationVariant;
 
 import lombok.RequiredArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.service.impl.OptimizationRequestConstraints.*;
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.service.impl.OptimizationSearchModel.*;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationRequestConstraints.*;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
 
 /** Selects intentional trade-offs from states already verified by the main search. */
 @RequiredArgsConstructor
-final class OptimizationVariantGenerator {
+public final class OptimizationVariantGenerator {
 
     private static final int MAX_ALTERNATIVES = 4;
     private static final int CANDIDATES_PER_FOCUS = 8;
@@ -28,12 +28,14 @@ final class OptimizationVariantGenerator {
     private final OptimizationLargeNeighborhoodSearch neighborhoodSearch;
     private final OptimizationStateEvaluator stateEvaluator;
     private final OptimizationResultAssembler resultAssembler;
+    private final OptimizationVariantContextFactory contextFactory =
+            new OptimizationVariantContextFactory();
 
     /**
      * Builds a Pareto frontier from calculator-verified states visited by the main LNS.
      * No additional neighborhood search is started solely for UI alternatives.
      */
-    List<GeneratedVariant> generate(BuildState mainState, OptimizationContext context,
+    public List<GeneratedOptimizationVariant> generate(BuildState mainState, OptimizationContext context,
                                     List<BuildState> evaluatedStates) {
         if (context.request().getMaximizeBonuses() == null
                 || context.request().getMaximizeBonuses().isEmpty()
@@ -63,9 +65,9 @@ final class OptimizationVariantGenerator {
                         new ArrayList<>(unique.values()), main, focus, trackedTypes, context))
                 .toList();
         if (!missingFocuses.isEmpty()) {
-            BuildState fallbackStart = withoutPrelocks(mainState, context);
+            BuildState fallbackStart = contextFactory.withoutOptimizerPrelocks(mainState, context);
             for (DRIF_BONUS_TYPE focus : missingFocuses) {
-                OptimizationContext profileContext = profileContext(context, focus);
+                OptimizationContext profileContext = contextFactory.focusedContext(context, focus);
                 OptimizationLargeNeighborhoodSearch.SearchResult fallback =
                         neighborhoodSearch.improve(
                                 fallbackStart, profileContext, FALLBACK_SEARCH_STATES);
@@ -83,7 +85,7 @@ final class OptimizationVariantGenerator {
                 .filter(candidate -> profiles.stream()
                         .noneMatch(other -> dominates(other, candidate, focuses)))
                 .toList();
-        Map<String, GeneratedVariant> selected = new LinkedHashMap<>();
+        Map<String, GeneratedOptimizationVariant> selected = new LinkedHashMap<>();
 
         for (DRIF_BONUS_TYPE focus : focuses) {
             frontier.stream()
@@ -97,7 +99,7 @@ final class OptimizationVariantGenerator {
                                     candidate.values().get(focus)).reversed()
                             .thenComparing(candidate -> candidate.state().signature()))
                     .limit(CANDIDATES_PER_FOCUS)
-                    .map(candidate -> new GeneratedVariant(focus, candidate.state()))
+                    .map(candidate -> new GeneratedOptimizationVariant(focus, candidate.state()))
                     .forEach(variant -> selected.putIfAbsent(
                             variant.focus().name() + "|" + variant.state().signature(), variant));
         }
@@ -111,57 +113,6 @@ final class OptimizationVariantGenerator {
         return profiles.stream().anyMatch(candidate -> candidate != main
                 && candidate.values().get(focus) > main.values().get(focus) + TARGET_TOLERANCE
                 && acceptableLoss(candidate, main, focus, trackedTypes, context));
-    }
-
-    /** Releases optimizer prelocks while preserving explicit user locks. */
-    private BuildState withoutPrelocks(BuildState mainState, OptimizationContext context) {
-        BuildState released = mainState.copy();
-        Set<String> lockedSlots = context.request().getLockedSlots() != null
-                ? context.request().getLockedSlots() : Set.of();
-        for (SlotContext slot : context.slots()) {
-            List<Placement> placements = released.slots.get(slot.key());
-            if (placements == null) continue;
-            for (int index = 0; index < placements.size(); index++) {
-                Placement placement = placements.get(index);
-                if (placement == null || !placement.locked()) continue;
-                boolean userLocked = lockedSlots.contains(slot.key())
-                        || slot.lockedIndices().contains(index);
-                if (!userLocked) {
-                    released.setPlacement(slot.key(), index,
-                            new Placement(placement.drif(), placement.level(), false));
-                }
-            }
-        }
-        return released;
-    }
-
-    private OptimizationContext profileContext(OptimizationContext source,
-                                               DRIF_BONUS_TYPE focus) {
-        OptimizationRequest request = copyRequest(source.request());
-        request.setMaximizeBonuses(Set.of(focus));
-        return new OptimizationContext(request, source.items(), source.drifs(), source.slots(),
-                source.slotsByDrifBonus(), source.sortedPriorities(), source.sortedQuantities(),
-                new SearchBudget(1), new SearchBudget(1), new SearchBudget(1),
-                new EnumMap<>(source.calculatorBaseline()),
-                new EnumMap<>(DRIF_BONUS_TYPE.class), source.calculatorCache(),
-                new HashMap<>(), source.drifValueCache());
-    }
-
-    private OptimizationRequest copyRequest(OptimizationRequest source) {
-        OptimizationRequest copy = new OptimizationRequest();
-        copy.setOriginalSlots(source.getOriginalSlots());
-        copy.setPriorities(source.getPriorities());
-        copy.setTargetQuantities(source.getTargetQuantities());
-        copy.setLockedSlots(source.getLockedSlots());
-        copy.setLockedDrifs(source.getLockedDrifs());
-        copy.setForceCapBonuses(source.getForceCapBonuses());
-        copy.setForcedPercentageTargets(source.getForcedPercentageTargets());
-        copy.setMaximizeBonuses(source.getMaximizeBonuses() != null
-                ? new LinkedHashSet<>(source.getMaximizeBonuses()) : Set.of());
-        copy.setForceMaximizationByDrifBonus(source.isForceMaximizationByDrifBonus());
-        copy.setGenerateVariants(source.isGenerateVariants());
-        copy.setMaxVariantLossPercent(source.getMaxVariantLossPercent());
-        return copy;
     }
 
     private CandidateProfile profile(BuildState state, List<DRIF_BONUS_TYPE> trackedTypes,
@@ -209,5 +160,4 @@ final class OptimizationVariantGenerator {
 
     private record CandidateProfile(BuildState state, Map<DRIF_BONUS_TYPE, Double> values) { }
 
-    record GeneratedVariant(DRIF_BONUS_TYPE focus, BuildState state) { }
 }

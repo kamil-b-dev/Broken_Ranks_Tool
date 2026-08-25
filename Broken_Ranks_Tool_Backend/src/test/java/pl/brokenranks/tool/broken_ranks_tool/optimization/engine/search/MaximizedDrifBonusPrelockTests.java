@@ -1,5 +1,6 @@
-package pl.brokenranks.tool.broken_ranks_tool.optimization.service.impl;
+package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search;
 
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
 import org.junit.jupiter.api.Test;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_SIZE;
@@ -22,7 +23,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.service.impl.OptimizationSearchModel.*;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
 
 class MaximizedDrifBonusPrelockTests {
 
@@ -66,17 +67,17 @@ class MaximizedDrifBonusPrelockTests {
                 new EnumMap<>(DRIF_BONUS_TYPE.class), new EnumMap<>(DRIF_BONUS_TYPE.class),
                 new HashMap<>(), new HashMap<>(), new HashMap<>());
         BuildState state = new BuildState();
-        state.slots.put("high", new ArrayList<>(java.util.Arrays.asList(null, null)));
-        state.slots.put("low", new ArrayList<>(java.util.Arrays.asList(null, null)));
+        state.slots().put("high", new ArrayList<>(java.util.Arrays.asList(null, null)));
+        state.slots().put("low", new ArrayList<>(java.util.Arrays.asList(null, null)));
 
         new MaximizedDrifBonusPrelock(new EquipmentRulesRegistry()).apply(state, context);
 
-        assertEquals(magicArc.getId(), state.slots.get("high").get(0).drif().getId());
-        assertEquals(21, state.slots.get("high").get(0).level());
-        assertTrue(state.slots.get("high").get(0).locked());
-        assertEquals(rangedArc.getId(), state.slots.get("high").get(1).drif().getId());
-        assertTrue(state.slots.get("high").get(1).locked());
-        assertTrue(state.slots.get("low").stream().allMatch(placement -> placement == null));
+        assertEquals(magicArc.getId(), state.slots().get("high").get(0).drif().getId());
+        assertEquals(21, state.slots().get("high").get(0).level());
+        assertTrue(state.slots().get("high").get(0).locked());
+        assertEquals(rangedArc.getId(), state.slots().get("high").get(1).drif().getId());
+        assertTrue(state.slots().get("high").get(1).locked());
+        assertTrue(state.slots().get("low").stream().allMatch(placement -> placement == null));
     }
 
     @Test
@@ -105,8 +106,8 @@ class MaximizedDrifBonusPrelockTests {
                 new EnumMap<>(DRIF_BONUS_TYPE.class), new EnumMap<>(DRIF_BONUS_TYPE.class),
                 new HashMap<>(), new HashMap<>(), new HashMap<>());
         BuildState state = new BuildState();
-        state.slots.put("first", new ArrayList<>(List.of(new Placement(magic, 21, true))));
-        state.slots.put("second", new ArrayList<>(List.of(new Placement(magic, 21, true))));
+        state.slots().put("first", new ArrayList<>(List.of(new Placement(magic, 21, true))));
+        state.slots().put("second", new ArrayList<>(List.of(new Placement(magic, 21, true))));
 
         assertFalse(new OptimizationStateEvaluator(new EquipmentRulesRegistry())
                 .minimumsSatisfied(state, context));
@@ -140,17 +141,17 @@ class MaximizedDrifBonusPrelockTests {
                 new EnumMap<>(DRIF_BONUS_TYPE.class), new EnumMap<>(DRIF_BONUS_TYPE.class),
                 new HashMap<>(), new HashMap<>(), new HashMap<>());
         BuildState state = new BuildState();
-        state.slots.put("high", new ArrayList<>(java.util.Arrays.asList(null, null)));
-        state.slots.put("low", new ArrayList<>(java.util.Arrays.asList(null, null)));
+        state.slots().put("high", new ArrayList<>(java.util.Arrays.asList(null, null)));
+        state.slots().put("low", new ArrayList<>(java.util.Arrays.asList(null, null)));
 
         new MaximizedDrifBonusPrelock(new EquipmentRulesRegistry()).apply(state, context);
 
-        assertEquals(2, state.slots.values().stream().flatMap(List::stream)
+        assertEquals(2, state.slots().values().stream().flatMap(List::stream)
                 .filter(placement -> placement != null).count());
-        assertEquals(magic.getId(), state.slots.get("high").getFirst().drif().getId());
-        assertTrue(state.slots.get("high").getFirst().locked());
-        assertEquals(magic.getId(), state.slots.get("low").getFirst().drif().getId());
-        assertTrue(state.slots.get("low").getFirst().locked());
+        assertEquals(magic.getId(), state.slots().get("high").getFirst().drif().getId());
+        assertTrue(state.slots().get("high").getFirst().locked());
+        assertEquals(magic.getId(), state.slots().get("low").getFirst().drif().getId());
+        assertTrue(state.slots().get("low").getFirst().locked());
     }
 
     private DrifTemplate drif(Long id, DRIF_BONUS_TYPE type, DRIF_SIZE size) {

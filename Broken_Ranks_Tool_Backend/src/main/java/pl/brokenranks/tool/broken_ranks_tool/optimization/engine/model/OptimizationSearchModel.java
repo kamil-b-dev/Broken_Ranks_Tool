@@ -1,4 +1,4 @@
-package pl.brokenranks.tool.broken_ranks_tool.optimization.service.impl;
+package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model;
 
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -18,25 +18,25 @@ import java.util.stream.Collectors;
 
 /** Internal data model shared by deterministic optimization stages. */
 @UtilityClass
-class OptimizationSearchModel {
+public class OptimizationSearchModel {
 
-    record PlacementChoice(DrifTemplate drif, int level, double gain) { }
+    public record PlacementChoice(DrifTemplate drif, int level, double gain) { }
 
-    record RequiredPlacementChoice(SlotContext slot, DrifTemplate drif, int level, double gain) { }
+    public record RequiredPlacementChoice(SlotContext slot, DrifTemplate drif, int level, double gain) { }
 
-    record Placement(DrifTemplate drif, int level, boolean locked) { }
+    public record Placement(DrifTemplate drif, int level, boolean locked) { }
 
-    record SlotContext(String key, EquipmentRequest.SlotData original, ItemTemplate item,
+    public record SlotContext(String key, EquipmentRequest.SlotData original, ItemTemplate item,
                        int capacity, int maxDrifs, double drifBonus,
                        List<DrifTemplate> candidates, Set<Integer> lockedIndices,
                        boolean special) {
 
-        boolean optimizable() {
+        public boolean optimizable() {
             return !special && maxDrifs > 0;
         }
     }
 
-    record OptimizationContext(
+    public record OptimizationContext(
             OptimizationRequest request,
             Map<Long, ItemTemplate> items,
             Map<Long, DrifTemplate> drifs,
@@ -53,18 +53,22 @@ class OptimizationSearchModel {
             Map<String, StateEvaluation> evaluationCache,
             Map<DrifLevelKey, Double> drifValueCache) { }
 
-    static final class BuildState {
-        final Map<String, List<Placement>> slots = new HashMap<>();
+    public static final class BuildState {
+        private final Map<String, List<Placement>> slots = new HashMap<>();
         private String cachedSignature;
 
-        BuildState copy() {
+        public Map<String, List<Placement>> slots() {
+            return slots;
+        }
+
+        public BuildState copy() {
             BuildState copy = new BuildState();
-            slots.forEach((key, values) -> copy.slots.put(key, new ArrayList<>(values)));
+            slots.forEach((key, values) -> copy.slots().put(key, new ArrayList<>(values)));
             copy.cachedSignature = cachedSignature;
             return copy;
         }
 
-        String signature() {
+        public String signature() {
             if (cachedSignature == null) {
                 cachedSignature = slots.entrySet().stream().sorted(Map.Entry.comparingByKey())
                         .map(entry -> entry.getKey() + ":" + entry.getValue().stream()
@@ -77,42 +81,42 @@ class OptimizationSearchModel {
             return cachedSignature;
         }
 
-        void setPlacement(String slotKey, int index, Placement placement) {
+        public void setPlacement(String slotKey, int index, Placement placement) {
             slots.get(slotKey).set(index, placement);
             cachedSignature = null;
         }
     }
 
     @AllArgsConstructor
-    static final class SearchBudget {
+    public static final class SearchBudget {
         private int remaining;
 
-        boolean tryConsume() {
+        public boolean tryConsume() {
             if (remaining <= 0) return false;
             remaining--;
             return true;
         }
 
-        boolean exhausted() {
+        public boolean exhausted() {
             return remaining <= 0;
         }
     }
 
-    record Quality(int hardViolations, double forcedCapDeficit,
+    public record Quality(int hardViolations, double forcedCapDeficit,
                    double minimumMaximizedProgress, double maximizedUtility,
                    double weightedUtility, double penaltyLoss,
                    double forcedCapExcess, double capacityUtilization, int totalPower) { }
 
     @RequiredArgsConstructor
-    static final class StateEvaluation {
-        final Metrics metrics;
-        Quality quality;
-        Double score;
+    public static final class StateEvaluation {
+        public final Metrics metrics;
+        public Quality quality;
+        public Double score;
     }
 
-    record DrifLevelKey(Long drifId, int level) { }
+    public record DrifLevelKey(Long drifId, int level) { }
 
-    record Metrics(Map<DRIF_BONUS_TYPE, Integer> counts,
+    public record Metrics(Map<DRIF_BONUS_TYPE, Integer> counts,
                    Map<DRIF_BONUS_TYPE, Integer> searchCounts,
                    Map<DRIF_BONUS_TYPE, Double> searchValues,
                    int totalPower, int overflowPower, double capacityUtilization,

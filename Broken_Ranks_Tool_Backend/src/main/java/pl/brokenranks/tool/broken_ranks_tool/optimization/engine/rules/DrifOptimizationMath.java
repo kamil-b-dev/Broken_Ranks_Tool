@@ -1,4 +1,4 @@
-package pl.brokenranks.tool.broken_ranks_tool.optimization.service.impl;
+package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules;
 
 import lombok.experimental.UtilityClass;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.util.DrifPowerRules;
@@ -7,25 +7,25 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemp
 import java.util.List;
 import java.util.Objects;
 
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.service.impl.OptimizationSearchModel.*;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
 
 /** Capacity, level, power, and value calculations used by the optimizer. */
 @UtilityClass
-class DrifOptimizationMath {
+public class DrifOptimizationMath {
 
-    static Integer highestFittingLevel(BuildState state, SlotContext slot, DrifTemplate drif) {
-        int remaining = slot.capacity() - usedPower(state.slots.get(slot.key()));
+    public static Integer highestFittingLevel(BuildState state, SlotContext slot, DrifTemplate drif) {
+        int remaining = slot.capacity() - usedPower(state.slots().get(slot.key()));
         if (remaining < drif.getBonusType().getBasePower()) return null;
         return highestLevelForPower(drif, remaining);
     }
 
-    static Integer lowestTierFittingLevel(BuildState state, SlotContext slot, DrifTemplate drif) {
-        int remaining = slot.capacity() - usedPower(state.slots.get(slot.key()));
+    public static Integer lowestTierFittingLevel(BuildState state, SlotContext slot, DrifTemplate drif) {
+        int remaining = slot.capacity() - usedPower(state.slots().get(slot.key()));
         if (remaining < drif.getBonusType().getBasePower()) return null;
         return Math.min(6, drif.getSize().getMaxLevel());
     }
 
-    static int highestLevelForPower(DrifTemplate drif, int availablePower) {
+    public static int highestLevelForPower(DrifTemplate drif, int availablePower) {
         int affordableMultiplier = Math.max(1,
                 Math.min(4, availablePower / Math.max(1, drif.getBonusType().getBasePower())));
         int sizeMultiplier = DrifPowerRules.effectiveMultiplier(drif.getSize().getMaxLevel());
@@ -38,21 +38,21 @@ class DrifOptimizationMath {
         };
     }
 
-    static boolean fitsCapacity(List<Placement> placements, SlotContext slot) {
+    public static boolean fitsCapacity(List<Placement> placements, SlotContext slot) {
         return usedPower(placements) <= slot.capacity();
     }
 
-    static int usedPower(List<Placement> placements) {
+    public static int usedPower(List<Placement> placements) {
         return placements.stream().filter(Objects::nonNull)
                 .mapToInt(placement -> power(placement.drif(), placement.level()))
                 .sum();
     }
 
-    static int countPlaced(List<Placement> placements) {
+    public static int countPlaced(List<Placement> placements) {
         return (int) placements.stream().filter(Objects::nonNull).count();
     }
 
-    static int usedPowerExcept(List<Placement> placements, int ignoredIndex) {
+    public static int usedPowerExcept(List<Placement> placements, int ignoredIndex) {
         int power = 0;
         for (int index = 0; index < placements.size(); index++) {
             if (index != ignoredIndex && placements.get(index) != null) {
@@ -62,23 +62,30 @@ class DrifOptimizationMath {
         return power;
     }
 
-    static int power(DrifTemplate drif, int level) {
+    public static int power(DrifTemplate drif, int level) {
         return DrifPowerRules.power(drif.getBonusType().getBasePower(), level);
     }
 
-    static double calculateDrifValue(DrifTemplate drif, int level) {
+    public static double calculateDrifValue(DrifTemplate drif, int level) {
         if (drif.getBaseValue() == null || drif.getIncrement() == null) return 0.0;
         try {
-            double total = Double.parseDouble(drif.getBaseValue().replace("%", "")
-                    .replace(",", ".").trim());
-            double increment = Double.parseDouble(drif.getIncrement().replace("%", "")
-                    .replace(",", ".").trim());
+            double total = parseModifierNumber(drif.getBaseValue());
+            double increment = parseModifierNumber(drif.getIncrement());
             for (int current = 2; current <= level; current++) {
-                total += current >= 19 && current <= 21 ? increment * 2 : increment;
+                total += incrementForLevel(increment, current);
             }
             return total;
         } catch (NumberFormatException exception) {
             return 0.0;
         }
+    }
+
+    private double parseModifierNumber(String value) {
+        return Double.parseDouble(value.replace("%", "")
+                .replace(",", ".").trim());
+    }
+
+    private double incrementForLevel(double increment, int level) {
+        return level >= 19 && level <= 21 ? increment * 2 : increment;
     }
 }

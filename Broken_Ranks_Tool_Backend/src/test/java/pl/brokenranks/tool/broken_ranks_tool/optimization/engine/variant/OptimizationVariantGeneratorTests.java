@@ -1,4 +1,9 @@
-package pl.brokenranks.tool.broken_ranks_tool.optimization.service.impl;
+package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.variant;
+
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultAssembler;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.neighborhood.OptimizationLargeNeighborhoodSearch;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.GeneratedOptimizationVariant;
 
 import org.junit.jupiter.api.Test;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
@@ -25,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.service.impl.OptimizationSearchModel.*;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
 
 class OptimizationVariantGeneratorTests {
 
@@ -33,7 +38,7 @@ class OptimizationVariantGeneratorTests {
     void selectsImprovementWithinConfiguredLossAndRejectsLargerLoss() {
         Fixture fixture = fixture(10);
 
-        List<OptimizationVariantGenerator.GeneratedVariant> variants = fixture.generator.generate(
+        List<GeneratedOptimizationVariant> variants = fixture.generator.generate(
                 fixture.main, fixture.context, List.of(fixture.main, fixture.acceptable));
 
         assertEquals(1, variants.size());
@@ -41,7 +46,7 @@ class OptimizationVariantGeneratorTests {
         assertEquals(fixture.acceptable.signature(), variants.getFirst().state().signature());
 
         Fixture strict = fixture(0);
-        List<OptimizationVariantGenerator.GeneratedVariant> strictVariants = strict.generator.generate(
+        List<GeneratedOptimizationVariant> strictVariants = strict.generator.generate(
                 strict.main, strict.context, List.of(strict.main, strict.acceptable));
         assertTrue(strictVariants.isEmpty());
     }
@@ -52,7 +57,7 @@ class OptimizationVariantGeneratorTests {
         BuildState invalid = fixture.acceptable.copy();
         invalid.setPlacement("defense", 0, null);
 
-        List<OptimizationVariantGenerator.GeneratedVariant> variants = fixture.generator.generate(
+        List<GeneratedOptimizationVariant> variants = fixture.generator.generate(
                 fixture.main, fixture.context, List.of(fixture.main, invalid));
 
         assertTrue(variants.stream().noneMatch(variant ->
@@ -124,8 +129,8 @@ class OptimizationVariantGeneratorTests {
     private BuildState state(DrifTemplate magic, int magicLevel,
                              DrifTemplate defense, int defenseLevel) {
         BuildState state = new BuildState();
-        state.slots.put("magic", new ArrayList<>(List.of(new Placement(magic, magicLevel, false))));
-        state.slots.put("defense", new ArrayList<>(List.of(new Placement(defense, defenseLevel, false))));
+        state.slots().put("magic", new ArrayList<>(List.of(new Placement(magic, magicLevel, false))));
+        state.slots().put("defense", new ArrayList<>(List.of(new Placement(defense, defenseLevel, false))));
         return state;
     }
 
@@ -152,7 +157,7 @@ class OptimizationVariantGeneratorTests {
                            BuildState main, BuildState acceptable) {
 
         private int generatorStateCount(BuildState state, DRIF_BONUS_TYPE type) {
-            return (int) state.slots.values().stream().flatMap(List::stream)
+            return (int) state.slots().values().stream().flatMap(List::stream)
                     .filter(java.util.Objects::nonNull)
                     .filter(placement -> placement.drif().getBonusType() == type)
                     .count();
