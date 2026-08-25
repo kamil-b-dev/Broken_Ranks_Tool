@@ -1,5 +1,8 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.service.impl;
 
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context.OptimizationContextFactory;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
+
 import org.junit.jupiter.api.Test;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_SIZE;
@@ -31,7 +34,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.service.impl.OptimizationSearchModel.*;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
 
 /** Compares the production heuristic with an exact oracle on small search spaces. */
 class OptimizationExhaustiveSearchTests {
@@ -78,14 +81,14 @@ class OptimizationExhaustiveSearchTests {
         SlotContext slot = context.slots().get(slotIndex);
         List<Placement> empty = new ArrayList<>();
         empty.add(null);
-        partial.slots.put(slot.key(), empty);
+        partial.slots().put(slot.key(), empty);
         enumerate(context, slotIndex + 1, partial, states);
         for (DrifTemplate candidate : slot.candidates()) {
-            partial.slots.put(slot.key(), new ArrayList<>(List.of(
+            partial.slots().put(slot.key(), new ArrayList<>(List.of(
                     new Placement(candidate, candidate.getSize().getMaxLevel(), false))));
             enumerate(context, slotIndex + 1, partial, states);
         }
-        partial.slots.remove(slot.key());
+        partial.slots().remove(slot.key());
     }
 
     private BuildState toState(EquipmentRequest setup, OptimizationContext context) {
@@ -101,7 +104,7 @@ class OptimizationExhaustiveSearchTests {
                         ? result.getDrifLevels().getOrDefault(String.valueOf(index), 1) : 1;
                 placements.add(drif != null ? new Placement(drif, level, false) : null);
             }
-            state.slots.put(slot.key(), placements);
+            state.slots().put(slot.key(), placements);
         }
         return state;
     }
