@@ -6,7 +6,6 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationReques
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -28,7 +27,8 @@ public class OptimizationLockService {
             Map<String, EquipmentRequest.SlotData> candidateSlots,
             OptimizationRequest request) {
 
-        Map<String, EquipmentRequest.SlotData> result = deepCopySlots(candidateSlots);
+        Map<String, EquipmentRequest.SlotData> result =
+                EquipmentSlotDataCopier.copySlots(candidateSlots);
         if (originalSlots == null || request == null) {
             return result;
         }
@@ -40,7 +40,7 @@ public class OptimizationLockService {
         for (String slotKey : lockedSlots) {
             EquipmentRequest.SlotData original = originalSlots.get(slotKey);
             if (original != null) {
-                result.put(slotKey, copySlot(original));
+                result.put(slotKey, EquipmentSlotDataCopier.copySlot(original));
             }
         }
 
@@ -160,29 +160,6 @@ public class OptimizationLockService {
             }
         }
         return true;
-    }
-
-    private Map<String, EquipmentRequest.SlotData> deepCopySlots(
-            Map<String, EquipmentRequest.SlotData> slots) {
-        Map<String, EquipmentRequest.SlotData> copy = new HashMap<>();
-        if (slots != null) {
-            slots.forEach((key, value) -> copy.put(key, copySlot(value)));
-        }
-        return copy;
-    }
-
-    private EquipmentRequest.SlotData copySlot(EquipmentRequest.SlotData source) {
-        if (source == null) {
-            return null;
-        }
-        EquipmentRequest.SlotData copy = new EquipmentRequest.SlotData();
-        copy.setItemId(source.getItemId());
-        copy.setItemStars(source.getItemStars());
-        copy.setOrbIds(source.getOrbIds() != null ? new ArrayList<>(source.getOrbIds()) : null);
-        copy.setOrbLevels(source.getOrbLevels() != null ? new ArrayList<>(source.getOrbLevels()) : null);
-        copy.setDrifIds(source.getDrifIds() != null ? new ArrayList<>(source.getDrifIds()) : null);
-        copy.setDrifLevels(source.getDrifLevels() != null ? new HashMap<>(source.getDrifLevels()) : null);
-        return copy;
     }
 
     private void ensureSize(List<Long> values, int size) {

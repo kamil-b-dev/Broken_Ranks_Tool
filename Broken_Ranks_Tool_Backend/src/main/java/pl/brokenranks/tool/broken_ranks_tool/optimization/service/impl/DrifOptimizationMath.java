@@ -69,16 +69,23 @@ class DrifOptimizationMath {
     static double calculateDrifValue(DrifTemplate drif, int level) {
         if (drif.getBaseValue() == null || drif.getIncrement() == null) return 0.0;
         try {
-            double total = Double.parseDouble(drif.getBaseValue().replace("%", "")
-                    .replace(",", ".").trim());
-            double increment = Double.parseDouble(drif.getIncrement().replace("%", "")
-                    .replace(",", ".").trim());
+            double total = parseModifierNumber(drif.getBaseValue());
+            double increment = parseModifierNumber(drif.getIncrement());
             for (int current = 2; current <= level; current++) {
-                total += current >= 19 && current <= 21 ? increment * 2 : increment;
+                total += incrementForLevel(increment, current);
             }
             return total;
         } catch (NumberFormatException exception) {
             return 0.0;
         }
+    }
+
+    private double parseModifierNumber(String value) {
+        return Double.parseDouble(value.replace("%", "")
+                .replace(",", ".").trim());
+    }
+
+    private double incrementForLevel(double increment, int level) {
+        return level >= 19 && level <= 21 ? increment * 2 : increment;
     }
 }

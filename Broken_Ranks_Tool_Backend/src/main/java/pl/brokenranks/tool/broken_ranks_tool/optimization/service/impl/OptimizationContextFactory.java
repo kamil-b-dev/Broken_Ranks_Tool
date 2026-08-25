@@ -39,40 +39,53 @@ final class OptimizationContextFactory {
 
     OptimizationContext create(OptimizationRequest request, int beamSearchSteps,
                                int maximizationSearchSteps, int refinementSearchSteps) {
+        Map<Long, ItemTemplate> items = loadItems(request);
+        Map<Long, DrifTemplate> drifs = loadDrifs();
+        List<SlotContext> slots = buildSlots(request, items, drifs);
+        return new OptimizationContext(request, items, drifs, slots, groupSlotsByDrifBonus(slots),
+                sortedPriorities(request), sortedQuantities(request), new SearchBudget(beamSearchSteps),
+                new SearchBudget(maximizationSearchSteps), new SearchBudget(refinementSearchSteps),
+                new EnumMap<>(DRIF_BONUS_TYPE.class), new EnumMap<>(DRIF_BONUS_TYPE.class), new HashMap<>(),
+                new HashMap<>(), new HashMap<>());
+    }
+
+    private Map<Long, ItemTemplate> loadItems(OptimizationRequest request) {
         List<Long> itemIds = request.getOriginalSlots().values().stream()
                 .filter(Objects::nonNull)
                 .map(EquipmentRequest.SlotData::getItemId)
                 .filter(Objects::nonNull)
                 .sorted()
                 .toList();
-
-        Map<Long, ItemTemplate> items = itemRepository.findAllById(itemIds).stream()
+        return itemRepository.findAllById(itemIds).stream()
                 .sorted(Comparator.comparing(ItemTemplate::getId))
                 .collect(Collectors.toMap(ItemTemplate::getId, Function.identity(),
                         (left, right) -> left, LinkedHashMap::new));
-        Map<Long, DrifTemplate> drifs = drifRepository.findAll().stream()
+    }
+
+    private Map<Long, DrifTemplate> loadDrifs() {
+        return drifRepository.findAll().stream()
                 .sorted(Comparator.comparing(DrifTemplate::getId))
                 .collect(Collectors.toMap(DrifTemplate::getId, Function.identity(),
                         (left, right) -> left, LinkedHashMap::new));
+    }
 
-        List<SlotContext> slots = buildSlots(request, items, drifs);
-        Map<Double, List<SlotContext>> slotsByDrifBonus = slots.stream()
-                .collect(Collectors.groupingBy(SlotContext::drifBonus,
-                        LinkedHashMap::new, Collectors.toList()));
-        List<Map.Entry<DRIF_BONUS_TYPE, Integer>> sortedPriorities =
-                request.getPriorities().entrySet().stream()
-                        .sorted(Map.Entry.comparingByKey(Comparator.comparing(Enum::name)))
-                        .toList();
-        List<Map.Entry<DRIF_BONUS_TYPE, OptimizationRequest.QuantityRange>> sortedQuantities =
-                safeQuantities(request).entrySet().stream()
-                        .sorted(Map.Entry.comparingByKey(Comparator.comparing(Enum::name)))
-                        .toList();
+    private Map<Double, List<SlotContext>> groupSlotsByDrifBonus(List<SlotContext> slots) {
+        return slots.stream().collect(Collectors.groupingBy(SlotContext::drifBonus,
+                LinkedHashMap::new, Collectors.toList()));
+    }
 
-        return new OptimizationContext(request, items, drifs, slots, slotsByDrifBonus,
-                sortedPriorities, sortedQuantities, new SearchBudget(beamSearchSteps),
-                new SearchBudget(maximizationSearchSteps), new SearchBudget(refinementSearchSteps),
-                new EnumMap<>(DRIF_BONUS_TYPE.class), new EnumMap<>(DRIF_BONUS_TYPE.class), new HashMap<>(),
-                new HashMap<>(), new HashMap<>());
+    private List<Map.Entry<DRIF_BONUS_TYPE, Integer>> sortedPriorities(
+            OptimizationRequest request) {
+        return request.getPriorities().entrySet().stream()
+                .sorted(Map.Entry.comparingByKey(Comparator.comparing(Enum::name)))
+                .toList();
+    }
+
+    private List<Map.Entry<DRIF_BONUS_TYPE, OptimizationRequest.QuantityRange>> sortedQuantities(
+            OptimizationRequest request) {
+        return safeQuantities(request).entrySet().stream()
+                .sorted(Map.Entry.comparingByKey(Comparator.comparing(Enum::name)))
+                .toList();
     }
 
     private List<SlotContext> buildSlots(OptimizationRequest request,
@@ -81,7 +94,9 @@ final class OptimizationContextFactory {
         List<SlotContext> slots = new ArrayList<>();
         request.getOriginalSlots().entrySet().stream()
                 .sorted(Map.Entry.comparingByKey())
-                .forEach(entry -> addSlot(entry, request, items, drifs, slots));
+                .map(entry -> createSlot(entry, request, items, drifs))
+                .filter(Objects::nonNull)
+                .forEach(slots::add);
 
         slots.sort(Comparator.comparingDouble(SlotContext::drifBonus).reversed()
                 .thenComparing(SlotContext::key));
@@ -93,16 +108,15 @@ final class OptimizationContextFactory {
         return slots;
     }
 
-    private void addSlot(Map.Entry<String, EquipmentRequest.SlotData> entry,
-                         OptimizationRequest request,
-                         Map<Long, ItemTemplate> items,
-                         Map<Long, DrifTemplate> drifs,
-                         List<SlotContext> slots) {
+    private SlotContext createSlot(Map.Entry<String, EquipmentRequest.SlotData> entry,
+                                   OptimizationRequest request,
+                                   Map<Long, ItemTemplate> items,
+                                   Map<Long, DrifTemplate> drifs) {
         EquipmentRequest.SlotData slotData = entry.getValue();
-        if (slotData == null || slotData.getItemId() == null) return;
+        if (slotData == null || slotData.getItemId() == null) return null;
 
         ItemTemplate item = items.get(slotData.getItemId());
-        if (item == null || !validator.isValidItem(item, entry.getKey())) return;
+        if (item == null || !validator.isValidItem(item, entry.getKey())) return null;
 
         int stars = slotData.getItemStars() != null ? slotData.getItemStars() : 1;
         boolean special = item.getRarity() == RARITY.EPIC || item.getRarity() == RARITY.SET;
@@ -116,8 +130,8 @@ final class OptimizationContextFactory {
                 ? request.getLockedDrifs().getOrDefault(entry.getKey(), Set.of())
                 : Set.of();
 
-        slots.add(new SlotContext(entry.getKey(), slotData, item, capacity, maxDrifs,
-                drifBonus, candidates, lockedIndices, special));
+        return new SlotContext(entry.getKey(), slotData, item, capacity, maxDrifs,
+                drifBonus, candidates, lockedIndices, special);
     }
 
     private List<DrifTemplate> candidatesForSlot(String slotKey, ItemTemplate item,

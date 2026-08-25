@@ -21,37 +21,52 @@ final class MaximizedDrifBonusPrelock {
     private final EquipmentRulesRegistry rules;
 
     void apply(BuildState state, OptimizationContext context) {
-        List<DRIF_BONUS_TYPE> types = context.request().getMaximizeBonuses().stream()
+        List<SlotContext> slots = eligibleSlots(context);
+        for (DRIF_BONUS_TYPE type : maximizedTypes(context)) {
+            prelockType(state, slots, type, context);
+        }
+    }
+
+    private List<DRIF_BONUS_TYPE> maximizedTypes(OptimizationContext context) {
+        return context.request().getMaximizeBonuses().stream()
                 .sorted(Comparator
                         .comparingInt((DRIF_BONUS_TYPE type) ->
                                 context.request().getPriorities().getOrDefault(type, 0)).reversed()
                         .thenComparing(Enum::name))
                 .toList();
-        List<SlotContext> slots = context.slots().stream()
+    }
+
+    private List<SlotContext> eligibleSlots(OptimizationContext context) {
+        return context.slots().stream()
                 .filter(SlotContext::optimizable)
                 .filter(slot -> context.request().getLockedSlots() == null
                         || !context.request().getLockedSlots().contains(slot.key()))
                 .sorted(Comparator.comparingDouble(SlotContext::drifBonus).reversed()
                         .thenComparing(SlotContext::key))
                 .toList();
+    }
 
-        for (DRIF_BONUS_TYPE type : types) {
-            int count = count(state, type);
-            int prelockTarget = Math.min(minQuantity(type, context.request()),
-                    maxQuantity(type, context.request()));
-            for (SlotContext slot : slots) {
-                if (count >= prelockTarget) break;
-                List<Placement> placements = state.slots.get(slot.key());
-                if (contains(placements, type) || containsOtherElemental(state, type)) continue;
-                int position = firstFreePosition(placements, slot);
-                if (position < 0) continue;
-                DrifTemplate drif = maximumFittingDrif(slot, placements, type);
-                if (drif == null) continue;
-                state.setPlacement(slot.key(), position,
-                        new Placement(drif, drif.getSize().getMaxLevel(), true));
-                count++;
-            }
+    private void prelockType(BuildState state, List<SlotContext> slots,
+                             DRIF_BONUS_TYPE type, OptimizationContext context) {
+        int count = count(state, type);
+        int target = Math.min(minQuantity(type, context.request()),
+                maxQuantity(type, context.request()));
+        for (SlotContext slot : slots) {
+            if (count >= target) return;
+            if (tryPrelock(state, slot, type)) count++;
         }
+    }
+
+    private boolean tryPrelock(BuildState state, SlotContext slot, DRIF_BONUS_TYPE type) {
+        List<Placement> placements = state.slots.get(slot.key());
+        if (contains(placements, type) || containsOtherElemental(state, type)) return false;
+        int position = firstFreePosition(placements, slot);
+        if (position < 0) return false;
+        DrifTemplate drif = maximumFittingDrif(slot, placements, type);
+        if (drif == null) return false;
+        state.setPlacement(slot.key(), position,
+                new Placement(drif, drif.getSize().getMaxLevel(), true));
+        return true;
     }
 
     private DrifTemplate maximumFittingDrif(SlotContext slot, List<Placement> placements,
