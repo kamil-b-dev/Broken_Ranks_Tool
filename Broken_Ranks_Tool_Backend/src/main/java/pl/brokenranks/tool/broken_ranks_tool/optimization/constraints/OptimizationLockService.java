@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /** Applies user locks so optimization changes only unlocked equipment elements. */
@@ -146,14 +147,14 @@ public class OptimizationLockService {
                 return false;
             }
             for (Integer index : entry.getValue() != null ? entry.getValue() : Set.<Integer>of()) {
-                if (index == null || !java.util.Objects.equals(
+                if (index == null || !Objects.equals(
                         valueAt(expectedSlot.getDrifIds(), index),
                         valueAt(actualSlot.getDrifIds(), index))) {
                     return false;
                 }
                 Integer expectedLevel = levelAt(expectedSlot.getDrifLevels(), index);
                 Integer actualLevel = levelAt(actualSlot.getDrifLevels(), index);
-                if (expectedLevel == null ? actualLevel != null : !expectedLevel.equals(actualLevel)) {
+                if (!Objects.equals(expectedLevel, actualLevel)) {
                     return false;
                 }
             }
@@ -194,12 +195,12 @@ public class OptimizationLockService {
         if (first == null || second == null) {
             return first == second;
         }
-        return java.util.Objects.equals(first.getItemId(), second.getItemId())
-                && java.util.Objects.equals(first.getItemStars(), second.getItemStars())
-                && java.util.Objects.equals(first.getOrbIds(), second.getOrbIds())
-                && java.util.Objects.equals(first.getOrbLevels(), second.getOrbLevels())
-                && java.util.Objects.equals(first.getDrifIds(), second.getDrifIds())
-                && java.util.Objects.equals(first.getDrifLevels(), second.getDrifLevels());
+        return Objects.equals(first.getItemId(), second.getItemId())
+                && Objects.equals(first.getItemStars(), second.getItemStars())
+                && Objects.equals(first.getOrbIds(), second.getOrbIds())
+                && Objects.equals(first.getOrbLevels(), second.getOrbLevels())
+                && Objects.equals(first.getDrifIds(), second.getDrifIds())
+                && Objects.equals(first.getDrifLevels(), second.getDrifLevels());
     }
 
     private Long valueAt(List<Long> values, int index) {
