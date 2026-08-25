@@ -1,5 +1,15 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.service.impl;
 
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context.OptimizationContextFactory;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context.OptimizationInitialStateFactory;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context.OptimizationRequestValidator;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.GeneratedOptimizationVariant;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultAssembler;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationSearchPipeline;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.neighborhood.OptimizationLargeNeighborhoodSearch;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.variant.OptimizationVariantGenerator;
+
 import org.springframework.stereotype.Service;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRulesRegistry;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
@@ -17,8 +27,8 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.service.ModsOptimizati
 import java.util.List;
 import java.util.Map;
 
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.service.impl.OptimizationSearchModel.BuildState;
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.service.impl.OptimizationSearchModel.OptimizationContext;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.BuildState;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.OptimizationContext;
 
 /** Coordinates optimizer input, search execution, and API response assembly. */
 @Service
@@ -30,7 +40,6 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
 
     private final OptimizationContextFactory contextFactory;
     private final OptimizationSearchPipeline searchPipeline;
-    private final OptimizationSelectedBonusMaximizer selectedBonusMaximizer;
     private final OptimizationResultAssembler resultAssembler;
     private final OptimizationVariantGenerator variantGenerator;
 
@@ -55,25 +64,9 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
 
         OptimizationInitialStateFactory initialStateFactory =
                 new OptimizationInitialStateFactory(validator);
-        OptimizationStateOperations stateOperations =
-                new OptimizationStateOperations(validator, rules, stateEvaluator);
-        OptimizationLevelAllocator levelAllocator =
-                new OptimizationLevelAllocator(stateOperations);
-        OptimizationRequirementSatisfier requirementSatisfier =
-                new OptimizationRequirementSatisfier(stateOperations, levelAllocator);
-        OptimizationGreedySearch greedySearch = new OptimizationGreedySearch(
-                initialStateFactory, new MaximizedDrifBonusPrelock(rules),
-                resultAssembler, requirementSatisfier, stateOperations);
-        OptimizationBeamSearch beamSearch = new OptimizationBeamSearch(
-                initialStateFactory, requirementSatisfier, levelAllocator, stateOperations);
-        OptimizationDeterministicRefiner deterministicRefiner =
-                new OptimizationDeterministicRefiner(
-                        stateOperations, levelAllocator, requirementSatisfier);
-        this.selectedBonusMaximizer = new OptimizationSelectedBonusMaximizer(
-                stateOperations, stateEvaluator, resultAssembler);
         this.searchPipeline = new OptimizationSearchPipeline(
-                greedySearch, beamSearch, levelAllocator, requirementSatisfier,
-                deterministicRefiner, selectedBonusMaximizer, largeNeighborhoodSearch);
+                validator, rules, stateEvaluator, resultAssembler,
+                initialStateFactory, largeNeighborhoodSearch);
     }
 
     /**
@@ -109,7 +102,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
 
     /** Retained as a package-level seam for focused maximization tests. */
     BuildState maximizeSelectedBonuses(BuildState state, OptimizationContext context) {
-        return selectedBonusMaximizer.maximize(state, context);
+        return searchPipeline.maximizeSelectedBonuses(state, context);
     }
 
     private OptimizationContext createContext(OptimizationRequest request) {
@@ -128,7 +121,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
 
         EquipmentRequest optimizedSetup = resultAssembler.toSetup(state, context);
         List<String> forcedCapWarnings = resultAssembler.forcedCapWarnings(state, context);
-        List<OptimizationVariantGenerator.GeneratedVariant> variants =
+        List<GeneratedOptimizationVariant> variants =
                 context.request().isGenerateVariants()
                         ? variantGenerator.generate(
                         state, context, searchResult.evaluatedStates())
