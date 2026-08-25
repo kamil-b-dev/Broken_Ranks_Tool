@@ -1,4 +1,9 @@
-package pl.brokenranks.tool.broken_ranks_tool.optimization.service.impl;
+package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.neighborhood;
+
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultAssembler;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.variant.OptimizationVariantGenerator;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.GeneratedOptimizationVariant;
 
 import org.junit.jupiter.api.Test;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
@@ -25,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.service.impl.OptimizationSearchModel.*;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
 
 class OptimizationLargeNeighborhoodSearchTests {
 
@@ -87,24 +92,24 @@ class OptimizationLargeNeighborhoodSearchTests {
                 new EnumMap<>(DRIF_BONUS_TYPE.class), new EnumMap<>(DRIF_BONUS_TYPE.class),
                 new HashMap<>(), new HashMap<>(), new HashMap<>());
         BuildState initial = new BuildState();
-        initial.slots.put("low", new ArrayList<>(List.of(new Placement(magic, 21, false))));
-        initial.slots.put("high", new ArrayList<>(List.of(new Placement(defense, 21, false))));
+        initial.slots().put("low", new ArrayList<>(List.of(new Placement(magic, 21, false))));
+        initial.slots().put("high", new ArrayList<>(List.of(new Placement(defense, 21, false))));
 
         OptimizationLargeNeighborhoodSearch.SearchResult result = search.improve(initial, context);
         BuildState improved = result.best();
 
-        assertEquals(magic.getId(), improved.slots.get("high").get(0).drif().getId());
-        assertEquals(defense.getId(), improved.slots.get("low").get(0).drif().getId());
+        assertEquals(magic.getId(), improved.slots().get("high").get(0).drif().getId());
+        assertEquals(defense.getId(), improved.slots().get("low").get(0).drif().getId());
         assertTrue(result.evaluatedStates().stream()
                 .anyMatch(state -> state.signature().equals(initial.signature())));
         assertTrue(result.evaluatedStates().stream()
                 .anyMatch(state -> state.signature().equals(improved.signature())));
-        List<OptimizationVariantGenerator.GeneratedVariant> variants =
+        List<GeneratedOptimizationVariant> variants =
                 new OptimizationVariantGenerator(search, evaluator, assembler)
                         .generate(initial, context, result.evaluatedStates());
         assertTrue(variants.stream().anyMatch(variant ->
                 variant.focus() == DRIF_BONUS_TYPE.DAMAGE_MAGIC
-                        && magic.getId().equals(variant.state().slots.get("high")
+                        && magic.getId().equals(variant.state().slots().get("high")
                         .getFirst().drif().getId())));
     }
 
@@ -162,11 +167,11 @@ class OptimizationLargeNeighborhoodSearchTests {
         placements.add(new Placement(stronger, 21, false));
         placements.add(null);
         placements.add(null);
-        initial.slots.put("helmet", placements);
+        initial.slots().put("helmet", placements);
 
         BuildState improved = search.improve(initial, context).best();
 
-        assertEquals(stronger.getId(), improved.slots.get("helmet").get(0).drif().getId());
+        assertEquals(stronger.getId(), improved.slots().get("helmet").get(0).drif().getId());
     }
 
     @Test
@@ -229,11 +234,11 @@ class OptimizationLargeNeighborhoodSearchTests {
         placements.add(new Placement(mentalDefense, 21, false));
         placements.add(null);
         placements.add(null);
-        initial.slots.put("helmet", placements);
+        initial.slots().put("helmet", placements);
 
         BuildState improved = search.improve(initial, context).best();
 
-        Placement replacement = improved.slots.get("helmet").get(0);
+        Placement replacement = improved.slots().get("helmet").get(0);
         assertEquals(magicDamage.getId(), replacement.drif().getId());
         assertEquals(11, replacement.level());
     }

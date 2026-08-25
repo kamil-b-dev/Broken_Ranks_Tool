@@ -1,4 +1,4 @@
-package pl.brokenranks.tool.broken_ranks_tool.optimization.service.impl;
+package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context;
 
 import lombok.RequiredArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
@@ -8,24 +8,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.service.impl.OptimizationSearchModel.*;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
 
 /** Reconstructs locked and original placements before the search begins. */
 @RequiredArgsConstructor
-final class OptimizationInitialStateFactory {
+public final class OptimizationInitialStateFactory {
 
     private final EquipmentValidator validator;
 
-    BuildState create(OptimizationContext context) {
+    public BuildState create(OptimizationContext context) {
         BuildState state = new BuildState();
         for (SlotContext slot : context.slots()) {
-            List<Placement> placements;
-            if (!slot.optimizable() || isSlotLocked(slot, context)) {
-                placements = readOriginalPlacements(slot, context);
-            } else {
-                placements = createUnlockedPlacements(slot, context);
-            }
-            state.slots.put(slot.key(), placements);
+            List<Placement> placements = mustPreserveEntireSlot(slot, context)
+                    ? readOriginalPlacements(slot, context)
+                    : createUnlockedPlacements(slot, context);
+            state.slots().put(slot.key(), placements);
         }
         return state;
     }
@@ -82,8 +79,8 @@ final class OptimizationInitialStateFactory {
                 .orElse(-1);
     }
 
-    private boolean isSlotLocked(SlotContext slot, OptimizationContext context) {
-        return context.request().getLockedSlots() != null
+    private boolean mustPreserveEntireSlot(SlotContext slot, OptimizationContext context) {
+        return !slot.optimizable() || context.request().getLockedSlots() != null
                 && context.request().getLockedSlots().contains(slot.key());
     }
 }

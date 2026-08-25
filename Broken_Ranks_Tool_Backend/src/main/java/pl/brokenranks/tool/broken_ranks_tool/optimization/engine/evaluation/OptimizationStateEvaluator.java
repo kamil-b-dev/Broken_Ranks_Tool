@@ -1,6 +1,5 @@
-package pl.brokenranks.tool.broken_ranks_tool.optimization.service.impl;
+package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation;
 
-import lombok.RequiredArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRulesRegistry;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
@@ -8,30 +7,32 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationReques
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.service.impl.DrifOptimizationMath.*;
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.service.impl.OptimizationRequestConstraints.*;
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.service.impl.OptimizationSearchModel.*;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.DrifOptimizationMath.*;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationRequestConstraints.*;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
 
 /** Calculates and caches deterministic quality measures for candidate states. */
-@RequiredArgsConstructor
-final class OptimizationStateEvaluator {
+public final class OptimizationStateEvaluator {
 
     private final EquipmentRulesRegistry rules;
+    private final OptimizationMetricsCalculator metricsCalculator;
 
-    boolean isBetterState(BuildState candidate, BuildState current, OptimizationContext context) {
+    public OptimizationStateEvaluator(EquipmentRulesRegistry rules) {
+        this.rules = rules;
+        this.metricsCalculator = new OptimizationMetricsCalculator(rules);
+    }
+
+    public boolean isBetterState(BuildState candidate, BuildState current, OptimizationContext context) {
         int comparison = compareQuality(quality(candidate, context), quality(current, context));
         if (comparison != 0) return comparison > 0;
         return candidate.signature().compareTo(current.signature()) < 0;
     }
 
     /** Compares only hard constraints, forced caps, and maximization objectives. */
-    boolean isBetterMaximizationState(BuildState candidate, BuildState current,
+    public boolean isBetterMaximizationState(BuildState candidate, BuildState current,
                                       OptimizationContext context) {
         Quality candidateQuality = quality(candidate, context);
         Quality currentQuality = quality(current, context);
@@ -48,7 +49,7 @@ final class OptimizationStateEvaluator {
                 currentQuality.maximizedUtility()) > 0;
     }
 
-    Comparator<BuildState> stateComparator(OptimizationContext context) {
+    public Comparator<BuildState> stateComparator(OptimizationContext context) {
         return (left, right) -> {
             int comparison = compareQuality(quality(left, context), quality(right, context));
             if (comparison != 0) return -comparison;
@@ -56,7 +57,7 @@ final class OptimizationStateEvaluator {
         };
     }
 
-    double score(BuildState state, OptimizationContext context) {
+    public double score(BuildState state, OptimizationContext context) {
         StateEvaluation evaluation = evaluation(state, context);
         if (evaluation.score != null) return evaluation.score;
 
@@ -93,25 +94,25 @@ final class OptimizationStateEvaluator {
         return result;
     }
 
-    double calculatedValue(BuildState state, DRIF_BONUS_TYPE type, OptimizationContext context) {
+    public double calculatedValue(BuildState state, DRIF_BONUS_TYPE type, OptimizationContext context) {
         return calculatedValue(metrics(state, context), type, context);
     }
 
-    double currentValue(BuildState state, DRIF_BONUS_TYPE type, OptimizationContext context) {
+    public double currentValue(BuildState state, DRIF_BONUS_TYPE type, OptimizationContext context) {
         return directedValue(type, metrics(state, context).searchValues().getOrDefault(type, 0.0),
                 context.request());
     }
 
-    int globalCount(BuildState state, DRIF_BONUS_TYPE type, OptimizationContext context) {
+    public int globalCount(BuildState state, DRIF_BONUS_TYPE type, OptimizationContext context) {
         return metrics(state, context).searchCounts().getOrDefault(type, 0);
     }
 
-    int globalCountExcept(BuildState state, DRIF_BONUS_TYPE candidate,
+    public int globalCountExcept(BuildState state, DRIF_BONUS_TYPE candidate,
                           DRIF_BONUS_TYPE replaced, OptimizationContext context) {
         return Math.max(0, globalCount(state, candidate, context) - (candidate == replaced ? 1 : 0));
     }
 
-    boolean minimumsSatisfied(BuildState state, OptimizationContext context) {
+    public boolean minimumsSatisfied(BuildState state, OptimizationContext context) {
         for (Map.Entry<DRIF_BONUS_TYPE, OptimizationRequest.QuantityRange> entry
                 : safeQuantities(context.request()).entrySet()) {
             int count = globalCount(state, entry.getKey(), context);
@@ -120,7 +121,7 @@ final class OptimizationStateEvaluator {
         return true;
     }
 
-    Metrics metrics(BuildState state, OptimizationContext context) {
+    public Metrics metrics(BuildState state, OptimizationContext context) {
         return evaluation(state, context).metrics;
     }
 
@@ -199,7 +200,7 @@ final class OptimizationStateEvaluator {
      * The estimate is an optimistic per-slot upper bound and is used only for
      * balancing multiple objectives, not as a hard target.
      */
-    double maximizationScale(DRIF_BONUS_TYPE type, OptimizationContext context) {
+    public double maximizationScale(DRIF_BONUS_TYPE type, OptimizationContext context) {
         Double naturalTarget = maximizationTargetFor(type, context.request());
         if (naturalTarget != null) return naturalTarget;
 
@@ -214,7 +215,7 @@ final class OptimizationStateEvaluator {
                 if (candidate == null) continue;
                 int level = highestLevelForPower(candidate, slot.capacity());
                 if (level <= 0) continue;
-                double contribution = drifValue(candidate, level, context)
+                double contribution = metricsCalculator.drifValue(candidate, level, context)
                         * (1.0 + slot.drifBonus());
                 contributions.add(Math.max(0.0,
                         directedValue(type, contribution, context.request())));
@@ -243,66 +244,8 @@ final class OptimizationStateEvaluator {
         String key = state.signature();
         StateEvaluation cached = context.evaluationCache().get(key);
         if (cached != null) return cached;
-        StateEvaluation calculated = new StateEvaluation(calculateMetrics(state, context));
+        StateEvaluation calculated = new StateEvaluation(metricsCalculator.calculate(state, context));
         context.evaluationCache().put(key, calculated);
         return calculated;
-    }
-
-    private Metrics calculateMetrics(BuildState state, OptimizationContext context) {
-        Map<DRIF_BONUS_TYPE, Integer> counts = new LinkedHashMap<>();
-        Map<DRIF_BONUS_TYPE, Double> rawValues = new LinkedHashMap<>();
-        Map<DRIF_BONUS_TYPE, Integer> searchCounts = new LinkedHashMap<>();
-        Map<DRIF_BONUS_TYPE, Double> searchRawValues = new LinkedHashMap<>();
-        int totalPower = 0;
-        int overflowPower = 0;
-        int usedCapacity = 0;
-        int totalCapacity = 0;
-
-        for (SlotContext slot : context.slots()) {
-            List<Placement> placements = state.slots.getOrDefault(slot.key(), List.of());
-            int used = 0;
-            Set<DRIF_BONUS_TYPE> unique = new HashSet<>();
-            for (Placement placement : placements) {
-                if (placement == null || placement.drif() == null) continue;
-                DRIF_BONUS_TYPE type = placement.drif().getBonusType();
-                double drifValue = drifValue(placement.drif(), placement.level(), context)
-                        * (1.0 + slot.drifBonus());
-                searchCounts.merge(type, 1, Integer::sum);
-                searchRawValues.merge(type, drifValue, Double::sum);
-                if (!unique.add(type)) continue;
-                if (!slot.special()) {
-                    int placementPower = power(placement.drif(), placement.level());
-                    used += placementPower;
-                    totalPower += placementPower;
-                }
-                counts.merge(type, 1, Integer::sum);
-                rawValues.merge(type, drifValue, Double::sum);
-            }
-            if (!slot.special()) {
-                usedCapacity += Math.min(used, slot.capacity());
-                totalCapacity += slot.capacity();
-                overflowPower += Math.max(0, used - slot.capacity());
-            }
-        }
-
-        Map<DRIF_BONUS_TYPE, Double> searchValues = new LinkedHashMap<>();
-        double penaltyLoss = 0;
-        for (Map.Entry<DRIF_BONUS_TYPE, Double> entry : rawValues.entrySet()) {
-            double penalty = rules.getDrifPenalty(counts.getOrDefault(entry.getKey(), 0));
-            penaltyLoss += Math.abs(entry.getValue()) * (1.0 - penalty);
-        }
-        for (Map.Entry<DRIF_BONUS_TYPE, Double> entry : searchRawValues.entrySet()) {
-            double penalty = rules.getDrifPenalty(searchCounts.getOrDefault(entry.getKey(), 0));
-            searchValues.put(entry.getKey(), entry.getValue() * penalty);
-        }
-
-        double utilization = totalCapacity > 0 ? (double) usedCapacity / totalCapacity : 0.0;
-        return new Metrics(counts, searchCounts, searchValues,
-                totalPower, overflowPower, utilization, penaltyLoss);
-    }
-
-    private double drifValue(DrifTemplate drif, int level, OptimizationContext context) {
-        return context.drifValueCache().computeIfAbsent(new DrifLevelKey(drif.getId(), level),
-                ignored -> calculateDrifValue(drif, level));
     }
 }

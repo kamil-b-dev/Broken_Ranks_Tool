@@ -37,7 +37,7 @@ import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.service.impl.OptimizationSearchModel.*;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
 
 class CustomModsOptimizationServiceImplTests {
 
@@ -463,11 +463,11 @@ class CustomModsOptimizationServiceImplTests {
         placements.add(new Placement(mentalDefense, 21, false));
         placements.add(null);
         placements.add(null);
-        state.slots.put("helmet", placements);
+        state.slots().put("helmet", placements);
 
         BuildState result = service.maximizeSelectedBonuses(state, context);
 
-        Placement replacement = result.slots.get("helmet").get(0);
+        Placement replacement = result.slots().get("helmet").get(0);
         assertEquals(magicDamage.getId(), replacement.drif().getId());
         assertEquals(11, replacement.level());
     }

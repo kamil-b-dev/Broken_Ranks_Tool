@@ -1,5 +1,7 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.service.impl;
 
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.DrifOptimizationMath;
+
 import org.junit.jupiter.api.Test;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_SIZE;

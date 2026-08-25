@@ -1,5 +1,6 @@
-package pl.brokenranks.tool.broken_ranks_tool.optimization.service.impl;
+package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result;
 
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
 import org.junit.jupiter.api.Test;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_SIZE;
@@ -25,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.service.impl.OptimizationSearchModel.*;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
 
 class OptimizationResultAssemblerTests {
 
@@ -65,7 +66,7 @@ class OptimizationResultAssemblerTests {
                 new EnumMap<>(DRIF_BONUS_TYPE.class), new EnumMap<>(DRIF_BONUS_TYPE.class),
                 new HashMap<>(), new HashMap<>(), new HashMap<>());
         BuildState state = new BuildState();
-        state.slots.put("helmet", new ArrayList<>(List.of(new Placement(magic, 6, false))));
+        state.slots().put("helmet", new ArrayList<>(List.of(new Placement(magic, 6, false))));
 
         double expected = evaluator.calculatedValue(state, DRIF_BONUS_TYPE.DAMAGE_MAGIC, context);
 
