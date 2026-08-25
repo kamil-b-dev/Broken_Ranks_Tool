@@ -19,12 +19,9 @@ final class OptimizationInitialStateFactory {
     BuildState create(OptimizationContext context) {
         BuildState state = new BuildState();
         for (SlotContext slot : context.slots()) {
-            List<Placement> placements;
-            if (!slot.optimizable() || isSlotLocked(slot, context)) {
-                placements = readOriginalPlacements(slot, context);
-            } else {
-                placements = createUnlockedPlacements(slot, context);
-            }
+            List<Placement> placements = mustPreserveEntireSlot(slot, context)
+                    ? readOriginalPlacements(slot, context)
+                    : createUnlockedPlacements(slot, context);
             state.slots.put(slot.key(), placements);
         }
         return state;
@@ -82,8 +79,8 @@ final class OptimizationInitialStateFactory {
                 .orElse(-1);
     }
 
-    private boolean isSlotLocked(SlotContext slot, OptimizationContext context) {
-        return context.request().getLockedSlots() != null
+    private boolean mustPreserveEntireSlot(SlotContext slot, OptimizationContext context) {
+        return !slot.optimizable() || context.request().getLockedSlots() != null
                 && context.request().getLockedSlots().contains(slot.key());
     }
 }
