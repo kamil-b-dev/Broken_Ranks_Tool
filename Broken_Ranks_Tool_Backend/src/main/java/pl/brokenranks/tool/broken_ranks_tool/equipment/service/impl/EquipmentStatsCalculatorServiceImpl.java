@@ -59,10 +59,10 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
         processSlots(request, ctx, state);
 
         Map<String, String> drifCategories = ctx.drifs().values().stream()
-                .filter(drif -> drif.getBonusType() != null && drif.getBonusType().getCategory() != null)
+                .filter(drif -> drif.getBonusType() != null && drif.getCategory() != null)
                 .collect(Collectors.toMap(
                         drif -> drif.getBonusType().name(),
-                        drif -> drif.getBonusType().getCategory().name(),
+                        drif -> drif.getCategory().name(),
                         (first, ignored) -> first
                 ));
         Set<String> orbBonusTypes = ctx.orbs().values().stream()

@@ -1,8 +1,9 @@
-package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules;
+package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context;
 
 import org.junit.jupiter.api.Test;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationRequestConstraints;
 
 import java.util.Map;
 import java.util.Set;
@@ -11,14 +12,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-class OptimizationRequestConstraintsTests {
+class OptimizationRequestValidatorTests {
 
     @Test
     void usesFivePercentVariantLossWhenOlderRequestOmitsSetting() {
         OptimizationRequest request = new OptimizationRequest();
 
         assertEquals(0.05, OptimizationRequestConstraints.maxVariantRelativeLoss(request));
-        assertNull(OptimizationRequestConstraints.validateQuantityRanges(request));
+        assertNull(OptimizationRequestValidator.validateSettings(request));
     }
 
     @Test
@@ -34,7 +35,7 @@ class OptimizationRequestConstraintsTests {
         OptimizationRequest request = new OptimizationRequest();
         request.setMaxVariantLossPercent(101);
 
-        assertNotNull(OptimizationRequestConstraints.validateQuantityRanges(request));
+        assertNotNull(OptimizationRequestValidator.validateSettings(request));
     }
 
     @Test
@@ -43,6 +44,6 @@ class OptimizationRequestConstraintsTests {
         request.setForcedPercentageTargets(Map.of(DRIF_BONUS_TYPE.CRITICAL_CHANCE, 25.0));
         request.setMaximizeBonuses(Set.of(DRIF_BONUS_TYPE.CRITICAL_CHANCE));
 
-        assertNotNull(OptimizationRequestConstraints.validateQuantityRanges(request));
+        assertNotNull(OptimizationRequestValidator.validateSettings(request));
     }
 }
