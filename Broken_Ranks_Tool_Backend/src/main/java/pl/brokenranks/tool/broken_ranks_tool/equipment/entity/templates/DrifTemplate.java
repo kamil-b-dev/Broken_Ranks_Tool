@@ -5,6 +5,7 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 import pl.brokenranks.tool.broken_ranks_tool.core.entity.BaseNamedEntity;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_CATEGORY;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_SIZE;
 
 /** Defines a reusable drif template. */
@@ -22,6 +23,9 @@ public class DrifTemplate extends BaseNamedEntity {
 
     @Enumerated(EnumType.STRING)
     private DRIF_BONUS_TYPE bonusType;
+
+    @Enumerated(EnumType.STRING)
+    private DRIF_CATEGORY category;
 
     private String baseValue;
     private String increment;
