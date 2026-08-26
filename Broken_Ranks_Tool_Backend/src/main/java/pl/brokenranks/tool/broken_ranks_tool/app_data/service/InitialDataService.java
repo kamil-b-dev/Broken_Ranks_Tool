@@ -39,7 +39,8 @@ public class InitialDataService {
     public InitialDataDto getInitialData() {
         var items = itemRepository.findAll();
         var orbs = orbRepository.findAll();
-        var drifs = drifRepository.findAll().stream().map(DrifTemplateDto::fromEntity).collect(Collectors.toList());
+        var drifEntities = drifRepository.findAll();
+        var drifs = drifEntities.stream().map(DrifTemplateDto::fromEntity).collect(Collectors.toList());
 
         var dictionaries = new DictionariesDto(
                 getEnumMap(ITEM_CATEGORY.class, ITEM_CATEGORY::getDescription),
@@ -59,8 +60,13 @@ public class InitialDataService {
             drifMaxCaps.put(type.name(), type.getMaxCap());
         }
 
-        Map<String, String> drifBonusCategories = Arrays.stream(DRIF_BONUS_TYPE.values())
-                .collect(Collectors.toMap(Enum::name, type -> type.getCategory().name()));
+        Map<String, String> drifBonusCategories = drifEntities.stream()
+                .filter(drif -> drif.getBonusType() != null && drif.getCategory() != null)
+                .collect(Collectors.toMap(
+                        drif -> drif.getBonusType().name(),
+                        drif -> drif.getCategory().name(),
+                        (first, ignored) -> first
+                ));
         Map<Integer, Double> drifPenaltyMultipliers = java.util.stream.IntStream.rangeClosed(1, 12)
                 .boxed()
                 .collect(Collectors.toMap(count -> count, rulesRegistry::getDrifPenalty));

@@ -12,7 +12,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.DrifOptimizationMath.*;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationRequestConstraints.*;
@@ -28,6 +27,7 @@ final class OptimizationDirectedMoveSearch {
 
     private final OptimizationStateEvaluator stateEvaluator;
     private final OptimizationActualStateComparator actualStateComparator;
+    private final OptimizationNeighborhoodSupport neighborhoodSupport;
 
     BuildState improve(BuildState current, OptimizationContext context,
                        OptimizationNeighborhoodSearchControl control) {
@@ -59,7 +59,7 @@ final class OptimizationDirectedMoveSearch {
     private List<SlotContext> eligibleSlots(OptimizationContext context) {
         return context.slots().stream()
                 .filter(SlotContext::optimizable)
-                .filter(slot -> !isSlotLocked(slot, context))
+                .filter(slot -> !neighborhoodSupport.isSlotLocked(slot, context))
                 .sorted(Comparator.comparingDouble(SlotContext::drifBonus))
                 .toList();
     }
@@ -67,7 +67,7 @@ final class OptimizationDirectedMoveSearch {
     private List<BuildState> finalists(List<BuildState> candidates,
                                        OptimizationContext context) {
         Map<String, BuildState> finalists = new LinkedHashMap<>();
-        retainApproximateBeam(candidates, context).stream()
+        neighborhoodSupport.retainApproximateBeam(candidates, context).stream()
                 .limit(DIRECTED_FINALISTS)
                 .forEach(state -> finalists.putIfAbsent(state.signature(), state));
         if (context.request().getMaximizeBonuses() != null) {
@@ -112,7 +112,7 @@ final class OptimizationDirectedMoveSearch {
             BuildState state, SlotContext low, SlotContext high,
             int lowPosition, int highPosition, Placement promoted, Placement displaced,
             OptimizationContext context) {
-        if (!isMovable(displaced, high, highPosition) || !accepts(high, promoted)
+        if (!neighborhoodSupport.isMovable(displaced, high, highPosition) || !accepts(high, promoted)
                 || (displaced != null && !accepts(low, displaced))) return null;
         BuildState trial = state.copy();
         trial.setPlacement(low.key(), lowPosition, displaced);
@@ -134,11 +134,11 @@ final class OptimizationDirectedMoveSearch {
         int repairs = 0;
         for (SlotContext slot : context.slots()) {
             if (repairs >= MAX_CAP_REPAIRS_PER_SWAP || control.exhausted()) return;
-            if (!slot.optimizable() || isSlotLocked(slot, context)) continue;
+            if (!slot.optimizable() || neighborhoodSupport.isSlotLocked(slot, context)) continue;
             DrifTemplate targetDrif = candidateForType(slot, targetType);
             if (targetDrif == null) continue;
             List<Placement> placements = state.slots().get(slot.key());
-            if (containsBonusExcept(placements, targetType, -1)) continue;
+            if (neighborhoodSupport.containsBonusExcept(placements, targetType, -1)) continue;
             repairs += addTargetRepairsInSlot(state, slot, targetDrif, placements,
                     context, control, candidates,
                     MAX_CAP_REPAIRS_PER_SWAP - repairs);
@@ -155,7 +155,8 @@ final class OptimizationDirectedMoveSearch {
         for (int position = 0; position < limit && repairs < remainingRepairs; position++) {
             Placement removed = placements.get(position);
             if (!isReplaceableOptional(removed, slot, position, context)) continue;
-            for (Integer level : fittingLevels(placements, slot, targetDrif, position)) {
+            for (Integer level : neighborhoodSupport.fittingLevels(
+                    placements, slot, targetDrif, position)) {
                 if (!control.tryConsume()) return repairs;
                 BuildState repaired = state.copy();
                 repaired.setPlacement(slot.key(), position,
@@ -183,7 +184,8 @@ final class OptimizationDirectedMoveSearch {
             if (repairs >= MAX_MINIMUM_REPAIRS_PER_CAP || control.exhausted()) return;
             if (!acceptsMinimumRepairSlot(slot, missing, excludedSlotKey, context)) continue;
             List<Placement> placements = state.slots().get(slot.key());
-            if (containsBonusExcept(placements, missing.drif().getBonusType(), -1)) continue;
+            if (neighborhoodSupport.containsBonusExcept(
+                    placements, missing.drif().getBonusType(), -1)) continue;
             repairs += addMinimumRepairsInSlot(state, slot, missing, placements,
                     context, control, candidates,
                     MAX_MINIMUM_REPAIRS_PER_CAP - repairs);
@@ -200,7 +202,8 @@ final class OptimizationDirectedMoveSearch {
         for (int position = 0; position < limit && repairs < remainingRepairs; position++) {
             Placement victim = placements.get(position);
             if (!isReplaceableOptional(victim, slot, position, context)) continue;
-            for (Integer level : fittingLevels(placements, slot, missing.drif(), position)) {
+            for (Integer level : neighborhoodSupport.fittingLevels(
+                    placements, slot, missing.drif(), position)) {
                 if (!control.tryConsume()) return repairs;
                 BuildState repaired = state.copy();
                 repaired.setPlacement(slot.key(), position,
@@ -220,13 +223,13 @@ final class OptimizationDirectedMoveSearch {
             SlotContext slot, Placement missing, String excludedSlotKey,
             OptimizationContext context) {
         return !slot.key().equals(excludedSlotKey) && slot.optimizable()
-                && !isSlotLocked(slot, context) && accepts(slot, missing);
+                && !neighborhoodSupport.isSlotLocked(slot, context) && accepts(slot, missing);
     }
 
     private boolean isReplaceableOptional(
             Placement placement, SlotContext slot, int position,
             OptimizationContext context) {
-        return isMovable(placement, slot, position)
+        return neighborhoodSupport.isMovable(placement, slot, position)
                 && (placement == null
                 || !isForcedTarget(placement.drif().getBonusType(), context.request())
                 && !isMaximized(placement.drif().getBonusType(), context.request()));
@@ -234,13 +237,8 @@ final class OptimizationDirectedMoveSearch {
 
     private boolean isMovableMaximized(Placement placement, SlotContext slot, int position,
                                        OptimizationContext context) {
-        return isMovable(placement, slot, position) && placement != null
+        return neighborhoodSupport.isMovable(placement, slot, position) && placement != null
                 && isMaximized(placement.drif().getBonusType(), context.request());
-    }
-
-    private boolean isMovable(Placement placement, SlotContext slot, int position) {
-        return !slot.lockedIndices().contains(position)
-                && (placement == null || !placement.locked());
     }
 
     private boolean accepts(SlotContext slot, Placement placement) {
@@ -263,54 +261,4 @@ final class OptimizationDirectedMoveSearch {
         return false;
     }
 
-    private List<Integer> fittingLevels(List<Placement> placements, SlotContext slot,
-                                        DrifTemplate candidate, int replacedIndex) {
-        int availablePower = slot.capacity() - usedPowerExcept(placements, replacedIndex);
-        if (availablePower < candidate.getBonusType().getBasePower()) return List.of();
-        int highest = highestLevelForPower(candidate, availablePower);
-        Set<Integer> levels = new TreeSet<>(Comparator.reverseOrder());
-        levels.add(highest);
-        for (int level : List.of(6, 11, 16, 21)) {
-            if (level <= highest && level <= candidate.getSize().getMaxLevel()) levels.add(level);
-        }
-        return new ArrayList<>(levels);
-    }
-
-    private List<BuildState> retainApproximateBeam(List<BuildState> states,
-                                                    OptimizationContext context) {
-        Map<String, BuildState> unique = new LinkedHashMap<>();
-        states.forEach(state -> unique.putIfAbsent(state.signature(), state));
-        List<BuildState> retained = new ArrayList<>(unique.values());
-        retained.sort((left, right) -> compareApproximate(left, right, context));
-        return retained;
-    }
-
-    private int compareApproximate(BuildState left, BuildState right,
-                                   OptimizationContext context) {
-        if (hasMaximizedTypes(context)) {
-            boolean leftBetter = stateEvaluator.isBetterMaximizationState(left, right, context);
-            boolean rightBetter = stateEvaluator.isBetterMaximizationState(right, left, context);
-            if (leftBetter != rightBetter) return leftBetter ? -1 : 1;
-        }
-        return stateEvaluator.stateComparator(context).compare(left, right);
-    }
-
-    private boolean containsBonusExcept(List<Placement> placements,
-                                        DRIF_BONUS_TYPE type, int ignoredIndex) {
-        for (int index = 0; index < placements.size(); index++) {
-            if (index != ignoredIndex && placements.get(index) != null
-                    && placements.get(index).drif().getBonusType() == type) return true;
-        }
-        return false;
-    }
-
-    private boolean isSlotLocked(SlotContext slot, OptimizationContext context) {
-        return context.request().getLockedSlots() != null
-                && context.request().getLockedSlots().contains(slot.key());
-    }
-
-    private boolean hasMaximizedTypes(OptimizationContext context) {
-        return context.request().getMaximizeBonuses() != null
-                && !context.request().getMaximizeBonuses().isEmpty();
-    }
 }

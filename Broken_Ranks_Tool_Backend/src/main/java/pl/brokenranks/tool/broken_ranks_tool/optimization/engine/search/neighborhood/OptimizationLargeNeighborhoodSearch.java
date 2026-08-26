@@ -9,11 +9,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemp
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
 
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.DrifOptimizationMath.*;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationRequestConstraints.maxQuantity;
@@ -30,6 +26,7 @@ public final class OptimizationLargeNeighborhoodSearch {
     private final EquipmentRulesRegistry rules;
     private final OptimizationStateEvaluator stateEvaluator;
     private final OptimizationActualStateComparator actualStateComparator;
+    private final OptimizationNeighborhoodSupport neighborhoodSupport;
     private final OptimizationDirectedMoveSearch directedMoveSearch;
 
     public OptimizationLargeNeighborhoodSearch(
@@ -39,8 +36,9 @@ public final class OptimizationLargeNeighborhoodSearch {
         this.stateEvaluator = stateEvaluator;
         this.actualStateComparator = new OptimizationActualStateComparator(
                 stateEvaluator, resultAssembler);
+        this.neighborhoodSupport = new OptimizationNeighborhoodSupport(stateEvaluator);
         this.directedMoveSearch = new OptimizationDirectedMoveSearch(
-                stateEvaluator, actualStateComparator);
+                stateEvaluator, actualStateComparator, neighborhoodSupport);
     }
 
     public SearchResult improve(BuildState initial, OptimizationContext context) {
@@ -82,7 +80,9 @@ public final class OptimizationLargeNeighborhoodSearch {
                 if (control.exhausted()) break;
                 expanded.addAll(slotNeighbors(state, slot, context, control));
             }
-            beam = retainApproximateBeam(expanded, context);
+            beam = neighborhoodSupport.retainApproximateBeam(expanded, context).stream()
+                    .limit(GROUP_BEAM_WIDTH)
+                    .toList();
             if (beam.isEmpty() || control.exhausted()) break;
         }
         return bestActualFinalist(current, beam, context, control);
@@ -107,13 +107,13 @@ public final class OptimizationLargeNeighborhoodSearch {
             OptimizationNeighborhoodSearchControl control) {
         List<BuildState> neighbors = new ArrayList<>();
         neighbors.add(state);
-        if (!slot.optimizable() || isSlotLocked(slot, context)) return neighbors;
+        if (!slot.optimizable() || neighborhoodSupport.isSlotLocked(slot, context)) return neighbors;
 
         List<Placement> placements = state.slots().get(slot.key());
         int placementLimit = Math.min(placements.size(), slot.maxDrifs());
         for (int index = 0; index < placementLimit && !control.exhausted(); index++) {
             Placement current = placements.get(index);
-            if (!isMovable(current, slot, index)) continue;
+            if (!neighborhoodSupport.isMovable(current, slot, index)) continue;
             addRemovalNeighbor(state, slot, index, current, context, control, neighbors);
             addReplacementNeighbors(state, slot, index, current,
                     placements, context, control, neighbors);
@@ -138,7 +138,8 @@ public final class OptimizationLargeNeighborhoodSearch {
         for (DrifTemplate candidate : slot.candidates()) {
             if (control.exhausted()) return;
             if (!isReplacementAllowed(state, placements, index, current, candidate, context)) continue;
-            for (Integer level : fittingLevels(placements, slot, candidate, index)) {
+            for (Integer level : neighborhoodSupport.fittingLevels(
+                    placements, slot, candidate, index)) {
                 if (!control.tryConsume()) return;
                 if (samePlacement(current, candidate, level)) continue;
                 BuildState trial = state.copy();
@@ -158,7 +159,7 @@ public final class OptimizationLargeNeighborhoodSearch {
         DRIF_BONUS_TYPE candidateType = candidate.getBonusType();
         DRIF_BONUS_TYPE replacedType = current != null
                 ? current.drif().getBonusType() : null;
-        return !containsBonusExcept(placements, candidateType, index)
+        return !neighborhoodSupport.containsBonusExcept(placements, candidateType, index)
                 && stateEvaluator.globalCountExcept(
                 state, candidateType, replacedType, context)
                 < maxQuantity(candidateType, context.request())
@@ -168,39 +169,6 @@ public final class OptimizationLargeNeighborhoodSearch {
     private boolean samePlacement(Placement current, DrifTemplate candidate, int level) {
         return current != null && current.drif().getId().equals(candidate.getId())
                 && current.level() == level;
-    }
-
-    private List<BuildState> retainApproximateBeam(List<BuildState> states,
-                                                   OptimizationContext context) {
-        Map<String, BuildState> unique = new LinkedHashMap<>();
-        states.forEach(state -> unique.putIfAbsent(state.signature(), state));
-        List<BuildState> retained = new ArrayList<>(unique.values());
-        retained.sort((left, right) -> compareApproximate(left, right, context));
-        return retained.stream().limit(GROUP_BEAM_WIDTH).toList();
-    }
-
-    private int compareApproximate(BuildState left, BuildState right,
-                                   OptimizationContext context) {
-        if (hasMaximizedTypes(context)) {
-            boolean leftBetter = stateEvaluator.isBetterMaximizationState(left, right, context);
-            boolean rightBetter = stateEvaluator.isBetterMaximizationState(right, left, context);
-            if (leftBetter != rightBetter) return leftBetter ? -1 : 1;
-        }
-        return stateEvaluator.stateComparator(context).compare(left, right);
-    }
-
-    private List<Integer> fittingLevels(
-            List<Placement> placements, SlotContext slot,
-            DrifTemplate candidate, int replacedIndex) {
-        int availablePower = slot.capacity() - usedPowerExcept(placements, replacedIndex);
-        if (availablePower < candidate.getBonusType().getBasePower()) return List.of();
-        int highest = highestLevelForPower(candidate, availablePower);
-        Set<Integer> levels = new TreeSet<>(Comparator.reverseOrder());
-        levels.add(highest);
-        for (int level : List.of(6, 11, 16, 21)) {
-            if (level <= highest && level <= candidate.getSize().getMaxLevel()) levels.add(level);
-        }
-        return new ArrayList<>(levels);
     }
 
     private List<List<SlotContext>> buildGroups(List<SlotContext> slots) {
@@ -246,31 +214,6 @@ public final class OptimizationLargeNeighborhoodSearch {
             }
         }
         return false;
-    }
-
-    private boolean containsBonusExcept(
-            List<Placement> placements, DRIF_BONUS_TYPE type, int ignoredIndex) {
-        for (int index = 0; index < placements.size(); index++) {
-            Placement placement = placements.get(index);
-            if (index != ignoredIndex && placement != null
-                    && placement.drif().getBonusType() == type) return true;
-        }
-        return false;
-    }
-
-    private boolean isMovable(Placement placement, SlotContext slot, int position) {
-        return !slot.lockedIndices().contains(position)
-                && (placement == null || !placement.locked());
-    }
-
-    private boolean isSlotLocked(SlotContext slot, OptimizationContext context) {
-        return context.request().getLockedSlots() != null
-                && context.request().getLockedSlots().contains(slot.key());
-    }
-
-    private boolean hasMaximizedTypes(OptimizationContext context) {
-        return context.request().getMaximizeBonuses() != null
-                && !context.request().getMaximizeBonuses().isEmpty();
     }
 
     public record SearchResult(BuildState best, List<BuildState> evaluatedStates) { }
