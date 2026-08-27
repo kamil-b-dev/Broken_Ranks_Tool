@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 
-
 /** Response DTO containing the optimization result. */
 @Data
 @NoArgsConstructor

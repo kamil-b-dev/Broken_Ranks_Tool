@@ -1,9 +1,6 @@
 import { createContext, useState, useEffect, useContext, useCallback, useMemo } from "react";
 import apiClient from "../api/axiosConfig";
-import {
-    createBuildPayload,
-    parseBuildFile
-} from "../utils/buildFile";
+import { createBuildPayload, parseBuildFile } from "../utils/buildFile";
 
 const EquipmentContext = createContext();
 
@@ -57,16 +54,17 @@ export const EquipmentProvider = ({ children }) => {
                 setData({
                     items: initialData.items || [],
                     orbs: initialData.orbs || [],
-                    drifs: initialData.drifs || []
+                    drifs: initialData.drifs || [],
                 });
                 setGameRules(initialData.gameRules || {});
                 setCategoryNames(initialData.dictionaries?.itemCategories || {});
                 setOrbCategories(initialData.dictionaries?.orbCategories || {});
                 setDrifCategories(initialData.dictionaries?.drifCategories || {});
-
             } catch (error) {
                 console.error("Błąd podczas ładowania danych początkowych:", error);
-                setInitialDataError(error.response?.data?.message || "Nie udało się połączyć z backendem.");
+                setInitialDataError(
+                    error.response?.data?.message || "Nie udało się połączyć z backendem."
+                );
             } finally {
                 setLoading(false);
             }
@@ -74,11 +72,11 @@ export const EquipmentProvider = ({ children }) => {
         fetchInitialData();
     }, []);
 
-/**
- * Updates the equipment data for a single slot.
- * @param {string} slotKey Equipment slot identifier.
- * @param {object} slotData New slot data.
- */
+    /**
+     * Updates the equipment data for a single slot.
+     * @param {string} slotKey Equipment slot identifier.
+     * @param {object} slotData New slot data.
+     */
     const handleSlotUpdate = useCallback((slotKey, slotData) => {
         setRequestData((prev) => ({
             ...prev,
@@ -91,23 +89,28 @@ export const EquipmentProvider = ({ children }) => {
                     orbLevels: slotData.orbLevels,
                     drifIds: slotData.drifIds,
                     drifLevels: slotData.drifLevels,
-                }
-            }
+                },
+            },
         }));
     }, []);
 
-/**
- * Updates the character's base statistics.
- * @param {object} newStats New character statistics.
- */
+    /**
+     * Updates the character's base statistics.
+     * @param {object} newStats New character statistics.
+     */
     const handleCharacterStatsUpdate = useCallback((newStats, newConfig = null) => {
         setRequestData((prev) => ({ ...prev, characterStats: newStats }));
         if (newConfig) setCharacterConfig(newConfig);
     }, []);
 
-/** Exports the complete build as a versioned JSON file for later import. */
+    /** Exports the complete build as a versioned JSON file for later import. */
     const saveBuildToFile = useCallback(() => {
-        const payload = createBuildPayload({ requestData, characterConfig, lockedSlots, lockedDrifs });
+        const payload = createBuildPayload({
+            requestData,
+            characterConfig,
+            lockedSlots,
+            lockedDrifs,
+        });
         const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
@@ -121,59 +124,60 @@ export const EquipmentProvider = ({ children }) => {
         window.setTimeout(() => URL.revokeObjectURL(url), 1000);
     }, [requestData, characterConfig, lockedSlots, lockedDrifs]);
 
-/**
- * Loads and validates a build created by the application.
- * @param {File} file JSON build file selected by the user.
- * @throws {Error} If the file is missing, invalid, unsupported, or references unknown data.
- */
-    const loadBuildFromFile = useCallback(async (file) => {
-        const importedBuild = await parseBuildFile(file, data);
-        setRequestData(importedBuild.requestData);
-        setCharacterConfig(importedBuild.characterConfig);
-        setLockedSlots(importedBuild.lockedSlots);
-        setLockedDrifs(importedBuild.lockedDrifs);
-        setStats(null);
-        setStatSources({ drifCategories: {}, orbBonusTypes: [] });
-        setOptimizationTrigger(prev => prev + 1);
-    }, [data]);
+    /**
+     * Loads and validates a build created by the application.
+     * @param {File} file JSON build file selected by the user.
+     * @throws {Error} If the file is missing, invalid, unsupported, or references unknown data.
+     */
+    const loadBuildFromFile = useCallback(
+        async (file) => {
+            const importedBuild = await parseBuildFile(file, data);
+            setRequestData(importedBuild.requestData);
+            setCharacterConfig(importedBuild.characterConfig);
+            setLockedSlots(importedBuild.lockedSlots);
+            setLockedDrifs(importedBuild.lockedDrifs);
+            setStats(null);
+            setStatSources({ drifCategories: {}, orbBonusTypes: [] });
+            setOptimizationTrigger((prev) => prev + 1);
+        },
+        [data]
+    );
 
-/**
- * Toggles an equipment slot lock used by the optimizer.
- * @param {string} slotKey Equipment slot identifier.
- */
+    /**
+     * Toggles an equipment slot lock used by the optimizer.
+     * @param {string} slotKey Equipment slot identifier.
+     */
     const toggleSlotLock = useCallback((slotKey) => {
-        setLockedSlots(prev =>
-            prev.includes(slotKey)
-                ? prev.filter(key => key !== slotKey)
-                : [...prev, slotKey]
+        setLockedSlots((prev) =>
+            prev.includes(slotKey) ? prev.filter((key) => key !== slotKey) : [...prev, slotKey]
         );
     }, []);
 
-/**
- * Toggles a drif lock within an equipment slot.
- * @param {string} slotKey Equipment slot identifier.
- * @param {number} drifIndex Drif position within the slot.
- */
+    /**
+     * Toggles a drif lock within an equipment slot.
+     * @param {string} slotKey Equipment slot identifier.
+     * @param {number} drifIndex Drif position within the slot.
+     */
     const toggleDrifLock = useCallback((slotKey, drifIndex) => {
-        setLockedDrifs(prev => {
+        setLockedDrifs((prev) => {
             const currentSlotLocks = prev[slotKey] || [];
             const isLocked = currentSlotLocks.includes(drifIndex);
 
             const updatedSlotLocks = isLocked
-                ? currentSlotLocks.filter(idx => idx !== drifIndex)
+                ? currentSlotLocks.filter((idx) => idx !== drifIndex)
                 : [...currentSlotLocks, drifIndex];
 
             return {
                 ...prev,
-                [slotKey]: updatedSlotLocks
+                [slotKey]: updatedSlotLocks,
             };
         });
     }, []);
 
-/**
- * Sends the current equipment and character data to calculate final statistics.
- * Updates the shared statistics state or reports the backend error to the user.
- */
+    /**
+     * Sends the current equipment and character data to calculate final statistics.
+     * Updates the shared statistics state or reports the backend error to the user.
+     */
     const calculateStats = useCallback(async () => {
         setIsCalculatingStats(true);
         try {
@@ -181,7 +185,7 @@ export const EquipmentProvider = ({ children }) => {
             setStats(response.data.stats || response.data);
             setStatSources({
                 drifCategories: response.data.drifCategories || {},
-                orbBonusTypes: response.data.orbBonusTypes || []
+                orbBonusTypes: response.data.orbBonusTypes || [],
             });
         } catch (error) {
             if (error.response && error.response.data && error.response.data.message) {
@@ -198,100 +202,124 @@ export const EquipmentProvider = ({ children }) => {
     /** Applies a calculator-ready equipment setup selected from optimizer variants. */
     const applyOptimizationSetup = useCallback((setup) => {
         if (!setup?.slots) return false;
-        setRequestData(prev => ({
+        setRequestData((prev) => ({
             ...prev,
-            slots: setup.slots
+            slots: setup.slots,
         }));
-        setOptimizationTrigger(prev => prev + 1);
+        setOptimizationTrigger((prev) => prev + 1);
         return true;
     }, []);
 
-/**
- * Starts drif optimization using user priorities and locked equipment.
- * @param {object} optimizationConfig User priorities and quantity targets.
- */
-    const runDrifOptimization = useCallback(async (optimizationConfig) => {
-        if (!requestData.slots || Object.values(requestData.slots).every(s => !s.itemId)) {
-            return {
-                success: false,
-                message: "Wybierz przynajmniej jeden przedmiot, aby uruchomić optymalizację.",
-                applied: false
-            };
-        }
-
-        const optimizationRequest = {
-            originalSlots: requestData.slots,
-            priorities: optimizationConfig.priorities || {},
-            targetQuantities: optimizationConfig.targetQuantities || {},
-            forceCapBonuses: optimizationConfig.forceCapBonuses || [],
-            forcedPercentageTargets: optimizationConfig.forcedPercentageTargets || {},
-            maximizeBonuses: optimizationConfig.maximizeBonuses || [],
-            forceMaximizationByDrifBonus:
-                Boolean(optimizationConfig.forceMaximizationByDrifBonus),
-            generateVariants: Boolean(optimizationConfig.generateVariants),
-            maxVariantLossPercent: Number(optimizationConfig.maxVariantLossPercent),
-            lockedSlots: lockedSlots,
-            lockedDrifs: lockedDrifs
-        };
-
-        try {
-            const response = await apiClient.post("/optimizer/drifs", optimizationRequest);
-            const { optimizedSetup, summary } = response.data;
-
-            if (applyOptimizationSetup(optimizedSetup)) {
-                return { ...summary, applied: true };
-            } else {
-                return { ...summary, applied: false };
+    /**
+     * Starts drif optimization using user priorities and locked equipment.
+     * @param {object} optimizationConfig User priorities and quantity targets.
+     */
+    const runDrifOptimization = useCallback(
+        async (optimizationConfig) => {
+            if (!requestData.slots || Object.values(requestData.slots).every((s) => !s.itemId)) {
+                return {
+                    success: false,
+                    message: "Wybierz przynajmniej jeden przedmiot, aby uruchomić optymalizację.",
+                    applied: false,
+                };
             }
-        } catch (error) {
-            const backendMessage = error.response?.data?.summary?.message
-                || error.response?.data?.message
-                || error.response?.data?.error;
-            const message = backendMessage
-                || (error.code === "ECONNABORTED"
-                    ? "Przekroczono limit czasu optymalizacji."
-                    : error.message);
-            console.error("Błąd optymalizacji drifów:", error);
-            return { success: false, message, applied: false };
-        }
-    }, [requestData.slots, lockedSlots, lockedDrifs, applyOptimizationSetup]);
 
-    const value = useMemo(() => ({
-        data,
-        categoryNames,
-        orbCategories,
-        drifCategories,
-        gameRules,
-        loading,
-        initialDataError,
-        requestData,
-        stats,
-        statSources,
-        isCalculatingStats,
-        optimizationTrigger,
-        lockedSlots,
-        lockedDrifs,
-        characterConfig,
-        handleSlotUpdate,
-        handleCharacterStatsUpdate,
-        toggleSlotLock,
-        toggleDrifLock,
-        calculateStats,
-        applyOptimizationSetup,
-        runDrifOptimization,
-        saveBuildToFile,
-        loadBuildFromFile
-    }), [
-        data, categoryNames, orbCategories, drifCategories, gameRules, loading, initialDataError,
-        requestData, stats, statSources, isCalculatingStats, optimizationTrigger, lockedSlots,
-        lockedDrifs, characterConfig, handleSlotUpdate, handleCharacterStatsUpdate, toggleSlotLock,
-        toggleDrifLock, calculateStats, applyOptimizationSetup, runDrifOptimization,
-        saveBuildToFile, loadBuildFromFile
-    ]);
+            const optimizationRequest = {
+                originalSlots: requestData.slots,
+                priorities: optimizationConfig.priorities || {},
+                targetQuantities: optimizationConfig.targetQuantities || {},
+                forceCapBonuses: optimizationConfig.forceCapBonuses || [],
+                forcedPercentageTargets: optimizationConfig.forcedPercentageTargets || {},
+                maximizeBonuses: optimizationConfig.maximizeBonuses || [],
+                forceMaximizationByDrifBonus: Boolean(
+                    optimizationConfig.forceMaximizationByDrifBonus
+                ),
+                generateVariants: Boolean(optimizationConfig.generateVariants),
+                maxVariantLossPercent: Number(optimizationConfig.maxVariantLossPercent),
+                lockedSlots: lockedSlots,
+                lockedDrifs: lockedDrifs,
+            };
 
-    return (
-        <EquipmentContext.Provider value={value}>
-            {children}
-        </EquipmentContext.Provider>
+            try {
+                const response = await apiClient.post("/optimizer/drifs", optimizationRequest);
+                const { optimizedSetup, summary } = response.data;
+
+                if (applyOptimizationSetup(optimizedSetup)) {
+                    return { ...summary, applied: true };
+                } else {
+                    return { ...summary, applied: false };
+                }
+            } catch (error) {
+                const backendMessage =
+                    error.response?.data?.summary?.message ||
+                    error.response?.data?.message ||
+                    error.response?.data?.error;
+                const message =
+                    backendMessage ||
+                    (error.code === "ECONNABORTED"
+                        ? "Przekroczono limit czasu optymalizacji."
+                        : error.message);
+                console.error("Błąd optymalizacji drifów:", error);
+                return { success: false, message, applied: false };
+            }
+        },
+        [requestData.slots, lockedSlots, lockedDrifs, applyOptimizationSetup]
     );
+
+    const value = useMemo(
+        () => ({
+            data,
+            categoryNames,
+            orbCategories,
+            drifCategories,
+            gameRules,
+            loading,
+            initialDataError,
+            requestData,
+            stats,
+            statSources,
+            isCalculatingStats,
+            optimizationTrigger,
+            lockedSlots,
+            lockedDrifs,
+            characterConfig,
+            handleSlotUpdate,
+            handleCharacterStatsUpdate,
+            toggleSlotLock,
+            toggleDrifLock,
+            calculateStats,
+            applyOptimizationSetup,
+            runDrifOptimization,
+            saveBuildToFile,
+            loadBuildFromFile,
+        }),
+        [
+            data,
+            categoryNames,
+            orbCategories,
+            drifCategories,
+            gameRules,
+            loading,
+            initialDataError,
+            requestData,
+            stats,
+            statSources,
+            isCalculatingStats,
+            optimizationTrigger,
+            lockedSlots,
+            lockedDrifs,
+            characterConfig,
+            handleSlotUpdate,
+            handleCharacterStatsUpdate,
+            toggleSlotLock,
+            toggleDrifLock,
+            calculateStats,
+            applyOptimizationSetup,
+            runDrifOptimization,
+            saveBuildToFile,
+            loadBuildFromFile,
+        ]
+    );
+
+    return <EquipmentContext.Provider value={value}>{children}</EquipmentContext.Provider>;
 };

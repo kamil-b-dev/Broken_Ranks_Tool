@@ -5,5 +5,4 @@ import org.springframework.stereotype.Repository;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.user.UserDrif;
 
 @Repository
-public interface UserDrifRepository extends JpaRepository<UserDrif,Long> {
-}
+public interface UserDrifRepository extends JpaRepository<UserDrif, Long> {}

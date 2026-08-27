@@ -5,5 +5,4 @@ import org.springframework.stereotype.Repository;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 
 @Repository
-public interface DrifTemplateRepository extends JpaRepository<DrifTemplate, Long> {
-}
+public interface DrifTemplateRepository extends JpaRepository<DrifTemplate, Long> {}

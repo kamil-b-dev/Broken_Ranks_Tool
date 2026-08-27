@@ -1,7 +1,7 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.random;
 
-import org.springframework.stereotype.Component;
 import java.util.Random;
+import org.springframework.stereotype.Component;
 
 /** Production {@link RandomProvider} backed by {@link java.util.Random}. */
 @Component

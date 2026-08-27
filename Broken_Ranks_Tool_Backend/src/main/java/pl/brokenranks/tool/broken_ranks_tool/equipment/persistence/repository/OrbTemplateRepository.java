@@ -5,5 +5,4 @@ import org.springframework.stereotype.Repository;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.OrbTemplate;
 
 @Repository
-public interface OrbTemplateRepository extends JpaRepository<OrbTemplate, Long> {
-}
+public interface OrbTemplateRepository extends JpaRepository<OrbTemplate, Long> {}

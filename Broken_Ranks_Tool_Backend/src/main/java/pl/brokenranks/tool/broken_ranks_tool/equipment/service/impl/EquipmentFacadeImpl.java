@@ -1,5 +1,10 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.service.impl;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
@@ -7,13 +12,8 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemp
 import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.DrifTemplateRepository;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.ItemTemplateRepository;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentFacade;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentValidator;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentPlacementRules;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.UpgradeLevelPolicy;
 
 @Service
 @RequiredArgsConstructor
@@ -21,7 +21,8 @@ public class EquipmentFacadeImpl implements EquipmentFacade {
 
     private final ItemTemplateRepository itemRepository;
     private final DrifTemplateRepository drifRepository;
-    private final EquipmentValidator validator;
+    private final EquipmentPlacementRules placementRules;
+    private final UpgradeLevelPolicy levelPolicy;
 
     @Override
     public Map<Long, ItemTemplate> getItemTemplates(Collection<Long> ids) {
@@ -36,16 +37,16 @@ public class EquipmentFacadeImpl implements EquipmentFacade {
 
     @Override
     public int calculateItemCapacity(ItemTemplate item, int itemStars) {
-        return validator.calculateItemCapacity(item, itemStars);
+        return levelPolicy.calculateItemCapacity(item, itemStars);
     }
 
     @Override
     public boolean isValidDrifSizeForTier(DrifTemplate drif, ItemTemplate item) {
-        return validator.isValidDrifSizeForTier(drif, item);
+        return placementRules.isValidDrifSizeForTier(drif, item);
     }
 
     @Override
     public boolean isElementalDrifPositionValid(DrifTemplate drif, String slotKey) {
-        return validator.isElementalDrifPositionValid(drif, slotKey);
+        return placementRules.isElementalDrifPositionValid(drif, slotKey);
     }
 }

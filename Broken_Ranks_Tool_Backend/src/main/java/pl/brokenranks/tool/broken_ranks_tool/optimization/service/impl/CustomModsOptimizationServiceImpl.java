@@ -1,15 +1,10 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.service.impl;
 
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context.OptimizationContextFactory;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context.OptimizationInitialStateFactory;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context.OptimizationRequestValidator;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.GeneratedOptimizationVariant;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultAssembler;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationSearchPipeline;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.neighborhood.OptimizationLargeNeighborhoodSearch;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.variant.OptimizationVariantGenerator;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.BuildState;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.OptimizationContext;
 
+import java.util.List;
+import java.util.Map;
 import org.springframework.stereotype.Service;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRulesRegistry;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
@@ -17,18 +12,22 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.Dr
 import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.ItemTemplateRepository;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCalculatorService;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.processor.ItemStatProcessor;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentValidator;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentPlacementRules;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.UpgradeLevelPolicy;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.constraints.OptimizationLockService;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationResponse;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationSummary;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context.OptimizationContextFactory;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context.OptimizationInitialStateFactory;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultAssembler;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationSearchPipeline;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.neighborhood.OptimizationLargeNeighborhoodSearch;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.validation.OptimizationRequestValidator;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.variant.GeneratedOptimizationVariant;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.variant.OptimizationVariantGenerator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.service.ModsOptimizationService;
-
-import java.util.List;
-import java.util.Map;
-
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.BuildState;
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.OptimizationContext;
 
 /** Coordinates optimizer input, search execution, and API response assembly. */
 @Service
@@ -46,27 +45,38 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
     public CustomModsOptimizationServiceImpl(
             DrifTemplateRepository drifRepository,
             ItemTemplateRepository itemRepository,
-            EquipmentValidator validator,
+            EquipmentPlacementRules placementRules,
+            UpgradeLevelPolicy levelPolicy,
             EquipmentRulesRegistry rules,
             ItemStatProcessor itemStatProcessor,
             OptimizationLockService lockService,
             EquipmentStatsCalculatorService calculatorService) {
         OptimizationStateEvaluator stateEvaluator = new OptimizationStateEvaluator(rules);
-        this.resultAssembler = new OptimizationResultAssembler(
-                lockService, calculatorService, stateEvaluator);
+        this.resultAssembler =
+                new OptimizationResultAssembler(lockService, calculatorService, stateEvaluator);
         OptimizationLargeNeighborhoodSearch largeNeighborhoodSearch =
-                new OptimizationLargeNeighborhoodSearch(
-                        rules, stateEvaluator, resultAssembler);
-        this.variantGenerator = new OptimizationVariantGenerator(
-                largeNeighborhoodSearch, stateEvaluator, resultAssembler);
-        this.contextFactory = new OptimizationContextFactory(
-                drifRepository, itemRepository, validator, itemStatProcessor);
+                new OptimizationLargeNeighborhoodSearch(rules, stateEvaluator, resultAssembler);
+        this.variantGenerator =
+                new OptimizationVariantGenerator(
+                        largeNeighborhoodSearch, stateEvaluator, resultAssembler);
+        this.contextFactory =
+                new OptimizationContextFactory(
+                        drifRepository,
+                        itemRepository,
+                        placementRules,
+                        levelPolicy,
+                        itemStatProcessor);
 
         OptimizationInitialStateFactory initialStateFactory =
-                new OptimizationInitialStateFactory(validator);
-        this.searchPipeline = new OptimizationSearchPipeline(
-                validator, rules, stateEvaluator, resultAssembler,
-                initialStateFactory, largeNeighborhoodSearch);
+                new OptimizationInitialStateFactory(levelPolicy);
+        this.searchPipeline =
+                new OptimizationSearchPipeline(
+                        placementRules,
+                        rules,
+                        stateEvaluator,
+                        resultAssembler,
+                        initialStateFactory,
+                        largeNeighborhoodSearch);
     }
 
     /**
@@ -90,8 +100,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
                     elapsedSeconds(startTime));
         }
 
-        OptimizationSearchPipeline.PipelineResult searchResult =
-                searchPipeline.optimize(context);
+        OptimizationSearchPipeline.PipelineResult searchResult = searchPipeline.optimize(context);
         if (searchResult == null) {
             return failedResponse(
                     "Nie można spełnić limitów ilościowych przy obecnych blokadach, slotach i pojemności.",
@@ -106,13 +115,14 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
     }
 
     private OptimizationContext createContext(OptimizationRequest request) {
-        return contextFactory.create(request, BEAM_SEARCH_STEPS,
-                MAXIMIZATION_SEARCH_STEPS, REFINEMENT_SEARCH_STEPS);
+        return contextFactory.create(
+                request, BEAM_SEARCH_STEPS, MAXIMIZATION_SEARCH_STEPS, REFINEMENT_SEARCH_STEPS);
     }
 
     private OptimizationResponse successfulResponse(
             OptimizationSearchPipeline.PipelineResult searchResult,
-            OptimizationContext context, long startTime) {
+            OptimizationContext context,
+            long startTime) {
         BuildState state = searchResult.best();
         String validationError = resultAssembler.validateFinalResult(state, context);
         if (validationError != null) {
@@ -123,18 +133,19 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
         List<String> forcedCapWarnings = resultAssembler.forcedCapWarnings(state, context);
         List<GeneratedOptimizationVariant> variants =
                 context.request().isGenerateVariants()
-                        ? variantGenerator.generate(
-                        state, context, searchResult.evaluatedStates())
+                        ? variantGenerator.generate(state, context, searchResult.evaluatedStates())
                         : List.of();
-        OptimizationSummary summary = resultAssembler.createSummary(
-                state, context, elapsedSeconds(startTime), forcedCapWarnings, variants);
+        OptimizationSummary summary =
+                resultAssembler.createSummary(
+                        state, context, elapsedSeconds(startTime), forcedCapWarnings, variants);
         return new OptimizationResponse(optimizedSetup, summary);
     }
 
     private OptimizationResponse failedResponse(String message, double seconds) {
-        return new OptimizationResponse(new EquipmentRequest(),
-                new OptimizationSummary(false, message, 0, 0, seconds,
-                        List.of(), Map.of(), List.of(), List.of()));
+        return new OptimizationResponse(
+                new EquipmentRequest(),
+                new OptimizationSummary(
+                        false, message, 0, 0, seconds, List.of(), Map.of(), List.of(), List.of()));
     }
 
     private double elapsedSeconds(long startTime) {

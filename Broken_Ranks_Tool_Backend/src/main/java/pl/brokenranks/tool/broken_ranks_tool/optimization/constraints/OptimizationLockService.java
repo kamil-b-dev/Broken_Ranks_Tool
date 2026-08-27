@@ -1,15 +1,14 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.constraints;
 
-import org.springframework.stereotype.Component;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import org.springframework.stereotype.Component;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 
 /** Applies user locks so optimization changes only unlocked equipment elements. */
 @Component
@@ -33,9 +32,8 @@ public class OptimizationLockService {
             return result;
         }
 
-        Set<String> lockedSlots = request.getLockedSlots() != null
-                ? request.getLockedSlots()
-                : Set.of();
+        Set<String> lockedSlots =
+                request.getLockedSlots() != null ? request.getLockedSlots() : Set.of();
 
         for (String slotKey : lockedSlots) {
             EquipmentRequest.SlotData original = originalSlots.get(slotKey);
@@ -44,9 +42,8 @@ public class OptimizationLockService {
             }
         }
 
-        Map<String, Set<Integer>> lockedDrifs = request.getLockedDrifs() != null
-                ? request.getLockedDrifs()
-                : Map.of();
+        Map<String, Set<Integer>> lockedDrifs =
+                request.getLockedDrifs() != null ? request.getLockedDrifs() : Map.of();
 
         for (Map.Entry<String, Set<Integer>> entry : lockedDrifs.entrySet()) {
             String slotKey = entry.getKey();
@@ -78,7 +75,8 @@ public class OptimizationLockService {
             Map<String, EquipmentRequest.SlotData> candidateSlots,
             OptimizationRequest request) {
 
-        Map<String, EquipmentRequest.SlotData> enforced = enforce(originalSlots, candidateSlots, request);
+        Map<String, EquipmentRequest.SlotData> enforced =
+                enforce(originalSlots, candidateSlots, request);
         return slotsEqual(enforced, candidateSlots, request);
     }
 
@@ -88,16 +86,17 @@ public class OptimizationLockService {
             Set<Integer> lockedIndices) {
 
         List<Long> originalIds = original.getDrifIds() != null ? original.getDrifIds() : List.of();
-        List<Long> candidateIds = candidate.getDrifIds() != null
-                ? new ArrayList<>(candidate.getDrifIds())
-                : new ArrayList<>();
+        List<Long> candidateIds =
+                candidate.getDrifIds() != null
+                        ? new ArrayList<>(candidate.getDrifIds())
+                        : new ArrayList<>();
 
-        Map<String, Integer> originalLevels = original.getDrifLevels() != null
-                ? original.getDrifLevels()
-                : Map.of();
-        Map<String, Integer> candidateLevels = candidate.getDrifLevels() != null
-                ? new HashMap<>(candidate.getDrifLevels())
-                : new HashMap<>();
+        Map<String, Integer> originalLevels =
+                original.getDrifLevels() != null ? original.getDrifLevels() : Map.of();
+        Map<String, Integer> candidateLevels =
+                candidate.getDrifLevels() != null
+                        ? new HashMap<>(candidate.getDrifLevels())
+                        : new HashMap<>();
 
         for (Integer index : lockedIndices) {
             if (index == null || index < 0 || index >= originalIds.size()) {
@@ -128,18 +127,16 @@ public class OptimizationLockService {
             return false;
         }
 
-        Set<String> lockedSlots = request.getLockedSlots() != null
-                ? request.getLockedSlots()
-                : Set.of();
+        Set<String> lockedSlots =
+                request.getLockedSlots() != null ? request.getLockedSlots() : Set.of();
         for (String slotKey : lockedSlots) {
             if (!slotEquals(expected.get(slotKey), actual.get(slotKey))) {
                 return false;
             }
         }
 
-        Map<String, Set<Integer>> lockedDrifs = request.getLockedDrifs() != null
-                ? request.getLockedDrifs()
-                : Map.of();
+        Map<String, Set<Integer>> lockedDrifs =
+                request.getLockedDrifs() != null ? request.getLockedDrifs() : Map.of();
         for (Map.Entry<String, Set<Integer>> entry : lockedDrifs.entrySet()) {
             EquipmentRequest.SlotData expectedSlot = expected.get(entry.getKey());
             EquipmentRequest.SlotData actualSlot = actual.get(entry.getKey());
@@ -147,9 +144,10 @@ public class OptimizationLockService {
                 return false;
             }
             for (Integer index : entry.getValue() != null ? entry.getValue() : Set.<Integer>of()) {
-                if (index == null || !Objects.equals(
-                        valueAt(expectedSlot.getDrifIds(), index),
-                        valueAt(actualSlot.getDrifIds(), index))) {
+                if (index == null
+                        || !Objects.equals(
+                                valueAt(expectedSlot.getDrifIds(), index),
+                                valueAt(actualSlot.getDrifIds(), index))) {
                     return false;
                 }
                 Integer expectedLevel = levelAt(expectedSlot.getDrifLevels(), index);

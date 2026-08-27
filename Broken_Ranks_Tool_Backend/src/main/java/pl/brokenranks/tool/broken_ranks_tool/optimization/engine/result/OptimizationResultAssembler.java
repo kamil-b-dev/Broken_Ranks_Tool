@@ -1,18 +1,16 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result;
 
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.GeneratedOptimizationVariant;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.BuildState;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.OptimizationContext;
 
+import java.util.List;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCalculatorService;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.constraints.OptimizationLockService;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationSummary;
-
-import java.util.List;
-
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.BuildState;
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.OptimizationContext;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.variant.GeneratedOptimizationVariant;
 
 /** Facade for mapping, validating, calculating, and summarizing optimization results. */
 public final class OptimizationResultAssembler {
@@ -22,15 +20,16 @@ public final class OptimizationResultAssembler {
     private final OptimizationFinalResultValidator resultValidator;
     private final OptimizationSummaryFactory summaryFactory;
 
-    public OptimizationResultAssembler(OptimizationLockService lockService,
-                                EquipmentStatsCalculatorService calculatorService,
-                                OptimizationStateEvaluator stateEvaluator) {
+    public OptimizationResultAssembler(
+            OptimizationLockService lockService,
+            EquipmentStatsCalculatorService calculatorService,
+            OptimizationStateEvaluator stateEvaluator) {
         this.setupMapper = new OptimizationSetupMapper(lockService);
-        this.calculatorAdapter = new OptimizationCalculatorAdapter(
-                calculatorService, setupMapper, stateEvaluator);
+        this.calculatorAdapter =
+                new OptimizationCalculatorAdapter(calculatorService, setupMapper, stateEvaluator);
         this.resultValidator = new OptimizationFinalResultValidator(stateEvaluator);
-        this.summaryFactory = new OptimizationSummaryFactory(
-                stateEvaluator, calculatorAdapter, setupMapper);
+        this.summaryFactory =
+                new OptimizationSummaryFactory(stateEvaluator, calculatorAdapter, setupMapper);
     }
 
     public void calibrateCalculatorBaseline(BuildState state, OptimizationContext context) {
@@ -42,7 +41,9 @@ public final class OptimizationResultAssembler {
     }
 
     public OptimizationSummary createSummary(
-            BuildState state, OptimizationContext context, double executionTime,
+            BuildState state,
+            OptimizationContext context,
+            double executionTime,
             List<String> warnings,
             List<GeneratedOptimizationVariant> variants) {
         return summaryFactory.create(state, context, executionTime, warnings, variants);

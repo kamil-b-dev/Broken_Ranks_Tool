@@ -10,8 +10,4 @@ import java.util.Set;
  * @param orbBonusTypes Bonus types of orbs included in the calculation.
  */
 public record CalculationResultDto(
-        Map<String, String> stats,
-        Map<String, String> drifCategories,
-        Set<String> orbBonusTypes
-) {
-}
+        Map<String, String> stats, Map<String, String> drifCategories, Set<String> orbBonusTypes) {}

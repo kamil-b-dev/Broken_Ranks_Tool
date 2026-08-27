@@ -1,16 +1,14 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.neighborhood;
 
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultAssembler;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
-
-import lombok.RequiredArgsConstructor;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
-
-import java.util.Map;
-
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationRequestConstraints.*;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.BuildState;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.OptimizationContext;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationRequestConstraints.*;
+
+import java.util.Map;
+import lombok.RequiredArgsConstructor;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultAssembler;
 
 /** Compares calculator-verified states using optimizer business priorities. */
 @RequiredArgsConstructor
@@ -24,17 +22,23 @@ final class OptimizationActualStateComparator {
     boolean isBetter(BuildState candidate, BuildState current, OptimizationContext context) {
         ActualQuality candidateQuality = quality(candidate, context);
         ActualQuality currentQuality = quality(current, context);
-        int comparison = compareLowerIsBetter(candidateQuality.forcedTargetDeficit(),
-                currentQuality.forcedTargetDeficit());
+        int comparison =
+                compareLowerIsBetter(
+                        candidateQuality.forcedTargetDeficit(),
+                        currentQuality.forcedTargetDeficit());
         if (comparison != 0) return comparison > 0;
-        comparison = compareHigherIsBetter(candidateQuality.minimumMaximizedProgress(),
-                currentQuality.minimumMaximizedProgress());
+        comparison =
+                compareHigherIsBetter(
+                        candidateQuality.minimumMaximizedProgress(),
+                        currentQuality.minimumMaximizedProgress());
         if (comparison != 0) return comparison > 0;
-        comparison = compareHigherIsBetter(candidateQuality.maximizedProgress(),
-                currentQuality.maximizedProgress());
+        comparison =
+                compareHigherIsBetter(
+                        candidateQuality.maximizedProgress(), currentQuality.maximizedProgress());
         if (comparison != 0) return comparison > 0;
-        return compareHigherIsBetter(candidateQuality.weightedUtility(),
-                currentQuality.weightedUtility()) > 0;
+        return compareHigherIsBetter(
+                        candidateQuality.weightedUtility(), currentQuality.weightedUtility())
+                > 0;
     }
 
     private ActualQuality quality(BuildState state, OptimizationContext context) {
@@ -44,8 +48,8 @@ final class OptimizationActualStateComparator {
         double weightedUtility = 0.0;
         boolean hasMaximizedTypes = false;
 
-        for (Map.Entry<DRIF_BONUS_TYPE, Integer> entry
-                : context.request().getPriorities().entrySet()) {
+        for (Map.Entry<DRIF_BONUS_TYPE, Integer> entry :
+                context.request().getPriorities().entrySet()) {
             DRIF_BONUS_TYPE type = entry.getKey();
             int priority = Math.max(1, entry.getValue() != null ? entry.getValue() : 1);
             double value = actualUtilityValue(state, type, context);
@@ -68,15 +72,17 @@ final class OptimizationActualStateComparator {
         }
 
         if (!hasMaximizedTypes) minimumMaximizedProgress = 0.0;
-        return new ActualQuality(forcedTargetDeficit, minimumMaximizedProgress,
-                maximizedProgress, weightedUtility);
+        return new ActualQuality(
+                forcedTargetDeficit, minimumMaximizedProgress, maximizedProgress, weightedUtility);
     }
 
-    private double actualUtilityValue(BuildState state, DRIF_BONUS_TYPE type,
-                                      OptimizationContext context) {
+    private double actualUtilityValue(
+            BuildState state, DRIF_BONUS_TYPE type, OptimizationContext context) {
         double value = resultAssembler.actualValue(state, type, context);
-        if (!isForcedTarget(type, context.request()) && !isMaximized(type, context.request())
-                && type.getMaxCap() != null && type.getMaxCap() < 0) {
+        if (!isForcedTarget(type, context.request())
+                && !isMaximized(type, context.request())
+                && type.getMaxCap() != null
+                && type.getMaxCap() < 0) {
             return -value;
         }
         return value;
@@ -92,8 +98,9 @@ final class OptimizationActualStateComparator {
         return compareHigherIsBetter(current, candidate);
     }
 
-    private record ActualQuality(double forcedTargetDeficit,
-                                 double minimumMaximizedProgress,
-                                 double maximizedProgress,
-                                 double weightedUtility) { }
+    private record ActualQuality(
+            double forcedTargetDeficit,
+            double minimumMaximizedProgress,
+            double maximizedProgress,
+            double weightedUtility) {}
 }

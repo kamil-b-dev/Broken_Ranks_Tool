@@ -1,8 +1,8 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.domain.util;
 
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.junit.jupiter.api.Test;
 
 class RomanNumeralParserTests {
 

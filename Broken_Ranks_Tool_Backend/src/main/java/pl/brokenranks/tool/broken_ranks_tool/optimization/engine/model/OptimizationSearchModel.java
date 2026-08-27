@@ -1,5 +1,11 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.UtilityClass;
@@ -9,27 +15,27 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemp
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 /** Internal data model shared by deterministic optimization stages. */
 @UtilityClass
 public class OptimizationSearchModel {
 
-    public record PlacementChoice(DrifTemplate drif, int level, double gain) { }
+    public record PlacementChoice(DrifTemplate drif, int level, double gain) {}
 
-    public record RequiredPlacementChoice(SlotContext slot, DrifTemplate drif, int level, double gain) { }
+    public record RequiredPlacementChoice(
+            SlotContext slot, DrifTemplate drif, int level, double gain) {}
 
-    public record Placement(DrifTemplate drif, int level, boolean locked) { }
+    public record Placement(DrifTemplate drif, int level, boolean locked) {}
 
-    public record SlotContext(String key, EquipmentRequest.SlotData original, ItemTemplate item,
-                       int capacity, int maxDrifs, double drifBonus,
-                       List<DrifTemplate> candidates, Set<Integer> lockedIndices,
-                       boolean special) {
+    public record SlotContext(
+            String key,
+            EquipmentRequest.SlotData original,
+            ItemTemplate item,
+            int capacity,
+            int maxDrifs,
+            double drifBonus,
+            List<DrifTemplate> candidates,
+            Set<Integer> lockedIndices,
+            boolean special) {
 
         public boolean optimizable() {
             return !special && maxDrifs > 0;
@@ -51,7 +57,7 @@ public class OptimizationSearchModel {
             Map<DRIF_BONUS_TYPE, Double> maximizationScaleCache,
             Map<String, Map<String, String>> calculatorCache,
             Map<String, StateEvaluation> evaluationCache,
-            Map<DrifLevelKey, Double> drifValueCache) { }
+            Map<DrifLevelKey, Double> drifValueCache) {}
 
     public static final class BuildState {
         private final Map<String, List<Placement>> slots = new HashMap<>();
@@ -70,13 +76,26 @@ public class OptimizationSearchModel {
 
         public String signature() {
             if (cachedSignature == null) {
-                cachedSignature = slots.entrySet().stream().sorted(Map.Entry.comparingByKey())
-                        .map(entry -> entry.getKey() + ":" + entry.getValue().stream()
-                                .map(placement -> placement == null
-                                        ? "_"
-                                        : placement.drif().getId() + "@" + placement.level())
-                                .collect(Collectors.joining(",")))
-                        .collect(Collectors.joining("|"));
+                cachedSignature =
+                        slots.entrySet().stream()
+                                .sorted(Map.Entry.comparingByKey())
+                                .map(
+                                        entry ->
+                                                entry.getKey()
+                                                        + ":"
+                                                        + entry.getValue().stream()
+                                                                .map(
+                                                                        placement ->
+                                                                                placement == null
+                                                                                        ? "_"
+                                                                                        : placement
+                                                                                                        .drif()
+                                                                                                        .getId()
+                                                                                                + "@"
+                                                                                                + placement
+                                                                                                        .level())
+                                                                .collect(Collectors.joining(",")))
+                                .collect(Collectors.joining("|"));
             }
             return cachedSignature;
         }
@@ -102,10 +121,16 @@ public class OptimizationSearchModel {
         }
     }
 
-    public record Quality(int hardViolations, double forcedCapDeficit,
-                   double minimumMaximizedProgress, double maximizedUtility,
-                   double weightedUtility, double penaltyLoss,
-                   double forcedCapExcess, double capacityUtilization, int totalPower) { }
+    public record Quality(
+            int hardViolations,
+            double forcedCapDeficit,
+            double minimumMaximizedProgress,
+            double maximizedUtility,
+            double weightedUtility,
+            double penaltyLoss,
+            double forcedCapExcess,
+            double capacityUtilization,
+            int totalPower) {}
 
     @RequiredArgsConstructor
     public static final class StateEvaluation {
@@ -114,11 +139,14 @@ public class OptimizationSearchModel {
         public Double score;
     }
 
-    public record DrifLevelKey(Long drifId, int level) { }
+    public record DrifLevelKey(Long drifId, int level) {}
 
-    public record Metrics(Map<DRIF_BONUS_TYPE, Integer> counts,
-                   Map<DRIF_BONUS_TYPE, Integer> searchCounts,
-                   Map<DRIF_BONUS_TYPE, Double> searchValues,
-                   int totalPower, int overflowPower, double capacityUtilization,
-                   double penaltyLoss) { }
+    public record Metrics(
+            Map<DRIF_BONUS_TYPE, Integer> counts,
+            Map<DRIF_BONUS_TYPE, Integer> searchCounts,
+            Map<DRIF_BONUS_TYPE, Double> searchValues,
+            int totalPower,
+            int overflowPower,
+            double capacityUtilization,
+            double penaltyLoss) {}
 }

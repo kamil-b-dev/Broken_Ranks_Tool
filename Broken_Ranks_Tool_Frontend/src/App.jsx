@@ -20,7 +20,7 @@ function App() {
     const [optimizerSettings, setOptimizerSettings] = useState({
         forceMaximizationByDrifBonus: false,
         generateVariants: false,
-        maxVariantLossPercent: 5
+        maxVariantLossPercent: 5,
     });
 
     const {
@@ -40,7 +40,7 @@ function App() {
         handleCharacterStatsUpdate,
         calculateStats,
         saveBuildToFile,
-        loadBuildFromFile
+        loadBuildFromFile,
     } = useEquipment();
     const buildFileInputRef = useRef(null);
 
@@ -61,8 +61,8 @@ function App() {
         const grouped = {};
         if (!data?.items) return grouped;
 
-        SLOTS.forEach(slot => {
-            grouped[slot.key] = data.items.filter(i =>
+        SLOTS.forEach((slot) => {
+            grouped[slot.key] = data.items.filter((i) =>
                 Array.isArray(slot.cat)
                     ? slot.cat.includes(i.category?.toUpperCase())
                     : i.category?.toUpperCase() === slot.cat
@@ -72,14 +72,19 @@ function App() {
     }, [data.items]);
 
     return (
-        <div className={`app-shell app-shell-${mainView} w-full max-w-[1920px] mx-auto p-4 md:p-6 xl:p-8 flex flex-col gap-6 xl:gap-8 min-h-screen`}>
-
+        <div
+            className={`app-shell app-shell-${mainView} w-full max-w-[1920px] mx-auto p-4 md:p-6 xl:p-8 flex flex-col gap-6 xl:gap-8 min-h-screen`}
+        >
             <header className="app-masthead shrink-0">
                 <div className="brand-lockup">
-                    <div className="brand-crest" aria-hidden="true">BR</div>
+                    <div className="brand-crest" aria-hidden="true">
+                        BR
+                    </div>
                     <div>
                         <h1>Broken Ranks Tool</h1>
-                        <p className="brand-subtitle">Zbuduj ekwipunek, ustaw drify i sprawdź gotową konfigurację.</p>
+                        <p className="brand-subtitle">
+                            Zbuduj ekwipunek, ustaw drify i sprawdź gotową konfigurację.
+                        </p>
                     </div>
                 </div>
 
@@ -118,7 +123,9 @@ function App() {
                                 : "text-stone-500 hover:text-stone-200 hover:bg-stone-900/50 border-b-2 border-transparent"
                         }`}
                     >
-                        <span className="block text-[10px] tracking-[0.25em] text-red-800 mb-0.5">I</span>
+                        <span className="block text-[10px] tracking-[0.25em] text-red-800 mb-0.5">
+                            I
+                        </span>
                         Kreator ekwipunku
                     </button>
                     <button
@@ -129,19 +136,26 @@ function App() {
                                 : "text-stone-500 hover:text-stone-200 hover:bg-stone-900/50 border-b-2 border-transparent"
                         }`}
                     >
-                        <span className="block text-[10px] tracking-[0.25em] text-purple-800 mb-0.5">II</span>
+                        <span className="block text-[10px] tracking-[0.25em] text-purple-800 mb-0.5">
+                            II
+                        </span>
                         Optymalizator drifów
                     </button>
                 </div>
             </div>
 
             {initialDataError && (
-                <div role="alert" className="w-full border border-red-900/70 bg-red-950/40 px-4 py-3 text-center text-sm text-red-300 shadow-inner">
+                <div
+                    role="alert"
+                    className="w-full border border-red-900/70 bg-red-950/40 px-4 py-3 text-center text-sm text-red-300 shadow-inner"
+                >
                     Nie udało się załadować danych gry: {initialDataError}
                 </div>
             )}
 
-            <div className={`builder-theme flex-1 w-full flex-col ${mainView === "builder" ? "flex" : "hidden"}`}>
+            <div
+                className={`builder-theme flex-1 w-full flex-col ${mainView === "builder" ? "flex" : "hidden"}`}
+            >
                 <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 xl:gap-8 flex-1">
                     <section className="workbench xl:col-span-8 p-5 md:p-6 xl:p-8 flex flex-col">
                         <div className="workbench-heading">
@@ -149,7 +163,10 @@ function App() {
                                 <p className="section-kicker">Konfiguracja</p>
                                 <h2>Ekwipunek</h2>
                             </div>
-                            <p className="workbench-help">Wybierz przedmiot lub przeciągnij go z bazy. Karmazynowa obwódka oznacza aktywne pole.</p>
+                            <p className="workbench-help">
+                                Wybierz przedmiot lub przeciągnij go z bazy. Karmazynowa obwódka
+                                oznacza aktywne pole.
+                            </p>
                         </div>
                         <div className="flex flex-wrap justify-center gap-4 xl:gap-6 pt-2 pb-3">
                             {SLOTS.map((slot) => (
@@ -194,7 +211,9 @@ function App() {
                         </div>
 
                         <div className="relative flex-1">
-                            <div className={`xl:absolute xl:inset-0 flex flex-col w-full h-full ${builderTab === "database" ? "flex" : "hidden"}`}>
+                            <div
+                                className={`xl:absolute xl:inset-0 flex flex-col w-full h-full ${builderTab === "database" ? "flex" : "hidden"}`}
+                            >
                                 <ItemDatabase
                                     items={data.items}
                                     orbs={data.orbs}
@@ -205,7 +224,9 @@ function App() {
                                     gameRules={gameRules || {}}
                                 />
                             </div>
-                            <div className={`xl:absolute xl:inset-0 flex flex-col w-full h-full ${builderTab === "character" ? "flex" : "hidden"}`}>
+                            <div
+                                className={`xl:absolute xl:inset-0 flex flex-col w-full h-full ${builderTab === "character" ? "flex" : "hidden"}`}
+                            >
                                 <CharacterPanel
                                     onStatsChange={handleCharacterStatsUpdate}
                                     externalConfig={characterConfig}
@@ -217,7 +238,9 @@ function App() {
                 </div>
             </div>
 
-            <div className={`optimizer-theme flex-1 w-full flex-col gap-4 ${mainView === "optimizer" ? "flex" : "hidden"}`}>
+            <div
+                className={`optimizer-theme flex-1 w-full flex-col gap-4 ${mainView === "optimizer" ? "flex" : "hidden"}`}
+            >
                 <OptimizerSettingsPanel
                     settings={optimizerSettings}
                     onChange={setOptimizerSettings}

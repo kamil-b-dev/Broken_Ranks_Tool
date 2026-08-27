@@ -1,14 +1,20 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search;
 
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.neighborhood.OptimizationLargeNeighborhoodSearch;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.BuildState;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.OptimizationContext;
+
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRulesRegistry;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentValidator;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentPlacementRules;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context.OptimizationInitialStateFactory;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultAssembler;
-
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.BuildState;
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.OptimizationContext;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction.MaximizedDrifBonusPrelock;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction.OptimizationBeamSearch;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction.OptimizationGreedySearch;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.maximization.OptimizationSelectedBonusMaximizer;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.neighborhood.OptimizationLargeNeighborhoodSearch;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.refinement.OptimizationDeterministicRefiner;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.requirement.OptimizationRequirementSatisfier;
 
 /** Executes optimization stages in their required deterministic order. */
 public final class OptimizationSearchPipeline {
@@ -22,26 +28,33 @@ public final class OptimizationSearchPipeline {
     private final OptimizationLargeNeighborhoodSearch largeNeighborhoodSearch;
 
     public OptimizationSearchPipeline(
-            EquipmentValidator validator,
+            EquipmentPlacementRules placementRules,
             EquipmentRulesRegistry rules,
             OptimizationStateEvaluator stateEvaluator,
             OptimizationResultAssembler resultAssembler,
             OptimizationInitialStateFactory initialStateFactory,
             OptimizationLargeNeighborhoodSearch largeNeighborhoodSearch) {
         OptimizationStateOperations stateOperations =
-                new OptimizationStateOperations(validator, rules, stateEvaluator);
+                new OptimizationStateOperations(placementRules, rules, stateEvaluator);
         this.levelAllocator = new OptimizationLevelAllocator(stateOperations);
         this.requirementSatisfier =
                 new OptimizationRequirementSatisfier(stateOperations, levelAllocator);
-        this.greedySearch = new OptimizationGreedySearch(
-                initialStateFactory, new MaximizedDrifBonusPrelock(rules),
-                resultAssembler, requirementSatisfier, stateOperations);
-        this.beamSearch = new OptimizationBeamSearch(
-                initialStateFactory, requirementSatisfier, levelAllocator, stateOperations);
-        this.deterministicRefiner = new OptimizationDeterministicRefiner(
-                stateOperations, levelAllocator, requirementSatisfier);
-        this.selectedBonusMaximizer = new OptimizationSelectedBonusMaximizer(
-                stateOperations, stateEvaluator, resultAssembler);
+        this.greedySearch =
+                new OptimizationGreedySearch(
+                        initialStateFactory,
+                        new MaximizedDrifBonusPrelock(rules),
+                        resultAssembler,
+                        requirementSatisfier,
+                        stateOperations);
+        this.beamSearch =
+                new OptimizationBeamSearch(
+                        initialStateFactory, requirementSatisfier, levelAllocator, stateOperations);
+        this.deterministicRefiner =
+                new OptimizationDeterministicRefiner(
+                        stateOperations, levelAllocator, requirementSatisfier);
+        this.selectedBonusMaximizer =
+                new OptimizationSelectedBonusMaximizer(
+                        stateOperations, stateEvaluator, resultAssembler);
         this.largeNeighborhoodSearch = largeNeighborhoodSearch;
     }
 
@@ -60,22 +73,18 @@ public final class OptimizationSearchPipeline {
 
         OptimizationLargeNeighborhoodSearch.SearchResult neighborhoodResult =
                 largeNeighborhoodSearch.improve(state, context);
-        return new PipelineResult(neighborhoodResult.best(),
-                neighborhoodResult.evaluatedStates());
+        return new PipelineResult(neighborhoodResult.best(), neighborhoodResult.evaluatedStates());
     }
 
-    public BuildState maximizeSelectedBonuses(
-            BuildState state, OptimizationContext context) {
+    public BuildState maximizeSelectedBonuses(BuildState state, OptimizationContext context) {
         return selectedBonusMaximizer.maximize(state, context);
     }
 
-    private BuildState optimizeLevelsAndTargets(BuildState state,
-                                                OptimizationContext context) {
+    private BuildState optimizeLevelsAndTargets(BuildState state, OptimizationContext context) {
         state = levelAllocator.maximizeDrifSizes(state, context);
         state = levelAllocator.allocateByPriority(state, context);
         return requirementSatisfier.removeRedundantForcedTargetDrifs(state, context);
     }
 
-    public record PipelineResult(BuildState best,
-                                 java.util.List<BuildState> evaluatedStates) { }
+    public record PipelineResult(BuildState best, java.util.List<BuildState> evaluatedStates) {}
 }

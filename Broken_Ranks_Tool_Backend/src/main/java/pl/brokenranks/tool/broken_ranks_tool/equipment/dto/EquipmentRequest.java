@@ -1,8 +1,8 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.dto;
 
-import lombok.Data;
 import java.util.List;
 import java.util.Map;
+import lombok.Data;
 
 /** Request DTO sent to the equipment statistics calculator. */
 @Data
