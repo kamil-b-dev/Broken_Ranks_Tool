@@ -131,7 +131,7 @@ public final class OptimizationStateOperations {
                 && evaluator.isBetterState(candidate, current, context);
     }
 
-    Comparator<BuildState> stateComparator(OptimizationContext context) {
+    public Comparator<BuildState> stateComparator(OptimizationContext context) {
         return evaluator.stateComparator(context);
     }
 
