@@ -1,4 +1,4 @@
-package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search;
+package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction;
 
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.DrifOptimizationMath.power;
@@ -15,11 +15,11 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemp
 
 /** Pre-allocates and locks maximized drifs according to item drif bonuses. */
 @RequiredArgsConstructor
-final class MaximizedDrifBonusPrelock {
+public final class MaximizedDrifBonusPrelock {
 
     private final EquipmentRulesRegistry rules;
 
-    void apply(BuildState state, OptimizationContext context) {
+    public void apply(BuildState state, OptimizationContext context) {
         List<SlotContext> slots = eligibleSlots(context);
         for (DRIF_BONUS_TYPE type : maximizedTypes(context)) {
             prelockType(state, slots, type, context);

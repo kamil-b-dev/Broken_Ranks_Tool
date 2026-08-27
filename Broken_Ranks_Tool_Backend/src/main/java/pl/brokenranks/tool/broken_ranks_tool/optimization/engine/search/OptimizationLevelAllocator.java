@@ -18,7 +18,7 @@ public final class OptimizationLevelAllocator {
 
     private final OptimizationStateOperations stateOperations;
 
-    BuildState maximizeDrifSizes(BuildState state, OptimizationContext context) {
+    public BuildState maximizeDrifSizes(BuildState state, OptimizationContext context) {
         for (SlotContext slot : context.slots()) {
             if (!slot.optimizable() || stateOperations.isSlotLocked(slot, context)) continue;
             maximizeSlotDrifSizes(state, slot);

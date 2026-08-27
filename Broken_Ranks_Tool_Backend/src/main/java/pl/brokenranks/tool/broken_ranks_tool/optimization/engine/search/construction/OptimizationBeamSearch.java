@@ -1,4 +1,4 @@
-package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search;
+package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction;
 
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.DrifOptimizationMath.*;
@@ -15,11 +15,13 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context.OptimizationInitialStateFactory;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationLevelAllocator;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationStateOperations;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.requirement.OptimizationRequirementSatisfier;
 
 /** Explores bounded alternative placement profiles with deterministic beam search. */
 @RequiredArgsConstructor
-final class OptimizationBeamSearch {
+public final class OptimizationBeamSearch {
 
     private static final int DEFAULT_BEAM_WIDTH = 12;
 
@@ -28,7 +30,7 @@ final class OptimizationBeamSearch {
     private final OptimizationLevelAllocator levelAllocator;
     private final OptimizationStateOperations stateOperations;
 
-    BuildState selectBest(BuildState fallback, OptimizationContext context) {
+    public BuildState selectBest(BuildState fallback, OptimizationContext context) {
         BuildState best = fallback;
         for (BuildState candidate : buildCandidates(context, DEFAULT_BEAM_WIDTH)) {
             candidate = levelAllocator.maximizeDrifSizes(candidate, context);

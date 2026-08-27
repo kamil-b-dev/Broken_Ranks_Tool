@@ -1,4 +1,4 @@
-package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search;
+package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction;
 
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.DrifOptimizationMath.highestFittingLevel;
@@ -13,11 +13,12 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_T
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context.OptimizationInitialStateFactory;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultAssembler;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationStateOperations;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.requirement.OptimizationRequirementSatisfier;
 
 /** Builds the deterministic greedy state and safely fills residual capacity. */
 @RequiredArgsConstructor
-final class OptimizationGreedySearch {
+public final class OptimizationGreedySearch {
 
     private static final double MIN_ACCEPTED_GAIN = 0.0001;
     private static final double MAX_RESIDUAL_FILL_LOSS = 15.0;
@@ -28,7 +29,7 @@ final class OptimizationGreedySearch {
     private final OptimizationRequirementSatisfier requirementSatisfier;
     private final OptimizationStateOperations stateOperations;
 
-    BuildState buildInitialCandidate(OptimizationContext context) {
+    public BuildState buildInitialCandidate(OptimizationContext context) {
         BuildState state = initialStateFactory.create(context);
         applyOptionalPrelocks(state, context);
         resultAssembler.calibrateCalculatorBaseline(state, context);
@@ -38,7 +39,7 @@ final class OptimizationGreedySearch {
         return state;
     }
 
-    BuildState fillResidualCapacity(BuildState state, OptimizationContext context) {
+    public BuildState fillResidualCapacity(BuildState state, OptimizationContext context) {
         int maxSteps = context.slots().stream().mapToInt(SlotContext::maxDrifs).sum();
         for (int step = 0; step < maxSteps; step++) {
             SlotPlacementChoice best = bestResidualChoice(state, context);
