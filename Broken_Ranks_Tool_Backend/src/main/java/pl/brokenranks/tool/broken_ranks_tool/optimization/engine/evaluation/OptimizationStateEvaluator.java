@@ -18,15 +18,20 @@ public final class OptimizationStateEvaluator {
 
     private final EquipmentRulesRegistry rules;
     private final OptimizationMetricsCalculator metricsCalculator;
+    private final OptimizationQualityComparator qualityComparator;
+    private final OptimizationEvaluationCache evaluationCache;
 
     public OptimizationStateEvaluator(EquipmentRulesRegistry rules) {
         this.rules = rules;
         this.metricsCalculator = new OptimizationMetricsCalculator(rules);
+        this.qualityComparator = new OptimizationQualityComparator();
+        this.evaluationCache = new OptimizationEvaluationCache();
     }
 
     public boolean isBetterState(
             BuildState candidate, BuildState current, OptimizationContext context) {
-        int comparison = compareQuality(quality(candidate, context), quality(current, context));
+        int comparison =
+                qualityComparator.compare(quality(candidate, context), quality(current, context));
         if (comparison != 0) return comparison > 0;
         return candidate.signature().compareTo(current.signature()) < 0;
     }
@@ -55,7 +60,8 @@ public final class OptimizationStateEvaluator {
 
     public Comparator<BuildState> stateComparator(OptimizationContext context) {
         return (left, right) -> {
-            int comparison = compareQuality(quality(left, context), quality(right, context));
+            int comparison =
+                    qualityComparator.compare(quality(left, context), quality(right, context));
             if (comparison != 0) return -comparison;
             return left.signature().compareTo(right.signature());
         };
@@ -199,22 +205,6 @@ public final class OptimizationStateEvaluator {
         return quality;
     }
 
-    private int compareQuality(Quality left, Quality right) {
-        int comparison = Integer.compare(right.hardViolations(), left.hardViolations());
-        if (comparison != 0) return comparison;
-        comparison = Double.compare(right.forcedCapDeficit(), left.forcedCapDeficit());
-        if (comparison != 0) return comparison;
-        comparison = Double.compare(left.weightedUtility(), right.weightedUtility());
-        if (comparison != 0) return comparison;
-        comparison = Double.compare(right.penaltyLoss(), left.penaltyLoss());
-        if (comparison != 0) return comparison;
-        comparison = Double.compare(right.forcedCapExcess(), left.forcedCapExcess());
-        if (comparison != 0) return comparison;
-        comparison = Double.compare(left.capacityUtilization(), right.capacityUtilization());
-        if (comparison != 0) return comparison;
-        return Integer.compare(left.totalPower(), right.totalPower());
-    }
-
     /**
      * Estimates a common scale for comparing different maximized modifiers.
      * The estimate is an optimistic per-slot upper bound and is used only for
@@ -278,12 +268,6 @@ public final class OptimizationStateEvaluator {
     }
 
     private StateEvaluation evaluation(BuildState state, OptimizationContext context) {
-        String key = state.signature();
-        StateEvaluation cached = context.evaluationCache().get(key);
-        if (cached != null) return cached;
-        StateEvaluation calculated =
-                new StateEvaluation(metricsCalculator.calculate(state, context));
-        context.evaluationCache().put(key, calculated);
-        return calculated;
+        return evaluationCache.get(state, context, metricsCalculator);
     }
 }
