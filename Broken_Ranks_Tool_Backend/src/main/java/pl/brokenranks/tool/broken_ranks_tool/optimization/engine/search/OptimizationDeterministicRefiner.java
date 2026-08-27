@@ -3,6 +3,7 @@ package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
 
 import java.util.List;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.requirement.OptimizationRequirementSatisfier;
 
 /** Coordinates deterministic refinement stages in their established business order. */
 final class OptimizationDeterministicRefiner {

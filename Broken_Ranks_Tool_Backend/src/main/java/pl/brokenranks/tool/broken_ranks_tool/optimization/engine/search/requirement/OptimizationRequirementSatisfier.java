@@ -1,14 +1,17 @@
-package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search;
+package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.requirement;
 
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
 
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationLevelAllocator;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationStateOperations;
+
 /** Compatibility coordinator for independent optimization requirement policies. */
-final class OptimizationRequirementSatisfier {
+public final class OptimizationRequirementSatisfier {
     private final MinimumRequirementSatisfier minimums;
     private final ForcedTargetSatisfier forcedTargets;
     private final RedundantForcedTargetDrifRemover redundantDrifs;
 
-    OptimizationRequirementSatisfier(
+    public OptimizationRequirementSatisfier(
             OptimizationStateOperations operations, OptimizationLevelAllocator levels) {
         OptimizationRequirementSupport support = new OptimizationRequirementSupport(operations);
         this.minimums = new MinimumRequirementSatisfier(operations, support);
@@ -16,15 +19,16 @@ final class OptimizationRequirementSatisfier {
         this.redundantDrifs = new RedundantForcedTargetDrifRemover(operations, levels, support);
     }
 
-    boolean satisfyMinimums(BuildState state, OptimizationContext context) {
+    public boolean satisfyMinimums(BuildState state, OptimizationContext context) {
         return minimums.satisfy(state, context);
     }
 
-    void satisfyForcedTargets(BuildState state, OptimizationContext context) {
+    public void satisfyForcedTargets(BuildState state, OptimizationContext context) {
         forcedTargets.satisfy(state, context);
     }
 
-    BuildState removeRedundantForcedTargetDrifs(BuildState state, OptimizationContext context) {
+    public BuildState removeRedundantForcedTargetDrifs(
+            BuildState state, OptimizationContext context) {
         return redundantDrifs.remove(state, context);
     }
 }
