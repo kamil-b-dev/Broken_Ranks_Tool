@@ -15,6 +15,8 @@ dist
 dist-ssr
 /docs
 /coverage
+/playwright-report
+/test-results
 
 # Local files
 *.local

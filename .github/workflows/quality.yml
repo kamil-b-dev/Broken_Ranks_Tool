@@ -70,10 +70,24 @@ jobs:
       - name: Build frontend
         run: npm run build
 
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Run browser tests
+        run: npm run test:e2e
+
       - name: Upload frontend coverage
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: frontend-coverage
           path: Broken_Ranks_Tool_Frontend/coverage
+          if-no-files-found: ignore
+
+      - name: Upload browser test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-test-report
+          path: Broken_Ranks_Tool_Frontend/playwright-report
           if-no-files-found: ignore
