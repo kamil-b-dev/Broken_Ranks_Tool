@@ -12,7 +12,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemp
 
 /** Selects drif sizes and distributes item capacity across unlocked placements. */
 @RequiredArgsConstructor
-final class OptimizationLevelAllocator {
+public final class OptimizationLevelAllocator {
 
     private static final int BASE_TIER_MAX_LEVEL = 6;
 
@@ -34,7 +34,7 @@ final class OptimizationLevelAllocator {
         return state;
     }
 
-    void normalizeSlot(BuildState state, SlotContext slot, OptimizationContext context) {
+    public void normalizeSlot(BuildState state, SlotContext slot, OptimizationContext context) {
         List<Placement> placements = state.slots().get(slot.key());
         List<Integer> adjustableIndices =
                 resetUnlockedPlacementsToBaseLevel(state, slot, placements);
