@@ -1,16 +1,15 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.processor;
 
+import java.util.HashMap;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ITEM_STAR;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.RESISTANCE_STAT_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.SPECIAL_STAT_TYPE;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.random.RandomProvider;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.CalculationState;
-
-import java.util.HashMap;
-import java.util.Map;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.random.RandomProvider;
 
 /** Calculates item base statistics, star modifiers, and bonus-point distribution. */
 @Component
@@ -24,8 +23,10 @@ public class ItemStatProcessor {
         double baseStarDrifMod = starMod.getDrifMod();
         double itemDatabaseDrifBonus = 0.0;
 
-        if (item.getStats() != null && item.getStats().containsKey(SPECIAL_STAT_TYPE.DRIF_BONUS.getDescription())) {
-            itemDatabaseDrifBonus = item.getStats().get(SPECIAL_STAT_TYPE.DRIF_BONUS.getDescription()) / 100.0;
+        if (item.getStats() != null
+                && item.getStats().containsKey(SPECIAL_STAT_TYPE.DRIF_BONUS.getDescription())) {
+            itemDatabaseDrifBonus =
+                    item.getStats().get(SPECIAL_STAT_TYPE.DRIF_BONUS.getDescription()) / 100.0;
         }
 
         return baseStarDrifMod + itemDatabaseDrifBonus;
@@ -41,23 +42,27 @@ public class ItemStatProcessor {
         double statMod = starMod.getStatsMod();
 
         if (statMod == 0.0) {
-            item.getStats().forEach((statName, statValue) ->
-                    state.getAccumulator().addFlatValue(statName, statValue));
+            item.getStats()
+                    .forEach(
+                            (statName, statValue) ->
+                                    state.getAccumulator().addFlatValue(statName, statValue));
             return;
         }
 
         Map<String, Integer> baseStats = new HashMap<>();
         Map<String, Integer> baseResists = new HashMap<>();
 
-        item.getStats().forEach((statName, statValue) -> {
-            if (SPECIAL_STAT_TYPE.fromDescription(statName).isPresent()) {
-                state.getAccumulator().addFlatValue(statName, statValue);
-            } else if (RESISTANCE_STAT_TYPE.fromDescription(statName).isPresent()) {
-                baseResists.put(statName, statValue.intValue());
-            } else {
-                baseStats.put(statName, statValue.intValue());
-            }
-        });
+        item.getStats()
+                .forEach(
+                        (statName, statValue) -> {
+                            if (SPECIAL_STAT_TYPE.fromDescription(statName).isPresent()) {
+                                state.getAccumulator().addFlatValue(statName, statValue);
+                            } else if (RESISTANCE_STAT_TYPE.fromDescription(statName).isPresent()) {
+                                baseResists.put(statName, statValue.intValue());
+                            } else {
+                                baseStats.put(statName, statValue.intValue());
+                            }
+                        });
 
         state.getAccumulator().distributeRandomly(baseStats, statMod, randomProvider);
         state.getAccumulator().distributeRandomly(baseResists, statMod, randomProvider);

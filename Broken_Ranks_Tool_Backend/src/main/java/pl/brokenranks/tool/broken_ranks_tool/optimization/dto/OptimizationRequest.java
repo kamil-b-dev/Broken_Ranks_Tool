@@ -1,13 +1,12 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.dto;
 
+import java.util.Map;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
-
-import java.util.Map;
-import java.util.Set;
 
 /** Request DTO for drif optimization, priorities, limits, locks, and caps. */
 @Data

@@ -1,14 +1,13 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates;
 
 import jakarta.persistence.*;
+import java.util.Map;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.converter.MapToStringConverter;
 import pl.brokenranks.tool.broken_ranks_tool.core.entity.BaseNamedEntity;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ITEM_CATEGORY;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.RARITY;
-
-import java.util.Map;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.converter.MapToStringConverter;
 
 /** Defines shared item properties independently from user-owned item instances. */
 @Entity

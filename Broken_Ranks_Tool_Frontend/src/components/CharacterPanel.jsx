@@ -17,8 +17,8 @@ const CharacterPanel = ({ onStatsChange, externalConfig, syncTrigger }) => {
 
     useEffect(() => {
         const finalStats = {};
-        Object.keys(STAT_CONFIG).forEach(name => {
-            finalStats[name] = STAT_CONFIG[name].base + (spentPoints[name] * STAT_CONFIG[name].ratio);
+        Object.keys(STAT_CONFIG).forEach((name) => {
+            finalStats[name] = STAT_CONFIG[name].base + spentPoints[name] * STAT_CONFIG[name].ratio;
         });
         onStatsChange(finalStats, { level, spentPoints });
     }, [spentPoints, level, onStatsChange]);
@@ -27,7 +27,7 @@ const CharacterPanel = ({ onStatsChange, externalConfig, syncTrigger }) => {
         if (!externalConfig) return;
         const importedLevel = Math.min(140, Math.max(1, Number(externalConfig.level) || 1));
         const importedSpent = {};
-        Object.keys(STAT_CONFIG).forEach(name => {
+        Object.keys(STAT_CONFIG).forEach((name) => {
             importedSpent[name] = Math.max(0, Number(externalConfig.spentPoints?.[name]) || 0);
         });
         setLevel(importedLevel);
@@ -41,9 +41,9 @@ const CharacterPanel = ({ onStatsChange, externalConfig, syncTrigger }) => {
         if (amount > 0 && pointsLeft < amount) return;
         if (amount < 0 && spentPoints[statName] + amount < 0) return;
 
-        setSpentPoints(prev => ({
+        setSpentPoints((prev) => ({
             ...prev,
-            [statName]: prev[statName] + amount
+            [statName]: prev[statName] + amount,
         }));
     };
 
@@ -78,7 +78,9 @@ const CharacterPanel = ({ onStatsChange, externalConfig, syncTrigger }) => {
                     Rozwój Bohatera
                 </h3>
                 <div className="flex items-center gap-2 bg-black/60 px-3 py-1 border border-stone-700 shadow-[inset_0_0_10px_rgba(0,0,0,0.8)]">
-                    <span className="text-stone-400 text-xs font-serif uppercase tracking-wider">Poziom</span>
+                    <span className="text-stone-400 text-xs font-serif uppercase tracking-wider">
+                        Poziom
+                    </span>
                     <input
                         type="number"
                         min="1"
@@ -92,21 +94,34 @@ const CharacterPanel = ({ onStatsChange, externalConfig, syncTrigger }) => {
 
             <div className="mb-6 p-3 bg-stone-950 border border-stone-800 shadow-[inset_0_0_20px_rgba(0,0,0,0.8)] flex justify-between items-center relative overflow-hidden">
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-900/5 to-transparent pointer-events-none"></div>
-                <span className="text-stone-400 text-xs font-serif uppercase tracking-widest relative z-10">Dostępne punkty:</span>
-                <span className={`text-xl font-bold font-serif relative z-10 transition-colors ${pointsLeft > 0 ? "text-amber-600 drop-shadow-[0_0_5px_rgba(217,119,6,0.5)]" : "text-stone-600"}`}>
+                <span className="text-stone-400 text-xs font-serif uppercase tracking-widest relative z-10">
+                    Dostępne punkty:
+                </span>
+                <span
+                    className={`text-xl font-bold font-serif relative z-10 transition-colors ${pointsLeft > 0 ? "text-amber-600 drop-shadow-[0_0_5px_rgba(217,119,6,0.5)]" : "text-stone-600"}`}
+                >
                     {pointsLeft} / {totalPoints}
                 </span>
             </div>
 
             <div className="grid grid-cols-1 gap-1 flex-1 overflow-y-auto pr-2 custom-scrollbar">
                 {Object.keys(STAT_CONFIG).map((statName) => {
-                    const finalValue = STAT_CONFIG[statName].base + (spentPoints[statName] * STAT_CONFIG[statName].ratio);
+                    const finalValue =
+                        STAT_CONFIG[statName].base +
+                        spentPoints[statName] * STAT_CONFIG[statName].ratio;
 
                     return (
-                        <div key={statName} className="flex items-center justify-between bg-black/60 p-3 border-b border-stone-800 group hover:bg-stone-900/50 transition-colors">
+                        <div
+                            key={statName}
+                            className="flex items-center justify-between bg-black/60 p-3 border-b border-stone-800 group hover:bg-stone-900/50 transition-colors"
+                        >
                             <div className="flex flex-col">
-                                <span className="text-stone-400 text-xs font-serif uppercase tracking-wider">{statName}</span>
-                                <span className="text-2xl font-bold font-serif text-stone-200 group-hover:text-amber-500 transition-colors">{finalValue}</span>
+                                <span className="text-stone-400 text-xs font-serif uppercase tracking-wider">
+                                    {statName}
+                                </span>
+                                <span className="text-2xl font-bold font-serif text-stone-200 group-hover:text-amber-500 transition-colors">
+                                    {finalValue}
+                                </span>
                             </div>
 
                             <div className="flex items-center gap-3">

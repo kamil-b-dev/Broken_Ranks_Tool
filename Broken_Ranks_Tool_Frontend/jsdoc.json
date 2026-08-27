@@ -1,13 +1,13 @@
 {
-  "source": {
-    "include": ["src"],
-    "includePattern": ".+\\.jsx?$",
-    "excludePattern": "(^|\\/|\\\\)_"
-  },
-  "opts": {
-    "destination": "./docs/jsdoc/",
-    "recurse": true,
-    "readme": "README.md"
-  },
-  "plugins": ["plugins/markdown"]
+    "source": {
+        "include": ["src"],
+        "includePattern": ".+\\.jsx?$",
+        "excludePattern": "(^|\\/|\\\\)_"
+    },
+    "opts": {
+        "destination": "./docs/jsdoc/",
+        "recurse": true,
+        "readme": "README.md"
+    },
+    "plugins": ["plugins/markdown"]
 }

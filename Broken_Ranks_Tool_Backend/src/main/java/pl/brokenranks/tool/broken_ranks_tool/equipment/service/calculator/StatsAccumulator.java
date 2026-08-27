@@ -1,10 +1,9 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator;
 
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.random.RandomProvider;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.random.RandomProvider;
 
 /** Accumulates flat and percentage statistics for one calculation. */
 public class StatsAccumulator {
@@ -32,7 +31,8 @@ public class StatsAccumulator {
             } else {
                 flatStats.merge(statName, totalValue, Double::sum);
             }
-        } catch (NumberFormatException ignored) {}
+        } catch (NumberFormatException ignored) {
+        }
     }
 
     /**
@@ -50,7 +50,8 @@ public class StatsAccumulator {
      * @param multiplier Multiplier determining pool size.
      * @param randomProvider Random source used for distribution.
      */
-    public void distributeRandomly(Map<String, Integer> baseValues, double multiplier, RandomProvider randomProvider) {
+    public void distributeRandomly(
+            Map<String, Integer> baseValues, double multiplier, RandomProvider randomProvider) {
         if (baseValues.isEmpty()) return;
 
         int totalBase = baseValues.values().stream().mapToInt(Integer::intValue).sum();
@@ -81,9 +82,8 @@ public class StatsAccumulator {
     }
 
     private String formatValue(double value, boolean isPercent) {
-        BigDecimal bd = BigDecimal.valueOf(value)
-                .setScale(2, RoundingMode.HALF_UP)
-                .stripTrailingZeros();
+        BigDecimal bd =
+                BigDecimal.valueOf(value).setScale(2, RoundingMode.HALF_UP).stripTrailingZeros();
         String formatted = bd.toPlainString();
         return isPercent ? formatted + "%" : formatted;
     }

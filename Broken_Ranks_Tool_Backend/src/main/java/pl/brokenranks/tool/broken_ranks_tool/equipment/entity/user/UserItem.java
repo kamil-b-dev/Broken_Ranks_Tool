@@ -5,5 +5,4 @@ import pl.brokenranks.tool.broken_ranks_tool.core.entity.BaseNamedEntity;
 
 /** Represents an item instance assigned to a user. */
 @Entity
-public class UserItem extends BaseNamedEntity {
-}
+public class UserItem extends BaseNamedEntity {}

@@ -1,12 +1,11 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.random.RandomProvider;
-
-import java.util.Map;
-import java.util.LinkedHashMap;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class StatsAccumulatorTests {
 
@@ -26,17 +25,18 @@ class StatsAccumulatorTests {
     @Test
     void distributesRoundedBonusPoolUsingInjectedRandomProvider() {
         StatsAccumulator accumulator = new StatsAccumulator();
-        RandomProvider firstKeyProvider = new RandomProvider() {
-            @Override
-            public int nextInt(int bound) {
-                return 0;
-            }
+        RandomProvider firstKeyProvider =
+                new RandomProvider() {
+                    @Override
+                    public int nextInt(int bound) {
+                        return 0;
+                    }
 
-            @Override
-            public double nextDouble() {
-                return 0.0;
-            }
-        };
+                    @Override
+                    public double nextDouble() {
+                        return 0.0;
+                    }
+                };
 
         Map<String, Integer> baseValues = new LinkedHashMap<>();
         baseValues.put("Strength", 1);
@@ -50,17 +50,20 @@ class StatsAccumulatorTests {
     void ignoresEmptyDistribution() {
         StatsAccumulator accumulator = new StatsAccumulator();
 
-        accumulator.distributeRandomly(Map.of(), 2.0, new RandomProvider() {
-            @Override
-            public int nextInt(int bound) {
-                return 0;
-            }
+        accumulator.distributeRandomly(
+                Map.of(),
+                2.0,
+                new RandomProvider() {
+                    @Override
+                    public int nextInt(int bound) {
+                        return 0;
+                    }
 
-            @Override
-            public double nextDouble() {
-                return 0.0;
-            }
-        });
+                    @Override
+                    public double nextDouble() {
+                        return 0.0;
+                    }
+                });
 
         assertEquals(Map.of(), accumulator.getFormattedResults());
     }

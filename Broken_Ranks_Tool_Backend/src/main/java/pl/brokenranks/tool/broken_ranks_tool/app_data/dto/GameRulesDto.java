@@ -1,12 +1,11 @@
 package pl.brokenranks.tool.broken_ranks_tool.app_data.dto;
 
+import java.util.List;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ORB_CATEGORY;
-
-import java.util.List;
-import java.util.Map;
 
 /** Groups the game rules required by frontend equipment logic. */
 @Data

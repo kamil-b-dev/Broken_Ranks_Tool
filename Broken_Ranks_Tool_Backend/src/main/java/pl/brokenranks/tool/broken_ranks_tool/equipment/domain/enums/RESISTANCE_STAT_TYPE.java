@@ -1,13 +1,12 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /** Defines all resistance and armor statistics. */
 @Getter
@@ -24,11 +23,11 @@ public enum RESISTANCE_STAT_TYPE {
 
     private final String description;
 
-    private static final Map<String, RESISTANCE_STAT_TYPE> LOOKUP_MAP = Arrays.stream(values())
-            .collect(Collectors.toMap(
-                    s -> s.getDescription().toLowerCase(),
-                    Function.identity()
-            ));
+    private static final Map<String, RESISTANCE_STAT_TYPE> LOOKUP_MAP =
+            Arrays.stream(values())
+                    .collect(
+                            Collectors.toMap(
+                                    s -> s.getDescription().toLowerCase(), Function.identity()));
 
     /**
      * Resolves a resistance type case-insensitively from its localized description.

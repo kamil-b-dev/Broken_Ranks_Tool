@@ -1,13 +1,12 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /** Defines special statistics excluded from standard processing. */
 @Getter
@@ -21,11 +20,11 @@ public enum SPECIAL_STAT_TYPE {
 
     private final String description;
 
-    private static final Map<String, SPECIAL_STAT_TYPE> LOOKUP_MAP = Arrays.stream(values())
-            .collect(Collectors.toMap(
-                    s -> s.getDescription().toLowerCase(),
-                    Function.identity()
-            ));
+    private static final Map<String, SPECIAL_STAT_TYPE> LOOKUP_MAP =
+            Arrays.stream(values())
+                    .collect(
+                            Collectors.toMap(
+                                    s -> s.getDescription().toLowerCase(), Function.identity()));
 
     /**
      * Resolves a special statistic type case-insensitively from its localized description.

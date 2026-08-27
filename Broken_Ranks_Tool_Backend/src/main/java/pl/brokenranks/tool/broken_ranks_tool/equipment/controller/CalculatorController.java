@@ -7,7 +7,6 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.CalculationResultDto;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCalculatorService;
 
-
 /** Exposes the HTTP endpoint for {@link EquipmentStatsCalculatorService}. */
 @RestController
 @RequestMapping("/api/calculator")
@@ -23,7 +22,8 @@ public class CalculatorController {
      * @return HTTP 200 with formatted statistics, or an error response for invalid input.
      */
     @PostMapping("/calculate")
-    public ResponseEntity<CalculationResultDto> calculateStats(@RequestBody EquipmentRequest request) {
+    public ResponseEntity<CalculationResultDto> calculateStats(
+            @RequestBody EquipmentRequest request) {
         CalculationResultDto result = calculatorService.calculateWithSources(request);
         return ResponseEntity.ok(result);
     }

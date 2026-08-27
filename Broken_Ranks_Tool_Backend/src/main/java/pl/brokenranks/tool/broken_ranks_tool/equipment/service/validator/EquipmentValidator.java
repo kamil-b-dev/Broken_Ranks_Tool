@@ -1,26 +1,25 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ORB_CATEGORY;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ORB_BONUS_TYPE;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.RARITY;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.STAT_TYPE;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.util.RomanNumeralParser;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.util.DrifPowerRules;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.OrbTemplate;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRulesRegistry;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ORB_BONUS_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ORB_CATEGORY;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.RARITY;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.STAT_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRulesRegistry;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.util.DrifPowerRules;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.util.RomanNumeralParser;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.OrbTemplate;
 
 /** Validates equipment input against business and game rules. */
 @Service
@@ -39,11 +38,14 @@ public class EquipmentValidator {
         if (request == null || request.getSlots() == null) {
             throw new IllegalArgumentException("Żądanie musi zawierać konfigurację slotów.");
         }
-        request.getSlots().forEach((slotKey, slotData) -> {
-            if (slotKey == null || slotKey.isBlank() || slotData == null) {
-                throw new IllegalArgumentException("Konfiguracja zawiera nieprawidłowy slot.");
-            }
-        });
+        request.getSlots()
+                .forEach(
+                        (slotKey, slotData) -> {
+                            if (slotKey == null || slotKey.isBlank() || slotData == null) {
+                                throw new IllegalArgumentException(
+                                        "Konfiguracja zawiera nieprawidłowy slot.");
+                            }
+                        });
     }
 
     /**
@@ -55,7 +57,8 @@ public class EquipmentValidator {
         if (characterStats != null) {
             for (Map.Entry<String, Integer> entry : characterStats.entrySet()) {
                 if (!STAT_TYPE.isValid(entry.getKey()) || entry.getValue() == null) {
-                    throw new IllegalArgumentException("Wykryto nieprawidłową statystykę postaci: " + entry.getKey());
+                    throw new IllegalArgumentException(
+                            "Wykryto nieprawidłową statystykę postaci: " + entry.getKey());
                 }
             }
         }
@@ -73,16 +76,16 @@ public class EquipmentValidator {
         }
 
         if (orbs.size() > 1 && item.getRarity() != RARITY.LEGENDARY) {
-            throw new IllegalArgumentException("Tylko przedmioty legendarne mogą mieć więcej niż jeden orb.");
+            throw new IllegalArgumentException(
+                    "Tylko przedmioty legendarne mogą mieć więcej niż jeden orb.");
         }
 
         if (orbs.size() > 2) {
             throw new IllegalArgumentException("Przedmiot nie może mieć więcej niż dwóch orbów.");
         }
 
-        Set<ORB_BONUS_TYPE> uniqueOrbBonuses = orbs.stream()
-                .map(OrbTemplate::getBonusType)
-                .collect(Collectors.toSet());
+        Set<ORB_BONUS_TYPE> uniqueOrbBonuses =
+                orbs.stream().map(OrbTemplate::getBonusType).collect(Collectors.toSet());
         if (uniqueOrbBonuses.size() < orbs.size()) {
             log.error("[SECURITY] Wykryto próbę użycia dwóch orbów z tym samym bonusem.");
             throw new IllegalArgumentException("Nie można użyć dwóch orbów z tym samym bonusem.");
@@ -108,7 +111,6 @@ public class EquipmentValidator {
         return baseCapacity + capacityBonus;
     }
 
-
     /**
      * Validates drif uniqueness, elemental placement, levels, and capacity limits.
      * @param slotKey Equipment slot identifier.
@@ -118,8 +120,12 @@ public class EquipmentValidator {
      * @param drifLevels Requested level for each drif position.
      * @throws IllegalArgumentException If the drif configuration violates a game rule.
      */
-    public void validateDrifsSecurity(String slotKey, ItemTemplate item, int itemStars,
-                                      List<DrifTemplate> drifs, List<Integer> drifLevels) {
+    public void validateDrifsSecurity(
+            String slotKey,
+            ItemTemplate item,
+            int itemStars,
+            List<DrifTemplate> drifs,
+            List<Integer> drifLevels) {
         if (item == null || drifs == null || drifs.isEmpty()) {
             return;
         }
@@ -129,21 +135,31 @@ public class EquipmentValidator {
 
         boolean isEpicOrSet = item.getRarity() == RARITY.EPIC || item.getRarity() == RARITY.SET;
 
-        String baseItemName = item.getName() != null ? item.getName().replaceAll("\\s+[IVX]+$", "").trim() : "";
-        List<String> builtInTypes = isEpicOrSet ? EquipmentRulesRegistry.EPIC_BUILTIN_DRIFS.getOrDefault(baseItemName, List.of()) : List.of();
+        String baseItemName =
+                item.getName() != null ? item.getName().replaceAll("\\s+[IVX]+$", "").trim() : "";
+        List<String> builtInTypes =
+                isEpicOrSet
+                        ? EquipmentRulesRegistry.EPIC_BUILTIN_DRIFS.getOrDefault(
+                                baseItemName, List.of())
+                        : List.of();
 
         for (int i = 0; i < drifs.size(); i++) {
             DrifTemplate drif = drifs.get(i);
-            int requestedLevel = i < drifLevels.size() && drifLevels.get(i) != null ? drifLevels.get(i) : 1;
+            int requestedLevel =
+                    i < drifLevels.size() && drifLevels.get(i) != null ? drifLevels.get(i) : 1;
             int level = sanitizeDrifLevel(requestedLevel, drif);
 
             if (!isElementalDrifPositionValid(drif, slotKey)) {
-                throw new IllegalArgumentException("Drify żywiołowe mogą znajdować się wyłącznie w broni.");
+                throw new IllegalArgumentException(
+                        "Drify żywiołowe mogą znajdować się wyłącznie w broni.");
             }
 
             if (!uniqueBonuses.add(drif.getBonusType())) {
-                log.error("[SECURITY] Oszustwo API! Próba powielenia drifu: {}", drif.getBonusType());
-                throw new IllegalArgumentException("Wykryto zduplikowany typ drifu w jednym przedmiocie: " + drif.getBonusType().name());
+                log.error(
+                        "[SECURITY] Oszustwo API! Próba powielenia drifu: {}", drif.getBonusType());
+                throw new IllegalArgumentException(
+                        "Wykryto zduplikowany typ drifu w jednym przedmiocie: "
+                                + drif.getBonusType().name());
             }
 
             if (isEpicOrSet && builtInTypes.contains(drif.getBonusType().name())) {
@@ -156,8 +172,12 @@ public class EquipmentValidator {
 
         int totalItemCapacity = calculateItemCapacity(item, itemStars);
         if (totalItemCapacity > 0 && currentPowerUsed > totalItemCapacity) {
-            log.error("[SECURITY] Oszustwo API! Przekroczono pojemność. Użyto: {}, Max: {}", currentPowerUsed, totalItemCapacity);
-            throw new IllegalArgumentException("Przekroczono dopuszczalną pojemność drifów w przedmiocie!");
+            log.error(
+                    "[SECURITY] Oszustwo API! Przekroczono pojemność. Użyto: {}, Max: {}",
+                    currentPowerUsed,
+                    totalItemCapacity);
+            throw new IllegalArgumentException(
+                    "Przekroczono dopuszczalną pojemność drifów w przedmiocie!");
         }
     }
 

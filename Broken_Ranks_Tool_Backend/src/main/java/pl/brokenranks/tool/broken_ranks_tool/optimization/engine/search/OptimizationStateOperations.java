@@ -1,19 +1,17 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search;
 
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
 
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRulesRegistry;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentValidator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
-
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
-
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
 
 /** Provides shared queries and safe mutations for optimization build states. */
 @RequiredArgsConstructor
@@ -40,14 +38,15 @@ final class OptimizationStateOperations {
                 && validator.isElementalDrifPositionValid(drif, slot.key());
     }
 
-    boolean containsAnotherElemental(BuildState state, DrifTemplate candidate,
-                                     DrifTemplate replaced) {
+    boolean containsAnotherElemental(
+            BuildState state, DrifTemplate candidate, DrifTemplate replaced) {
         if (!rules.isElementalDamage(candidate.getBonusType())) return false;
         for (List<Placement> placements : state.slots().values()) {
             for (Placement placement : placements) {
-                if (placement != null && rules.isElementalDamage(placement.drif().getBonusType())
+                if (placement != null
+                        && rules.isElementalDamage(placement.drif().getBonusType())
                         && (replaced == null
-                        || placement.drif().getBonusType() != replaced.getBonusType())) {
+                                || placement.drif().getBonusType() != replaced.getBonusType())) {
                     return true;
                 }
             }
@@ -61,11 +60,12 @@ final class OptimizationStateOperations {
                 .anyMatch(placement -> placement.drif().getBonusType() == type);
     }
 
-    boolean containsBonusExcept(List<Placement> placements, DRIF_BONUS_TYPE type,
-                                int ignoredIndex) {
+    boolean containsBonusExcept(
+            List<Placement> placements, DRIF_BONUS_TYPE type, int ignoredIndex) {
         for (int index = 0; index < placements.size(); index++) {
             Placement placement = placements.get(index);
-            if (index != ignoredIndex && placement != null
+            if (index != ignoredIndex
+                    && placement != null
                     && placement.drif().getBonusType() == type) {
                 return true;
             }
@@ -77,8 +77,11 @@ final class OptimizationStateOperations {
         return evaluator.globalCount(state, type, context);
     }
 
-    int globalCountExcept(BuildState state, DRIF_BONUS_TYPE candidate,
-                          DRIF_BONUS_TYPE replaced, OptimizationContext context) {
+    int globalCountExcept(
+            BuildState state,
+            DRIF_BONUS_TYPE candidate,
+            DRIF_BONUS_TYPE replaced,
+            OptimizationContext context) {
         return evaluator.globalCountExcept(state, candidate, replaced, context);
     }
 
@@ -108,13 +111,11 @@ final class OptimizationStateOperations {
         }
     }
 
-    double calculatedValue(BuildState state, DRIF_BONUS_TYPE type,
-                           OptimizationContext context) {
+    double calculatedValue(BuildState state, DRIF_BONUS_TYPE type, OptimizationContext context) {
         return evaluator.calculatedValue(state, type, context);
     }
 
-    double currentValue(BuildState state, DRIF_BONUS_TYPE type,
-                        OptimizationContext context) {
+    double currentValue(BuildState state, DRIF_BONUS_TYPE type, OptimizationContext context) {
         return evaluator.currentValue(state, type, context);
     }
 
@@ -122,8 +123,7 @@ final class OptimizationStateOperations {
         return evaluator.score(state, context);
     }
 
-    boolean trySelectBetter(BuildState candidate, BuildState current,
-                            OptimizationContext context) {
+    boolean trySelectBetter(BuildState candidate, BuildState current, OptimizationContext context) {
         return context.refinementSearchBudget().tryConsume()
                 && evaluator.isBetterState(candidate, current, context);
     }

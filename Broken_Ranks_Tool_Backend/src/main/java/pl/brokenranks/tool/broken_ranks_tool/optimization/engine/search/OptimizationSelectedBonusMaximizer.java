@@ -1,22 +1,20 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search;
 
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultAssembler;
-
-import lombok.RequiredArgsConstructor;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.DrifOptimizationMath.highestLevelForPower;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.DrifOptimizationMath.usedPowerExcept;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationRequestConstraints.*;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.DrifOptimizationMath.highestLevelForPower;
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.DrifOptimizationMath.usedPowerExcept;
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationRequestConstraints.*;
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
+import lombok.RequiredArgsConstructor;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultAssembler;
 
 /** Maximizes user-selected bonuses through bounded additions and replacements. */
 @RequiredArgsConstructor
@@ -37,31 +35,34 @@ final class OptimizationSelectedBonusMaximizer {
         return state;
     }
 
-    private BuildState bestImprovement(BuildState state,
-                                       List<DRIF_BONUS_TYPE> maximizedTypes,
-                                       OptimizationContext context) {
+    private BuildState bestImprovement(
+            BuildState state, List<DRIF_BONUS_TYPE> maximizedTypes, OptimizationContext context) {
         BuildState bestState = state;
         for (DRIF_BONUS_TYPE type : maximizedTypes) {
             Double target = maximizationTargetFor(type, context.request());
-            if (target != null && stateOperations.calculatedValue(state, type, context)
-                    >= target - TARGET_TOLERANCE) continue;
-            bestState = bestReplacementForType(
-                    state, bestState, type, maximizedTypes, context);
+            if (target != null
+                    && stateOperations.calculatedValue(state, type, context)
+                            >= target - TARGET_TOLERANCE) continue;
+            bestState = bestReplacementForType(state, bestState, type, maximizedTypes, context);
             if (context.maximizationSearchBudget().exhausted()) return state;
         }
         return bestState;
     }
 
     private BuildState bestReplacementForType(
-            BuildState state, BuildState bestState, DRIF_BONUS_TYPE type,
-            List<DRIF_BONUS_TYPE> maximizedTypes, OptimizationContext context) {
+            BuildState state,
+            BuildState bestState,
+            DRIF_BONUS_TYPE type,
+            List<DRIF_BONUS_TYPE> maximizedTypes,
+            OptimizationContext context) {
         for (List<SlotContext> slots : context.slotsByDrifBonus().values()) {
             for (SlotContext slot : slots) {
                 if (!slot.optimizable() || stateOperations.isSlotLocked(slot, context)) continue;
                 DrifTemplate candidate = candidateForType(slot, type);
                 if (candidate == null) continue;
-                bestState = bestReplacementInSlot(
-                        state, bestState, slot, candidate, maximizedTypes, context);
+                bestState =
+                        bestReplacementInSlot(
+                                state, bestState, slot, candidate, maximizedTypes, context);
                 if (context.maximizationSearchBudget().exhausted()) return state;
             }
         }
@@ -69,8 +70,11 @@ final class OptimizationSelectedBonusMaximizer {
     }
 
     private BuildState bestReplacementInSlot(
-            BuildState state, BuildState bestState, SlotContext slot,
-            DrifTemplate candidate, List<DRIF_BONUS_TYPE> maximizedTypes,
+            BuildState state,
+            BuildState bestState,
+            SlotContext slot,
+            DrifTemplate candidate,
+            List<DRIF_BONUS_TYPE> maximizedTypes,
             OptimizationContext context) {
         List<Placement> placements = state.slots().get(slot.key());
         int placementLimit = Math.min(placements.size(), slot.maxDrifs());
@@ -80,8 +84,7 @@ final class OptimizationSelectedBonusMaximizer {
             for (Integer level : fittingCandidateLevels(placements, slot, candidate, index)) {
                 if (!context.maximizationSearchBudget().tryConsume()) return state;
                 BuildState trial = state.copy();
-                trial.setPlacement(slot.key(), index,
-                        new Placement(candidate, level, false));
+                trial.setPlacement(slot.key(), index, new Placement(candidate, level, false));
                 if (stateOperations.minimumsSatisfied(trial, context)
                         && isBetterActualState(trial, bestState, context, maximizedTypes)) {
                     bestState = trial;
@@ -92,21 +95,24 @@ final class OptimizationSelectedBonusMaximizer {
     }
 
     private boolean canReplace(
-            BuildState state, List<Placement> placements, SlotContext slot, int index,
-            Placement replaced, DrifTemplate candidate, OptimizationContext context) {
+            BuildState state,
+            List<Placement> placements,
+            SlotContext slot,
+            int index,
+            Placement replaced,
+            DrifTemplate candidate,
+            OptimizationContext context) {
         DRIF_BONUS_TYPE type = candidate.getBonusType();
         if (slot.lockedIndices().contains(index)
                 || (replaced != null && replaced.locked())
                 || (replaced != null && replaced.drif().getBonusType() == type)
                 || stateOperations.containsBonusExcept(placements, type, index)) return false;
 
-        DRIF_BONUS_TYPE replacedType = replaced != null
-                ? replaced.drif().getBonusType()
-                : null;
+        DRIF_BONUS_TYPE replacedType = replaced != null ? replaced.drif().getBonusType() : null;
         return stateOperations.globalCountExcept(state, type, replacedType, context)
-                < maxQuantity(type, context.request())
+                        < maxQuantity(type, context.request())
                 && !stateOperations.containsAnotherElemental(
-                state, candidate, replaced != null ? replaced.drif() : null);
+                        state, candidate, replaced != null ? replaced.drif() : null);
     }
 
     private DrifTemplate candidateForType(SlotContext slot, DRIF_BONUS_TYPE type) {
@@ -117,41 +123,45 @@ final class OptimizationSelectedBonusMaximizer {
     }
 
     private boolean isBetterActualState(
-            BuildState candidate, BuildState current, OptimizationContext context,
+            BuildState candidate,
+            BuildState current,
+            OptimizationContext context,
             List<DRIF_BONUS_TYPE> maximizedTypes) {
-        ActualMaximizationQuality candidateQuality = actualQuality(
-                candidate, context, maximizedTypes);
-        ActualMaximizationQuality currentQuality = actualQuality(
-                current, context, maximizedTypes);
+        ActualMaximizationQuality candidateQuality =
+                actualQuality(candidate, context, maximizedTypes);
+        ActualMaximizationQuality currentQuality = actualQuality(current, context, maximizedTypes);
 
-        int comparison = Double.compare(
-                currentQuality.forcedCapDeficit(), candidateQuality.forcedCapDeficit());
+        int comparison =
+                Double.compare(
+                        currentQuality.forcedCapDeficit(), candidateQuality.forcedCapDeficit());
         if (comparison != 0) return comparison > 0;
-        comparison = Double.compare(
-                candidateQuality.minimumProgress(), currentQuality.minimumProgress());
+        comparison =
+                Double.compare(
+                        candidateQuality.minimumProgress(), currentQuality.minimumProgress());
         if (comparison != 0) return comparison > 0;
-        return Double.compare(candidateQuality.weightedProgress(),
-                currentQuality.weightedProgress()) > 0;
+        return Double.compare(
+                        candidateQuality.weightedProgress(), currentQuality.weightedProgress())
+                > 0;
     }
 
     private ActualMaximizationQuality actualQuality(
-            BuildState state, OptimizationContext context,
-            List<DRIF_BONUS_TYPE> maximizedTypes) {
+            BuildState state, OptimizationContext context, List<DRIF_BONUS_TYPE> maximizedTypes) {
         double forcedCapDeficit = forcedTargetDeficit(state, context);
         double minimumProgress = Double.POSITIVE_INFINITY;
         double weightedProgress = 0.0;
         for (DRIF_BONUS_TYPE type : maximizedTypes) {
             double scale = stateEvaluator.maximizationScale(type, context);
-            double progress = scale > 0.0
-                    ? Math.max(0.0, resultAssembler.actualValue(state, type, context)) / scale
-                    : 0.0;
+            double progress =
+                    scale > 0.0
+                            ? Math.max(0.0, resultAssembler.actualValue(state, type, context))
+                                    / scale
+                            : 0.0;
             minimumProgress = Math.min(minimumProgress, progress);
-            weightedProgress += progress
-                    * Math.max(1, stateOperations.priorityOf(type, context.request()));
+            weightedProgress +=
+                    progress * Math.max(1, stateOperations.priorityOf(type, context.request()));
         }
         if (maximizedTypes.isEmpty()) minimumProgress = 0.0;
-        return new ActualMaximizationQuality(
-                forcedCapDeficit, minimumProgress, weightedProgress);
+        return new ActualMaximizationQuality(forcedCapDeficit, minimumProgress, weightedProgress);
     }
 
     private double forcedTargetDeficit(BuildState state, OptimizationContext context) {
@@ -160,15 +170,18 @@ final class OptimizationSelectedBonusMaximizer {
             Double target = targetFor(type, context.request());
             if (target == null) continue;
             int priority = Math.max(1, stateOperations.priorityOf(type, context.request()));
-            deficit += Math.max(0.0,
-                    target - resultAssembler.actualValue(state, type, context)) * priority;
+            deficit +=
+                    Math.max(0.0, target - resultAssembler.actualValue(state, type, context))
+                            * priority;
         }
         return deficit;
     }
 
     private List<Integer> fittingCandidateLevels(
-            List<Placement> placements, SlotContext slot,
-            DrifTemplate candidate, int replacedIndex) {
+            List<Placement> placements,
+            SlotContext slot,
+            DrifTemplate candidate,
+            int replacedIndex) {
         int availablePower = slot.capacity() - usedPowerExcept(placements, replacedIndex);
         if (availablePower < candidate.getBonusType().getBasePower()) return List.of();
 
@@ -184,14 +197,15 @@ final class OptimizationSelectedBonusMaximizer {
     private List<DRIF_BONUS_TYPE> maximizedTypes(OptimizationContext context) {
         return context.request().getPriorities().keySet().stream()
                 .filter(type -> isMaximized(type, context.request()))
-                .sorted(Comparator
-                        .comparing((DRIF_BONUS_TYPE type) -> stateOperations.priorityOf(
-                                type, context.request()), Comparator.reverseOrder())
-                        .thenComparing(Enum::name))
+                .sorted(
+                        Comparator.comparing(
+                                        (DRIF_BONUS_TYPE type) ->
+                                                stateOperations.priorityOf(type, context.request()),
+                                        Comparator.reverseOrder())
+                                .thenComparing(Enum::name))
                 .toList();
     }
 
-    private record ActualMaximizationQuality(double forcedCapDeficit,
-                                             double minimumProgress,
-                                             double weightedProgress) { }
+    private record ActualMaximizationQuality(
+            double forcedCapDeficit, double minimumProgress, double weightedProgress) {}
 }
