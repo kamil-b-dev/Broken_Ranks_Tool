@@ -1,14 +1,12 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.variant;
 
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationRequestConstraints.*;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import lombok.RequiredArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.GeneratedOptimizationVariant;
@@ -16,7 +14,6 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.Optimiza
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.neighborhood.OptimizationLargeNeighborhoodSearch;
 
 /** Selects intentional trade-offs from states already verified by the main search. */
-@RequiredArgsConstructor
 public final class OptimizationVariantGenerator {
 
     private static final int MAX_ALTERNATIVES = 4;
@@ -24,10 +21,18 @@ public final class OptimizationVariantGenerator {
     private static final int FALLBACK_SEARCH_STATES = 3_000;
 
     private final OptimizationLargeNeighborhoodSearch neighborhoodSearch;
-    private final OptimizationStateEvaluator stateEvaluator;
-    private final OptimizationResultAssembler resultAssembler;
     private final OptimizationVariantContextFactory contextFactory =
             new OptimizationVariantContextFactory();
+    private final OptimizationVariantFrontierPolicy frontierPolicy;
+
+    public OptimizationVariantGenerator(
+            OptimizationLargeNeighborhoodSearch neighborhoodSearch,
+            OptimizationStateEvaluator stateEvaluator,
+            OptimizationResultAssembler resultAssembler) {
+        this.neighborhoodSearch = neighborhoodSearch;
+        this.frontierPolicy =
+                new OptimizationVariantFrontierPolicy(stateEvaluator, resultAssembler);
+    }
 
     /**
      * Builds a Pareto frontier from calculator-verified states visited by the main LNS.
@@ -56,22 +61,21 @@ public final class OptimizationVariantGenerator {
                 context.request().getPriorities().keySet().stream()
                         .sorted(Comparator.comparing(Enum::name))
                         .toList();
-        Map<String, CandidateProfile> unique = new LinkedHashMap<>();
-        unique.put(mainState.signature(), profile(mainState, trackedTypes, context));
+        Map<String, OptimizationVariantProfile> unique = new LinkedHashMap<>();
+        unique.put(mainState.signature(), frontierPolicy.profile(mainState, trackedTypes, context));
         for (BuildState state : evaluatedStates) {
-            if (state == null
-                    || !stateEvaluator.minimumsSatisfied(state, context)
-                    || !forcedCapsSatisfied(state, context)) continue;
+            if (!frontierPolicy.isEligible(state, context)) continue;
             unique.computeIfAbsent(
-                    state.signature(), ignored -> profile(state, trackedTypes, context));
+                    state.signature(),
+                    ignored -> frontierPolicy.profile(state, trackedTypes, context));
         }
 
-        CandidateProfile main = unique.get(mainState.signature());
+        OptimizationVariantProfile main = unique.get(mainState.signature());
         List<DRIF_BONUS_TYPE> missingFocuses =
                 focuses.stream()
                         .filter(
                                 focus ->
-                                        !hasAcceptableCandidate(
+                                        !frontierPolicy.hasAcceptableCandidate(
                                                 new ArrayList<>(unique.values()),
                                                 main,
                                                 focus,
@@ -86,24 +90,23 @@ public final class OptimizationVariantGenerator {
                         neighborhoodSearch.improve(
                                 fallbackStart, profileContext, FALLBACK_SEARCH_STATES);
                 for (BuildState state : fallback.evaluatedStates()) {
-                    if (state == null
-                            || !stateEvaluator.minimumsSatisfied(state, context)
-                            || !forcedCapsSatisfied(state, context)) continue;
+                    if (!frontierPolicy.isEligible(state, context)) continue;
                     unique.computeIfAbsent(
-                            state.signature(), ignored -> profile(state, trackedTypes, context));
+                            state.signature(),
+                            ignored -> frontierPolicy.profile(state, trackedTypes, context));
                 }
             }
         }
 
-        List<CandidateProfile> profiles = new ArrayList<>(unique.values());
-        List<CandidateProfile> frontier =
+        List<OptimizationVariantProfile> profiles = new ArrayList<>(unique.values());
+        List<OptimizationVariantProfile> frontier =
                 profiles.stream()
                         .filter(
                                 candidate ->
                                         profiles.stream()
                                                 .noneMatch(
                                                         other ->
-                                                                dominates(
+                                                                frontierPolicy.dominates(
                                                                         other, candidate, focuses)))
                         .toList();
         Map<String, GeneratedOptimizationVariant> selected = new LinkedHashMap<>();
@@ -113,16 +116,14 @@ public final class OptimizationVariantGenerator {
                     .filter(
                             candidate ->
                                     !candidate.state().signature().equals(mainState.signature()))
+                    .filter(candidate -> frontierPolicy.improves(candidate, main, focus))
                     .filter(
                             candidate ->
-                                    candidate.values().get(focus)
-                                            > main.values().get(focus) + TARGET_TOLERANCE)
-                    .filter(
-                            candidate ->
-                                    acceptableLoss(candidate, main, focus, trackedTypes, context))
+                                    frontierPolicy.acceptableLoss(
+                                            candidate, main, focus, trackedTypes, context))
                     .sorted(
                             Comparator.comparingDouble(
-                                            (CandidateProfile candidate) ->
+                                            (OptimizationVariantProfile candidate) ->
                                                     candidate.values().get(focus))
                                     .reversed()
                                     .thenComparing(candidate -> candidate.state().signature()))
@@ -138,77 +139,4 @@ public final class OptimizationVariantGenerator {
         }
         return new ArrayList<>(selected.values());
     }
-
-    private boolean hasAcceptableCandidate(
-            List<CandidateProfile> profiles,
-            CandidateProfile main,
-            DRIF_BONUS_TYPE focus,
-            List<DRIF_BONUS_TYPE> trackedTypes,
-            OptimizationContext context) {
-        return profiles.stream()
-                .anyMatch(
-                        candidate ->
-                                candidate != main
-                                        && candidate.values().get(focus)
-                                                > main.values().get(focus) + TARGET_TOLERANCE
-                                        && acceptableLoss(
-                                                candidate, main, focus, trackedTypes, context));
-    }
-
-    private CandidateProfile profile(
-            BuildState state, List<DRIF_BONUS_TYPE> trackedTypes, OptimizationContext context) {
-        Map<DRIF_BONUS_TYPE, Double> values = new LinkedHashMap<>();
-        for (DRIF_BONUS_TYPE type : trackedTypes) {
-            values.put(type, resultAssembler.actualValue(state, type, context));
-        }
-        return new CandidateProfile(state, values);
-    }
-
-    private boolean forcedCapsSatisfied(BuildState state, OptimizationContext context) {
-        for (DRIF_BONUS_TYPE type : context.request().getPriorities().keySet()) {
-            if (!isForcedTarget(type, context.request())) continue;
-            Double target = targetFor(type, context.request());
-            if (target != null
-                    && resultAssembler.actualValue(state, type, context)
-                            < target - TARGET_TOLERANCE) return false;
-        }
-        return true;
-    }
-
-    private boolean dominates(
-            CandidateProfile left, CandidateProfile right, List<DRIF_BONUS_TYPE> focuses) {
-        if (left == right) return false;
-        boolean noWorse =
-                focuses.stream()
-                        .allMatch(
-                                type ->
-                                        left.values().get(type)
-                                                >= right.values().get(type) - TARGET_TOLERANCE);
-        boolean better =
-                focuses.stream()
-                        .anyMatch(
-                                type ->
-                                        left.values().get(type)
-                                                > right.values().get(type) + TARGET_TOLERANCE);
-        return noWorse && better;
-    }
-
-    private boolean acceptableLoss(
-            CandidateProfile candidate,
-            CandidateProfile main,
-            DRIF_BONUS_TYPE focus,
-            List<DRIF_BONUS_TYPE> trackedTypes,
-            OptimizationContext context) {
-        for (DRIF_BONUS_TYPE type : trackedTypes) {
-            if (type == focus) continue;
-            double mainValue = main.values().get(type);
-            double allowedLoss =
-                    Math.max(1.0, Math.abs(mainValue)) * maxVariantRelativeLoss(context.request());
-            if (candidate.values().get(type) < mainValue - allowedLoss - TARGET_TOLERANCE)
-                return false;
-        }
-        return true;
-    }
-
-    private record CandidateProfile(BuildState state, Map<DRIF_BONUS_TYPE, Double> values) {}
 }
