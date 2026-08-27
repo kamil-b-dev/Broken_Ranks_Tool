@@ -1,10 +1,9 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules;
 
+import java.util.Map;
 import lombok.experimental.UtilityClass;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
-
-import java.util.Map;
 
 /** Normalizes and evaluates user-provided optimization constraints. */
 @UtilityClass
@@ -20,7 +19,7 @@ public class OptimizationRequestConstraints {
     public static boolean isForcedTarget(DRIF_BONUS_TYPE type, OptimizationRequest request) {
         return isForcedCap(type, request)
                 || request.getForcedPercentageTargets() != null
-                && request.getForcedPercentageTargets().containsKey(type);
+                        && request.getForcedPercentageTargets().containsKey(type);
     }
 
     public static boolean isMaximized(DRIF_BONUS_TYPE type, OptimizationRequest request) {
@@ -64,9 +63,11 @@ public class OptimizationRequestConstraints {
         return null;
     }
 
-    public static double directedValue(DRIF_BONUS_TYPE type, double value, OptimizationRequest request) {
+    public static double directedValue(
+            DRIF_BONUS_TYPE type, double value, OptimizationRequest request) {
         if ((isForcedTarget(type, request) || isMaximized(type, request))
-                && type.getMaxCap() != null && type.getMaxCap() < 0) {
+                && type.getMaxCap() != null
+                && type.getMaxCap() < 0) {
             return -value;
         }
         return value;
@@ -80,5 +81,4 @@ public class OptimizationRequestConstraints {
         Integer percent = request.getMaxVariantLossPercent();
         return (percent != null ? percent : 5) / 100.0;
     }
-
 }

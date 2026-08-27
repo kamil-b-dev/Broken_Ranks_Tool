@@ -1,10 +1,9 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.converter;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
 
 class MapToStringConverterTests {
 
@@ -12,12 +11,13 @@ class MapToStringConverterTests {
 
     @Test
     void convertsMapToDatabaseAndBackIncludingLocalizedPercentValues() {
-        String databaseValue = converter.convertToDatabaseColumn(Map.of("Damage", 12.5, "Armor", 4.0));
+        String databaseValue =
+                converter.convertToDatabaseColumn(Map.of("Damage", 12.5, "Armor", 4.0));
 
-        assertEquals(Map.of("Damage", 12.5, "Armor", 4.0),
+        assertEquals(
+                Map.of("Damage", 12.5, "Armor", 4.0),
                 converter.convertToEntityAttribute(databaseValue));
-        assertEquals(Map.of("Damage", 12.5),
-                converter.convertToEntityAttribute("Damage:12,5%"));
+        assertEquals(Map.of("Damage", 12.5), converter.convertToEntityAttribute("Damage:12,5%"));
     }
 
     @Test
@@ -30,7 +30,9 @@ class MapToStringConverterTests {
 
     @Test
     void ignoresMalformedEntriesWithoutDroppingValidOnes() {
-        assertEquals(Map.of("Valid", 3.0),
-                converter.convertToEntityAttribute("Valid:3;missingDelimiter;Invalid:not-a-number"));
+        assertEquals(
+                Map.of("Valid", 3.0),
+                converter.convertToEntityAttribute(
+                        "Valid:3;missingDelimiter;Invalid:not-a-number"));
     }
 }

@@ -1,5 +1,7 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.processor;
 
+import java.util.ArrayList;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ITEM_STAR;
@@ -9,9 +11,6 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.OrbTempl
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.CalculationState;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentValidator;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /** Calculates orb statistics using orb levels and item star modifiers. */
 @Component
 @RequiredArgsConstructor
@@ -20,7 +19,12 @@ public class OrbStatProcessor {
     private final EquipmentValidator validator;
 
     /** Validates the slot's orbs and adds their statistics to the accumulator. */
-    public void process(String slotKey, SlotData slot, ItemTemplate item, int itemStars, CalculationState state) {
+    public void process(
+            String slotKey,
+            SlotData slot,
+            ItemTemplate item,
+            int itemStars,
+            CalculationState state) {
         if (slot.getOrbIds() == null || slot.getOrbIds().isEmpty()) {
             return;
         }
@@ -46,18 +50,24 @@ public class OrbStatProcessor {
                 continue;
             }
 
-            int requestedLvl = (slot.getOrbLevels() != null && i < slot.getOrbLevels().size()) ? slot.getOrbLevels().get(i) : 1;
+            int requestedLvl =
+                    (slot.getOrbLevels() != null && i < slot.getOrbLevels().size())
+                            ? slot.getOrbLevels().get(i)
+                            : 1;
             int finalLvl = validator.sanitizeOrbLevel(requestedLvl, orb);
 
-            String statValue = switch (finalLvl) {
-                case 2 -> orb.getBonusLvl2();
-                case 3 -> orb.getBonusLvl3();
-                default -> orb.getBonusLvl1();
-            };
+            String statValue =
+                    switch (finalLvl) {
+                        case 2 -> orb.getBonusLvl2();
+                        case 3 -> orb.getBonusLvl3();
+                        default -> orb.getBonusLvl1();
+                    };
 
             if (statValue != null) {
                 ITEM_STAR starMod = ITEM_STAR.fromLevel(itemStars);
-                state.getAccumulator().addRawValue(orb.getBonusType().name(), statValue, 1.0 + starMod.getOrbMod());
+                state.getAccumulator()
+                        .addRawValue(
+                                orb.getBonusType().name(), statValue, 1.0 + starMod.getOrbMod());
                 state.getUsedOrbs().add(orb.getBonusType());
             }
         }

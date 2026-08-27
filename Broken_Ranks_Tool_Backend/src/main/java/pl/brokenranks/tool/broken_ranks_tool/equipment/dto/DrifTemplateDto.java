@@ -37,7 +37,6 @@ public class DrifTemplateDto {
                 entity.getBonusType(),
                 entity.getRankRange(),
                 entity.getPrice(),
-                entity.getCategory()
-        );
+                entity.getCategory());
     }
 }

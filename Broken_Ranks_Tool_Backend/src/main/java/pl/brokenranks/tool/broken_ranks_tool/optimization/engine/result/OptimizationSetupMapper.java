@@ -1,17 +1,16 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result;
 
-import lombok.RequiredArgsConstructor;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.constraints.OptimizationLockService;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.constraints.EquipmentSlotDataCopier.copySlot;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.constraints.EquipmentSlotDataCopier.copySlots;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.constraints.EquipmentSlotDataCopier.copySlot;
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.constraints.EquipmentSlotDataCopier.copySlots;
+import lombok.RequiredArgsConstructor;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.constraints.OptimizationLockService;
 
 /** Maps internal build states to lock-safe equipment API requests. */
 @RequiredArgsConstructor
@@ -26,8 +25,7 @@ final class OptimizationSetupMapper {
             if (!slot.optimizable()) continue;
             slots.put(slot.key(), optimizedSlot(state, slot));
         }
-        slots = lockService.enforce(
-                context.request().getOriginalSlots(), slots, context.request());
+        slots = lockService.enforce(context.request().getOriginalSlots(), slots, context.request());
         enforceDrifLimits(slots, context);
 
         EquipmentRequest setup = new EquipmentRequest();
@@ -67,21 +65,19 @@ final class OptimizationSetupMapper {
         return levels;
     }
 
-    private void enforceDrifLimits(Map<String, EquipmentRequest.SlotData> slots,
-                                   OptimizationContext context) {
+    private void enforceDrifLimits(
+            Map<String, EquipmentRequest.SlotData> slots, OptimizationContext context) {
         for (SlotContext slot : context.slots()) {
             if (slot.special()) continue;
             EquipmentRequest.SlotData output = slots.get(slot.key());
             if (!exceedsDrifLimit(output, slot.maxDrifs())) continue;
-            output.setDrifIds(new ArrayList<>(
-                    output.getDrifIds().subList(0, slot.maxDrifs())));
+            output.setDrifIds(new ArrayList<>(output.getDrifIds().subList(0, slot.maxDrifs())));
             output.setDrifLevels(limitedLevels(output.getDrifLevels(), slot.maxDrifs()));
         }
     }
 
     private boolean exceedsDrifLimit(EquipmentRequest.SlotData output, int limit) {
-        return output != null && output.getDrifIds() != null
-                && output.getDrifIds().size() > limit;
+        return output != null && output.getDrifIds() != null && output.getDrifIds().size() > limit;
     }
 
     private Map<String, Integer> limitedLevels(Map<String, Integer> levels, int limit) {
@@ -100,5 +96,4 @@ final class OptimizationSetupMapper {
             return false;
         }
     }
-
 }

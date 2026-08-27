@@ -1,5 +1,11 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.service.impl;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
@@ -15,13 +21,6 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.proces
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.provider.EquipmentDataProvider;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.provider.EquipmentDataProvider.CalculationContext;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentValidator;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /** Orchestrates validation, data preparation, and equipment statistic processors. */
 @Service
@@ -43,7 +42,8 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
     public CalculationResultDto calculateWithSources(EquipmentRequest request) {
         validator.validateRequest(request);
         if (request.getSlots() == null || request.getSlots().isEmpty()) {
-            return new CalculationResultDto(Collections.emptyMap(), Collections.emptyMap(), Collections.emptySet());
+            return new CalculationResultDto(
+                    Collections.emptyMap(), Collections.emptyMap(), Collections.emptySet());
         }
 
         validator.validateCharacterStats(request.getCharacterStats());
@@ -58,19 +58,22 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
 
         processSlots(request, ctx, state);
 
-        Map<String, String> drifCategories = ctx.drifs().values().stream()
-                .filter(drif -> drif.getBonusType() != null && drif.getCategory() != null)
-                .collect(Collectors.toMap(
-                        drif -> drif.getBonusType().name(),
-                        drif -> drif.getCategory().name(),
-                        (first, ignored) -> first
-                ));
-        Set<String> orbBonusTypes = ctx.orbs().values().stream()
-                .filter(orb -> orb.getBonusType() != null)
-                .map(orb -> orb.getBonusType().name())
-                .collect(Collectors.toSet());
+        Map<String, String> drifCategories =
+                ctx.drifs().values().stream()
+                        .filter(drif -> drif.getBonusType() != null && drif.getCategory() != null)
+                        .collect(
+                                Collectors.toMap(
+                                        drif -> drif.getBonusType().name(),
+                                        drif -> drif.getCategory().name(),
+                                        (first, ignored) -> first));
+        Set<String> orbBonusTypes =
+                ctx.orbs().values().stream()
+                        .filter(orb -> orb.getBonusType() != null)
+                        .map(orb -> orb.getBonusType().name())
+                        .collect(Collectors.toSet());
 
-        return new CalculationResultDto(state.getAccumulator().getFormattedResults(), drifCategories, orbBonusTypes);
+        return new CalculationResultDto(
+                state.getAccumulator().getFormattedResults(), drifCategories, orbBonusTypes);
     }
 
     private void initializeDefaultStats(CalculationState state) {
@@ -81,16 +84,22 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
 
     private void applyCharacterStats(CalculationState state, Map<String, Integer> characterStats) {
         if (characterStats != null) {
-            characterStats.forEach((stat, val) ->
-                    state.getAccumulator().addFlatValue(stat, val.doubleValue()));
+            characterStats.forEach(
+                    (stat, val) -> state.getAccumulator().addFlatValue(stat, val.doubleValue()));
         }
     }
 
-    private void processSlots(EquipmentRequest request, CalculationContext ctx, CalculationState state) {
-        request.getSlots().forEach((slotKey, slotData) -> processSlot(slotKey, slotData, ctx, state));
+    private void processSlots(
+            EquipmentRequest request, CalculationContext ctx, CalculationState state) {
+        request.getSlots()
+                .forEach((slotKey, slotData) -> processSlot(slotKey, slotData, ctx, state));
     }
 
-    private void processSlot(String slotKey, EquipmentRequest.SlotData slotData, CalculationContext ctx, CalculationState state) {
+    private void processSlot(
+            String slotKey,
+            EquipmentRequest.SlotData slotData,
+            CalculationContext ctx,
+            CalculationState state) {
         if (slotData.getItemId() == null || !ctx.items().containsKey(slotData.getItemId())) {
             return;
         }
@@ -115,7 +124,11 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
         drifProcessor.process(slotKey, slotData, item, finalDrifMod, state);
     }
 
-    private void prepareDrifsForSlot(EquipmentRequest.SlotData slotData, CalculationContext ctx, List<DrifTemplate> drifsForSlot, List<Integer> levelsForSlot) {
+    private void prepareDrifsForSlot(
+            EquipmentRequest.SlotData slotData,
+            CalculationContext ctx,
+            List<DrifTemplate> drifsForSlot,
+            List<Integer> levelsForSlot) {
         if (slotData.getDrifIds() == null) {
             return;
         }

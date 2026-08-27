@@ -1,18 +1,17 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation;
 
-import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRulesRegistry;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.DrifOptimizationMath.*;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationRequestConstraints.*;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.DrifOptimizationMath.*;
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationRequestConstraints.*;
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRulesRegistry;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 
 /** Calculates and caches deterministic quality measures for candidate states. */
 public final class OptimizationStateEvaluator {
@@ -25,28 +24,33 @@ public final class OptimizationStateEvaluator {
         this.metricsCalculator = new OptimizationMetricsCalculator(rules);
     }
 
-    public boolean isBetterState(BuildState candidate, BuildState current, OptimizationContext context) {
+    public boolean isBetterState(
+            BuildState candidate, BuildState current, OptimizationContext context) {
         int comparison = compareQuality(quality(candidate, context), quality(current, context));
         if (comparison != 0) return comparison > 0;
         return candidate.signature().compareTo(current.signature()) < 0;
     }
 
     /** Compares only hard constraints, forced caps, and maximization objectives. */
-    public boolean isBetterMaximizationState(BuildState candidate, BuildState current,
-                                      OptimizationContext context) {
+    public boolean isBetterMaximizationState(
+            BuildState candidate, BuildState current, OptimizationContext context) {
         Quality candidateQuality = quality(candidate, context);
         Quality currentQuality = quality(current, context);
         if (candidateQuality.hardViolations() != currentQuality.hardViolations()) {
             return candidateQuality.hardViolations() < currentQuality.hardViolations();
         }
-        int comparison = Double.compare(
-                currentQuality.forcedCapDeficit(), candidateQuality.forcedCapDeficit());
+        int comparison =
+                Double.compare(
+                        currentQuality.forcedCapDeficit(), candidateQuality.forcedCapDeficit());
         if (comparison != 0) return comparison > 0;
-        comparison = Double.compare(candidateQuality.minimumMaximizedProgress(),
-                currentQuality.minimumMaximizedProgress());
+        comparison =
+                Double.compare(
+                        candidateQuality.minimumMaximizedProgress(),
+                        currentQuality.minimumMaximizedProgress());
         if (comparison != 0) return comparison > 0;
-        return Double.compare(candidateQuality.maximizedUtility(),
-                currentQuality.maximizedUtility()) > 0;
+        return Double.compare(
+                        candidateQuality.maximizedUtility(), currentQuality.maximizedUtility())
+                > 0;
     }
 
     public Comparator<BuildState> stateComparator(OptimizationContext context) {
@@ -76,11 +80,10 @@ public final class OptimizationStateEvaluator {
             } else {
                 result += directedValue * weight * 100.0;
             }
-
         }
 
-        for (Map.Entry<DRIF_BONUS_TYPE, OptimizationRequest.QuantityRange> entry
-                : context.sortedQuantities()) {
+        for (Map.Entry<DRIF_BONUS_TYPE, OptimizationRequest.QuantityRange> entry :
+                context.sortedQuantities()) {
             int count = metrics.counts().getOrDefault(entry.getKey(), 0);
             int min = clampQuantity(entry.getValue().getMin());
             int max = clampQuantity(entry.getValue().getMax());
@@ -94,12 +97,16 @@ public final class OptimizationStateEvaluator {
         return result;
     }
 
-    public double calculatedValue(BuildState state, DRIF_BONUS_TYPE type, OptimizationContext context) {
+    public double calculatedValue(
+            BuildState state, DRIF_BONUS_TYPE type, OptimizationContext context) {
         return calculatedValue(metrics(state, context), type, context);
     }
 
-    public double currentValue(BuildState state, DRIF_BONUS_TYPE type, OptimizationContext context) {
-        return directedValue(type, metrics(state, context).searchValues().getOrDefault(type, 0.0),
+    public double currentValue(
+            BuildState state, DRIF_BONUS_TYPE type, OptimizationContext context) {
+        return directedValue(
+                type,
+                metrics(state, context).searchValues().getOrDefault(type, 0.0),
                 context.request());
     }
 
@@ -107,16 +114,21 @@ public final class OptimizationStateEvaluator {
         return metrics(state, context).searchCounts().getOrDefault(type, 0);
     }
 
-    public int globalCountExcept(BuildState state, DRIF_BONUS_TYPE candidate,
-                          DRIF_BONUS_TYPE replaced, OptimizationContext context) {
-        return Math.max(0, globalCount(state, candidate, context) - (candidate == replaced ? 1 : 0));
+    public int globalCountExcept(
+            BuildState state,
+            DRIF_BONUS_TYPE candidate,
+            DRIF_BONUS_TYPE replaced,
+            OptimizationContext context) {
+        return Math.max(
+                0, globalCount(state, candidate, context) - (candidate == replaced ? 1 : 0));
     }
 
     public boolean minimumsSatisfied(BuildState state, OptimizationContext context) {
-        for (Map.Entry<DRIF_BONUS_TYPE, OptimizationRequest.QuantityRange> entry
-                : safeQuantities(context.request()).entrySet()) {
+        for (Map.Entry<DRIF_BONUS_TYPE, OptimizationRequest.QuantityRange> entry :
+                safeQuantities(context.request()).entrySet()) {
             int count = globalCount(state, entry.getKey(), context);
-            if (count < entry.getValue().getMin() || count > entry.getValue().getMax()) return false;
+            if (count < entry.getValue().getMin() || count > entry.getValue().getMax())
+                return false;
         }
         return true;
     }
@@ -138,14 +150,15 @@ public final class OptimizationStateEvaluator {
         double forcedCapExcess = 0.0;
         double weightedUtility = 0.0;
 
-        for (Map.Entry<DRIF_BONUS_TYPE, OptimizationRequest.QuantityRange> entry
-                : safeQuantities(context.request()).entrySet()) {
+        for (Map.Entry<DRIF_BONUS_TYPE, OptimizationRequest.QuantityRange> entry :
+                safeQuantities(context.request()).entrySet()) {
             int count = metrics.counts().getOrDefault(entry.getKey(), 0);
             hardViolations += Math.max(0, entry.getValue().getMin() - count);
             hardViolations += Math.max(0, count - entry.getValue().getMax());
         }
 
-        for (Map.Entry<DRIF_BONUS_TYPE, Integer> entry : context.request().getPriorities().entrySet()) {
+        for (Map.Entry<DRIF_BONUS_TYPE, Integer> entry :
+                context.request().getPriorities().entrySet()) {
             DRIF_BONUS_TYPE type = entry.getKey();
             int priority = Math.max(1, entry.getValue() != null ? entry.getValue() : 1);
             double value = calculatedValue(metrics, type, context);
@@ -171,10 +184,17 @@ public final class OptimizationStateEvaluator {
 
         if (!hasMaximizedTypes) minimumMaximizedProgress = 0.0;
 
-        Quality quality = new Quality(hardViolations, forcedCapDeficit,
-                minimumMaximizedProgress, maximizedUtility,
-                weightedUtility, metrics.penaltyLoss(), forcedCapExcess,
-                metrics.capacityUtilization(), metrics.totalPower());
+        Quality quality =
+                new Quality(
+                        hardViolations,
+                        forcedCapDeficit,
+                        minimumMaximizedProgress,
+                        maximizedUtility,
+                        weightedUtility,
+                        metrics.penaltyLoss(),
+                        forcedCapExcess,
+                        metrics.capacityUtilization(),
+                        metrics.totalPower());
         evaluation.quality = quality;
         return quality;
     }
@@ -204,39 +224,56 @@ public final class OptimizationStateEvaluator {
         Double naturalTarget = maximizationTargetFor(type, context.request());
         if (naturalTarget != null) return naturalTarget;
 
-        return context.maximizationScaleCache().computeIfAbsent(type, ignored -> {
-            List<Double> contributions = new ArrayList<>();
-            for (SlotContext slot : context.slots()) {
-                if (!slot.optimizable()) continue;
-                DrifTemplate candidate = slot.candidates().stream()
-                        .filter(drif -> drif.getBonusType() == type)
-                        .findFirst()
-                        .orElse(null);
-                if (candidate == null) continue;
-                int level = highestLevelForPower(candidate, slot.capacity());
-                if (level <= 0) continue;
-                double contribution = metricsCalculator.drifValue(candidate, level, context)
-                        * (1.0 + slot.drifBonus());
-                contributions.add(Math.max(0.0,
-                        directedValue(type, contribution, context.request())));
-            }
-            contributions.sort(Comparator.reverseOrder());
+        return context.maximizationScaleCache()
+                .computeIfAbsent(
+                        type,
+                        ignored -> {
+                            List<Double> contributions = new ArrayList<>();
+                            for (SlotContext slot : context.slots()) {
+                                if (!slot.optimizable()) continue;
+                                DrifTemplate candidate =
+                                        slot.candidates().stream()
+                                                .filter(drif -> drif.getBonusType() == type)
+                                                .findFirst()
+                                                .orElse(null);
+                                if (candidate == null) continue;
+                                int level = highestLevelForPower(candidate, slot.capacity());
+                                if (level <= 0) continue;
+                                double contribution =
+                                        metricsCalculator.drifValue(candidate, level, context)
+                                                * (1.0 + slot.drifBonus());
+                                contributions.add(
+                                        Math.max(
+                                                0.0,
+                                                directedValue(
+                                                        type, contribution, context.request())));
+                            }
+                            contributions.sort(Comparator.reverseOrder());
 
-            int limit = Math.min(maxQuantity(type, context.request()), contributions.size());
-            double prefix = 0.0;
-            double best = 0.0;
-            for (int count = 1; count <= limit; count++) {
-                prefix += contributions.get(count - 1);
-                best = Math.max(best, prefix * rules.getDrifPenalty(count));
-            }
-            return Math.max(1.0,
-                    best + Math.max(0.0, context.calculatorBaseline().getOrDefault(type, 0.0)));
-        });
+                            int limit =
+                                    Math.min(
+                                            maxQuantity(type, context.request()),
+                                            contributions.size());
+                            double prefix = 0.0;
+                            double best = 0.0;
+                            for (int count = 1; count <= limit; count++) {
+                                prefix += contributions.get(count - 1);
+                                best = Math.max(best, prefix * rules.getDrifPenalty(count));
+                            }
+                            return Math.max(
+                                    1.0,
+                                    best
+                                            + Math.max(
+                                                    0.0,
+                                                    context.calculatorBaseline()
+                                                            .getOrDefault(type, 0.0)));
+                        });
     }
 
-    private double calculatedValue(Metrics metrics, DRIF_BONUS_TYPE type,
-                                   OptimizationContext context) {
-        return directedValue(type, metrics.searchValues().getOrDefault(type, 0.0), context.request())
+    private double calculatedValue(
+            Metrics metrics, DRIF_BONUS_TYPE type, OptimizationContext context) {
+        return directedValue(
+                        type, metrics.searchValues().getOrDefault(type, 0.0), context.request())
                 + context.calculatorBaseline().getOrDefault(type, 0.0);
     }
 
@@ -244,7 +281,8 @@ public final class OptimizationStateEvaluator {
         String key = state.signature();
         StateEvaluation cached = context.evaluationCache().get(key);
         if (cached != null) return cached;
-        StateEvaluation calculated = new StateEvaluation(metricsCalculator.calculate(state, context));
+        StateEvaluation calculated =
+                new StateEvaluation(metricsCalculator.calculate(state, context));
         context.evaluationCache().put(key, calculated);
         return calculated;
     }

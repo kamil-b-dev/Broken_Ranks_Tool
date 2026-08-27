@@ -1,11 +1,19 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_SIZE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ITEM_CATEGORY;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ORB_CATEGORY;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ORB_BONUS_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ORB_CATEGORY;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ORB_SIZE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.RARITY;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRulesRegistry;
@@ -13,18 +21,10 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemp
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.OrbTemplate;
 
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 class EquipmentValidatorTests {
 
-    private final EquipmentValidator validator = new EquipmentValidator(new EquipmentRulesRegistry());
+    private final EquipmentValidator validator =
+            new EquipmentValidator(new EquipmentRulesRegistry());
 
     @Test
     void calculatesCapacityAtStarBoundaries() {
@@ -43,15 +43,29 @@ class EquipmentValidatorTests {
         ItemTemplate item = item(4, ITEM_CATEGORY.HELMET, RARITY.RARE, "XII");
         DrifTemplate critical = drif(DRIF_BONUS_TYPE.CRITICAL_CHANCE, DRIF_SIZE.SUBDRIF);
 
-        assertThrows(IllegalArgumentException.class,
-                () -> validator.validateDrifsSecurity("helmet", item, 1,
-                        List.of(critical, critical), List.of(1, 1)));
-        assertThrows(IllegalArgumentException.class,
-                () -> validator.validateDrifsSecurity("helmet", item, 1,
-                        List.of(drif(DRIF_BONUS_TYPE.CRITICAL_CHANCE, DRIF_SIZE.ARCYDRIF)), List.of(21)));
-        assertThrows(IllegalArgumentException.class,
-                () -> validator.validateDrifsSecurity("helmet", item, 1,
-                        List.of(drif(DRIF_BONUS_TYPE.DAMAGE_FIRE, DRIF_SIZE.SUBDRIF)), List.of(1)));
+        assertThrows(
+                IllegalArgumentException.class,
+                () ->
+                        validator.validateDrifsSecurity(
+                                "helmet", item, 1, List.of(critical, critical), List.of(1, 1)));
+        assertThrows(
+                IllegalArgumentException.class,
+                () ->
+                        validator.validateDrifsSecurity(
+                                "helmet",
+                                item,
+                                1,
+                                List.of(drif(DRIF_BONUS_TYPE.CRITICAL_CHANCE, DRIF_SIZE.ARCYDRIF)),
+                                List.of(21)));
+        assertThrows(
+                IllegalArgumentException.class,
+                () ->
+                        validator.validateDrifsSecurity(
+                                "helmet",
+                                item,
+                                1,
+                                List.of(drif(DRIF_BONUS_TYPE.DAMAGE_FIRE, DRIF_SIZE.SUBDRIF)),
+                                List.of(1)));
     }
 
     @Test
@@ -69,8 +83,14 @@ class EquipmentValidatorTests {
         assertTrue(validator.isElementalDrifPositionValid(fire, "weapon"));
         assertFalse(validator.isElementalDrifPositionValid(fire, "helmet"));
         assertTrue(validator.isValidDrifSizeForTier(fire, helmet));
-        assertEquals(6, validator.sanitizeDrifLevel(20, drif(DRIF_BONUS_TYPE.DAMAGE_FIRE, DRIF_SIZE.SUBDRIF)));
-        assertEquals(1, validator.sanitizeDrifLevel(-5, drif(DRIF_BONUS_TYPE.DAMAGE_FIRE, DRIF_SIZE.SUBDRIF)));
+        assertEquals(
+                6,
+                validator.sanitizeDrifLevel(
+                        20, drif(DRIF_BONUS_TYPE.DAMAGE_FIRE, DRIF_SIZE.SUBDRIF)));
+        assertEquals(
+                1,
+                validator.sanitizeDrifLevel(
+                        -5, drif(DRIF_BONUS_TYPE.DAMAGE_FIRE, DRIF_SIZE.SUBDRIF)));
         assertEquals(1, validator.sanitizeOrbLevel(-5, orb(ORB_CATEGORY.DEFENSIVE)));
     }
 
@@ -81,11 +101,15 @@ class EquipmentValidatorTests {
         OrbTemplate second = orb(ORB_CATEGORY.OFFENSIVE);
         OrbTemplate third = orb(ORB_CATEGORY.UTILITY);
 
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(
+                IllegalArgumentException.class,
                 () -> validator.validateOrbsSecurity(rare, List.of(first, second)));
-        assertThrows(IllegalArgumentException.class,
-                () -> validator.validateOrbsSecurity(item(4, ITEM_CATEGORY.HELMET, RARITY.LEGENDARY, "XII"),
-                        List.of(first, second, third)));
+        assertThrows(
+                IllegalArgumentException.class,
+                () ->
+                        validator.validateOrbsSecurity(
+                                item(4, ITEM_CATEGORY.HELMET, RARITY.LEGENDARY, "XII"),
+                                List.of(first, second, third)));
         assertDoesNotThrow(() -> validator.validateOrbsSecurity(rare, List.of()));
     }
 
@@ -96,19 +120,23 @@ class EquipmentValidatorTests {
         OrbTemplate duplicate = orb(ORB_CATEGORY.OFFENSIVE, ORB_BONUS_TYPE.EXTRA_EXP);
         OrbTemplate different = orb(ORB_CATEGORY.OFFENSIVE, ORB_BONUS_TYPE.EXTRA_GOLD);
 
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(
+                IllegalArgumentException.class,
                 () -> validator.validateOrbsSecurity(legendary, List.of(first, duplicate)));
-        assertDoesNotThrow(() -> validator.validateOrbsSecurity(legendary, List.of(first, different)));
+        assertDoesNotThrow(
+                () -> validator.validateOrbsSecurity(legendary, List.of(first, different)));
     }
 
     @Test
     void recognizesOnlyAllowedCharacterStats() {
         assertDoesNotThrow(() -> validator.validateCharacterStats(Map.of("Siła", 10)));
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(
+                IllegalArgumentException.class,
                 () -> validator.validateCharacterStats(Map.of("Unknown", 10)));
     }
 
-    private ItemTemplate item(Integer capacity, ITEM_CATEGORY category, RARITY rarity, String tier) {
+    private ItemTemplate item(
+            Integer capacity, ITEM_CATEGORY category, RARITY rarity, String tier) {
         return ItemTemplate.builder()
                 .id(1L)
                 .name("Test XII")

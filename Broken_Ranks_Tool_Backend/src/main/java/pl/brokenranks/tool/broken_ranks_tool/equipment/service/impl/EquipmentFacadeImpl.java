@@ -1,5 +1,10 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.service.impl;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
@@ -8,12 +13,6 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.Dr
 import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.ItemTemplateRepository;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentFacade;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentValidator;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor

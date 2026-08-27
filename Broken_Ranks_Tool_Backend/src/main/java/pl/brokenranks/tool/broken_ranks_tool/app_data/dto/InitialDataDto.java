@@ -1,13 +1,12 @@
 package pl.brokenranks.tool.broken_ranks_tool.app_data.dto;
 
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.DrifTemplateDto;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.OrbTemplate;
-
-import java.util.List;
 
 /** Aggregates all data returned by the {@code /api/initial-data} endpoint. */
 @Data

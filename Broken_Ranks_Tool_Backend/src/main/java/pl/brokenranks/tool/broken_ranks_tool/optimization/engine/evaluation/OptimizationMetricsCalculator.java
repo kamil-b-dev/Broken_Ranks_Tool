@@ -1,19 +1,18 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation;
 
-import lombok.RequiredArgsConstructor;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRulesRegistry;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.DrifOptimizationMath.calculateDrifValue;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.DrifOptimizationMath.power;
 
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.DrifOptimizationMath.calculateDrifValue;
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.DrifOptimizationMath.power;
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
+import lombok.RequiredArgsConstructor;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRulesRegistry;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 
 /** Calculates raw counts, values, power, penalties, and capacity utilization. */
 @RequiredArgsConstructor
@@ -30,7 +29,9 @@ final class OptimizationMetricsCalculator {
     }
 
     private void accumulateSlot(
-            BuildState state, SlotContext slot, OptimizationContext context,
+            BuildState state,
+            SlotContext slot,
+            OptimizationContext context,
             MetricAccumulator accumulator) {
         List<Placement> placements = state.slots().getOrDefault(slot.key(), List.of());
         int usedPower = 0;
@@ -38,8 +39,9 @@ final class OptimizationMetricsCalculator {
         for (Placement placement : placements) {
             if (placement == null || placement.drif() == null) continue;
             DRIF_BONUS_TYPE type = placement.drif().getBonusType();
-            double value = drifValue(placement.drif(), placement.level(), context)
-                    * (1.0 + slot.drifBonus());
+            double value =
+                    drifValue(placement.drif(), placement.level(), context)
+                            * (1.0 + slot.drifBonus());
             accumulator.searchCounts.merge(type, 1, Integer::sum);
             accumulator.searchRawValues.merge(type, value, Double::sum);
             if (!unique.add(type)) continue;
@@ -59,8 +61,10 @@ final class OptimizationMetricsCalculator {
     }
 
     double drifValue(DrifTemplate drif, int level, OptimizationContext context) {
-        return context.drifValueCache().computeIfAbsent(new DrifLevelKey(drif.getId(), level),
-                ignored -> calculateDrifValue(drif, level));
+        return context.drifValueCache()
+                .computeIfAbsent(
+                        new DrifLevelKey(drif.getId(), level),
+                        ignored -> calculateDrifValue(drif, level));
     }
 
     private static final class MetricAccumulator {
@@ -76,17 +80,26 @@ final class OptimizationMetricsCalculator {
         private Metrics toMetrics(EquipmentRulesRegistry rules) {
             Map<DRIF_BONUS_TYPE, Double> searchValues = penalizedSearchValues(rules);
             double penaltyLoss = penaltyLoss(rules);
-            double utilization = totalCapacity > 0
-                    ? (double) usedCapacity / totalCapacity : 0.0;
-            return new Metrics(counts, searchCounts, searchValues,
-                    totalPower, overflowPower, utilization, penaltyLoss);
+            double utilization = totalCapacity > 0 ? (double) usedCapacity / totalCapacity : 0.0;
+            return new Metrics(
+                    counts,
+                    searchCounts,
+                    searchValues,
+                    totalPower,
+                    overflowPower,
+                    utilization,
+                    penaltyLoss);
         }
 
-        private Map<DRIF_BONUS_TYPE, Double> penalizedSearchValues(
-                EquipmentRulesRegistry rules) {
+        private Map<DRIF_BONUS_TYPE, Double> penalizedSearchValues(EquipmentRulesRegistry rules) {
             Map<DRIF_BONUS_TYPE, Double> values = new LinkedHashMap<>();
-            searchRawValues.forEach((type, value) -> values.put(type,
-                    value * rules.getDrifPenalty(searchCounts.getOrDefault(type, 0))));
+            searchRawValues.forEach(
+                    (type, value) ->
+                            values.put(
+                                    type,
+                                    value
+                                            * rules.getDrifPenalty(
+                                                    searchCounts.getOrDefault(type, 0))));
             return values;
         }
 

@@ -1,7 +1,18 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.service.impl;
 
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.DrifOptimizationMath;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_SIZE;
@@ -19,20 +30,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.Equipme
 import pl.brokenranks.tool.broken_ranks_tool.optimization.constraints.OptimizationLockService;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationResponse;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.DrifOptimizationMath;
 
 /**
  * Exact comparison on a multi-slot build. The class name intentionally excludes it
@@ -41,19 +39,21 @@ import static org.mockito.Mockito.when;
  */
 class OptimizationRealisticExhaustiveBenchmark {
 
-    private static final List<Map.Entry<String, ITEM_CATEGORY>> SLOT_DEFINITIONS = List.of(
-            Map.entry("helmet", ITEM_CATEGORY.HELMET),
-            Map.entry("armor", ITEM_CATEGORY.ARMOR),
-            Map.entry("cape", ITEM_CATEGORY.CAPE),
-            Map.entry("legs", ITEM_CATEGORY.LEGS),
-            Map.entry("boots", ITEM_CATEGORY.BOOTS),
-            Map.entry("gloves", ITEM_CATEGORY.GLOVES),
-            Map.entry("belt", ITEM_CATEGORY.BELT));
-    private static final List<DRIF_BONUS_TYPE> TYPES = List.of(
-            DRIF_BONUS_TYPE.DAMAGE_MAGIC,
-            DRIF_BONUS_TYPE.HIT_CHANCE_RANGED,
-            DRIF_BONUS_TYPE.CRITICAL_CHANCE,
-            DRIF_BONUS_TYPE.DEFENSE_MENTAL);
+    private static final List<Map.Entry<String, ITEM_CATEGORY>> SLOT_DEFINITIONS =
+            List.of(
+                    Map.entry("helmet", ITEM_CATEGORY.HELMET),
+                    Map.entry("armor", ITEM_CATEGORY.ARMOR),
+                    Map.entry("cape", ITEM_CATEGORY.CAPE),
+                    Map.entry("legs", ITEM_CATEGORY.LEGS),
+                    Map.entry("boots", ITEM_CATEGORY.BOOTS),
+                    Map.entry("gloves", ITEM_CATEGORY.GLOVES),
+                    Map.entry("belt", ITEM_CATEGORY.BELT));
+    private static final List<DRIF_BONUS_TYPE> TYPES =
+            List.of(
+                    DRIF_BONUS_TYPE.DAMAGE_MAGIC,
+                    DRIF_BONUS_TYPE.HIT_CHANCE_RANGED,
+                    DRIF_BONUS_TYPE.CRITICAL_CHANCE,
+                    DRIF_BONUS_TYPE.DEFENSE_MENTAL);
     private static final int CAPACITY_PER_SLOT = 8;
     private static final double COMPARISON_TOLERANCE = 0.000_001;
 
@@ -72,14 +72,23 @@ class OptimizationRealisticExhaustiveBenchmark {
         ExactProfile exact = exactSearch.findBest();
         double exactMs = elapsedMillis(exactStarted);
 
-        System.out.printf(java.util.Locale.ROOT,
+        System.out.printf(
+                java.util.Locale.ROOT,
                 "OPTIMIZER_EXACT configurations=%d heuristic_ms=%.2f exact_ms=%.2f "
                         + "heuristic_utility=%.6f exact_utility=%.6f%n",
-                exactSearch.examined, heuristicMs, exactMs,
-                heuristic.weightedUtility, exact.weightedUtility);
-        assertEquals(0, compare(exact, heuristic),
-                () -> "Heurystyka nie osiągnęła ścisłego optimum. heuristic="
-                        + heuristic + ", exact=" + exact);
+                exactSearch.examined,
+                heuristicMs,
+                exactMs,
+                heuristic.weightedUtility,
+                exact.weightedUtility);
+        assertEquals(
+                0,
+                compare(exact, heuristic),
+                () ->
+                        "Heurystyka nie osiągnęła ścisłego optimum. heuristic="
+                                + heuristic
+                                + ", exact="
+                                + exact);
     }
 
     private Scenario scenario() {
@@ -89,19 +98,26 @@ class OptimizationRealisticExhaustiveBenchmark {
         Map<Long, Double> bonusByItem = new LinkedHashMap<>();
         for (int index = 0; index < SLOT_DEFINITIONS.size(); index++) {
             Map.Entry<String, ITEM_CATEGORY> definition = SLOT_DEFINITIONS.get(index);
-            ItemTemplate item = ItemTemplate.builder().id((long) index + 1)
-                    .name("Exact " + definition.getKey()).category(definition.getValue())
-                    .tier("XII").rarity(RARITY.RARE).capacity(CAPACITY_PER_SLOT)
-                    .stats(Map.of()).build();
+            ItemTemplate item =
+                    ItemTemplate.builder()
+                            .id((long) index + 1)
+                            .name("Exact " + definition.getKey())
+                            .category(definition.getValue())
+                            .tier("XII")
+                            .rarity(RARITY.RARE)
+                            .capacity(CAPACITY_PER_SLOT)
+                            .stats(Map.of())
+                            .build();
             items.add(item);
             slots.put(definition.getKey(), emptySlot(item.getId()));
             bonusByItem.put(item.getId(), drifBonuses[index]);
         }
-        List<DrifTemplate> drifs = List.of(
-                drif(100L, TYPES.get(0), 3.0, 0.55),
-                drif(101L, TYPES.get(1), 2.5, 0.45),
-                drif(102L, TYPES.get(2), 2.0, 0.40),
-                drif(103L, TYPES.get(3), 3.5, 0.60));
+        List<DrifTemplate> drifs =
+                List.of(
+                        drif(100L, TYPES.get(0), 3.0, 0.55),
+                        drif(101L, TYPES.get(1), 2.5, 0.45),
+                        drif(102L, TYPES.get(2), 2.0, 0.40),
+                        drif(103L, TYPES.get(3), 3.5, 0.60));
         Map<DRIF_BONUS_TYPE, Integer> priorities = new LinkedHashMap<>();
         priorities.put(TYPES.get(0), 30);
         priorities.put(TYPES.get(1), 24);
@@ -128,21 +144,42 @@ class OptimizationRealisticExhaustiveBenchmark {
         EquipmentStatsCalculatorService calculator = mock(EquipmentStatsCalculatorService.class);
         when(drifRepository.findAll()).thenReturn(drifs);
         when(itemRepository.findAllById(any())).thenReturn(items);
-        when(itemStatProcessor.calculateFinalDrifMod(any(), anyInt())).thenAnswer(invocation ->
-                bonusByItem.getOrDefault(((ItemTemplate) invocation.getArgument(0)).getId(), 0.0));
+        when(itemStatProcessor.calculateFinalDrifMod(any(), anyInt()))
+                .thenAnswer(
+                        invocation ->
+                                bonusByItem.getOrDefault(
+                                        ((ItemTemplate) invocation.getArgument(0)).getId(), 0.0));
         when(calculator.calculateTotalStats(any())).thenReturn(Map.of());
         EquipmentRulesRegistry rules = new EquipmentRulesRegistry();
-        CustomModsOptimizationServiceImpl service = new CustomModsOptimizationServiceImpl(
-                drifRepository, itemRepository, new EquipmentValidator(rules), rules,
-                itemStatProcessor, new OptimizationLockService(), calculator);
-        double[] values = drifs.stream()
-                .mapToDouble(drif -> DrifOptimizationMath.calculateDrifValue(drif, 6)).toArray();
-        int[] powers = drifs.stream().mapToInt(drif -> drif.getBonusType().getBasePower()).toArray();
+        CustomModsOptimizationServiceImpl service =
+                new CustomModsOptimizationServiceImpl(
+                        drifRepository,
+                        itemRepository,
+                        new EquipmentValidator(rules),
+                        rules,
+                        itemStatProcessor,
+                        new OptimizationLockService(),
+                        calculator);
+        double[] values =
+                drifs.stream()
+                        .mapToDouble(drif -> DrifOptimizationMath.calculateDrifValue(drif, 6))
+                        .toArray();
+        int[] powers =
+                drifs.stream().mapToInt(drif -> drif.getBonusType().getBasePower()).toArray();
         int[] weights = TYPES.stream().mapToInt(priorities::get).toArray();
         int[] minimums = TYPES.stream().mapToInt(type -> quantities.get(type).getMin()).toArray();
         int[] maximums = TYPES.stream().mapToInt(type -> quantities.get(type).getMax()).toArray();
-        return new Scenario(service, request, rules, drifs, drifBonuses,
-                values, powers, weights, minimums, maximums);
+        return new Scenario(
+                service,
+                request,
+                rules,
+                drifs,
+                drifBonuses,
+                values,
+                powers,
+                weights,
+                minimums,
+                maximums);
     }
 
     private ExactProfile profileOf(EquipmentRequest setup, Scenario scenario) {
@@ -150,14 +187,15 @@ class OptimizationRealisticExhaustiveBenchmark {
         double[] rawValues = new double[TYPES.size()];
         int totalPower = 0;
         for (int slotIndex = 0; slotIndex < SLOT_DEFINITIONS.size(); slotIndex++) {
-            EquipmentRequest.SlotData slot = setup.getSlots().get(SLOT_DEFINITIONS.get(slotIndex).getKey());
+            EquipmentRequest.SlotData slot =
+                    setup.getSlots().get(SLOT_DEFINITIONS.get(slotIndex).getKey());
             if (slot.getDrifIds() == null) continue;
             for (Long id : slot.getDrifIds()) {
                 if (id == null) continue;
                 int typeIndex = indexOfDrif(id, scenario.drifs);
                 counts[typeIndex]++;
-                rawValues[typeIndex] += scenario.values[typeIndex]
-                        * (1.0 + scenario.drifBonuses[slotIndex]);
+                rawValues[typeIndex] +=
+                        scenario.values[typeIndex] * (1.0 + scenario.drifBonuses[slotIndex]);
                 totalPower += scenario.powers[typeIndex];
             }
         }
@@ -171,8 +209,8 @@ class OptimizationRealisticExhaustiveBenchmark {
         throw new IllegalArgumentException("Unknown drif " + id);
     }
 
-    private ExactProfile quality(int[] counts, double[] rawValues, int totalPower,
-                                 Scenario scenario) {
+    private ExactProfile quality(
+            int[] counts, double[] rawValues, int totalPower, Scenario scenario) {
         double utility = 0.0;
         double penaltyLoss = 0.0;
         for (int type = 0; type < TYPES.size(); type++) {
@@ -180,8 +218,8 @@ class OptimizationRealisticExhaustiveBenchmark {
             utility += rawValues[type] * penalty * scenario.weights[type];
             penaltyLoss += Math.abs(rawValues[type]) * (1.0 - penalty);
         }
-        return new ExactProfile(utility, penaltyLoss, totalPower,
-                Arrays.copyOf(counts, counts.length));
+        return new ExactProfile(
+                utility, penaltyLoss, totalPower, Arrays.copyOf(counts, counts.length));
     }
 
     private int compare(ExactProfile left, ExactProfile right) {
@@ -199,8 +237,14 @@ class OptimizationRealisticExhaustiveBenchmark {
     }
 
     private DrifTemplate drif(Long id, DRIF_BONUS_TYPE type, double base, double increment) {
-        return DrifTemplate.builder().id(id).name(type.name()).size(DRIF_SIZE.SUBDRIF)
-                .bonusType(type).baseValue(base + "%").increment(increment + "%").build();
+        return DrifTemplate.builder()
+                .id(id)
+                .name(type.name())
+                .size(DRIF_SIZE.SUBDRIF)
+                .bonusType(type)
+                .baseValue(base + "%")
+                .increment(increment + "%")
+                .build();
     }
 
     private EquipmentRequest.SlotData emptySlot(Long itemId) {
@@ -257,8 +301,8 @@ class OptimizationRealisticExhaustiveBenchmark {
             for (int type = 0; type < TYPES.size(); type++) {
                 if ((mask & (1 << type)) == 0) continue;
                 counts[type] += direction;
-                rawValues[type] += direction * scenario.values[type]
-                        * (1.0 + scenario.drifBonuses[slotIndex]);
+                rawValues[type] +=
+                        direction * scenario.values[type] * (1.0 + scenario.drifBonuses[slotIndex]);
                 totalPower += direction * scenario.powers[type];
             }
         }
@@ -277,24 +321,31 @@ class OptimizationRealisticExhaustiveBenchmark {
         }
     }
 
-    private record Scenario(CustomModsOptimizationServiceImpl service,
-                            OptimizationRequest request,
-                            EquipmentRulesRegistry rules,
-                            List<DrifTemplate> drifs,
-                            double[] drifBonuses,
-                            double[] values,
-                            int[] powers,
-                            int[] weights,
-                            int[] minimums,
-                            int[] maximums) { }
+    private record Scenario(
+            CustomModsOptimizationServiceImpl service,
+            OptimizationRequest request,
+            EquipmentRulesRegistry rules,
+            List<DrifTemplate> drifs,
+            double[] drifBonuses,
+            double[] values,
+            int[] powers,
+            int[] weights,
+            int[] minimums,
+            int[] maximums) {}
 
-    private record ExactProfile(double weightedUtility, double penaltyLoss,
-                                int totalPower, int[] counts) {
+    private record ExactProfile(
+            double weightedUtility, double penaltyLoss, int totalPower, int[] counts) {
         @Override
         public String toString() {
-            return "ExactProfile[weightedUtility=" + weightedUtility
-                    + ", penaltyLoss=" + penaltyLoss + ", totalPower=" + totalPower
-                    + ", counts=" + Arrays.toString(counts) + "]";
+            return "ExactProfile[weightedUtility="
+                    + weightedUtility
+                    + ", penaltyLoss="
+                    + penaltyLoss
+                    + ", totalPower="
+                    + totalPower
+                    + ", counts="
+                    + Arrays.toString(counts)
+                    + "]";
         }
     }
 }

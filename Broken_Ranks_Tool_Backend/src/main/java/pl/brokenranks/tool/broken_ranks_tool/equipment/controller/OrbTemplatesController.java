@@ -1,13 +1,12 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.controller;
 
-import org.springframework.cache.annotation.Cacheable;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.OrbTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.OrbTemplateRepository;
-
-import java.util.List;
 
 /** Exposes API endpoints for retrieving orb templates. */
 @RestController

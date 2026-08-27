@@ -1,18 +1,17 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search;
 
-import lombok.RequiredArgsConstructor;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.DrifOptimizationMath.highestFittingLevel;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.DrifOptimizationMath.lowestTierFittingLevel;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationRequestConstraints.*;
 
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.DrifOptimizationMath.highestFittingLevel;
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.DrifOptimizationMath.lowestTierFittingLevel;
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationRequestConstraints.*;
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
+import lombok.RequiredArgsConstructor;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 
 /** Places required drifs and repairs forced target constraints. */
 @RequiredArgsConstructor
@@ -30,8 +29,8 @@ final class OptimizationRequirementSatisfier {
 
             RequiredPlacementChoice best = bestMinimumPlacement(state, requiredType, context);
             if (best == null) return false;
-            stateOperations.putNextFree(state, best.slot(),
-                    new Placement(best.drif(), best.level(), false));
+            stateOperations.putNextFree(
+                    state, best.slot(), new Placement(best.drif(), best.level(), false));
         }
     }
 
@@ -41,22 +40,22 @@ final class OptimizationRequirementSatisfier {
         }
     }
 
-    BuildState removeRedundantForcedTargetDrifs(BuildState state,
-                                                OptimizationContext context) {
+    BuildState removeRedundantForcedTargetDrifs(BuildState state, OptimizationContext context) {
         for (DRIF_BONUS_TYPE type : forcedTargetTypesByName(context)) {
             state = removeRedundantDrifsForTarget(state, type, context);
         }
         return state;
     }
 
-    private DRIF_BONUS_TYPE mostConstrainedMissingType(BuildState state,
-                                                       OptimizationContext context) {
+    private DRIF_BONUS_TYPE mostConstrainedMissingType(
+            BuildState state, OptimizationContext context) {
         DRIF_BONUS_TYPE requiredType = null;
         int fewestOptions = Integer.MAX_VALUE;
-        for (Map.Entry<DRIF_BONUS_TYPE, OptimizationRequest.QuantityRange> entry
-                : context.sortedQuantities()) {
-            int deficit = entry.getValue().getMin()
-                    - stateOperations.globalCount(state, entry.getKey(), context);
+        for (Map.Entry<DRIF_BONUS_TYPE, OptimizationRequest.QuantityRange> entry :
+                context.sortedQuantities()) {
+            int deficit =
+                    entry.getValue().getMin()
+                            - stateOperations.globalCount(state, entry.getKey(), context);
             if (deficit <= 0) continue;
 
             int options = countFeasiblePlacements(state, entry.getKey(), context);
@@ -76,16 +75,16 @@ final class OptimizationRequirementSatisfier {
             if (!canAddToSlot(state, slot, context)) continue;
             List<Placement> placements = state.slots().get(slot.key());
             for (DrifTemplate candidate : slot.candidates()) {
-                if (!isMinimumCandidateAllowed(
-                        state, placements, candidate, requiredType, context)) continue;
+                if (!isMinimumCandidateAllowed(state, placements, candidate, requiredType, context))
+                    continue;
 
                 Integer level = lowestTierFittingLevel(state, slot, candidate);
                 if (level == null) continue;
                 BuildState trial = state.copy();
-                stateOperations.putNextFree(trial, slot,
-                        new Placement(candidate, level, false));
-                double gain = stateOperations.score(trial, context)
-                        - stateOperations.score(state, context);
+                stateOperations.putNextFree(trial, slot, new Placement(candidate, level, false));
+                double gain =
+                        stateOperations.score(trial, context)
+                                - stateOperations.score(state, context);
                 if (isBetterChoice(slot, candidate, level, gain, best)) {
                     best = new RequiredPlacementChoice(slot, candidate, level, gain);
                 }
@@ -95,17 +94,20 @@ final class OptimizationRequirementSatisfier {
     }
 
     private boolean isMinimumCandidateAllowed(
-            BuildState state, List<Placement> placements, DrifTemplate candidate,
-            DRIF_BONUS_TYPE requiredType, OptimizationContext context) {
+            BuildState state,
+            List<Placement> placements,
+            DrifTemplate candidate,
+            DRIF_BONUS_TYPE requiredType,
+            OptimizationContext context) {
         return candidate.getBonusType() == requiredType
                 && !stateOperations.containsBonus(placements, requiredType)
                 && stateOperations.globalCount(state, requiredType, context)
-                < maxQuantity(requiredType, context.request())
+                        < maxQuantity(requiredType, context.request())
                 && !stateOperations.containsAnotherElemental(state, candidate, null);
     }
 
-    private int countFeasiblePlacements(BuildState state, DRIF_BONUS_TYPE type,
-                                        OptimizationContext context) {
+    private int countFeasiblePlacements(
+            BuildState state, DRIF_BONUS_TYPE type, OptimizationContext context) {
         int options = 0;
         for (SlotContext slot : context.slots()) {
             if (!canAddToSlot(state, slot, context)) continue;
@@ -123,41 +125,40 @@ final class OptimizationRequirementSatisfier {
         return options;
     }
 
-    private void satisfyForcedTarget(BuildState state, DRIF_BONUS_TYPE type,
-                                     OptimizationContext context) {
+    private void satisfyForcedTarget(
+            BuildState state, DRIF_BONUS_TYPE type, OptimizationContext context) {
         double target = targetFor(type, context.request());
         int guard = 0;
         while (stateOperations.calculatedValue(state, type, context) + TARGET_TOLERANCE < target
                 && guard++ < MAX_GLOBAL_DRIFS_PER_TYPE) {
             RequiredPlacementChoice best = bestForcedTargetPlacement(state, type, target, context);
             if (best == null) return;
-            stateOperations.putNextFree(state, best.slot(),
-                    new Placement(best.drif(), best.level(), false));
+            stateOperations.putNextFree(
+                    state, best.slot(), new Placement(best.drif(), best.level(), false));
         }
     }
 
     private RequiredPlacementChoice bestForcedTargetPlacement(
-            BuildState state, DRIF_BONUS_TYPE type, double target,
-            OptimizationContext context) {
+            BuildState state, DRIF_BONUS_TYPE type, double target, OptimizationContext context) {
         RequiredPlacementChoice best = null;
         double bestDistance = Double.POSITIVE_INFINITY;
         for (SlotContext slot : context.slots()) {
             if (!canAddToSlot(state, slot, context)) continue;
             List<Placement> placements = state.slots().get(slot.key());
             for (DrifTemplate candidate : slot.candidates()) {
-                if (!isForcedTargetCandidateAllowed(
-                        state, placements, candidate, type, context)) continue;
+                if (!isForcedTargetCandidateAllowed(state, placements, candidate, type, context))
+                    continue;
                 Integer level = highestFittingLevel(state, slot, candidate);
                 if (level == null) continue;
 
                 BuildState trial = state.copy();
-                stateOperations.putNextFree(trial, slot,
-                        new Placement(candidate, level, false));
-                double distance = targetDistance(
-                        stateOperations.currentValue(trial, type, context), target);
-                if (best == null || distance < bestDistance - MIN_ACCEPTED_GAIN
+                stateOperations.putNextFree(trial, slot, new Placement(candidate, level, false));
+                double distance =
+                        targetDistance(stateOperations.currentValue(trial, type, context), target);
+                if (best == null
+                        || distance < bestDistance - MIN_ACCEPTED_GAIN
                         || (Math.abs(distance - bestDistance) <= MIN_ACCEPTED_GAIN
-                        && isEarlierPlacement(slot, candidate, level, best))) {
+                                && isEarlierPlacement(slot, candidate, level, best))) {
                     bestDistance = distance;
                     best = new RequiredPlacementChoice(slot, candidate, level, -distance);
                 }
@@ -167,12 +168,15 @@ final class OptimizationRequirementSatisfier {
     }
 
     private boolean isForcedTargetCandidateAllowed(
-            BuildState state, List<Placement> placements, DrifTemplate candidate,
-            DRIF_BONUS_TYPE type, OptimizationContext context) {
+            BuildState state,
+            List<Placement> placements,
+            DrifTemplate candidate,
+            DRIF_BONUS_TYPE type,
+            OptimizationContext context) {
         return candidate.getBonusType() == type
                 && !stateOperations.containsBonus(placements, type)
                 && stateOperations.globalCount(state, type, context)
-                < maxQuantity(type, context.request())
+                        < maxQuantity(type, context.request())
                 && !stateOperations.containsAnotherElemental(state, candidate, null);
     }
 
@@ -180,8 +184,9 @@ final class OptimizationRequirementSatisfier {
             BuildState state, DRIF_BONUS_TYPE type, OptimizationContext context) {
         double target = targetFor(type, context.request());
         boolean changed = true;
-        while (changed && stateOperations.calculatedValue(state, type, context)
-                >= target - TARGET_TOLERANCE) {
+        while (changed
+                && stateOperations.calculatedValue(state, type, context)
+                        >= target - TARGET_TOLERANCE) {
             changed = false;
             BuildState bestState = null;
             double bestExcess = Double.POSITIVE_INFINITY;
@@ -200,9 +205,11 @@ final class OptimizationRequirementSatisfier {
                     double trialValue = stateOperations.calculatedValue(trial, type, context);
                     if (trialValue < target - TARGET_TOLERANCE) continue;
                     double excess = trialValue - target;
-                    if (bestState == null || excess < bestExcess - MIN_ACCEPTED_GAIN
+                    if (bestState == null
+                            || excess < bestExcess - MIN_ACCEPTED_GAIN
                             || (Math.abs(excess - bestExcess) <= MIN_ACCEPTED_GAIN
-                            && stateOperations.trySelectBetter(trial, bestState, context))) {
+                                    && stateOperations.trySelectBetter(
+                                            trial, bestState, context))) {
                         bestState = trial;
                         bestExcess = excess;
                     }
@@ -216,16 +223,16 @@ final class OptimizationRequirementSatisfier {
         return state;
     }
 
-    private boolean canAddToSlot(BuildState state, SlotContext slot,
-                                 OptimizationContext context) {
+    private boolean canAddToSlot(BuildState state, SlotContext slot, OptimizationContext context) {
         return slot.optimizable()
                 && !stateOperations.isSlotLocked(slot, context)
                 && stateOperations.hasFreeDrifPosition(state.slots().get(slot.key()), slot);
     }
 
-    private boolean isRemovableTargetPlacement(Placement placement, SlotContext slot,
-                                               int index, DRIF_BONUS_TYPE type) {
-        return placement != null && !placement.locked()
+    private boolean isRemovableTargetPlacement(
+            Placement placement, SlotContext slot, int index, DRIF_BONUS_TYPE type) {
+        return placement != null
+                && !placement.locked()
                 && !slot.lockedIndices().contains(index)
                 && placement.drif().getBonusType() == type;
     }
@@ -234,10 +241,12 @@ final class OptimizationRequirementSatisfier {
         return context.request().getPriorities().keySet().stream()
                 .filter(type -> isForcedTarget(type, context.request()))
                 .filter(type -> targetFor(type, context.request()) != null)
-                .sorted(Comparator
-                        .comparing((DRIF_BONUS_TYPE type) -> stateOperations.priorityOf(
-                                type, context.request()), Comparator.reverseOrder())
-                        .thenComparing(Enum::name))
+                .sorted(
+                        Comparator.comparing(
+                                        (DRIF_BONUS_TYPE type) ->
+                                                stateOperations.priorityOf(type, context.request()),
+                                        Comparator.reverseOrder())
+                                .thenComparing(Enum::name))
                 .toList();
     }
 
@@ -248,15 +257,20 @@ final class OptimizationRequirementSatisfier {
                 .toList();
     }
 
-    private boolean isBetterChoice(SlotContext slot, DrifTemplate candidate, int level,
-                                   double gain, RequiredPlacementChoice current) {
-        return current == null || gain > current.gain() + MIN_ACCEPTED_GAIN
+    private boolean isBetterChoice(
+            SlotContext slot,
+            DrifTemplate candidate,
+            int level,
+            double gain,
+            RequiredPlacementChoice current) {
+        return current == null
+                || gain > current.gain() + MIN_ACCEPTED_GAIN
                 || (Math.abs(gain - current.gain()) <= MIN_ACCEPTED_GAIN
-                && isEarlierPlacement(slot, candidate, level, current));
+                        && isEarlierPlacement(slot, candidate, level, current));
     }
 
-    private boolean isEarlierPlacement(SlotContext slot, DrifTemplate candidate, int level,
-                                       RequiredPlacementChoice current) {
+    private boolean isEarlierPlacement(
+            SlotContext slot, DrifTemplate candidate, int level, RequiredPlacementChoice current) {
         int slotComparison = slot.key().compareTo(current.slot().key());
         if (slotComparison != 0) return slotComparison < 0;
         int candidateComparison = Long.compare(candidate.getId(), current.drif().getId());
