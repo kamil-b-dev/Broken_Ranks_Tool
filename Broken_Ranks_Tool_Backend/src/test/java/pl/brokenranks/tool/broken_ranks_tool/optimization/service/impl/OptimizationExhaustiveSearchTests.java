@@ -27,7 +27,8 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.Dr
 import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.ItemTemplateRepository;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCalculatorService;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.processor.ItemStatProcessor;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentValidator;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentPlacementRules;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.UpgradeLevelPolicy;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.constraints.OptimizationLockService;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationResponse;
@@ -185,16 +186,22 @@ class OptimizationExhaustiveSearchTests {
         when(itemStatProcessor.calculateFinalDrifMod(any(), anyInt())).thenReturn(0.0);
         when(calculator.calculateTotalStats(any())).thenReturn(Map.of());
         EquipmentRulesRegistry rules = new EquipmentRulesRegistry();
-        EquipmentValidator validator = new EquipmentValidator(rules);
+        EquipmentPlacementRules placementRules = new EquipmentPlacementRules(rules);
+        UpgradeLevelPolicy levelPolicy = new UpgradeLevelPolicy();
         OptimizationContextFactory contextFactory =
                 new OptimizationContextFactory(
-                        drifRepository, itemRepository, validator, itemStatProcessor);
+                        drifRepository,
+                        itemRepository,
+                        placementRules,
+                        levelPolicy,
+                        itemStatProcessor);
         OptimizationContext context = contextFactory.create(request, 55_000, 20_000, 25_000);
         CustomModsOptimizationServiceImpl service =
                 new CustomModsOptimizationServiceImpl(
                         drifRepository,
                         itemRepository,
-                        validator,
+                        placementRules,
+                        levelPolicy,
                         rules,
                         itemStatProcessor,
                         new OptimizationLockService(),

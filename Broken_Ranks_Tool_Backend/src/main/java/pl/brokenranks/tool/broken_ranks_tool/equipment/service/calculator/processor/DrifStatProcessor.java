@@ -16,14 +16,16 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemp
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.CalculationState;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.provider.EquipmentDataProvider.CalculationContext;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentValidator;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentPlacementRules;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.UpgradeLevelPolicy;
 
 /** Calculates drif statistics, item modifiers, and duplicate-bonus penalties. */
 @Component
 @RequiredArgsConstructor
 public class DrifStatProcessor {
 
-    private final EquipmentValidator validator;
+    private final EquipmentPlacementRules placementRules;
+    private final UpgradeLevelPolicy levelPolicy;
     private final EquipmentRulesRegistry rules;
 
     public Map<DRIF_BONUS_TYPE, Integer> preCountDrifs(
@@ -37,7 +39,7 @@ public class DrifStatProcessor {
 
             if (slot.getItemId() == null || !ctx.items().containsKey(slot.getItemId())) continue;
             ItemTemplate item = ctx.items().get(slot.getItemId());
-            if (!validator.isValidItem(item, slotKey)) continue;
+            if (!placementRules.isValidItem(item, slotKey)) continue;
             if (slot.getDrifIds() == null) continue;
 
             Set<DRIF_BONUS_TYPE> itemUniqueDrifs = new HashSet<>();
@@ -45,15 +47,15 @@ public class DrifStatProcessor {
                 if (drifId == null || !ctx.drifs().containsKey(drifId)) continue;
                 DrifTemplate drif = ctx.drifs().get(drifId);
 
-                if (!validator.isValidDrif(drif, slotKey)) continue;
-                if (!validator.isElementalDrifPositionValid(drif, slotKey)) continue;
+                if (!placementRules.isValidDrif(drif)) continue;
+                if (!placementRules.isElementalDrifPositionValid(drif, slotKey)) continue;
 
-                if (validator.isElementalDamage(drif.getBonusType())) {
+                if (placementRules.isElementalDamage(drif.getBonusType())) {
                     if (elementalDamageAlreadyAssigned) continue;
                     elementalDamageAlreadyAssigned = true;
                 }
 
-                if (!validator.isValidDrifSizeForTier(drif, item)) continue;
+                if (!placementRules.isValidDrifSizeForTier(drif, item)) continue;
                 if (itemUniqueDrifs.contains(drif.getBonusType())) continue;
 
                 itemUniqueDrifs.add(drif.getBonusType());
@@ -78,9 +80,9 @@ public class DrifStatProcessor {
             if (drifId == null || !state.getContext().drifs().containsKey(drifId)) continue;
             DrifTemplate drif = state.getContext().drifs().get(drifId);
 
-            if (!validator.isValidDrif(drif, slotKey)) continue;
-            if (!validator.isElementalDrifPositionValid(drif, slotKey)) continue;
-            if (!validator.isValidDrifSizeForTier(drif, item)) continue;
+            if (!placementRules.isValidDrif(drif)) continue;
+            if (!placementRules.isElementalDrifPositionValid(drif, slotKey)) continue;
+            if (!placementRules.isValidDrifSizeForTier(drif, item)) continue;
 
             if (processedDrifsForItem.contains(drif.getBonusType())) continue;
             processedDrifsForItem.add(drif.getBonusType());
@@ -91,7 +93,7 @@ public class DrifStatProcessor {
                             ? slot.getDrifLevels().get(String.valueOf(i))
                             : 1;
 
-            int finalLvl = validator.sanitizeDrifLevel(requestedLvl, drif);
+            int finalLvl = levelPolicy.sanitizeDrifLevel(requestedLvl, drif);
 
             int globalCountForThisDrif = state.getDrifCounts().getOrDefault(drif.getBonusType(), 1);
             double penaltyMultiplier = rules.getDrifPenalty(globalCountForThisDrif);

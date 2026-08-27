@@ -12,7 +12,8 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.Dr
 import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.ItemTemplateRepository;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCalculatorService;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.processor.ItemStatProcessor;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentValidator;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentPlacementRules;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.UpgradeLevelPolicy;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.constraints.OptimizationLockService;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationResponse;
@@ -44,7 +45,8 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
     public CustomModsOptimizationServiceImpl(
             DrifTemplateRepository drifRepository,
             ItemTemplateRepository itemRepository,
-            EquipmentValidator validator,
+            EquipmentPlacementRules placementRules,
+            UpgradeLevelPolicy levelPolicy,
             EquipmentRulesRegistry rules,
             ItemStatProcessor itemStatProcessor,
             OptimizationLockService lockService,
@@ -59,13 +61,17 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
                         largeNeighborhoodSearch, stateEvaluator, resultAssembler);
         this.contextFactory =
                 new OptimizationContextFactory(
-                        drifRepository, itemRepository, validator, itemStatProcessor);
+                        drifRepository,
+                        itemRepository,
+                        placementRules,
+                        levelPolicy,
+                        itemStatProcessor);
 
         OptimizationInitialStateFactory initialStateFactory =
-                new OptimizationInitialStateFactory(validator);
+                new OptimizationInitialStateFactory(levelPolicy);
         this.searchPipeline =
                 new OptimizationSearchPipeline(
-                        validator,
+                        placementRules,
                         rules,
                         stateEvaluator,
                         resultAssembler,

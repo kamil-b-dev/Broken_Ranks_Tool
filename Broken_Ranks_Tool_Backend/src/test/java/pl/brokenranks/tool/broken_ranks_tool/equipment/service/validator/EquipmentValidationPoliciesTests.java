@@ -21,21 +21,25 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemp
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.OrbTemplate;
 
-class EquipmentValidatorTests {
+class EquipmentValidationPoliciesTests {
 
-    private final EquipmentValidator validator =
-            new EquipmentValidator(new EquipmentRulesRegistry());
+    private final EquipmentPlacementRules placementRules =
+            new EquipmentPlacementRules(new EquipmentRulesRegistry());
+    private final UpgradeLevelPolicy levelPolicy = new UpgradeLevelPolicy();
+    private final EquipmentRequestValidator requestValidator = new EquipmentRequestValidator();
+    private final ModifierSecurityValidator securityValidator =
+            new ModifierSecurityValidator(placementRules, levelPolicy);
 
     @Test
     void calculatesCapacityAtStarBoundaries() {
         ItemTemplate item = item(10, ITEM_CATEGORY.HELMET, RARITY.RARE, "XII");
 
-        assertEquals(10, validator.calculateItemCapacity(item, 6));
-        assertEquals(11, validator.calculateItemCapacity(item, 7));
-        assertEquals(12, validator.calculateItemCapacity(item, 8));
-        assertEquals(14, validator.calculateItemCapacity(item, 9));
-        assertEquals(14, validator.calculateItemCapacity(item, 99));
-        assertEquals(0, validator.calculateItemCapacity(item(null), 9));
+        assertEquals(10, levelPolicy.calculateItemCapacity(item, 6));
+        assertEquals(11, levelPolicy.calculateItemCapacity(item, 7));
+        assertEquals(12, levelPolicy.calculateItemCapacity(item, 8));
+        assertEquals(14, levelPolicy.calculateItemCapacity(item, 9));
+        assertEquals(14, levelPolicy.calculateItemCapacity(item, 99));
+        assertEquals(0, levelPolicy.calculateItemCapacity(item(null), 9));
     }
 
     @Test
@@ -46,12 +50,12 @@ class EquipmentValidatorTests {
         assertThrows(
                 IllegalArgumentException.class,
                 () ->
-                        validator.validateDrifsSecurity(
+                        securityValidator.validateDrifs(
                                 "helmet", item, 1, List.of(critical, critical), List.of(1, 1)));
         assertThrows(
                 IllegalArgumentException.class,
                 () ->
-                        validator.validateDrifsSecurity(
+                        securityValidator.validateDrifs(
                                 "helmet",
                                 item,
                                 1,
@@ -60,7 +64,7 @@ class EquipmentValidatorTests {
         assertThrows(
                 IllegalArgumentException.class,
                 () ->
-                        validator.validateDrifsSecurity(
+                        securityValidator.validateDrifs(
                                 "helmet",
                                 item,
                                 1,
@@ -75,23 +79,23 @@ class EquipmentValidatorTests {
         OrbTemplate defensiveOrb = orb(ORB_CATEGORY.DEFENSIVE);
         OrbTemplate offensiveOrb = orb(ORB_CATEGORY.OFFENSIVE);
 
-        assertTrue(validator.isValidItem(helmet, "helmet"));
-        assertFalse(validator.isValidItem(helmet, "weapon"));
-        assertTrue(validator.isValidOrb(defensiveOrb, "helmet", false));
-        assertFalse(validator.isValidOrb(defensiveOrb, "helmet", true));
-        assertTrue(validator.isValidOrb(offensiveOrb, "helmet", true));
-        assertTrue(validator.isElementalDrifPositionValid(fire, "weapon"));
-        assertFalse(validator.isElementalDrifPositionValid(fire, "helmet"));
-        assertTrue(validator.isValidDrifSizeForTier(fire, helmet));
+        assertTrue(placementRules.isValidItem(helmet, "helmet"));
+        assertFalse(placementRules.isValidItem(helmet, "weapon"));
+        assertTrue(placementRules.isValidOrb(defensiveOrb, "helmet", false));
+        assertFalse(placementRules.isValidOrb(defensiveOrb, "helmet", true));
+        assertTrue(placementRules.isValidOrb(offensiveOrb, "helmet", true));
+        assertTrue(placementRules.isElementalDrifPositionValid(fire, "weapon"));
+        assertFalse(placementRules.isElementalDrifPositionValid(fire, "helmet"));
+        assertTrue(placementRules.isValidDrifSizeForTier(fire, helmet));
         assertEquals(
                 6,
-                validator.sanitizeDrifLevel(
+                levelPolicy.sanitizeDrifLevel(
                         20, drif(DRIF_BONUS_TYPE.DAMAGE_FIRE, DRIF_SIZE.SUBDRIF)));
         assertEquals(
                 1,
-                validator.sanitizeDrifLevel(
+                levelPolicy.sanitizeDrifLevel(
                         -5, drif(DRIF_BONUS_TYPE.DAMAGE_FIRE, DRIF_SIZE.SUBDRIF)));
-        assertEquals(1, validator.sanitizeOrbLevel(-5, orb(ORB_CATEGORY.DEFENSIVE)));
+        assertEquals(1, levelPolicy.sanitizeOrbLevel(-5, orb(ORB_CATEGORY.DEFENSIVE)));
     }
 
     @Test
@@ -103,14 +107,14 @@ class EquipmentValidatorTests {
 
         assertThrows(
                 IllegalArgumentException.class,
-                () -> validator.validateOrbsSecurity(rare, List.of(first, second)));
+                () -> securityValidator.validateOrbs(rare, List.of(first, second)));
         assertThrows(
                 IllegalArgumentException.class,
                 () ->
-                        validator.validateOrbsSecurity(
+                        securityValidator.validateOrbs(
                                 item(4, ITEM_CATEGORY.HELMET, RARITY.LEGENDARY, "XII"),
                                 List.of(first, second, third)));
-        assertDoesNotThrow(() -> validator.validateOrbsSecurity(rare, List.of()));
+        assertDoesNotThrow(() -> securityValidator.validateOrbs(rare, List.of()));
     }
 
     @Test
@@ -122,17 +126,17 @@ class EquipmentValidatorTests {
 
         assertThrows(
                 IllegalArgumentException.class,
-                () -> validator.validateOrbsSecurity(legendary, List.of(first, duplicate)));
+                () -> securityValidator.validateOrbs(legendary, List.of(first, duplicate)));
         assertDoesNotThrow(
-                () -> validator.validateOrbsSecurity(legendary, List.of(first, different)));
+                () -> securityValidator.validateOrbs(legendary, List.of(first, different)));
     }
 
     @Test
     void recognizesOnlyAllowedCharacterStats() {
-        assertDoesNotThrow(() -> validator.validateCharacterStats(Map.of("Siła", 10)));
+        assertDoesNotThrow(() -> requestValidator.validateCharacterStats(Map.of("Siła", 10)));
         assertThrows(
                 IllegalArgumentException.class,
-                () -> validator.validateCharacterStats(Map.of("Unknown", 10)));
+                () -> requestValidator.validateCharacterStats(Map.of("Unknown", 10)));
     }
 
     private ItemTemplate item(

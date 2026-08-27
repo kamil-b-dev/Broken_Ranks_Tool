@@ -20,12 +20,17 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemp
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.OrbTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.CalculationState;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.provider.EquipmentDataProvider.CalculationContext;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentValidator;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentPlacementRules;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.ModifierSecurityValidator;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.UpgradeLevelPolicy;
 
 class DrifAndOrbStatProcessorTests {
 
-    private final EquipmentValidator validator =
-            new EquipmentValidator(new EquipmentRulesRegistry());
+    private final EquipmentPlacementRules placementRules =
+            new EquipmentPlacementRules(new EquipmentRulesRegistry());
+    private final UpgradeLevelPolicy levelPolicy = new UpgradeLevelPolicy();
+    private final ModifierSecurityValidator securityValidator =
+            new ModifierSecurityValidator(placementRules, levelPolicy);
 
     @Test
     void preCountDrifsSkipsInvalidPositionsAndDuplicateTypesPerItem() {
@@ -44,7 +49,7 @@ class DrifAndOrbStatProcessorTests {
                         Map.of(1L, weapon, 2L, helmet), Map.of(), Map.of(10L, fire, 11L, critical));
 
         DrifStatProcessor processor =
-                new DrifStatProcessor(validator, new EquipmentRulesRegistry());
+                new DrifStatProcessor(placementRules, levelPolicy, new EquipmentRulesRegistry());
 
         assertEquals(
                 Map.of(
@@ -65,7 +70,7 @@ class DrifAndOrbStatProcessorTests {
         state.getDrifCounts().put(DRIF_BONUS_TYPE.CRITICAL_CHANCE, 4);
 
         DrifStatProcessor processor =
-                new DrifStatProcessor(validator, new EquipmentRulesRegistry());
+                new DrifStatProcessor(placementRules, levelPolicy, new EquipmentRulesRegistry());
         processor.process("helmet", slot, item, 0.0, state);
 
         assertEquals(
@@ -95,7 +100,8 @@ class DrifAndOrbStatProcessorTests {
         CalculationState state =
                 new CalculationState(
                         new CalculationContext(Map.of(1L, item), Map.of(20L, orb), Map.of()));
-        OrbStatProcessor processor = new OrbStatProcessor(validator);
+        OrbStatProcessor processor =
+                new OrbStatProcessor(placementRules, levelPolicy, securityValidator);
 
         processor.process("helmet", slot, item, 8, state);
         processor.process("helmet", slot, item, 8, state);

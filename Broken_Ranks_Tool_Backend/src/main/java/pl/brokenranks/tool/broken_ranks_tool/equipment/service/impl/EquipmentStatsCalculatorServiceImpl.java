@@ -20,7 +20,10 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.proces
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.processor.OrbStatProcessor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.provider.EquipmentDataProvider;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.provider.EquipmentDataProvider.CalculationContext;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentValidator;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentPlacementRules;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentRequestValidator;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.ModifierSecurityValidator;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.UpgradeLevelPolicy;
 
 /** Orchestrates validation, data preparation, and equipment statistic processors. */
 @Service
@@ -28,7 +31,10 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.Equipme
 class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorService {
 
     private final EquipmentDataProvider dataProvider;
-    private final EquipmentValidator validator;
+    private final EquipmentRequestValidator requestValidator;
+    private final EquipmentPlacementRules placementRules;
+    private final UpgradeLevelPolicy levelPolicy;
+    private final ModifierSecurityValidator securityValidator;
     private final ItemStatProcessor itemProcessor;
     private final OrbStatProcessor orbProcessor;
     private final DrifStatProcessor drifProcessor;
@@ -40,13 +46,13 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
 
     @Override
     public CalculationResultDto calculateWithSources(EquipmentRequest request) {
-        validator.validateRequest(request);
+        requestValidator.validateRequest(request);
         if (request.getSlots() == null || request.getSlots().isEmpty()) {
             return new CalculationResultDto(
                     Collections.emptyMap(), Collections.emptyMap(), Collections.emptySet());
         }
 
-        validator.validateCharacterStats(request.getCharacterStats());
+        requestValidator.validateCharacterStats(request.getCharacterStats());
 
         CalculationContext ctx = dataProvider.buildContext(request.getSlots().values());
         CalculationState state = new CalculationState(ctx);
@@ -104,18 +110,18 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
             return;
         }
         ItemTemplate item = ctx.items().get(slotData.getItemId());
-        if (!validator.isValidItem(item, slotKey)) {
+        if (!placementRules.isValidItem(item, slotKey)) {
             return;
         }
 
         int requestedStarLevel = slotData.getItemStars() != null ? slotData.getItemStars() : 1;
-        int starLevel = validator.sanitizeItemStars(requestedStarLevel);
+        int starLevel = levelPolicy.sanitizeItemStars(requestedStarLevel);
 
         List<DrifTemplate> drifsForSlot = new ArrayList<>();
         List<Integer> levelsForSlot = new ArrayList<>();
         prepareDrifsForSlot(slotData, ctx, drifsForSlot, levelsForSlot);
 
-        validator.validateDrifsSecurity(slotKey, item, starLevel, drifsForSlot, levelsForSlot);
+        securityValidator.validateDrifs(slotKey, item, starLevel, drifsForSlot, levelsForSlot);
 
         double finalDrifMod = itemProcessor.calculateFinalDrifMod(item, starLevel);
 
