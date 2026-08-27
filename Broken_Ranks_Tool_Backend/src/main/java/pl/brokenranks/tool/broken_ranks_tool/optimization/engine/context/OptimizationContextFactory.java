@@ -16,7 +16,8 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemp
 import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.DrifTemplateRepository;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.ItemTemplateRepository;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.processor.ItemStatProcessor;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentValidator;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentPlacementRules;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.UpgradeLevelPolicy;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 
 /** Assembles the immutable request context used by the optimization search. */
@@ -27,10 +28,12 @@ public final class OptimizationContextFactory {
     public OptimizationContextFactory(
             DrifTemplateRepository drifRepository,
             ItemTemplateRepository itemRepository,
-            EquipmentValidator validator,
+            EquipmentPlacementRules placementRules,
+            UpgradeLevelPolicy levelPolicy,
             ItemStatProcessor itemStatProcessor) {
         this.templates = new OptimizationTemplateProvider(drifRepository, itemRepository);
-        this.slots = new OptimizationSlotContextFactory(validator, itemStatProcessor);
+        this.slots =
+                new OptimizationSlotContextFactory(placementRules, levelPolicy, itemStatProcessor);
     }
 
     public OptimizationContext create(

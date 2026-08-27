@@ -4,7 +4,7 @@ import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.Op
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.OptimizationContext;
 
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRulesRegistry;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentValidator;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentPlacementRules;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context.OptimizationInitialStateFactory;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultAssembler;
@@ -22,14 +22,14 @@ public final class OptimizationSearchPipeline {
     private final OptimizationLargeNeighborhoodSearch largeNeighborhoodSearch;
 
     public OptimizationSearchPipeline(
-            EquipmentValidator validator,
+            EquipmentPlacementRules placementRules,
             EquipmentRulesRegistry rules,
             OptimizationStateEvaluator stateEvaluator,
             OptimizationResultAssembler resultAssembler,
             OptimizationInitialStateFactory initialStateFactory,
             OptimizationLargeNeighborhoodSearch largeNeighborhoodSearch) {
         OptimizationStateOperations stateOperations =
-                new OptimizationStateOperations(validator, rules, stateEvaluator);
+                new OptimizationStateOperations(placementRules, rules, stateEvaluator);
         this.levelAllocator = new OptimizationLevelAllocator(stateOperations);
         this.requirementSatisfier =
                 new OptimizationRequirementSatisfier(stateOperations, levelAllocator);

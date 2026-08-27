@@ -33,7 +33,8 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.Dr
 import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.ItemTemplateRepository;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCalculatorService;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.processor.ItemStatProcessor;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentValidator;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentPlacementRules;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.UpgradeLevelPolicy;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.constraints.OptimizationLockService;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationResponse;
@@ -596,7 +597,7 @@ class CustomModsOptimizationServiceImplTests {
         ItemTemplateRepository itemRepository = mock(ItemTemplateRepository.class);
         ItemStatProcessor itemStatProcessor = mock(ItemStatProcessor.class);
         EquipmentRulesRegistry rules = new EquipmentRulesRegistry();
-        EquipmentValidator validator = new EquipmentValidator(rules);
+        EquipmentPlacementRules placementRules = new EquipmentPlacementRules(rules);
         when(drifRepository.findAll()).thenReturn(drifs);
         when(itemRepository.findAllById(any())).thenReturn(items);
         when(itemStatProcessor.calculateFinalDrifMod(any(), anyInt()))
@@ -608,7 +609,8 @@ class CustomModsOptimizationServiceImplTests {
         return new CustomModsOptimizationServiceImpl(
                 drifRepository,
                 itemRepository,
-                validator,
+                placementRules,
+                new UpgradeLevelPolicy(),
                 rules,
                 itemStatProcessor,
                 new OptimizationLockService(),

@@ -25,7 +25,8 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.Dr
 import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.ItemTemplateRepository;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCalculatorService;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.processor.ItemStatProcessor;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentValidator;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentPlacementRules;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.UpgradeLevelPolicy;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.constraints.OptimizationLockService;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationResponse;
@@ -165,7 +166,8 @@ class OptimizationPerformanceBenchmark {
                 new CustomModsOptimizationServiceImpl(
                         drifRepository,
                         itemRepository,
-                        new EquipmentValidator(rules),
+                        new EquipmentPlacementRules(rules),
+                        new UpgradeLevelPolicy(),
                         rules,
                         itemStatProcessor,
                         new OptimizationLockService(),

@@ -19,13 +19,15 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.processor.ItemStatProcessor;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentValidator;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentPlacementRules;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.UpgradeLevelPolicy;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 
 /** Converts request slots and templates into search-ready slot contexts. */
 @RequiredArgsConstructor
 final class OptimizationSlotContextFactory {
-    private final EquipmentValidator validator;
+    private final EquipmentPlacementRules placementRules;
+    private final UpgradeLevelPolicy levelPolicy;
     private final ItemStatProcessor itemStatProcessor;
 
     List<SlotContext> createAll(
@@ -66,7 +68,7 @@ final class OptimizationSlotContextFactory {
         EquipmentRequest.SlotData data = entry.getValue();
         if (data == null || data.getItemId() == null) return null;
         ItemTemplate item = items.get(data.getItemId());
-        if (item == null || !validator.isValidItem(item, entry.getKey())) return null;
+        if (item == null || !placementRules.isValidItem(item, entry.getKey())) return null;
         int stars = data.getItemStars() == null ? 1 : data.getItemStars();
         boolean special = item.getRarity() == RARITY.EPIC || item.getRarity() == RARITY.SET;
         Set<Integer> locks =
@@ -77,7 +79,7 @@ final class OptimizationSlotContextFactory {
                 entry.getKey(),
                 data,
                 item,
-                validator.calculateItemCapacity(item, stars),
+                levelPolicy.calculateItemCapacity(item, stars),
                 special ? 0 : maxDrifs(item, stars),
                 itemStatProcessor.calculateFinalDrifMod(item, stars),
                 special ? new ArrayList<>() : candidates(entry.getKey(), item, request, drifs),
@@ -91,8 +93,8 @@ final class OptimizationSlotContextFactory {
             OptimizationRequest request,
             Map<Long, DrifTemplate> drifs) {
         return drifs.values().stream()
-                .filter(drif -> validator.isValidDrifSizeForTier(drif, item))
-                .filter(drif -> validator.isElementalDrifPositionValid(drif, slot))
+                .filter(drif -> placementRules.isValidDrifSizeForTier(drif, item))
+                .filter(drif -> placementRules.isElementalDrifPositionValid(drif, slot))
                 .filter(drif -> request.getPriorities().containsKey(drif.getBonusType()))
                 .collect(
                         Collectors.toMap(

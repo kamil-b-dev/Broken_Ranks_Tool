@@ -7,13 +7,13 @@ import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentValidator;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.UpgradeLevelPolicy;
 
 /** Reconstructs locked and original placements before the search begins. */
 @RequiredArgsConstructor
 public final class OptimizationInitialStateFactory {
 
-    private final EquipmentValidator validator;
+    private final UpgradeLevelPolicy levelPolicy;
 
     public BuildState create(OptimizationContext context) {
         BuildState state = new BuildState();
@@ -67,7 +67,7 @@ public final class OptimizationInitialStateFactory {
                 slot.original().getDrifLevels() != null
                         ? slot.original().getDrifLevels().getOrDefault(String.valueOf(index), 1)
                         : 1;
-        return new Placement(drif, validator.sanitizeDrifLevel(level, drif), true);
+        return new Placement(drif, levelPolicy.sanitizeDrifLevel(level, drif), true);
     }
 
     private int maxLockedIndex(SlotContext slot) {

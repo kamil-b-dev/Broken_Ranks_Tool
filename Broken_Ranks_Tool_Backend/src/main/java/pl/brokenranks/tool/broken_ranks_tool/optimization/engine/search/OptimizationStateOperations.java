@@ -9,7 +9,7 @@ import lombok.RequiredArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRulesRegistry;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentValidator;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentPlacementRules;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
 
@@ -17,7 +17,7 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.Opti
 @RequiredArgsConstructor
 final class OptimizationStateOperations {
 
-    private final EquipmentValidator validator;
+    private final EquipmentPlacementRules placementRules;
     private final EquipmentRulesRegistry rules;
     private final OptimizationStateEvaluator evaluator;
 
@@ -34,8 +34,8 @@ final class OptimizationStateOperations {
     }
 
     boolean isValidForSlot(DrifTemplate drif, SlotContext slot) {
-        return validator.isValidDrifSizeForTier(drif, slot.item())
-                && validator.isElementalDrifPositionValid(drif, slot.key());
+        return placementRules.isValidDrifSizeForTier(drif, slot.item())
+                && placementRules.isElementalDrifPositionValid(drif, slot.key());
     }
 
     boolean containsAnotherElemental(

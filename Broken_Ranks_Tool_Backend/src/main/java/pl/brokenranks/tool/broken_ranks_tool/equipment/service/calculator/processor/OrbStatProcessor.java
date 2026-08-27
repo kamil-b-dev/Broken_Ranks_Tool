@@ -9,14 +9,18 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest.Slot
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.OrbTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.CalculationState;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentValidator;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentPlacementRules;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.ModifierSecurityValidator;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.UpgradeLevelPolicy;
 
 /** Calculates orb statistics using orb levels and item star modifiers. */
 @Component
 @RequiredArgsConstructor
 public class OrbStatProcessor {
 
-    private final EquipmentValidator validator;
+    private final EquipmentPlacementRules placementRules;
+    private final UpgradeLevelPolicy levelPolicy;
+    private final ModifierSecurityValidator securityValidator;
 
     /** Validates the slot's orbs and adds their statistics to the accumulator. */
     public void process(
@@ -36,13 +40,13 @@ public class OrbStatProcessor {
             }
         }
 
-        validator.validateOrbsSecurity(item, orbsToProcess);
+        securityValidator.validateOrbs(item, orbsToProcess);
 
         for (int i = 0; i < orbsToProcess.size(); i++) {
             OrbTemplate orb = orbsToProcess.get(i);
             boolean isSecondOrb = i > 0;
 
-            if (!validator.isValidOrb(orb, slotKey, isSecondOrb)) {
+            if (!placementRules.isValidOrb(orb, slotKey, isSecondOrb)) {
                 continue;
             }
 
@@ -54,7 +58,7 @@ public class OrbStatProcessor {
                     (slot.getOrbLevels() != null && i < slot.getOrbLevels().size())
                             ? slot.getOrbLevels().get(i)
                             : 1;
-            int finalLvl = validator.sanitizeOrbLevel(requestedLvl, orb);
+            int finalLvl = levelPolicy.sanitizeOrbLevel(requestedLvl, orb);
 
             String statValue =
                     switch (finalLvl) {
