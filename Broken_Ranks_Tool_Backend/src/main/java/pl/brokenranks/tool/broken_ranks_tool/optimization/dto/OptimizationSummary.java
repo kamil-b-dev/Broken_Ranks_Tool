@@ -1,12 +1,11 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.dto;
 
+import java.util.List;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
-
-import java.util.List;
-import java.util.Map;
 
 /** Contains optimization metadata and result summary. */
 @Data
@@ -32,28 +31,44 @@ public class OptimizationSummary {
     private List<OptimizationVariant> nextVariants;
 
     /** Identifies an item within an optimizer slot. */
-    public record ItemDrifBonus(String slotKey, String itemName) { }
+    public record ItemDrifBonus(String slotKey, String itemName) {}
 
     /** Compares a requested optimization goal with the final calculator value. */
-    public record GoalResult(String statKey, String bonusName, int priority,
-                             int placedCount, int minimumCount, int maximumCount,
-                             String calculatorValue, String targetLabel,
-                             boolean quantitySatisfied, Boolean targetSatisfied) { }
+    public record GoalResult(
+            String statKey,
+            String bonusName,
+            int priority,
+            int placedCount,
+            int minimumCount,
+            int maximumCount,
+            String calculatorValue,
+            String targetLabel,
+            boolean quantitySatisfied,
+            Boolean targetSatisfied) {}
 
     /** Describes a trade-off available relative to the selected final setup. */
-    public record OptimizationVariant(boolean main, String bonusName,
-                                      double finalValue, double variantValue,
-                                      double gain, double totalLoss,
-                                      int changeCount, double score,
-                                      List<PlacementChange> changes,
-                                      List<StatChange> statChanges,
-                                      EquipmentRequest setup) { }
+    public record OptimizationVariant(
+            boolean main,
+            String bonusName,
+            double finalValue,
+            double variantValue,
+            double gain,
+            double totalLoss,
+            int changeCount,
+            double score,
+            List<PlacementChange> changes,
+            List<StatChange> statChanges,
+            EquipmentRequest setup) {}
 
     /** Calculator value changed by selecting an alternative variant. */
-    public record StatChange(String statKey, String finalValue, String variantValue) { }
+    public record StatChange(String statKey, String finalValue, String variantValue) {}
 
     /** Describes one drif replacement required by an alternative setup. */
-    public record PlacementChange(String slotKey, String itemName,
-                                  String fromModifier, Integer fromLevel,
-                                  String toModifier, Integer toLevel) { }
+    public record PlacementChange(
+            String slotKey,
+            String itemName,
+            String fromModifier,
+            Integer fromLevel,
+            String toModifier,
+            Integer toLevel) {}
 }

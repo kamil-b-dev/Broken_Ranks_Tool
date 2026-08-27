@@ -14,10 +14,12 @@ const OptimizerSettingsPanel = ({ settings, onChange }) => (
                 <input
                     type="checkbox"
                     checked={settings.forceMaximizationByDrifBonus}
-                    onChange={event => onChange({
-                        ...settings,
-                        forceMaximizationByDrifBonus: event.target.checked
-                    })}
+                    onChange={(event) =>
+                        onChange({
+                            ...settings,
+                            forceMaximizationByDrifBonus: event.target.checked,
+                        })
+                    }
                     className="h-4 w-4 accent-purple-700"
                 />
                 <span className="text-[11px] text-stone-400 leading-relaxed">
@@ -28,17 +30,21 @@ const OptimizerSettingsPanel = ({ settings, onChange }) => (
                 <input
                     type="checkbox"
                     checked={settings.generateVariants}
-                    onChange={event => onChange({
-                        ...settings,
-                        generateVariants: event.target.checked
-                    })}
+                    onChange={(event) =>
+                        onChange({
+                            ...settings,
+                            generateVariants: event.target.checked,
+                        })
+                    }
                     className="h-4 w-4 accent-purple-700"
                 />
                 <span className="text-[11px] text-stone-400 leading-relaxed">
                     Obliczaj dodatkowe warianty
                 </span>
             </label>
-            <label className={`flex items-center gap-3 select-none ${settings.generateVariants ? '' : 'cursor-not-allowed opacity-45'}`}>
+            <label
+                className={`flex items-center gap-3 select-none ${settings.generateVariants ? "" : "cursor-not-allowed opacity-45"}`}
+            >
                 <span className="text-[11px] text-stone-400 leading-relaxed whitespace-nowrap">
                     Maksymalna strata:
                 </span>
@@ -49,10 +55,12 @@ const OptimizerSettingsPanel = ({ settings, onChange }) => (
                     step="1"
                     value={settings.maxVariantLossPercent}
                     disabled={!settings.generateVariants}
-                    onChange={event => onChange({
-                        ...settings,
-                        maxVariantLossPercent: Number(event.target.value)
-                    })}
+                    onChange={(event) =>
+                        onChange({
+                            ...settings,
+                            maxVariantLossPercent: Number(event.target.value),
+                        })
+                    }
                     aria-label="Maksymalna dopuszczalna strata wariantu w procentach"
                     className="w-20 border border-purple-900/80 bg-black px-2 py-1 text-center text-xs text-stone-200 outline-none focus:border-purple-500 disabled:cursor-not-allowed"
                 />

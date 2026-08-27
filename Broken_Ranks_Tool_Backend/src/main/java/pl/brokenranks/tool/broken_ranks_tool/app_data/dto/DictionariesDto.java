@@ -1,10 +1,9 @@
 package pl.brokenranks.tool.broken_ranks_tool.app_data.dto;
 
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.Map;
 
 /** Groups the translation maps required to initialize the frontend. */
 @Data

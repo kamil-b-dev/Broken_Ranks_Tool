@@ -9,8 +9,7 @@ import org.springframework.cache.annotation.EnableCaching;
 @EnableCaching
 public class BrokenRanksToolApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(BrokenRanksToolApplication.class, args);
-	}
-
+    public static void main(String[] args) {
+        SpringApplication.run(BrokenRanksToolApplication.class, args);
+    }
 }

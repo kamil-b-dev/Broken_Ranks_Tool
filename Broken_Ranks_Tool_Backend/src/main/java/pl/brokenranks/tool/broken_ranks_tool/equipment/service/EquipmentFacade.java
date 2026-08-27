@@ -1,11 +1,10 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.service;
 
-import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
 
 /**
  * Provides a high-level equipment API while hiding subsystem complexity.

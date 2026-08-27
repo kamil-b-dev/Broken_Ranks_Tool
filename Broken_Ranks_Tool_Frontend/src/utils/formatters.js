@@ -6,11 +6,16 @@
 export const getRarityColor = (rarity) => {
     if (!rarity) return "text-stone-300";
     switch (rarity.toUpperCase()) {
-        case 'SET': return "text-green-700 font-bold";
-        case 'EPIC': return "text-yellow-500 font-bold";
-        case 'LEGENDARY': return "text-orange-500 font-bold";
-        case 'RARE': return "text-blue-700 font-bold";
-        default: return "text-stone-300";
+        case "SET":
+            return "text-green-700 font-bold";
+        case "EPIC":
+            return "text-yellow-500 font-bold";
+        case "LEGENDARY":
+            return "text-orange-500 font-bold";
+        case "RARE":
+            return "text-blue-700 font-bold";
+        default:
+            return "text-stone-300";
     }
 };
 
@@ -35,11 +40,16 @@ export const getStarColor = (starValue, isFilled) => {
 export const getDrifMaxLvl = (size) => {
     if (!size) return 21;
     switch (size.toUpperCase()) {
-        case 'SUBDRIF': return 6;
-        case 'BIDRIF': return 11;
-        case 'MAGNIDRIF': return 16;
-        case 'ARCYDRIF': return 21;
-        default: return 21;
+        case "SUBDRIF":
+            return 6;
+        case "BIDRIF":
+            return 11;
+        case "MAGNIDRIF":
+            return 16;
+        case "ARCYDRIF":
+            return 21;
+        default:
+            return 21;
     }
 };
 

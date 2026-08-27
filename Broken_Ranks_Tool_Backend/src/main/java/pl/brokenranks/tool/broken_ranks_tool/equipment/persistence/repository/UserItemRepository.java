@@ -5,5 +5,4 @@ import org.springframework.stereotype.Repository;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.user.UserItem;
 
 @Repository
-public interface UserItemRepository extends JpaRepository<UserItem, Long> {
-}
+public interface UserItemRepository extends JpaRepository<UserItem, Long> {}

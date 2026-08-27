@@ -28,8 +28,8 @@ export const createBuildPayload = ({ requestData, characterConfig, lockedSlots, 
         requestData,
         characterConfig,
         lockedSlots,
-        lockedDrifs
-    }
+        lockedDrifs,
+    },
 });
 
 /**
@@ -84,10 +84,10 @@ export const parseBuildFile = async (file, { items = [], orbs = [], drifs = [] }
     return {
         requestData: cloneJson({
             slots: importedRequest.slots,
-            characterStats: importedRequest.characterStats || {}
+            characterStats: importedRequest.characterStats || {},
         }),
         characterConfig: build.characterConfig || null,
         lockedSlots: Array.isArray(build.lockedSlots) ? [...build.lockedSlots] : [],
-        lockedDrifs: isObject(build.lockedDrifs) ? cloneJson(build.lockedDrifs) : {}
+        lockedDrifs: isObject(build.lockedDrifs) ? cloneJson(build.lockedDrifs) : {},
     };
 };

@@ -1,15 +1,13 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result;
 
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationRequestConstraints.directedValue;
 
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCalculatorService;
-
-import java.util.Map;
-
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationRequestConstraints.directedValue;
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
 
 /** Adapts equipment calculator output to optimizer-directed values and caches. */
 @RequiredArgsConstructor
@@ -23,15 +21,14 @@ final class OptimizationCalculatorAdapter {
         Map<String, String> stats = actualStats(state, context);
         for (DRIF_BONUS_TYPE type : context.request().getPriorities().keySet()) {
             if (!stats.containsKey(type.name())) continue;
-            double actual = directedValue(
-                    type, parseValue(stats.get(type.name())), context.request());
-            context.calculatorBaseline().put(type,
-                    actual - stateEvaluator.currentValue(state, type, context));
+            double actual =
+                    directedValue(type, parseValue(stats.get(type.name())), context.request());
+            context.calculatorBaseline()
+                    .put(type, actual - stateEvaluator.currentValue(state, type, context));
         }
     }
 
-    double actualValue(BuildState state, DRIF_BONUS_TYPE type,
-                       OptimizationContext context) {
+    double actualValue(BuildState state, DRIF_BONUS_TYPE type, OptimizationContext context) {
         Map<String, String> stats = actualStats(state, context);
         if (!stats.containsKey(type.name())) {
             return stateEvaluator.calculatedValue(state, type, context);
@@ -44,8 +41,8 @@ final class OptimizationCalculatorAdapter {
         Map<String, String> cached = context.calculatorCache().get(key);
         if (cached != null) return cached;
         try {
-            Map<String, String> calculated = calculatorService.calculateTotalStats(
-                    setupMapper.toSetup(state, context));
+            Map<String, String> calculated =
+                    calculatorService.calculateTotalStats(setupMapper.toSetup(state, context));
             context.calculatorCache().put(key, calculated);
             return calculated;
         } catch (RuntimeException exception) {
@@ -56,8 +53,8 @@ final class OptimizationCalculatorAdapter {
     double parseValue(String value) {
         if (value == null || value.isBlank()) return 0.0;
         try {
-            return Double.parseDouble(value.replace("%", "")
-                    .replace(",", ".").replace("+", "").trim());
+            return Double.parseDouble(
+                    value.replace("%", "").replace(",", ".").replace("+", "").trim());
         } catch (NumberFormatException exception) {
             return 0.0;
         }

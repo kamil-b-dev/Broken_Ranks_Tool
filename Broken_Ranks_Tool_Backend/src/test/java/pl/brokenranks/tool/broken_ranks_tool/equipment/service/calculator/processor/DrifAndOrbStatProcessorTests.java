@@ -1,5 +1,10 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.processor;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_SIZE;
@@ -15,17 +20,17 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemp
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.OrbTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.CalculationState;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.provider.EquipmentDataProvider.CalculationContext;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentValidator;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentPlacementRules;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.ModifierSecurityValidator;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.UpgradeLevelPolicy;
 
 class DrifAndOrbStatProcessorTests {
 
-    private final EquipmentValidator validator = new EquipmentValidator(new EquipmentRulesRegistry());
+    private final EquipmentPlacementRules placementRules =
+            new EquipmentPlacementRules(new EquipmentRulesRegistry());
+    private final UpgradeLevelPolicy levelPolicy = new UpgradeLevelPolicy();
+    private final ModifierSecurityValidator securityValidator =
+            new ModifierSecurityValidator(placementRules, levelPolicy);
 
     @Test
     void preCountDrifsSkipsInvalidPositionsAndDuplicateTypesPerItem() {
@@ -35,21 +40,22 @@ class DrifAndOrbStatProcessorTests {
         DrifTemplate critical = drif(11L, DRIF_BONUS_TYPE.CRITICAL_CHANCE);
 
         EquipmentRequest request = new EquipmentRequest();
-        request.setSlots(Map.of(
-                "weapon", slot(1L, List.of(10L, 11L, 11L)),
-                "helmet", slot(2L, List.of(10L))
-        ));
-        CalculationContext context = new CalculationContext(
-                Map.of(1L, weapon, 2L, helmet),
-                Map.of(),
-                Map.of(10L, fire, 11L, critical));
+        request.setSlots(
+                Map.of(
+                        "weapon", slot(1L, List.of(10L, 11L, 11L)),
+                        "helmet", slot(2L, List.of(10L))));
+        CalculationContext context =
+                new CalculationContext(
+                        Map.of(1L, weapon, 2L, helmet), Map.of(), Map.of(10L, fire, 11L, critical));
 
-        DrifStatProcessor processor = new DrifStatProcessor(validator, new EquipmentRulesRegistry());
+        DrifStatProcessor processor =
+                new DrifStatProcessor(placementRules, levelPolicy, new EquipmentRulesRegistry());
 
-        assertEquals(Map.of(
-                DRIF_BONUS_TYPE.DAMAGE_FIRE, 1,
-                DRIF_BONUS_TYPE.CRITICAL_CHANCE, 1
-        ), processor.preCountDrifs(request, context));
+        assertEquals(
+                Map.of(
+                        DRIF_BONUS_TYPE.DAMAGE_FIRE, 1,
+                        DRIF_BONUS_TYPE.CRITICAL_CHANCE, 1),
+                processor.preCountDrifs(request, context));
     }
 
     @Test
@@ -58,42 +64,53 @@ class DrifAndOrbStatProcessorTests {
         ItemTemplate item = item(1L, ITEM_CATEGORY.HELMET);
         EquipmentRequest.SlotData slot = slot(1L, List.of(10L));
         slot.setDrifLevels(Map.of("0", 99));
-        CalculationState state = new CalculationState(new CalculationContext(
-                Map.of(1L, item), Map.of(), Map.of(10L, critical)));
+        CalculationState state =
+                new CalculationState(
+                        new CalculationContext(Map.of(1L, item), Map.of(), Map.of(10L, critical)));
         state.getDrifCounts().put(DRIF_BONUS_TYPE.CRITICAL_CHANCE, 4);
 
-        DrifStatProcessor processor = new DrifStatProcessor(validator, new EquipmentRulesRegistry());
+        DrifStatProcessor processor =
+                new DrifStatProcessor(placementRules, levelPolicy, new EquipmentRulesRegistry());
         processor.process("helmet", slot, item, 0.0, state);
 
-        assertEquals("23.75%", state.getAccumulator().getFormattedResults()
-                .get(DRIF_BONUS_TYPE.CRITICAL_CHANCE.name()));
+        assertEquals(
+                "23.75%",
+                state.getAccumulator()
+                        .getFormattedResults()
+                        .get(DRIF_BONUS_TYPE.CRITICAL_CHANCE.name()));
     }
 
     @Test
     void appliesOrbLevelAndDoesNotCountTheSameBonusTwice() {
         ItemTemplate item = item(1L, ITEM_CATEGORY.HELMET);
-        OrbTemplate orb = OrbTemplate.builder()
-                .id(20L)
-                .name("Defensive orb")
-                .category(ORB_CATEGORY.DEFENSIVE)
-                .bonusType(ORB_BONUS_TYPE.DMG_REDUCTION_MELEE)
-                .size(ORB_SIZE.BIORB)
-                .bonusLvl1("2%")
-                .bonusLvl2("6%")
-                .bonusLvl3("10%")
-                .build();
+        OrbTemplate orb =
+                OrbTemplate.builder()
+                        .id(20L)
+                        .name("Defensive orb")
+                        .category(ORB_CATEGORY.DEFENSIVE)
+                        .bonusType(ORB_BONUS_TYPE.DMG_REDUCTION_MELEE)
+                        .size(ORB_SIZE.BIORB)
+                        .bonusLvl1("2%")
+                        .bonusLvl2("6%")
+                        .bonusLvl3("10%")
+                        .build();
         EquipmentRequest.SlotData slot = slot(1L, List.of());
         slot.setOrbIds(List.of(20L));
         slot.setOrbLevels(List.of(3));
-        CalculationState state = new CalculationState(new CalculationContext(
-                Map.of(1L, item), Map.of(20L, orb), Map.of()));
-        OrbStatProcessor processor = new OrbStatProcessor(validator);
+        CalculationState state =
+                new CalculationState(
+                        new CalculationContext(Map.of(1L, item), Map.of(20L, orb), Map.of()));
+        OrbStatProcessor processor =
+                new OrbStatProcessor(placementRules, levelPolicy, securityValidator);
 
         processor.process("helmet", slot, item, 8, state);
         processor.process("helmet", slot, item, 8, state);
 
-        assertEquals("15%", state.getAccumulator().getFormattedResults()
-                .get(ORB_BONUS_TYPE.DMG_REDUCTION_MELEE.name()));
+        assertEquals(
+                "15%",
+                state.getAccumulator()
+                        .getFormattedResults()
+                        .get(ORB_BONUS_TYPE.DMG_REDUCTION_MELEE.name()));
     }
 
     private EquipmentRequest.SlotData slot(Long itemId, List<Long> drifIds) {

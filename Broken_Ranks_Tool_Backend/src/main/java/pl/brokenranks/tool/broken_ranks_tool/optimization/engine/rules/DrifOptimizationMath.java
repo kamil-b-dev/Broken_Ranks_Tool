@@ -1,33 +1,38 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules;
 
-import lombok.experimental.UtilityClass;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.util.DrifPowerRules;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
 
 import java.util.List;
 import java.util.Objects;
-
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
+import lombok.experimental.UtilityClass;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.util.DrifPowerRules;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 
 /** Capacity, level, power, and value calculations used by the optimizer. */
 @UtilityClass
 public class DrifOptimizationMath {
 
-    public static Integer highestFittingLevel(BuildState state, SlotContext slot, DrifTemplate drif) {
+    public static Integer highestFittingLevel(
+            BuildState state, SlotContext slot, DrifTemplate drif) {
         int remaining = slot.capacity() - usedPower(state.slots().get(slot.key()));
         if (remaining < drif.getBonusType().getBasePower()) return null;
         return highestLevelForPower(drif, remaining);
     }
 
-    public static Integer lowestTierFittingLevel(BuildState state, SlotContext slot, DrifTemplate drif) {
+    public static Integer lowestTierFittingLevel(
+            BuildState state, SlotContext slot, DrifTemplate drif) {
         int remaining = slot.capacity() - usedPower(state.slots().get(slot.key()));
         if (remaining < drif.getBonusType().getBasePower()) return null;
         return Math.min(6, drif.getSize().getMaxLevel());
     }
 
     public static int highestLevelForPower(DrifTemplate drif, int availablePower) {
-        int affordableMultiplier = Math.max(1,
-                Math.min(4, availablePower / Math.max(1, drif.getBonusType().getBasePower())));
+        int affordableMultiplier =
+                Math.max(
+                        1,
+                        Math.min(
+                                4,
+                                availablePower / Math.max(1, drif.getBonusType().getBasePower())));
         int sizeMultiplier = DrifPowerRules.effectiveMultiplier(drif.getSize().getMaxLevel());
         int multiplier = Math.min(affordableMultiplier, sizeMultiplier);
         return switch (multiplier) {
@@ -43,7 +48,8 @@ public class DrifOptimizationMath {
     }
 
     public static int usedPower(List<Placement> placements) {
-        return placements.stream().filter(Objects::nonNull)
+        return placements.stream()
+                .filter(Objects::nonNull)
                 .mapToInt(placement -> power(placement.drif(), placement.level()))
                 .sum();
     }
@@ -81,8 +87,7 @@ public class DrifOptimizationMath {
     }
 
     private double parseModifierNumber(String value) {
-        return Double.parseDouble(value.replace("%", "")
-                .replace(",", ".").trim());
+        return Double.parseDouble(value.replace("%", "").replace(",", ".").trim());
     }
 
     private double incrementForLevel(double increment, int level) {

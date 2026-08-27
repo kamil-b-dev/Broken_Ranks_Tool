@@ -5,5 +5,4 @@ import pl.brokenranks.tool.broken_ranks_tool.core.entity.BaseNamedEntity;
 
 /** Represents a drif instance assigned to a user. */
 @Entity
-public class UserDrif extends BaseNamedEntity {
-}
+public class UserDrif extends BaseNamedEntity {}
