@@ -26,7 +26,7 @@ public final class OptimizationLevelAllocator {
         return state;
     }
 
-    BuildState allocateByPriority(BuildState state, OptimizationContext context) {
+    public BuildState allocateByPriority(BuildState state, OptimizationContext context) {
         for (SlotContext slot : context.slots()) {
             if (!slot.optimizable() || stateOperations.isSlotLocked(slot, context)) continue;
             normalizeSlot(state, slot, context);
