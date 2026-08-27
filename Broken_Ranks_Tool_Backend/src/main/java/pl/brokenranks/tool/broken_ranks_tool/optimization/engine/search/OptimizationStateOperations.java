@@ -33,7 +33,7 @@ public final class OptimizationStateOperations {
         return request.getLockedSlots() != null && request.getLockedSlots().contains(slot.key());
     }
 
-    boolean isValidForSlot(DrifTemplate drif, SlotContext slot) {
+    public boolean isValidForSlot(DrifTemplate drif, SlotContext slot) {
         return placementRules.isValidDrifSizeForTier(drif, slot.item())
                 && placementRules.isElementalDrifPositionValid(drif, slot.key());
     }
@@ -60,7 +60,7 @@ public final class OptimizationStateOperations {
                 .anyMatch(placement -> placement.drif().getBonusType() == type);
     }
 
-    boolean containsBonusExcept(
+    public boolean containsBonusExcept(
             List<Placement> placements, DRIF_BONUS_TYPE type, int ignoredIndex) {
         for (int index = 0; index < placements.size(); index++) {
             Placement placement = placements.get(index);
@@ -77,7 +77,7 @@ public final class OptimizationStateOperations {
         return evaluator.globalCount(state, type, context);
     }
 
-    int globalCountExcept(
+    public int globalCountExcept(
             BuildState state,
             DRIF_BONUS_TYPE candidate,
             DRIF_BONUS_TYPE replaced,
@@ -135,7 +135,7 @@ public final class OptimizationStateOperations {
         return evaluator.stateComparator(context);
     }
 
-    boolean refinementBudgetExhausted(OptimizationContext context) {
+    public boolean refinementBudgetExhausted(OptimizationContext context) {
         return context.refinementSearchBudget().exhausted();
     }
 }
