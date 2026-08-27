@@ -1,4 +1,4 @@
-package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context;
+package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.validation;
 
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationRequestConstraints.MAX_GLOBAL_DRIFS_PER_TYPE;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationRequestConstraints.isForcedCap;

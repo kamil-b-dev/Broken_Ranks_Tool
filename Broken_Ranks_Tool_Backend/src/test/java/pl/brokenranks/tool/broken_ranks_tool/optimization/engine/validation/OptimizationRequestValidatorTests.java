@@ -1,4 +1,4 @@
-package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context;
+package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.validation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;

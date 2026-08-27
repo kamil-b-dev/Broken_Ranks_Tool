@@ -1,4 +1,4 @@
-package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model;
+package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.variant;
 
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.BuildState;
 
