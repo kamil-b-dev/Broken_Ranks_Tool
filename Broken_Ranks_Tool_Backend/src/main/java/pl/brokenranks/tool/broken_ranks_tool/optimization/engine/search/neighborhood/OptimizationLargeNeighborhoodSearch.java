@@ -36,9 +36,20 @@ public final class OptimizationLargeNeighborhoodSearch {
         this.actualStateComparator =
                 new OptimizationActualStateComparator(stateEvaluator, resultAssembler);
         this.neighborhoodSupport = new OptimizationNeighborhoodSupport(stateEvaluator);
+        OptimizationMinimumRepairGenerator minimumRepairGenerator =
+                new OptimizationMinimumRepairGenerator(stateEvaluator, neighborhoodSupport);
+        OptimizationForcedTargetRepairGenerator forcedTargetRepairGenerator =
+                new OptimizationForcedTargetRepairGenerator(
+                        stateEvaluator, neighborhoodSupport, minimumRepairGenerator);
+        OptimizationDirectedSwapGenerator directedSwapGenerator =
+                new OptimizationDirectedSwapGenerator(
+                        stateEvaluator, neighborhoodSupport, forcedTargetRepairGenerator);
         this.directedMoveSearch =
                 new OptimizationDirectedMoveSearch(
-                        stateEvaluator, actualStateComparator, neighborhoodSupport);
+                        stateEvaluator,
+                        actualStateComparator,
+                        neighborhoodSupport,
+                        directedSwapGenerator);
     }
 
     public SearchResult improve(BuildState initial, OptimizationContext context) {
