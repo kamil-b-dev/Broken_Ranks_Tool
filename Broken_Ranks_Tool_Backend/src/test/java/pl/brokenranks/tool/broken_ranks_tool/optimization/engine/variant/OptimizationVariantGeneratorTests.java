@@ -26,7 +26,6 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCal
 import pl.brokenranks.tool.broken_ranks_tool.optimization.constraints.OptimizationLockService;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.GeneratedOptimizationVariant;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultAssembler;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.neighborhood.OptimizationLargeNeighborhoodSearch;
 

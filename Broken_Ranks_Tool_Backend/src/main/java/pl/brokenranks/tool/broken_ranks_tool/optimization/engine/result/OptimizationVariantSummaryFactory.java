@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationSummary;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.GeneratedOptimizationVariant;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.variant.GeneratedOptimizationVariant;
 
 /** Selects and maps alternative optimizer states for the response summary. */
 @RequiredArgsConstructor
