@@ -6,22 +6,34 @@ import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.Op
 
 import java.util.Comparator;
 import java.util.List;
-import lombok.RequiredArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 
 /** Performs deterministic replacement, swap, cap-consolidation, and penalty moves. */
-@RequiredArgsConstructor
 final class OptimizationDeterministicRefiner {
 
     private static final int MAX_REFINEMENT_ROUNDS = 3;
-    private static final int MAX_PENALTY_REDUCTIONS = 100;
     private static final int BASE_REPLACEMENT_LEVEL = 6;
     private static final double MIN_ACCEPTED_GAIN = 0.0001;
 
     private final OptimizationStateOperations stateOperations;
     private final OptimizationLevelAllocator levelAllocator;
     private final OptimizationRequirementSatisfier requirementSatisfier;
+    private final DeterministicRefinementStrategy replacementStrategy;
+    private final DeterministicRefinementStrategy penaltyReductionStrategy;
+
+    OptimizationDeterministicRefiner(
+            OptimizationStateOperations stateOperations,
+            OptimizationLevelAllocator levelAllocator,
+            OptimizationRequirementSatisfier requirementSatisfier) {
+        this.stateOperations = stateOperations;
+        this.levelAllocator = levelAllocator;
+        this.requirementSatisfier = requirementSatisfier;
+        this.replacementStrategy =
+                new OptimizationReplacementStrategy(stateOperations, levelAllocator);
+        this.penaltyReductionStrategy =
+                new OptimizationPenaltyReductionStrategy(stateOperations, levelAllocator);
+    }
 
     BuildState refine(BuildState state, OptimizationContext context) {
         for (int round = 0;
@@ -29,88 +41,15 @@ final class OptimizationDeterministicRefiner {
                         && !stateOperations.refinementBudgetExhausted(context);
                 round++) {
             String before = state.signature();
-            state = improveReplacements(state, context);
+            state = replacementStrategy.refine(state, context);
             state = improveSwaps(state, context);
             state = consolidateForcedTargets(state, context);
-            state = reducePenalties(state, context);
+            state = penaltyReductionStrategy.refine(state, context);
             state = requirementSatisfier.removeRedundantForcedTargetDrifs(state, context);
             state = levelAllocator.allocateByPriority(state, context);
             if (before.equals(state.signature())) break;
         }
         return state;
-    }
-
-    private BuildState improveReplacements(BuildState state, OptimizationContext context) {
-        for (int round = 0;
-                round < MAX_REFINEMENT_ROUNDS
-                        && !stateOperations.refinementBudgetExhausted(context);
-                round++) {
-            BuildState bestState = bestReplacement(state, context);
-            if (bestState.signature().equals(state.signature())) break;
-            state = bestState;
-        }
-        return state;
-    }
-
-    private BuildState bestReplacement(BuildState state, OptimizationContext context) {
-        BuildState bestState = state;
-        for (SlotContext slot : context.slots()) {
-            if (stateOperations.refinementBudgetExhausted(context)) return state;
-            if (!slot.optimizable() || stateOperations.isSlotLocked(slot, context)) continue;
-            List<Placement> placements = state.slots().get(slot.key());
-            for (int index = 0; index < placements.size(); index++) {
-                if (stateOperations.refinementBudgetExhausted(context)) return state;
-                Placement current = placements.get(index);
-                if (!isMovable(current, slot, index)) continue;
-                bestState =
-                        bestCandidateReplacement(
-                                state, bestState, slot, placements, index, current, context);
-            }
-        }
-        return bestState;
-    }
-
-    private BuildState bestCandidateReplacement(
-            BuildState state,
-            BuildState bestState,
-            SlotContext slot,
-            List<Placement> placements,
-            int index,
-            Placement current,
-            OptimizationContext context) {
-        for (DrifTemplate candidate : slot.candidates()) {
-            if (stateOperations.refinementBudgetExhausted(context)) return state;
-            if (!canReplace(state, placements, index, current, candidate, context)) continue;
-
-            BuildState trial = state.copy();
-            trial.setPlacement(
-                    slot.key(), index, new Placement(candidate, baseLevel(candidate), false));
-            levelAllocator.normalizeSlot(trial, slot, context);
-            if (fitsCapacity(trial.slots().get(slot.key()), slot)
-                    && stateOperations.minimumsSatisfied(trial, context)
-                    && stateOperations.trySelectBetter(trial, bestState, context)) {
-                bestState = trial;
-            }
-        }
-        return bestState;
-    }
-
-    private boolean canReplace(
-            BuildState state,
-            List<Placement> placements,
-            int index,
-            Placement current,
-            DrifTemplate candidate,
-            OptimizationContext context) {
-        return candidate.getBonusType() != current.drif().getBonusType()
-                && !stateOperations.containsBonusExcept(placements, candidate.getBonusType(), index)
-                && stateOperations.globalCountExcept(
-                                state,
-                                candidate.getBonusType(),
-                                current.drif().getBonusType(),
-                                context)
-                        < maxQuantity(candidate.getBonusType(), context.request())
-                && !stateOperations.containsAnotherElemental(state, candidate, current.drif());
     }
 
     private BuildState improveSwaps(BuildState state, OptimizationContext context) {
@@ -355,43 +294,6 @@ final class OptimizationDeterministicRefiner {
             }
         }
         return best;
-    }
-
-    private BuildState reducePenalties(BuildState state, OptimizationContext context) {
-        boolean changed = true;
-        int guard = 0;
-        while (changed && guard++ < MAX_PENALTY_REDUCTIONS) {
-            if (stateOperations.refinementBudgetExhausted(context)) return state;
-            changed = false;
-            for (SlotContext slot : context.slots()) {
-                BuildState reduced = firstBeneficialRemoval(state, slot, context);
-                if (reduced != state) {
-                    state = reduced;
-                    changed = true;
-                    break;
-                }
-            }
-        }
-        return state;
-    }
-
-    private BuildState firstBeneficialRemoval(
-            BuildState state, SlotContext slot, OptimizationContext context) {
-        if (stateOperations.refinementBudgetExhausted(context)
-                || !slot.optimizable()
-                || stateOperations.isSlotLocked(slot, context)) return state;
-        List<Placement> placements = state.slots().get(slot.key());
-        for (int index = 0; index < placements.size(); index++) {
-            if (stateOperations.refinementBudgetExhausted(context)) return state;
-            Placement placement = placements.get(index);
-            if (!isMovable(placement, slot, index)) continue;
-            BuildState trial = state.copy();
-            trial.setPlacement(slot.key(), index, null);
-            levelAllocator.normalizeSlot(trial, slot, context);
-            if (stateOperations.minimumsSatisfied(trial, context)
-                    && stateOperations.trySelectBetter(trial, state, context)) return trial;
-        }
-        return state;
     }
 
     private boolean isMovable(Placement placement, SlotContext slot, int index) {
