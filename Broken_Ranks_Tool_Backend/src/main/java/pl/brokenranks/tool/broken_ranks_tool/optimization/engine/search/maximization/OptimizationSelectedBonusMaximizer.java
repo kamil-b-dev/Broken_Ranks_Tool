@@ -1,4 +1,4 @@
-package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search;
+package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.maximization;
 
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.DrifOptimizationMath.highestLevelForPower;
@@ -15,16 +15,17 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_T
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultAssembler;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationStateOperations;
 
 /** Maximizes user-selected bonuses through bounded additions and replacements. */
 @RequiredArgsConstructor
-final class OptimizationSelectedBonusMaximizer {
+public final class OptimizationSelectedBonusMaximizer {
 
     private final OptimizationStateOperations stateOperations;
     private final OptimizationStateEvaluator stateEvaluator;
     private final OptimizationResultAssembler resultAssembler;
 
-    BuildState maximize(BuildState state, OptimizationContext context) {
+    public BuildState maximize(BuildState state, OptimizationContext context) {
         List<DRIF_BONUS_TYPE> maximizedTypes = maximizedTypes(context);
         boolean improved = true;
         while (improved && !context.maximizationSearchBudget().exhausted()) {
