@@ -5,25 +5,15 @@ import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.Op
 
 import java.util.List;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRulesRegistry;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.DrifTemplateRepository;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.ItemTemplateRepository;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCalculatorService;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.processor.ItemStatProcessor;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentPlacementRules;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.UpgradeLevelPolicy;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.constraints.OptimizationLockService;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationResponse;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationSummary;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context.OptimizationContextFactory;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context.OptimizationInitialStateFactory;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultAssembler;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationSearchPipeline;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.neighborhood.OptimizationLargeNeighborhoodSearch;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.validation.OptimizationRequestValidator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.variant.GeneratedOptimizationVariant;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.variant.OptimizationVariantGenerator;
@@ -31,6 +21,7 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.service.ModsOptimizati
 
 /** Coordinates optimizer input, search execution, and API response assembly. */
 @Service
+@RequiredArgsConstructor
 public class CustomModsOptimizationServiceImpl implements ModsOptimizationService {
 
     private static final int BEAM_SEARCH_STEPS = 55_000;
@@ -41,43 +32,6 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
     private final OptimizationSearchPipeline searchPipeline;
     private final OptimizationResultAssembler resultAssembler;
     private final OptimizationVariantGenerator variantGenerator;
-
-    public CustomModsOptimizationServiceImpl(
-            DrifTemplateRepository drifRepository,
-            ItemTemplateRepository itemRepository,
-            EquipmentPlacementRules placementRules,
-            UpgradeLevelPolicy levelPolicy,
-            EquipmentRulesRegistry rules,
-            ItemStatProcessor itemStatProcessor,
-            OptimizationLockService lockService,
-            EquipmentStatsCalculatorService calculatorService) {
-        OptimizationStateEvaluator stateEvaluator = new OptimizationStateEvaluator(rules);
-        this.resultAssembler =
-                new OptimizationResultAssembler(lockService, calculatorService, stateEvaluator);
-        OptimizationLargeNeighborhoodSearch largeNeighborhoodSearch =
-                new OptimizationLargeNeighborhoodSearch(rules, stateEvaluator, resultAssembler);
-        this.variantGenerator =
-                new OptimizationVariantGenerator(
-                        largeNeighborhoodSearch, stateEvaluator, resultAssembler);
-        this.contextFactory =
-                new OptimizationContextFactory(
-                        drifRepository,
-                        itemRepository,
-                        placementRules,
-                        levelPolicy,
-                        itemStatProcessor);
-
-        OptimizationInitialStateFactory initialStateFactory =
-                new OptimizationInitialStateFactory(levelPolicy);
-        this.searchPipeline =
-                new OptimizationSearchPipeline(
-                        placementRules,
-                        rules,
-                        stateEvaluator,
-                        resultAssembler,
-                        initialStateFactory,
-                        largeNeighborhoodSearch);
-    }
 
     /**
      * Builds the best equipment configuration within the requested priorities,

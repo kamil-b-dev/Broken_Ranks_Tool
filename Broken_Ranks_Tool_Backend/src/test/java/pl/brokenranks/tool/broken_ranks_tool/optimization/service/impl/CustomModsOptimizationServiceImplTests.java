@@ -606,7 +606,7 @@ class CustomModsOptimizationServiceImplTests {
                             ItemTemplate item = invocation.getArgument(0);
                             return drifBonuses.getOrDefault(item.getId(), 0.0);
                         });
-        return new CustomModsOptimizationServiceImpl(
+        return OptimizationServiceTestFactory.create(
                 drifRepository,
                 itemRepository,
                 placementRules,

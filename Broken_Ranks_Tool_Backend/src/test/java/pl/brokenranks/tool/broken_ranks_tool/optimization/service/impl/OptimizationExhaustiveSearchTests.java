@@ -197,7 +197,7 @@ class OptimizationExhaustiveSearchTests {
                         itemStatProcessor);
         OptimizationContext context = contextFactory.create(request, 55_000, 20_000, 25_000);
         CustomModsOptimizationServiceImpl service =
-                new CustomModsOptimizationServiceImpl(
+                OptimizationServiceTestFactory.create(
                         drifRepository,
                         itemRepository,
                         placementRules,
