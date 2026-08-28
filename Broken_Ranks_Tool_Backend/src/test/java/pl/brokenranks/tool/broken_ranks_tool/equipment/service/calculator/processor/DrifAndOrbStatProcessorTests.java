@@ -22,7 +22,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.OrbTempl
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.CalculationState;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.provider.EquipmentDataProvider.CalculationContext;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentPlacementRules;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.ModifierSecurityValidator;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.OrbSecurityValidator;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.UpgradeLevelPolicy;
 
 class DrifAndOrbStatProcessorTests {
@@ -30,8 +30,7 @@ class DrifAndOrbStatProcessorTests {
     private final EquipmentPlacementRules placementRules =
             new EquipmentPlacementRules(new EquipmentRulesRegistry());
     private final UpgradeLevelPolicy levelPolicy = new UpgradeLevelPolicy();
-    private final ModifierSecurityValidator securityValidator =
-            new ModifierSecurityValidator(placementRules, levelPolicy);
+    private final OrbSecurityValidator securityValidator = new OrbSecurityValidator();
 
     @Test
     void preCountDrifsSkipsInvalidPositionsAndDuplicateTypesPerItem() {
