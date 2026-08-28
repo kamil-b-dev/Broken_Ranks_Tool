@@ -16,12 +16,15 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemp
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultAssembler;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationStateOperations;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationPlacementOperations;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationStateEvaluation;
 
 /** Maximizes user-selected bonuses through bounded additions and replacements. */
 @RequiredArgsConstructor
 public final class OptimizationSelectedBonusMaximizer {
 
-    private final OptimizationStateOperations stateOperations;
+    private final OptimizationPlacementOperations placementOperations;
+    private final OptimizationStateEvaluation stateEvaluation;
     private final OptimizationStateEvaluator stateEvaluator;
     private final OptimizationResultAssembler resultAssembler;
 
@@ -42,7 +45,7 @@ public final class OptimizationSelectedBonusMaximizer {
         for (DRIF_BONUS_TYPE type : maximizedTypes) {
             Double target = maximizationTargetFor(type, context.request());
             if (target != null
-                    && stateOperations.calculatedValue(state, type, context)
+                    && stateEvaluation.calculatedValue(state, type, context)
                             >= target - TARGET_TOLERANCE) continue;
             bestState = bestReplacementForType(state, bestState, type, maximizedTypes, context);
             if (context.maximizationSearchBudget().exhausted()) return state;
@@ -58,7 +61,7 @@ public final class OptimizationSelectedBonusMaximizer {
             OptimizationContext context) {
         for (List<SlotContext> slots : context.slotsByDrifBonus().values()) {
             for (SlotContext slot : slots) {
-                if (!slot.optimizable() || stateOperations.isSlotLocked(slot, context)) continue;
+                if (!slot.optimizable() || placementOperations.isSlotLocked(slot, context)) continue;
                 DrifTemplate candidate = candidateForType(slot, type);
                 if (candidate == null) continue;
                 bestState =
@@ -86,7 +89,7 @@ public final class OptimizationSelectedBonusMaximizer {
                 if (!context.maximizationSearchBudget().tryConsume()) return state;
                 BuildState trial = state.copy();
                 trial.setPlacement(slot.key(), index, new Placement(candidate, level, false));
-                if (stateOperations.minimumsSatisfied(trial, context)
+                if (stateEvaluation.minimumsSatisfied(trial, context)
                         && isBetterActualState(trial, bestState, context, maximizedTypes)) {
                     bestState = trial;
                 }
@@ -107,12 +110,12 @@ public final class OptimizationSelectedBonusMaximizer {
         if (slot.lockedIndices().contains(index)
                 || (replaced != null && replaced.locked())
                 || (replaced != null && replaced.drif().getBonusType() == type)
-                || stateOperations.containsBonusExcept(placements, type, index)) return false;
+                || placementOperations.containsBonusExcept(placements, type, index)) return false;
 
         DRIF_BONUS_TYPE replacedType = replaced != null ? replaced.drif().getBonusType() : null;
-        return stateOperations.globalCountExcept(state, type, replacedType, context)
+        return stateEvaluation.globalCountExcept(state, type, replacedType, context)
                         < maxQuantity(type, context.request())
-                && !stateOperations.containsAnotherElemental(
+                && !placementOperations.containsAnotherElemental(
                         state, candidate, replaced != null ? replaced.drif() : null);
     }
 
@@ -159,7 +162,7 @@ public final class OptimizationSelectedBonusMaximizer {
                             : 0.0;
             minimumProgress = Math.min(minimumProgress, progress);
             weightedProgress +=
-                    progress * Math.max(1, stateOperations.priorityOf(type, context.request()));
+                    progress * Math.max(1, stateEvaluation.priorityOf(type, context.request()));
         }
         if (maximizedTypes.isEmpty()) minimumProgress = 0.0;
         return new ActualMaximizationQuality(forcedCapDeficit, minimumProgress, weightedProgress);
@@ -170,7 +173,7 @@ public final class OptimizationSelectedBonusMaximizer {
         for (DRIF_BONUS_TYPE type : context.request().getPriorities().keySet()) {
             Double target = targetFor(type, context.request());
             if (target == null) continue;
-            int priority = Math.max(1, stateOperations.priorityOf(type, context.request()));
+            int priority = Math.max(1, stateEvaluation.priorityOf(type, context.request()));
             deficit +=
                     Math.max(0.0, target - resultAssembler.actualValue(state, type, context))
                             * priority;
@@ -201,7 +204,7 @@ public final class OptimizationSelectedBonusMaximizer {
                 .sorted(
                         Comparator.comparing(
                                         (DRIF_BONUS_TYPE type) ->
-                                                stateOperations.priorityOf(type, context.request()),
+                                                stateEvaluation.priorityOf(type, context.request()),
                                         Comparator.reverseOrder())
                                 .thenComparing(Enum::name))
                 .toList();

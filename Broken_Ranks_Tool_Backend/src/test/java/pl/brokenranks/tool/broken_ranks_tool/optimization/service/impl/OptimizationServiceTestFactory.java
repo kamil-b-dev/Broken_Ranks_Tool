@@ -14,7 +14,9 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.Opti
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultAssembler;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultFactory;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationLevelAllocator;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationPlacementOperations;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationSearchPipeline;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationStateEvaluation;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationStateOperations;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction.MaximizedDrifBonusPrelock;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction.OptimizationBeamSearch;
@@ -46,7 +48,11 @@ final class OptimizationServiceTestFactory {
                 OptimizationNeighborhoodFactory.create(rules, evaluator, assembler);
         OptimizationStateOperations operations =
                 new OptimizationStateOperations(placementRules, rules, evaluator);
-        OptimizationLevelAllocator levels = new OptimizationLevelAllocator(operations);
+        OptimizationPlacementOperations placements =
+                new OptimizationPlacementOperations(placementRules, rules);
+        OptimizationStateEvaluation evaluation = new OptimizationStateEvaluation(evaluator);
+        OptimizationLevelAllocator levels =
+                new OptimizationLevelAllocator(placements, evaluation);
         OptimizationRequirementSatisfier requirements =
                 new OptimizationRequirementSatisfier(operations, levels);
         OptimizationInitialStateFactory initialStates =
@@ -64,12 +70,15 @@ final class OptimizationServiceTestFactory {
                                 new MaximizedDrifBonusPrelock(rules),
                                 assembler,
                                 requirements,
-                                operations),
-                        new OptimizationBeamSearch(initialStates, requirements, levels, operations),
+                                placements,
+                                evaluation),
+                        new OptimizationBeamSearch(
+                                initialStates, requirements, levels, placements, evaluation),
                         levels,
                         requirements,
                         new OptimizationDeterministicRefiner(operations, levels, requirements),
-                        new OptimizationSelectedBonusMaximizer(operations, evaluator, assembler),
+                        new OptimizationSelectedBonusMaximizer(
+                                placements, evaluation, evaluator, assembler),
                         neighborhoodSearch),
                 assembler,
                 new OptimizationVariantGenerator(neighborhoodSearch, evaluator, assembler));
