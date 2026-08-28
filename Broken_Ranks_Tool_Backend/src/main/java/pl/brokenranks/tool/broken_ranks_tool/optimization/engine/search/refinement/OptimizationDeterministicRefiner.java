@@ -26,6 +26,7 @@ public final class OptimizationDeterministicRefiner {
                 List.of(
                         new OptimizationReplacementStrategy(operations, levels),
                         new OptimizationPlacementReorganizationStrategy(operations, levels),
+                        new OptimizationForcedTargetConsolidationStrategy(operations, levels),
                         new OptimizationPenaltyReductionStrategy(operations, levels));
     }
 
