@@ -5,13 +5,15 @@ import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.Op
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationLevelAllocator;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationStateOperations;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationPlacementOperations;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationStateEvaluation;
 
 /** Removes movable drifs when doing so improves duplicate penalties. */
 @RequiredArgsConstructor
 final class OptimizationPenaltyReductionStrategy implements DeterministicRefinementStrategy {
     private static final int MAX_REDUCTIONS = 100;
-    private final OptimizationStateOperations operations;
+    private final OptimizationPlacementOperations placements;
+    private final OptimizationStateEvaluation evaluation;
     private final OptimizationLevelAllocator levelAllocator;
 
     @Override
@@ -19,7 +21,7 @@ final class OptimizationPenaltyReductionStrategy implements DeterministicRefinem
         boolean changed = true;
         int guard = 0;
         while (changed && guard++ < MAX_REDUCTIONS) {
-            if (operations.refinementBudgetExhausted(context)) return state;
+            if (evaluation.refinementBudgetExhausted(context)) return state;
             changed = false;
             for (SlotContext slot : context.slots()) {
                 BuildState reduced = removeFirstBeneficial(state, slot, context);
@@ -35,9 +37,9 @@ final class OptimizationPenaltyReductionStrategy implements DeterministicRefinem
 
     private BuildState removeFirstBeneficial(
             BuildState state, SlotContext slot, OptimizationContext context) {
-        if (operations.refinementBudgetExhausted(context)
+        if (evaluation.refinementBudgetExhausted(context)
                 || !slot.optimizable()
-                || operations.isSlotLocked(slot, context)) return state;
+                || placements.isSlotLocked(slot, context)) return state;
         List<Placement> placements = state.slots().get(slot.key());
         for (int index = 0; index < placements.size(); index++) {
             Placement placement = placements.get(index);
@@ -46,8 +48,8 @@ final class OptimizationPenaltyReductionStrategy implements DeterministicRefinem
             BuildState trial = state.copy();
             trial.setPlacement(slot.key(), index, null);
             levelAllocator.normalizeSlot(trial, slot, context);
-            if (operations.minimumsSatisfied(trial, context)
-                    && operations.trySelectBetter(trial, state, context)) return trial;
+            if (evaluation.minimumsSatisfied(trial, context)
+                    && evaluation.trySelectBetter(trial, state, context)) return trial;
         }
         return state;
     }

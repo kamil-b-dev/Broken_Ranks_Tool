@@ -9,13 +9,15 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationStateOperations;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationPlacementOperations;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationStateEvaluation;
 
 /** Adds drifs until every forced business target is reached or no placement remains. */
 @RequiredArgsConstructor
 final class ForcedTargetSatisfier {
     private static final double MIN_GAIN = 0.0001;
-    private final OptimizationStateOperations operations;
+    private final OptimizationPlacementOperations placements;
+    private final OptimizationStateEvaluation evaluation;
     private final OptimizationRequirementSupport support;
 
     void satisfy(BuildState state, OptimizationContext context) {
@@ -25,11 +27,11 @@ final class ForcedTargetSatisfier {
     private void satisfy(BuildState state, DRIF_BONUS_TYPE type, OptimizationContext context) {
         double target = targetFor(type, context.request());
         int guard = 0;
-        while (operations.calculatedValue(state, type, context) + TARGET_TOLERANCE < target
+        while (evaluation.calculatedValue(state, type, context) + TARGET_TOLERANCE < target
                 && guard++ < MAX_GLOBAL_DRIFS_PER_TYPE) {
             RequiredPlacementChoice best = bestPlacement(state, type, target, context);
             if (best == null) return;
-            operations.putNextFree(
+            placements.putNextFree(
                     state, best.slot(), new Placement(best.drif(), best.level(), false));
         }
     }
@@ -43,15 +45,16 @@ final class ForcedTargetSatisfier {
             List<Placement> placements = state.slots().get(slot.key());
             for (DrifTemplate candidate : slot.candidates()) {
                 if (candidate.getBonusType() != type
-                        || operations.containsBonus(placements, type)
-                        || operations.globalCount(state, type, context)
+                        || this.placements.containsBonus(placements, type)
+                        || evaluation.globalCount(state, type, context)
                                 >= maxQuantity(type, context.request())
-                        || operations.containsAnotherElemental(state, candidate, null)) continue;
+                        || this.placements.containsAnotherElemental(state, candidate, null))
+                    continue;
                 Integer level = highestFittingLevel(state, slot, candidate);
                 if (level == null) continue;
                 BuildState trial = state.copy();
-                operations.putNextFree(trial, slot, new Placement(candidate, level, false));
-                double distance = distance(operations.currentValue(trial, type, context), target);
+                this.placements.putNextFree(trial, slot, new Placement(candidate, level, false));
+                double distance = distance(evaluation.currentValue(trial, type, context), target);
                 if (best == null
                         || distance < bestDistance - MIN_GAIN
                         || (Math.abs(distance - bestDistance) <= MIN_GAIN
@@ -73,7 +76,7 @@ final class ForcedTargetSatisfier {
                 .sorted(
                         Comparator.comparing(
                                         (DRIF_BONUS_TYPE type) ->
-                                                operations.priorityOf(type, context.request()),
+                                                evaluation.priorityOf(type, context.request()),
                                         Comparator.reverseOrder())
                                 .thenComparing(Enum::name))
                 .toList();

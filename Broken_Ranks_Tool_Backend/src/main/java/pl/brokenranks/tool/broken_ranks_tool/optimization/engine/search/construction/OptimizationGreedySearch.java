@@ -13,7 +13,6 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_T
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context.OptimizationInitialStateFactory;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultAssembler;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationStateOperations;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationPlacementOperations;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationStateEvaluation;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.requirement.OptimizationRequirementSatisfier;
@@ -143,7 +142,8 @@ public final class OptimizationGreedySearch {
         if (placementOperations.containsBonus(placements, type)
                 || stateEvaluation.globalCount(state, type, context)
                         >= maxQuantity(type, context.request())
-                || placementOperations.containsAnotherElemental(state, candidate, null)) return null;
+                || placementOperations.containsAnotherElemental(state, candidate, null))
+            return null;
 
         Integer level = highestFittingLevel(state, slot, candidate);
         if (level == null) return null;

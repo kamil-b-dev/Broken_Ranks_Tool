@@ -17,7 +17,6 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.Optimiza
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationPlacementOperations;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationSearchPipeline;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationStateEvaluation;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationStateOperations;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction.MaximizedDrifBonusPrelock;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction.OptimizationBeamSearch;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction.OptimizationGreedySearch;
@@ -46,15 +45,12 @@ final class OptimizationServiceTestFactory {
                 OptimizationResultFactory.create(lockService, calculatorService, evaluator);
         OptimizationLargeNeighborhoodSearch neighborhoodSearch =
                 OptimizationNeighborhoodFactory.create(rules, evaluator, assembler);
-        OptimizationStateOperations operations =
-                new OptimizationStateOperations(placementRules, rules, evaluator);
         OptimizationPlacementOperations placements =
                 new OptimizationPlacementOperations(placementRules, rules);
         OptimizationStateEvaluation evaluation = new OptimizationStateEvaluation(evaluator);
-        OptimizationLevelAllocator levels =
-                new OptimizationLevelAllocator(placements, evaluation);
+        OptimizationLevelAllocator levels = new OptimizationLevelAllocator(placements, evaluation);
         OptimizationRequirementSatisfier requirements =
-                new OptimizationRequirementSatisfier(operations, levels);
+                new OptimizationRequirementSatisfier(placements, evaluation, levels);
         OptimizationInitialStateFactory initialStates =
                 new OptimizationInitialStateFactory(levelPolicy);
         return new CustomModsOptimizationServiceImpl(
@@ -76,7 +72,8 @@ final class OptimizationServiceTestFactory {
                                 initialStates, requirements, levels, placements, evaluation),
                         levels,
                         requirements,
-                        new OptimizationDeterministicRefiner(operations, levels, requirements),
+                        new OptimizationDeterministicRefiner(
+                                placements, evaluation, levels, requirements),
                         new OptimizationSelectedBonusMaximizer(
                                 placements, evaluation, evaluator, assembler),
                         neighborhoodSearch),
