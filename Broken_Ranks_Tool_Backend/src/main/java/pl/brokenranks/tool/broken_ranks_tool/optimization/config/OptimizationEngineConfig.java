@@ -22,6 +22,7 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construc
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction.OptimizationGreedySearch;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.maximization.OptimizationSelectedBonusMaximizer;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.neighborhood.OptimizationLargeNeighborhoodSearch;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.neighborhood.OptimizationNeighborhoodFactory;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.refinement.OptimizationDeterministicRefiner;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.requirement.OptimizationRequirementSatisfier;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.variant.OptimizationVariantGenerator;
@@ -48,7 +49,7 @@ public class OptimizationEngineConfig {
             EquipmentRulesRegistry rules,
             OptimizationStateEvaluator stateEvaluator,
             OptimizationResultAssembler resultAssembler) {
-        return new OptimizationLargeNeighborhoodSearch(rules, stateEvaluator, resultAssembler);
+        return OptimizationNeighborhoodFactory.create(rules, stateEvaluator, resultAssembler);
     }
 
     @Bean

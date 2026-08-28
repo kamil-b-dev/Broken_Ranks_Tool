@@ -58,7 +58,7 @@ class OptimizationLargeNeighborhoodSearchTests {
                 new OptimizationResultAssembler(
                         new OptimizationLockService(), calculator, evaluator);
         OptimizationLargeNeighborhoodSearch search =
-                new OptimizationLargeNeighborhoodSearch(rules, evaluator, assembler);
+                OptimizationNeighborhoodFactory.create(rules, evaluator, assembler);
 
         ItemTemplate lowItem =
                 ItemTemplate.builder()
@@ -195,7 +195,7 @@ class OptimizationLargeNeighborhoodSearchTests {
                 new OptimizationResultAssembler(
                         new OptimizationLockService(), calculator, evaluator);
         OptimizationLargeNeighborhoodSearch search =
-                new OptimizationLargeNeighborhoodSearch(rules, evaluator, assembler);
+                OptimizationNeighborhoodFactory.create(rules, evaluator, assembler);
 
         ItemTemplate item =
                 ItemTemplate.builder()
@@ -291,7 +291,7 @@ class OptimizationLargeNeighborhoodSearchTests {
                 new OptimizationResultAssembler(
                         new OptimizationLockService(), calculator, evaluator);
         OptimizationLargeNeighborhoodSearch search =
-                new OptimizationLargeNeighborhoodSearch(rules, evaluator, assembler);
+                OptimizationNeighborhoodFactory.create(rules, evaluator, assembler);
 
         ItemTemplate item =
                 ItemTemplate.builder()
