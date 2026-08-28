@@ -15,7 +15,15 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context.Optimiz
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultAssembler;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationSearchPipeline;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationLevelAllocator;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationStateOperations;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction.MaximizedDrifBonusPrelock;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction.OptimizationBeamSearch;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction.OptimizationGreedySearch;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.maximization.OptimizationSelectedBonusMaximizer;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.neighborhood.OptimizationLargeNeighborhoodSearch;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.refinement.OptimizationDeterministicRefiner;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.requirement.OptimizationRequirementSatisfier;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.variant.OptimizationVariantGenerator;
 
 /** Defines the optimizer object graph independently from its application service. */
@@ -64,19 +72,85 @@ public class OptimizationEngineConfig {
     }
 
     @Bean
-    OptimizationSearchPipeline optimizationSearchPipeline(
+    OptimizationStateOperations optimizationStateOperations(
             EquipmentPlacementRules placementRules,
             EquipmentRulesRegistry rules,
-            OptimizationStateEvaluator stateEvaluator,
+            OptimizationStateEvaluator stateEvaluator) {
+        return new OptimizationStateOperations(placementRules, rules, stateEvaluator);
+    }
+
+    @Bean
+    OptimizationLevelAllocator optimizationLevelAllocator(OptimizationStateOperations operations) {
+        return new OptimizationLevelAllocator(operations);
+    }
+
+    @Bean
+    OptimizationRequirementSatisfier optimizationRequirementSatisfier(
+            OptimizationStateOperations operations, OptimizationLevelAllocator levels) {
+        return new OptimizationRequirementSatisfier(operations, levels);
+    }
+
+    @Bean
+    OptimizationGreedySearch optimizationGreedySearch(
+            OptimizationInitialStateFactory initialStateFactory,
+            EquipmentRulesRegistry rules,
             OptimizationResultAssembler resultAssembler,
-            UpgradeLevelPolicy levelPolicy,
+            OptimizationRequirementSatisfier requirements,
+            OptimizationStateOperations operations) {
+        return new OptimizationGreedySearch(
+                initialStateFactory,
+                new MaximizedDrifBonusPrelock(rules),
+                resultAssembler,
+                requirements,
+                operations);
+    }
+
+    @Bean
+    OptimizationBeamSearch optimizationBeamSearch(
+            OptimizationInitialStateFactory initialStateFactory,
+            OptimizationRequirementSatisfier requirements,
+            OptimizationLevelAllocator levels,
+            OptimizationStateOperations operations) {
+        return new OptimizationBeamSearch(initialStateFactory, requirements, levels, operations);
+    }
+
+    @Bean
+    OptimizationInitialStateFactory optimizationInitialStateFactory(UpgradeLevelPolicy levelPolicy) {
+        return new OptimizationInitialStateFactory(levelPolicy);
+    }
+
+    @Bean
+    OptimizationDeterministicRefiner optimizationDeterministicRefiner(
+            OptimizationStateOperations operations,
+            OptimizationLevelAllocator levels,
+            OptimizationRequirementSatisfier requirements) {
+        return new OptimizationDeterministicRefiner(operations, levels, requirements);
+    }
+
+    @Bean
+    OptimizationSelectedBonusMaximizer optimizationSelectedBonusMaximizer(
+            OptimizationStateOperations operations,
+            OptimizationStateEvaluator evaluator,
+            OptimizationResultAssembler resultAssembler) {
+        return new OptimizationSelectedBonusMaximizer(operations, evaluator, resultAssembler);
+    }
+
+    @Bean
+    OptimizationSearchPipeline optimizationSearchPipeline(
+            OptimizationGreedySearch greedySearch,
+            OptimizationBeamSearch beamSearch,
+            OptimizationLevelAllocator levelAllocator,
+            OptimizationRequirementSatisfier requirementSatisfier,
+            OptimizationDeterministicRefiner deterministicRefiner,
+            OptimizationSelectedBonusMaximizer selectedBonusMaximizer,
             OptimizationLargeNeighborhoodSearch neighborhoodSearch) {
         return new OptimizationSearchPipeline(
-                placementRules,
-                rules,
-                stateEvaluator,
-                resultAssembler,
-                new OptimizationInitialStateFactory(levelPolicy),
+                greedySearch,
+                beamSearch,
+                levelAllocator,
+                requirementSatisfier,
+                deterministicRefiner,
+                selectedBonusMaximizer,
                 neighborhoodSearch);
     }
 }
