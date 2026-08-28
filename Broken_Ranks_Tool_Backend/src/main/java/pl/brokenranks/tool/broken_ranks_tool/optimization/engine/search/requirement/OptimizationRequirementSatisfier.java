@@ -1,7 +1,6 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.requirement;
 
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
-
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationLevelAllocator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationPlacementOperations;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationStateEvaluation;

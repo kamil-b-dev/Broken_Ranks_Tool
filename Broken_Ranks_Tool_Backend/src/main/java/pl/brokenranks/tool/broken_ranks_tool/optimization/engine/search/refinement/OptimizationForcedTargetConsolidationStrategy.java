@@ -1,6 +1,5 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.refinement;
 
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.DrifOptimizationMath.fitsCapacity;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationRequestConstraints.*;
 
@@ -9,6 +8,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationLevelAllocator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationPlacementOperations;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationStateEvaluation;

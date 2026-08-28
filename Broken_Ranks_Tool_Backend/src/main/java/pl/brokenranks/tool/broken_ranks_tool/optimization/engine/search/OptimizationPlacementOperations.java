@@ -1,7 +1,5 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search;
 
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
-
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +8,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRul
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentPlacementRules;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
 
 /** Provides placement validation, lookup, and mutation operations for build states. */
 @RequiredArgsConstructor

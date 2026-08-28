@@ -1,12 +1,12 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation;
 
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationRequestConstraints.directedValue;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationRequestConstraints.safeQuantities;
 
 import java.util.Map;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
 
 /** Answers value, count, and quantity-constraint queries for calculated state metrics. */
 final class OptimizationStateValueCalculator {

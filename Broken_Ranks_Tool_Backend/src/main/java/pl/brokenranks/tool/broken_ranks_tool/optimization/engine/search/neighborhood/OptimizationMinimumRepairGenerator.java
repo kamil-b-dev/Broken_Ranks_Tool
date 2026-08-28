@@ -1,12 +1,12 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.neighborhood;
 
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.DrifOptimizationMath.*;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationRequestConstraints.*;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
 
 /** Generates compensating moves that restore a minimum requirement after a replacement. */
 @RequiredArgsConstructor

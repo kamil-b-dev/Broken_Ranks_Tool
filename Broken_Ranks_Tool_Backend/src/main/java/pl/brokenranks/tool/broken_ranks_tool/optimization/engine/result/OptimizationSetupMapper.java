@@ -2,7 +2,6 @@ package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result;
 
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.constraints.EquipmentSlotDataCopier.copySlot;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.constraints.EquipmentSlotDataCopier.copySlots;
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,6 +10,7 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.constraints.OptimizationLockService;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
 
 /** Maps internal build states to lock-safe equipment API requests. */
 @RequiredArgsConstructor

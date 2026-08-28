@@ -1,10 +1,9 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation;
 
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
-
 import java.util.Comparator;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRulesRegistry;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
 
 /** Provides the optimization engine with cached state evaluation operations. */
 public final class OptimizationStateEvaluator {

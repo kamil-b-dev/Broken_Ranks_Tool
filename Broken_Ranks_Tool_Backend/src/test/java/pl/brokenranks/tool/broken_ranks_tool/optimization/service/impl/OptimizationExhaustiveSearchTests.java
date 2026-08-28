@@ -6,7 +6,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,6 +33,7 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationReques
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationResponse;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context.OptimizationContextFactory;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
 
 /** Compares the production heuristic with an exact oracle on small search spaces. */
 class OptimizationExhaustiveSearchTests {

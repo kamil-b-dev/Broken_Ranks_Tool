@@ -1,13 +1,12 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context;
 
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.UpgradeLevelPolicy;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
 
 /** Reconstructs locked and original placements before the search begins. */
 @RequiredArgsConstructor

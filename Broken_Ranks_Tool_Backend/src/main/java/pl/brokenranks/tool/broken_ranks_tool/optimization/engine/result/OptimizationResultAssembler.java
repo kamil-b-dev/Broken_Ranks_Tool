@@ -1,12 +1,11 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result;
 
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.BuildState;
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.OptimizationContext;
-
 import java.util.List;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationSummary;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.BuildState;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationContext;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.variant.GeneratedOptimizationVariant;
 
 /** Facade for mapping, validating, calculating, and summarizing optimization results. */

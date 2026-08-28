@@ -1,8 +1,5 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.service.impl;
 
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.BuildState;
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.OptimizationContext;
-
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +9,8 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationReques
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationResponse;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationSummary;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context.OptimizationContextFactory;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.BuildState;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationContext;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultAssembler;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationSearchPipeline;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.validation.OptimizationRequestValidator;

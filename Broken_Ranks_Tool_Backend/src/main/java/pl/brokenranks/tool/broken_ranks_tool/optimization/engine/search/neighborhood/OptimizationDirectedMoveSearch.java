@@ -1,7 +1,5 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.neighborhood;
 
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -10,6 +8,7 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
 
 /** Coordinates directed neighborhood moves and selects their strongest finalists. */
 @RequiredArgsConstructor

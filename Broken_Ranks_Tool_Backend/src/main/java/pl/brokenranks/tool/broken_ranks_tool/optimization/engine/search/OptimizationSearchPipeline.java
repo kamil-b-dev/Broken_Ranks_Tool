@@ -1,8 +1,7 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search;
 
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.BuildState;
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.OptimizationContext;
-
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.BuildState;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationContext;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction.OptimizationBeamSearch;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction.OptimizationGreedySearch;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.maximization.OptimizationSelectedBonusMaximizer;
