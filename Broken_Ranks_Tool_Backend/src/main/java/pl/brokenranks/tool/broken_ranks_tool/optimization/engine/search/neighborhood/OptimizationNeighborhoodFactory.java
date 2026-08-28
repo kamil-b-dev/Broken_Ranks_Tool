@@ -25,6 +25,10 @@ public class OptimizationNeighborhoodFactory {
         OptimizationDirectedMoveSearch directedMoves =
                 new OptimizationDirectedMoveSearch(evaluator, comparator, support, swaps);
         return new OptimizationLargeNeighborhoodSearch(
-                rules, evaluator, comparator, support, directedMoves);
+                comparator,
+                support,
+                directedMoves,
+                new OptimizationNeighborhoodGroupPlanner(),
+                new OptimizationSlotNeighborGenerator(rules, evaluator, support));
     }
 }
