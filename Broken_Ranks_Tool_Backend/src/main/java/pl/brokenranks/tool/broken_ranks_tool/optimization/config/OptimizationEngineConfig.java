@@ -14,6 +14,7 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context.Optimiz
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context.OptimizationInitialStateFactory;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultAssembler;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultFactory;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationSearchPipeline;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationLevelAllocator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationStateOperations;
@@ -41,7 +42,7 @@ public class OptimizationEngineConfig {
             OptimizationLockService lockService,
             EquipmentStatsCalculatorService calculatorService,
             OptimizationStateEvaluator stateEvaluator) {
-        return new OptimizationResultAssembler(lockService, calculatorService, stateEvaluator);
+        return OptimizationResultFactory.create(lockService, calculatorService, stateEvaluator);
     }
 
     @Bean

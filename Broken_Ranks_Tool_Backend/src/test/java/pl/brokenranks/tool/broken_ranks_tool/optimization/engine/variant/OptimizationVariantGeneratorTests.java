@@ -27,6 +27,7 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.constraints.Optimizati
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultAssembler;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultFactory;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.neighborhood.OptimizationLargeNeighborhoodSearch;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.neighborhood.OptimizationNeighborhoodFactory;
 
@@ -173,7 +174,7 @@ class OptimizationVariantGeneratorTests {
                                             "95%");
                         });
         OptimizationResultAssembler assembler =
-                new OptimizationResultAssembler(
+                OptimizationResultFactory.create(
                         new OptimizationLockService(), calculator, evaluator);
         OptimizationLargeNeighborhoodSearch search =
                 OptimizationNeighborhoodFactory.create(rules, evaluator, assembler);
