@@ -123,5 +123,4 @@ final class OptimizationVariantSummaryFactory {
                                                         variant, type, context)))
                 .sum();
     }
-
 }

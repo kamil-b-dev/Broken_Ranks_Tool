@@ -23,7 +23,8 @@ public class GameRulesFactory {
 
     public GameRulesDto create(List<DrifTemplate> drifs) {
         Map<String, Integer> maxCaps = new HashMap<>();
-        for (DRIF_BONUS_TYPE type : DRIF_BONUS_TYPE.values()) maxCaps.put(type.name(), type.getMaxCap());
+        for (DRIF_BONUS_TYPE type : DRIF_BONUS_TYPE.values())
+            maxCaps.put(type.name(), type.getMaxCap());
         return new GameRulesDto(
                 EquipmentRulesRegistry.EPIC_BUILTIN_DRIFS,
                 rulesRegistry.getSlotOrbRules(),
@@ -33,11 +34,13 @@ public class GameRulesFactory {
                 maxCaps,
                 drifs.stream()
                         .filter(drif -> drif.getBonusType() != null && drif.getCategory() != null)
-                        .collect(Collectors.toMap(
-                                drif -> drif.getBonusType().name(),
-                                drif -> drif.getCategory().name(),
-                                (first, ignored) -> first)),
-                IntStream.rangeClosed(1, 12).boxed()
+                        .collect(
+                                Collectors.toMap(
+                                        drif -> drif.getBonusType().name(),
+                                        drif -> drif.getCategory().name(),
+                                        (first, ignored) -> first)),
+                IntStream.rangeClosed(1, 12)
+                        .boxed()
                         .collect(Collectors.toMap(count -> count, rulesRegistry::getDrifPenalty)));
     }
 
@@ -47,6 +50,8 @@ public class GameRulesFactory {
                                 .map(type -> Map.entry(type.name(), type.getDescription())),
                         Arrays.stream(ORB_BONUS_TYPE.values())
                                 .map(type -> Map.entry(type.name(), type.getDescription())))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (first, ignored) -> first));
+                .collect(
+                        Collectors.toMap(
+                                Map.Entry::getKey, Map.Entry::getValue, (first, ignored) -> first));
     }
 }

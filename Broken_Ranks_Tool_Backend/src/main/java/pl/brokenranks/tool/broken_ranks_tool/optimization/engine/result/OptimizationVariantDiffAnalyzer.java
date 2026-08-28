@@ -21,15 +21,21 @@ final class OptimizationVariantDiffAnalyzer {
             BuildState main, BuildState variant, OptimizationContext context) {
         Map<String, String> mainStats = calculatorAdapter.actualStats(main, context);
         Map<String, String> variantStats = calculatorAdapter.actualStats(variant, context);
-        Set<String> drifStats = context.drifs().values().stream()
-                .map(drif -> drif.getBonusType().name()).collect(Collectors.toSet());
+        Set<String> drifStats =
+                context.drifs().values().stream()
+                        .map(drif -> drif.getBonusType().name())
+                        .collect(Collectors.toSet());
         Set<String> keys = new TreeSet<>(mainStats.keySet());
         keys.addAll(variantStats.keySet());
         return keys.stream()
                 .filter(drifStats::contains)
                 .filter(key -> !sameValue(mainStats.get(key), variantStats.get(key)))
-                .map(key -> new OptimizationSummary.StatChange(
-                        key, mainStats.getOrDefault(key, "0"), variantStats.getOrDefault(key, "0")))
+                .map(
+                        key ->
+                                new OptimizationSummary.StatChange(
+                                        key,
+                                        mainStats.getOrDefault(key, "0"),
+                                        variantStats.getOrDefault(key, "0")))
                 .toList();
     }
 
@@ -43,8 +49,14 @@ final class OptimizationVariantDiffAnalyzer {
                 Placement left = placementAt(from, position);
                 Placement right = placementAt(to, position);
                 if (samePlacement(left, right)) continue;
-                changes.add(new OptimizationSummary.PlacementChange(
-                        slot.key(), slot.item().getName(), name(left), level(left), name(right), level(right)));
+                changes.add(
+                        new OptimizationSummary.PlacementChange(
+                                slot.key(),
+                                slot.item().getName(),
+                                name(left),
+                                level(left),
+                                name(right),
+                                level(right)));
             }
         }
         return changes;
