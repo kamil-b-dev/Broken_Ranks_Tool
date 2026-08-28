@@ -21,9 +21,9 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.proces
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.processor.OrbStatProcessor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.provider.EquipmentDataProvider;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.provider.EquipmentDataProvider.CalculationContext;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.DrifSecurityValidator;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentPlacementRules;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentRequestValidator;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.ModifierSecurityValidator;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.UpgradeLevelPolicy;
 
 /** Orchestrates validation, data preparation, and equipment statistic processors. */
@@ -35,7 +35,7 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
     private final EquipmentRequestValidator requestValidator;
     private final EquipmentPlacementRules placementRules;
     private final UpgradeLevelPolicy levelPolicy;
-    private final ModifierSecurityValidator securityValidator;
+    private final DrifSecurityValidator securityValidator;
     private final ItemStatProcessor itemProcessor;
     private final OrbStatProcessor orbProcessor;
     private final DrifStatProcessor drifProcessor;
@@ -113,7 +113,7 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
         List<Integer> levelsForSlot = new ArrayList<>();
         prepareDrifsForSlot(slotData, ctx, drifsForSlot, levelsForSlot);
 
-        securityValidator.validateDrifs(slotKey, item, starLevel, drifsForSlot, levelsForSlot);
+        securityValidator.validate(slotKey, item, starLevel, drifsForSlot, levelsForSlot);
 
         double finalDrifMod = itemProcessor.calculateFinalDrifMod(item, starLevel);
 

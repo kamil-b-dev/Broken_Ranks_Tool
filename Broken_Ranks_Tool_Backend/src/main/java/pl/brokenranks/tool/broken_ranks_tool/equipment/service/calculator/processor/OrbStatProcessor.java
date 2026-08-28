@@ -10,7 +10,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemp
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.OrbTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.CalculationState;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentPlacementRules;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.ModifierSecurityValidator;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.OrbSecurityValidator;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.UpgradeLevelPolicy;
 
 /** Calculates orb statistics using orb levels and item star modifiers. */
@@ -20,7 +20,7 @@ public class OrbStatProcessor {
 
     private final EquipmentPlacementRules placementRules;
     private final UpgradeLevelPolicy levelPolicy;
-    private final ModifierSecurityValidator securityValidator;
+    private final OrbSecurityValidator securityValidator;
 
     /** Validates the slot's orbs and adds their statistics to the accumulator. */
     public void process(
@@ -40,7 +40,7 @@ public class OrbStatProcessor {
             }
         }
 
-        securityValidator.validateOrbs(item, orbsToProcess);
+        securityValidator.validate(item, orbsToProcess);
 
         for (int i = 0; i < orbsToProcess.size(); i++) {
             OrbTemplate orb = orbsToProcess.get(i);
