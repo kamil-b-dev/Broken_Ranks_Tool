@@ -48,8 +48,14 @@ final class OptimizationForcedTargetConsolidationStrategy
     }
 
     private BuildState relocate(
-            BuildState state, BuildState best, SlotContext source, int sourceIndex,
-            Placement cap, DRIF_BONUS_TYPE type, double target, OptimizationContext context) {
+            BuildState state,
+            BuildState best,
+            SlotContext source,
+            int sourceIndex,
+            Placement cap,
+            DRIF_BONUS_TYPE type,
+            double target,
+            OptimizationContext context) {
         for (SlotContext destination : context.slots()) {
             if (destination.drifBonus() <= source.drifBonus() + MIN_ACCEPTED_GAIN
                     || !destination.optimizable()
@@ -60,12 +66,30 @@ final class OptimizationForcedTargetConsolidationStrategy
                     targetIndex < Math.min(targetValues.size(), destination.maxDrifs());
                     targetIndex++) {
                 Placement other = targetValues.get(targetIndex);
-                if (!validMove(sourceValues, targetValues, source, destination, sourceIndex,
-                        targetIndex, cap, other, type)) continue;
-                BuildState moved = swapped(state, source, destination, sourceIndex, targetIndex,
-                        cap, other, context);
+                if (!validMove(
+                        sourceValues,
+                        targetValues,
+                        source,
+                        destination,
+                        sourceIndex,
+                        targetIndex,
+                        cap,
+                        other,
+                        type)) continue;
+                BuildState moved =
+                        swapped(
+                                state,
+                                source,
+                                destination,
+                                sourceIndex,
+                                targetIndex,
+                                cap,
+                                other,
+                                context);
                 if (moved != null) {
-                    best = removeDuplicate(moved, best, destination, targetIndex, type, target, context);
+                    best =
+                            removeDuplicate(
+                                    moved, best, destination, targetIndex, type, target, context);
                 }
             }
         }
@@ -73,9 +97,15 @@ final class OptimizationForcedTargetConsolidationStrategy
     }
 
     private boolean validMove(
-            List<Placement> sourceValues, List<Placement> targetValues, SlotContext source,
-            SlotContext destination, int sourceIndex, int targetIndex, Placement cap,
-            Placement other, DRIF_BONUS_TYPE type) {
+            List<Placement> sourceValues,
+            List<Placement> targetValues,
+            SlotContext source,
+            SlotContext destination,
+            int sourceIndex,
+            int targetIndex,
+            Placement cap,
+            Placement other,
+            DRIF_BONUS_TYPE type) {
         return movable(other, destination, targetIndex)
                 && other.drif().getBonusType() != type
                 && stateOperations.isValidForSlot(cap.drif(), destination)
@@ -86,34 +116,52 @@ final class OptimizationForcedTargetConsolidationStrategy
     }
 
     private BuildState swapped(
-            BuildState state, SlotContext first, SlotContext second, int firstIndex,
-            int secondIndex, Placement left, Placement right, OptimizationContext context) {
+            BuildState state,
+            SlotContext first,
+            SlotContext second,
+            int firstIndex,
+            int secondIndex,
+            Placement left,
+            Placement right,
+            OptimizationContext context) {
         BuildState trial = state.copy();
-        trial.setPlacement(first.key(), firstIndex,
+        trial.setPlacement(
+                first.key(),
+                firstIndex,
                 new Placement(right.drif(), baseLevel(right.drif()), false));
-        trial.setPlacement(second.key(), secondIndex,
+        trial.setPlacement(
+                second.key(),
+                secondIndex,
                 new Placement(left.drif(), baseLevel(left.drif()), false));
         levelAllocator.normalizeSlot(trial, first, context);
         levelAllocator.normalizeSlot(trial, second, context);
         return fitsCapacity(trial.slots().get(first.key()), first)
                         && fitsCapacity(trial.slots().get(second.key()), second)
-                ? trial : null;
+                ? trial
+                : null;
     }
 
     private BuildState removeDuplicate(
-            BuildState moved, BuildState best, SlotContext destination, int destinationIndex,
-            DRIF_BONUS_TYPE type, double target, OptimizationContext context) {
+            BuildState moved,
+            BuildState best,
+            SlotContext destination,
+            int destinationIndex,
+            DRIF_BONUS_TYPE type,
+            double target,
+            OptimizationContext context) {
         for (SlotContext slot : context.slots()) {
             List<Placement> values = moved.slots().get(slot.key());
             for (int index = 0; index < Math.min(values.size(), slot.maxDrifs()); index++) {
                 Placement value = values.get(index);
                 if (!movableType(value, slot, index, type)
-                        || (slot.key().equals(destination.key()) && index == destinationIndex)) continue;
+                        || (slot.key().equals(destination.key()) && index == destinationIndex))
+                    continue;
                 BuildState trial = moved.copy();
                 trial.setPlacement(slot.key(), index, null);
                 levelAllocator.normalizeSlot(trial, slot, context);
                 if (stateOperations.minimumsSatisfied(trial, context)
-                        && stateOperations.calculatedValue(trial, type, context) >= target - TARGET_TOLERANCE
+                        && stateOperations.calculatedValue(trial, type, context)
+                                >= target - TARGET_TOLERANCE
                         && stateOperations.trySelectBetter(trial, best, context)) best = trial;
             }
         }
@@ -124,7 +172,8 @@ final class OptimizationForcedTargetConsolidationStrategy
         return value != null && !value.locked() && !slot.lockedIndices().contains(index);
     }
 
-    private boolean movableType(Placement value, SlotContext slot, int index, DRIF_BONUS_TYPE type) {
+    private boolean movableType(
+            Placement value, SlotContext slot, int index, DRIF_BONUS_TYPE type) {
         return movable(value, slot, index) && value.drif().getBonusType() == type;
     }
 
