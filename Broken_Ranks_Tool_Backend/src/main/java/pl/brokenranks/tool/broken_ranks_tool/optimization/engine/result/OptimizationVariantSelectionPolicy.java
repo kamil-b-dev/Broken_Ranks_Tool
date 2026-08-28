@@ -1,6 +1,5 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result;
 
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.BuildState;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationRequestConstraints.TARGET_TOLERANCE;
 
 import java.util.ArrayList;
@@ -11,6 +10,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationSummary;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.BuildState;
 
 /** Selects a small Pareto-optimal and behaviorally diverse set of alternatives. */
 final class OptimizationVariantSelectionPolicy {

@@ -1,6 +1,5 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation;
 
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.DrifOptimizationMath.calculateDrifValue;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.DrifOptimizationMath.power;
 
@@ -13,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRulesRegistry;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
 
 /** Calculates raw counts, values, power, penalties, and capacity utilization. */
 @RequiredArgsConstructor

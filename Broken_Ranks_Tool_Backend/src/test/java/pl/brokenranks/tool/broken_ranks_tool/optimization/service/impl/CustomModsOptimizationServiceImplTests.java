@@ -10,7 +10,6 @@ import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -38,6 +37,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.Upgrade
 import pl.brokenranks.tool.broken_ranks_tool.optimization.constraints.OptimizationLockService;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationResponse;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
 
 class CustomModsOptimizationServiceImplTests {
 

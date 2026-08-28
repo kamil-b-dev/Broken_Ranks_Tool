@@ -1,6 +1,6 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation;
 
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.Quality;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.Quality;
 
 /** Defines the deterministic business ordering of optimization quality values. */
 final class OptimizationQualityComparator {

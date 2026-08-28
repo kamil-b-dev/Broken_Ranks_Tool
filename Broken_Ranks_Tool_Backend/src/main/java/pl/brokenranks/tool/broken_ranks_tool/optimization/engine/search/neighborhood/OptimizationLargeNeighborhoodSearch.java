@@ -1,9 +1,8 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.neighborhood;
 
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
-
 import java.util.ArrayList;
 import java.util.List;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
 
 /** Rebuilds bounded slot groups after directed promotion moves have been evaluated. */
 public final class OptimizationLargeNeighborhoodSearch {

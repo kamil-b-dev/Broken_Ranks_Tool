@@ -1,12 +1,12 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation;
 
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationRequestConstraints.*;
 
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
 
 /** Calculates the heuristic score used to rank candidate states. */
 @RequiredArgsConstructor

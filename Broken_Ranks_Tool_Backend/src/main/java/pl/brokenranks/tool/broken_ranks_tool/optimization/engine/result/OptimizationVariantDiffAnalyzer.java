@@ -1,6 +1,5 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result;
 
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationRequestConstraints.TARGET_TOLERANCE;
 
 import java.util.ArrayList;
@@ -11,6 +10,7 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationSummary;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
 
 /** Describes user-visible statistic and placement differences between optimizer states. */
 @RequiredArgsConstructor

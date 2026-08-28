@@ -1,10 +1,9 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.neighborhood;
 
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.SlotContext;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.SlotContext;
 
 /** Plans bounded slot groups explored by large-neighborhood search. */
 final class OptimizationNeighborhoodGroupPlanner {
