@@ -13,7 +13,15 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context.Optimiz
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultAssembler;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationSearchPipeline;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationLevelAllocator;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationStateOperations;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction.MaximizedDrifBonusPrelock;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction.OptimizationBeamSearch;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction.OptimizationGreedySearch;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.maximization.OptimizationSelectedBonusMaximizer;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.neighborhood.OptimizationLargeNeighborhoodSearch;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.refinement.OptimizationDeterministicRefiner;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.requirement.OptimizationRequirementSatisfier;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.variant.OptimizationVariantGenerator;
 
 final class OptimizationServiceTestFactory {
@@ -34,6 +42,13 @@ final class OptimizationServiceTestFactory {
                 new OptimizationResultAssembler(lockService, calculatorService, evaluator);
         OptimizationLargeNeighborhoodSearch neighborhoodSearch =
                 new OptimizationLargeNeighborhoodSearch(rules, evaluator, assembler);
+        OptimizationStateOperations operations =
+                new OptimizationStateOperations(placementRules, rules, evaluator);
+        OptimizationLevelAllocator levels = new OptimizationLevelAllocator(operations);
+        OptimizationRequirementSatisfier requirements =
+                new OptimizationRequirementSatisfier(operations, levels);
+        OptimizationInitialStateFactory initialStates =
+                new OptimizationInitialStateFactory(levelPolicy);
         return new CustomModsOptimizationServiceImpl(
                 new OptimizationContextFactory(
                         drifRepository,
@@ -42,11 +57,18 @@ final class OptimizationServiceTestFactory {
                         levelPolicy,
                         itemStatProcessor),
                 new OptimizationSearchPipeline(
-                        placementRules,
-                        rules,
-                        evaluator,
-                        assembler,
-                        new OptimizationInitialStateFactory(levelPolicy),
+                        new OptimizationGreedySearch(
+                                initialStates,
+                                new MaximizedDrifBonusPrelock(rules),
+                                assembler,
+                                requirements,
+                                operations),
+                        new OptimizationBeamSearch(
+                                initialStates, requirements, levels, operations),
+                        levels,
+                        requirements,
+                        new OptimizationDeterministicRefiner(operations, levels, requirements),
+                        new OptimizationSelectedBonusMaximizer(operations, evaluator, assembler),
                         neighborhoodSearch),
                 assembler,
                 new OptimizationVariantGenerator(neighborhoodSearch, evaluator, assembler));

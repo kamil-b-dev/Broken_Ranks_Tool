@@ -3,12 +3,6 @@ package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.BuildState;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.OptimizationContext;
 
-import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRulesRegistry;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentPlacementRules;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context.OptimizationInitialStateFactory;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultAssembler;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction.MaximizedDrifBonusPrelock;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction.OptimizationBeamSearch;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction.OptimizationGreedySearch;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.maximization.OptimizationSelectedBonusMaximizer;
@@ -28,33 +22,19 @@ public final class OptimizationSearchPipeline {
     private final OptimizationLargeNeighborhoodSearch largeNeighborhoodSearch;
 
     public OptimizationSearchPipeline(
-            EquipmentPlacementRules placementRules,
-            EquipmentRulesRegistry rules,
-            OptimizationStateEvaluator stateEvaluator,
-            OptimizationResultAssembler resultAssembler,
-            OptimizationInitialStateFactory initialStateFactory,
+            OptimizationGreedySearch greedySearch,
+            OptimizationBeamSearch beamSearch,
+            OptimizationLevelAllocator levelAllocator,
+            OptimizationRequirementSatisfier requirementSatisfier,
+            OptimizationDeterministicRefiner deterministicRefiner,
+            OptimizationSelectedBonusMaximizer selectedBonusMaximizer,
             OptimizationLargeNeighborhoodSearch largeNeighborhoodSearch) {
-        OptimizationStateOperations stateOperations =
-                new OptimizationStateOperations(placementRules, rules, stateEvaluator);
-        this.levelAllocator = new OptimizationLevelAllocator(stateOperations);
-        this.requirementSatisfier =
-                new OptimizationRequirementSatisfier(stateOperations, levelAllocator);
-        this.greedySearch =
-                new OptimizationGreedySearch(
-                        initialStateFactory,
-                        new MaximizedDrifBonusPrelock(rules),
-                        resultAssembler,
-                        requirementSatisfier,
-                        stateOperations);
-        this.beamSearch =
-                new OptimizationBeamSearch(
-                        initialStateFactory, requirementSatisfier, levelAllocator, stateOperations);
-        this.deterministicRefiner =
-                new OptimizationDeterministicRefiner(
-                        stateOperations, levelAllocator, requirementSatisfier);
-        this.selectedBonusMaximizer =
-                new OptimizationSelectedBonusMaximizer(
-                        stateOperations, stateEvaluator, resultAssembler);
+        this.greedySearch = greedySearch;
+        this.beamSearch = beamSearch;
+        this.levelAllocator = levelAllocator;
+        this.requirementSatisfier = requirementSatisfier;
+        this.deterministicRefiner = deterministicRefiner;
+        this.selectedBonusMaximizer = selectedBonusMaximizer;
         this.largeNeighborhoodSearch = largeNeighborhoodSearch;
     }
 
