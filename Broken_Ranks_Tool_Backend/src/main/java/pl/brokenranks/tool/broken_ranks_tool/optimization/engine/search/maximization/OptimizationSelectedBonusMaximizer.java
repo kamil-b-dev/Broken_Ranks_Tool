@@ -15,7 +15,6 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_T
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultAssembler;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationStateOperations;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationPlacementOperations;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationStateEvaluation;
 
@@ -61,7 +60,8 @@ public final class OptimizationSelectedBonusMaximizer {
             OptimizationContext context) {
         for (List<SlotContext> slots : context.slotsByDrifBonus().values()) {
             for (SlotContext slot : slots) {
-                if (!slot.optimizable() || placementOperations.isSlotLocked(slot, context)) continue;
+                if (!slot.optimizable() || placementOperations.isSlotLocked(slot, context))
+                    continue;
                 DrifTemplate candidate = candidateForType(slot, type);
                 if (candidate == null) continue;
                 bestState =

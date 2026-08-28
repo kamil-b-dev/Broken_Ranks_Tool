@@ -21,8 +21,11 @@ public final class OptimizationStateEvaluation {
         return evaluator.globalCount(state, type, context);
     }
 
-    public int globalCountExcept(BuildState state, DRIF_BONUS_TYPE candidate,
-            DRIF_BONUS_TYPE replaced, OptimizationContext context) {
+    public int globalCountExcept(
+            BuildState state,
+            DRIF_BONUS_TYPE candidate,
+            DRIF_BONUS_TYPE replaced,
+            OptimizationContext context) {
         return evaluator.globalCountExcept(state, candidate, replaced, context);
     }
 
@@ -30,13 +33,13 @@ public final class OptimizationStateEvaluation {
         return evaluator.minimumsSatisfied(state, context);
     }
 
-    public double calculatedValue(BuildState state, DRIF_BONUS_TYPE type,
-            OptimizationContext context) {
+    public double calculatedValue(
+            BuildState state, DRIF_BONUS_TYPE type, OptimizationContext context) {
         return evaluator.calculatedValue(state, type, context);
     }
 
-    public double currentValue(BuildState state, DRIF_BONUS_TYPE type,
-            OptimizationContext context) {
+    public double currentValue(
+            BuildState state, DRIF_BONUS_TYPE type, OptimizationContext context) {
         return evaluator.currentValue(state, type, context);
     }
 
@@ -44,8 +47,8 @@ public final class OptimizationStateEvaluation {
         return evaluator.score(state, context);
     }
 
-    public boolean trySelectBetter(BuildState candidate, BuildState current,
-            OptimizationContext context) {
+    public boolean trySelectBetter(
+            BuildState candidate, BuildState current, OptimizationContext context) {
         return context.refinementSearchBudget().tryConsume()
                 && evaluator.isBetterState(candidate, current, context);
     }

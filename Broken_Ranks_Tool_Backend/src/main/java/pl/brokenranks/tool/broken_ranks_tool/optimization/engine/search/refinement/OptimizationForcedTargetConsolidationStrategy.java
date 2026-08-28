@@ -10,7 +10,8 @@ import lombok.RequiredArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationLevelAllocator;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationStateOperations;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationPlacementOperations;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationStateEvaluation;
 
 /** Consolidates forced-target placements onto slots with stronger drif bonuses. */
 @RequiredArgsConstructor
@@ -18,7 +19,8 @@ final class OptimizationForcedTargetConsolidationStrategy
         implements DeterministicRefinementStrategy {
     private static final int BASE_REPLACEMENT_LEVEL = 6;
     private static final double MIN_ACCEPTED_GAIN = 0.0001;
-    private final OptimizationStateOperations stateOperations;
+    private final OptimizationPlacementOperations placements;
+    private final OptimizationStateEvaluation evaluation;
     private final OptimizationLevelAllocator levelAllocator;
 
     @Override
@@ -35,7 +37,7 @@ final class OptimizationForcedTargetConsolidationStrategy
         BuildState best = state;
         double target = targetFor(type, context.request());
         for (SlotContext source : context.slots()) {
-            if (!source.optimizable() || stateOperations.isSlotLocked(source, context)) continue;
+            if (!source.optimizable() || placements.isSlotLocked(source, context)) continue;
             List<Placement> placements = state.slots().get(source.key());
             for (int index = 0; index < Math.min(placements.size(), source.maxDrifs()); index++) {
                 Placement cap = placements.get(index);
@@ -59,7 +61,7 @@ final class OptimizationForcedTargetConsolidationStrategy
         for (SlotContext destination : context.slots()) {
             if (destination.drifBonus() <= source.drifBonus() + MIN_ACCEPTED_GAIN
                     || !destination.optimizable()
-                    || stateOperations.isSlotLocked(destination, context)) continue;
+                    || placements.isSlotLocked(destination, context)) continue;
             List<Placement> sourceValues = state.slots().get(source.key());
             List<Placement> targetValues = state.slots().get(destination.key());
             for (int targetIndex = 0;
@@ -108,11 +110,11 @@ final class OptimizationForcedTargetConsolidationStrategy
             DRIF_BONUS_TYPE type) {
         return movable(other, destination, targetIndex)
                 && other.drif().getBonusType() != type
-                && stateOperations.isValidForSlot(cap.drif(), destination)
-                && stateOperations.isValidForSlot(other.drif(), source)
-                && !stateOperations.containsBonusExcept(
+                && placements.isValidForSlot(cap.drif(), destination)
+                && placements.isValidForSlot(other.drif(), source)
+                && !placements.containsBonusExcept(
                         sourceValues, other.drif().getBonusType(), sourceIndex)
-                && !stateOperations.containsBonusExcept(targetValues, type, targetIndex);
+                && !placements.containsBonusExcept(targetValues, type, targetIndex);
     }
 
     private BuildState swapped(
@@ -159,10 +161,10 @@ final class OptimizationForcedTargetConsolidationStrategy
                 BuildState trial = moved.copy();
                 trial.setPlacement(slot.key(), index, null);
                 levelAllocator.normalizeSlot(trial, slot, context);
-                if (stateOperations.minimumsSatisfied(trial, context)
-                        && stateOperations.calculatedValue(trial, type, context)
+                if (evaluation.minimumsSatisfied(trial, context)
+                        && evaluation.calculatedValue(trial, type, context)
                                 >= target - TARGET_TOLERANCE
-                        && stateOperations.trySelectBetter(trial, best, context)) best = trial;
+                        && evaluation.trySelectBetter(trial, best, context)) best = trial;
             }
         }
         return best;

@@ -19,7 +19,6 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.Optimiza
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationPlacementOperations;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationSearchPipeline;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationStateEvaluation;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationStateOperations;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction.MaximizedDrifBonusPrelock;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction.OptimizationBeamSearch;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction.OptimizationGreedySearch;
@@ -76,22 +75,13 @@ public class OptimizationEngineConfig {
     }
 
     @Bean
-    OptimizationStateOperations optimizationStateOperations(
-            EquipmentPlacementRules placementRules,
-            EquipmentRulesRegistry rules,
-            OptimizationStateEvaluator stateEvaluator) {
-        return new OptimizationStateOperations(placementRules, rules, stateEvaluator);
-    }
-
-    @Bean
     OptimizationPlacementOperations optimizationPlacementOperations(
             EquipmentPlacementRules placementRules, EquipmentRulesRegistry rules) {
         return new OptimizationPlacementOperations(placementRules, rules);
     }
 
     @Bean
-    OptimizationStateEvaluation optimizationStateEvaluation(
-            OptimizationStateEvaluator evaluator) {
+    OptimizationStateEvaluation optimizationStateEvaluation(OptimizationStateEvaluator evaluator) {
         return new OptimizationStateEvaluation(evaluator);
     }
 
@@ -103,8 +93,10 @@ public class OptimizationEngineConfig {
 
     @Bean
     OptimizationRequirementSatisfier optimizationRequirementSatisfier(
-            OptimizationStateOperations operations, OptimizationLevelAllocator levels) {
-        return new OptimizationRequirementSatisfier(operations, levels);
+            OptimizationPlacementOperations placements,
+            OptimizationStateEvaluation evaluation,
+            OptimizationLevelAllocator levels) {
+        return new OptimizationRequirementSatisfier(placements, evaluation, levels);
     }
 
     @Bean
@@ -143,10 +135,11 @@ public class OptimizationEngineConfig {
 
     @Bean
     OptimizationDeterministicRefiner optimizationDeterministicRefiner(
-            OptimizationStateOperations operations,
+            OptimizationPlacementOperations placements,
+            OptimizationStateEvaluation evaluation,
             OptimizationLevelAllocator levels,
             OptimizationRequirementSatisfier requirements) {
-        return new OptimizationDeterministicRefiner(operations, levels, requirements);
+        return new OptimizationDeterministicRefiner(placements, evaluation, levels, requirements);
     }
 
     @Bean

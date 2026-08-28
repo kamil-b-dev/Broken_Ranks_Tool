@@ -7,13 +7,15 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationLevelAllocator;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationStateOperations;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationPlacementOperations;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationStateEvaluation;
 
 /** Reorganizes placements between slots to improve swaps and forced targets. */
 @RequiredArgsConstructor
 final class OptimizationPlacementReorganizationStrategy implements DeterministicRefinementStrategy {
     private static final int BASE_REPLACEMENT_LEVEL = 6;
-    private final OptimizationStateOperations stateOperations;
+    private final OptimizationPlacementOperations placements;
+    private final OptimizationStateEvaluation evaluation;
     private final OptimizationLevelAllocator levelAllocator;
 
     @Override
@@ -24,13 +26,12 @@ final class OptimizationPlacementReorganizationStrategy implements Deterministic
     private BuildState improveSwaps(BuildState state, OptimizationContext context) {
         BuildState bestState = state;
         for (int first = 0; first < context.slots().size(); first++) {
-            if (stateOperations.refinementBudgetExhausted(context)) return state;
+            if (evaluation.refinementBudgetExhausted(context)) return state;
             SlotContext firstSlot = context.slots().get(first);
-            if (!firstSlot.optimizable() || stateOperations.isSlotLocked(firstSlot, context))
-                continue;
+            if (!firstSlot.optimizable() || placements.isSlotLocked(firstSlot, context)) continue;
             for (int second = first + 1; second < context.slots().size(); second++) {
                 SlotContext secondSlot = context.slots().get(second);
-                if (!secondSlot.optimizable() || stateOperations.isSlotLocked(secondSlot, context))
+                if (!secondSlot.optimizable() || placements.isSlotLocked(secondSlot, context))
                     continue;
                 bestState = bestSwap(state, bestState, firstSlot, secondSlot, context);
             }
@@ -54,8 +55,8 @@ final class OptimizationPlacementReorganizationStrategy implements Deterministic
                 BuildState trial =
                         swapped(state, firstSlot, secondSlot, i, j, left, right, context);
                 if (trial != null
-                        && stateOperations.minimumsSatisfied(trial, context)
-                        && stateOperations.trySelectBetter(trial, best, context)) best = trial;
+                        && evaluation.minimumsSatisfied(trial, context)
+                        && evaluation.trySelectBetter(trial, best, context)) best = trial;
             }
         return best;
     }
@@ -71,10 +72,10 @@ final class OptimizationPlacementReorganizationStrategy implements Deterministic
             Placement right) {
         return movable(left, firstSlot, i)
                 && movable(right, secondSlot, j)
-                && stateOperations.isValidForSlot(right.drif(), firstSlot)
-                && stateOperations.isValidForSlot(left.drif(), secondSlot)
-                && !stateOperations.containsBonusExcept(first, right.drif().getBonusType(), i)
-                && !stateOperations.containsBonusExcept(second, left.drif().getBonusType(), j);
+                && placements.isValidForSlot(right.drif(), firstSlot)
+                && placements.isValidForSlot(left.drif(), secondSlot)
+                && !placements.containsBonusExcept(first, right.drif().getBonusType(), i)
+                && !placements.containsBonusExcept(second, left.drif().getBonusType(), j);
     }
 
     private BuildState swapped(
