@@ -11,7 +11,6 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_T
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRulesRegistry;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultAssembler;
 
 /** Rebuilds bounded slot groups after directed promotion moves have been evaluated. */
 public final class OptimizationLargeNeighborhoodSearch {
@@ -30,26 +29,14 @@ public final class OptimizationLargeNeighborhoodSearch {
     public OptimizationLargeNeighborhoodSearch(
             EquipmentRulesRegistry rules,
             OptimizationStateEvaluator stateEvaluator,
-            OptimizationResultAssembler resultAssembler) {
+            OptimizationActualStateComparator actualStateComparator,
+            OptimizationNeighborhoodSupport neighborhoodSupport,
+            OptimizationDirectedMoveSearch directedMoveSearch) {
         this.rules = rules;
         this.stateEvaluator = stateEvaluator;
-        this.actualStateComparator =
-                new OptimizationActualStateComparator(stateEvaluator, resultAssembler);
-        this.neighborhoodSupport = new OptimizationNeighborhoodSupport(stateEvaluator);
-        OptimizationMinimumRepairGenerator minimumRepairGenerator =
-                new OptimizationMinimumRepairGenerator(stateEvaluator, neighborhoodSupport);
-        OptimizationForcedTargetRepairGenerator forcedTargetRepairGenerator =
-                new OptimizationForcedTargetRepairGenerator(
-                        stateEvaluator, neighborhoodSupport, minimumRepairGenerator);
-        OptimizationDirectedSwapGenerator directedSwapGenerator =
-                new OptimizationDirectedSwapGenerator(
-                        stateEvaluator, neighborhoodSupport, forcedTargetRepairGenerator);
-        this.directedMoveSearch =
-                new OptimizationDirectedMoveSearch(
-                        stateEvaluator,
-                        actualStateComparator,
-                        neighborhoodSupport,
-                        directedSwapGenerator);
+        this.actualStateComparator = actualStateComparator;
+        this.neighborhoodSupport = neighborhoodSupport;
+        this.directedMoveSearch = directedMoveSearch;
     }
 
     public SearchResult improve(BuildState initial, OptimizationContext context) {

@@ -28,6 +28,7 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationReques
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultAssembler;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.neighborhood.OptimizationLargeNeighborhoodSearch;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.neighborhood.OptimizationNeighborhoodFactory;
 
 class OptimizationVariantGeneratorTests {
 
@@ -175,7 +176,7 @@ class OptimizationVariantGeneratorTests {
                 new OptimizationResultAssembler(
                         new OptimizationLockService(), calculator, evaluator);
         OptimizationLargeNeighborhoodSearch search =
-                new OptimizationLargeNeighborhoodSearch(rules, evaluator, assembler);
+                OptimizationNeighborhoodFactory.create(rules, evaluator, assembler);
         return new Fixture(
                 new OptimizationVariantGenerator(search, evaluator, assembler),
                 context,
