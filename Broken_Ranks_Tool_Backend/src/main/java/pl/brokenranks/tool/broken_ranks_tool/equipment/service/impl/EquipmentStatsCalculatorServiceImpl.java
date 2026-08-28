@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
@@ -14,6 +12,8 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCalculatorService;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.CalculationMetadataFactory;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.CalculationMetadataFactory.CalculationMetadata;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.CalculationState;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.processor.DrifStatProcessor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.processor.ItemStatProcessor;
@@ -38,6 +38,7 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
     private final ItemStatProcessor itemProcessor;
     private final OrbStatProcessor orbProcessor;
     private final DrifStatProcessor drifProcessor;
+    private final CalculationMetadataFactory metadataFactory;
 
     @Override
     public Map<String, String> calculateTotalStats(EquipmentRequest request) {
@@ -64,22 +65,11 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
 
         processSlots(request, ctx, state);
 
-        Map<String, String> drifCategories =
-                ctx.drifs().values().stream()
-                        .filter(drif -> drif.getBonusType() != null && drif.getCategory() != null)
-                        .collect(
-                                Collectors.toMap(
-                                        drif -> drif.getBonusType().name(),
-                                        drif -> drif.getCategory().name(),
-                                        (first, ignored) -> first));
-        Set<String> orbBonusTypes =
-                ctx.orbs().values().stream()
-                        .filter(orb -> orb.getBonusType() != null)
-                        .map(orb -> orb.getBonusType().name())
-                        .collect(Collectors.toSet());
-
+        CalculationMetadata metadata = metadataFactory.create(ctx);
         return new CalculationResultDto(
-                state.getAccumulator().getFormattedResults(), drifCategories, orbBonusTypes);
+                state.getAccumulator().getFormattedResults(),
+                metadata.drifCategories(),
+                metadata.orbBonusTypes());
     }
 
     private void initializeDefaultStats(CalculationState state) {

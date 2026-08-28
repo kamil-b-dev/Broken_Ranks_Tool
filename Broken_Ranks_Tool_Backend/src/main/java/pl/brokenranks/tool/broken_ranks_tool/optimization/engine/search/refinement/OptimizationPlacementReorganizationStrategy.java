@@ -5,7 +5,6 @@ import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.Dr
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationLevelAllocator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationStateOperations;
