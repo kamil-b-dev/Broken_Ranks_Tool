@@ -16,7 +16,9 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.Opti
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultAssembler;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultFactory;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationLevelAllocator;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationPlacementOperations;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationSearchPipeline;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationStateEvaluation;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationStateOperations;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction.MaximizedDrifBonusPrelock;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction.OptimizationBeamSearch;
@@ -82,8 +84,21 @@ public class OptimizationEngineConfig {
     }
 
     @Bean
-    OptimizationLevelAllocator optimizationLevelAllocator(OptimizationStateOperations operations) {
-        return new OptimizationLevelAllocator(operations);
+    OptimizationPlacementOperations optimizationPlacementOperations(
+            EquipmentPlacementRules placementRules, EquipmentRulesRegistry rules) {
+        return new OptimizationPlacementOperations(placementRules, rules);
+    }
+
+    @Bean
+    OptimizationStateEvaluation optimizationStateEvaluation(
+            OptimizationStateEvaluator evaluator) {
+        return new OptimizationStateEvaluation(evaluator);
+    }
+
+    @Bean
+    OptimizationLevelAllocator optimizationLevelAllocator(
+            OptimizationPlacementOperations placements, OptimizationStateEvaluation evaluation) {
+        return new OptimizationLevelAllocator(placements, evaluation);
     }
 
     @Bean
@@ -98,13 +113,15 @@ public class OptimizationEngineConfig {
             EquipmentRulesRegistry rules,
             OptimizationResultAssembler resultAssembler,
             OptimizationRequirementSatisfier requirements,
-            OptimizationStateOperations operations) {
+            OptimizationPlacementOperations placements,
+            OptimizationStateEvaluation evaluation) {
         return new OptimizationGreedySearch(
                 initialStateFactory,
                 new MaximizedDrifBonusPrelock(rules),
                 resultAssembler,
                 requirements,
-                operations);
+                placements,
+                evaluation);
     }
 
     @Bean
@@ -112,8 +129,10 @@ public class OptimizationEngineConfig {
             OptimizationInitialStateFactory initialStateFactory,
             OptimizationRequirementSatisfier requirements,
             OptimizationLevelAllocator levels,
-            OptimizationStateOperations operations) {
-        return new OptimizationBeamSearch(initialStateFactory, requirements, levels, operations);
+            OptimizationPlacementOperations placements,
+            OptimizationStateEvaluation evaluation) {
+        return new OptimizationBeamSearch(
+                initialStateFactory, requirements, levels, placements, evaluation);
     }
 
     @Bean
@@ -132,10 +151,12 @@ public class OptimizationEngineConfig {
 
     @Bean
     OptimizationSelectedBonusMaximizer optimizationSelectedBonusMaximizer(
-            OptimizationStateOperations operations,
+            OptimizationPlacementOperations placements,
+            OptimizationStateEvaluation evaluation,
             OptimizationStateEvaluator evaluator,
             OptimizationResultAssembler resultAssembler) {
-        return new OptimizationSelectedBonusMaximizer(operations, evaluator, resultAssembler);
+        return new OptimizationSelectedBonusMaximizer(
+                placements, evaluation, evaluator, resultAssembler);
     }
 
     @Bean

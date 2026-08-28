@@ -16,11 +16,12 @@ public final class OptimizationLevelAllocator {
 
     private static final int BASE_TIER_MAX_LEVEL = 6;
 
-    private final OptimizationStateOperations stateOperations;
+    private final OptimizationPlacementOperations placementOperations;
+    private final OptimizationStateEvaluation stateEvaluation;
 
     public BuildState maximizeDrifSizes(BuildState state, OptimizationContext context) {
         for (SlotContext slot : context.slots()) {
-            if (!slot.optimizable() || stateOperations.isSlotLocked(slot, context)) continue;
+            if (!slot.optimizable() || placementOperations.isSlotLocked(slot, context)) continue;
             maximizeSlotDrifSizes(state, slot);
         }
         return state;
@@ -28,7 +29,7 @@ public final class OptimizationLevelAllocator {
 
     public BuildState allocateByPriority(BuildState state, OptimizationContext context) {
         for (SlotContext slot : context.slots()) {
-            if (!slot.optimizable() || stateOperations.isSlotLocked(slot, context)) continue;
+            if (!slot.optimizable() || placementOperations.isSlotLocked(slot, context)) continue;
             normalizeSlot(state, slot, context);
         }
         return state;
@@ -41,7 +42,7 @@ public final class OptimizationLevelAllocator {
         adjustableIndices.sort(
                 Comparator.comparingInt(
                                 (Integer index) ->
-                                        stateOperations.priorityOf(
+                                        stateEvaluation.priorityOf(
                                                 placements.get(index).drif().getBonusType(),
                                                 context.request()))
                         .reversed()
