@@ -22,6 +22,7 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.Optimiza
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction.MaximizedDrifBonusPrelock;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction.OptimizationBeamSearch;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction.OptimizationGreedySearch;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.maximization.OptimizationMaximizationStateComparator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.maximization.OptimizationSelectedBonusMaximizer;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.neighborhood.OptimizationLargeNeighborhoodSearch;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.neighborhood.OptimizationNeighborhoodFactory;
@@ -143,13 +144,19 @@ public class OptimizationEngineConfig {
     }
 
     @Bean
-    OptimizationSelectedBonusMaximizer optimizationSelectedBonusMaximizer(
-            OptimizationPlacementOperations placements,
+    OptimizationMaximizationStateComparator optimizationMaximizationStateComparator(
             OptimizationStateEvaluation evaluation,
             OptimizationStateEvaluator evaluator,
             OptimizationResultAssembler resultAssembler) {
-        return new OptimizationSelectedBonusMaximizer(
-                placements, evaluation, evaluator, resultAssembler);
+        return new OptimizationMaximizationStateComparator(evaluation, evaluator, resultAssembler);
+    }
+
+    @Bean
+    OptimizationSelectedBonusMaximizer optimizationSelectedBonusMaximizer(
+            OptimizationPlacementOperations placements,
+            OptimizationStateEvaluation evaluation,
+            OptimizationMaximizationStateComparator stateComparator) {
+        return new OptimizationSelectedBonusMaximizer(placements, evaluation, stateComparator);
     }
 
     @Bean

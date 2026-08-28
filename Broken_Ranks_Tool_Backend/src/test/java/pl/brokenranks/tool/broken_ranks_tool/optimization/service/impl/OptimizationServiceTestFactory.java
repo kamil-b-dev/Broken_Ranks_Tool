@@ -20,6 +20,7 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.Optimiza
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction.MaximizedDrifBonusPrelock;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction.OptimizationBeamSearch;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction.OptimizationGreedySearch;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.maximization.OptimizationMaximizationStateComparator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.maximization.OptimizationSelectedBonusMaximizer;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.neighborhood.OptimizationLargeNeighborhoodSearch;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.neighborhood.OptimizationNeighborhoodFactory;
@@ -75,7 +76,10 @@ final class OptimizationServiceTestFactory {
                         new OptimizationDeterministicRefiner(
                                 placements, evaluation, levels, requirements),
                         new OptimizationSelectedBonusMaximizer(
-                                placements, evaluation, evaluator, assembler),
+                                placements,
+                                evaluation,
+                                new OptimizationMaximizationStateComparator(
+                                        evaluation, evaluator, assembler)),
                         neighborhoodSearch),
                 assembler,
                 new OptimizationVariantGenerator(neighborhoodSearch, evaluator, assembler));
