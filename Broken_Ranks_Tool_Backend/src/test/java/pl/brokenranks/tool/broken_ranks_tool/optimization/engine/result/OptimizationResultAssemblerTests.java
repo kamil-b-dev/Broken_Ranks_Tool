@@ -37,7 +37,7 @@ class OptimizationResultAssemblerTests {
         when(calculator.calculateTotalStats(any()))
                 .thenThrow(new IllegalStateException("calculator unavailable"));
         OptimizationResultAssembler assembler =
-                new OptimizationResultAssembler(
+                OptimizationResultFactory.create(
                         new OptimizationLockService(), calculator, evaluator);
         DrifTemplate magic =
                 DrifTemplate.builder()

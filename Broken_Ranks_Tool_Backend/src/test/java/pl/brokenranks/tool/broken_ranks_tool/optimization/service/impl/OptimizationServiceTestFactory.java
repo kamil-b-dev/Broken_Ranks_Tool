@@ -12,6 +12,7 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context.Optimiz
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context.OptimizationInitialStateFactory;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultAssembler;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultFactory;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationSearchPipeline;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationLevelAllocator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationStateOperations;
@@ -40,7 +41,7 @@ final class OptimizationServiceTestFactory {
             EquipmentStatsCalculatorService calculatorService) {
         OptimizationStateEvaluator evaluator = new OptimizationStateEvaluator(rules);
         OptimizationResultAssembler assembler =
-                new OptimizationResultAssembler(lockService, calculatorService, evaluator);
+                OptimizationResultFactory.create(lockService, calculatorService, evaluator);
         OptimizationLargeNeighborhoodSearch neighborhoodSearch =
                 OptimizationNeighborhoodFactory.create(rules, evaluator, assembler);
         OptimizationStateOperations operations =
