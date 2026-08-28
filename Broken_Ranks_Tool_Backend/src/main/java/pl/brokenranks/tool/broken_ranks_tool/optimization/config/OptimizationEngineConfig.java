@@ -15,8 +15,8 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context.Optimiz
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultAssembler;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultFactory;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationSearchPipeline;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationLevelAllocator;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationSearchPipeline;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationStateOperations;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction.MaximizedDrifBonusPrelock;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction.OptimizationBeamSearch;
@@ -117,7 +117,8 @@ public class OptimizationEngineConfig {
     }
 
     @Bean
-    OptimizationInitialStateFactory optimizationInitialStateFactory(UpgradeLevelPolicy levelPolicy) {
+    OptimizationInitialStateFactory optimizationInitialStateFactory(
+            UpgradeLevelPolicy levelPolicy) {
         return new OptimizationInitialStateFactory(levelPolicy);
     }
 
