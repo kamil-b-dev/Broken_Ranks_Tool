@@ -15,6 +15,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCal
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.CalculationMetadataFactory;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.CalculationMetadataFactory.CalculationMetadata;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.CalculationState;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.DrifCounter;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.processor.DrifStatProcessor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.processor.ItemStatProcessor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.processor.OrbStatProcessor;
@@ -38,6 +39,7 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
     private final ItemStatProcessor itemProcessor;
     private final OrbStatProcessor orbProcessor;
     private final DrifStatProcessor drifProcessor;
+    private final DrifCounter drifCounter;
     private final CalculationMetadataFactory metadataFactory;
 
     @Override
@@ -61,7 +63,7 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
         initializeDefaultStats(state);
         applyCharacterStats(state, request.getCharacterStats());
 
-        state.getDrifCounts().putAll(drifProcessor.preCountDrifs(request, ctx));
+        state.getDrifCounts().putAll(drifCounter.count(request, ctx));
 
         processSlots(request, ctx, state);
 
