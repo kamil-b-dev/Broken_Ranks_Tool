@@ -58,8 +58,12 @@ describe("App", () => {
         await user.click(screen.getByRole("button", { name: /Statystyki Postaci/i }));
         await user.click(screen.getByRole("button", { name: /Optymalizator drifów/i }));
         expect(screen.getByText("Ustawienia optymalizatora")).toBeInTheDocument();
+        expect(
+            screen.queryByRole("button", { name: /Przelicz statystyki/i })
+        ).not.toBeInTheDocument();
 
         await user.click(screen.getByRole("button", { name: /Kreator ekwipunku/i }));
+        expect(screen.queryByText("Ustawienia optymalizatora")).not.toBeInTheDocument();
         await user.click(screen.getByRole("button", { name: /Zapisz build/i }));
         await user.click(screen.getByRole("button", { name: /Przelicz statystyki/i }));
         expect(equipment.saveBuildToFile).toHaveBeenCalledOnce();
