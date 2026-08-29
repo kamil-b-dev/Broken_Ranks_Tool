@@ -66,7 +66,14 @@ describe("ItemDatabase", () => {
         render(<ItemDatabase {...props} />);
 
         expect(screen.getByText("Morana")).toBeInTheDocument();
-        const search = screen.getByPlaceholderText(/Wyszukaj \(np\. Morana\)/);
+        const search = screen.getByRole("textbox", { name: "Wyszukaj przedmioty" });
+        expect(screen.getByRole("button", { name: "Przedmioty" })).toHaveAttribute(
+            "aria-pressed",
+            "true"
+        );
+        expect(
+            screen.getByRole("combobox", { name: "Filtruj przedmioty według kategorii" })
+        ).toBeInTheDocument();
         await user.type(search, "brak");
         expect(screen.queryByText("Morana")).not.toBeInTheDocument();
         await user.click(screen.getByRole("button", { name: "Wyczyść filtry" }));
@@ -84,13 +91,24 @@ describe("ItemDatabase", () => {
         render(<ItemDatabase {...props} />);
 
         await user.click(screen.getByRole("button", { name: "Orby" }));
+        expect(screen.getByRole("button", { name: "Orby" })).toHaveAttribute(
+            "aria-pressed",
+            "true"
+        );
         expect(screen.getByText("Atak")).toBeInTheDocument();
-        await user.selectOptions(screen.getByRole("combobox"), "OFFENSIVE");
+        await user.selectOptions(
+            screen.getByRole("combobox", { name: "Filtruj orby według kategorii" }),
+            "OFFENSIVE"
+        );
 
         await user.click(screen.getByRole("button", { name: "Drify" }));
         expect(screen.getByText("Siła")).toBeInTheDocument();
-        const category = screen.getByRole("combobox");
-        const basePower = screen.getByRole("spinbutton");
+        const category = screen.getByRole("combobox", {
+            name: "Filtruj drify według kategorii",
+        });
+        const basePower = screen.getByRole("spinbutton", {
+            name: "Filtruj drify według mocy bazowej",
+        });
         await user.selectOptions(category, "OFFENSIVE");
         fireEvent.change(basePower, { target: { value: "2" } });
         expect(screen.getByText("Siła")).toBeInTheDocument();

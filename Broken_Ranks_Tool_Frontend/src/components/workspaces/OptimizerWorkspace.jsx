@@ -13,7 +13,7 @@ const OptimizerWorkspace = ({ settings, onSettingsChange }) => {
     const { requestData, lockedSlots, lockedDrifs } = useEquipment();
 
     return (
-        <main className="optimizer-theme flex w-full flex-1 flex-col gap-4">
+        <main id="workspace-content" className="optimizer-theme flex w-full flex-1 flex-col gap-4">
             <OptimizerOverviewBar
                 slots={requestData.slots}
                 lockedSlots={lockedSlots}

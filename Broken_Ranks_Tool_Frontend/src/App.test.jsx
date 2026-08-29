@@ -54,6 +54,10 @@ describe("App", () => {
         render(<App />);
 
         expect(screen.getByRole("heading", { name: "Broken Ranks Tool" })).toBeInTheDocument();
+        expect(screen.getByRole("link", { name: "Przejdź do głównej treści" })).toHaveAttribute(
+            "href",
+            "#workspace-content"
+        );
         expect(screen.getByRole("heading", { name: "Ekwipunek" })).toBeInTheDocument();
         expect(screen.getByRole("button", { name: /Kreator ekwipunku/i })).toHaveAttribute(
             "aria-current",

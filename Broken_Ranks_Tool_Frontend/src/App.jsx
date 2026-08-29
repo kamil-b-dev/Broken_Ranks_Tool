@@ -79,6 +79,9 @@ function App() {
         <div
             className={`app-shell app-shell-${mainView} mx-auto flex min-h-screen w-full max-w-[1920px] flex-col gap-4 p-4 md:p-6 xl:gap-5 xl:p-8`}
         >
+            <a className="skip-link" href="#workspace-content">
+                Przejdź do głównej treści
+            </a>
             <header className="app-masthead shrink-0">
                 <div className="brand-lockup">
                     <div className="brand-crest" aria-hidden="true">
@@ -166,7 +169,12 @@ function App() {
             )}
 
             {loading && (
-                <section className="workspace-state" role="status" aria-live="polite">
+                <section
+                    id="workspace-content"
+                    className="workspace-state"
+                    role="status"
+                    aria-live="polite"
+                >
                     <span className="workspace-state-spinner" aria-hidden="true" />
                     <div>
                         <p className="section-kicker">Przygotowanie warsztatu</p>
@@ -177,7 +185,11 @@ function App() {
             )}
 
             {!loading && initialDataError && (
-                <div role="alert" className="workspace-state workspace-state-error">
+                <div
+                    id="workspace-content"
+                    role="alert"
+                    className="workspace-state workspace-state-error"
+                >
                     <span aria-hidden="true">!</span>
                     <div>
                         <p className="section-kicker">Brak danych źródłowych</p>

@@ -19,6 +19,9 @@ test("opens the builder and switches to the optimizer", async ({ page }) => {
 
     await page.goto("/");
 
+    await page.keyboard.press("Tab");
+    await expect(page.getByRole("link", { name: "Przejdź do głównej treści" })).toBeFocused();
+    await expect(page.getByRole("link", { name: "Przejdź do głównej treści" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Broken Ranks Tool" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Ekwipunek" })).toBeVisible();
     await expect(page.getByRole("button", { name: /Zapisz build/ })).toBeVisible();

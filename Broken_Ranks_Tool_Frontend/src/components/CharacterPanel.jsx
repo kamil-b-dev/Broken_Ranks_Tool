@@ -193,14 +193,18 @@ const CharacterPanel = ({ onStatsChange, externalConfig, syncTrigger, compact = 
 
                                 <div className="flex gap-1.5">
                                     <button
+                                        type="button"
                                         onClick={() => handleAddPoint(statName, -1)}
+                                        aria-label={`Odejmij punkt: ${statName}`}
                                         className="w-8 h-8 flex items-center justify-center bg-gradient-to-b from-stone-800 to-stone-900 border border-stone-700 hover:from-red-900 hover:to-black hover:border-red-800 text-stone-300 font-serif font-bold transition-all disabled:opacity-30 disabled:hover:from-stone-800 disabled:hover:to-stone-900 disabled:hover:border-stone-700"
                                         disabled={spentPoints[statName] <= 0}
                                     >
                                         -
                                     </button>
                                     <button
+                                        type="button"
                                         onClick={() => handleAddPoint(statName, 1)}
+                                        aria-label={`Dodaj punkt: ${statName}`}
                                         className="w-8 h-8 flex items-center justify-center bg-gradient-to-b from-stone-800 to-stone-900 border border-stone-700 hover:from-amber-800 hover:to-black hover:border-amber-700 text-stone-300 font-serif font-bold transition-all disabled:opacity-30 disabled:hover:from-stone-800 disabled:hover:to-stone-900 disabled:hover:border-stone-700"
                                         disabled={pointsLeft <= 0}
                                     >
@@ -215,6 +219,7 @@ const CharacterPanel = ({ onStatsChange, externalConfig, syncTrigger, compact = 
 
             <div className="mt-4 flex justify-end items-center shrink-0">
                 <button
+                    type="button"
                     onClick={() => setSpentPoints(INITIAL_SPENT_POINTS)}
                     className="text-xs text-red-800 hover:text-red-500 font-serif font-bold uppercase tracking-widest border border-red-900/50 bg-black/50 px-4 py-2 hover:bg-red-900/20 transition-colors shadow-inner"
                 >

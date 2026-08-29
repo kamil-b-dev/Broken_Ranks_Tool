@@ -59,6 +59,29 @@ input:focus-visible {
     isolation: isolate;
 }
 
+.skip-link {
+    position: fixed;
+    z-index: 100;
+    top: 0.75rem;
+    left: 0.75rem;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid #d39a45;
+    color: #fff7e8;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: #17100b;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+    transform: translateY(calc(-100% - 1rem));
+    transition: transform 150ms ease;
+}
+
+.skip-link:focus {
+    transform: translateY(0);
+}
+
 .app-shell::before,
 .app-shell::after {
     position: fixed;
