@@ -20,6 +20,12 @@ import {
     OPTIMIZER_CONFIG_VERSION,
     sortBonusesByCategory,
 } from "./optimization/optimizerDomain";
+import {
+    buildOptimizationConfig,
+    createOptimizerConfigPayload,
+    findInvalidPercentageTarget,
+    parseOptimizerConfigPayload,
+} from "./optimization/optimizerConfiguration";
 
 /**
  * Provides drif priorities, target limits, and equipment locking for optimization.
@@ -278,38 +284,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
     };
 
     const handleSaveConfiguration = () => {
-        const payload = {
-            format: OPTIMIZER_CONFIG_FORMAT,
-            version: OPTIMIZER_CONFIG_VERSION,
-            exportedAt: new Date().toISOString(),
-            settings: {
-                maxVariantLossPercent: Math.max(
-                    0,
-                    Math.min(100, Number(optimizerSettings?.maxVariantLossPercent) || 0)
-                ),
-            },
-            priorities: prioritizedBonuses.map(
-                ({
-                    key,
-                    weight,
-                    min,
-                    max,
-                    forceCap,
-                    forcePercentage,
-                    forcedPercentage,
-                    maximize,
-                }) => ({
-                    key,
-                    weight: Number(weight),
-                    min: Number(min),
-                    max: Number(max),
-                    forceCap: Boolean(forceCap),
-                    forcePercentage: Boolean(forcePercentage),
-                    forcedPercentage: forcePercentage ? Number(forcedPercentage) : null,
-                    maximize: Boolean(maximize),
-                })
-            ),
-        };
+        const payload = createOptimizerConfigPayload(prioritizedBonuses, optimizerSettings);
         const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
@@ -332,91 +307,19 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
 
         try {
             const payload = JSON.parse(await file.text());
-            if (
-                payload?.format !== OPTIMIZER_CONFIG_FORMAT ||
-                payload?.version !== OPTIMIZER_CONFIG_VERSION ||
-                !Array.isArray(payload.priorities)
-            ) {
-                throw new Error("Nieobsługiwany format lub wersja pliku konfiguracji.");
-            }
-
-            const knownBonuses = new Map(
-                Object.entries(gameRules?.bonusTranslations || {})
-                    .filter(([key]) => gameRules?.drifBasePowers?.[key] !== undefined)
-                    .map((entry) => {
-                        const bonus = createBonusOption(entry, gameRules?.drifBonusCategories);
-                        return [bonus.key, bonus];
-                    })
+            const imported = parseOptimizerConfigPayload(payload, gameRules);
+            setPrioritizedBonuses(imported.priorities);
+            setExpandedPriorities(
+                imported.priorities.length > 0 ? new Set([imported.priorities[0].key]) : new Set()
             );
-            const usedKeys = new Set();
-            const imported = payload.priorities.flatMap((entry) => {
-                if (!entry || typeof entry.key !== "string" || usedKeys.has(entry.key)) return [];
-                const bonus = knownBonuses.get(entry.key);
-                if (!bonus) return [];
-                usedKeys.add(entry.key);
-
-                const parsedWeight = Number(entry.weight);
-                const parsedMin = Number(entry.min);
-                const parsedMax = Number(entry.max);
-                const min = Math.max(
-                    0,
-                    Math.min(12, Number.isFinite(parsedMin) ? Math.trunc(parsedMin) : 0)
-                );
-                const max = Math.max(
-                    min,
-                    Math.min(12, Number.isFinite(parsedMax) ? Math.trunc(parsedMax) : 12)
-                );
-                const parsedForcedPercentage = Number(entry.forcedPercentage);
-                const forcePercentage =
-                    !entry.forceCap &&
-                    Boolean(entry.forcePercentage) &&
-                    Number.isFinite(parsedForcedPercentage) &&
-                    parsedForcedPercentage >= 0;
-                return [
-                    {
-                        key: entry.key,
-                        value: bonus.value,
-                        categoryKey: bonus.categoryKey,
-                        weight: Math.max(
-                            1,
-                            Math.min(
-                                30,
-                                Number.isFinite(parsedWeight) ? Math.trunc(parsedWeight) : 15
-                            )
-                        ),
-                        min,
-                        max,
-                        forceCap: Boolean(entry.forceCap),
-                        forcePercentage,
-                        forcedPercentage: forcePercentage ? parsedForcedPercentage : "",
-                        maximize: !forcePercentage && Boolean(entry.maximize ?? entry.critical),
-                    },
-                ];
-            });
-
-            if (imported.length === 0 && payload.priorities.length > 0) {
-                throw new Error(
-                    "Plik nie zawiera bonusów dostępnych w aktualnej wersji danych gry."
-                );
-            }
-
-            setPrioritizedBonuses(imported);
-            setExpandedPriorities(imported.length > 0 ? new Set([imported[0].key]) : new Set());
-            setAvailableBonuses(
-                sortBonusesByCategory(
-                    [...knownBonuses.entries()]
-                        .filter(([key]) => !usedKeys.has(key))
-                        .map(([, bonus]) => bonus)
-                )
-            );
-            const importedMaxLoss = Number(payload.settings?.maxVariantLossPercent);
-            if (Number.isFinite(importedMaxLoss)) {
+            setAvailableBonuses(imported.availableBonuses);
+            if (imported.maxVariantLossPercent !== null) {
                 onOptimizerSettingsChange((previous) => ({
                     ...previous,
-                    maxVariantLossPercent: Math.max(0, Math.min(100, Math.trunc(importedMaxLoss))),
+                    maxVariantLossPercent: imported.maxVariantLossPercent,
                 }));
             }
-            alert(`Wczytano konfigurację: ${imported.length} priorytetów.`);
+            alert(`Wczytano konfigurację: ${imported.priorities.length} priorytetów.`);
         } catch (error) {
             alert(
                 `Nie udało się wczytać konfiguracji: ${error.message || "niepoprawny plik JSON."}`
@@ -427,13 +330,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
     /** Builds the request and starts the backend optimization process. */
     const handleOptimizeClick = async () => {
         if (prioritizedBonuses.length === 0) return;
-        const invalidPercentageTarget = prioritizedBonuses.find(
-            (bonus) =>
-                bonus.forcePercentage &&
-                (bonus.forcedPercentage === "" ||
-                    !Number.isFinite(Number(bonus.forcedPercentage)) ||
-                    Number(bonus.forcedPercentage) < 0)
-        );
+        const invalidPercentageTarget = findInvalidPercentageTarget(prioritizedBonuses);
         if (invalidPercentageTarget) {
             alert(`Podaj poprawny, nieujemny procent dla: ${invalidPercentageTarget.value}.`);
             return;
@@ -443,55 +340,10 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
         const startedAt = performance.now();
         optimizationStartTimeRef.current = startedAt;
 
-        const priorities = {};
-        const targetQuantities = {};
-        const forceCapBonuses = [];
-        const forcedPercentageTargets = {};
-        const maximizeBonuses = [];
-
-        prioritizedBonuses.forEach((b) => {
-            priorities[b.key] = parseInt(b.weight, 10);
-
-            const parsedMin = parseInt(b.min, 10);
-            const parsedMax = parseInt(b.max, 10);
-            const min = Math.min(12, Math.max(0, Number.isNaN(parsedMin) ? 0 : parsedMin));
-            const max = Math.min(12, Math.max(min, Number.isNaN(parsedMax) ? 12 : parsedMax));
-
-            // Wysyłamy zakres dla każdego priorytetu, również 0–12.
-            // Dzięki temu backend dostaje dokładnie stan widoczny w UI,
-            // a puste lub chwilowo tekstowe wartości nie tworzą zakresu 0–0.
-            targetQuantities[b.key] = { min, max };
-
-            if (b.forceCap) {
-                forceCapBonuses.push(b.key);
-            }
-
-            const forcedPercentage = Number(b.forcedPercentage);
-            if (b.forcePercentage && Number.isFinite(forcedPercentage) && forcedPercentage >= 0) {
-                forcedPercentageTargets[b.key] = forcedPercentage;
-            }
-
-            if (b.maximize && !b.forcePercentage) {
-                maximizeBonuses.push(b.key);
-            }
-        });
-
         try {
-            const result = await runDrifOptimization({
-                priorities,
-                targetQuantities,
-                forceCapBonuses,
-                forcedPercentageTargets,
-                maximizeBonuses,
-                forceMaximizationByDrifBonus: Boolean(
-                    optimizerSettings?.forceMaximizationByDrifBonus
-                ),
-                generateVariants: Boolean(optimizerSettings?.generateVariants),
-                maxVariantLossPercent: Math.max(
-                    0,
-                    Math.min(100, Number(optimizerSettings?.maxVariantLossPercent) || 0)
-                ),
-            });
+            const result = await runDrifOptimization(
+                buildOptimizationConfig(prioritizedBonuses, optimizerSettings)
+            );
             setOptimizationStatus(result);
             setActiveVariantIndex(0);
         } finally {
