@@ -3,7 +3,7 @@
  * @returns {JSX.Element} Global optimizer settings panel.
  */
 const OptimizerSettingsPanel = ({ settings, onChange }) => (
-    <section className="w-full shrink-0 border border-purple-900/80 bg-gradient-to-r from-black via-purple-950/25 to-black px-4 py-3 shadow-[inset_0_0_24px_rgba(55,20,90,0.28)]">
+    <section className="optimizer-settings-strip w-full shrink-0 border border-purple-900/80 bg-gradient-to-r from-black via-purple-950/25 to-black px-4 py-3 shadow-[inset_0_0_24px_rgba(55,20,90,0.28)]">
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-5">
             <div className="shrink-0 sm:border-r sm:border-stone-800 sm:pr-5">
                 <h3 className="text-xs text-stone-300 font-serif font-bold uppercase tracking-widest">
