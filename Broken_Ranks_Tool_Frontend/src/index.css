@@ -520,6 +520,12 @@ input:focus-visible {
 }
 
 .builder-database-column,
+.builder-equipment-column,
+.builder-results-column {
+    min-width: 0;
+}
+
+.builder-database-column,
 .builder-results-column {
     position: sticky;
     top: 1rem;
@@ -785,8 +791,106 @@ input:focus-visible {
 }
 
 @media (max-width: 700px) {
+    .app-shell {
+        gap: 0.75rem;
+        padding: 0.75rem;
+    }
+
+    .app-masthead {
+        padding: 0.75rem;
+    }
+
+    .brand-lockup {
+        gap: 0.7rem;
+    }
+
+    .brand-subtitle {
+        display: none;
+    }
+
+    .main-switch {
+        width: 100%;
+    }
+
+    .main-switch button {
+        min-height: 3rem;
+        padding-inline: 0.6rem;
+        letter-spacing: 0.08em;
+    }
+
+    .header-actions {
+        display: grid;
+        width: 100%;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .header-action {
+        min-height: 2.75rem;
+        padding-inline: 0.45rem;
+        letter-spacing: 0.07em;
+    }
+
+    .build-file-notice {
+        gap: 0.55rem;
+        padding: 0.6rem;
+    }
+
+    .character-summary {
+        gap: 0.5rem;
+        padding: 0.5rem;
+    }
+
+    .character-level-control,
+    .character-points-summary {
+        min-width: 0;
+        padding-inline: 0.55rem;
+    }
+
+    .builder-equipment-column {
+        order: 1;
+        padding: 1rem;
+    }
+
+    .builder-database-column {
+        order: 2;
+        width: 100%;
+        height: 32rem;
+    }
+
+    .builder-database-column > div {
+        width: 100%;
+        min-width: 0;
+        padding: 1rem;
+    }
+
+    .builder-database-column select {
+        min-width: 0;
+    }
+
+    .builder-results-column {
+        order: 3;
+    }
+
+    .workbench-heading {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 0.65rem;
+    }
+
+    .workbench-help {
+        max-width: none;
+        text-align: left;
+    }
+
     .equipment-slot-overview-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.4rem;
+        padding: 0.75rem 0;
+    }
+
+    .equipment-slot-overview {
+        min-height: 4.8rem;
+        padding: 0.55rem;
     }
 
     .selected-slot-editor-heading {
@@ -802,6 +906,11 @@ input:focus-visible {
     .gear-slot-editor-expanded .gear-slot-orb-section,
     .gear-slot-editor-expanded .gear-slot-drif-section {
         grid-column: 1;
+    }
+
+    .selected-slot-editor-content {
+        min-height: 0;
+        padding: 0.65rem;
     }
 }
 
@@ -1016,8 +1125,40 @@ input:focus-visible {
 }
 
 @media (max-width: 700px) {
+    .optimizer-overview {
+        flex-direction: column;
+        gap: 0;
+        overflow-x: visible;
+    }
+
     .optimizer-overview-title {
-        min-width: 10.5rem;
+        min-width: 0;
+        padding: 0.65rem 0.75rem;
+        border-right: 0;
+        border-bottom: 1px solid rgba(80, 42, 112, 0.72);
+    }
+
+    .optimizer-overview dl {
+        min-width: 0;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .optimizer-overview dl > div {
+        padding: 0.65rem 0.75rem;
+        border-bottom: 1px solid rgba(53, 36, 66, 0.72);
+    }
+
+    .optimizer-overview dl > div:nth-child(2n) {
+        border-right: 0;
+    }
+
+    .optimizer-overview dl > div:nth-last-child(-n + 2) {
+        border-bottom: 0;
+    }
+
+    .optimizer-workspace-column {
+        height: auto;
+        min-height: 34rem;
     }
 }
 
