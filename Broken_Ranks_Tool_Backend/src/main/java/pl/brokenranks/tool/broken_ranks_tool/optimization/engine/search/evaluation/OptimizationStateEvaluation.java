@@ -1,4 +1,4 @@
-package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search;
+package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.evaluation;
 
 import java.util.Comparator;
 import lombok.RequiredArgsConstructor;
