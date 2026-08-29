@@ -663,9 +663,9 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                     </button>
                 ))}
             </nav>
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 min-h-[936px] lg:min-h-0">
+            <div className="optimizer-main-grid grid grid-cols-1 gap-4 lg:grid-cols-12 lg:gap-4">
                 <div
-                    className={`optimizer-lock-column ${activeMobileColumn === "slots" ? "flex" : "hidden"} lg:flex flex-col gap-2 h-[calc(180vh-26.4rem)] min-h-[936px] max-h-[1620px] lg:col-span-3 lg:h-[min(76vh,920px)] lg:min-h-[720px] lg:border-r border-stone-800/60 lg:pr-5`}
+                    className={`optimizer-workspace-column optimizer-lock-column ${activeMobileColumn === "slots" ? "flex" : "hidden"} flex-col gap-2 lg:col-span-2 lg:flex lg:border-r lg:border-stone-800/60 lg:pr-4`}
                 >
                     <div className="flex items-center justify-center border-b border-stone-700 pb-2 mb-2 min-h-[34px] shrink-0">
                         <h4 className="text-stone-300 font-serif font-bold uppercase tracking-widest text-xs">
@@ -820,7 +820,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                 </div>
 
                 <div
-                    className={`optimizer-bonus-column ${activeMobileColumn === "bonuses" ? "flex" : "hidden"} lg:flex flex-col gap-2 h-[calc(180vh-26.4rem)] min-h-[936px] max-h-[1620px] lg:col-span-3 lg:h-[min(76vh,920px)] lg:min-h-[720px] lg:border-r border-stone-800/60 lg:pr-5`}
+                    className={`optimizer-workspace-column optimizer-bonus-column ${activeMobileColumn === "bonuses" ? "flex" : "hidden"} flex-col gap-2 lg:col-span-2 lg:flex lg:border-r lg:border-stone-800/60 lg:pr-4`}
                 >
                     <div className="flex items-center justify-center border-b border-stone-700 pb-2 mb-2 min-h-[34px] shrink-0">
                         <h4 className="text-stone-300 font-serif font-bold uppercase tracking-widest text-xs">
@@ -896,7 +896,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                 </div>
 
                 <div
-                    className={`optimizer-priority-column ${activeMobileColumn === "priorities" ? "flex" : "hidden"} lg:flex flex-col gap-2 h-[calc(180vh-26.4rem)] min-h-[936px] max-h-[1620px] lg:col-span-3 lg:h-[min(76vh,920px)] lg:min-h-[720px] lg:border-r border-stone-800/60 lg:pr-5`}
+                    className={`optimizer-workspace-column optimizer-priority-column ${activeMobileColumn === "priorities" ? "flex" : "hidden"} flex-col gap-2 lg:col-span-4 lg:flex lg:border-r lg:border-stone-800/60 lg:pr-4`}
                 >
                     <div className="flex items-center justify-between border-b border-stone-700 pb-2 mb-2 min-h-[34px] shrink-0">
                         <h4 className="text-stone-300 font-serif font-bold uppercase tracking-widest text-xs">
@@ -1279,7 +1279,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                 </div>
 
                 <aside
-                    className={`optimizer-info-column ${activeMobileColumn === "result" ? "flex" : "hidden"} lg:flex flex-col gap-4 h-[calc(180vh-26.4rem)] min-h-[936px] max-h-[1620px] lg:col-span-3 lg:h-[min(76vh,920px)] lg:min-h-[720px]`}
+                    className={`optimizer-workspace-column optimizer-info-column ${activeMobileColumn === "result" ? "flex" : "hidden"} flex-col gap-4 lg:col-span-4 lg:flex`}
                 >
                     <div className="flex items-center justify-between border-b border-stone-700 pb-2 min-h-[34px] shrink-0">
                         <h4 className="text-stone-300 font-serif font-bold uppercase tracking-widest text-xs">
