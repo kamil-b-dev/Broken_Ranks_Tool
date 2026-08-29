@@ -5,6 +5,7 @@ import ItemDatabase from "../ItemDatabase";
 import StatsPanel from "../StatsPanel";
 import EquipmentSlotOverview from "../equipment/EquipmentSlotOverview";
 import { SLOTS } from "../../constants/equipment";
+import equipmentSilhouette from "../../assets/equipment-silhouette.png";
 
 /**
  * Presents the manual build workflow and its calculated statistics.
@@ -51,6 +52,23 @@ const BuilderWorkspace = ({
     const activeSlot = SLOTS.find((slot) => slot.key === activeSlotKey) || SLOTS[0];
     const activeSlotData = requestData.slots?.[activeSlot.key];
     const activeItem = activeSlotData?.itemId ? itemsById.get(String(activeSlotData.itemId)) : null;
+    const equippedSlotCount = SLOTS.filter((slot) => requestData.slots?.[slot.key]?.itemId).length;
+
+    const renderSlotOverview = (slot) => {
+        const slotData = requestData.slots?.[slot.key];
+        const item = slotData?.itemId ? itemsById.get(String(slotData.itemId)) : null;
+
+        return (
+            <EquipmentSlotOverview
+                key={slot.key}
+                label={slot.label}
+                slotData={slotData}
+                item={item}
+                active={slot.key === activeSlot.key}
+                onSelect={() => setActiveSlotKey(slot.key)}
+            />
+        );
+    };
 
     return (
         <main
@@ -88,24 +106,23 @@ const BuilderWorkspace = ({
                             aktywne pole.
                         </p>
                     </div>
-                    <div className="equipment-slot-overview-grid">
-                        {SLOTS.map((slot) => {
-                            const slotData = requestData.slots?.[slot.key];
-                            const item = slotData?.itemId
-                                ? itemsById.get(String(slotData.itemId))
-                                : null;
-
-                            return (
-                                <EquipmentSlotOverview
-                                    key={slot.key}
-                                    label={slot.label}
-                                    slotData={slotData}
-                                    item={item}
-                                    active={slot.key === activeSlot.key}
-                                    onSelect={() => setActiveSlotKey(slot.key)}
-                                />
-                            );
-                        })}
+                    <div className="equipment-figure-heading" aria-live="polite">
+                        <span>Ekwipunek</span>
+                        <strong>
+                            {equippedSlotCount}/{SLOTS.length}
+                        </strong>
+                    </div>
+                    <div className="equipment-figure-layout">
+                        <div className="equipment-slot-column">
+                            {SLOTS.slice(0, 6).map(renderSlotOverview)}
+                        </div>
+                        <figure className="equipment-character-figure" aria-hidden="true">
+                            <span className="equipment-figure-aura" />
+                            <img src={equipmentSilhouette} alt="" />
+                        </figure>
+                        <div className="equipment-slot-column">
+                            {SLOTS.slice(6).map(renderSlotOverview)}
+                        </div>
                     </div>
 
                     <section className="selected-slot-editor" aria-label="Edytor wybranego slotu">
