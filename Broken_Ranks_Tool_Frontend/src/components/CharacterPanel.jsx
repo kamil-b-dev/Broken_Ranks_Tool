@@ -5,9 +5,10 @@ import { STAT_CONFIG, INITIAL_SPENT_POINTS } from "../constants/character";
  * Manages character level and base statistics available to the equipment builder.
  * @param {object} props Component properties.
  * @param {Function} props.onStatsChange Callback receiving updated character statistics.
+ * @param {boolean} props.compact Whether to render the horizontal workspace summary.
  * @returns {JSX.Element} The character statistics panel.
  */
-const CharacterPanel = ({ onStatsChange, externalConfig, syncTrigger }) => {
+const CharacterPanel = ({ onStatsChange, externalConfig, syncTrigger, compact = false }) => {
     const [level, setLevel] = useState(1);
     const [spentPoints, setSpentPoints] = useState(INITIAL_SPENT_POINTS);
 
@@ -70,6 +71,65 @@ const CharacterPanel = ({ onStatsChange, externalConfig, syncTrigger }) => {
             setSpentPoints(updatedSpent);
         }
     };
+
+    if (compact) {
+        return (
+            <section className="character-summary" aria-label="Rozwój bohatera">
+                <div className="character-level-control">
+                    <span>Poziom</span>
+                    <input
+                        type="number"
+                        min="1"
+                        max="140"
+                        value={level}
+                        onChange={(event) => handleLevelChange(event.target.value)}
+                        aria-label="Poziom postaci"
+                    />
+                </div>
+
+                <div className="character-stat-strip custom-scrollbar">
+                    {Object.keys(STAT_CONFIG).map((statName) => {
+                        const finalValue =
+                            STAT_CONFIG[statName].base +
+                            spentPoints[statName] * STAT_CONFIG[statName].ratio;
+
+                        return (
+                            <div className="character-stat-control" key={statName}>
+                                <div>
+                                    <span>{statName}</span>
+                                    <strong>{finalValue}</strong>
+                                </div>
+                                <div className="character-stat-actions">
+                                    <button
+                                        type="button"
+                                        onClick={() => handleAddPoint(statName, -1)}
+                                        disabled={spentPoints[statName] <= 0}
+                                        aria-label={`Odejmij punkt: ${statName}`}
+                                    >
+                                        −
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleAddPoint(statName, 1)}
+                                        disabled={pointsLeft <= 0}
+                                        aria-label={`Dodaj punkt: ${statName}`}
+                                    >
+                                        +
+                                    </button>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+
+                <div className="character-points-summary">
+                    <span>Pozostało</span>
+                    <strong>{pointsLeft}</strong>
+                    <small>z {totalPoints} pkt</small>
+                </div>
+            </section>
+        );
+    }
 
     return (
         <div className="bg-gradient-to-b from-stone-900 to-black p-6 border-2 border-stone-800 shadow-[0_0_30px_rgba(0,0,0,0.9)] flex flex-col shrink-0 h-full w-full">

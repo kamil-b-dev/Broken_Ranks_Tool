@@ -55,7 +55,8 @@ describe("App", () => {
         expect(screen.getByRole("heading", { name: "Broken Ranks Tool" })).toBeInTheDocument();
         expect(screen.getByRole("heading", { name: "Ekwipunek" })).toBeInTheDocument();
 
-        await user.click(screen.getByRole("button", { name: /Statystyki Postaci/i }));
+        expect(screen.getByRole("region", { name: /Rozwój bohatera/i })).toBeInTheDocument();
+        expect(screen.getByRole("spinbutton", { name: /Poziom postaci/i })).toBeInTheDocument();
         await user.click(screen.getByRole("button", { name: /Optymalizator drifów/i }));
         expect(screen.getByText("Ustawienia optymalizatora")).toBeInTheDocument();
         expect(
