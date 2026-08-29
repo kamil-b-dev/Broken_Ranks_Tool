@@ -14,6 +14,7 @@ import equipmentSilhouette from "../../assets/equipment-silhouette.png";
  * @returns {JSX.Element} Manual equipment builder workspace.
  */
 const BuilderWorkspace = ({
+    active = true,
     data,
     categoryNames,
     orbCategories,
@@ -72,8 +73,9 @@ const BuilderWorkspace = ({
 
     return (
         <main
-            id="workspace-content"
-            className="builder-theme flex w-full flex-1 flex-col gap-4 xl:gap-5"
+            id={active ? "workspace-content" : undefined}
+            hidden={!active}
+            className={`builder-theme w-full flex-1 flex-col gap-4 xl:gap-5 ${active ? "flex" : "hidden"}`}
         >
             <CharacterPanel
                 compact

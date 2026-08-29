@@ -11,6 +11,7 @@ import { useEquipment } from "./context/EquipmentContext";
  */
 function App() {
     const [mainView, setMainView] = useState("builder");
+    const [hasOpenedOptimizer, setHasOpenedOptimizer] = useState(false);
     const [buildFileNotice, setBuildFileNotice] = useState(null);
     const [optimizerSettings, setOptimizerSettings] = useState({
         forceMaximizationByDrifBonus: false,
@@ -111,7 +112,10 @@ function App() {
                     </button>
                     <button
                         type="button"
-                        onClick={() => setMainView("optimizer")}
+                        onClick={() => {
+                            setHasOpenedOptimizer(true);
+                            setMainView("optimizer");
+                        }}
                         disabled={isWorkspaceUnavailable}
                         aria-current={mainView === "optimizer" ? "page" : undefined}
                         className={`flex-1 border-b-2 px-4 py-3 text-xs font-bold uppercase tracking-[0.15em] transition-all ${
@@ -199,8 +203,9 @@ function App() {
                 </div>
             )}
 
-            {!isWorkspaceUnavailable && mainView === "builder" ? (
+            {!isWorkspaceUnavailable && (
                 <BuilderWorkspace
+                    active={mainView === "builder"}
                     data={data}
                     categoryNames={categoryNames}
                     orbCategories={orbCategories}
@@ -216,12 +221,14 @@ function App() {
                     onCharacterStatsUpdate={handleCharacterStatsUpdate}
                     onCalculateStats={calculateStats}
                 />
-            ) : !isWorkspaceUnavailable ? (
+            )}
+            {!isWorkspaceUnavailable && hasOpenedOptimizer && (
                 <OptimizerWorkspace
+                    active={mainView === "optimizer"}
                     settings={optimizerSettings}
                     onSettingsChange={setOptimizerSettings}
                 />
-            ) : null}
+            )}
         </div>
     );
 }

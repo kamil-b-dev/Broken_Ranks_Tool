@@ -9,11 +9,15 @@ import { useEquipment } from "../../context/EquipmentContext";
  * @param {object} props Workspace properties.
  * @returns {JSX.Element} Drif optimizer workspace.
  */
-const OptimizerWorkspace = ({ settings, onSettingsChange }) => {
+const OptimizerWorkspace = ({ active = true, settings, onSettingsChange }) => {
     const { requestData, lockedSlots, lockedDrifs } = useEquipment();
 
     return (
-        <main id="workspace-content" className="optimizer-theme flex w-full flex-1 flex-col gap-4">
+        <main
+            id={active ? "workspace-content" : undefined}
+            hidden={!active}
+            className={`optimizer-theme w-full flex-1 flex-col gap-4 ${active ? "flex" : "hidden"}`}
+        >
             <OptimizerOverviewBar
                 slots={requestData.slots}
                 lockedSlots={lockedSlots}
