@@ -8,7 +8,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_T
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultAssembler;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationStateEvaluation;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.evaluation.OptimizationStateEvaluation;
 
 /** Compares maximization candidates using user-visible calculator values. */
 @RequiredArgsConstructor

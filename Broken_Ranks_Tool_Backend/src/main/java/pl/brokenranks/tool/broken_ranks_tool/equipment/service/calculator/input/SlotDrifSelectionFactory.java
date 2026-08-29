@@ -1,11 +1,11 @@
-package pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator;
+package pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.input;
 
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Component;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.provider.EquipmentDataProvider.CalculationContext;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.input.EquipmentDataProvider.CalculationContext;
 
 /** Resolves requested drif identifiers and levels into validated calculation input. */
 @Component

@@ -2,7 +2,7 @@ package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.require
 
 import lombok.RequiredArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationPlacementOperations;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.placement.OptimizationPlacementOperations;
 
 /** Shared slot eligibility rules for focused requirement policies. */
 @RequiredArgsConstructor

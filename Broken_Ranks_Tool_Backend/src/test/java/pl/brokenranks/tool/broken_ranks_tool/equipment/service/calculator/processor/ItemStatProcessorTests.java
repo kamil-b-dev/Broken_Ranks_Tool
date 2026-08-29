@@ -8,8 +8,8 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ITEM_CATEGOR
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.RARITY;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.CalculationState;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.input.EquipmentDataProvider.CalculationContext;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.random.RandomProvider;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.provider.EquipmentDataProvider.CalculationContext;
 
 class ItemStatProcessorTests {
 

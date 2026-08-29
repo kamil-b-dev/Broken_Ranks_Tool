@@ -1,4 +1,4 @@
-package pl.brokenranks.tool.broken_ranks_tool.equipment.service.provider;
+package pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.input;
 
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.mock;
@@ -14,7 +14,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.OrbTempl
 import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.DrifTemplateRepository;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.ItemTemplateRepository;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.OrbTemplateRepository;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.provider.EquipmentDataProvider.CalculationContext;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.input.EquipmentDataProvider.CalculationContext;
 
 class EquipmentDataProviderTests {
 
