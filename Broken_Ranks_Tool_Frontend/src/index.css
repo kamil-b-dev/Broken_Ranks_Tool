@@ -208,7 +208,13 @@ input:focus-visible {
     border-top-color: var(--ui-line-bright);
     background:
         linear-gradient(90deg, rgba(20, 17, 16, 0.96), rgba(10, 10, 11, 0.86)),
-        linear-gradient(135deg, rgba(127, 30, 30, 0.15), transparent 45%);
+        linear-gradient(135deg, rgba(127, 30, 30, 0.15), transparent 45%),
+        url("./assets/dark-forged-metal-texture.webp");
+    background-size:
+        auto,
+        auto,
+        32rem 32rem;
+    background-blend-mode: normal, normal, soft-light;
     box-shadow:
         0 20px 40px rgba(0, 0, 0, 0.38),
         inset 0 1px rgba(255, 245, 220, 0.06),
@@ -1188,7 +1194,13 @@ input:focus-visible {
     border-color: rgba(139, 31, 56, 0.72);
     background:
         radial-gradient(circle at 18% 0%, rgba(139, 25, 52, 0.19), transparent 30rem),
-        linear-gradient(155deg, rgba(32, 20, 23, 0.98), rgba(8, 7, 9, 0.99) 62%);
+        linear-gradient(155deg, rgba(32, 20, 23, 0.98), rgba(8, 7, 9, 0.99) 62%),
+        url("./assets/dark-forged-metal-texture.webp");
+    background-size:
+        auto,
+        auto,
+        28rem 28rem;
+    background-blend-mode: normal, normal, soft-light;
     box-shadow:
         0 18px 40px rgba(0, 0, 0, 0.42),
         inset 0 1px rgba(255, 178, 194, 0.06);
@@ -1234,7 +1246,13 @@ input:focus-visible {
     border-color: rgba(112, 18, 35, 0.86) !important;
     background:
         radial-gradient(circle at 50% -8%, rgba(124, 18, 38, 0.2), transparent 25rem),
-        linear-gradient(180deg, rgba(31, 15, 19, 0.98), rgba(5, 5, 7, 0.99) 62%) !important;
+        linear-gradient(180deg, rgba(31, 15, 19, 0.98), rgba(5, 5, 7, 0.99) 62%),
+        url("./assets/dark-forged-metal-texture.webp") !important;
+    background-size:
+        auto,
+        auto,
+        26rem 26rem !important;
+    background-blend-mode: normal, normal, soft-light;
     box-shadow:
         0 0 34px rgba(0, 0, 0, 0.9),
         inset 0 1px rgba(205, 67, 87, 0.06) !important;
@@ -1302,7 +1320,13 @@ input:focus-visible {
     overflow-x: auto;
     border: 1px solid rgba(132, 91, 46, 0.68);
     border-top-color: rgba(192, 138, 68, 0.72);
-    background: linear-gradient(90deg, rgba(14, 12, 13, 0.98), rgba(5, 5, 6, 0.99));
+    background:
+        linear-gradient(90deg, rgba(14, 12, 13, 0.98), rgba(5, 5, 6, 0.99)),
+        url("./assets/dark-forged-metal-texture.webp");
+    background-size:
+        auto,
+        26rem 26rem;
+    background-blend-mode: normal, soft-light;
     box-shadow:
         inset 0 1px rgba(255, 224, 175, 0.045),
         inset 0 0 24px rgba(77, 40, 20, 0.06);
@@ -1443,11 +1467,14 @@ input:focus-visible {
     background:
         linear-gradient(rgba(183, 127, 63, 0.018) 1px, transparent 1px),
         linear-gradient(90deg, rgba(183, 127, 63, 0.014) 1px, transparent 1px),
-        linear-gradient(155deg, rgba(20, 17, 18, 0.98), rgba(5, 5, 6, 0.99) 62%) !important;
+        linear-gradient(155deg, rgba(20, 17, 18, 0.98), rgba(5, 5, 6, 0.99) 62%),
+        url("./assets/dark-forged-metal-texture.webp") !important;
     background-size:
         2.75rem 2.75rem,
         2.75rem 2.75rem,
-        auto !important;
+        auto,
+        28rem 28rem !important;
+    background-blend-mode: normal, normal, normal, soft-light;
     box-shadow:
         0 18px 42px rgba(0, 0, 0, 0.42),
         inset 0 1px rgba(255, 224, 175, 0.04),
