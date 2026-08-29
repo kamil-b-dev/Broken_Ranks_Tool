@@ -1,9 +1,9 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.requirement;
 
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
-
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationLevelAllocator;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationStateOperations;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.evaluation.OptimizationStateEvaluation;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.level.OptimizationLevelAllocator;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.placement.OptimizationPlacementOperations;
 
 /** Compatibility coordinator for independent optimization requirement policies. */
 public final class OptimizationRequirementSatisfier {
@@ -12,11 +12,14 @@ public final class OptimizationRequirementSatisfier {
     private final RedundantForcedTargetDrifRemover redundantDrifs;
 
     public OptimizationRequirementSatisfier(
-            OptimizationStateOperations operations, OptimizationLevelAllocator levels) {
-        OptimizationRequirementSupport support = new OptimizationRequirementSupport(operations);
-        this.minimums = new MinimumRequirementSatisfier(operations, support);
-        this.forcedTargets = new ForcedTargetSatisfier(operations, support);
-        this.redundantDrifs = new RedundantForcedTargetDrifRemover(operations, levels, support);
+            OptimizationPlacementOperations placements,
+            OptimizationStateEvaluation evaluation,
+            OptimizationLevelAllocator levels) {
+        OptimizationRequirementSupport support = new OptimizationRequirementSupport(placements);
+        this.minimums = new MinimumRequirementSatisfier(placements, evaluation, support);
+        this.forcedTargets = new ForcedTargetSatisfier(placements, evaluation, support);
+        this.redundantDrifs =
+                new RedundantForcedTargetDrifRemover(placements, evaluation, levels, support);
     }
 
     public boolean satisfyMinimums(BuildState state, OptimizationContext context) {

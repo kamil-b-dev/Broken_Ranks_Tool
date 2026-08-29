@@ -1,7 +1,5 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context;
 
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.SlotContext;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumMap;
@@ -22,6 +20,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.proces
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentPlacementRules;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.UpgradeLevelPolicy;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.SlotContext;
 
 /** Converts request slots and templates into search-ready slot contexts. */
 @RequiredArgsConstructor

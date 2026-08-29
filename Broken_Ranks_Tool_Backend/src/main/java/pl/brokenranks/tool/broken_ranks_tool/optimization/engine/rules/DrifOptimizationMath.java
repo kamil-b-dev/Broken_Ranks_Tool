@@ -1,12 +1,11 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules;
 
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
-
 import java.util.List;
 import java.util.Objects;
 import lombok.experimental.UtilityClass;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.util.DrifPowerRules;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
 
 /** Capacity, level, power, and value calculations used by the optimizer. */
 @UtilityClass

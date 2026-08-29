@@ -1,28 +1,28 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.service.impl;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.CalculationResultDto;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCalculatorService;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.CalculationMetadataFactory;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.CalculationMetadataFactory.CalculationMetadata;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.CalculationState;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.DrifCounter;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.input.EquipmentDataProvider;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.input.EquipmentDataProvider.CalculationContext;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.input.SlotDrifSelectionFactory;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.input.SlotDrifSelectionFactory.SlotDrifSelection;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.processor.DrifStatProcessor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.processor.ItemStatProcessor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.processor.OrbStatProcessor;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.provider.EquipmentDataProvider;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.provider.EquipmentDataProvider.CalculationContext;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.DrifSecurityValidator;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentPlacementRules;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentRequestValidator;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.ModifierSecurityValidator;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.UpgradeLevelPolicy;
 
 /** Orchestrates validation, data preparation, and equipment statistic processors. */
@@ -34,10 +34,13 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
     private final EquipmentRequestValidator requestValidator;
     private final EquipmentPlacementRules placementRules;
     private final UpgradeLevelPolicy levelPolicy;
-    private final ModifierSecurityValidator securityValidator;
+    private final DrifSecurityValidator securityValidator;
     private final ItemStatProcessor itemProcessor;
     private final OrbStatProcessor orbProcessor;
     private final DrifStatProcessor drifProcessor;
+    private final DrifCounter drifCounter;
+    private final CalculationMetadataFactory metadataFactory;
+    private final SlotDrifSelectionFactory drifSelectionFactory;
 
     @Override
     public Map<String, String> calculateTotalStats(EquipmentRequest request) {
@@ -60,26 +63,15 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
         initializeDefaultStats(state);
         applyCharacterStats(state, request.getCharacterStats());
 
-        state.getDrifCounts().putAll(drifProcessor.preCountDrifs(request, ctx));
+        state.getDrifCounts().putAll(drifCounter.count(request, ctx));
 
         processSlots(request, ctx, state);
 
-        Map<String, String> drifCategories =
-                ctx.drifs().values().stream()
-                        .filter(drif -> drif.getBonusType() != null && drif.getCategory() != null)
-                        .collect(
-                                Collectors.toMap(
-                                        drif -> drif.getBonusType().name(),
-                                        drif -> drif.getCategory().name(),
-                                        (first, ignored) -> first));
-        Set<String> orbBonusTypes =
-                ctx.orbs().values().stream()
-                        .filter(orb -> orb.getBonusType() != null)
-                        .map(orb -> orb.getBonusType().name())
-                        .collect(Collectors.toSet());
-
+        CalculationMetadata metadata = metadataFactory.create(ctx);
         return new CalculationResultDto(
-                state.getAccumulator().getFormattedResults(), drifCategories, orbBonusTypes);
+                state.getAccumulator().getFormattedResults(),
+                metadata.drifCategories(),
+                metadata.orbBonusTypes());
     }
 
     private void initializeDefaultStats(CalculationState state) {
@@ -117,42 +109,15 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
         int requestedStarLevel = slotData.getItemStars() != null ? slotData.getItemStars() : 1;
         int starLevel = levelPolicy.sanitizeItemStars(requestedStarLevel);
 
-        List<DrifTemplate> drifsForSlot = new ArrayList<>();
-        List<Integer> levelsForSlot = new ArrayList<>();
-        prepareDrifsForSlot(slotData, ctx, drifsForSlot, levelsForSlot);
+        SlotDrifSelection drifSelection = drifSelectionFactory.create(slotData, ctx);
 
-        securityValidator.validateDrifs(slotKey, item, starLevel, drifsForSlot, levelsForSlot);
+        securityValidator.validate(
+                slotKey, item, starLevel, drifSelection.drifs(), drifSelection.levels());
 
         double finalDrifMod = itemProcessor.calculateFinalDrifMod(item, starLevel);
 
         itemProcessor.process(item, starLevel, state);
         orbProcessor.process(slotKey, slotData, item, starLevel, state);
         drifProcessor.process(slotKey, slotData, item, finalDrifMod, state);
-    }
-
-    private void prepareDrifsForSlot(
-            EquipmentRequest.SlotData slotData,
-            CalculationContext ctx,
-            List<DrifTemplate> drifsForSlot,
-            List<Integer> levelsForSlot) {
-        if (slotData.getDrifIds() == null) {
-            return;
-        }
-
-        for (int i = 0; i < slotData.getDrifIds().size(); i++) {
-            Long drifId = slotData.getDrifIds().get(i);
-            if (drifId != null && ctx.drifs().containsKey(drifId)) {
-                drifsForSlot.add(ctx.drifs().get(drifId));
-
-                int lvl = 1;
-                if (slotData.getDrifLevels() != null) {
-                    Integer levelObj = slotData.getDrifLevels().get(String.valueOf(i));
-                    if (levelObj != null) {
-                        lvl = levelObj;
-                    }
-                }
-                levelsForSlot.add(lvl);
-            }
-        }
     }
 }

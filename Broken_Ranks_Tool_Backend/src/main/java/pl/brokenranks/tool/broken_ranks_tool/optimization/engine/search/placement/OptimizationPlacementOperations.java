@@ -1,8 +1,5 @@
-package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search;
+package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.placement;
 
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
-
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -11,19 +8,13 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRul
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentPlacementRules;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
 
-/** Provides shared queries and safe mutations for optimization build states. */
+/** Provides placement validation, lookup, and mutation operations for build states. */
 @RequiredArgsConstructor
-public final class OptimizationStateOperations {
-
+public final class OptimizationPlacementOperations {
     private final EquipmentPlacementRules placementRules;
     private final EquipmentRulesRegistry rules;
-    private final OptimizationStateEvaluator evaluator;
-
-    public int priorityOf(DRIF_BONUS_TYPE type, OptimizationRequest request) {
-        return request.getPriorities().getOrDefault(type, 0);
-    }
 
     public boolean isSlotLocked(SlotContext slot, OptimizationContext context) {
         return isSlotLocked(slot, context.request());
@@ -66,76 +57,28 @@ public final class OptimizationStateOperations {
             Placement placement = placements.get(index);
             if (index != ignoredIndex
                     && placement != null
-                    && placement.drif().getBonusType() == type) {
-                return true;
-            }
+                    && placement.drif().getBonusType() == type) return true;
         }
         return false;
     }
 
-    public int globalCount(BuildState state, DRIF_BONUS_TYPE type, OptimizationContext context) {
-        return evaluator.globalCount(state, type, context);
-    }
-
-    public int globalCountExcept(
-            BuildState state,
-            DRIF_BONUS_TYPE candidate,
-            DRIF_BONUS_TYPE replaced,
-            OptimizationContext context) {
-        return evaluator.globalCountExcept(state, candidate, replaced, context);
-    }
-
-    public boolean minimumsSatisfied(BuildState state, OptimizationContext context) {
-        return evaluator.minimumsSatisfied(state, context);
-    }
-
     public boolean hasFreeDrifPosition(List<Placement> placements, SlotContext slot) {
         if (placements.size() < slot.maxDrifs()) return true;
-        int placementLimit = Math.min(placements.size(), slot.maxDrifs());
-        for (int index = 0; index < placementLimit; index++) {
-            if (!slot.lockedIndices().contains(index) && placements.get(index) == null) {
-                return true;
-            }
+        int limit = Math.min(placements.size(), slot.maxDrifs());
+        for (int index = 0; index < limit; index++) {
+            if (!slot.lockedIndices().contains(index) && placements.get(index) == null) return true;
         }
         return false;
     }
 
     public void putNextFree(BuildState state, SlotContext slot, Placement placement) {
         List<Placement> placements = state.slots().get(slot.key());
-        int placementLimit = Math.min(placements.size(), Math.max(0, slot.maxDrifs()));
-        for (int index = 0; index < placementLimit; index++) {
+        int limit = Math.min(placements.size(), Math.max(0, slot.maxDrifs()));
+        for (int index = 0; index < limit; index++) {
             if (!slot.lockedIndices().contains(index) && placements.get(index) == null) {
                 state.setPlacement(slot.key(), index, placement);
                 return;
             }
         }
-    }
-
-    public double calculatedValue(
-            BuildState state, DRIF_BONUS_TYPE type, OptimizationContext context) {
-        return evaluator.calculatedValue(state, type, context);
-    }
-
-    public double currentValue(
-            BuildState state, DRIF_BONUS_TYPE type, OptimizationContext context) {
-        return evaluator.currentValue(state, type, context);
-    }
-
-    public double score(BuildState state, OptimizationContext context) {
-        return evaluator.score(state, context);
-    }
-
-    public boolean trySelectBetter(
-            BuildState candidate, BuildState current, OptimizationContext context) {
-        return context.refinementSearchBudget().tryConsume()
-                && evaluator.isBetterState(candidate, current, context);
-    }
-
-    public Comparator<BuildState> stateComparator(OptimizationContext context) {
-        return evaluator.stateComparator(context);
-    }
-
-    public boolean refinementBudgetExhausted(OptimizationContext context) {
-        return context.refinementSearchBudget().exhausted();
     }
 }

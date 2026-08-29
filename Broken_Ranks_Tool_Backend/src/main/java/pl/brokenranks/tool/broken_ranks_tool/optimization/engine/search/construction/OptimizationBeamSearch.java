@@ -1,6 +1,5 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction;
 
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.DrifOptimizationMath.*;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationRequestConstraints.maxQuantity;
 
@@ -15,8 +14,10 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context.OptimizationInitialStateFactory;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationLevelAllocator;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationStateOperations;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.evaluation.OptimizationStateEvaluation;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.level.OptimizationLevelAllocator;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.placement.OptimizationPlacementOperations;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.requirement.OptimizationRequirementSatisfier;
 
 /** Explores bounded alternative placement profiles with deterministic beam search. */
@@ -28,14 +29,15 @@ public final class OptimizationBeamSearch {
     private final OptimizationInitialStateFactory initialStateFactory;
     private final OptimizationRequirementSatisfier requirementSatisfier;
     private final OptimizationLevelAllocator levelAllocator;
-    private final OptimizationStateOperations stateOperations;
+    private final OptimizationPlacementOperations placementOperations;
+    private final OptimizationStateEvaluation stateEvaluation;
 
     public BuildState selectBest(BuildState fallback, OptimizationContext context) {
         BuildState best = fallback;
         for (BuildState candidate : buildCandidates(context, DEFAULT_BEAM_WIDTH)) {
             candidate = levelAllocator.maximizeDrifSizes(candidate, context);
             candidate = levelAllocator.allocateByPriority(candidate, context);
-            if (stateOperations.trySelectBetter(candidate, best, context)) best = candidate;
+            if (stateEvaluation.trySelectBetter(candidate, best, context)) best = candidate;
         }
         return best;
     }
@@ -47,13 +49,13 @@ public final class OptimizationBeamSearch {
         List<BuildState> beam = List.of(initial);
         for (SlotContext slot : context.slots()) {
             if (context.beamSearchBudget().exhausted()) return beam;
-            if (!slot.optimizable() || stateOperations.isSlotLocked(slot, context)) continue;
+            if (!slot.optimizable() || placementOperations.isSlotLocked(slot, context)) continue;
             beam = expandSlotPositions(beam, slot, beamWidth, context);
             if (beam.isEmpty() || context.beamSearchBudget().exhausted()) return beam;
         }
         return beam.stream()
-                .filter(state -> stateOperations.minimumsSatisfied(state, context))
-                .sorted(stateOperations.stateComparator(context))
+                .filter(state -> stateEvaluation.minimumsSatisfied(state, context))
+                .sorted(stateEvaluation.stateComparator(context))
                 .toList();
     }
 
@@ -107,10 +109,10 @@ public final class OptimizationBeamSearch {
             List<Placement> placements,
             DrifTemplate candidate,
             OptimizationContext context) {
-        return !stateOperations.containsBonus(placements, candidate.getBonusType())
-                && stateOperations.globalCount(state, candidate.getBonusType(), context)
+        return !placementOperations.containsBonus(placements, candidate.getBonusType())
+                && stateEvaluation.globalCount(state, candidate.getBonusType(), context)
                         < maxQuantity(candidate.getBonusType(), context.request())
-                && !stateOperations.containsAnotherElemental(state, candidate, null);
+                && !placementOperations.containsAnotherElemental(state, candidate, null);
     }
 
     private List<Integer> candidateLevels(
@@ -130,15 +132,15 @@ public final class OptimizationBeamSearch {
     private List<BuildState> retainBestProfiles(
             List<BuildState> states, int beamWidth, OptimizationContext context) {
         Map<String, BuildState> bestByProfile = new LinkedHashMap<>();
-        states.sort(stateOperations.stateComparator(context));
+        states.sort(stateEvaluation.stateComparator(context));
         for (BuildState state : states) {
             if (context.beamSearchBudget().exhausted() && !bestByProfile.isEmpty()) break;
-            if (stateOperations.minimumsSatisfied(state, context)) {
+            if (stateEvaluation.minimumsSatisfied(state, context)) {
                 bestByProfile.putIfAbsent(globalCountSignature(state, context), state);
             }
         }
         return bestByProfile.values().stream()
-                .sorted(stateOperations.stateComparator(context))
+                .sorted(stateEvaluation.stateComparator(context))
                 .limit(beamWidth)
                 .toList();
     }
@@ -146,7 +148,7 @@ public final class OptimizationBeamSearch {
     private String globalCountSignature(BuildState state, OptimizationContext context) {
         return context.request().getPriorities().keySet().stream()
                 .sorted(Comparator.comparing(Enum::name))
-                .map(type -> type.name() + "=" + stateOperations.globalCount(state, type, context))
+                .map(type -> type.name() + "=" + stateEvaluation.globalCount(state, type, context))
                 .collect(Collectors.joining("|"));
     }
 }

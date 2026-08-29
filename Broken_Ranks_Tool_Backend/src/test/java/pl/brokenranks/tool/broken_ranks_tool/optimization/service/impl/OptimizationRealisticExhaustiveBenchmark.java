@@ -153,7 +153,7 @@ class OptimizationRealisticExhaustiveBenchmark {
         when(calculator.calculateTotalStats(any())).thenReturn(Map.of());
         EquipmentRulesRegistry rules = new EquipmentRulesRegistry();
         CustomModsOptimizationServiceImpl service =
-                new CustomModsOptimizationServiceImpl(
+                OptimizationServiceTestFactory.create(
                         drifRepository,
                         itemRepository,
                         new EquipmentPlacementRules(rules),

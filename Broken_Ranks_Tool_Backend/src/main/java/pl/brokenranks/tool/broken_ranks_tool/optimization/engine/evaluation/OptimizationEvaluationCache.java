@@ -1,6 +1,6 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation;
 
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
 
 /** Owns memoization of expensive state metrics within an optimization context. */
 final class OptimizationEvaluationCache {
