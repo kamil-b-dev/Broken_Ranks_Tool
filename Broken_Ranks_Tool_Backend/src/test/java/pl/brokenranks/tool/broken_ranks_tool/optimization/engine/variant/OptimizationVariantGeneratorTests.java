@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -26,8 +25,11 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCal
 import pl.brokenranks.tool.broken_ranks_tool.optimization.constraints.OptimizationLockService;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultAssembler;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultFactory;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.neighborhood.OptimizationLargeNeighborhoodSearch;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.neighborhood.OptimizationNeighborhoodFactory;
 
 class OptimizationVariantGeneratorTests {
 
@@ -172,10 +174,10 @@ class OptimizationVariantGeneratorTests {
                                             "95%");
                         });
         OptimizationResultAssembler assembler =
-                new OptimizationResultAssembler(
+                OptimizationResultFactory.create(
                         new OptimizationLockService(), calculator, evaluator);
         OptimizationLargeNeighborhoodSearch search =
-                new OptimizationLargeNeighborhoodSearch(rules, evaluator, assembler);
+                OptimizationNeighborhoodFactory.create(rules, evaluator, assembler);
         return new Fixture(
                 new OptimizationVariantGenerator(search, evaluator, assembler),
                 context,

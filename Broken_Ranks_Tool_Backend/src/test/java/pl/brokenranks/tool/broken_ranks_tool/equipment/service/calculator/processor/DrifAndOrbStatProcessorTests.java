@@ -13,15 +13,16 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ORB_BONUS_TY
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ORB_CATEGORY;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ORB_SIZE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.RARITY;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.DrifValueCalculator;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRulesRegistry;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.OrbTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.CalculationState;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.provider.EquipmentDataProvider.CalculationContext;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.input.EquipmentDataProvider.CalculationContext;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentPlacementRules;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.ModifierSecurityValidator;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.OrbSecurityValidator;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.UpgradeLevelPolicy;
 
 class DrifAndOrbStatProcessorTests {
@@ -29,8 +30,7 @@ class DrifAndOrbStatProcessorTests {
     private final EquipmentPlacementRules placementRules =
             new EquipmentPlacementRules(new EquipmentRulesRegistry());
     private final UpgradeLevelPolicy levelPolicy = new UpgradeLevelPolicy();
-    private final ModifierSecurityValidator securityValidator =
-            new ModifierSecurityValidator(placementRules, levelPolicy);
+    private final OrbSecurityValidator securityValidator = new OrbSecurityValidator();
 
     @Test
     void preCountDrifsSkipsInvalidPositionsAndDuplicateTypesPerItem() {
@@ -48,14 +48,15 @@ class DrifAndOrbStatProcessorTests {
                 new CalculationContext(
                         Map.of(1L, weapon, 2L, helmet), Map.of(), Map.of(10L, fire, 11L, critical));
 
-        DrifStatProcessor processor =
-                new DrifStatProcessor(placementRules, levelPolicy, new EquipmentRulesRegistry());
+        pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.DrifCounter processor =
+                new pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.DrifCounter(
+                        placementRules);
 
         assertEquals(
                 Map.of(
                         DRIF_BONUS_TYPE.DAMAGE_FIRE, 1,
                         DRIF_BONUS_TYPE.CRITICAL_CHANCE, 1),
-                processor.preCountDrifs(request, context));
+                processor.count(request, context));
     }
 
     @Test
@@ -70,7 +71,11 @@ class DrifAndOrbStatProcessorTests {
         state.getDrifCounts().put(DRIF_BONUS_TYPE.CRITICAL_CHANCE, 4);
 
         DrifStatProcessor processor =
-                new DrifStatProcessor(placementRules, levelPolicy, new EquipmentRulesRegistry());
+                new DrifStatProcessor(
+                        placementRules,
+                        levelPolicy,
+                        new EquipmentRulesRegistry(),
+                        new DrifValueCalculator());
         processor.process("helmet", slot, item, 0.0, state);
 
         assertEquals(

@@ -27,8 +27,9 @@ class EquipmentValidationPoliciesTests {
             new EquipmentPlacementRules(new EquipmentRulesRegistry());
     private final UpgradeLevelPolicy levelPolicy = new UpgradeLevelPolicy();
     private final EquipmentRequestValidator requestValidator = new EquipmentRequestValidator();
-    private final ModifierSecurityValidator securityValidator =
-            new ModifierSecurityValidator(placementRules, levelPolicy);
+    private final DrifSecurityValidator drifSecurityValidator =
+            new DrifSecurityValidator(placementRules, levelPolicy);
+    private final OrbSecurityValidator orbSecurityValidator = new OrbSecurityValidator();
 
     @Test
     void calculatesCapacityAtStarBoundaries() {
@@ -50,12 +51,12 @@ class EquipmentValidationPoliciesTests {
         assertThrows(
                 IllegalArgumentException.class,
                 () ->
-                        securityValidator.validateDrifs(
+                        drifSecurityValidator.validate(
                                 "helmet", item, 1, List.of(critical, critical), List.of(1, 1)));
         assertThrows(
                 IllegalArgumentException.class,
                 () ->
-                        securityValidator.validateDrifs(
+                        drifSecurityValidator.validate(
                                 "helmet",
                                 item,
                                 1,
@@ -64,7 +65,7 @@ class EquipmentValidationPoliciesTests {
         assertThrows(
                 IllegalArgumentException.class,
                 () ->
-                        securityValidator.validateDrifs(
+                        drifSecurityValidator.validate(
                                 "helmet",
                                 item,
                                 1,
@@ -107,14 +108,14 @@ class EquipmentValidationPoliciesTests {
 
         assertThrows(
                 IllegalArgumentException.class,
-                () -> securityValidator.validateOrbs(rare, List.of(first, second)));
+                () -> orbSecurityValidator.validate(rare, List.of(first, second)));
         assertThrows(
                 IllegalArgumentException.class,
                 () ->
-                        securityValidator.validateOrbs(
+                        orbSecurityValidator.validate(
                                 item(4, ITEM_CATEGORY.HELMET, RARITY.LEGENDARY, "XII"),
                                 List.of(first, second, third)));
-        assertDoesNotThrow(() -> securityValidator.validateOrbs(rare, List.of()));
+        assertDoesNotThrow(() -> orbSecurityValidator.validate(rare, List.of()));
     }
 
     @Test
@@ -126,9 +127,9 @@ class EquipmentValidationPoliciesTests {
 
         assertThrows(
                 IllegalArgumentException.class,
-                () -> securityValidator.validateOrbs(legendary, List.of(first, duplicate)));
+                () -> orbSecurityValidator.validate(legendary, List.of(first, duplicate)));
         assertDoesNotThrow(
-                () -> securityValidator.validateOrbs(legendary, List.of(first, different)));
+                () -> orbSecurityValidator.validate(legendary, List.of(first, different)));
     }
 
     @Test

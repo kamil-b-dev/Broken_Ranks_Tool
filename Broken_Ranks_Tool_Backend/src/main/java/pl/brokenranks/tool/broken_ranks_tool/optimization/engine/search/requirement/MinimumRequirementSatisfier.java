@@ -1,6 +1,5 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.requirement;
 
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.DrifOptimizationMath.*;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationRequestConstraints.maxQuantity;
 
@@ -10,22 +9,25 @@ import lombok.RequiredArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationStateOperations;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.evaluation.OptimizationStateEvaluation;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.placement.OptimizationPlacementOperations;
 
 /** Places the most constrained missing drifs until all quantity minimums are satisfied. */
 @RequiredArgsConstructor
 final class MinimumRequirementSatisfier {
     private static final double MIN_GAIN = 0.0001;
-    private final OptimizationStateOperations operations;
+    private final OptimizationPlacementOperations placements;
+    private final OptimizationStateEvaluation evaluation;
     private final OptimizationRequirementSupport support;
 
     boolean satisfy(BuildState state, OptimizationContext context) {
         while (true) {
             DRIF_BONUS_TYPE type = mostConstrainedMissingType(state, context);
-            if (type == null) return operations.minimumsSatisfied(state, context);
+            if (type == null) return evaluation.minimumsSatisfied(state, context);
             RequiredPlacementChoice best = bestPlacement(state, type, context);
             if (best == null) return false;
-            operations.putNextFree(
+            placements.putNextFree(
                     state, best.slot(), new Placement(best.drif(), best.level(), false));
         }
     }
@@ -36,7 +38,7 @@ final class MinimumRequirementSatisfier {
         int fewestOptions = Integer.MAX_VALUE;
         for (Map.Entry<DRIF_BONUS_TYPE, OptimizationRequest.QuantityRange> entry :
                 context.sortedQuantities()) {
-            if (entry.getValue().getMin() - operations.globalCount(state, entry.getKey(), context)
+            if (entry.getValue().getMin() - evaluation.globalCount(state, entry.getKey(), context)
                     <= 0) continue;
             int options = feasiblePlacements(state, entry.getKey(), context);
             if (options == 0) return entry.getKey();
@@ -59,8 +61,8 @@ final class MinimumRequirementSatisfier {
                 Integer level = lowestTierFittingLevel(state, slot, candidate);
                 if (level == null) continue;
                 BuildState trial = state.copy();
-                operations.putNextFree(trial, slot, new Placement(candidate, level, false));
-                double gain = operations.score(trial, context) - operations.score(state, context);
+                this.placements.putNextFree(trial, slot, new Placement(candidate, level, false));
+                double gain = evaluation.score(trial, context) - evaluation.score(state, context);
                 if (earlierOrBetter(slot, candidate, level, gain, best))
                     best = new RequiredPlacementChoice(slot, candidate, level, gain);
             }
@@ -75,10 +77,10 @@ final class MinimumRequirementSatisfier {
             DRIF_BONUS_TYPE type,
             OptimizationContext context) {
         return candidate.getBonusType() == type
-                && !operations.containsBonus(placements, type)
-                && operations.globalCount(state, type, context)
+                && !this.placements.containsBonus(placements, type)
+                && evaluation.globalCount(state, type, context)
                         < maxQuantity(type, context.request())
-                && !operations.containsAnotherElemental(state, candidate, null);
+                && !this.placements.containsAnotherElemental(state, candidate, null);
     }
 
     private int feasiblePlacements(
@@ -86,12 +88,12 @@ final class MinimumRequirementSatisfier {
         int count = 0;
         for (SlotContext slot : context.slots()) {
             if (!support.canAdd(state, slot, context)
-                    || operations.containsBonus(state.slots().get(slot.key()), type)) continue;
+                    || placements.containsBonus(state.slots().get(slot.key()), type)) continue;
             if (slot.candidates().stream()
                     .anyMatch(
                             candidate ->
                                     candidate.getBonusType() == type
-                                            && !operations.containsAnotherElemental(
+                                            && !placements.containsAnotherElemental(
                                                     state, candidate, null)
                                             && highestFittingLevel(state, slot, candidate) != null))
                 count++;

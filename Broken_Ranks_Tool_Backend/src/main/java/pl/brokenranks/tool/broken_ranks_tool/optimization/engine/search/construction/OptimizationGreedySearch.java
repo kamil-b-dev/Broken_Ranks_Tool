@@ -1,8 +1,6 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction;
 
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.DrifOptimizationMath.highestFittingLevel;
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.DrifOptimizationMath.power;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationRequestConstraints.*;
 
 import java.util.HashMap;
@@ -12,8 +10,10 @@ import lombok.RequiredArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context.OptimizationInitialStateFactory;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultAssembler;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationStateOperations;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.evaluation.OptimizationStateEvaluation;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.placement.OptimizationPlacementOperations;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.requirement.OptimizationRequirementSatisfier;
 
 /** Builds the deterministic greedy state and safely fills residual capacity. */
@@ -21,13 +21,13 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.requirem
 public final class OptimizationGreedySearch {
 
     private static final double MIN_ACCEPTED_GAIN = 0.0001;
-    private static final double MAX_RESIDUAL_FILL_LOSS = 15.0;
 
     private final OptimizationInitialStateFactory initialStateFactory;
     private final MaximizedDrifBonusPrelock maximizedDrifBonusPrelock;
     private final OptimizationResultAssembler resultAssembler;
     private final OptimizationRequirementSatisfier requirementSatisfier;
-    private final OptimizationStateOperations stateOperations;
+    private final OptimizationPlacementOperations placementOperations;
+    private final OptimizationStateEvaluation stateEvaluation;
 
     public BuildState buildInitialCandidate(OptimizationContext context) {
         BuildState state = initialStateFactory.create(context);
@@ -36,19 +36,6 @@ public final class OptimizationGreedySearch {
         if (!requirementSatisfier.satisfyMinimums(state, context)) return null;
         requirementSatisfier.satisfyForcedTargets(state, context);
         fillByWeightedGain(state, context);
-        return state;
-    }
-
-    public BuildState fillResidualCapacity(BuildState state, OptimizationContext context) {
-        int maxSteps = context.slots().stream().mapToInt(SlotContext::maxDrifs).sum();
-        for (int step = 0; step < maxSteps; step++) {
-            SlotPlacementChoice best = bestResidualChoice(state, context);
-            if (best == null) break;
-            stateOperations.putNextFree(
-                    state,
-                    best.slot(),
-                    new Placement(best.choice().drif(), best.choice().level(), false));
-        }
         return state;
     }
 
@@ -62,12 +49,12 @@ public final class OptimizationGreedySearch {
     private void fillByWeightedGain(BuildState state, OptimizationContext context) {
         Map<DRIF_BONUS_TYPE, Integer> globalCounts = countPlacedBonusTypes(state);
         for (SlotContext slot : context.slots()) {
-            if (!slot.optimizable() || stateOperations.isSlotLocked(slot, context)) continue;
+            if (!slot.optimizable() || placementOperations.isSlotLocked(slot, context)) continue;
             for (int index = 0; index < slot.maxDrifs(); index++) {
                 if (slot.lockedIndices().contains(index)) continue;
                 PlacementChoice best = bestGreedyChoice(state, slot, globalCounts, context);
                 if (best == null || best.gain() <= MIN_ACCEPTED_GAIN) break;
-                stateOperations.putNextFree(
+                placementOperations.putNextFree(
                         state, slot, new Placement(best.drif(), best.level(), false));
                 globalCounts.merge(best.drif().getBonusType(), 1, Integer::sum);
             }
@@ -86,9 +73,9 @@ public final class OptimizationGreedySearch {
             if (level == null) continue;
 
             BuildState trial = state.copy();
-            stateOperations.putNextFree(trial, slot, new Placement(candidate, level, false));
+            placementOperations.putNextFree(trial, slot, new Placement(candidate, level, false));
             double gain =
-                    stateOperations.score(trial, context) - stateOperations.score(state, context);
+                    stateEvaluation.score(trial, context) - stateEvaluation.score(state, context);
             if (isBetterChoice(candidate, level, gain, best)) {
                 best = new PlacementChoice(candidate, level, gain);
             }
@@ -105,71 +92,11 @@ public final class OptimizationGreedySearch {
         DRIF_BONUS_TYPE type = candidate.getBonusType();
         Double target = targetFor(type, context.request());
         return (target == null
-                        || stateOperations.calculatedValue(state, type, context)
+                        || stateEvaluation.calculatedValue(state, type, context)
                                 < target - TARGET_TOLERANCE)
-                && !stateOperations.containsBonus(state.slots().get(slot.key()), type)
+                && !placementOperations.containsBonus(state.slots().get(slot.key()), type)
                 && globalCounts.getOrDefault(type, 0) < maxQuantity(type, context.request())
-                && !stateOperations.containsAnotherElemental(state, candidate, null);
-    }
-
-    private SlotPlacementChoice bestResidualChoice(BuildState state, OptimizationContext context) {
-        SlotPlacementChoice best = null;
-        for (SlotContext slot : context.slots()) {
-            if (!canFillSlot(state, slot, context)) continue;
-            for (DrifTemplate candidate : slot.candidates()) {
-                PlacementChoice choice = residualChoice(state, slot, candidate, context);
-                if (choice != null && isBetterResidualChoice(slot, choice, best)) {
-                    best = new SlotPlacementChoice(slot, choice);
-                }
-            }
-        }
-        return best;
-    }
-
-    private PlacementChoice residualChoice(
-            BuildState state,
-            SlotContext slot,
-            DrifTemplate candidate,
-            OptimizationContext context) {
-        DRIF_BONUS_TYPE type = candidate.getBonusType();
-        List<Placement> placements = state.slots().get(slot.key());
-        Double target = targetFor(type, context.request());
-        if (target != null
-                && stateOperations.calculatedValue(state, type, context)
-                        >= target - TARGET_TOLERANCE) return null;
-        if (stateOperations.containsBonus(placements, type)
-                || stateOperations.globalCount(state, type, context)
-                        >= maxQuantity(type, context.request())
-                || stateOperations.containsAnotherElemental(state, candidate, null)) return null;
-
-        Integer level = highestFittingLevel(state, slot, candidate);
-        if (level == null) return null;
-        BuildState trial = state.copy();
-        stateOperations.putNextFree(trial, slot, new Placement(candidate, level, false));
-        if (!stateOperations.minimumsSatisfied(trial, context)) return null;
-
-        double gain = stateOperations.score(trial, context) - stateOperations.score(state, context);
-        int candidatePower = power(candidate, level);
-        int currentCount = stateOperations.globalCount(state, type, context);
-        boolean lightOptionalDrif = candidatePower <= 1 && currentCount < 3;
-        if (gain < -MAX_RESIDUAL_FILL_LOSS && !lightOptionalDrif) return null;
-
-        double selectionScore = gain - candidatePower * 0.50 - Math.max(0, currentCount - 3) * 15.0;
-        return new PlacementChoice(candidate, level, selectionScore);
-    }
-
-    private boolean canFillSlot(BuildState state, SlotContext slot, OptimizationContext context) {
-        return slot.optimizable()
-                && !stateOperations.isSlotLocked(slot, context)
-                && stateOperations.hasFreeDrifPosition(state.slots().get(slot.key()), slot);
-    }
-
-    private boolean isBetterResidualChoice(
-            SlotContext slot, PlacementChoice choice, SlotPlacementChoice current) {
-        return current == null
-                || choice.gain() > current.choice().gain() + MIN_ACCEPTED_GAIN
-                || (Math.abs(choice.gain() - current.choice().gain()) <= MIN_ACCEPTED_GAIN
-                        && isEarlierPlacement(choice.drif(), choice.level(), current.choice()));
+                && !placementOperations.containsAnotherElemental(state, candidate, null);
     }
 
     private boolean isBetterChoice(
@@ -196,6 +123,4 @@ public final class OptimizationGreedySearch {
         }
         return counts;
     }
-
-    private record SlotPlacementChoice(SlotContext slot, PlacementChoice choice) {}
 }

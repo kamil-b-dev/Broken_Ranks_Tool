@@ -1,4 +1,4 @@
-package pl.brokenranks.tool.broken_ranks_tool.equipment.service.provider;
+package pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.input;
 
 import java.util.Collection;
 import java.util.List;

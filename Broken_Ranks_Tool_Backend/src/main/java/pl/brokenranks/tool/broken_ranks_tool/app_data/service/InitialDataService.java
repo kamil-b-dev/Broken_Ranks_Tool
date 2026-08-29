@@ -1,21 +1,9 @@
 package pl.brokenranks.tool.broken_ranks_tool.app_data.service;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import pl.brokenranks.tool.broken_ranks_tool.app_data.dto.DictionariesDto;
-import pl.brokenranks.tool.broken_ranks_tool.app_data.dto.GameRulesDto;
 import pl.brokenranks.tool.broken_ranks_tool.app_data.dto.InitialDataDto;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_CATEGORY;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ITEM_CATEGORY;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ORB_BONUS_TYPE;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ORB_CATEGORY;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRulesRegistry;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.DrifTemplateDto;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.DrifTemplateRepository;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.ItemTemplateRepository;
@@ -29,7 +17,8 @@ public class InitialDataService {
     private final ItemTemplateRepository itemRepository;
     private final OrbTemplateRepository orbRepository;
     private final DrifTemplateRepository drifRepository;
-    private final EquipmentRulesRegistry rulesRegistry;
+    private final DictionariesFactory dictionariesFactory;
+    private final GameRulesFactory gameRulesFactory;
 
     /**
      * Collects data from repositories and rule registries into one startup DTO.
@@ -42,59 +31,11 @@ public class InitialDataService {
         var drifs =
                 drifEntities.stream().map(DrifTemplateDto::fromEntity).collect(Collectors.toList());
 
-        var dictionaries =
-                new DictionariesDto(
-                        getEnumMap(ITEM_CATEGORY.class, ITEM_CATEGORY::getDescription),
-                        getEnumMap(ORB_CATEGORY.class, ORB_CATEGORY::getDescription),
-                        getEnumMap(DRIF_CATEGORY.class, DRIF_CATEGORY::getDescription));
-
-        var bonusTranslations =
-                Stream.of(
-                                getEnumMap(DRIF_BONUS_TYPE.class, DRIF_BONUS_TYPE::getDescription),
-                                getEnumMap(ORB_BONUS_TYPE.class, ORB_BONUS_TYPE::getDescription))
-                        .flatMap(map -> map.entrySet().stream())
-                        .collect(
-                                Collectors.toMap(
-                                        Map.Entry::getKey, Map.Entry::getValue, (v1, v2) -> v1));
-
-        Map<String, Integer> drifMaxCaps = new HashMap<>();
-        for (DRIF_BONUS_TYPE type : DRIF_BONUS_TYPE.values()) {
-            drifMaxCaps.put(type.name(), type.getMaxCap());
-        }
-
-        Map<String, String> drifBonusCategories =
-                drifEntities.stream()
-                        .filter(drif -> drif.getBonusType() != null && drif.getCategory() != null)
-                        .collect(
-                                Collectors.toMap(
-                                        drif -> drif.getBonusType().name(),
-                                        drif -> drif.getCategory().name(),
-                                        (first, ignored) -> first));
-        Map<Integer, Double> drifPenaltyMultipliers =
-                java.util.stream.IntStream.rangeClosed(1, 12)
-                        .boxed()
-                        .collect(Collectors.toMap(count -> count, rulesRegistry::getDrifPenalty));
-
-        var gameRules =
-                new GameRulesDto(
-                        EquipmentRulesRegistry.EPIC_BUILTIN_DRIFS,
-                        rulesRegistry.getSlotOrbRules(),
-                        bonusTranslations,
-                        Arrays.stream(DRIF_BONUS_TYPE.values())
-                                .collect(
-                                        Collectors.toMap(
-                                                Enum::name, DRIF_BONUS_TYPE::getBasePower)),
-                        drifMaxCaps,
-                        drifBonusCategories,
-                        drifPenaltyMultipliers);
-
-        return new InitialDataDto(items, orbs, drifs, gameRules, dictionaries);
-    }
-
-    /** Builds a translation map for an enum exposing {@code getDescription()}. */
-    private <T extends Enum<T>> Map<String, String> getEnumMap(
-            Class<T> enumClass, java.util.function.Function<T, String> descriptionExtractor) {
-        return Arrays.stream(enumClass.getEnumConstants())
-                .collect(Collectors.toMap(Enum::name, descriptionExtractor));
+        return new InitialDataDto(
+                items,
+                orbs,
+                drifs,
+                gameRulesFactory.create(drifEntities),
+                dictionariesFactory.create());
     }
 }

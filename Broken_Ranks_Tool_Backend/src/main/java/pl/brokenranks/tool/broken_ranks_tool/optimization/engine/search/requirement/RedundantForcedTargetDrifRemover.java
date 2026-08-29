@@ -1,20 +1,22 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.requirement;
 
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchModel.*;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationRequestConstraints.*;
 
 import java.util.Comparator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationLevelAllocator;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.OptimizationStateOperations;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.evaluation.OptimizationStateEvaluation;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.level.OptimizationLevelAllocator;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.placement.OptimizationPlacementOperations;
 
 /** Removes redundant target drifs without violating minimums or the forced target. */
 @RequiredArgsConstructor
 final class RedundantForcedTargetDrifRemover {
     private static final double MIN_GAIN = 0.0001;
-    private final OptimizationStateOperations operations;
+    private final OptimizationPlacementOperations placements;
+    private final OptimizationStateEvaluation evaluation;
     private final OptimizationLevelAllocator levels;
     private final OptimizationRequirementSupport support;
 
@@ -27,12 +29,12 @@ final class RedundantForcedTargetDrifRemover {
         double target = targetFor(type, context.request());
         boolean changed = true;
         while (changed
-                && operations.calculatedValue(state, type, context) >= target - TARGET_TOLERANCE) {
+                && evaluation.calculatedValue(state, type, context) >= target - TARGET_TOLERANCE) {
             changed = false;
             BuildState best = null;
             double bestExcess = Double.POSITIVE_INFINITY;
             for (SlotContext slot : context.slots()) {
-                if (!slot.optimizable() || operations.isSlotLocked(slot, context)) continue;
+                if (!slot.optimizable() || placements.isSlotLocked(slot, context)) continue;
                 List<Placement> placements = state.slots().get(slot.key());
                 for (int index = 0; index < Math.min(placements.size(), slot.maxDrifs()); index++) {
                     Placement placement = placements.get(index);
@@ -41,14 +43,14 @@ final class RedundantForcedTargetDrifRemover {
                     BuildState trial = state.copy();
                     trial.setPlacement(slot.key(), index, null);
                     levels.normalizeSlot(trial, slot, context);
-                    if (!operations.minimumsSatisfied(trial, context)) continue;
-                    double value = operations.calculatedValue(trial, type, context);
+                    if (!evaluation.minimumsSatisfied(trial, context)) continue;
+                    double value = evaluation.calculatedValue(trial, type, context);
                     if (value < target - TARGET_TOLERANCE) continue;
                     double excess = value - target;
                     if (best == null
                             || excess < bestExcess - MIN_GAIN
                             || (Math.abs(excess - bestExcess) <= MIN_GAIN
-                                    && operations.trySelectBetter(trial, best, context))) {
+                                    && evaluation.trySelectBetter(trial, best, context))) {
                         best = trial;
                         bestExcess = excess;
                     }
