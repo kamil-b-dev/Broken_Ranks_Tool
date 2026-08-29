@@ -121,6 +121,7 @@ const BuilderWorkspace = ({
                                     className={slot.key === activeSlot.key ? "block" : "hidden"}
                                 >
                                     <GearSlot
+                                        expanded
                                         slotKey={slot.key}
                                         label={slot.label}
                                         items={itemsBySlot[slot.key] || []}

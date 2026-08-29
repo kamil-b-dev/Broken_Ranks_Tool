@@ -620,6 +620,49 @@ input:focus-visible {
         rgba(3, 3, 4, 0.58);
 }
 
+.gear-slot-editor-expanded {
+    display: grid;
+    width: min(100%, 58rem);
+    grid-template-columns: minmax(12rem, 0.9fr) minmax(13rem, 1fr) minmax(15rem, 1.25fr);
+    align-items: start;
+    gap: 1rem;
+}
+
+.gear-slot-editor-expanded > div:nth-child(2) {
+    grid-column: 1 / -1;
+}
+
+.gear-slot-editor-expanded .gear-slot-item-section,
+.gear-slot-editor-expanded .gear-slot-orb-section,
+.gear-slot-editor-expanded .gear-slot-drif-section {
+    align-self: stretch;
+    padding: 0.75rem;
+    border: 1px solid rgba(78, 42, 47, 0.72);
+    background: rgba(0, 0, 0, 0.24);
+}
+
+.gear-slot-editor-expanded .gear-slot-item-section {
+    grid-column: 1;
+}
+
+.gear-slot-editor-expanded .gear-slot-orb-section {
+    grid-column: 2;
+}
+
+.gear-slot-editor-expanded .gear-slot-drif-section {
+    grid-column: 3;
+}
+
+@media (max-width: 1500px) {
+    .gear-slot-editor-expanded {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .gear-slot-editor-expanded .gear-slot-drif-section {
+        grid-column: 1 / -1;
+    }
+}
+
 @media (max-width: 1680px) {
     .equipment-slot-overview-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -685,6 +728,16 @@ input:focus-visible {
     .selected-slot-editor-heading {
         align-items: flex-start;
         flex-direction: column;
+    }
+
+    .gear-slot-editor-expanded {
+        grid-template-columns: 1fr;
+    }
+
+    .gear-slot-editor-expanded .gear-slot-item-section,
+    .gear-slot-editor-expanded .gear-slot-orb-section,
+    .gear-slot-editor-expanded .gear-slot-drif-section {
+        grid-column: 1;
     }
 }
 
