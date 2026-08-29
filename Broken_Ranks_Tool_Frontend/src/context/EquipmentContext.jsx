@@ -1,5 +1,9 @@
 import { createContext, useState, useEffect, useContext, useCallback, useMemo } from "react";
-import apiClient from "../api/axiosConfig";
+import {
+    calculateEquipmentStats,
+    fetchInitialEquipmentData,
+    optimizeEquipmentDrifs,
+} from "../api/equipmentApi";
 import { createBuildPayload, parseBuildFile } from "../utils/buildFile";
 
 const EquipmentContext = createContext();
@@ -48,8 +52,7 @@ export const EquipmentProvider = ({ children }) => {
             try {
                 setLoading(true);
                 setInitialDataError(null);
-                const response = await apiClient.get("/initial-data");
-                const initialData = response.data;
+                const initialData = await fetchInitialEquipmentData();
 
                 setData({
                     items: initialData.items || [],
@@ -181,11 +184,11 @@ export const EquipmentProvider = ({ children }) => {
     const calculateStats = useCallback(async () => {
         setIsCalculatingStats(true);
         try {
-            const response = await apiClient.post("/calculator/calculate", requestData);
-            setStats(response.data.stats || response.data);
+            const response = await calculateEquipmentStats(requestData);
+            setStats(response.stats || response);
             setStatSources({
-                drifCategories: response.data.drifCategories || {},
-                orbBonusTypes: response.data.orbBonusTypes || [],
+                drifCategories: response.drifCategories || {},
+                orbBonusTypes: response.orbBonusTypes || [],
             });
         } catch (error) {
             if (error.response && error.response.data && error.response.data.message) {
@@ -241,8 +244,8 @@ export const EquipmentProvider = ({ children }) => {
             };
 
             try {
-                const response = await apiClient.post("/optimizer/drifs", optimizationRequest);
-                const { optimizedSetup, summary } = response.data;
+                const { optimizedSetup, summary } =
+                    await optimizeEquipmentDrifs(optimizationRequest);
 
                 if (applyOptimizationSetup(optimizedSetup)) {
                     return { ...summary, applied: true };
