@@ -245,6 +245,7 @@ const ItemDatabase = ({
                     selectedDrifCategory !== "Wszystkie" ||
                     selectedBasePower) && (
                     <button
+                        type="button"
                         onClick={clearFilters}
                         className="text-xs text-rose-800 hover:text-rose-600 transition-colors font-serif font-bold uppercase tracking-widest"
                     >
@@ -268,7 +269,9 @@ const ItemDatabase = ({
                     return (
                         <button
                             key={tab}
+                            type="button"
                             onClick={() => handleTabChange(tab)}
+                            aria-pressed={isActive}
                             className={`${baseBtn} ${bgClass}`}
                         >
                             <span className={textClass}>
@@ -282,6 +285,7 @@ const ItemDatabase = ({
             <div className="shrink-0 mb-4 flex flex-col gap-2">
                 <input
                     type="text"
+                    aria-label={`Wyszukaj ${activeTab === "items" ? "przedmioty" : activeTab === "orbs" ? "orby" : "drify"}`}
                     placeholder={`Wyszukaj ${activeTab === "items" ? "(np. Morana)" : activeTab === "orbs" ? "orba" : "drifa"}...`}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -292,6 +296,7 @@ const ItemDatabase = ({
                     {activeTab === "items" && (
                         <>
                             <select
+                                aria-label="Filtruj przedmioty według kategorii"
                                 value={selectedCategory}
                                 onChange={(e) => setSelectedCategory(e.target.value)}
                                 className="flex-1 min-w-0 bg-black/60 text-stone-400 font-serif p-2 text-xs border border-stone-800 focus:border-rose-900 outline-none cursor-pointer shadow-[inset_0_0_10px_rgba(0,0,0,1)]"
@@ -307,6 +312,7 @@ const ItemDatabase = ({
                                 ))}
                             </select>
                             <select
+                                aria-label="Filtruj przedmioty według tieru"
                                 value={selectedTier}
                                 onChange={(e) => setSelectedTier(e.target.value)}
                                 className="flex-1 min-w-0 bg-black/60 text-stone-400 font-serif font-bold uppercase tracking-wider p-2 text-xs border border-stone-800 focus:border-rose-900 outline-none cursor-pointer shadow-[inset_0_0_10px_rgba(0,0,0,1)]"
@@ -322,6 +328,7 @@ const ItemDatabase = ({
                                 ))}
                             </select>
                             <select
+                                aria-label="Filtruj przedmioty według statystyki"
                                 value={selectedStat}
                                 onChange={(e) => setSelectedStat(e.target.value)}
                                 className="flex-1 min-w-0 bg-black/60 text-stone-400 font-serif p-2 text-xs border border-stone-800 focus:border-rose-900 outline-none cursor-pointer shadow-[inset_0_0_10px_rgba(0,0,0,1)]"
@@ -341,6 +348,7 @@ const ItemDatabase = ({
 
                     {activeTab === "orbs" && (
                         <select
+                            aria-label="Filtruj orby według kategorii"
                             value={selectedOrbCategory}
                             onChange={(e) => setSelectedOrbCategory(e.target.value)}
                             className="flex-1 min-w-0 bg-black/60 text-stone-400 font-serif p-2 text-xs border border-stone-800 focus:border-rose-900 outline-none cursor-pointer shadow-[inset_0_0_10px_rgba(0,0,0,1)]"
@@ -357,6 +365,7 @@ const ItemDatabase = ({
                     {activeTab === "drifs" && (
                         <>
                             <select
+                                aria-label="Filtruj drify według kategorii"
                                 value={selectedDrifCategory}
                                 onChange={(e) => setSelectedDrifCategory(e.target.value)}
                                 className="flex-1 min-w-0 bg-black/60 text-stone-400 font-serif p-2 text-xs border border-stone-800 focus:border-rose-900 outline-none cursor-pointer shadow-[inset_0_0_10px_rgba(0,0,0,1)]"
@@ -374,6 +383,7 @@ const ItemDatabase = ({
                             </select>
                             <input
                                 type="number"
+                                aria-label="Filtruj drify według mocy bazowej"
                                 placeholder="Moc bazowa..."
                                 value={selectedBasePower}
                                 onChange={(e) => setSelectedBasePower(e.target.value)}
@@ -503,6 +513,7 @@ const ItemDatabase = ({
                             Brak wyników spełniających kryteria.
                         </p>
                         <button
+                            type="button"
                             onClick={clearFilters}
                             className="text-rose-800 hover:text-rose-600 text-sm font-serif border border-stone-700 px-3 py-1 bg-black/60 shadow-inner"
                         >

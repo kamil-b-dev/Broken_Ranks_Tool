@@ -13,7 +13,7 @@ describe("CharacterPanel", () => {
         fireEvent.change(level, { target: { value: "2" } });
         expect(screen.getByText("4 / 4")).toBeInTheDocument();
 
-        await user.click(screen.getAllByRole("button", { name: "+" })[0]);
+        await user.click(screen.getByRole("button", { name: "Dodaj punkt: Siła" }));
         expect(screen.getByText("+1 pkt")).toBeInTheDocument();
         expect(onStatsChange).toHaveBeenLastCalledWith(
             expect.objectContaining({ Siła: 11, PŻ: 200 }),
@@ -24,8 +24,7 @@ describe("CharacterPanel", () => {
         expect(screen.queryByText("+1 pkt")).not.toBeInTheDocument();
     });
 
-    it("imports bounded character data and removes excess points after lowering level", async () => {
-        const user = userEvent.setup();
+    it("imports bounded character data and removes excess points after lowering level", () => {
         const onStatsChange = vi.fn();
         const externalConfig = {
             level: 999,
@@ -47,7 +46,7 @@ describe("CharacterPanel", () => {
         expect(screen.getByText("0 / 0")).toBeInTheDocument();
         expect(screen.queryByText("+5 pkt")).not.toBeInTheDocument();
 
-        await user.click(screen.getAllByRole("button", { name: "-" })[0]);
+        expect(screen.getByRole("button", { name: "Odejmij punkt: Siła" })).toBeDisabled();
         expect(onStatsChange).toHaveBeenCalled();
     });
 

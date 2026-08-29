@@ -53,7 +53,10 @@ const BuilderWorkspace = ({
     const activeItem = activeSlotData?.itemId ? itemsById.get(String(activeSlotData.itemId)) : null;
 
     return (
-        <main className="builder-theme flex w-full flex-1 flex-col gap-4 xl:gap-5">
+        <main
+            id="workspace-content"
+            className="builder-theme flex w-full flex-1 flex-col gap-4 xl:gap-5"
+        >
             <CharacterPanel
                 compact
                 onStatsChange={onCharacterStatsUpdate}

@@ -653,6 +653,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                         key={key}
                         type="button"
                         onClick={() => setActiveMobileColumn(key)}
+                        aria-current={activeMobileColumn === key ? "page" : undefined}
                         className={`px-2 py-2 border rounded-sm text-[9px] sm:text-[10px] uppercase tracking-wide transition-colors ${
                             activeMobileColumn === key
                                 ? "border-purple-500 bg-purple-950/50 text-purple-200"
