@@ -95,4 +95,46 @@ describe("App", () => {
         render(<App />);
         expect(screen.getByRole("alert")).toHaveTextContent("brak połączenia");
     });
+
+    it("keeps optimizer lock controls out of the manual builder", async () => {
+        useEquipment.mockReturnValue({
+            ...equipment,
+            data: {
+                items: [
+                    {
+                        id: 1,
+                        name: "Hełm testowy",
+                        category: "HELMET",
+                        tier: "X",
+                        rarity: "RARE",
+                        capacity: 10,
+                    },
+                ],
+                orbs: [],
+                drifs: [],
+            },
+            requestData: {
+                slots: {
+                    helmet: {
+                        itemId: 1,
+                        itemStars: 1,
+                        orbIds: [],
+                        orbLevels: [],
+                        drifIds: [],
+                        drifLevels: {},
+                    },
+                },
+                characterStats: {},
+            },
+            lockedSlots: ["helmet"],
+        });
+
+        render(<App />);
+
+        await vi.waitFor(() =>
+            expect(screen.getByLabelText("Wybierz przedmiot dla slotu Hełm")).toHaveValue("1")
+        );
+        expect(screen.queryByTitle("Odblokuj slot")).not.toBeInTheDocument();
+        expect(screen.queryByTitle("Zablokuj slot w optymalizatorze")).not.toBeInTheDocument();
+    });
 });
