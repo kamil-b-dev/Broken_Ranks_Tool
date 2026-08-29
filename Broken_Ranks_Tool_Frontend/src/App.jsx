@@ -1,12 +1,7 @@
-import { useState, useMemo, useRef } from "react";
-import GearSlot from "./components/GearSlot";
-import ItemDatabase from "./components/ItemDatabase";
-import StatsPanel from "./components/StatsPanel";
-import CharacterPanel from "./components/CharacterPanel";
-import OptimizerPanel from "./components/OptimizerPanel";
-import OptimizerSettingsPanel from "./components/OptimizerSettingsPanel";
+import { useRef, useState } from "react";
+import BuilderWorkspace from "./components/workspaces/BuilderWorkspace";
+import OptimizerWorkspace from "./components/workspaces/OptimizerWorkspace";
 import { useEquipment } from "./context/EquipmentContext";
-import { SLOTS } from "./constants/equipment";
 
 /**
  * Root application component responsible for top-level navigation.
@@ -16,7 +11,6 @@ import { SLOTS } from "./constants/equipment";
  */
 function App() {
     const [mainView, setMainView] = useState("builder");
-    const [builderTab, setBuilderTab] = useState("database");
     const [optimizerSettings, setOptimizerSettings] = useState({
         forceMaximizationByDrifBonus: false,
         generateVariants: false,
@@ -56,20 +50,6 @@ function App() {
             event.target.value = "";
         }
     };
-
-    const itemsBySlot = useMemo(() => {
-        const grouped = {};
-        if (!data?.items) return grouped;
-
-        SLOTS.forEach((slot) => {
-            grouped[slot.key] = data.items.filter((i) =>
-                Array.isArray(slot.cat)
-                    ? slot.cat.includes(i.category?.toUpperCase())
-                    : i.category?.toUpperCase() === slot.cat
-            );
-        });
-        return grouped;
-    }, [data.items]);
 
     return (
         <div
@@ -153,113 +133,29 @@ function App() {
                 </div>
             )}
 
-            <div
-                className={`builder-theme flex-1 w-full flex-col ${mainView === "builder" ? "flex" : "hidden"}`}
-            >
-                <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 xl:gap-8 flex-1">
-                    <section className="workbench xl:col-span-8 p-5 md:p-6 xl:p-8 flex flex-col">
-                        <div className="workbench-heading">
-                            <div>
-                                <p className="section-kicker">Konfiguracja</p>
-                                <h2>Ekwipunek</h2>
-                            </div>
-                            <p className="workbench-help">
-                                Wybierz przedmiot lub przeciągnij go z bazy. Karmazynowa obwódka
-                                oznacza aktywne pole.
-                            </p>
-                        </div>
-                        <div className="flex flex-wrap justify-center gap-4 xl:gap-6 pt-2 pb-3">
-                            {SLOTS.map((slot) => (
-                                <GearSlot
-                                    key={slot.key}
-                                    slotKey={slot.key}
-                                    label={slot.label}
-                                    items={itemsBySlot[slot.key] || []}
-                                    orbs={data.orbs}
-                                    drifs={data.drifs}
-                                    allSlots={requestData.slots || {}}
-                                    onUpdate={handleSlotUpdate}
-                                    gameRules={gameRules}
-                                    optimizationTrigger={optimizationTrigger}
-                                />
-                            ))}
-                        </div>
-                    </section>
-
-                    <div className="xl:col-span-4 flex flex-col gap-4 relative min-h-[600px] xl:min-h-0">
-                        <div className="flex bg-black/60 p-1 border border-stone-800 shadow-[inset_0_0_10px_rgba(0,0,0,1)] shrink-0">
-                            <button
-                                onClick={() => setBuilderTab("database")}
-                                className={`flex-1 py-3 text-sm font-bold uppercase tracking-widest transition-all ${
-                                    builderTab === "database"
-                                        ? "bg-red-950/70 border-b-2 border-red-700 text-stone-100"
-                                        : "text-stone-500 hover:text-stone-300 hover:bg-stone-900/50 border-b-2 border-transparent"
-                                }`}
-                            >
-                                Baza Przedmiotów
-                            </button>
-                            <button
-                                onClick={() => setBuilderTab("character")}
-                                className={`flex-1 py-3 text-sm font-bold uppercase tracking-widest transition-all ${
-                                    builderTab === "character"
-                                        ? "bg-red-950/70 border-b-2 border-red-700 text-stone-100"
-                                        : "text-stone-500 hover:text-stone-300 hover:bg-stone-900/50 border-b-2 border-transparent"
-                                }`}
-                            >
-                                Statystyki Postaci
-                            </button>
-                        </div>
-
-                        <div className="relative flex-1">
-                            <div
-                                className={`xl:absolute xl:inset-0 flex flex-col w-full h-full ${builderTab === "database" ? "flex" : "hidden"}`}
-                            >
-                                <ItemDatabase
-                                    items={data.items}
-                                    orbs={data.orbs}
-                                    drifs={data.drifs}
-                                    categoryNames={categoryNames}
-                                    orbCategories={orbCategories}
-                                    drifCategories={drifCategories}
-                                    gameRules={gameRules || {}}
-                                />
-                            </div>
-                            <div
-                                className={`xl:absolute xl:inset-0 flex flex-col w-full h-full ${builderTab === "character" ? "flex" : "hidden"}`}
-                            >
-                                <CharacterPanel
-                                    onStatsChange={handleCharacterStatsUpdate}
-                                    externalConfig={characterConfig}
-                                    syncTrigger={optimizationTrigger}
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div
-                className={`optimizer-theme flex-1 w-full flex-col gap-4 ${mainView === "optimizer" ? "flex" : "hidden"}`}
-            >
-                <OptimizerSettingsPanel
-                    settings={optimizerSettings}
-                    onChange={setOptimizerSettings}
-                />
-                <OptimizerPanel
-                    optimizerSettings={optimizerSettings}
-                    onOptimizerSettingsChange={setOptimizerSettings}
-                />
-            </div>
-
-            <div className="w-full shrink-0">
-                <StatsPanel
-                    stats={stats}
-                    onCalculate={calculateStats}
-                    isCalculating={isCalculatingStats}
+            {mainView === "builder" ? (
+                <BuilderWorkspace
+                    data={data}
+                    categoryNames={categoryNames}
+                    orbCategories={orbCategories}
+                    drifCategories={drifCategories}
                     gameRules={gameRules}
+                    requestData={requestData}
+                    stats={stats}
                     statSources={statSources}
+                    isCalculatingStats={isCalculatingStats}
+                    optimizationTrigger={optimizationTrigger}
+                    characterConfig={characterConfig}
+                    onSlotUpdate={handleSlotUpdate}
+                    onCharacterStatsUpdate={handleCharacterStatsUpdate}
+                    onCalculateStats={calculateStats}
                 />
-            </div>
+            ) : (
+                <OptimizerWorkspace
+                    settings={optimizerSettings}
+                    onSettingsChange={setOptimizerSettings}
+                />
+            )}
         </div>
     );
 }
