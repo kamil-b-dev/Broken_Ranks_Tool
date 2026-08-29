@@ -1,8 +1,9 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import CharacterPanel from "../CharacterPanel";
 import GearSlot from "../GearSlot";
 import ItemDatabase from "../ItemDatabase";
 import StatsPanel from "../StatsPanel";
+import EquipmentSlotOverview from "../equipment/EquipmentSlotOverview";
 import { SLOTS } from "../../constants/equipment";
 
 /**
@@ -27,6 +28,8 @@ const BuilderWorkspace = ({
     onCharacterStatsUpdate,
     onCalculateStats,
 }) => {
+    const [activeSlotKey, setActiveSlotKey] = useState(SLOTS[0].key);
+
     const itemsBySlot = useMemo(() => {
         const grouped = {};
         if (!data?.items) return grouped;
@@ -40,6 +43,14 @@ const BuilderWorkspace = ({
         });
         return grouped;
     }, [data.items]);
+
+    const itemsById = useMemo(
+        () => new Map((data.items || []).map((item) => [String(item.id), item])),
+        [data.items]
+    );
+    const activeSlot = SLOTS.find((slot) => slot.key === activeSlotKey) || SLOTS[0];
+    const activeSlotData = requestData.slots?.[activeSlot.key];
+    const activeItem = activeSlotData?.itemId ? itemsById.get(String(activeSlotData.itemId)) : null;
 
     return (
         <main className="builder-theme flex w-full flex-1 flex-col gap-4 xl:gap-5">
@@ -74,22 +85,56 @@ const BuilderWorkspace = ({
                             aktywne pole.
                         </p>
                     </div>
-                    <div className="flex flex-wrap justify-center gap-4 pt-2 pb-3 xl:gap-6">
-                        {SLOTS.map((slot) => (
-                            <GearSlot
-                                key={slot.key}
-                                slotKey={slot.key}
-                                label={slot.label}
-                                items={itemsBySlot[slot.key] || []}
-                                orbs={data.orbs}
-                                drifs={data.drifs}
-                                allSlots={requestData.slots || {}}
-                                onUpdate={onSlotUpdate}
-                                gameRules={gameRules}
-                                optimizationTrigger={optimizationTrigger}
-                            />
-                        ))}
+                    <div className="equipment-slot-overview-grid">
+                        {SLOTS.map((slot) => {
+                            const slotData = requestData.slots?.[slot.key];
+                            const item = slotData?.itemId
+                                ? itemsById.get(String(slotData.itemId))
+                                : null;
+
+                            return (
+                                <EquipmentSlotOverview
+                                    key={slot.key}
+                                    label={slot.label}
+                                    slotData={slotData}
+                                    item={item}
+                                    active={slot.key === activeSlot.key}
+                                    onSelect={() => setActiveSlotKey(slot.key)}
+                                />
+                            );
+                        })}
                     </div>
+
+                    <section className="selected-slot-editor" aria-label="Edytor wybranego slotu">
+                        <div className="selected-slot-editor-heading">
+                            <div>
+                                <p className="section-kicker">Edytowany slot</p>
+                                <h3>{activeSlot.label}</h3>
+                            </div>
+                            <span>{activeItem?.name || "Brak wybranego przedmiotu"}</span>
+                        </div>
+
+                        <div className="selected-slot-editor-content">
+                            {SLOTS.map((slot) => (
+                                <div
+                                    key={slot.key}
+                                    className={slot.key === activeSlot.key ? "block" : "hidden"}
+                                >
+                                    <GearSlot
+                                        slotKey={slot.key}
+                                        label={slot.label}
+                                        items={itemsBySlot[slot.key] || []}
+                                        orbs={data.orbs}
+                                        drifs={data.drifs}
+                                        allSlots={requestData.slots || {}}
+                                        onUpdate={onSlotUpdate}
+                                        gameRules={gameRules}
+                                        optimizationTrigger={optimizationTrigger}
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    </section>
                 </section>
 
                 <aside className="builder-results-column">
