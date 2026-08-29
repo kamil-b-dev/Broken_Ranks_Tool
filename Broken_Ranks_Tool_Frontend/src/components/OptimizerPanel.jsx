@@ -25,6 +25,7 @@ import OptimizerBonusColumn from "./optimization/OptimizerBonusColumn";
 import OptimizerMobileNavigation from "./optimization/OptimizerMobileNavigation";
 import OptimizerRunAction from "./optimization/OptimizerRunAction";
 import OptimizerLocksColumn from "./optimization/OptimizerLocksColumn";
+import OptimizerPriorityToolbar from "./optimization/OptimizerPriorityToolbar";
 
 /**
  * Provides drif priorities, target limits, and equipment locking for optimization.
@@ -396,66 +397,23 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                 <div
                     className={`optimizer-workspace-column optimizer-priority-column ${activeMobileColumn === "priorities" ? "flex" : "hidden"} flex-col gap-2 lg:col-span-4 lg:flex lg:border-r lg:border-stone-800/60 lg:pr-4`}
                 >
-                    <div className="flex items-center justify-between border-b border-stone-700 pb-2 mb-2 min-h-[34px] shrink-0">
-                        <h4 className="text-stone-300 font-serif font-bold uppercase tracking-widest text-xs">
-                            Priorytety i Limity
-                        </h4>
-                        <div className="flex flex-wrap items-center justify-end gap-1.5">
-                            <input
-                                ref={configInputRef}
-                                type="file"
-                                accept="application/json,.json"
-                                onChange={handleLoadConfiguration}
-                                className="hidden"
-                            />
-                            <button
-                                onClick={() => configInputRef.current?.click()}
-                                className="text-[10px] bg-stone-900 hover:bg-stone-800 text-stone-300 hover:text-purple-300 border border-stone-700 hover:border-purple-800 px-2 py-1 rounded-sm transition-all uppercase tracking-wider font-serif"
-                                title="Wczytaj priorytety i limity z pliku JSON"
-                            >
-                                Wczytaj
-                            </button>
-                            <button
-                                onClick={handleSaveConfiguration}
-                                className="text-[10px] bg-stone-900 hover:bg-stone-800 text-stone-300 hover:text-purple-300 border border-stone-700 hover:border-purple-800 px-2 py-1 rounded-sm transition-all uppercase tracking-wider font-serif"
-                                title="Zapisz priorytety i limity do pliku JSON"
-                            >
-                                Zapisz
-                            </button>
-                            <button
-                                onClick={handleSortByPriority}
-                                disabled={prioritizedBonuses.length < 2}
-                                className="text-[10px] bg-stone-900 hover:bg-stone-800 text-stone-300 hover:text-purple-300 border border-stone-700 hover:border-purple-800 px-2 py-1 rounded-sm transition-all uppercase tracking-wider font-serif disabled:opacity-40 disabled:cursor-not-allowed"
-                                title={`Sortuj według wagi ${prioritySortDirection === "desc" ? "malejąco" : "rosnąco"}`}
-                            >
-                                Priorytet {prioritySortDirection === "desc" ? "↓" : "↑"}
-                            </button>
-                            {prioritizedBonuses.length > 0 && (
-                                <button
-                                    onClick={() =>
-                                        setExpandedPriorities(
-                                            expandedPriorities.size > 0
-                                                ? new Set()
-                                                : new Set(
-                                                      prioritizedBonuses.map((bonus) => bonus.key)
-                                                  )
-                                        )
-                                    }
-                                    className="text-[10px] bg-stone-900 hover:bg-stone-800 text-stone-400 border border-stone-700 px-2 py-1 rounded-sm transition-all uppercase tracking-wider font-serif"
-                                >
-                                    {expandedPriorities.size > 0 ? "Zwiń" : "Rozwiń"}
-                                </button>
-                            )}
-                            {prioritizedBonuses.length > 0 && (
-                                <button
-                                    onClick={handleClearAll}
-                                    className="text-[10px] bg-red-950/60 hover:bg-red-900 text-red-400 hover:text-red-100 border border-red-900/50 px-2 py-1 rounded-sm transition-all uppercase tracking-wider font-serif"
-                                >
-                                    Wyczyść
-                                </button>
-                            )}
-                        </div>
-                    </div>
+                    <OptimizerPriorityToolbar
+                        fileInputRef={configInputRef}
+                        priorityCount={prioritizedBonuses.length}
+                        sortDirection={prioritySortDirection}
+                        anyExpanded={expandedPriorities.size > 0}
+                        onLoad={handleLoadConfiguration}
+                        onSave={handleSaveConfiguration}
+                        onSort={handleSortByPriority}
+                        onToggleExpanded={() =>
+                            setExpandedPriorities(
+                                expandedPriorities.size > 0
+                                    ? new Set()
+                                    : new Set(prioritizedBonuses.map((bonus) => bonus.key))
+                            )
+                        }
+                        onClear={handleClearAll}
+                    />
 
                     <div className="overflow-y-auto pr-2 flex-1 min-h-0 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-stone-800 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-purple-800/70">
                         {prioritizedBonuses.length === 0 ? (
