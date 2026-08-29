@@ -24,6 +24,7 @@ function App() {
         orbCategories,
         drifCategories,
         gameRules,
+        loading,
         initialDataError,
         requestData,
         stats,
@@ -38,6 +39,7 @@ function App() {
         loadBuildFromFile,
     } = useEquipment();
     const buildFileInputRef = useRef(null);
+    const isWorkspaceUnavailable = loading || Boolean(initialDataError);
 
     const handleSaveBuild = () => {
         try {
@@ -94,6 +96,7 @@ function App() {
                     <button
                         type="button"
                         onClick={() => setMainView("builder")}
+                        disabled={isWorkspaceUnavailable}
                         aria-current={mainView === "builder" ? "page" : undefined}
                         className={`flex-1 border-b-2 px-4 py-3 text-xs font-bold uppercase tracking-[0.15em] transition-all ${
                             mainView === "builder"
@@ -106,6 +109,7 @@ function App() {
                     <button
                         type="button"
                         onClick={() => setMainView("optimizer")}
+                        disabled={isWorkspaceUnavailable}
                         aria-current={mainView === "optimizer" ? "page" : undefined}
                         className={`flex-1 border-b-2 px-4 py-3 text-xs font-bold uppercase tracking-[0.15em] transition-all ${
                             mainView === "optimizer"
@@ -121,6 +125,7 @@ function App() {
                     <button
                         type="button"
                         onClick={handleSaveBuild}
+                        disabled={isWorkspaceUnavailable}
                         className="header-action header-action-primary"
                     >
                         <span aria-hidden="true">↓</span> Zapisz build
@@ -128,6 +133,7 @@ function App() {
                     <button
                         type="button"
                         onClick={() => buildFileInputRef.current?.click()}
+                        disabled={isWorkspaceUnavailable}
                         className="header-action"
                     >
                         <span aria-hidden="true">↑</span> Wczytaj build
@@ -159,16 +165,29 @@ function App() {
                 </div>
             )}
 
-            {initialDataError && (
-                <div
-                    role="alert"
-                    className="w-full border border-red-900/70 bg-red-950/40 px-4 py-3 text-center text-sm text-red-300 shadow-inner"
-                >
-                    Nie udało się załadować danych gry: {initialDataError}
+            {loading && (
+                <section className="workspace-state" role="status" aria-live="polite">
+                    <span className="workspace-state-spinner" aria-hidden="true" />
+                    <div>
+                        <p className="section-kicker">Przygotowanie warsztatu</p>
+                        <h2>Ładowanie danych gry</h2>
+                        <p>Pobieramy przedmioty, orby, drify i reguły wymagane przez kalkulator.</p>
+                    </div>
+                </section>
+            )}
+
+            {!loading && initialDataError && (
+                <div role="alert" className="workspace-state workspace-state-error">
+                    <span aria-hidden="true">!</span>
+                    <div>
+                        <p className="section-kicker">Brak danych źródłowych</p>
+                        <h2>Nie udało się uruchomić kalkulatora</h2>
+                        <p>{initialDataError}</p>
+                    </div>
                 </div>
             )}
 
-            {mainView === "builder" ? (
+            {!isWorkspaceUnavailable && mainView === "builder" ? (
                 <BuilderWorkspace
                     data={data}
                     categoryNames={categoryNames}
@@ -185,12 +204,12 @@ function App() {
                     onCharacterStatsUpdate={handleCharacterStatsUpdate}
                     onCalculateStats={calculateStats}
                 />
-            ) : (
+            ) : !isWorkspaceUnavailable ? (
                 <OptimizerWorkspace
                     settings={optimizerSettings}
                     onSettingsChange={setOptimizerSettings}
                 />
-            )}
+            ) : null}
         </div>
     );
 }
