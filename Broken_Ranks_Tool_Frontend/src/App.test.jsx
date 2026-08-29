@@ -72,16 +72,21 @@ describe("App", () => {
             "page"
         );
         expect(screen.getByText("Ustawienia optymalizatora")).toBeInTheDocument();
+        const optimizerSearch = screen.getByPlaceholderText("Szukaj statystyki...");
+        await user.type(optimizerSearch, "krytyk");
         expect(
             screen.queryByRole("button", { name: /Przelicz statystyki/i })
         ).not.toBeInTheDocument();
 
         await user.click(screen.getByRole("button", { name: /Kreator ekwipunku/i }));
-        expect(screen.queryByText("Ustawienia optymalizatora")).not.toBeInTheDocument();
+        expect(screen.getByText("Ustawienia optymalizatora")).not.toBeVisible();
         await user.click(screen.getByRole("button", { name: /Zapisz build/i }));
         await user.click(screen.getByRole("button", { name: /Przelicz statystyki/i }));
         expect(equipment.saveBuildToFile).toHaveBeenCalledOnce();
         expect(equipment.calculateStats).toHaveBeenCalledOnce();
+
+        await user.click(screen.getByRole("button", { name: /Optymalizator drifów/i }));
+        expect(screen.getByPlaceholderText("Szukaj statystyki...")).toHaveValue("krytyk");
     });
 
     it("loads a selected build and reports success and failure without blocking alerts", async () => {
