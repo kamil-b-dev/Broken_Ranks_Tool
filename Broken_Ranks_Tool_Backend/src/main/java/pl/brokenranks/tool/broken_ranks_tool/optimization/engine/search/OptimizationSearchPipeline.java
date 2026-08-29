@@ -4,6 +4,7 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.BuildStat
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationContext;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction.OptimizationBeamSearch;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction.OptimizationGreedySearch;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction.OptimizationResidualCapacityFiller;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.maximization.OptimizationSelectedBonusMaximizer;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.neighborhood.OptimizationLargeNeighborhoodSearch;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.refinement.OptimizationDeterministicRefiner;
@@ -13,6 +14,7 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.requirem
 public final class OptimizationSearchPipeline {
 
     private final OptimizationGreedySearch greedySearch;
+    private final OptimizationResidualCapacityFiller residualCapacityFiller;
     private final OptimizationBeamSearch beamSearch;
     private final OptimizationLevelAllocator levelAllocator;
     private final OptimizationRequirementSatisfier requirementSatisfier;
@@ -22,6 +24,7 @@ public final class OptimizationSearchPipeline {
 
     public OptimizationSearchPipeline(
             OptimizationGreedySearch greedySearch,
+            OptimizationResidualCapacityFiller residualCapacityFiller,
             OptimizationBeamSearch beamSearch,
             OptimizationLevelAllocator levelAllocator,
             OptimizationRequirementSatisfier requirementSatisfier,
@@ -29,6 +32,7 @@ public final class OptimizationSearchPipeline {
             OptimizationSelectedBonusMaximizer selectedBonusMaximizer,
             OptimizationLargeNeighborhoodSearch largeNeighborhoodSearch) {
         this.greedySearch = greedySearch;
+        this.residualCapacityFiller = residualCapacityFiller;
         this.beamSearch = beamSearch;
         this.levelAllocator = levelAllocator;
         this.requirementSatisfier = requirementSatisfier;
@@ -46,7 +50,7 @@ public final class OptimizationSearchPipeline {
         }
         state = optimizeLevelsAndTargets(state, context);
         state = deterministicRefiner.refine(state, context);
-        state = greedySearch.fillResidualCapacity(state, context);
+        state = residualCapacityFiller.fill(state, context);
         state = optimizeLevelsAndTargets(state, context);
         state = selectedBonusMaximizer.maximize(state, context);
 

@@ -1,7 +1,6 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction;
 
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.DrifOptimizationMath.highestFittingLevel;
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.DrifOptimizationMath.power;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationRequestConstraints.*;
 
 import java.util.HashMap;
@@ -22,7 +21,6 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.requirem
 public final class OptimizationGreedySearch {
 
     private static final double MIN_ACCEPTED_GAIN = 0.0001;
-    private static final double MAX_RESIDUAL_FILL_LOSS = 15.0;
 
     private final OptimizationInitialStateFactory initialStateFactory;
     private final MaximizedDrifBonusPrelock maximizedDrifBonusPrelock;
@@ -38,19 +36,6 @@ public final class OptimizationGreedySearch {
         if (!requirementSatisfier.satisfyMinimums(state, context)) return null;
         requirementSatisfier.satisfyForcedTargets(state, context);
         fillByWeightedGain(state, context);
-        return state;
-    }
-
-    public BuildState fillResidualCapacity(BuildState state, OptimizationContext context) {
-        int maxSteps = context.slots().stream().mapToInt(SlotContext::maxDrifs).sum();
-        for (int step = 0; step < maxSteps; step++) {
-            SlotPlacementChoice best = bestResidualChoice(state, context);
-            if (best == null) break;
-            placementOperations.putNextFree(
-                    state,
-                    best.slot(),
-                    new Placement(best.choice().drif(), best.choice().level(), false));
-        }
         return state;
     }
 
@@ -114,67 +99,6 @@ public final class OptimizationGreedySearch {
                 && !placementOperations.containsAnotherElemental(state, candidate, null);
     }
 
-    private SlotPlacementChoice bestResidualChoice(BuildState state, OptimizationContext context) {
-        SlotPlacementChoice best = null;
-        for (SlotContext slot : context.slots()) {
-            if (!canFillSlot(state, slot, context)) continue;
-            for (DrifTemplate candidate : slot.candidates()) {
-                PlacementChoice choice = residualChoice(state, slot, candidate, context);
-                if (choice != null && isBetterResidualChoice(slot, choice, best)) {
-                    best = new SlotPlacementChoice(slot, choice);
-                }
-            }
-        }
-        return best;
-    }
-
-    private PlacementChoice residualChoice(
-            BuildState state,
-            SlotContext slot,
-            DrifTemplate candidate,
-            OptimizationContext context) {
-        DRIF_BONUS_TYPE type = candidate.getBonusType();
-        List<Placement> placements = state.slots().get(slot.key());
-        Double target = targetFor(type, context.request());
-        if (target != null
-                && stateEvaluation.calculatedValue(state, type, context)
-                        >= target - TARGET_TOLERANCE) return null;
-        if (placementOperations.containsBonus(placements, type)
-                || stateEvaluation.globalCount(state, type, context)
-                        >= maxQuantity(type, context.request())
-                || placementOperations.containsAnotherElemental(state, candidate, null))
-            return null;
-
-        Integer level = highestFittingLevel(state, slot, candidate);
-        if (level == null) return null;
-        BuildState trial = state.copy();
-        placementOperations.putNextFree(trial, slot, new Placement(candidate, level, false));
-        if (!stateEvaluation.minimumsSatisfied(trial, context)) return null;
-
-        double gain = stateEvaluation.score(trial, context) - stateEvaluation.score(state, context);
-        int candidatePower = power(candidate, level);
-        int currentCount = stateEvaluation.globalCount(state, type, context);
-        boolean lightOptionalDrif = candidatePower <= 1 && currentCount < 3;
-        if (gain < -MAX_RESIDUAL_FILL_LOSS && !lightOptionalDrif) return null;
-
-        double selectionScore = gain - candidatePower * 0.50 - Math.max(0, currentCount - 3) * 15.0;
-        return new PlacementChoice(candidate, level, selectionScore);
-    }
-
-    private boolean canFillSlot(BuildState state, SlotContext slot, OptimizationContext context) {
-        return slot.optimizable()
-                && !placementOperations.isSlotLocked(slot, context)
-                && placementOperations.hasFreeDrifPosition(state.slots().get(slot.key()), slot);
-    }
-
-    private boolean isBetterResidualChoice(
-            SlotContext slot, PlacementChoice choice, SlotPlacementChoice current) {
-        return current == null
-                || choice.gain() > current.choice().gain() + MIN_ACCEPTED_GAIN
-                || (Math.abs(choice.gain() - current.choice().gain()) <= MIN_ACCEPTED_GAIN
-                        && isEarlierPlacement(choice.drif(), choice.level(), current.choice()));
-    }
-
     private boolean isBetterChoice(
             DrifTemplate candidate, int level, double gain, PlacementChoice current) {
         return current == null
@@ -199,6 +123,4 @@ public final class OptimizationGreedySearch {
         }
         return counts;
     }
-
-    private record SlotPlacementChoice(SlotContext slot, PlacementChoice choice) {}
 }
