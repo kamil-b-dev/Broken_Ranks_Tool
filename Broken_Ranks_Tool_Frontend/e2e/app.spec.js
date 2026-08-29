@@ -32,6 +32,24 @@ test("opens the builder and switches to the optimizer", async ({ page }) => {
     await expect(page.locator(".builder-theme")).toBeHidden();
 });
 
+test("preserves optimizer state when switching workspaces", async ({ page }) => {
+    await page.route("http://localhost:8080/api/initial-data", (route) =>
+        route.fulfill({ json: initialData })
+    );
+
+    await page.goto("/");
+    await page.getByRole("button", { name: /Optymalizator drifów/ }).click();
+
+    const bonusSearch = page.getByPlaceholder("Szukaj statystyki...");
+    await bonusSearch.fill("obrażenia krytyczne");
+
+    await page.getByRole("button", { name: /Kreator ekwipunku/i }).click();
+    await expect(page.locator(".optimizer-theme")).toBeHidden();
+
+    await page.getByRole("button", { name: /Optymalizator drifów/ }).click();
+    await expect(bonusSearch).toHaveValue("obrażenia krytyczne");
+});
+
 test("shows a useful message when startup data cannot be loaded", async ({ page }) => {
     await page.route("http://localhost:8080/api/initial-data", (route) =>
         route.fulfill({
