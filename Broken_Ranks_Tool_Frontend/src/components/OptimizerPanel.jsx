@@ -24,6 +24,7 @@ import {
 import OptimizerBonusColumn from "./optimization/OptimizerBonusColumn";
 import OptimizerMobileNavigation from "./optimization/OptimizerMobileNavigation";
 import OptimizerRunAction from "./optimization/OptimizerRunAction";
+import OptimizerLocksColumn from "./optimization/OptimizerLocksColumn";
 
 /**
  * Provides drif priorities, target limits, and equipment locking for optimization.
@@ -370,160 +371,16 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                 onChange={setActiveMobileColumn}
             />
             <div className="optimizer-main-grid grid grid-cols-1 gap-4 lg:grid-cols-12 lg:gap-4">
-                <div
-                    className={`optimizer-workspace-column optimizer-lock-column ${activeMobileColumn === "slots" ? "flex" : "hidden"} flex-col gap-2 lg:col-span-2 lg:flex lg:border-r lg:border-stone-800/60 lg:pr-4`}
-                >
-                    <div className="flex items-center justify-center border-b border-stone-700 pb-2 mb-2 min-h-[34px] shrink-0">
-                        <h4 className="text-stone-300 font-serif font-bold uppercase tracking-widest text-xs">
-                            Zablokowane Sloty
-                        </h4>
-                    </div>
-
-                    <div className="grid grid-cols-2 content-start gap-2 overflow-y-auto pr-2 flex-1 min-h-0 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-stone-800 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-purple-800/70">
-                        {SLOTS.map((slot) => {
-                            const slotData = requestData.slots?.[slot.key];
-                            const item = slotData?.itemId
-                                ? data.items.find(
-                                      (i) => i.id.toString() === slotData.itemId.toString()
-                                  )
-                                : null;
-                            const isSlotLocked = lockedSlots?.includes(slot.key);
-
-                            return (
-                                <div
-                                    key={slot.key}
-                                    className={`flex flex-col min-w-0 bg-stone-950/60 border rounded-sm transition-all ${isSlotLocked ? "border-purple-700/60 shadow-[inset_0_0_15px_rgba(88,40,130,0.24)]" : "border-stone-800/80 hover:border-purple-800"}`}
-                                >
-                                    <div className="flex justify-between items-center bg-black/60 p-2 border-b border-stone-800/60">
-                                        <span
-                                            className={`text-[10px] font-bold uppercase tracking-widest ${isSlotLocked ? "text-red-500" : "text-stone-400"}`}
-                                        >
-                                            {slot.label}
-                                        </span>
-                                        {item && (
-                                            <button
-                                                onClick={() => toggleSlotLock(slot.key)}
-                                                className={`p-1 rounded-sm transition-colors ${isSlotLocked ? "text-red-500 hover:text-red-400 bg-red-950/40" : "text-stone-600 hover:text-stone-300 bg-stone-900"}`}
-                                                title={
-                                                    isSlotLocked
-                                                        ? "Odblokuj slot"
-                                                        : "Zablokuj cały slot"
-                                                }
-                                            >
-                                                {isSlotLocked ? (
-                                                    <svg
-                                                        className="w-3.5 h-3.5"
-                                                        fill="currentColor"
-                                                        viewBox="0 0 20 20"
-                                                    >
-                                                        <path
-                                                            fillRule="evenodd"
-                                                            d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
-                                                            clipRule="evenodd"
-                                                        />
-                                                    </svg>
-                                                ) : (
-                                                    <svg
-                                                        className="w-3.5 h-3.5"
-                                                        fill="none"
-                                                        stroke="currentColor"
-                                                        viewBox="0 0 24 24"
-                                                    >
-                                                        <path
-                                                            strokeLinecap="round"
-                                                            strokeLinejoin="round"
-                                                            strokeWidth="2"
-                                                            d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"
-                                                        />
-                                                    </svg>
-                                                )}
-                                            </button>
-                                        )}
-                                    </div>
-                                    <div className="p-2 flex flex-col gap-1.5">
-                                        {item ? (
-                                            <>
-                                                <div
-                                                    className={`text-xs font-bold ${isSlotLocked ? "text-stone-500" : "text-stone-300"} truncate pb-1`}
-                                                >
-                                                    {item.name}
-                                                </div>
-                                                {slotData.drifIds?.map((drifId, idx) => {
-                                                    const drif = data.drifs.find(
-                                                        (d) =>
-                                                            d.id.toString() === drifId?.toString()
-                                                    );
-                                                    const isDrifLocked =
-                                                        lockedDrifs?.[slot.key]?.includes(idx) ||
-                                                        isSlotLocked;
-
-                                                    return (
-                                                        <div
-                                                            key={idx}
-                                                            className={`flex justify-between items-center bg-black/40 border p-1 rounded-sm ${isDrifLocked && !isSlotLocked ? "border-red-900/40" : "border-stone-800/60"}`}
-                                                        >
-                                                            <span
-                                                                className={`text-[10px] truncate pr-2 ${drif ? (isDrifLocked ? "text-red-400/80" : "text-amber-600/80") : "text-stone-700 italic"}`}
-                                                            >
-                                                                {drif
-                                                                    ? `${drif.name} (${drif.size})`
-                                                                    : "Pusty drif"}
-                                                            </span>
-                                                            {drif && (
-                                                                <button
-                                                                    onClick={() =>
-                                                                        toggleDrifLock(
-                                                                            slot.key,
-                                                                            idx
-                                                                        )
-                                                                    }
-                                                                    disabled={isSlotLocked}
-                                                                    className={`p-1 transition-colors shrink-0 ${isDrifLocked ? "text-red-500" : "text-stone-600 hover:text-stone-400"} ${isSlotLocked ? "opacity-30 cursor-not-allowed" : "cursor-pointer"}`}
-                                                                >
-                                                                    {isDrifLocked ? (
-                                                                        <svg
-                                                                            className="w-3 h-3"
-                                                                            fill="currentColor"
-                                                                            viewBox="0 0 20 20"
-                                                                        >
-                                                                            <path
-                                                                                fillRule="evenodd"
-                                                                                d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
-                                                                                clipRule="evenodd"
-                                                                            />
-                                                                        </svg>
-                                                                    ) : (
-                                                                        <svg
-                                                                            className="w-3 h-3"
-                                                                            fill="none"
-                                                                            stroke="currentColor"
-                                                                            viewBox="0 0 24 24"
-                                                                        >
-                                                                            <path
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                                strokeWidth="2"
-                                                                                d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"
-                                                                            />
-                                                                        </svg>
-                                                                    )}
-                                                                </button>
-                                                            )}
-                                                        </div>
-                                                    );
-                                                })}
-                                            </>
-                                        ) : (
-                                            <span className="text-[10px] text-stone-600 italic py-1">
-                                                Brak założonego przedmiotu
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
+                <OptimizerLocksColumn
+                    active={activeMobileColumn === "slots"}
+                    slots={requestData.slots}
+                    items={data.items}
+                    drifs={data.drifs}
+                    lockedSlots={lockedSlots}
+                    lockedDrifs={lockedDrifs}
+                    onToggleSlot={toggleSlotLock}
+                    onToggleDrif={toggleDrifLock}
+                />
 
                 <OptimizerBonusColumn
                     active={activeMobileColumn === "bonuses"}
