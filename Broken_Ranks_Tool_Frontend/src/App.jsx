@@ -11,6 +11,7 @@ import { useEquipment } from "./context/EquipmentContext";
  */
 function App() {
     const [mainView, setMainView] = useState("builder");
+    const [buildFileNotice, setBuildFileNotice] = useState(null);
     const [optimizerSettings, setOptimizerSettings] = useState({
         forceMaximizationByDrifBonus: false,
         generateVariants: false,
@@ -38,14 +39,35 @@ function App() {
     } = useEquipment();
     const buildFileInputRef = useRef(null);
 
+    const handleSaveBuild = () => {
+        try {
+            saveBuildToFile();
+            setBuildFileNotice({
+                type: "success",
+                message: "Build został zapisany w pliku JSON.",
+            });
+        } catch (error) {
+            setBuildFileNotice({
+                type: "error",
+                message: `Nie udało się zapisać buildu: ${error.message}`,
+            });
+        }
+    };
+
     const handleBuildFileChange = async (event) => {
         const file = event.target.files?.[0];
         if (!file) return;
         try {
             await loadBuildFromFile(file);
-            alert("Build został poprawnie wczytany.");
+            setBuildFileNotice({
+                type: "success",
+                message: `Wczytano build z pliku ${file.name}.`,
+            });
         } catch (error) {
-            alert(`Nie udało się wczytać buildu: ${error.message}`);
+            setBuildFileNotice({
+                type: "error",
+                message: `Nie udało się wczytać buildu: ${error.message}`,
+            });
         } finally {
             event.target.value = "";
         }
@@ -98,7 +120,7 @@ function App() {
                 <div className="header-actions">
                     <button
                         type="button"
-                        onClick={saveBuildToFile}
+                        onClick={handleSaveBuild}
                         className="header-action header-action-primary"
                     >
                         <span aria-hidden="true">↓</span> Zapisz build
@@ -119,6 +141,23 @@ function App() {
                     />
                 </div>
             </header>
+
+            {buildFileNotice && (
+                <div
+                    className={`build-file-notice build-file-notice-${buildFileNotice.type}`}
+                    role={buildFileNotice.type === "error" ? "alert" : "status"}
+                >
+                    <span aria-hidden="true">{buildFileNotice.type === "error" ? "!" : "✓"}</span>
+                    <p>{buildFileNotice.message}</p>
+                    <button
+                        type="button"
+                        onClick={() => setBuildFileNotice(null)}
+                        aria-label="Zamknij komunikat"
+                    >
+                        ×
+                    </button>
+                </div>
+            )}
 
             {initialDataError && (
                 <div

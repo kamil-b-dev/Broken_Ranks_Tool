@@ -79,23 +79,37 @@ describe("App", () => {
         expect(equipment.calculateStats).toHaveBeenCalledOnce();
     });
 
-    it("loads a selected build and reports success and failure", async () => {
-        const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
+    it("loads a selected build and reports success and failure without blocking alerts", async () => {
         const { container, rerender } = render(<App />);
         const input = container.querySelector('input[type="file"]');
         const file = new File(["{}"], "build.json", { type: "application/json" });
 
         fireEvent.change(input, { target: { files: [file] } });
         await vi.waitFor(() =>
-            expect(alertSpy).toHaveBeenCalledWith("Build został poprawnie wczytany.")
+            expect(screen.getByRole("status")).toHaveTextContent(
+                "Wczytano build z pliku build.json"
+            )
         );
 
         equipment.loadBuildFromFile.mockRejectedValueOnce(new Error("uszkodzony plik"));
         rerender(<App />);
         fireEvent.change(input, { target: { files: [file] } });
         await vi.waitFor(() =>
-            expect(alertSpy).toHaveBeenCalledWith("Nie udało się wczytać buildu: uszkodzony plik")
+            expect(screen.getByRole("alert")).toHaveTextContent(
+                "Nie udało się wczytać buildu: uszkodzony plik"
+            )
         );
+    });
+
+    it("reports file export and allows dismissing the message", async () => {
+        const user = userEvent.setup();
+        render(<App />);
+
+        await user.click(screen.getByRole("button", { name: /Zapisz build/i }));
+        expect(screen.getByRole("status")).toHaveTextContent("Build został zapisany");
+
+        await user.click(screen.getByRole("button", { name: "Zamknij komunikat" }));
+        expect(screen.queryByRole("status")).not.toBeInTheDocument();
     });
 
     it("shows the initial API error", () => {
