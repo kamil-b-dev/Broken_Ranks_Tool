@@ -22,6 +22,7 @@ const equipment = {
         bonusTranslations: {},
         drifBonusCategories: {},
     },
+    loading: false,
     initialDataError: null,
     requestData: { slots: {} },
     stats: null,
@@ -116,6 +117,17 @@ describe("App", () => {
         useEquipment.mockReturnValue({ ...equipment, initialDataError: "brak połączenia" });
         render(<App />);
         expect(screen.getByRole("alert")).toHaveTextContent("brak połączenia");
+        expect(screen.queryByRole("heading", { name: "Ekwipunek" })).not.toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /Zapisz build/i })).toBeDisabled();
+    });
+
+    it("shows a dedicated loading state before rendering the workspaces", () => {
+        useEquipment.mockReturnValue({ ...equipment, loading: true });
+        render(<App />);
+
+        expect(screen.getByRole("status")).toHaveTextContent("Ładowanie danych gry");
+        expect(screen.queryByRole("heading", { name: "Ekwipunek" })).not.toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /Optymalizator drifów/i })).toBeDisabled();
     });
 
     it("keeps optimizer lock controls out of the manual builder", async () => {
