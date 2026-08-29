@@ -638,7 +638,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
     };
 
     return (
-        <div className="bg-gradient-to-b from-stone-900 to-black p-3 sm:p-5 border-2 border-stone-800 shadow-[0_0_30px_rgba(0,0,0,0.9)] flex flex-col h-full relative">
+        <div className="optimizer-console bg-gradient-to-b from-stone-900 to-black p-3 sm:p-5 border-2 border-stone-800 shadow-[0_0_30px_rgba(0,0,0,0.9)] flex flex-col h-full relative">
             <nav
                 className="lg:hidden grid grid-cols-4 gap-1 mb-3 shrink-0"
                 aria-label="Sekcje optymalizatora"
@@ -1756,7 +1756,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                     <button
                         onClick={handleOptimizeClick}
                         disabled={prioritizedBonuses.length === 0 || isOptimizing}
-                        className="w-full sm:w-auto sm:min-w-[320px] px-8 py-4 bg-gradient-to-b from-purple-900 to-black border border-purple-800 hover:from-purple-800 hover:to-black hover:border-purple-500 text-stone-200 font-serif font-bold text-sm uppercase tracking-[0.2em] transition-all shadow-[0_0_15px_rgba(128,0,128,0.3)] hover:shadow-[0_0_25px_rgba(160,32,240,0.5)] disabled:opacity-40 disabled:hover:from-purple-900 disabled:cursor-not-allowed flex items-center justify-center gap-3 rounded-sm"
+                        className="optimizer-run-action w-full sm:w-auto sm:min-w-[320px] px-8 py-4 bg-gradient-to-b from-purple-900 to-black border border-purple-800 hover:from-purple-800 hover:to-black hover:border-purple-500 text-stone-200 font-serif font-bold text-sm uppercase tracking-[0.2em] transition-all shadow-[0_0_15px_rgba(128,0,128,0.3)] hover:shadow-[0_0_25px_rgba(160,32,240,0.5)] disabled:opacity-40 disabled:hover:from-purple-900 disabled:cursor-not-allowed flex items-center justify-center gap-3 rounded-sm"
                     >
                         {isOptimizing ? (
                             <>

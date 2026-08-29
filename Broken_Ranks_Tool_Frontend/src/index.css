@@ -1285,7 +1285,14 @@ input:focus-visible {
     --optimizer-violet-bright: #c4a7ff;
     --optimizer-violet-dark: rgba(35, 12, 63, 0.82);
     padding: 0.15rem;
-    background: radial-gradient(circle at 50% 0%, rgba(98, 39, 155, 0.16), transparent 34rem);
+    background:
+        linear-gradient(rgba(173, 119, 59, 0.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(173, 119, 59, 0.014) 1px, transparent 1px),
+        radial-gradient(circle at 50% 0%, rgba(98, 39, 155, 0.12), transparent 34rem);
+    background-size:
+        3rem 3rem,
+        3rem 3rem,
+        auto;
 }
 
 .optimizer-overview {
@@ -1293,9 +1300,12 @@ input:focus-visible {
     align-items: stretch;
     gap: 1rem;
     overflow-x: auto;
-    border: 1px solid rgba(81, 40, 124, 0.78);
-    background: linear-gradient(90deg, rgba(12, 8, 17, 0.97), rgba(5, 4, 7, 0.98));
-    box-shadow: inset 0 1px rgba(221, 196, 255, 0.045);
+    border: 1px solid rgba(132, 91, 46, 0.68);
+    border-top-color: rgba(192, 138, 68, 0.72);
+    background: linear-gradient(90deg, rgba(14, 12, 13, 0.98), rgba(5, 5, 6, 0.99));
+    box-shadow:
+        inset 0 1px rgba(255, 224, 175, 0.045),
+        inset 0 0 24px rgba(77, 40, 20, 0.06);
 }
 
 .optimizer-overview-title {
@@ -1304,7 +1314,7 @@ input:focus-visible {
     flex-direction: column;
     justify-content: center;
     padding: 0.75rem 1rem;
-    border-right: 1px solid rgba(80, 42, 112, 0.72);
+    border-right: 1px solid rgba(121, 82, 43, 0.68);
 }
 
 .optimizer-overview-title span,
@@ -1318,7 +1328,7 @@ input:focus-visible {
 
 .optimizer-overview-title strong {
     margin-top: 0.2rem;
-    color: #d8c9e7;
+    color: #d8b573;
     font-family: Georgia, Cambria, "Times New Roman", serif;
     font-size: 0.85rem;
     letter-spacing: 0.1em;
@@ -1346,7 +1356,7 @@ input:focus-visible {
 }
 
 .optimizer-overview dd {
-    color: #c6a4ea;
+    color: #d3a95e;
     font-family: Georgia, Cambria, "Times New Roman", serif;
     font-size: 1rem;
     font-weight: 700;
@@ -1354,6 +1364,18 @@ input:focus-visible {
 
 .optimizer-main-grid {
     min-height: 0;
+}
+
+@media (min-width: 1024px) {
+    .optimizer-main-grid {
+        grid-template-columns:
+            minmax(11rem, 0.8fr) minmax(12rem, 0.85fr) minmax(22rem, 1.65fr)
+            minmax(20rem, 1.35fr) !important;
+    }
+
+    .optimizer-main-grid > * {
+        grid-column: auto !important;
+    }
 }
 
 .optimizer-workspace-column {
@@ -1415,6 +1437,27 @@ input:focus-visible {
         0 18px 42px rgba(0, 0, 0, 0.38);
 }
 
+.optimizer-settings-strip,
+.optimizer-console {
+    border-color: rgba(126, 85, 44, 0.72) !important;
+    background:
+        linear-gradient(rgba(183, 127, 63, 0.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(183, 127, 63, 0.014) 1px, transparent 1px),
+        linear-gradient(155deg, rgba(20, 17, 18, 0.98), rgba(5, 5, 6, 0.99) 62%) !important;
+    background-size:
+        2.75rem 2.75rem,
+        2.75rem 2.75rem,
+        auto !important;
+    box-shadow:
+        0 18px 42px rgba(0, 0, 0, 0.42),
+        inset 0 1px rgba(255, 224, 175, 0.04),
+        inset 0 0 30px rgba(83, 46, 24, 0.055) !important;
+}
+
+.optimizer-settings-strip h3 {
+    color: #d2a860 !important;
+}
+
 .optimizer-theme [class*="bg-purple-950"],
 .optimizer-theme [class*="bg-purple-900"] {
     background-color: var(--optimizer-violet-dark) !important;
@@ -1463,19 +1506,19 @@ input:focus-visible {
 .optimizer-bonus-column > div:first-child,
 .optimizer-priority-column > div:first-child,
 .optimizer-info-column > div:first-child {
-    border-bottom-color: rgba(106, 55, 158, 0.72) !important;
+    border-bottom-color: rgba(142, 94, 48, 0.72) !important;
 }
 
 .optimizer-lock-column > div:first-child h4,
 .optimizer-bonus-column > div:first-child h4,
 .optimizer-priority-column > div:first-child h4,
 .optimizer-info-column > div:first-child h4 {
-    color: #d5c2fa;
-    text-shadow: 0 0 14px rgba(161, 112, 225, 0.2);
+    color: #d6ad67;
+    text-shadow: 0 0 14px rgba(179, 112, 48, 0.13);
 }
 
 .optimizer-bonus-column {
-    border-right-color: rgba(73, 36, 111, 0.74) !important;
+    border-right-color: rgba(112, 75, 40, 0.74) !important;
 }
 
 .optimizer-bonus-column input {
@@ -1512,7 +1555,31 @@ input:focus-visible {
 }
 
 .optimizer-info-column {
-    border-left-color: rgba(73, 36, 111, 0.74) !important;
+    border-left-color: rgba(112, 75, 40, 0.74) !important;
+}
+
+.optimizer-workspace-column {
+    padding-block: 0.15rem;
+}
+
+.optimizer-run-action {
+    border-color: rgba(187, 125, 242, 0.88) !important;
+    background: linear-gradient(180deg, rgba(80, 38, 108, 0.96), rgba(17, 8, 22, 0.98)) !important;
+    box-shadow:
+        inset 0 0 0 1px rgba(230, 195, 255, 0.08),
+        inset 0 1px rgba(255, 233, 255, 0.1),
+        0 0 22px rgba(134, 69, 183, 0.22) !important;
+}
+
+.optimizer-run-action:hover:not(:disabled) {
+    background: linear-gradient(
+        180deg,
+        rgba(104, 50, 139, 0.98),
+        rgba(24, 10, 31, 0.98)
+    ) !important;
+    box-shadow:
+        inset 0 0 0 1px rgba(238, 208, 255, 0.13),
+        0 0 30px rgba(157, 82, 210, 0.34) !important;
 }
 
 .optimizer-info-column section {
