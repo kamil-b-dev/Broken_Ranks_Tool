@@ -869,6 +869,94 @@ input:focus-visible {
     background: radial-gradient(circle at 50% 0%, rgba(98, 39, 155, 0.16), transparent 34rem);
 }
 
+.optimizer-overview {
+    display: flex;
+    align-items: stretch;
+    gap: 1rem;
+    overflow-x: auto;
+    border: 1px solid rgba(81, 40, 124, 0.78);
+    background: linear-gradient(90deg, rgba(12, 8, 17, 0.97), rgba(5, 4, 7, 0.98));
+    box-shadow: inset 0 1px rgba(221, 196, 255, 0.045);
+}
+
+.optimizer-overview-title {
+    display: flex;
+    min-width: 14rem;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0.75rem 1rem;
+    border-right: 1px solid rgba(80, 42, 112, 0.72);
+}
+
+.optimizer-overview-title span,
+.optimizer-overview dt {
+    color: #766c7d;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.58rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.optimizer-overview-title strong {
+    margin-top: 0.2rem;
+    color: #d8c9e7;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.optimizer-overview dl {
+    display: grid;
+    min-width: 34rem;
+    flex: 1;
+    grid-template-columns: repeat(4, minmax(8rem, 1fr));
+}
+
+.optimizer-overview dl > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-right: 1px solid rgba(53, 36, 66, 0.72);
+}
+
+.optimizer-overview dl > div:last-child {
+    border-right: 0;
+}
+
+.optimizer-overview dd {
+    color: #c6a4ea;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.optimizer-main-grid {
+    min-height: 0;
+}
+
+.optimizer-workspace-column {
+    height: calc(100vh - 21rem);
+    min-height: 42rem;
+    max-height: 58rem;
+}
+
+@media (max-width: 1023px) {
+    .optimizer-workspace-column {
+        height: min(72rem, calc(100vh - 19rem));
+        min-height: 40rem;
+        max-height: none;
+    }
+}
+
+@media (max-width: 700px) {
+    .optimizer-overview-title {
+        min-width: 10.5rem;
+    }
+}
+
 .optimizer-theme > section,
 .optimizer-theme > div:last-child {
     box-shadow:
