@@ -53,7 +53,7 @@ function App() {
 
     return (
         <div
-            className={`app-shell app-shell-${mainView} w-full max-w-[1920px] mx-auto p-4 md:p-6 xl:p-8 flex flex-col gap-6 xl:gap-8 min-h-screen`}
+            className={`app-shell app-shell-${mainView} mx-auto flex min-h-screen w-full max-w-[1920px] flex-col gap-4 p-4 md:p-6 xl:gap-5 xl:p-8`}
         >
             <header className="app-masthead shrink-0">
                 <div className="brand-lockup">
@@ -67,6 +67,33 @@ function App() {
                         </p>
                     </div>
                 </div>
+
+                <nav className="main-switch" aria-label="Główne widoki aplikacji">
+                    <button
+                        type="button"
+                        onClick={() => setMainView("builder")}
+                        aria-current={mainView === "builder" ? "page" : undefined}
+                        className={`flex-1 border-b-2 px-4 py-3 text-xs font-bold uppercase tracking-[0.15em] transition-all ${
+                            mainView === "builder"
+                                ? "border-red-700 bg-stone-900/90 text-stone-100 shadow-inner"
+                                : "border-transparent text-stone-500 hover:bg-stone-900/50 hover:text-stone-200"
+                        }`}
+                    >
+                        Kreator ekwipunku
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setMainView("optimizer")}
+                        aria-current={mainView === "optimizer" ? "page" : undefined}
+                        className={`flex-1 border-b-2 px-4 py-3 text-xs font-bold uppercase tracking-[0.15em] transition-all ${
+                            mainView === "optimizer"
+                                ? "border-purple-500 bg-purple-950/30 text-purple-300 shadow-inner"
+                                : "border-transparent text-stone-500 hover:bg-stone-900/50 hover:text-stone-200"
+                        }`}
+                    >
+                        Optymalizator drifów
+                    </button>
+                </nav>
 
                 <div className="header-actions">
                     <button
@@ -92,37 +119,6 @@ function App() {
                     />
                 </div>
             </header>
-
-            <div className="shrink-0">
-                <div className="main-switch flex w-full max-w-2xl mx-auto">
-                    <button
-                        onClick={() => setMainView("builder")}
-                        className={`flex-1 py-3.5 text-sm font-bold uppercase tracking-[0.15em] transition-all ${
-                            mainView === "builder"
-                                ? "bg-stone-900/90 border-b-2 border-red-700 text-stone-100 shadow-inner"
-                                : "text-stone-500 hover:text-stone-200 hover:bg-stone-900/50 border-b-2 border-transparent"
-                        }`}
-                    >
-                        <span className="block text-[10px] tracking-[0.25em] text-red-800 mb-0.5">
-                            I
-                        </span>
-                        Kreator ekwipunku
-                    </button>
-                    <button
-                        onClick={() => setMainView("optimizer")}
-                        className={`flex-1 py-3.5 text-sm font-bold uppercase tracking-[0.15em] transition-all ${
-                            mainView === "optimizer"
-                                ? "bg-purple-950/30 border-b-2 border-purple-500 text-purple-300 shadow-inner"
-                                : "text-stone-500 hover:text-stone-200 hover:bg-stone-900/50 border-b-2 border-transparent"
-                        }`}
-                    >
-                        <span className="block text-[10px] tracking-[0.25em] text-purple-800 mb-0.5">
-                            II
-                        </span>
-                        Optymalizator drifów
-                    </button>
-                </div>
-            </div>
 
             {initialDataError && (
                 <div

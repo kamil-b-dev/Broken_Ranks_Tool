@@ -54,10 +54,18 @@ describe("App", () => {
 
         expect(screen.getByRole("heading", { name: "Broken Ranks Tool" })).toBeInTheDocument();
         expect(screen.getByRole("heading", { name: "Ekwipunek" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /Kreator ekwipunku/i })).toHaveAttribute(
+            "aria-current",
+            "page"
+        );
 
         expect(screen.getByRole("region", { name: /Rozwój bohatera/i })).toBeInTheDocument();
         expect(screen.getByRole("spinbutton", { name: /Poziom postaci/i })).toBeInTheDocument();
         await user.click(screen.getByRole("button", { name: /Optymalizator drifów/i }));
+        expect(screen.getByRole("button", { name: /Optymalizator drifów/i })).toHaveAttribute(
+            "aria-current",
+            "page"
+        );
         expect(screen.getByText("Ustawienia optymalizatora")).toBeInTheDocument();
         expect(
             screen.queryByRole("button", { name: /Przelicz statystyki/i })

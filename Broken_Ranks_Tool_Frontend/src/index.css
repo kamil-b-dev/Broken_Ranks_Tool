@@ -160,11 +160,11 @@ input:focus-visible {
 }
 
 .app-masthead {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(18rem, 1fr) minmax(26rem, auto) minmax(18rem, 1fr);
     align-items: center;
-    justify-content: space-between;
-    gap: 1.5rem;
-    padding: 1.25rem 1.5rem;
+    gap: 1rem;
+    padding: 0.8rem 1rem;
     border: 1px solid rgba(120, 82, 39, 0.34);
     border-top-color: rgba(180, 136, 71, 0.6);
     background:
@@ -183,8 +183,8 @@ input:focus-visible {
 
 .brand-crest {
     display: grid;
-    width: 3.25rem;
-    height: 3.25rem;
+    width: 2.8rem;
+    height: 2.8rem;
     flex: 0 0 auto;
     place-items: center;
     border: 1px solid rgba(188, 143, 65, 0.75);
@@ -215,9 +215,10 @@ input:focus-visible {
 }
 
 .brand-lockup h1 {
-    font-size: clamp(1.35rem, 2.2vw, 2rem);
-    letter-spacing: 0.14em;
+    font-size: clamp(1rem, 1.35vw, 1.4rem);
+    letter-spacing: 0.1em;
     line-height: 1.1;
+    white-space: nowrap;
 }
 
 .brand-kicker,
@@ -279,12 +280,26 @@ input:focus-visible {
 }
 
 .main-switch {
+    display: flex;
+    width: min(100%, 34rem);
+    justify-self: center;
     overflow: hidden;
     border: 1px solid rgba(102, 91, 80, 0.56);
     background: rgba(4, 4, 5, 0.78);
     box-shadow:
         0 12px 30px rgba(0, 0, 0, 0.32),
         inset 0 1px rgba(255, 255, 255, 0.04);
+}
+
+@media (max-width: 1250px) {
+    .app-masthead {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .main-switch {
+        grid-column: 1 / -1;
+        grid-row: 2;
+    }
 }
 
 .workbench {
@@ -1079,17 +1094,28 @@ input:focus-visible {
 }
 
 @media (max-width: 700px) {
-    .app-masthead,
     .workbench-heading {
         align-items: flex-start;
         flex-direction: column;
     }
 
     .app-masthead {
+        grid-template-columns: 1fr;
         padding: 1rem;
     }
 
+    .brand-lockup h1 {
+        white-space: normal;
+    }
+
+    .main-switch {
+        grid-column: 1;
+        grid-row: 2;
+    }
+
     .header-actions {
+        grid-column: 1;
+        grid-row: 3;
         width: 100%;
         justify-content: stretch;
     }
