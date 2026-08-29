@@ -26,6 +26,7 @@ import OptimizerMobileNavigation from "./optimization/OptimizerMobileNavigation"
 import OptimizerRunAction from "./optimization/OptimizerRunAction";
 import OptimizerLocksColumn from "./optimization/OptimizerLocksColumn";
 import OptimizerPriorityToolbar from "./optimization/OptimizerPriorityToolbar";
+import OptimizerPriorityCardHeader from "./optimization/OptimizerPriorityCardHeader";
 
 /**
  * Provides drif priorities, target limits, and equipment locking for optimization.
@@ -439,66 +440,13 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                                             style={{ width: `${(bonus.weight / 30) * 100}%` }}
                                         ></div>
 
-                                        <div
-                                            className={`flex justify-between items-center bg-black/40 p-2 relative z-10 ${isExpanded ? "border-b border-purple-900/30" : ""}`}
-                                        >
-                                            <button
-                                                type="button"
-                                                onClick={() => togglePriorityExpanded(bonus.key)}
-                                                className="flex items-center gap-2 min-w-0 flex-1 text-left"
-                                                aria-expanded={isExpanded}
-                                            >
-                                                <span className="text-purple-500 font-bold text-xs">
-                                                    {index + 1}.
-                                                </span>
-                                                <span className="text-stone-200 text-xs font-bold font-serif truncate">
-                                                    {bonus.value}
-                                                </span>
-                                                {!isExpanded && (
-                                                    <span className="ml-auto text-[9px] text-stone-500 uppercase tracking-wide whitespace-nowrap">
-                                                        waga {bonus.weight} · {bonus.min}–
-                                                        {bonus.max}
-                                                        {bonus.forceCap ? " · cel: cap" : ""}
-                                                        {bonus.forcePercentage
-                                                            ? ` · ${bonus.forcedPercentage}%`
-                                                            : ""}
-                                                        {bonus.maximize ? " · max" : ""}
-                                                    </span>
-                                                )}
-                                                <svg
-                                                    className={`w-3 h-3 text-stone-500 shrink-0 transition-transform ${isExpanded ? "rotate-180" : ""}`}
-                                                    fill="none"
-                                                    viewBox="0 0 24 24"
-                                                    stroke="currentColor"
-                                                >
-                                                    <path
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                        strokeWidth={2}
-                                                        d="M19 9l-7 7-7-7"
-                                                    />
-                                                </svg>
-                                            </button>
-                                            <button
-                                                onClick={() => handleRemoveBonus(bonus)}
-                                                className="ml-2 text-stone-600 hover:text-red-500 transition-colors p-1"
-                                                title="Usuń z priorytetów"
-                                            >
-                                                <svg
-                                                    className="w-3.5 h-3.5"
-                                                    fill="none"
-                                                    viewBox="0 0 24 24"
-                                                    stroke="currentColor"
-                                                >
-                                                    <path
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                        strokeWidth={2}
-                                                        d="M6 18L18 6M6 6l12 12"
-                                                    />
-                                                </svg>
-                                            </button>
-                                        </div>
+                                        <OptimizerPriorityCardHeader
+                                            index={index}
+                                            bonus={bonus}
+                                            expanded={isExpanded}
+                                            onToggle={() => togglePriorityExpanded(bonus.key)}
+                                            onRemove={() => handleRemoveBonus(bonus)}
+                                        />
 
                                         {isExpanded && (
                                             <div className="flex flex-col gap-3 p-2 relative z-10">
