@@ -114,4 +114,179 @@ describe("EquipmentProvider", () => {
         expect(exposeRef.current.lockedDrifs).toEqual({ helmet: [] });
         expect(exposeRef.current.applyOptimizationSetup(null)).toBe(false);
     });
+
+    it("sends optimizer constraints and applies the optimized setup", async () => {
+        let receivedRequest;
+        const optimizedSlots = { helmet: { itemId: 2, drifIds: [9], drifLevels: { 0: 5 } } };
+        server.use(
+            http.get("http://localhost:8080/api/initial-data", () =>
+                HttpResponse.json({
+                    items: [],
+                    orbs: [],
+                    drifs: [],
+                    gameRules: {},
+                    dictionaries: {},
+                })
+            ),
+            http.post("http://localhost:8080/api/optimizer/drifs", async ({ request }) => {
+                receivedRequest = await request.json();
+                return HttpResponse.json({
+                    optimizedSetup: { slots: optimizedSlots },
+                    summary: { success: true, message: "Gotowe" },
+                });
+            })
+        );
+        const exposeRef = { current: null };
+        render(
+            <EquipmentProvider>
+                <ActionProbe exposeRef={exposeRef} />
+            </EquipmentProvider>
+        );
+        await waitFor(() => expect(exposeRef.current.loading).toBe(false));
+
+        act(() => {
+            exposeRef.current.handleSlotUpdate("helmet", {
+                itemId: 1,
+                itemStars: 7,
+                orbIds: [],
+                orbLevels: [],
+                drifIds: [8],
+                drifLevels: { 0: 3 },
+            });
+            exposeRef.current.toggleSlotLock("helmet");
+            exposeRef.current.toggleDrifLock("helmet", 0);
+        });
+
+        let result;
+        await act(async () => {
+            result = await exposeRef.current.runDrifOptimization({
+                priorities: { CRITICAL_CHANCE: 15 },
+                targetQuantities: { CRITICAL_CHANCE: { min: 1, max: 3 } },
+                forceCapBonuses: ["CRITICAL_CHANCE"],
+                generateVariants: true,
+                maxVariantLossPercent: 5,
+            });
+        });
+
+        expect(receivedRequest).toMatchObject({
+            priorities: { CRITICAL_CHANCE: 15 },
+            targetQuantities: { CRITICAL_CHANCE: { min: 1, max: 3 } },
+            forceCapBonuses: ["CRITICAL_CHANCE"],
+            forcedPercentageTargets: {},
+            maximizeBonuses: [],
+            generateVariants: true,
+            maxVariantLossPercent: 5,
+            lockedSlots: ["helmet"],
+            lockedDrifs: { helmet: [0] },
+        });
+        expect(result).toEqual({ success: true, message: "Gotowe", applied: true });
+        expect(exposeRef.current.requestData.slots).toEqual(optimizedSlots);
+        expect(exposeRef.current.optimizationTrigger).toBe(1);
+    });
+
+    it("stores calculated stats together with their display sources", async () => {
+        let receivedRequest;
+        server.use(
+            http.get("http://localhost:8080/api/initial-data", () =>
+                HttpResponse.json({
+                    items: [],
+                    orbs: [],
+                    drifs: [],
+                    gameRules: {},
+                    dictionaries: {},
+                })
+            ),
+            http.post("http://localhost:8080/api/calculator/calculate", async ({ request }) => {
+                receivedRequest = await request.json();
+                return HttpResponse.json({
+                    stats: { hp: 1234 },
+                    drifCategories: { DEFENSIVE: ["ARMOR"] },
+                    orbBonusTypes: ["HP"],
+                });
+            })
+        );
+        const exposeRef = { current: null };
+        render(
+            <EquipmentProvider>
+                <ActionProbe exposeRef={exposeRef} />
+            </EquipmentProvider>
+        );
+        await waitFor(() => expect(exposeRef.current.loading).toBe(false));
+
+        act(() => {
+            exposeRef.current.handleCharacterStatsUpdate(
+                { strength: 120 },
+                { level: 140, className: "Barbarzyńca" }
+            );
+        });
+        await act(async () => exposeRef.current.calculateStats());
+
+        expect(receivedRequest).toEqual({ slots: {}, characterStats: { strength: 120 } });
+        expect(exposeRef.current.stats).toEqual({ hp: 1234 });
+        expect(exposeRef.current.statSources).toEqual({
+            drifCategories: { DEFENSIVE: ["ARMOR"] },
+            orbBonusTypes: ["HP"],
+        });
+        expect(exposeRef.current.characterConfig).toEqual({
+            level: 140,
+            className: "Barbarzyńca",
+        });
+        expect(exposeRef.current.isCalculatingStats).toBe(false);
+    });
+
+    it("returns backend optimization errors and reports calculator failures", async () => {
+        vi.spyOn(console, "error").mockImplementation(() => {});
+        vi.spyOn(window, "alert").mockImplementation(() => {});
+        server.use(
+            http.get("http://localhost:8080/api/initial-data", () =>
+                HttpResponse.json({
+                    items: [],
+                    orbs: [],
+                    drifs: [],
+                    gameRules: {},
+                    dictionaries: {},
+                })
+            ),
+            http.post("http://localhost:8080/api/optimizer/drifs", () =>
+                HttpResponse.json(
+                    { summary: { message: "Nie znaleziono dopuszczalnego układu." } },
+                    { status: 422 }
+                )
+            ),
+            http.post("http://localhost:8080/api/calculator/calculate", () =>
+                HttpResponse.json({ message: "Niepoprawny ekwipunek." }, { status: 400 })
+            )
+        );
+        const exposeRef = { current: null };
+        render(
+            <EquipmentProvider>
+                <ActionProbe exposeRef={exposeRef} />
+            </EquipmentProvider>
+        );
+        await waitFor(() => expect(exposeRef.current.loading).toBe(false));
+        act(() => {
+            exposeRef.current.handleSlotUpdate("helmet", {
+                itemId: 1,
+                itemStars: 1,
+                orbIds: [],
+                orbLevels: [],
+                drifIds: [],
+                drifLevels: {},
+            });
+        });
+
+        let optimizationError;
+        await act(async () => {
+            optimizationError = await exposeRef.current.runDrifOptimization({});
+            await exposeRef.current.calculateStats();
+        });
+
+        expect(optimizationError).toEqual({
+            success: false,
+            message: "Nie znaleziono dopuszczalnego układu.",
+            applied: false,
+        });
+        expect(window.alert).toHaveBeenCalledWith("BŁĄD ZAPISU: Niepoprawny ekwipunek.");
+        expect(exposeRef.current.isCalculatingStats).toBe(false);
+    });
 });
