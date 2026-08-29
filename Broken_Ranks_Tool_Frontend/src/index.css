@@ -330,6 +330,204 @@ input:focus-visible {
     text-align: right;
 }
 
+.character-summary {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: stretch;
+    gap: 0.75rem;
+    padding: 0.65rem;
+    border: 1px solid rgba(112, 68, 46, 0.54);
+    background: linear-gradient(90deg, rgba(17, 13, 13, 0.97), rgba(7, 7, 8, 0.96));
+    box-shadow: inset 0 1px rgba(255, 235, 210, 0.04);
+}
+
+.character-level-control,
+.character-points-summary {
+    display: flex;
+    min-width: 7.5rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid rgba(81, 67, 58, 0.72);
+    background: rgba(0, 0, 0, 0.42);
+    color: #9b958d;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.character-level-control input {
+    width: 3.5rem;
+    border: 0;
+    background: transparent;
+    color: #e5b75f;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+.character-stat-strip {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: repeat(7, minmax(7.25rem, 1fr));
+    gap: 0.45rem;
+    overflow-x: auto;
+    padding-bottom: 0.15rem;
+}
+
+.character-stat-control {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.4rem;
+    padding: 0.45rem 0.55rem;
+    border-bottom: 1px solid rgba(109, 42, 48, 0.68);
+    background: rgba(18, 14, 15, 0.82);
+}
+
+.character-stat-control > div:first-child {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+}
+
+.character-stat-control span,
+.character-points-summary span,
+.character-points-summary small {
+    color: #807a73;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.58rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.character-stat-control strong,
+.character-points-summary strong {
+    color: #ddd6ca;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 1rem;
+}
+
+.character-stat-actions {
+    display: flex;
+    gap: 0.2rem;
+}
+
+.character-stat-actions button {
+    display: grid;
+    width: 1.45rem;
+    height: 1.45rem;
+    place-items: center;
+    border: 1px solid rgba(91, 75, 65, 0.8);
+    color: #c9c1b7;
+    background: rgba(0, 0, 0, 0.48);
+}
+
+.character-stat-actions button:hover:not(:disabled) {
+    border-color: rgba(183, 54, 75, 0.9);
+    color: #fff;
+}
+
+.character-stat-actions button:disabled {
+    opacity: 0.25;
+}
+
+.character-points-summary {
+    min-width: 8.5rem;
+    flex-wrap: wrap;
+    border-color: rgba(134, 85, 35, 0.62);
+}
+
+.character-points-summary strong {
+    color: #e5b75f;
+    font-size: 1.25rem;
+}
+
+.builder-workspace-grid {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: minmax(17rem, 0.8fr) minmax(38rem, 1.8fr) minmax(19rem, 0.9fr);
+    align-items: start;
+    gap: 1rem;
+}
+
+.builder-database-column,
+.builder-results-column {
+    position: sticky;
+    top: 1rem;
+    height: calc(100vh - 2rem);
+    min-height: 42rem;
+}
+
+.builder-database-column > div,
+.builder-results-column > section {
+    height: 100%;
+}
+
+.builder-results-column {
+    overflow-y: auto;
+}
+
+.builder-stats-panel .space-y-3,
+.builder-stats-panel .flex.flex-col.gap-1 {
+    gap: 0.35rem;
+}
+
+.builder-stats-panel section {
+    padding: 0.75rem;
+}
+
+@media (max-width: 1450px) {
+    .builder-workspace-grid {
+        grid-template-columns: minmax(17rem, 0.8fr) minmax(36rem, 1.5fr);
+    }
+
+    .builder-results-column {
+        position: static;
+        grid-column: 1 / -1;
+        height: auto;
+        min-height: 0;
+        overflow: visible;
+    }
+
+    .builder-stats-panel > div:last-child {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 1020px) {
+    .character-summary {
+        grid-template-columns: 1fr auto;
+    }
+
+    .character-stat-strip {
+        grid-column: 1 / -1;
+        grid-row: 2;
+    }
+
+    .builder-workspace-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .builder-database-column {
+        position: static;
+        height: 42rem;
+        min-height: 0;
+    }
+
+    .builder-results-column {
+        grid-column: auto;
+    }
+
+    .builder-stats-panel > div:last-child {
+        grid-template-columns: 1fr;
+    }
+}
+
 .custom-scrollbar::-webkit-scrollbar {
     width: 7px;
 }

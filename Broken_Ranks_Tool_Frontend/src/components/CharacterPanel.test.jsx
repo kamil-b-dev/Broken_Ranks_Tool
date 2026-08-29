@@ -50,4 +50,21 @@ describe("CharacterPanel", () => {
         await user.click(screen.getAllByRole("button", { name: "-" })[0]);
         expect(onStatsChange).toHaveBeenCalled();
     });
+
+    it("renders the compact workspace controls with accessible stat actions", async () => {
+        const user = userEvent.setup();
+        const onStatsChange = vi.fn();
+        render(<CharacterPanel compact onStatsChange={onStatsChange} />);
+
+        fireEvent.change(screen.getByRole("spinbutton", { name: "Poziom postaci" }), {
+            target: { value: "2" },
+        });
+        await user.click(screen.getByRole("button", { name: "Dodaj punkt: Siła" }));
+
+        expect(screen.getByText("Pozostało")).toBeInTheDocument();
+        expect(onStatsChange).toHaveBeenLastCalledWith(
+            expect.objectContaining({ Siła: 11 }),
+            expect.objectContaining({ level: 2 })
+        );
+    });
 });
