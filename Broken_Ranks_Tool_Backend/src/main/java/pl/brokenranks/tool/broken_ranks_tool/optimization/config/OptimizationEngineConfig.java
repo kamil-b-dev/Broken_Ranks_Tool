@@ -22,6 +22,7 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.Optimiza
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction.MaximizedDrifBonusPrelock;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction.OptimizationBeamSearch;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction.OptimizationGreedySearch;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction.OptimizationResidualCapacityFiller;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.maximization.OptimizationMaximizationStateComparator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.maximization.OptimizationSelectedBonusMaximizer;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.neighborhood.OptimizationLargeNeighborhoodSearch;
@@ -118,6 +119,12 @@ public class OptimizationEngineConfig {
     }
 
     @Bean
+    OptimizationResidualCapacityFiller optimizationResidualCapacityFiller(
+            OptimizationPlacementOperations placements, OptimizationStateEvaluation evaluation) {
+        return new OptimizationResidualCapacityFiller(placements, evaluation);
+    }
+
+    @Bean
     OptimizationBeamSearch optimizationBeamSearch(
             OptimizationInitialStateFactory initialStateFactory,
             OptimizationRequirementSatisfier requirements,
@@ -162,6 +169,7 @@ public class OptimizationEngineConfig {
     @Bean
     OptimizationSearchPipeline optimizationSearchPipeline(
             OptimizationGreedySearch greedySearch,
+            OptimizationResidualCapacityFiller residualCapacityFiller,
             OptimizationBeamSearch beamSearch,
             OptimizationLevelAllocator levelAllocator,
             OptimizationRequirementSatisfier requirementSatisfier,
@@ -170,6 +178,7 @@ public class OptimizationEngineConfig {
             OptimizationLargeNeighborhoodSearch neighborhoodSearch) {
         return new OptimizationSearchPipeline(
                 greedySearch,
+                residualCapacityFiller,
                 beamSearch,
                 levelAllocator,
                 requirementSatisfier,
