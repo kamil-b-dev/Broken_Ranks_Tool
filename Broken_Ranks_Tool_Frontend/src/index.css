@@ -123,6 +123,15 @@ input:focus-visible {
     animation: builder-background-drift 22s ease-in-out infinite alternate;
 }
 
+.app-shell-builder::before {
+    background:
+        radial-gradient(ellipse at 18% 8%, rgba(145, 18, 43, 0.24), transparent 34rem),
+        radial-gradient(ellipse at 88% 72%, rgba(91, 12, 30, 0.15), transparent 38rem),
+        linear-gradient(rgba(6, 3, 4, 0.3), rgba(7, 4, 5, 0.58)),
+        url("./assets/builder-page-backdrop-texture.png") center top / 68rem 68rem repeat;
+    background-blend-mode: normal, normal, normal, soft-light;
+}
+
 .app-shell::after {
     opacity: 0;
     background:
@@ -705,6 +714,14 @@ input:focus-visible {
     background-blend-mode: normal, soft-light;
 }
 
+.builder-theme .workbench.builder-equipment-column {
+    background:
+        radial-gradient(circle at 50% 18%, rgba(128, 42, 31, 0.13), transparent 32rem),
+        linear-gradient(155deg, rgba(20, 15, 15, 0.74), rgba(2, 3, 3, 0.91) 68%),
+        url("./assets/equipment-config-backdrop-texture.png") center top / 48rem 48rem repeat;
+    background-blend-mode: normal, normal, soft-light;
+}
+
 .builder-database-column,
 .builder-results-column {
     position: sticky;
@@ -1120,6 +1137,18 @@ input:focus-visible {
         url("./assets/panel-blackened-steel-texture.png");
     background-position: center;
     background-size: auto, 38rem;
+    background-blend-mode: normal, soft-light;
+}
+
+.builder-theme .item-database-theme {
+    background-image:
+        linear-gradient(155deg, rgba(20, 11, 12, 0.79), rgba(2, 3, 3, 0.91) 68%),
+        url("./assets/database-panel-backdrop-texture.png");
+    background-position: center top;
+    background-size:
+        auto,
+        34rem 34rem;
+    background-repeat: no-repeat, repeat;
     background-blend-mode: normal, soft-light;
 }
 
