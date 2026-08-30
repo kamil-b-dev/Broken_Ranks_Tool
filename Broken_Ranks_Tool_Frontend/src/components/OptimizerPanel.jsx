@@ -27,6 +27,7 @@ import OptimizerLocksColumn from "./optimization/OptimizerLocksColumn";
 import OptimizerPriorityToolbar from "./optimization/OptimizerPriorityToolbar";
 import OptimizerPriorityCardHeader from "./optimization/OptimizerPriorityCardHeader";
 import OptimizerPriorityForm from "./optimization/OptimizerPriorityForm";
+import OptimizerStatusSection from "./optimization/OptimizerStatusSection";
 
 /**
  * Provides drif priorities, target limits, and equipment locking for optimization.
@@ -474,85 +475,12 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                     </div>
 
                     <div className="overflow-y-auto pr-2 flex-1 min-h-0 space-y-4 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-stone-800 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-purple-800/70">
-                        <section className="bg-black/40 border border-stone-800 rounded-sm p-3">
-                            <h5 className="text-[10px] text-stone-400 uppercase tracking-widest font-semibold mb-2">
-                                Status
-                            </h5>
-                            {isOptimizing ? (
-                                <div className="flex items-center gap-2 text-xs text-purple-300">
-                                    <svg
-                                        className="animate-spin h-4 w-4 shrink-0"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <circle
-                                            className="opacity-25"
-                                            cx="12"
-                                            cy="12"
-                                            r="10"
-                                            stroke="currentColor"
-                                            strokeWidth="4"
-                                        ></circle>
-                                        <path
-                                            className="opacity-75"
-                                            fill="currentColor"
-                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                        ></path>
-                                    </svg>
-                                    <span>
-                                        Optymalizacja trwa ({optimizationElapsedSeconds} s).
-                                    </span>
-                                </div>
-                            ) : optimizationStatus ? (
-                                <div
-                                    className={`text-xs leading-relaxed ${optimizationStatus.success ? "text-emerald-300" : "text-amber-300"}`}
-                                >
-                                    <p>{optimizationStatus.message}</p>
-                                    {optimizationStatus.warnings?.length > 0 && (
-                                        <ul className="mt-2 space-y-1.5 border-l-2 border-amber-700/70 pl-2.5 text-amber-200">
-                                            {optimizationStatus.warnings.map((warning, index) => (
-                                                <li key={`${warning}-${index}`}>{warning}</li>
-                                            ))}
-                                        </ul>
-                                    )}
-                                    {optimizationStatus.applied && !optimizationStatus.success && (
-                                        <p className="mt-2 text-stone-400">
-                                            Zastosowano najlepszy znaleziony układ.
-                                        </p>
-                                    )}
-                                    <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1 text-[10px] uppercase tracking-wide">
-                                        {optimizationStatus.drifsPlaced !== undefined && (
-                                            <>
-                                                <dt className="text-stone-500">Umieszczono</dt>
-                                                <dd className="text-right text-stone-200 tabular-nums">
-                                                    {optimizationStatus.drifsPlaced} drifów
-                                                </dd>
-                                            </>
-                                        )}
-                                        {(optimizationStatus.executionTimeSeconds ??
-                                            lastOptimizationDurationSeconds) !== null && (
-                                            <>
-                                                <dt className="text-stone-500">Czas</dt>
-                                                <dd className="text-right text-stone-200 tabular-nums">
-                                                    {(
-                                                        optimizationStatus.executionTimeSeconds ??
-                                                        lastOptimizationDurationSeconds
-                                                    ).toFixed?.(2) ??
-                                                        optimizationStatus.executionTimeSeconds ??
-                                                        lastOptimizationDurationSeconds}{" "}
-                                                    s
-                                                </dd>
-                                            </>
-                                        )}
-                                    </dl>
-                                </div>
-                            ) : (
-                                <p className="text-xs text-stone-600 italic leading-relaxed">
-                                    Wynik i ostrzeżenia z kolejnej optymalizacji pojawią się tutaj.
-                                </p>
-                            )}
-                        </section>
+                        <OptimizerStatusSection
+                            isOptimizing={isOptimizing}
+                            elapsedSeconds={optimizationElapsedSeconds}
+                            status={optimizationStatus}
+                            lastDurationSeconds={lastOptimizationDurationSeconds}
+                        />
 
                         <section className="bg-black/40 border border-stone-800 rounded-sm p-3">
                             <h5 className="text-[10px] text-stone-400 uppercase tracking-widest font-semibold mb-3">
