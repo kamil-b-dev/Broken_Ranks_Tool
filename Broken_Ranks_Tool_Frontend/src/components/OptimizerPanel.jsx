@@ -1,10 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useEquipment } from "../context/EquipmentContext";
-import {
-    calculateCurrentModDetails,
-    createBonusOption,
-    sortBonusesByCategory,
-} from "./optimization/optimizerDomain";
+import { calculateCurrentModDetails } from "./optimization/optimizerDomain";
 import {
     buildOptimizationConfig,
     createOptimizerConfigPayload,
@@ -26,6 +22,7 @@ import {
     downloadOptimizerConfiguration,
     readOptimizerConfigurationFile,
 } from "./optimization/optimizerConfigFiles";
+import { useOptimizerPriorities } from "../hooks/useOptimizerPriorities";
 
 /**
  * Provides drif priorities, target limits, and equipment locking for optimization.
@@ -45,17 +42,29 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
         applyOptimizationSetup,
     } = useEquipment();
 
-    const [availableBonuses, setAvailableBonuses] = useState([]);
-    const [prioritizedBonuses, setPrioritizedBonuses] = useState([]);
-    const [searchQuery, setSearchQuery] = useState("");
-    const [selectedCategory, setSelectedCategory] = useState("ALL");
+    const {
+        prioritizedBonuses,
+        availableBonuses,
+        searchQuery,
+        setSearchQuery,
+        selectedCategory,
+        setSelectedCategory,
+        prioritySortDirection,
+        expandedPriorities,
+        selectBonus,
+        removeBonus,
+        clearAll,
+        updateBonus,
+        sortByPriority,
+        toggleExpanded,
+        toggleAllExpanded,
+        replaceConfiguration,
+    } = useOptimizerPriorities(gameRules);
     const [isOptimizing, setIsOptimizing] = useState(false);
     const [optimizationElapsedSeconds, setOptimizationElapsedSeconds] = useState(0);
     const [lastOptimizationDurationSeconds, setLastOptimizationDurationSeconds] = useState(null);
     const [optimizationStatus, setOptimizationStatus] = useState(null);
     const [activeVariantIndex, setActiveVariantIndex] = useState(0);
-    const [prioritySortDirection, setPrioritySortDirection] = useState("desc");
-    const [expandedPriorities, setExpandedPriorities] = useState(new Set());
     const [activeMobileColumn, setActiveMobileColumn] = useState("priorities");
     const configInputRef = useRef(null);
     const optimizationStartTimeRef = useRef(null);
@@ -73,23 +82,6 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
         return () => window.clearInterval(timerId);
     }, [isOptimizing]);
 
-    useEffect(() => {
-        if (gameRules?.bonusTranslations) {
-            const allBonuses = Object.entries(gameRules.bonusTranslations)
-                .map(([key, value]) =>
-                    createBonusOption([key, value], gameRules.drifBonusCategories)
-                )
-                .filter((b) => gameRules.drifBasePowers[b.key] !== undefined);
-            setAvailableBonuses(sortBonusesByCategory(allBonuses));
-        }
-    }, [gameRules, drifCategories]);
-
-    const filteredAvailableBonuses = availableBonuses.filter((b) => {
-        const matchesCategory = selectedCategory === "ALL" || b.categoryKey === selectedCategory;
-        const matchesSearch = b.value.toLowerCase().includes(searchQuery.toLowerCase());
-        return matchesCategory && matchesSearch;
-    });
-
     const currentModDetails = useMemo(
         () =>
             calculateCurrentModDetails({
@@ -101,94 +93,6 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
             }),
         [data.drifs, data.items, gameRules, prioritizedBonuses, requestData.slots]
     );
-
-    /** Moves a selected bonus into the priority list. */
-    const handleSelectBonus = (bonus) => {
-        setPrioritizedBonuses((prev) => [
-            ...prev,
-            {
-                ...bonus,
-                weight: 15,
-                min: 0,
-                max: 12,
-                forceCap: false,
-                forcePercentage: false,
-                forcedPercentage: "",
-                maximize: false,
-            },
-        ]);
-        setAvailableBonuses((prev) => prev.filter((b) => b.key !== bonus.key));
-        setExpandedPriorities(new Set([bonus.key]));
-        setActiveMobileColumn("priorities");
-    };
-
-    /** Removes a bonus from the priority list and restores it to available choices. */
-    const handleRemoveBonus = (bonus) => {
-        setAvailableBonuses((prev) =>
-            sortBonusesByCategory([
-                ...prev,
-                createBonusOption([bonus.key, bonus.value], gameRules?.drifBonusCategories),
-            ])
-        );
-        setPrioritizedBonuses((prev) => prev.filter((b) => b.key !== bonus.key));
-        setExpandedPriorities((prev) => {
-            const next = new Set(prev);
-            next.delete(bonus.key);
-            return next;
-        });
-    };
-
-    /** Clears all configured priorities. */
-    const handleClearAll = () => {
-        setAvailableBonuses((prev) => {
-            const combined = [
-                ...prev,
-                ...prioritizedBonuses.map((b) =>
-                    createBonusOption([b.key, b.value], gameRules?.drifBonusCategories)
-                ),
-            ];
-            return sortBonusesByCategory(combined);
-        });
-        setPrioritizedBonuses([]);
-        setExpandedPriorities(new Set());
-    };
-
-    /** Updates one field of a configured priority. */
-    const handleUpdateBonus = (key, field, value) => {
-        setPrioritizedBonuses((prev) =>
-            prev.map((b) => {
-                if (b.key === key) {
-                    if (field === "forceCap" && value) {
-                        return { ...b, forceCap: true, forcePercentage: false };
-                    }
-                    if (field === "forcePercentage" && value) {
-                        return { ...b, forcePercentage: true, forceCap: false, maximize: false };
-                    }
-                    if (field === "maximize" && value) {
-                        return { ...b, maximize: true, forcePercentage: false };
-                    }
-                    return { ...b, [field]: value };
-                }
-                return b;
-            })
-        );
-    };
-
-    /** Sorts priorities by weight while preserving tie order. */
-    const handleSortByPriority = () => {
-        setPrioritizedBonuses((prev) => {
-            const direction = prioritySortDirection === "desc" ? 1 : -1;
-            return prev
-                .map((bonus, index) => ({ bonus, index }))
-                .sort((left, right) => {
-                    const weightDifference =
-                        (Number(right.bonus.weight) - Number(left.bonus.weight)) * direction;
-                    return weightDifference || left.index - right.index;
-                })
-                .map(({ bonus }) => bonus);
-        });
-        setPrioritySortDirection((prev) => (prev === "desc" ? "asc" : "desc"));
-    };
 
     const handleSaveConfiguration = () => {
         const payload = createOptimizerConfigPayload(prioritizedBonuses, optimizerSettings);
@@ -202,11 +106,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
         try {
             const payload = await readOptimizerConfigurationFile(file);
             const imported = parseOptimizerConfigPayload(payload, gameRules);
-            setPrioritizedBonuses(imported.priorities);
-            setExpandedPriorities(
-                imported.priorities.length > 0 ? new Set([imported.priorities[0].key]) : new Set()
-            );
-            setAvailableBonuses(imported.availableBonuses);
+            replaceConfiguration(imported);
             if (imported.maxVariantLossPercent !== null) {
                 onOptimizerSettingsChange((previous) => ({
                     ...previous,
@@ -252,15 +152,6 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
         }
     };
 
-    const togglePriorityExpanded = (key) => {
-        setExpandedPriorities((prev) => {
-            const next = new Set(prev);
-            if (next.has(key)) next.delete(key);
-            else next.add(key);
-            return next;
-        });
-    };
-
     return (
         <div className="optimizer-console bg-gradient-to-b from-stone-900 to-black p-3 sm:p-5 border-2 border-stone-800 shadow-[0_0_30px_rgba(0,0,0,0.9)] flex flex-col h-full relative">
             <OptimizerMobileNavigation
@@ -282,13 +173,16 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
 
                 <OptimizerBonusColumn
                     active={activeMobileColumn === "bonuses"}
-                    bonuses={filteredAvailableBonuses}
+                    bonuses={availableBonuses}
                     searchQuery={searchQuery}
                     selectedCategory={selectedCategory}
                     categoryLabels={drifCategories}
                     onSearchChange={setSearchQuery}
                     onCategoryChange={setSelectedCategory}
-                    onSelect={handleSelectBonus}
+                    onSelect={(bonus) => {
+                        selectBonus(bonus);
+                        setActiveMobileColumn("priorities");
+                    }}
                 />
 
                 <div
@@ -301,15 +195,9 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                         anyExpanded={expandedPriorities.size > 0}
                         onLoad={handleLoadConfiguration}
                         onSave={handleSaveConfiguration}
-                        onSort={handleSortByPriority}
-                        onToggleExpanded={() =>
-                            setExpandedPriorities(
-                                expandedPriorities.size > 0
-                                    ? new Set()
-                                    : new Set(prioritizedBonuses.map((bonus) => bonus.key))
-                            )
-                        }
-                        onClear={handleClearAll}
+                        onSort={sortByPriority}
+                        onToggleExpanded={toggleAllExpanded}
+                        onClear={clearAll}
                     />
 
                     <div className="overflow-y-auto pr-2 flex-1 min-h-0 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-stone-800 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-purple-800/70">
@@ -339,8 +227,8 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                                             index={index}
                                             bonus={bonus}
                                             expanded={isExpanded}
-                                            onToggle={() => togglePriorityExpanded(bonus.key)}
-                                            onRemove={() => handleRemoveBonus(bonus)}
+                                            onToggle={() => toggleExpanded(bonus.key)}
+                                            onRemove={() => removeBonus(bonus)}
                                         />
 
                                         {isExpanded && (
@@ -349,7 +237,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                                                 potential={potential}
                                                 maxCap={maxCap}
                                                 onChange={(field, value) =>
-                                                    handleUpdateBonus(bonus.key, field, value)
+                                                    updateBonus(bonus.key, field, value)
                                                 }
                                             />
                                         )}
