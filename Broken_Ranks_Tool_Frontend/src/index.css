@@ -964,18 +964,18 @@ input:focus-visible {
 }
 
 .equipment-body-layer-legs {
-    top: 47%;
-    left: 22%;
-    width: 56%;
-    height: 48%;
+    top: 45%;
+    left: 25%;
+    width: 50%;
+    height: 50%;
     background-image: url("./assets/equipment-layer-legs.png");
 }
 
 .equipment-body-layer-boots {
-    top: 67%;
-    left: 20%;
-    width: 60%;
-    height: 32%;
+    top: 70%;
+    left: 25%;
+    width: 50%;
+    height: 29%;
     background-image: url("./assets/equipment-layer-boots.png");
 }
 
@@ -988,28 +988,30 @@ input:focus-visible {
 }
 
 .equipment-body-layer-belt {
-    top: 43%;
-    left: 22%;
-    width: 56%;
-    height: 14%;
+    top: 39%;
+    left: 25%;
+    width: 50%;
+    height: 12%;
     background-image: url("./assets/equipment-layer-belt.png");
 }
 
 .equipment-body-layer-weapon {
     z-index: 2;
-    top: 31%;
-    left: 27%;
-    width: 34%;
-    height: 57%;
+    top: 33%;
+    left: 7%;
+    width: 20%;
+    height: 49%;
     background-image: url("./assets/equipment-layer-weapon.png");
+    transform: rotate(5deg);
+    transform-origin: 50% 20%;
 }
 
 .equipment-body-layer-shield {
     z-index: 3;
-    top: 27%;
-    right: 1%;
-    width: 43%;
-    height: 42%;
+    top: 31%;
+    right: 6%;
+    width: 34%;
+    height: 34%;
     background-image: url("./assets/equipment-layer-shield.png");
 }
 
@@ -1024,8 +1026,8 @@ input:focus-visible {
 
 .equipment-body-layer-ring1 {
     z-index: 4;
-    top: 52%;
-    left: 15%;
+    top: 2.5%;
+    left: 4%;
     width: 4%;
     height: 4%;
     border-radius: 50%;
@@ -1039,8 +1041,8 @@ input:focus-visible {
 }
 .equipment-body-layer-ring2 {
     z-index: 4;
-    top: 52%;
-    right: 15%;
+    top: 2.5%;
+    right: 4%;
     width: 4%;
     height: 4%;
     border-radius: 50%;
