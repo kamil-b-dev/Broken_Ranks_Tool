@@ -1,4 +1,4 @@
-import { SIZE_INDEX } from "../../utils/GearRules";
+import { ROMAN_TO_INT, SIZE_INDEX } from "../../utils/GearRules";
 import { getDrifMaxLvl } from "../../utils/formatters";
 
 export const OPTIMIZER_CONFIG_FORMAT = "broken-ranks-tool-optimizer-config";
@@ -128,3 +128,109 @@ export const highestLevelForCapacity = (drif, capacity, basePower) => {
 
 export const formatPotentialValue = (value) =>
     `${Number(value).toLocaleString("pl-PL", { maximumFractionDigits: 2 })}%`;
+
+/** Calculates current counts, penalties, and achievable ranges for prioritized modifiers. */
+export const calculateCurrentModDetails = ({
+    prioritizedBonuses,
+    slots,
+    drifs,
+    items,
+    gameRules,
+}) => {
+    const counts = {};
+    const drifsById = new Map(drifs.map((drif) => [String(drif.id), drif]));
+    const itemsById = new Map(items.map((item) => [String(item.id), item]));
+
+    Object.values(slots || {}).forEach((slot) => {
+        const typesInSlot = new Set();
+        (slot?.drifIds || []).forEach((drifId) => {
+            const drif = drifsById.get(String(drifId));
+            if (drif?.bonusType && !typesInSlot.has(drif.bonusType)) {
+                typesInSlot.add(drif.bonusType);
+                counts[drif.bonusType] = (counts[drif.bonusType] || 0) + 1;
+            }
+        });
+    });
+
+    return prioritizedBonuses.map((bonus) => {
+        const count = counts[bonus.key] || 0;
+        const multiplier = getDrifPenaltyMultiplier(count, gameRules?.drifPenaltyMultipliers);
+        const basePower = Number(gameRules?.drifBasePowers?.[bonus.key]) || 0;
+        const isElemental = ELEMENTAL_DRIF_TYPES.includes(bonus.key);
+        const matchingDrifs = drifs.filter((drif) => drif.bonusType === bonus.key);
+        const eligiblePlacements = Object.entries(slots || {}).flatMap(([slotKey, slot]) => {
+            const item = itemsById.get(String(slot?.itemId));
+            if (
+                !item ||
+                ["EPIC", "SET"].includes(String(item.rarity).toUpperCase()) ||
+                (isElemental && slotKey !== "weapon")
+            ) {
+                return [];
+            }
+
+            const tier = ROMAN_TO_INT[item.tier] || 0;
+            const maxSizeIndex = maxDrifSizeIndexForTier(tier);
+            const drif = matchingDrifs
+                .filter(
+                    (candidate) =>
+                        (SIZE_INDEX[String(candidate.size).toUpperCase()] ?? -1) <= maxSizeIndex
+                )
+                .sort((left, right) => getDrifMaxLvl(right.size) - getDrifMaxLvl(left.size))[0];
+            if (!drif) return [];
+
+            const stars = Math.max(1, Math.min(9, Number(slot.itemStars) || 1));
+            const capacityBonus = stars === 7 ? 1 : stars === 8 ? 2 : stars === 9 ? 4 : 0;
+            const capacity = (Number(item.capacity) || 0) + capacityBonus;
+            if (capacity <= 0 || capacity < basePower) return [];
+
+            const itemDrifBonus =
+                (Number(item.stats?.["Bonus drify"]) || 0) / 100 +
+                (ITEM_STAR_DRIF_BONUS[stars] || 0);
+            return [
+                {
+                    itemDrifBonus,
+                    minimumValue:
+                        calculateDrifValue(drif, Math.min(6, getDrifMaxLvl(drif.size))) *
+                        (1 + itemDrifBonus),
+                    maximumValue:
+                        calculateDrifValue(
+                            drif,
+                            highestLevelForCapacity(drif, capacity, basePower)
+                        ) *
+                        (1 + itemDrifBonus),
+                },
+            ];
+        });
+
+        const requestedMinimum = Math.max(0, Math.min(12, Number(bonus.min) || 0));
+        const requestedMaximum = Math.max(requestedMinimum, Math.min(12, Number(bonus.max) || 0));
+        const minimumPlacements = [...eligiblePlacements]
+            .sort((left, right) => left.itemDrifBonus - right.itemDrifBonus)
+            .slice(0, requestedMinimum);
+        const maximumPlacements = [...eligiblePlacements]
+            .sort((left, right) => right.itemDrifBonus - left.itemDrifBonus)
+            .slice(0, requestedMaximum);
+        const minimumPenalty = getDrifPenaltyMultiplier(
+            minimumPlacements.length,
+            gameRules?.drifPenaltyMultipliers
+        );
+        const maximumPenalty = getDrifPenaltyMultiplier(
+            maximumPlacements.length,
+            gameRules?.drifPenaltyMultipliers
+        );
+
+        return {
+            ...bonus,
+            count,
+            penaltyPercent: Math.max(0, (1 - multiplier) * 100),
+            potentialMinimum:
+                minimumPlacements.reduce((sum, placement) => sum + placement.minimumValue, 0) *
+                minimumPenalty,
+            potentialMaximum:
+                maximumPlacements.reduce((sum, placement) => sum + placement.maximumValue, 0) *
+                maximumPenalty,
+            potentialMinimumCount: minimumPlacements.length,
+            potentialMaximumCount: maximumPlacements.length,
+        };
+    });
+};
