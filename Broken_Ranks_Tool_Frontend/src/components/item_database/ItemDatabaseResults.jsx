@@ -6,7 +6,7 @@ const ItemRow = ({ item, onDragStart, onHover, onLeave }) => (
         onDragStart={(event) => onDragStart(event, item, "items")}
         onMouseMove={(event) => onHover(event, item, "items")}
         onMouseLeave={onLeave}
-        className="p-1.5 transition-colors flex justify-between items-center group cursor-grab active:cursor-grabbing hover:bg-stone-900/50 border-b border-stone-800/50"
+        className="database-result-row p-1.5 transition-colors flex justify-between items-center group cursor-grab active:cursor-grabbing hover:bg-stone-900/50 border-b border-stone-800/50"
     >
         <span className={`truncate mr-2 font-serif ${getRarityColor(item.rarity)}`}>
             {item.name || item.description || item.bonusType}
@@ -27,7 +27,7 @@ const ItemRow = ({ item, onDragStart, onHover, onLeave }) => (
 const VariantRow = ({ variants, type, bonusTranslations, onDragStart, onHover, onLeave }) => {
     const baseItem = variants[0];
     return (
-        <li className="p-1.5 flex justify-between items-center gap-2 hover:bg-stone-900/50 transition-colors border-b border-stone-800/50">
+        <li className="database-result-row p-1.5 flex justify-between items-center gap-2 hover:bg-stone-900/50 transition-colors border-b border-stone-800/50">
             <span
                 className="truncate flex-1 cursor-help flex items-center gap-1.5"
                 onMouseMove={(event) => onHover(event, baseItem, type)}

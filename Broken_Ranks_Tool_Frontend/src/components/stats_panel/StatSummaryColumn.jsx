@@ -47,7 +47,7 @@ const StatCategoryCard = ({ category, values, accent, colorLabels }) => {
     const styles = ACCENT_CLASSES[accent || category.accent];
     return (
         <section
-            className={`bg-stone-950/90 border p-4 shadow-[inset_0_0_25px_rgba(0,0,0,0.65)] ${styles.card}`}
+            className={`stat-category-card bg-stone-950/90 border p-4 shadow-[inset_0_0_25px_rgba(0,0,0,0.65)] ${styles.card}`}
         >
             <div
                 className={`flex items-center justify-between border-b pb-2 mb-2 ${styles.heading}`}
@@ -81,7 +81,7 @@ const StatSummaryColumn = ({ title, accent, categories, categoryAccents = false 
     const styles = ACCENT_CLASSES[accent];
     return (
         <section
-            className={`bg-stone-950/75 border p-4 shadow-[inset_0_0_30px_rgba(0,0,0,0.8)] ${styles.card}`}
+            className={`stat-summary-column bg-stone-950/75 border p-4 shadow-[inset_0_0_30px_rgba(0,0,0,0.8)] ${styles.card}`}
         >
             <div
                 className={`flex items-center justify-between border-b pb-3 mb-3 ${styles.heading}`}
