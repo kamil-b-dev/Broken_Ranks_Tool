@@ -28,6 +28,7 @@ import OptimizerPriorityToolbar from "./optimization/OptimizerPriorityToolbar";
 import OptimizerPriorityCardHeader from "./optimization/OptimizerPriorityCardHeader";
 import OptimizerPriorityForm from "./optimization/OptimizerPriorityForm";
 import OptimizerStatusSection from "./optimization/OptimizerStatusSection";
+import OptimizerItemsByBonusSection from "./optimization/OptimizerItemsByBonusSection";
 
 /**
  * Provides drif priorities, target limits, and equipment locking for optimization.
@@ -482,63 +483,9 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                             lastDurationSeconds={lastOptimizationDurationSeconds}
                         />
 
-                        <section className="bg-black/40 border border-stone-800 rounded-sm p-3">
-                            <h5 className="text-[10px] text-stone-400 uppercase tracking-widest font-semibold mb-3">
-                                Bonus do drifów na przedmiotach
-                            </h5>
-                            {Object.keys(optimizationStatus?.itemsByDrifBonus || {}).length ===
-                            0 ? (
-                                <p className="text-xs text-stone-600 italic leading-relaxed">
-                                    Mapa przedmiotów pojawi się po optymalizacji.
-                                </p>
-                            ) : (
-                                <div className="space-y-2">
-                                    {Object.entries(optimizationStatus.itemsByDrifBonus)
-                                        .sort(([left], [right]) => Number(right) - Number(left))
-                                        .map(([bonus, items]) => (
-                                            <div
-                                                key={bonus}
-                                                className="border-b border-stone-800/70 pb-2 last:border-0 last:pb-0"
-                                            >
-                                                <div className="flex items-center justify-between gap-2 mb-1.5">
-                                                    <span className="text-[10px] text-stone-500 uppercase tracking-wide">
-                                                        Bonus do drifów
-                                                    </span>
-                                                    <span className="text-purple-300 font-bold text-xs tabular-nums">
-                                                        +
-                                                        {(Number(bonus) * 100).toLocaleString(
-                                                            "pl-PL",
-                                                            { maximumFractionDigits: 2 }
-                                                        )}
-                                                        %
-                                                    </span>
-                                                </div>
-                                                <ul className="space-y-1">
-                                                    {items.map((item) => {
-                                                        const slotLabel =
-                                                            SLOTS.find(
-                                                                (slot) => slot.key === item.slotKey
-                                                            )?.label || item.slotKey;
-                                                        return (
-                                                            <li
-                                                                key={item.slotKey}
-                                                                className="flex items-start justify-between gap-2 text-xs"
-                                                            >
-                                                                <span className="text-stone-300 leading-tight">
-                                                                    {item.itemName}
-                                                                </span>
-                                                                <span className="text-stone-600 text-[10px] uppercase tracking-wide shrink-0">
-                                                                    {slotLabel}
-                                                                </span>
-                                                            </li>
-                                                        );
-                                                    })}
-                                                </ul>
-                                            </div>
-                                        ))}
-                                </div>
-                            )}
-                        </section>
+                        <OptimizerItemsByBonusSection
+                            itemsByBonus={optimizationStatus?.itemsByDrifBonus}
+                        />
 
                         <section className="bg-black/40 border border-stone-800 rounded-sm p-3 lg:col-span-2">
                             <h5 className="text-[10px] text-stone-400 uppercase tracking-widest font-semibold mb-3">
