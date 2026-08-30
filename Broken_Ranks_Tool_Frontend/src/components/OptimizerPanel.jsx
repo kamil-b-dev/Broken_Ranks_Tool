@@ -29,6 +29,7 @@ import OptimizerPriorityCardHeader from "./optimization/OptimizerPriorityCardHea
 import OptimizerPriorityForm from "./optimization/OptimizerPriorityForm";
 import OptimizerStatusSection from "./optimization/OptimizerStatusSection";
 import OptimizerItemsByBonusSection from "./optimization/OptimizerItemsByBonusSection";
+import OptimizerGoalsSection from "./optimization/OptimizerGoalsSection";
 
 /**
  * Provides drif priorities, target limits, and equipment locking for optimization.
@@ -487,126 +488,12 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                             itemsByBonus={optimizationStatus?.itemsByDrifBonus}
                         />
 
-                        <section className="bg-black/40 border border-stone-800 rounded-sm p-3 lg:col-span-2">
-                            <h5 className="text-[10px] text-stone-400 uppercase tracking-widest font-semibold mb-3">
-                                Realizacja priorytetów
-                            </h5>
-                            {!optimizationStatus?.goalResults?.length ? (
-                                <p className="text-xs text-stone-600 italic leading-relaxed">
-                                    {currentModDetails.length > 0
-                                        ? `Uruchom optymalizację, aby kalkulator ocenił ${currentModDetails.length} wybranych priorytetów.`
-                                        : "Wyniki priorytetów pojawią się po optymalizacji."}
-                                </p>
-                            ) : (
-                                <div className="grid gap-2 xl:grid-cols-2">
-                                    {optimizationStatus.goalResults.map((goal) => {
-                                        const current = currentModDetails.find(
-                                            (detail) => detail.key === goal.statKey
-                                        );
-                                        const activeVariant =
-                                            optimizationStatus.nextVariants?.[activeVariantIndex];
-                                        const activeStatChange = activeVariant?.statChanges?.find(
-                                            (change) => change.statKey === goal.statKey
-                                        );
-                                        const calculatorValue =
-                                            activeStatChange?.variantValue ?? goal.calculatorValue;
-                                        const displayedCount = current?.count ?? goal.placedCount;
-                                        const quantitySatisfied =
-                                            displayedCount >= goal.minimumCount &&
-                                            displayedCount <= goal.maximumCount;
-                                        const targetValue = numericStatValue(goal.targetLabel);
-                                        const calculatedValue = numericStatValue(calculatorValue);
-                                        const inverseDirection =
-                                            Number(gameRules?.drifMaxCaps?.[goal.statKey]) < 0;
-                                        const targetSatisfied =
-                                            !goal.targetLabel ||
-                                            (inverseDirection
-                                                ? -calculatedValue >= targetValue
-                                                : calculatedValue >= targetValue);
-                                        const targetOk = targetSatisfied !== false;
-                                        const complete =
-                                            calculatorValue != null &&
-                                            quantitySatisfied &&
-                                            targetOk;
-                                        const maximumLabel =
-                                            goal.maximumCount >= 2147483647
-                                                ? "∞"
-                                                : goal.maximumCount;
-                                        return (
-                                            <div
-                                                key={goal.statKey}
-                                                className="border border-stone-800/80 bg-black/20 p-2.5"
-                                            >
-                                                <div className="flex items-start justify-between gap-3">
-                                                    <div>
-                                                        <div className="text-xs font-semibold text-stone-300">
-                                                            {goal.bonusName}
-                                                        </div>
-                                                        <div className="mt-1 text-[9px] uppercase tracking-wider text-stone-600">
-                                                            Priorytet {goal.priority}
-                                                        </div>
-                                                    </div>
-                                                    <span
-                                                        className={`shrink-0 border px-2 py-1 text-[9px] uppercase tracking-wider ${
-                                                            complete
-                                                                ? "border-emerald-900/80 bg-emerald-950/30 text-emerald-400"
-                                                                : "border-amber-900/80 bg-amber-950/30 text-amber-300"
-                                                        }`}
-                                                    >
-                                                        {complete ? "Osiągnięty" : "Częściowo"}
-                                                    </span>
-                                                </div>
-                                                <dl className="mt-2 grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 border-t border-stone-800/70 pt-2 text-[10px]">
-                                                    <dt className="text-stone-500">
-                                                        Liczba drifów
-                                                    </dt>
-                                                    <dd
-                                                        className={
-                                                            quantitySatisfied
-                                                                ? "text-right text-emerald-400 tabular-nums"
-                                                                : "text-right text-amber-300 tabular-nums"
-                                                        }
-                                                    >
-                                                        {displayedCount} / {goal.minimumCount}–
-                                                        {maximumLabel}
-                                                    </dd>
-                                                    <dt className="text-stone-500">
-                                                        Kara za liczbę modów
-                                                    </dt>
-                                                    <dd
-                                                        className={
-                                                            current?.penaltyPercent > 0
-                                                                ? "text-right text-amber-300 tabular-nums"
-                                                                : "text-right text-emerald-400 tabular-nums"
-                                                        }
-                                                    >
-                                                        {current?.penaltyPercent > 0
-                                                            ? `−${current.penaltyPercent.toFixed(0)}%`
-                                                            : "Bez kary"}
-                                                    </dd>
-                                                    {goal.targetLabel && (
-                                                        <>
-                                                            <dt className="text-stone-500">
-                                                                Cel wartości
-                                                            </dt>
-                                                            <dd
-                                                                className={
-                                                                    targetSatisfied
-                                                                        ? "text-right text-emerald-400 tabular-nums"
-                                                                        : "text-right text-amber-300 tabular-nums"
-                                                                }
-                                                            >
-                                                                {goal.targetLabel}
-                                                            </dd>
-                                                        </>
-                                                    )}
-                                                </dl>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                        </section>
+                        <OptimizerGoalsSection
+                            goals={optimizationStatus?.goalResults}
+                            currentDetails={currentModDetails}
+                            activeVariant={optimizationStatus?.nextVariants?.[activeVariantIndex]}
+                            maxCaps={gameRules?.drifMaxCaps}
+                        />
 
                         <section className="border border-dashed border-stone-700/80 rounded-sm p-3 lg:col-span-2">
                             <h5 className="text-[10px] text-stone-500 uppercase tracking-widest font-semibold mb-2">
