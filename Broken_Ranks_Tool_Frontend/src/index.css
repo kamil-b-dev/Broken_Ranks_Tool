@@ -939,18 +939,18 @@ input:focus-visible {
 }
 
 .equipment-body-layer-helmet {
-    top: 4%;
-    left: 35%;
-    width: 30%;
-    height: 20%;
+    top: 6%;
+    left: 38%;
+    width: 24%;
+    height: 16%;
     background-image: url("./assets/equipment-layer-helmet.png");
 }
 
 .equipment-body-layer-armor {
-    top: 18%;
-    left: 11%;
-    width: 78%;
-    height: 33%;
+    top: 21.3%;
+    left: 18.8%;
+    width: 62.4%;
+    height: 26.4%;
     background-image: url("./assets/equipment-layer-armor.png");
 }
 
@@ -980,10 +980,10 @@ input:focus-visible {
 }
 
 .equipment-body-layer-gloves {
-    top: 29%;
-    left: 5%;
-    width: 90%;
-    height: 29%;
+    top: 31.9%;
+    left: 14%;
+    width: 72%;
+    height: 23.2%;
     background-image: url("./assets/equipment-layer-gloves.png");
 }
 
@@ -1010,8 +1010,8 @@ input:focus-visible {
     z-index: 2;
     right: -1%;
     bottom: 2%;
-    width: 22%;
-    height: 44%;
+    width: 35.2%;
+    height: 70.4%;
     background-image: url("./assets/equipment-layer-shield.png");
 }
 
