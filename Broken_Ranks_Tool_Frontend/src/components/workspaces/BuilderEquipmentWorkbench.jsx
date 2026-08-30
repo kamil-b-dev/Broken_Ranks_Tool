@@ -14,6 +14,7 @@ const BuilderEquipmentWorkbench = ({
     const renderOverview = (slot) => (
         <EquipmentSlotOverview
             key={slot.key}
+            slotKey={slot.key}
             label={slot.label}
             slotData={requestData.slots?.[slot.key]}
             item={model.itemForSlot(slot)}
