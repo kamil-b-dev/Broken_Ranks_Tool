@@ -923,124 +923,118 @@ input:focus-visible {
 .equipment-body-layer {
     position: absolute;
     display: block;
-    border: 1px solid rgba(161, 113, 55, 0.22);
-    opacity: 0.25;
-    background: rgba(133, 88, 38, 0.08);
-    box-shadow: inset 0 0 6px rgba(203, 151, 77, 0.06);
+    inset: 0;
+    opacity: 0;
+    background-repeat: no-repeat;
+    background-size: 400% 100%;
+    filter: sepia(0.12) saturate(0.82) brightness(0.82);
     transition:
         opacity 150ms ease,
-        border-color 150ms ease,
-        background-color 150ms ease,
-        box-shadow 150ms ease;
+        filter 150ms ease;
 }
 
 .equipment-body-layer-equipped {
-    border-color: rgba(212, 161, 84, 0.76);
-    opacity: 0.82;
-    background: rgba(139, 91, 37, 0.19);
+    opacity: 0.9;
 }
 
 .equipment-body-layer-active {
-    border-color: rgba(231, 63, 50, 0.96);
-    opacity: 1;
-    background: rgba(151, 30, 27, 0.2);
-    box-shadow:
-        0 0 11px rgba(222, 50, 42, 0.55),
-        inset 0 0 7px rgba(255, 173, 99, 0.16);
+    opacity: 0.72;
+    filter: sepia(0.1) saturate(1.15) brightness(1.05) drop-shadow(0 0 5px rgba(211, 49, 39, 0.92))
+        drop-shadow(0 0 10px rgba(126, 22, 18, 0.72));
+}
+
+.equipment-body-layer-helmet,
+.equipment-body-layer-armor,
+.equipment-body-layer-cape,
+.equipment-body-layer-legs {
+    background-image: url("./assets/equipment-wearables-atlas.png");
+}
+
+.equipment-body-layer-boots,
+.equipment-body-layer-gloves,
+.equipment-body-layer-belt,
+.equipment-body-layer-weapon {
+    background-image: url("./assets/equipment-tools-atlas.png");
+}
+
+.equipment-body-layer-shield,
+.equipment-body-layer-necklace {
+    background-image: url("./assets/equipment-accessories-atlas.png");
+}
+
+.equipment-body-layer-helmet,
+.equipment-body-layer-boots,
+.equipment-body-layer-shield {
+    background-position: 0 0;
 }
 
 .equipment-body-layer-helmet {
-    top: 20%;
-    left: 42%;
-    width: 16%;
-    height: 10%;
-    border-radius: 50% 50% 30% 30%;
+    transform: translateY(17%);
 }
+
 .equipment-body-layer-armor {
-    top: 31%;
-    left: 35%;
-    width: 30%;
-    height: 24%;
-    clip-path: polygon(10% 0, 90% 0, 100% 78%, 70% 100%, 30% 100%, 0 78%);
+    transform: translateY(15%);
 }
+
 .equipment-body-layer-cape {
-    top: 29%;
-    left: 29%;
-    width: 42%;
-    height: 39%;
-    clip-path: polygon(17% 0, 83% 0, 100% 100%, 0 100%);
+    z-index: -1;
+    transform: translateY(15%);
 }
+
 .equipment-body-layer-legs {
-    top: 54%;
-    left: 38%;
-    width: 24%;
-    height: 27%;
-    clip-path: polygon(0 0, 47% 0, 50% 100%, 34% 100%, 21% 40%, 12% 100%, 0 100%);
+    transform: translateY(9%);
 }
+
 .equipment-body-layer-boots {
-    top: 78%;
-    left: 36%;
-    width: 28%;
-    height: 9%;
-    clip-path: polygon(
-        0 0,
-        42% 0,
-        43% 78%,
-        25% 100%,
-        0 100%,
-        8% 65%,
-        58% 0,
-        100% 0,
-        100% 100%,
-        74% 100%,
-        58% 77%
-    );
+    transform: translateY(24%);
 }
+
 .equipment-body-layer-gloves {
-    top: 43%;
-    left: 24%;
-    width: 52%;
-    height: 18%;
-    clip-path: polygon(
-        0 68%,
-        12% 0,
-        20% 3%,
-        13% 100%,
-        5% 100%,
-        80% 3%,
-        88% 0,
-        100% 68%,
-        95% 100%,
-        87% 100%
-    );
+    transform: translateY(7%);
 }
+
 .equipment-body-layer-belt {
-    top: 52%;
-    left: 36%;
-    width: 28%;
-    height: 4%;
-    border-radius: 20%;
+    transform: translateY(10%);
 }
-.equipment-body-layer-weapon {
-    top: 34%;
-    left: 19%;
-    width: 4%;
-    height: 43%;
-    transform: rotate(9deg);
-}
+
 .equipment-body-layer-shield {
-    top: 39%;
-    right: 18%;
-    width: 17%;
-    height: 24%;
-    border-radius: 45% 45% 60% 60%;
+    transform: translateY(5%);
 }
+
+.equipment-body-layer-necklace {
+    transform: translateY(24%);
+}
+
+.equipment-body-layer-armor,
+.equipment-body-layer-gloves {
+    background-position: 33.333% 0;
+}
+
+.equipment-body-layer-cape,
+.equipment-body-layer-belt {
+    background-position: 66.667% 0;
+}
+
+.equipment-body-layer-legs,
+.equipment-body-layer-weapon,
+.equipment-body-layer-necklace {
+    background-position: 100% 0;
+}
+
 .equipment-body-layer-ring1 {
     top: 59%;
     left: 25%;
     width: 4%;
     height: 4%;
     border-radius: 50%;
+    inset: auto;
+    border: 1px solid rgba(220, 169, 84, 0.88);
+    background: radial-gradient(
+        circle,
+        transparent 35%,
+        rgba(201, 142, 62, 0.85) 42%,
+        transparent 58%
+    );
 }
 .equipment-body-layer-ring2 {
     top: 59%;
@@ -1048,14 +1042,15 @@ input:focus-visible {
     width: 4%;
     height: 4%;
     border-radius: 50%;
-}
-.equipment-body-layer-necklace {
-    top: 32%;
-    left: 44%;
-    width: 12%;
-    height: 10%;
-    border-radius: 0 0 50% 50%;
-    border-top: 0;
+    inset: auto;
+    border: 1px solid rgba(220, 169, 84, 0.88);
+    background: radial-gradient(
+        circle,
+        rgba(178, 45, 40, 0.72) 12%,
+        transparent 22%,
+        rgba(201, 142, 62, 0.85) 42%,
+        transparent 58%
+    );
 }
 
 .equipment-slot-overview {
