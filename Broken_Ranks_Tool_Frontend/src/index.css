@@ -964,12 +964,11 @@ input:focus-visible {
 }
 
 .equipment-body-layer-legs {
-    top: 42%;
-    left: 19%;
-    width: 62%;
-    height: 56%;
+    top: 43%;
+    left: 24%;
+    width: 52%;
+    height: 44%;
     background-image: url("./assets/equipment-layer-legs.png");
-    clip-path: inset(0 0 32% 0);
 }
 
 .equipment-body-layer-boots {
@@ -990,9 +989,9 @@ input:focus-visible {
 
 .equipment-body-layer-belt {
     top: 45%;
-    left: 19%;
-    width: 62%;
-    height: 15%;
+    left: 23%;
+    width: 54%;
+    height: 13%;
     background-image: url("./assets/equipment-layer-belt.png");
 }
 
@@ -1008,11 +1007,11 @@ input:focus-visible {
 }
 
 .equipment-body-layer-shield {
-    z-index: 3;
-    top: 33%;
-    right: 9%;
-    width: 29%;
-    height: 31%;
+    z-index: 2;
+    right: -1%;
+    bottom: 2%;
+    width: 22%;
+    height: 44%;
     background-image: url("./assets/equipment-layer-shield.png");
 }
 
