@@ -649,7 +649,8 @@ input:focus-visible {
     justify-content: space-between;
     gap: 0.4rem;
     padding: 0.45rem 0.55rem;
-    border-bottom: 1px solid rgba(109, 42, 48, 0.68);
+    min-height: 3.35rem;
+    border: 1px solid rgba(148, 103, 52, 0.72);
     background: rgba(18, 14, 15, 0.82);
 }
 
@@ -660,8 +661,8 @@ input:focus-visible {
 }
 
 .character-stat-icon {
-    width: 1.75rem;
-    height: 1.75rem;
+    width: 2.35rem;
+    height: 2.35rem;
     flex: 0 0 auto;
     background-image: url("./assets/character-stat-icons.png");
     background-repeat: no-repeat;
@@ -912,6 +913,151 @@ input:focus-visible {
     filter: drop-shadow(0 0 18px rgba(177, 111, 50, 0.26));
 }
 
+.equipment-body-layers {
+    position: absolute;
+    z-index: 2;
+    inset: 0;
+    pointer-events: none;
+}
+
+.equipment-body-layer {
+    position: absolute;
+    display: block;
+    border: 1px solid rgba(161, 113, 55, 0.22);
+    opacity: 0.25;
+    background: rgba(133, 88, 38, 0.08);
+    box-shadow: inset 0 0 6px rgba(203, 151, 77, 0.06);
+    transition:
+        opacity 150ms ease,
+        border-color 150ms ease,
+        background-color 150ms ease,
+        box-shadow 150ms ease;
+}
+
+.equipment-body-layer-equipped {
+    border-color: rgba(212, 161, 84, 0.76);
+    opacity: 0.82;
+    background: rgba(139, 91, 37, 0.19);
+}
+
+.equipment-body-layer-active {
+    border-color: rgba(231, 63, 50, 0.96);
+    opacity: 1;
+    background: rgba(151, 30, 27, 0.2);
+    box-shadow:
+        0 0 11px rgba(222, 50, 42, 0.55),
+        inset 0 0 7px rgba(255, 173, 99, 0.16);
+}
+
+.equipment-body-layer-helmet {
+    top: 20%;
+    left: 42%;
+    width: 16%;
+    height: 10%;
+    border-radius: 50% 50% 30% 30%;
+}
+.equipment-body-layer-armor {
+    top: 31%;
+    left: 35%;
+    width: 30%;
+    height: 24%;
+    clip-path: polygon(10% 0, 90% 0, 100% 78%, 70% 100%, 30% 100%, 0 78%);
+}
+.equipment-body-layer-cape {
+    top: 29%;
+    left: 29%;
+    width: 42%;
+    height: 39%;
+    clip-path: polygon(17% 0, 83% 0, 100% 100%, 0 100%);
+}
+.equipment-body-layer-legs {
+    top: 54%;
+    left: 38%;
+    width: 24%;
+    height: 27%;
+    clip-path: polygon(0 0, 47% 0, 50% 100%, 34% 100%, 21% 40%, 12% 100%, 0 100%);
+}
+.equipment-body-layer-boots {
+    top: 78%;
+    left: 36%;
+    width: 28%;
+    height: 9%;
+    clip-path: polygon(
+        0 0,
+        42% 0,
+        43% 78%,
+        25% 100%,
+        0 100%,
+        8% 65%,
+        58% 0,
+        100% 0,
+        100% 100%,
+        74% 100%,
+        58% 77%
+    );
+}
+.equipment-body-layer-gloves {
+    top: 43%;
+    left: 24%;
+    width: 52%;
+    height: 18%;
+    clip-path: polygon(
+        0 68%,
+        12% 0,
+        20% 3%,
+        13% 100%,
+        5% 100%,
+        80% 3%,
+        88% 0,
+        100% 68%,
+        95% 100%,
+        87% 100%
+    );
+}
+.equipment-body-layer-belt {
+    top: 52%;
+    left: 36%;
+    width: 28%;
+    height: 4%;
+    border-radius: 20%;
+}
+.equipment-body-layer-weapon {
+    top: 34%;
+    left: 19%;
+    width: 4%;
+    height: 43%;
+    transform: rotate(9deg);
+}
+.equipment-body-layer-shield {
+    top: 39%;
+    right: 18%;
+    width: 17%;
+    height: 24%;
+    border-radius: 45% 45% 60% 60%;
+}
+.equipment-body-layer-ring1 {
+    top: 59%;
+    left: 25%;
+    width: 4%;
+    height: 4%;
+    border-radius: 50%;
+}
+.equipment-body-layer-ring2 {
+    top: 59%;
+    right: 25%;
+    width: 4%;
+    height: 4%;
+    border-radius: 50%;
+}
+.equipment-body-layer-necklace {
+    top: 32%;
+    left: 44%;
+    width: 12%;
+    height: 10%;
+    border-radius: 0 0 50% 50%;
+    border-top: 0;
+}
+
 .equipment-slot-overview {
     position: relative;
     display: grid;
@@ -1138,6 +1284,42 @@ input:focus-visible {
     grid-template-columns: minmax(12rem, 0.9fr) minmax(13rem, 1fr) minmax(15rem, 1.25fr);
     align-items: start;
     gap: 1rem;
+    border-color: rgba(166, 118, 54, 0.88) !important;
+}
+
+.gear-slot-editor-expanded:hover {
+    border-color: rgba(218, 167, 86, 0.96) !important;
+}
+
+.gear-slot-editor-expanded,
+.gear-slot-editor-expanded > *,
+.gear-slot-editor-expanded .gear-slot-item-section {
+    min-width: 0;
+}
+
+.gear-slot-editor-expanded .gear-slot-item-section {
+    overflow: hidden;
+}
+
+.gear-slot-editor-expanded .gear-slot-item-section > div,
+.gear-slot-editor-expanded .gear-slot-item-section select {
+    width: 100%;
+    min-width: 0;
+}
+
+.gear-slot-editor-expanded .gear-slot-item-section [class*="justify-center"][class*="gap-1"] {
+    gap: 0;
+    overflow: hidden;
+}
+
+.gear-slot-editor-expanded
+    .gear-slot-item-section
+    [class*="justify-center"][class*="gap-1"]
+    > span {
+    min-width: 0;
+    flex: 1 1 0;
+    font-size: clamp(0.72rem, 1vw, 1.05rem);
+    text-align: center;
 }
 
 .gear-slot-editor-expanded > div:nth-child(2) {
@@ -1208,8 +1390,10 @@ input:focus-visible {
 
 .database-result-row {
     display: grid;
-    grid-template-columns: 2.2rem minmax(0, 1fr) auto;
-    min-height: 3rem;
+    grid-template-columns: minmax(0, 1fr) auto;
+    min-height: 2.75rem;
+    margin-bottom: 0.3rem;
+    border: 1px solid rgba(127, 91, 49, 0.62) !important;
     background-image:
         linear-gradient(90deg, rgba(8, 5, 4, 0.69), rgba(1, 2, 2, 0.84)),
         url("./assets/smoked-parchment-texture.png");
@@ -1218,9 +1402,30 @@ input:focus-visible {
     background-blend-mode: normal, soft-light;
 }
 
-.database-item-icon {
-    width: 2.15rem;
-    height: 2.15rem;
+.database-variant-row {
+    grid-template-columns: 2rem minmax(0, 1fr) auto;
+}
+
+.item-database-theme [aria-pressed] {
+    border-color: rgba(132, 92, 44, 0.72) !important;
+    background-image:
+        linear-gradient(rgba(30, 18, 13, 0.72), rgba(3, 3, 3, 0.88)),
+        url("./assets/crimson-lacquer-texture.png");
+    background-position: center;
+    background-size: auto, 18rem;
+    background-blend-mode: normal, soft-light;
+    color: #c9a56b;
+}
+
+.item-database-theme [aria-pressed="true"] {
+    border-color: rgba(213, 155, 69, 0.92) !important;
+    background-image:
+        linear-gradient(rgba(77, 8, 15, 0.38), rgba(8, 3, 4, 0.74)),
+        url("./assets/crimson-lacquer-texture.png");
+    color: #efc77e;
+    box-shadow:
+        inset 0 1px rgba(255, 210, 135, 0.12),
+        0 0 12px rgba(107, 22, 18, 0.25);
 }
 
 .database-item-copy {
@@ -1284,6 +1489,7 @@ input:focus-visible {
 }
 
 .database-result-row:hover {
+    border-color: rgba(201, 147, 76, 0.9) !important;
     background-image:
         linear-gradient(90deg, rgba(42, 19, 14, 0.66), rgba(7, 7, 7, 0.82)),
         url("./assets/smoked-parchment-texture.png");
@@ -1291,12 +1497,63 @@ input:focus-visible {
 
 .builder-stats-panel .stat-summary-column,
 .builder-stats-panel .stat-category-card {
+    box-sizing: border-box;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
     background-image:
         linear-gradient(rgba(2, 3, 4, 0.72), rgba(1, 2, 3, 0.87)),
         url("./assets/dark-basalt-texture.png");
     background-position: center;
     background-size: auto, 22rem;
     background-blend-mode: normal, soft-light;
+}
+
+.builder-stats-panel {
+    min-width: 0;
+    overflow: hidden;
+}
+
+.stats-result-tabs {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.25rem;
+    margin-bottom: 1rem;
+    padding: 0.25rem;
+    border: 1px solid rgba(113, 79, 40, 0.6);
+    background: rgba(0, 0, 0, 0.58);
+}
+
+.stats-result-tabs button {
+    min-width: 0;
+    padding: 0.55rem 0.3rem;
+    border: 1px solid rgba(104, 74, 40, 0.52);
+    background-image:
+        linear-gradient(rgba(12, 12, 12, 0.7), rgba(2, 2, 2, 0.88)),
+        url("./assets/panel-blackened-steel-texture.png");
+    background-position: center;
+    background-size: auto, 14rem;
+    color: #a78a60;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.stats-result-tabs button[aria-selected="true"] {
+    border-color: rgba(210, 150, 67, 0.9);
+    background-image:
+        linear-gradient(rgba(72, 7, 14, 0.4), rgba(5, 2, 3, 0.78)),
+        url("./assets/crimson-lacquer-texture.png");
+    color: #efc77e;
+    box-shadow: inset 0 -2px rgba(146, 24, 22, 0.72);
+}
+
+.stats-result-content,
+.stats-result-content > * {
+    min-width: 0;
+    max-width: 100%;
 }
 
 .builder-stats-panel .stat-category-card {
