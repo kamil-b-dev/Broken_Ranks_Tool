@@ -1,34 +1,12 @@
 import { useState, useEffect, useMemo } from "react";
 import { ROMAN_TO_INT, SIZE_INDEX } from "../utils/GearRules";
-
-/**
- * Calculates the effective drif power multiplier for a level.
- * @param {number|string} level Drif level.
- * @returns {number} Effective power multiplier.
- */
-const getEffectiveMultiplier = (level) => {
-    const lvl = parseInt(level) || 1;
-    if (lvl <= 6) return 1;
-    if (lvl <= 11) return 2;
-    if (lvl <= 16) return 3;
-    return 4;
-};
-
-/**
- * Groups items by their display type, description, or bonus type.
- * @param {Array<object>} itemsList Items to group.
- * @returns {object} Groups keyed by item type.
- */
-const groupByType = (itemsList) => {
-    if (!itemsList || !Array.isArray(itemsList)) return {};
-    return itemsList.reduce((acc, item) => {
-        const category = item.name || item.description || item.bonusType;
-        if (!category) return acc;
-        if (!acc[category]) acc[category] = [];
-        acc[category].push(item);
-        return acc;
-    }, {});
-};
+import {
+    calculateItemCapacity,
+    calculateMaximumDrifSizeIndex,
+    calculateMaximumDrifSlots,
+    calculateUsedDrifPower,
+    groupGearOptionsByType,
+} from "../components/gear_slot/gearSlotDomain";
 
 /**
  * Manages state and business rules for a single equipment slot.
@@ -207,8 +185,8 @@ export const useGearSlot = ({
         });
     }, [orbs, globalUsedOrbs, tierVal, isLegendary, orbSlots.orb1.id]);
 
-    const groupedOrbs1 = useMemo(() => groupByType(availableOrbs1), [availableOrbs1]);
-    const groupedOrbs2 = useMemo(() => groupByType(availableOrbs2), [availableOrbs2]);
+    const groupedOrbs1 = useMemo(() => groupGearOptionsByType(availableOrbs1), [availableOrbs1]);
+    const groupedOrbs2 = useMemo(() => groupGearOptionsByType(availableOrbs2), [availableOrbs2]);
 
     const hasGlobalElemental = useMemo(
         () =>
@@ -224,45 +202,40 @@ export const useGearSlot = ({
         [allSlots, slotKey, drifs, elementalTypes]
     );
 
-    const maxDrifs = useMemo(() => {
-        if (!fullSelectedItem) return 0;
-        if (isEpicOrSet) return 0;
+    const maxDrifs = useMemo(
+        () =>
+            calculateMaximumDrifSlots({
+                hasItem: Boolean(fullSelectedItem),
+                isEpicOrSet,
+                tier: tierVal,
+                stars: itemStars,
+            }),
+        [fullSelectedItem, tierVal, itemStars, isEpicOrSet]
+    );
 
-        let max = 0;
-        if (tierVal >= 10) max = 3;
-        else if (tierVal >= 4) max = 2;
-        else if (tierVal >= 1) max = 1;
-        if ((tierVal === 2 || tierVal === 3) && itemStars >= 7) max += 1;
-        return max;
-    }, [fullSelectedItem, tierVal, itemStars, isEpicOrSet]);
+    const maxDrifIndex = useMemo(
+        () =>
+            calculateMaximumDrifSizeIndex({
+                hasItem: Boolean(fullSelectedItem),
+                isEpicOrSet,
+                tier: tierVal,
+            }),
+        [tierVal, fullSelectedItem, isEpicOrSet]
+    );
 
-    const maxDrifIndex = useMemo(() => {
-        if (!fullSelectedItem || isEpicOrSet) return -1;
-        if (tierVal >= 10) return 3;
-        if (tierVal >= 7) return 2;
-        if (tierVal >= 4) return 1;
-        return 0;
-    }, [tierVal, fullSelectedItem, isEpicOrSet]);
-
-    const itemCapacity = useMemo(() => {
-        const baseCapacity = fullSelectedItem?.capacity || 0;
-        if (baseCapacity === 0) return 0;
-        let bonus = 0;
-        if (itemStars >= 7 && itemStars < 8) bonus = 1;
-        else if (itemStars >= 8 && itemStars < 9) bonus = 2;
-        else if (itemStars >= 9) bonus = 4;
-        return baseCapacity + bonus;
-    }, [fullSelectedItem, itemStars]);
+    const itemCapacity = useMemo(
+        () => calculateItemCapacity(fullSelectedItem, itemStars),
+        [fullSelectedItem, itemStars]
+    );
 
     const currentPowerUsed = useMemo(
         () =>
-            selectedDrifs.reduce((sum, drifId, index) => {
-                if (!drifId) return sum;
-                const drif = drifs.find((d) => d.id.toString() === drifId.toString());
-                if (!drif) return sum;
-                const basePower = drifBasePowers[drif.bonusType] || 0;
-                return sum + basePower * getEffectiveMultiplier(drifLevels[index]);
-            }, 0),
+            calculateUsedDrifPower({
+                selectedDrifs,
+                drifs,
+                basePowers: drifBasePowers,
+                levels: drifLevels,
+            }),
         [selectedDrifs, drifs, drifBasePowers, drifLevels]
     );
 
@@ -416,6 +389,6 @@ export const useGearSlot = ({
         handleDragOver,
         handleDragLeave,
         handleDrop,
-        groupByType,
+        groupByType: groupGearOptionsByType,
     };
 };
