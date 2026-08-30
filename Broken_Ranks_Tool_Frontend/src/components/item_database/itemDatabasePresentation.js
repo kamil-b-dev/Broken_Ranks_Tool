@@ -8,6 +8,31 @@ export const getRarityColor = (rarity) => {
     return `bg-clip-text text-transparent bg-gradient-to-r ${gradients[rarity?.toUpperCase()] || "from-stone-400 to-stone-500"} font-bold`;
 };
 
+/** Maps catalog categories to the matching equipment icon in the shared sprite. */
+export const getEquipmentIconClass = (category = "") => {
+    const normalized = category
+        .toLocaleLowerCase("pl")
+        .normalize("NFD")
+        .replace(/\p{Diacritic}/gu, "")
+        .replaceAll("ł", "l");
+    const mappings = [
+        [["helm"], "helmet"],
+        [["zbroj", "pancerz", "armor"], "armor"],
+        [["peleryn", "cape"], "cape"],
+        [["spod", "nogaw", "legs"], "legs"],
+        [["but", "boot"], "boots"],
+        [["rekaw", "glove"], "gloves"],
+        [["pas", "belt"], "belt"],
+        [["tarc", "shield", "druga ręka"], "shield"],
+        [["pierscien", "ring"], "ring1"],
+        [["naszyj", "necklace"], "necklace"],
+    ];
+    return (
+        mappings.find(([needles]) => needles.some((needle) => normalized.includes(needle)))?.[1] ||
+        "weapon"
+    );
+};
+
 export const getVariantLabel = (variant) => {
     const value = (variant.size || variant.tier || "").toUpperCase();
     return (

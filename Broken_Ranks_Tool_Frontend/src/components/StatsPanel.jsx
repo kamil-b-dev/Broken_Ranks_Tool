@@ -1,5 +1,6 @@
 import { buildStatColumns } from "./stats_panel/statsPanelDomain";
 import StatSummaryColumn from "./stats_panel/StatSummaryColumn";
+import crest from "../assets/broken-ranks-crest.png";
 
 /** Displays calculated statistics grouped by their purpose and source. */
 const StatsPanel = ({
@@ -37,10 +38,10 @@ const StatsPanel = ({
                 </button>
             </div>
             {statColumns.length === 0 ? (
-                <div className="flex justify-center py-8">
-                    <p className="text-stone-500 font-serif text-base italic border-y border-stone-800 py-3 w-full text-center bg-black/50">
-                        Wybierz ekwipunek
-                    </p>
+                <div className="stats-empty-state">
+                    <img src={crest} alt="" aria-hidden="true" />
+                    <strong>Wybierz ekwipunek</strong>
+                    <p>Gotowy build przeliczysz przyciskiem powyżej.</p>
                 </div>
             ) : (
                 <div className={`grid grid-cols-1 gap-5 ${compact ? "" : "lg:grid-cols-3"}`}>

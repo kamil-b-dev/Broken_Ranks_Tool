@@ -130,8 +130,9 @@ const DrifSection = ({
                         />
                     ))}
                 {!fullSelectedItem && (
-                    <span className="text-[10px] font-serif text-stone-600 uppercase tracking-widest mt-1 pointer-events-none drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
-                        Oczekiwanie...
+                    <span className="drif-empty-state">
+                        <i aria-hidden="true">◇</i>
+                        <span>Wybierz przedmiot, aby odblokować gniazda</span>
                     </span>
                 )}
             </div>

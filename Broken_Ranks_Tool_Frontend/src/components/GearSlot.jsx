@@ -106,6 +106,7 @@ const GearSlot = (props) => {
 
             <div className="gear-slot-item-section w-full">
                 <ItemSection
+                    slotKey={slotKey}
                     label={label}
                     items={items}
                     fullSelectedItem={fullSelectedItem}
