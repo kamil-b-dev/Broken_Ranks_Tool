@@ -5,8 +5,12 @@ import {
     calculateMaximumDrifSlots,
     calculateUsedDrifPower,
     createImportedGearSlotState,
+    collectUsedOrbTypes,
+    getAvailablePrimaryOrbs,
+    getAvailableSecondaryOrbs,
     getEffectiveDrifMultiplier,
     groupGearOptionsByType,
+    hasElementalDrifInOtherSlot,
 } from "./gearSlotDomain";
 
 describe("gearSlotDomain", () => {
@@ -90,5 +94,61 @@ describe("gearSlotDomain", () => {
             drifTypes: {},
             drifLevels: {},
         });
+    });
+
+    it("filters orb choices by global uniqueness, slot rules, tier, and legendary slot", () => {
+        const orbs = [
+            { id: 1, bonusType: "A", category: "DEFENSIVE", tier: "II" },
+            { id: 2, bonusType: "B", category: "OFFENSIVE", tier: "IV" },
+            { id: 3, bonusType: "C", category: "OFFENSIVE", tier: "II" },
+        ];
+        const usedTypes = collectUsedOrbTypes(
+            { helmet: { orbIds: [1] }, weapon: { orbIds: [] } },
+            "weapon",
+            orbs
+        );
+        const tierToNumber = { II: 2, IV: 4 };
+
+        expect(
+            getAvailablePrimaryOrbs({
+                orbs,
+                allowedCategories: ["DEFENSIVE"],
+                usedTypes,
+                itemTier: 2,
+                isLegendary: true,
+                tierToNumber,
+            }).map((orb) => orb.id)
+        ).toEqual([3]);
+        expect(
+            getAvailableSecondaryOrbs({
+                orbs,
+                usedTypes: [],
+                itemTier: 4,
+                isLegendary: true,
+                primaryOrbId: 2,
+                tierToNumber,
+            }).map((orb) => orb.id)
+        ).toEqual([3]);
+    });
+
+    it("detects elemental drifs only outside the current slot", () => {
+        const input = {
+            drifs: [{ id: 4, bonusType: "DAMAGE_FIRE" }],
+            elementalTypes: ["DAMAGE_FIRE"],
+        };
+        expect(
+            hasElementalDrifInOtherSlot({
+                ...input,
+                allSlots: { helmet: { drifIds: [4] }, weapon: { drifIds: [] } },
+                currentSlotKey: "weapon",
+            })
+        ).toBe(true);
+        expect(
+            hasElementalDrifInOtherSlot({
+                ...input,
+                allSlots: { weapon: { drifIds: [4] } },
+                currentSlotKey: "weapon",
+            })
+        ).toBe(false);
     });
 });

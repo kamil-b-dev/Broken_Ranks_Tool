@@ -7,7 +7,11 @@ import {
     calculateMaximumDrifSlots,
     calculateUsedDrifPower,
     createImportedGearSlotState,
+    collectUsedOrbTypes,
+    getAvailablePrimaryOrbs,
+    getAvailableSecondaryOrbs,
     groupGearOptionsByType,
+    hasElementalDrifInOtherSlot,
 } from "../components/gear_slot/gearSlotDomain";
 
 /**
@@ -97,13 +101,7 @@ export const useGearSlot = ({
     }, [isEpicOrSet, fullSelectedItem?.name, epicBuiltInDrifs, drifs, bonusTranslations]);
 
     const globalUsedOrbs = useMemo(
-        () =>
-            Object.entries(allSlots)
-                .filter(([key, value]) => key !== slotKey && value?.orbIds)
-                .flatMap(([, value]) => value.orbIds)
-                .filter(Boolean)
-                .map((orbId) => orbs.find((o) => o.id.toString() === orbId.toString())?.bonusType)
-                .filter(Boolean),
+        () => collectUsedOrbTypes(allSlots, slotKey, orbs),
         [allSlots, slotKey, orbs]
     );
 
@@ -112,45 +110,43 @@ export const useGearSlot = ({
         [slotOrbRules, slotKey]
     );
 
-    const availableOrbs1 = useMemo(() => {
-        return orbs.filter((o) => {
-            const orbTierVal = ROMAN_TO_INT[o.tier] || 0;
-            const isAllowed =
-                allowedOrbCategories.includes(o.category) ||
-                (isLegendary && o.category === "OFFENSIVE");
-            const isNotUsedGlobally = !globalUsedOrbs.includes(o.bonusType);
-            const isTierValid = tierVal > 0 ? orbTierVal <= tierVal : true;
-            return isAllowed && isNotUsedGlobally && isTierValid;
-        });
-    }, [orbs, globalUsedOrbs, allowedOrbCategories, tierVal, isLegendary]);
+    const availableOrbs1 = useMemo(
+        () =>
+            getAvailablePrimaryOrbs({
+                orbs,
+                allowedCategories: allowedOrbCategories,
+                usedTypes: globalUsedOrbs,
+                itemTier: tierVal,
+                isLegendary,
+                tierToNumber: ROMAN_TO_INT,
+            }),
+        [orbs, globalUsedOrbs, allowedOrbCategories, tierVal, isLegendary]
+    );
 
-    const availableOrbs2 = useMemo(() => {
-        if (!isLegendary) return [];
-        const firstOrbBonusType = orbs.find((o) => o.id.toString() === orbSlots.orb1.id)?.bonusType;
-        return orbs.filter((o) => {
-            const orbTierVal = ROMAN_TO_INT[o.tier] || 0;
-            const isAllowed = o.category === "OFFENSIVE";
-            const isNotUsedGlobally = !globalUsedOrbs.includes(o.bonusType);
-            const isNotUsedInSlot1 = o.bonusType !== firstOrbBonusType;
-            const isTierValid = tierVal > 0 ? orbTierVal <= tierVal : true;
-            return isAllowed && isNotUsedGlobally && isNotUsedInSlot1 && isTierValid;
-        });
-    }, [orbs, globalUsedOrbs, tierVal, isLegendary, orbSlots.orb1.id]);
+    const availableOrbs2 = useMemo(
+        () =>
+            getAvailableSecondaryOrbs({
+                orbs,
+                usedTypes: globalUsedOrbs,
+                itemTier: tierVal,
+                isLegendary,
+                primaryOrbId: orbSlots.orb1.id,
+                tierToNumber: ROMAN_TO_INT,
+            }),
+        [orbs, globalUsedOrbs, tierVal, isLegendary, orbSlots.orb1.id]
+    );
 
     const groupedOrbs1 = useMemo(() => groupGearOptionsByType(availableOrbs1), [availableOrbs1]);
     const groupedOrbs2 = useMemo(() => groupGearOptionsByType(availableOrbs2), [availableOrbs2]);
 
     const hasGlobalElemental = useMemo(
         () =>
-            Object.entries(allSlots)
-                .filter(([key, value]) => key !== slotKey && value?.drifIds)
-                .some(([, value]) =>
-                    value.drifIds.some((dId) => {
-                        if (!dId) return false;
-                        const d = drifs.find((dr) => dr.id.toString() === dId.toString());
-                        return d && elementalTypes.includes(d.bonusType);
-                    })
-                ),
+            hasElementalDrifInOtherSlot({
+                allSlots,
+                currentSlotKey: slotKey,
+                drifs,
+                elementalTypes,
+            }),
         [allSlots, slotKey, drifs, elementalTypes]
     );
 
