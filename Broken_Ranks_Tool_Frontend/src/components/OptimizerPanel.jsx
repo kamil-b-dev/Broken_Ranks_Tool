@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useEquipment } from "../context/EquipmentContext";
-import { SLOTS } from "../constants/equipment";
 import { ROMAN_TO_INT, SIZE_INDEX } from "../utils/GearRules";
 import { getDrifMaxLvl } from "../utils/formatters";
 import {
@@ -11,7 +10,6 @@ import {
     highestLevelForCapacity,
     ITEM_STAR_DRIF_BONUS,
     maxDrifSizeIndexForTier,
-    numericStatValue,
     sortBonusesByCategory,
 } from "./optimization/optimizerDomain";
 import {
@@ -30,6 +28,7 @@ import OptimizerPriorityForm from "./optimization/OptimizerPriorityForm";
 import OptimizerStatusSection from "./optimization/OptimizerStatusSection";
 import OptimizerItemsByBonusSection from "./optimization/OptimizerItemsByBonusSection";
 import OptimizerGoalsSection from "./optimization/OptimizerGoalsSection";
+import OptimizerVariantsSection from "./optimization/OptimizerVariantsSection";
 
 /**
  * Provides drif priorities, target limits, and equipment locking for optimization.
@@ -495,191 +494,17 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                             maxCaps={gameRules?.drifMaxCaps}
                         />
 
-                        <section className="border border-dashed border-stone-700/80 rounded-sm p-3 lg:col-span-2">
-                            <h5 className="text-[10px] text-stone-500 uppercase tracking-widest font-semibold mb-2">
-                                Kolejne warianty
-                            </h5>
-                            {optimizationStatus?.nextVariants?.length > 0 ? (
-                                <div className="space-y-3">
-                                    {optimizationStatus.nextVariants.map(
-                                        (variant, variantIndex) => (
-                                            <button
-                                                type="button"
-                                                key={`${variant.bonusName}-${variantIndex}`}
-                                                onClick={() => {
-                                                    if (applyOptimizationSetup(variant.setup)) {
-                                                        setActiveVariantIndex(variantIndex);
-                                                    }
-                                                }}
-                                                className={`block w-full text-left border rounded-sm p-2 transition-colors ${
-                                                    activeVariantIndex === variantIndex
-                                                        ? "border-purple-500/80 bg-purple-950/30"
-                                                        : "border-stone-800/70 bg-black/20 hover:border-stone-600"
-                                                }`}
-                                            >
-                                                <div className="flex items-start justify-between gap-2 text-xs">
-                                                    <span className="text-stone-300 leading-tight font-semibold">
-                                                        {variant.main
-                                                            ? "Główny wynik"
-                                                            : variant.bonusName}
-                                                    </span>
-                                                    {variant.main ? (
-                                                        <span className="text-purple-300 text-[10px] uppercase tracking-wide">
-                                                            {activeVariantIndex === variantIndex
-                                                                ? "Aktywny"
-                                                                : "Ustaw"}
-                                                        </span>
-                                                    ) : (
-                                                        <div className="text-right shrink-0">
-                                                            <div className="text-emerald-400 font-bold tabular-nums">
-                                                                {Number(
-                                                                    variant.finalValue
-                                                                ).toLocaleString("pl-PL", {
-                                                                    maximumFractionDigits: 2,
-                                                                })}
-                                                                % →{" "}
-                                                                {Number(
-                                                                    variant.variantValue
-                                                                ).toLocaleString("pl-PL", {
-                                                                    maximumFractionDigits: 2,
-                                                                })}
-                                                                %
-                                                            </div>
-                                                            <div className="mt-1 text-[9px] text-stone-500 uppercase tracking-wide tabular-nums">
-                                                                +
-                                                                {Number(
-                                                                    variant.gain
-                                                                ).toLocaleString("pl-PL", {
-                                                                    maximumFractionDigits: 2,
-                                                                })}{" "}
-                                                                · strata{" "}
-                                                                {Number(
-                                                                    variant.totalLoss
-                                                                ).toLocaleString("pl-PL", {
-                                                                    maximumFractionDigits: 2,
-                                                                })}{" "}
-                                                                · zmian {variant.changeCount} ·
-                                                                ocena{" "}
-                                                                {Number(
-                                                                    variant.score
-                                                                ).toLocaleString("pl-PL", {
-                                                                    maximumFractionDigits: 2,
-                                                                })}
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                {!variant.main && (
-                                                    <ul className="mt-2 space-y-1">
-                                                        {variant.changes.map(
-                                                            (change, changeIndex) => {
-                                                                const slotLabel =
-                                                                    SLOTS.find(
-                                                                        (slot) =>
-                                                                            slot.key ===
-                                                                            change.slotKey
-                                                                    )?.label || change.slotKey;
-                                                                const formatPlacement = (
-                                                                    modifier,
-                                                                    level
-                                                                ) =>
-                                                                    modifier
-                                                                        ? `${modifier}${level ? ` (${level})` : ""}`
-                                                                        : "puste miejsce";
-                                                                return (
-                                                                    <li
-                                                                        key={`${change.slotKey}-${changeIndex}`}
-                                                                        className="text-[11px] text-stone-500 leading-snug"
-                                                                    >
-                                                                        <span className="text-stone-400">
-                                                                            {change.itemName}
-                                                                        </span>{" "}
-                                                                        ({slotLabel}):{" "}
-                                                                        {formatPlacement(
-                                                                            change.fromModifier,
-                                                                            change.fromLevel
-                                                                        )}{" "}
-                                                                        →{" "}
-                                                                        <span className="text-purple-300">
-                                                                            {formatPlacement(
-                                                                                change.toModifier,
-                                                                                change.toLevel
-                                                                            )}
-                                                                        </span>
-                                                                    </li>
-                                                                );
-                                                            }
-                                                        )}
-                                                    </ul>
-                                                )}
-                                                {!variant.main &&
-                                                    variant.statChanges?.length > 0 && (
-                                                        <div className="mt-2 pt-2 border-t border-stone-800/80 space-y-1">
-                                                            <div className="text-[9px] text-stone-600 uppercase tracking-wider">
-                                                                Zmiany statystyk
-                                                            </div>
-                                                            {variant.statChanges.map((change) => {
-                                                                const before = numericStatValue(
-                                                                    change.finalValue
-                                                                );
-                                                                const after = numericStatValue(
-                                                                    change.variantValue
-                                                                );
-                                                                const inverseDirection =
-                                                                    Number(
-                                                                        gameRules?.drifMaxCaps?.[
-                                                                            change.statKey
-                                                                        ]
-                                                                    ) < 0;
-                                                                const improves = inverseDirection
-                                                                    ? after < before
-                                                                    : after > before;
-                                                                return (
-                                                                    <div
-                                                                        key={change.statKey}
-                                                                        className="flex items-start justify-between gap-2 text-[11px] leading-snug"
-                                                                    >
-                                                                        <span className="text-stone-400">
-                                                                            {gameRules
-                                                                                ?.bonusTranslations?.[
-                                                                                change.statKey
-                                                                            ] || change.statKey}
-                                                                        </span>
-                                                                        <span className="shrink-0 tabular-nums">
-                                                                            <span className="text-stone-500">
-                                                                                {change.finalValue}
-                                                                            </span>
-                                                                            <span className="text-stone-600">
-                                                                                {" "}
-                                                                                →{" "}
-                                                                            </span>
-                                                                            <span
-                                                                                className={
-                                                                                    improves
-                                                                                        ? "text-emerald-400"
-                                                                                        : "text-red-400"
-                                                                                }
-                                                                            >
-                                                                                {
-                                                                                    change.variantValue
-                                                                                }
-                                                                            </span>
-                                                                        </span>
-                                                                    </div>
-                                                                );
-                                                            })}
-                                                        </div>
-                                                    )}
-                                            </button>
-                                        )
-                                    )}
-                                </div>
-                            ) : (
-                                <p className="text-xs text-stone-600 italic leading-relaxed">
-                                    Brak ocenionych wariantów poprawiających maksymalizowany mod.
-                                </p>
-                            )}
-                        </section>
+                        <OptimizerVariantsSection
+                            variants={optimizationStatus?.nextVariants}
+                            activeIndex={activeVariantIndex}
+                            maxCaps={gameRules?.drifMaxCaps}
+                            translations={gameRules?.bonusTranslations}
+                            onSelect={(variant, variantIndex) => {
+                                if (applyOptimizationSetup(variant.setup)) {
+                                    setActiveVariantIndex(variantIndex);
+                                }
+                            }}
+                        />
                     </div>
                 </aside>
             </div>
