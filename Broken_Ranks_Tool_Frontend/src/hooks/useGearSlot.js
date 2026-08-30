@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
-import { ROMAN_TO_INT, SIZE_INDEX } from "../utils/GearRules";
+import { ROMAN_TO_INT } from "../utils/GearRules";
+import { useGearSlotDragDrop } from "./useGearSlotDragDrop";
 import {
     calculateItemCapacity,
     calculateMaximumDrifSizeIndex,
@@ -55,7 +56,6 @@ export const useGearSlot = ({
     const [drifTypes, setDrifTypes] = useState({});
     const [drifLevels, setDrifLevels] = useState({});
     const [builtInLvls, setBuiltInLvls] = useState([1, 1]);
-    const [dragOverZone, setDragOverZone] = useState(null);
 
     const fullSelectedItem = useMemo(
         () => items.find((i) => i.id.toString() === selectedItem.toString()),
@@ -240,72 +240,22 @@ export const useGearSlot = ({
         onUpdate,
     ]);
 
-    const handleDragOver = (e, zone) => {
-        e.preventDefault();
-        setDragOverZone(zone);
-    };
-    const handleDragLeave = () => setDragOverZone(null);
-
-    const handleItemDrop = (data) => {
-        setSelectedItem(data.id.toString());
-        setBuiltInLvls([1, 1]);
-        setOrbSlots({
-            orb1: { id: "", level: "", type: "" },
-            orb2: { id: "", level: "", type: "" },
-        });
-        setSelectedDrifs([]);
-        setDrifTypes({});
-        setDrifLevels({});
-    };
-
-    const handleOrbDrop = (data, orbSlotKey) => {
-        if (!selectedItem) return;
-
-        const isMainSlot = orbSlotKey === "orb1";
-        const available = isMainSlot ? availableOrbs1 : availableOrbs2;
-        if (!available.some((o) => o.id === data.id)) return;
-
-        setOrbSlots((prev) => ({
-            ...prev,
-            [orbSlotKey]: { id: data.id.toString(), level: "1", type: data.name || data.bonusType },
-        }));
-    };
-
-    const handleDrifDrop = (data, zone) => {
-        const drifSizeIndex = SIZE_INDEX[data.size?.toUpperCase()] ?? -1;
-        if (!selectedItem || maxDrifs === 0 || drifSizeIndex < 0 || drifSizeIndex > maxDrifIndex)
-            return;
-
-        const idx = parseInt(zone.split("-")[1]);
-        if (elementalTypes.includes(data.bonusType) && (slotKey !== "weapon" || hasGlobalElemental))
-            return;
-
-        setDrifTypes((prev) => ({ ...prev, [idx]: data.name || data.bonusType }));
-        setSelectedDrifs((prev) => {
-            const n = [...prev];
-            n[idx] = data.id.toString();
-            return n;
-        });
-        setDrifLevels((prev) => ({ ...prev, [idx]: 1 }));
-    };
-
-    const handleDrop = (e, zone) => {
-        e.preventDefault();
-        setDragOverZone(null);
-        try {
-            const data = JSON.parse(e.dataTransfer.getData("application/json"));
-
-            if (data.dragType === "items" && zone === "item") {
-                handleItemDrop(data);
-            } else if (data.dragType === "orbs" && (zone === "orb1" || zone === "orb2")) {
-                handleOrbDrop(data, zone);
-            } else if (data.dragType === "drifs" && zone.startsWith("drif-")) {
-                handleDrifDrop(data, zone);
-            }
-        } catch (error) {
-            console.error(error);
-        }
-    };
+    const { dragOverZone, handleDragOver, handleDragLeave, handleDrop } = useGearSlotDragDrop({
+        selectedItem,
+        slotKey,
+        availableOrbs1,
+        availableOrbs2,
+        maxDrifs,
+        maxDrifIndex,
+        elementalTypes,
+        hasGlobalElemental,
+        setSelectedItem,
+        setBuiltInLvls,
+        setOrbSlots,
+        setSelectedDrifs,
+        setDrifTypes,
+        setDrifLevels,
+    });
 
     return {
         selectedItem,
