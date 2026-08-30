@@ -15,6 +15,7 @@ import { getRarityColor, getStarColor } from "../../utils/formatters";
  * @returns {JSX.Element} The item section.
  */
 const ItemSection = ({
+    slotKey,
     label,
     items,
     fullSelectedItem,
@@ -45,9 +46,23 @@ const ItemSection = ({
             onDragLeave={handleDragLeave}
             onDrop={(e) => handleDrop(e, "item")}
         >
-            <span className="text-[10px] font-serif font-bold text-stone-600 uppercase tracking-[0.18em]">
-                Przedmiot
-            </span>
+            <div className="gear-item-preview">
+                <span
+                    className={`gear-item-preview-icon equipment-slot-icon equipment-slot-icon-${slotKey}`}
+                    aria-hidden="true"
+                />
+                <div>
+                    <span className="text-[10px] font-serif font-bold text-stone-600 uppercase tracking-[0.18em]">
+                        Przedmiot
+                    </span>
+                    <strong>{fullSelectedItem?.name || label}</strong>
+                    <small>
+                        {fullSelectedItem
+                            ? `${fullSelectedItem.tier || ""} · poziom ${fullSelectedItem.reqLevel || "?"}`
+                            : "Brak wybranego przedmiotu"}
+                    </small>
+                </div>
+            </div>
             <select
                 value={selectedItem}
                 aria-label={`Wybierz przedmiot dla slotu ${label}`}

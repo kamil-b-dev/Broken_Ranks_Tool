@@ -1,7 +1,7 @@
 import React from "react";
-import { DRIF_MULTIPLIERS, SIZE_INDEX } from "../../utils/GearRules";
-import { getDrifMaxLvl, formatGroupLabel } from "../../utils/formatters";
 import { useEquipment } from "../../context/EquipmentContext";
+import BuiltInDrifSlots from "./BuiltInDrifSlots";
+import StandardDrifSlot from "./StandardDrifSlot";
 
 /**
  * Renders built-in and standard drif slots, capacity, levels, and locks.
@@ -16,6 +16,7 @@ import { useEquipment } from "../../context/EquipmentContext";
  * @param {object} props.hookData State and actions returned by `useGearSlot`.
  * @param {object} props.bonusTranslations Bonus display translations.
  * @param {object} props.drifBasePowers Base power by drif bonus type.
+ * @param {boolean} props.showOptimizationLocks Whether optimizer lock controls are visible.
  * @returns {JSX.Element} The drif section.
  */
 const DrifSection = ({
@@ -29,6 +30,7 @@ const DrifSection = ({
     hookData,
     bonusTranslations,
     drifBasePowers,
+    showOptimizationLocks = false,
 }) => {
     const {
         isEpicOrSet,
@@ -61,6 +63,7 @@ const DrifSection = ({
      * @returns {boolean} Whether the drif is locked.
      */
     const isDrifLocked = (index) => {
+        if (!showOptimizationLocks) return false;
         if (isParentSlotLocked) return true;
         const locksForSlot = lockedDrifs?.[slotKey] || [];
         return locksForSlot.includes(index);
@@ -91,239 +94,45 @@ const DrifSection = ({
             )}
 
             <div className="flex flex-col w-full gap-2 items-center">
-                {isEpicOrSet &&
-                    builtInDrifs.map((drifObj, idx) => (
-                        <div
-                            key={`builtin-${idx}`}
-                            className="flex gap-1 w-full items-center p-1.5 bg-black/60 border border-yellow-900/60 shadow-[inset_0_0_15px_rgba(0,0,0,0.8)]"
-                        >
-                            <div
-                                className="flex-[4] min-w-0 bg-transparent text-yellow-300 font-serif p-1 text-[10px] border-b border-yellow-900/50 text-center truncate pointer-events-none font-bold uppercase"
-                                title={drifObj.displayName}
-                            >
-                                {drifObj.displayName}
-                            </div>
-                            <select
-                                value={builtInLvls[idx]}
-                                onChange={(e) => {
-                                    const newLvls = [...builtInLvls];
-                                    newLvls[idx] = parseInt(e.target.value);
-                                    setBuiltInLvls(newLvls);
-                                }}
-                                className={`flex-[2] min-w-0 bg-transparent font-serif p-1 text-xs border-b outline-none text-center cursor-pointer bg-stone-950 ${drifObj.id ? "text-yellow-300 border-yellow-900/50 hover:border-yellow-500" : "text-rose-600 border-rose-900"}`}
-                                disabled={!drifObj.id}
-                            >
-                                {Array.from({ length: 16 }, (_, i) => i + 1).map((num) => (
-                                    <option
-                                        key={num}
-                                        value={num}
-                                        className="bg-stone-950 text-stone-300"
-                                    >
-                                        {num} lvl
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    ))}
+                {isEpicOrSet && (
+                    <BuiltInDrifSlots
+                        drifs={builtInDrifs}
+                        levels={builtInLvls}
+                        onLevelsChange={setBuiltInLvls}
+                    />
+                )}
 
                 {!isEpicOrSet &&
-                    Array.from({ length: maxDrifs }).map((_, index) => {
-                        const drifId = selectedDrifs[index] || "";
-                        const currentType = drifTypes[index] || "";
-
-                        const localUsedBonusTypes = selectedDrifs
-                            .map((dId, i) =>
-                                i !== index && dId
-                                    ? drifs.find((dr) => dr.id.toString() === dId.toString())
-                                          ?.bonusType
-                                    : null
-                            )
-                            .filter(Boolean);
-
-                        const allowedDrifs = drifs.filter((drif) => {
-                            if (drifId && drif.id.toString() === drifId.toString()) return true;
-
-                            if (!drif.size) return false;
-                            if (localUsedBonusTypes.includes(drif.bonusType)) return false;
-                            const drifSizeIdx = SIZE_INDEX[drif.size.toUpperCase()] ?? -1;
-                            if (drifSizeIdx === -1 || drifSizeIdx > maxDrifIndex) return false;
-                            return true;
-                        });
-
-                        const currentGroupedDrifs = groupByType(allowedDrifs);
-                        const currentDrifObj = drifs.find(
-                            (d) => d.id.toString() === drifId.toString()
-                        );
-                        const maxLvl = currentDrifObj ? getDrifMaxLvl(currentDrifObj.size) : 21;
-                        const drifLocked = isDrifLocked(index);
-
-                        return (
-                            <div
-                                key={index}
-                                className={`flex gap-1 w-full items-center p-1.5 bg-black/60 border transition-colors shadow-[inset_0_0_15px_rgba(0,0,0,0.8)]
-                            ${dragOverZone === `drif-${index}` ? "border-amber-800/50 bg-amber-950/20" : "border-rose-900/70"}
-                            ${drifLocked ? "border-red-900/60 bg-red-950/10" : ""}`}
-                                onDragOver={
-                                    drifLocked
-                                        ? undefined
-                                        : (e) => handleDragOver(e, `drif-${index}`)
-                                }
-                                onDragLeave={drifLocked ? undefined : handleDragLeave}
-                                onDrop={
-                                    drifLocked ? undefined : (e) => handleDrop(e, `drif-${index}`)
-                                }
-                            >
-                                <select
-                                    value={currentType}
-                                    aria-label={`Wybierz rodzaj drifa ${index + 1}`}
-                                    disabled={drifLocked}
-                                    onChange={(e) => {
-                                        setDrifTypes((prev) => ({
-                                            ...prev,
-                                            [index]: e.target.value,
-                                        }));
-                                        setSelectedDrifs((prev) => {
-                                            const next = [...prev];
-                                            next[index] = "";
-                                            return next;
-                                        });
-                                        setDrifLevels((prev) => ({ ...prev, [index]: "" }));
-                                    }}
-                                    className={`flex-[3] min-w-0 bg-transparent text-amber-600 font-serif p-1 text-xs border-b outline-none text-center ${drifLocked ? "opacity-70 cursor-not-allowed border-red-900/50" : "border-rose-900/70 focus:border-rose-500 cursor-pointer"} ${isOverCapacity && !drifLocked ? "border-red-500/80" : ""}`}
-                                >
-                                    <option value="" className="bg-stone-950 text-stone-500">
-                                        Rodzaj
-                                    </option>
-                                    {Object.keys(currentGroupedDrifs).map((type) => (
-                                        <option
-                                            key={type}
-                                            value={type}
-                                            className="bg-stone-950 text-stone-300"
-                                        >
-                                            {formatGroupLabel(
-                                                type,
-                                                currentGroupedDrifs[type],
-                                                bonusTranslations
-                                            )}
-                                        </option>
-                                    ))}
-                                </select>
-
-                                <select
-                                    value={drifId}
-                                    aria-label={`Wybierz wielkość drifa ${index + 1}`}
-                                    disabled={!currentType || drifLocked}
-                                    onChange={(e) => {
-                                        setSelectedDrifs((prev) => {
-                                            const next = [...prev];
-                                            next[index] = e.target.value;
-                                            return next;
-                                        });
-                                        setDrifLevels((prev) => ({ ...prev, [index]: 1 }));
-                                    }}
-                                    className={`flex-[3] min-w-0 bg-transparent text-stone-300 font-serif p-1 text-xs border-b outline-none text-center disabled:opacity-30 ${drifLocked ? "cursor-not-allowed border-red-900/50" : "border-rose-900/70 focus:border-rose-500 cursor-pointer"} ${isOverCapacity && !drifLocked ? "border-red-500/80" : ""}`}
-                                >
-                                    <option value="" className="bg-stone-950 text-stone-500">
-                                        Wielkość
-                                    </option>
-                                    {currentType &&
-                                        currentGroupedDrifs[currentType]?.map((d) => {
-                                            const multiplier = d.size
-                                                ? DRIF_MULTIPLIERS[d.size.toUpperCase()] || 1
-                                                : 1;
-                                            const basePwr = drifBasePowers[d.bonusType] || 0;
-                                            const minPwr = basePwr * 1;
-                                            const maxPwr = basePwr * multiplier;
-                                            const labelPwr =
-                                                minPwr === maxPwr
-                                                    ? `${minPwr}p`
-                                                    : `${minPwr}-${maxPwr}p`;
-                                            return (
-                                                <option
-                                                    key={d.id}
-                                                    value={d.id}
-                                                    className="bg-stone-950 text-stone-300"
-                                                >
-                                                    {d.size || d.tier} ({labelPwr})
-                                                </option>
-                                            );
-                                        })}
-                                </select>
-
-                                <select
-                                    value={drifLevels[index] || ""}
-                                    aria-label={`Wybierz poziom drifa ${index + 1}`}
-                                    disabled={!drifId || drifLocked}
-                                    onChange={(e) =>
-                                        setDrifLevels((prev) => ({
-                                            ...prev,
-                                            [index]: parseInt(e.target.value),
-                                        }))
-                                    }
-                                    className={`flex-[2] min-w-0 bg-transparent text-stone-300 font-serif p-1 text-xs border-b outline-none text-center disabled:opacity-30 ${drifLocked ? "cursor-not-allowed border-red-900/50" : "border-rose-900/70 focus:border-rose-500 cursor-pointer"} ${isOverCapacity && !drifLocked ? "border-red-500/80" : ""}`}
-                                >
-                                    <option value="" className="bg-stone-950 text-stone-500">
-                                        lvl
-                                    </option>
-                                    {Array.from({ length: maxLvl }, (_, i) => i + 1).map((num) => (
-                                        <option
-                                            key={num}
-                                            value={num.toString()}
-                                            className="bg-stone-950 text-stone-300"
-                                        >
-                                            {num}
-                                        </option>
-                                    ))}
-                                </select>
-
-                                <button
-                                    onClick={() => toggleDrifLock(slotKey, index)}
-                                    type="button"
-                                    disabled={isParentSlotLocked || !drifId}
-                                    className={`p-1 flex-[0.5] flex justify-center items-center transition-colors
-                                    ${drifLocked ? "text-red-500 hover:text-red-400" : "text-stone-700 hover:text-stone-400"}
-                                    ${isParentSlotLocked || !drifId ? "opacity-30 cursor-not-allowed" : "cursor-pointer"}`}
-                                    title={
-                                        drifLocked
-                                            ? "Odblokuj drif"
-                                            : "Zablokuj drif w optymalizatorze"
-                                    }
-                                >
-                                    {drifLocked ? (
-                                        <svg
-                                            className="w-3.5 h-3.5"
-                                            fill="currentColor"
-                                            viewBox="0 0 20 20"
-                                        >
-                                            <path
-                                                fillRule="evenodd"
-                                                d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
-                                                clipRule="evenodd"
-                                            />
-                                        </svg>
-                                    ) : (
-                                        <svg
-                                            className="w-3.5 h-3.5"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            viewBox="0 0 24 24"
-                                        >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth="2"
-                                                d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"
-                                            />
-                                        </svg>
-                                    )}
-                                </button>
-                            </div>
-                        );
-                    })}
-
+                    Array.from({ length: maxDrifs }).map((_, index) => (
+                        <StandardDrifSlot
+                            key={index}
+                            index={index}
+                            drifs={drifs}
+                            selectedDrifs={selectedDrifs}
+                            drifTypes={drifTypes}
+                            drifLevels={drifLevels}
+                            maxDrifIndex={maxDrifIndex}
+                            bonusTranslations={bonusTranslations}
+                            drifBasePowers={drifBasePowers}
+                            groupByType={groupByType}
+                            locked={isDrifLocked(index)}
+                            parentLocked={isParentSlotLocked}
+                            showLock={showOptimizationLocks}
+                            overCapacity={isOverCapacity}
+                            dragActive={dragOverZone === `drif-${index}`}
+                            onDragOver={(event) => handleDragOver(event, `drif-${index}`)}
+                            onDragLeave={handleDragLeave}
+                            onDrop={(event) => handleDrop(event, `drif-${index}`)}
+                            onToggleLock={() => toggleDrifLock(slotKey, index)}
+                            setSelectedDrifs={setSelectedDrifs}
+                            setDrifTypes={setDrifTypes}
+                            setDrifLevels={setDrifLevels}
+                        />
+                    ))}
                 {!fullSelectedItem && (
-                    <span className="text-[10px] font-serif text-stone-600 uppercase tracking-widest mt-1 pointer-events-none drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
-                        Oczekiwanie...
+                    <span className="drif-empty-state">
+                        <i aria-hidden="true">◇</i>
+                        <span>Wybierz przedmiot, aby odblokować gniazda</span>
                     </span>
                 )}
             </div>

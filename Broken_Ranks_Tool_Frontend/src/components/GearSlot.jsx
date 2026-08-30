@@ -14,10 +14,20 @@ import DrifSection from "./gear_slot/DrifSection.jsx";
  * @param {Array<object>} props.drifs Drifs available for the slot.
  * @param {object} props.gameRules Rules used by the slot sections.
  * @param {string} props.slotKey Stable equipment slot identifier.
+ * @param {boolean} props.expanded Whether to render the wide selected-slot editor.
+ * @param {boolean} props.showOptimizationLocks Whether optimizer lock controls are visible.
  * @returns {JSX.Element} The rendered equipment slot.
  */
 const GearSlot = (props) => {
-    const { label, items, drifs, gameRules, slotKey } = props;
+    const {
+        label,
+        items,
+        drifs,
+        gameRules,
+        slotKey,
+        expanded = false,
+        showOptimizationLocks = false,
+    } = props;
     const { bonusTranslations = {}, drifBasePowers = {} } = gameRules || {};
 
     const hookData = useGearSlot(props);
@@ -47,7 +57,7 @@ const GearSlot = (props) => {
             </div>
         );
 
-    const slotClasses = `flex flex-col items-center gap-3 w-64 p-4 bg-gradient-to-b from-stone-900/95 to-black transition-all duration-200 border-2 relative overflow-hidden shadow-[inset_0_0_20px_rgba(0,0,0,0.9),0_0_15px_rgba(0,0,0,0.8)] hover:-translate-y-0.5 hover:border-rose-700
+    const slotClasses = `gear-slot-editor ${expanded ? "gear-slot-editor-expanded" : "w-64"} flex flex-col items-center gap-3 p-4 bg-gradient-to-b from-stone-900/95 to-black transition-all duration-200 border-2 relative overflow-hidden shadow-[inset_0_0_20px_rgba(0,0,0,0.9),0_0_15px_rgba(0,0,0,0.8)] hover:border-rose-700
         ${isOverCapacity ? "border-red-600 shadow-[inset_0_0_40px_rgba(153,27,27,0.4),0_0_20px_rgba(153,27,27,0.6)]" : "border-rose-900/80"}
         ${isSlotLocked ? "opacity-90 grayscale-[0.3]" : ""}`;
 
@@ -60,7 +70,7 @@ const GearSlot = (props) => {
                     {label}
                 </span>
 
-                {fullSelectedItem && (
+                {showOptimizationLocks && fullSelectedItem && (
                     <button
                         onClick={() => toggleSlotLock(slotKey)}
                         type="button"
@@ -94,18 +104,21 @@ const GearSlot = (props) => {
                 )}
             </div>
 
-            <ItemSection
-                label={label}
-                items={items}
-                fullSelectedItem={fullSelectedItem}
-                dragOverZone={dragOverZone}
-                handleDragOver={handleDragOver}
-                handleDragLeave={handleDragLeave}
-                handleDrop={handleDrop}
-                hookData={hookData}
-            />
+            <div className="gear-slot-item-section w-full">
+                <ItemSection
+                    slotKey={slotKey}
+                    label={label}
+                    items={items}
+                    fullSelectedItem={fullSelectedItem}
+                    dragOverZone={dragOverZone}
+                    handleDragOver={handleDragOver}
+                    handleDragLeave={handleDragLeave}
+                    handleDrop={handleDrop}
+                    hookData={hookData}
+                />
+            </div>
 
-            <div className="w-full flex flex-col items-center mt-1">
+            <div className="gear-slot-orb-section w-full flex flex-col items-center mt-1">
                 <span className="text-[10px] font-serif font-bold text-rose-800/80 uppercase tracking-widest mb-1 pointer-events-none drop-shadow-md">
                     Orb
                 </span>
@@ -147,18 +160,21 @@ const GearSlot = (props) => {
                 )}
             </div>
 
-            <DrifSection
-                slotKey={slotKey}
-                drifs={drifs}
-                fullSelectedItem={fullSelectedItem}
-                dragOverZone={dragOverZone}
-                handleDragOver={handleDragOver}
-                handleDragLeave={handleDragLeave}
-                handleDrop={handleDrop}
-                hookData={hookData}
-                bonusTranslations={bonusTranslations}
-                drifBasePowers={drifBasePowers}
-            />
+            <div className="gear-slot-drif-section w-full">
+                <DrifSection
+                    slotKey={slotKey}
+                    drifs={drifs}
+                    fullSelectedItem={fullSelectedItem}
+                    dragOverZone={dragOverZone}
+                    handleDragOver={handleDragOver}
+                    handleDragLeave={handleDragLeave}
+                    handleDrop={handleDrop}
+                    hookData={hookData}
+                    bonusTranslations={bonusTranslations}
+                    drifBasePowers={drifBasePowers}
+                    showOptimizationLocks={showOptimizationLocks}
+                />
+            </div>
         </div>
     );
 };
