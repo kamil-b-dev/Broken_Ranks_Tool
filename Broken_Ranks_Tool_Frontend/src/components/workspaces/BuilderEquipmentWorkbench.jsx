@@ -34,6 +34,7 @@ const BuilderEquipmentWorkbench = ({
                     pole.
                 </p>
             </div>
+            <span className="equipment-ornament-divider" aria-hidden="true" />
             <div className="equipment-figure-heading" aria-live="polite">
                 <span>Ekwipunek</span>
                 <strong>
