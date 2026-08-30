@@ -1,11 +1,17 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
     BUILD_FILE_FORMAT,
     BUILD_FILE_VERSION,
     MAX_BUILD_FILE_SIZE,
     createBuildPayload,
+    downloadBuildPayload,
     parseBuildFile,
 } from "./buildFile";
+
+afterEach(() => {
+    vi.restoreAllMocks();
+    vi.useRealTimers();
+});
 
 const gameData = {
     items: [{ id: 1 }],
@@ -53,7 +59,30 @@ describe("createBuildPayload", () => {
             version: BUILD_FILE_VERSION,
             exportedAt: "2026-08-27T12:00:00.000Z",
         });
-        vi.useRealTimers();
+    });
+});
+
+describe("downloadBuildPayload", () => {
+    it("downloads a dated JSON file and releases its object URL", () => {
+        vi.useFakeTimers();
+        const createObjectURL = vi.fn(() => "blob:build");
+        const revokeObjectURL = vi.fn();
+        Object.defineProperty(URL, "createObjectURL", {
+            value: createObjectURL,
+            configurable: true,
+        });
+        Object.defineProperty(URL, "revokeObjectURL", {
+            value: revokeObjectURL,
+            configurable: true,
+        });
+        const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+
+        downloadBuildPayload(validPayload(), new Date("2026-08-30T12:00:00Z"));
+
+        expect(createObjectURL).toHaveBeenCalledWith(expect.any(Blob));
+        expect(click).toHaveBeenCalledOnce();
+        vi.runAllTimers();
+        expect(revokeObjectURL).toHaveBeenCalledWith("blob:build");
     });
 });
 
