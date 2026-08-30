@@ -6,6 +6,7 @@ import {
 } from "../api/equipmentApi";
 import { createBuildPayload, downloadBuildPayload, parseBuildFile } from "../utils/buildFile";
 import { createEquipmentOptimizationRequest } from "../components/optimization/equipmentOptimizationRequest";
+import { useEquipmentLocks } from "../hooks/useEquipmentLocks";
 
 const EquipmentContext = createContext();
 
@@ -44,8 +45,8 @@ export const EquipmentProvider = ({ children }) => {
 
     const [optimizationTrigger, setOptimizationTrigger] = useState(0);
 
-    const [lockedSlots, setLockedSlots] = useState([]);
-    const [lockedDrifs, setLockedDrifs] = useState({});
+    const { lockedSlots, lockedDrifs, toggleSlotLock, toggleDrifLock, replaceLocks } =
+        useEquipmentLocks();
     const [characterConfig, setCharacterConfig] = useState(null);
 
     useEffect(() => {
@@ -128,45 +129,13 @@ export const EquipmentProvider = ({ children }) => {
             const importedBuild = await parseBuildFile(file, data);
             setRequestData(importedBuild.requestData);
             setCharacterConfig(importedBuild.characterConfig);
-            setLockedSlots(importedBuild.lockedSlots);
-            setLockedDrifs(importedBuild.lockedDrifs);
+            replaceLocks(importedBuild.lockedSlots, importedBuild.lockedDrifs);
             setStats(null);
             setStatSources({ drifCategories: {}, orbBonusTypes: [] });
             setOptimizationTrigger((prev) => prev + 1);
         },
-        [data]
+        [data, replaceLocks]
     );
-
-    /**
-     * Toggles an equipment slot lock used by the optimizer.
-     * @param {string} slotKey Equipment slot identifier.
-     */
-    const toggleSlotLock = useCallback((slotKey) => {
-        setLockedSlots((prev) =>
-            prev.includes(slotKey) ? prev.filter((key) => key !== slotKey) : [...prev, slotKey]
-        );
-    }, []);
-
-    /**
-     * Toggles a drif lock within an equipment slot.
-     * @param {string} slotKey Equipment slot identifier.
-     * @param {number} drifIndex Drif position within the slot.
-     */
-    const toggleDrifLock = useCallback((slotKey, drifIndex) => {
-        setLockedDrifs((prev) => {
-            const currentSlotLocks = prev[slotKey] || [];
-            const isLocked = currentSlotLocks.includes(drifIndex);
-
-            const updatedSlotLocks = isLocked
-                ? currentSlotLocks.filter((idx) => idx !== drifIndex)
-                : [...currentSlotLocks, drifIndex];
-
-            return {
-                ...prev,
-                [slotKey]: updatedSlotLocks,
-            };
-        });
-    }, []);
 
     /**
      * Sends the current equipment and character data to calculate final statistics.
