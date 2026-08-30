@@ -1,5 +1,4 @@
 import { SLOTS } from "../../constants/equipment";
-import equipmentSilhouette from "../../assets/equipment-silhouette.png";
 import EquipmentSlotOverview from "../equipment/EquipmentSlotOverview";
 import GearSlot from "../GearSlot";
 
@@ -45,7 +44,6 @@ const BuilderEquipmentWorkbench = ({
                 <div className="equipment-slot-column">{SLOTS.slice(0, 6).map(renderOverview)}</div>
                 <figure className="equipment-character-figure" aria-hidden="true">
                     <span className="equipment-figure-aura" />
-                    <img src={equipmentSilhouette} alt="" />
                     <span className="equipment-body-layers" aria-hidden="true">
                         {SLOTS.map((slot) => {
                             const equipped = Boolean(model.itemForSlot(slot));
