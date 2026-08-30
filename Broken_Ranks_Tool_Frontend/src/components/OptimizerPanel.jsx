@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import { useEquipment } from "../context/EquipmentContext";
 import { calculateCurrentModDetails } from "./optimization/optimizerDomain";
 import {
@@ -23,6 +23,7 @@ import {
     readOptimizerConfigurationFile,
 } from "./optimization/optimizerConfigFiles";
 import { useOptimizerPriorities } from "../hooks/useOptimizerPriorities";
+import { useOptimizationRun } from "../hooks/useOptimizationRun";
 
 /**
  * Provides drif priorities, target limits, and equipment locking for optimization.
@@ -60,27 +61,17 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
         toggleAllExpanded,
         replaceConfiguration,
     } = useOptimizerPriorities(gameRules);
-    const [isOptimizing, setIsOptimizing] = useState(false);
-    const [optimizationElapsedSeconds, setOptimizationElapsedSeconds] = useState(0);
-    const [lastOptimizationDurationSeconds, setLastOptimizationDurationSeconds] = useState(null);
-    const [optimizationStatus, setOptimizationStatus] = useState(null);
-    const [activeVariantIndex, setActiveVariantIndex] = useState(0);
+    const {
+        isOptimizing,
+        elapsedSeconds: optimizationElapsedSeconds,
+        lastDurationSeconds: lastOptimizationDurationSeconds,
+        status: optimizationStatus,
+        activeVariantIndex,
+        setActiveVariantIndex,
+        run: runOptimization,
+    } = useOptimizationRun(runDrifOptimization);
     const [activeMobileColumn, setActiveMobileColumn] = useState("priorities");
     const configInputRef = useRef(null);
-    const optimizationStartTimeRef = useRef(null);
-
-    useEffect(() => {
-        if (!isOptimizing) return undefined;
-
-        const timerId = window.setInterval(() => {
-            if (optimizationStartTimeRef.current === null) return;
-            setOptimizationElapsedSeconds(
-                Math.floor((performance.now() - optimizationStartTimeRef.current) / 1000)
-            );
-        }, 250);
-
-        return () => window.clearInterval(timerId);
-    }, [isOptimizing]);
 
     const currentModDetails = useMemo(
         () =>
@@ -132,24 +123,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
             alert(`Podaj poprawny, nieujemny procent dla: ${invalidPercentageTarget.value}.`);
             return;
         }
-        setIsOptimizing(true);
-        setOptimizationElapsedSeconds(0);
-        const startedAt = performance.now();
-        optimizationStartTimeRef.current = startedAt;
-
-        try {
-            const result = await runDrifOptimization(
-                buildOptimizationConfig(prioritizedBonuses, optimizerSettings)
-            );
-            setOptimizationStatus(result);
-            setActiveVariantIndex(0);
-        } finally {
-            const durationSeconds = Math.floor((performance.now() - startedAt) / 1000);
-            setOptimizationElapsedSeconds(durationSeconds);
-            setLastOptimizationDurationSeconds(durationSeconds);
-            optimizationStartTimeRef.current = null;
-            setIsOptimizing(false);
-        }
+        await runOptimization(buildOptimizationConfig(prioritizedBonuses, optimizerSettings));
     };
 
     return (
