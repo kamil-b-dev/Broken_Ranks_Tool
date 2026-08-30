@@ -916,11 +916,12 @@ input:focus-visible {
 
 .equipment-body-layer {
     position: absolute;
+    z-index: 1;
     display: block;
-    inset: 0;
     opacity: 0;
+    background-position: center;
     background-repeat: no-repeat;
-    background-size: 400% 100%;
+    background-size: contain;
     filter: sepia(0.12) saturate(0.82) brightness(0.82);
     transition:
         opacity 150ms ease,
@@ -937,91 +938,97 @@ input:focus-visible {
         drop-shadow(0 0 10px rgba(126, 22, 18, 0.72));
 }
 
-.equipment-body-layer-helmet,
-.equipment-body-layer-armor,
-.equipment-body-layer-cape,
-.equipment-body-layer-legs {
-    background-image: url("./assets/equipment-wearables-atlas.png");
-}
-
-.equipment-body-layer-boots,
-.equipment-body-layer-gloves,
-.equipment-body-layer-belt,
-.equipment-body-layer-weapon {
-    background-image: url("./assets/equipment-tools-atlas.png");
-}
-
-.equipment-body-layer-shield,
-.equipment-body-layer-necklace {
-    background-image: url("./assets/equipment-accessories-atlas.png");
-}
-
-.equipment-body-layer-helmet,
-.equipment-body-layer-boots,
-.equipment-body-layer-shield {
-    background-position: 0 0;
-}
-
 .equipment-body-layer-helmet {
-    transform: translateY(17%);
+    top: 4%;
+    left: 35%;
+    width: 30%;
+    height: 20%;
+    background-image: url("./assets/equipment-layer-helmet.png");
 }
 
 .equipment-body-layer-armor {
-    transform: translateY(15%);
+    top: 18%;
+    left: 11%;
+    width: 78%;
+    height: 33%;
+    background-image: url("./assets/equipment-layer-armor.png");
 }
 
 .equipment-body-layer-cape {
-    z-index: -1;
-    transform: translateY(15%);
+    z-index: 0;
+    top: 15%;
+    left: 6%;
+    width: 88%;
+    height: 39%;
+    background-image: url("./assets/equipment-layer-cape.png");
 }
 
 .equipment-body-layer-legs {
-    transform: translateY(9%);
+    top: 47%;
+    left: 22%;
+    width: 56%;
+    height: 48%;
+    background-image: url("./assets/equipment-layer-legs.png");
 }
 
 .equipment-body-layer-boots {
-    transform: translateY(24%);
+    top: 67%;
+    left: 20%;
+    width: 60%;
+    height: 32%;
+    background-image: url("./assets/equipment-layer-boots.png");
 }
 
 .equipment-body-layer-gloves {
-    transform: translateY(7%);
+    top: 29%;
+    left: 5%;
+    width: 90%;
+    height: 29%;
+    background-image: url("./assets/equipment-layer-gloves.png");
 }
 
 .equipment-body-layer-belt {
-    transform: translateY(10%);
+    top: 43%;
+    left: 22%;
+    width: 56%;
+    height: 14%;
+    background-image: url("./assets/equipment-layer-belt.png");
+}
+
+.equipment-body-layer-weapon {
+    z-index: 2;
+    top: 31%;
+    left: 27%;
+    width: 34%;
+    height: 57%;
+    background-image: url("./assets/equipment-layer-weapon.png");
 }
 
 .equipment-body-layer-shield {
-    transform: translateY(5%);
+    z-index: 3;
+    top: 27%;
+    right: 1%;
+    width: 43%;
+    height: 42%;
+    background-image: url("./assets/equipment-layer-shield.png");
 }
 
 .equipment-body-layer-necklace {
-    transform: translateY(24%);
-}
-
-.equipment-body-layer-armor,
-.equipment-body-layer-gloves {
-    background-position: 33.333% 0;
-}
-
-.equipment-body-layer-cape,
-.equipment-body-layer-belt {
-    background-position: 66.667% 0;
-}
-
-.equipment-body-layer-legs,
-.equipment-body-layer-weapon,
-.equipment-body-layer-necklace {
-    background-position: 100% 0;
+    z-index: 4;
+    top: 17%;
+    left: 37%;
+    width: 26%;
+    height: 15%;
+    background-image: url("./assets/equipment-layer-necklace.png");
 }
 
 .equipment-body-layer-ring1 {
-    top: 59%;
-    left: 25%;
+    z-index: 4;
+    top: 52%;
+    left: 15%;
     width: 4%;
     height: 4%;
     border-radius: 50%;
-    inset: auto;
     border: 1px solid rgba(220, 169, 84, 0.88);
     background: radial-gradient(
         circle,
@@ -1031,12 +1038,12 @@ input:focus-visible {
     );
 }
 .equipment-body-layer-ring2 {
-    top: 59%;
-    right: 25%;
+    z-index: 4;
+    top: 52%;
+    right: 15%;
     width: 4%;
     height: 4%;
     border-radius: 50%;
-    inset: auto;
     border: 1px solid rgba(220, 169, 84, 0.88);
     background: radial-gradient(
         circle,
