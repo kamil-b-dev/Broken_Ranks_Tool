@@ -1,9 +1,10 @@
 import { createContext, useState, useContext, useCallback, useMemo } from "react";
-import { calculateEquipmentStats, optimizeEquipmentDrifs } from "../api/equipmentApi";
+import { optimizeEquipmentDrifs } from "../api/equipmentApi";
 import { createBuildPayload, downloadBuildPayload, parseBuildFile } from "../utils/buildFile";
 import { createEquipmentOptimizationRequest } from "../components/optimization/equipmentOptimizationRequest";
 import { useEquipmentLocks } from "../hooks/useEquipmentLocks";
 import { useEquipmentCatalog } from "../hooks/useEquipmentCatalog";
+import { useEquipmentStats } from "../hooks/useEquipmentStats";
 
 const EquipmentContext = createContext();
 
@@ -38,9 +39,8 @@ export const EquipmentProvider = ({ children }) => {
     } = useEquipmentCatalog();
 
     const [requestData, setRequestData] = useState({ slots: {}, characterStats: {} });
-    const [stats, setStats] = useState(null);
-    const [statSources, setStatSources] = useState({ drifCategories: {}, orbBonusTypes: [] });
-    const [isCalculatingStats, setIsCalculatingStats] = useState(false);
+    const { stats, statSources, isCalculatingStats, calculateStats, resetStats } =
+        useEquipmentStats(requestData);
 
     const [optimizationTrigger, setOptimizationTrigger] = useState(0);
 
@@ -101,37 +101,11 @@ export const EquipmentProvider = ({ children }) => {
             setRequestData(importedBuild.requestData);
             setCharacterConfig(importedBuild.characterConfig);
             replaceLocks(importedBuild.lockedSlots, importedBuild.lockedDrifs);
-            setStats(null);
-            setStatSources({ drifCategories: {}, orbBonusTypes: [] });
+            resetStats();
             setOptimizationTrigger((prev) => prev + 1);
         },
-        [data, replaceLocks]
+        [data, replaceLocks, resetStats]
     );
-
-    /**
-     * Sends the current equipment and character data to calculate final statistics.
-     * Updates the shared statistics state or reports the backend error to the user.
-     */
-    const calculateStats = useCallback(async () => {
-        setIsCalculatingStats(true);
-        try {
-            const response = await calculateEquipmentStats(requestData);
-            setStats(response.stats || response);
-            setStatSources({
-                drifCategories: response.drifCategories || {},
-                orbBonusTypes: response.orbBonusTypes || [],
-            });
-        } catch (error) {
-            if (error.response && error.response.data && error.response.data.message) {
-                alert(`BŁĄD ZAPISU: ${error.response.data.message}`);
-            } else {
-                alert("Błąd połączenia z serwerem obliczeniowym.");
-            }
-            console.error("Błąd podczas obliczania mocy:", error);
-        } finally {
-            setIsCalculatingStats(false);
-        }
-    }, [requestData]);
 
     /** Applies a calculator-ready equipment setup selected from optimizer variants. */
     const applyOptimizationSetup = useCallback((setup) => {
