@@ -46,6 +46,18 @@ const BuilderEquipmentWorkbench = ({
                 <figure className="equipment-character-figure" aria-hidden="true">
                     <span className="equipment-figure-aura" />
                     <img src={equipmentSilhouette} alt="" />
+                    <span className="equipment-body-layers" aria-hidden="true">
+                        {SLOTS.map((slot) => {
+                            const equipped = Boolean(model.itemForSlot(slot));
+                            const active = slot.key === model.activeSlot.key;
+                            return (
+                                <i
+                                    key={slot.key}
+                                    className={`equipment-body-layer equipment-body-layer-${slot.key}${equipped ? " equipment-body-layer-equipped" : ""}${active ? " equipment-body-layer-active" : ""}`}
+                                />
+                            );
+                        })}
+                    </span>
                 </figure>
                 <div className="equipment-slot-column">{SLOTS.slice(6).map(renderOverview)}</div>
             </div>

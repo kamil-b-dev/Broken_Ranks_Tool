@@ -63,8 +63,6 @@ const GearSlot = (props) => {
 
     return (
         <div className={slotClasses}>
-            <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-red-900 via-rose-700 to-red-900"></div>
-
             <div className="flex w-full justify-between items-center px-1 mb-1 relative z-10">
                 <span className="text-xs font-serif font-bold text-stone-400 uppercase tracking-[0.2em] pointer-events-none drop-shadow-[0_2px_2px_rgba(0,0,0,1)]">
                     {label}

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { buildStatColumns } from "./stats_panel/statsPanelDomain";
 import StatSummaryColumn from "./stats_panel/StatSummaryColumn";
 import crest from "../assets/broken-ranks-crest.png";
@@ -11,7 +12,14 @@ const StatsPanel = ({
     statSources = {},
     compact = false,
 }) => {
+    const [activeResultView, setActiveResultView] = useState("all");
     const statColumns = buildStatColumns({ stats, gameRules, statSources });
+    const visibleColumns = statColumns.filter((column) => {
+        if (activeResultView === "all") return true;
+        if (activeResultView === "stats") return column.title === "Statystyki podstawowe";
+        if (activeResultView === "orbs") return column.title === "Orby";
+        return column.title === "Drify";
+    });
 
     return (
         <section
@@ -44,11 +52,33 @@ const StatsPanel = ({
                     <p>Gotowy build przeliczysz przyciskiem powyżej.</p>
                 </div>
             ) : (
-                <div className={`grid grid-cols-1 gap-5 ${compact ? "" : "lg:grid-cols-3"}`}>
-                    {statColumns.map((column) => (
-                        <StatSummaryColumn key={column.title} {...column} />
-                    ))}
-                </div>
+                <>
+                    <div className="stats-result-tabs" role="tablist" aria-label="Zakres wyniku">
+                        {[
+                            ["all", "Wszystko"],
+                            ["stats", "Statystyki"],
+                            ["orbs", "Orby"],
+                            ["drifs", "Drify"],
+                        ].map(([value, label]) => (
+                            <button
+                                key={value}
+                                type="button"
+                                role="tab"
+                                aria-selected={activeResultView === value}
+                                onClick={() => setActiveResultView(value)}
+                            >
+                                {label}
+                            </button>
+                        ))}
+                    </div>
+                    <div
+                        className={`stats-result-content grid grid-cols-1 gap-5 ${compact || activeResultView !== "all" ? "" : "lg:grid-cols-3"}`}
+                    >
+                        {visibleColumns.map((column) => (
+                            <StatSummaryColumn key={column.title} {...column} />
+                        ))}
+                    </div>
+                </>
             )}
         </section>
     );
