@@ -16,6 +16,8 @@ describe("builderWorkspaceDomain", () => {
     });
 
     it("counts only slots that contain an equipped item", () => {
-        expect(countEquippedSlots({ helmet: { itemId: 1 }, armor: { itemId: null }, boots: {} })).toBe(1);
+        expect(
+            countEquippedSlots({ helmet: { itemId: 1 }, armor: { itemId: null }, boots: {} })
+        ).toBe(1);
     });
 });

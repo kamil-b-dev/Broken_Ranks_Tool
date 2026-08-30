@@ -10,7 +10,10 @@ export const getRarityColor = (rarity) => {
 
 export const getVariantLabel = (variant) => {
     const value = (variant.size || variant.tier || "").toUpperCase();
-    return { SUBDRIF: "S", BIDRIF: "B", MAGNIDRIF: "M", ARCYDRIF: "A" }[value] || (value.length <= 3 ? value : value[0]);
+    return (
+        { SUBDRIF: "S", BIDRIF: "B", MAGNIDRIF: "M", ARCYDRIF: "A" }[value] ||
+        (value.length <= 3 ? value : value[0])
+    );
 };
 
 export const doubleIncrement = (increment) => {
