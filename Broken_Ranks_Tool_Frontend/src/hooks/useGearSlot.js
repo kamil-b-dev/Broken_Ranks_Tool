@@ -5,6 +5,7 @@ import {
     calculateMaximumDrifSizeIndex,
     calculateMaximumDrifSlots,
     calculateUsedDrifPower,
+    createImportedGearSlotState,
     groupGearOptionsByType,
 } from "../components/gear_slot/gearSlotDomain";
 
@@ -67,63 +68,14 @@ export const useGearSlot = ({
 
     useEffect(() => {
         const externalData = allSlots[slotKey];
-        if (externalData) {
-            setSelectedItem(externalData.itemId?.toString() || "");
-            setItemStars(Number(externalData.itemStars) || 1);
-
-            const importedOrbIds = externalData.orbIds || [];
-            const importedOrbLevels = externalData.orbLevels || [];
-            const toOrbState = (index) => {
-                const id = importedOrbIds[index];
-                const orb = id
-                    ? orbs.find((candidate) => candidate.id.toString() === id.toString())
-                    : null;
-                return {
-                    id: id?.toString() || "",
-                    level: id ? String(importedOrbLevels[index] || 1) : "",
-                    type: orb?.name || orb?.bonusType || "",
-                };
-            };
-            setOrbSlots({ orb1: toOrbState(0), orb2: toOrbState(1) });
-
-            const newSelectedDrifs = [];
-            const newDrifTypes = {};
-            const newDrifLevels = {};
-
-            (externalData.drifIds || []).forEach((dId, index) => {
-                if (dId) {
-                    newSelectedDrifs[index] = dId.toString();
-                    const drifObj = drifs.find((d) => d.id.toString() === dId.toString());
-                    if (drifObj) {
-                        newDrifTypes[index] =
-                            drifObj.name || drifObj.description || drifObj.bonusType;
-                    }
-                    newDrifLevels[index] =
-                        externalData.drifLevels && externalData.drifLevels[index]
-                            ? parseInt(externalData.drifLevels[index])
-                            : 21;
-                } else {
-                    newSelectedDrifs[index] = "";
-                }
-            });
-
-            setSelectedDrifs(newSelectedDrifs);
-            setDrifTypes(newDrifTypes);
-            setDrifLevels(newDrifLevels);
-        } else {
-            if (Object.keys(allSlots || {}).length === 0) {
-                return;
-            }
-            setSelectedItem("");
-            setItemStars(1);
-            setOrbSlots({
-                orb1: { id: "", level: "", type: "" },
-                orb2: { id: "", level: "", type: "" },
-            });
-            setSelectedDrifs([]);
-            setDrifTypes({});
-            setDrifLevels({});
-        }
+        if (!externalData && Object.keys(allSlots || {}).length === 0) return;
+        const imported = createImportedGearSlotState(externalData, orbs, drifs);
+        setSelectedItem(imported.selectedItem);
+        setItemStars(imported.itemStars);
+        setOrbSlots(imported.orbSlots);
+        setSelectedDrifs(imported.selectedDrifs);
+        setDrifTypes(imported.drifTypes);
+        setDrifLevels(imported.drifLevels);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [optimizationTrigger, drifs, orbs]);
 
