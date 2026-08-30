@@ -16,6 +16,7 @@ const CompactCharacterPanel = ({ development }) => (
         <div className="character-stat-strip custom-scrollbar">
             {Object.keys(STAT_CONFIG).map((name) => (
                 <div className="character-stat-control" key={name}>
+                    <span className="character-stat-icon" aria-hidden="true" />
                     <div>
                         <span>{name}</span>
                         <strong>{development.finalStats[name]}</strong>

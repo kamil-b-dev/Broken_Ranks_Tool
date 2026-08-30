@@ -1,6 +1,6 @@
-import { getRarityColor, getVariantLabel } from "./itemDatabasePresentation";
+import { getEquipmentIconClass, getRarityColor, getVariantLabel } from "./itemDatabasePresentation";
 
-const ItemRow = ({ item, onDragStart, onHover, onLeave }) => (
+const ItemRow = ({ item, category, onDragStart, onHover, onLeave }) => (
     <li
         draggable
         onDragStart={(event) => onDragStart(event, item, "items")}
@@ -8,8 +8,15 @@ const ItemRow = ({ item, onDragStart, onHover, onLeave }) => (
         onMouseLeave={onLeave}
         className="database-result-row p-1.5 transition-colors flex justify-between items-center group cursor-grab active:cursor-grabbing hover:bg-stone-900/50 border-b border-stone-800/50"
     >
-        <span className={`truncate mr-2 font-serif ${getRarityColor(item.rarity)}`}>
-            {item.name || item.description || item.bonusType}
+        <span
+            className={`database-item-icon equipment-slot-icon equipment-slot-icon-${getEquipmentIconClass(category)}`}
+            aria-hidden="true"
+        />
+        <span className="database-item-copy">
+            <span className={`truncate font-serif ${getRarityColor(item.rarity)}`}>
+                {item.name || item.description || item.bonusType}
+            </span>
+            <small>{category}</small>
         </span>
         <div className="flex items-center gap-2 shrink-0">
             {item.tier && (
@@ -28,6 +35,10 @@ const VariantRow = ({ variants, type, bonusTranslations, onDragStart, onHover, o
     const baseItem = variants[0];
     return (
         <li className="database-result-row p-1.5 flex justify-between items-center gap-2 hover:bg-stone-900/50 transition-colors border-b border-stone-800/50">
+            <span
+                className={`database-bonus-icon database-bonus-icon-${type}`}
+                aria-hidden="true"
+            />
             <span
                 className="truncate flex-1 cursor-help flex items-center gap-1.5"
                 onMouseMove={(event) => onHover(event, baseItem, type)}
@@ -78,6 +89,10 @@ const ItemDatabaseResults = ({
             .map(([category, entries]) => (
                 <div key={category}>
                     <h4 className="database-category-heading text-stone-500 font-serif font-bold mb-2 text-xs uppercase tracking-[0.2em]">
+                        <span
+                            className={`database-category-icon equipment-slot-icon equipment-slot-icon-${activeTab === "items" ? getEquipmentIconClass(category) : "ring1"}`}
+                            aria-hidden="true"
+                        />
                         {category}
                     </h4>
                     <ul className="text-sm space-y-1 pl-2 border-l border-stone-800">
@@ -86,6 +101,7 @@ const ItemDatabaseResults = ({
                                 <ItemRow
                                     key={entry.id}
                                     item={entry}
+                                    category={category}
                                     onDragStart={onDragStart}
                                     onHover={onHover}
                                     onLeave={onLeave}
