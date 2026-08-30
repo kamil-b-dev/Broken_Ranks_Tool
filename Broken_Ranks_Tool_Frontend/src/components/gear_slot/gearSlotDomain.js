@@ -100,3 +100,59 @@ export const createImportedGearSlotState = (slot, orbs, drifs) => {
         drifLevels,
     };
 };
+
+export const collectUsedOrbTypes = (allSlots, currentSlotKey, orbs) =>
+    Object.entries(allSlots || {})
+        .filter(([slotKey, slot]) => slotKey !== currentSlotKey && slot?.orbIds)
+        .flatMap(([, slot]) => slot.orbIds)
+        .filter(Boolean)
+        .map((orbId) => orbs.find((orb) => String(orb.id) === String(orbId))?.bonusType)
+        .filter(Boolean);
+
+export const getAvailablePrimaryOrbs = ({
+    orbs,
+    allowedCategories,
+    usedTypes,
+    itemTier,
+    isLegendary,
+    tierToNumber,
+}) =>
+    orbs.filter((orb) => {
+        const orbTier = tierToNumber[orb.tier] || 0;
+        const allowed =
+            allowedCategories.includes(orb.category) ||
+            (isLegendary && orb.category === "OFFENSIVE");
+        return allowed && !usedTypes.includes(orb.bonusType) && (!itemTier || orbTier <= itemTier);
+    });
+
+export const getAvailableSecondaryOrbs = ({
+    orbs,
+    usedTypes,
+    itemTier,
+    isLegendary,
+    primaryOrbId,
+    tierToNumber,
+}) => {
+    if (!isLegendary) return [];
+    const primaryType = orbs.find((orb) => String(orb.id) === String(primaryOrbId))?.bonusType;
+    return orbs.filter((orb) => {
+        const orbTier = tierToNumber[orb.tier] || 0;
+        return (
+            orb.category === "OFFENSIVE" &&
+            !usedTypes.includes(orb.bonusType) &&
+            orb.bonusType !== primaryType &&
+            (!itemTier || orbTier <= itemTier)
+        );
+    });
+};
+
+export const hasElementalDrifInOtherSlot = ({ allSlots, currentSlotKey, drifs, elementalTypes }) =>
+    Object.entries(allSlots || {})
+        .filter(([slotKey, slot]) => slotKey !== currentSlotKey && slot?.drifIds)
+        .some(([, slot]) =>
+            slot.drifIds.some((drifId) => {
+                if (!drifId) return false;
+                const drif = drifs.find((candidate) => String(candidate.id) === String(drifId));
+                return drif && elementalTypes.includes(drif.bonusType);
+            })
+        );
