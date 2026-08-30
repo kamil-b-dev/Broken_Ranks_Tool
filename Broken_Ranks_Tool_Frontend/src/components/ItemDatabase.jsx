@@ -1,5 +1,8 @@
 import { useState, useMemo } from "react";
-import { ROMAN_ORDER, SIZE_ORDER } from "../utils/GearRules";
+import {
+    buildItemDatabaseGroups,
+    filterItemDatabaseGroups,
+} from "./item_database/itemDatabaseDomain";
 
 const getRarityColor = (rarity) => {
     if (!rarity)
@@ -16,26 +19,6 @@ const getRarityColor = (rarity) => {
         default:
             return "bg-clip-text text-transparent bg-gradient-to-r from-stone-400 to-stone-500 font-bold";
     }
-};
-
-const deduplicateVariants = (variants) => {
-    const seen = new Set();
-    return variants.filter((v) => {
-        const key = v.size || v.tier;
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
-    });
-};
-
-const sortVariants = (variants) => {
-    return variants.sort((a, b) => {
-        const valA = a.size || a.tier || "";
-        const valB = b.size || b.tier || "";
-        const orderA = SIZE_ORDER[valA.toUpperCase()] || ROMAN_ORDER[valA.toUpperCase()] || 99;
-        const orderB = SIZE_ORDER[valB.toUpperCase()] || ROMAN_ORDER[valB.toUpperCase()] || 99;
-        return orderA - orderB;
-    });
 };
 
 const getShortLabel = (variant) => {
@@ -95,109 +78,42 @@ const ItemDatabase = ({
 
     const { bonusTranslations = {}, drifBasePowers = {} } = gameRules;
 
-    const { groupedData, allCategories, allTiers, allStats } = useMemo(() => {
-        let groups = {};
-        const tiersSet = new Set();
-        const statsSet = new Set();
+    const { groupedData, allCategories, allTiers, allStats } = useMemo(
+        () => buildItemDatabaseGroups({ activeTab, items, orbs, drifs, categoryNames }),
+        [activeTab, items, orbs, drifs, categoryNames]
+    );
 
-        if (activeTab === "items") {
-            items.forEach((item) => {
-                const cat = categoryNames[item.category] || item.category || "INNE";
-                if (!groups[cat]) groups[cat] = [];
-                groups[cat].push(item);
-
-                if (item.tier) tiersSet.add(item.tier);
-                if (item.stats) Object.keys(item.stats).forEach((s) => statsSet.add(s));
-            });
-        } else if (activeTab === "orbs") {
-            const orbsByType = {};
-            orbs.forEach((orb) => {
-                if (!orbsByType[orb.bonusType]) orbsByType[orb.bonusType] = [];
-                orbsByType[orb.bonusType].push(orb);
-            });
-            groups["Orby"] = Object.values(orbsByType).map((v) =>
-                sortVariants(deduplicateVariants(v))
-            );
-        } else if (activeTab === "drifs") {
-            const drifsByType = {};
-            drifs.forEach((drif) => {
-                if (!drifsByType[drif.bonusType]) drifsByType[drif.bonusType] = [];
-                drifsByType[drif.bonusType].push(drif);
-            });
-            groups["Drify"] = Object.values(drifsByType).map((v) =>
-                sortVariants(deduplicateVariants(v))
-            );
-        }
-
-        return {
-            groupedData: groups,
-            allCategories: ["Wszystkie", ...Object.keys(groups).sort()],
-            allTiers: [
-                "Wszystkie",
-                ...Array.from(tiersSet).sort(
-                    (a, b) => (ROMAN_ORDER[a] || 99) - (ROMAN_ORDER[b] || 99)
-                ),
-            ],
-            allStats: ["Wszystkie", ...Array.from(statsSet).sort()],
-        };
-    }, [items, orbs, drifs, activeTab, categoryNames]);
-
-    const filteredGroups = Object.entries(groupedData).reduce((acc, [category, itemList]) => {
-        if (
-            activeTab === "items" &&
-            selectedCategory !== "Wszystkie" &&
-            category !== selectedCategory
-        )
-            return acc;
-
-        const matchedItems = itemList.filter((itemOrVariants) => {
-            if (activeTab === "items") {
-                const searchStr = (itemOrVariants.name || "").toLowerCase();
-                const matchesSearch = searchStr.includes(searchTerm.toLowerCase());
-                const matchesTier =
-                    selectedTier === "Wszystkie" || itemOrVariants.tier === selectedTier;
-                const matchesStat =
-                    selectedStat === "Wszystkie" ||
-                    (itemOrVariants.stats && itemOrVariants.stats[selectedStat] !== undefined);
-                return matchesSearch && matchesTier && matchesStat;
-            }
-
-            const baseItem = itemOrVariants[0];
-            if (!baseItem) return false;
-
-            const translatedName =
-                bonusTranslations[baseItem.bonusType] || baseItem.bonusType || "";
-            const matchesSearch =
-                (baseItem.name?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
-                translatedName.toLowerCase().includes(searchTerm.toLowerCase());
-
-            if (activeTab === "orbs") {
-                const matchesOrbCategory =
-                    selectedOrbCategory === "Wszystkie" ||
-                    baseItem.category === selectedOrbCategory;
-                return matchesSearch && matchesOrbCategory;
-            }
-
-            if (activeTab === "drifs") {
-                const matchesDrifCategory =
-                    selectedDrifCategory === "Wszystkie" ||
-                    baseItem.category === selectedDrifCategory;
-                let matchesBasePower = true;
-                if (selectedBasePower) {
-                    const power = drifBasePowers[baseItem.bonusType];
-                    matchesBasePower =
-                        power !== undefined && power.toString() === selectedBasePower;
-                }
-                return matchesSearch && matchesDrifCategory && matchesBasePower;
-            }
-
-            return false;
-        });
-
-        if (matchedItems.length > 0) acc[category] = matchedItems;
-        return acc;
-    }, {});
-
+    const filteredGroups = useMemo(
+        () =>
+            filterItemDatabaseGroups({
+                groupedData,
+                activeTab,
+                filters: {
+                    search: searchTerm,
+                    category: selectedCategory,
+                    orbCategory: selectedOrbCategory,
+                    drifCategory: selectedDrifCategory,
+                    basePower: selectedBasePower,
+                    tier: selectedTier,
+                    stat: selectedStat,
+                },
+                bonusTranslations,
+                drifBasePowers,
+            }),
+        [
+            groupedData,
+            activeTab,
+            searchTerm,
+            selectedCategory,
+            selectedOrbCategory,
+            selectedDrifCategory,
+            selectedBasePower,
+            selectedTier,
+            selectedStat,
+            bonusTranslations,
+            drifBasePowers,
+        ]
+    );
     const handleDragStart = (e, item, type) => {
         e.dataTransfer.setData("application/json", JSON.stringify({ ...item, dragType: type }));
     };
