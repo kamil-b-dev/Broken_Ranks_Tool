@@ -5,6 +5,7 @@ import {
     optimizeEquipmentDrifs,
 } from "../api/equipmentApi";
 import { createBuildPayload, downloadBuildPayload, parseBuildFile } from "../utils/buildFile";
+import { createEquipmentOptimizationRequest } from "../components/optimization/equipmentOptimizationRequest";
 
 const EquipmentContext = createContext();
 
@@ -217,21 +218,12 @@ export const EquipmentProvider = ({ children }) => {
                 };
             }
 
-            const optimizationRequest = {
-                originalSlots: requestData.slots,
-                priorities: optimizationConfig.priorities || {},
-                targetQuantities: optimizationConfig.targetQuantities || {},
-                forceCapBonuses: optimizationConfig.forceCapBonuses || [],
-                forcedPercentageTargets: optimizationConfig.forcedPercentageTargets || {},
-                maximizeBonuses: optimizationConfig.maximizeBonuses || [],
-                forceMaximizationByDrifBonus: Boolean(
-                    optimizationConfig.forceMaximizationByDrifBonus
-                ),
-                generateVariants: Boolean(optimizationConfig.generateVariants),
-                maxVariantLossPercent: Number(optimizationConfig.maxVariantLossPercent),
-                lockedSlots: lockedSlots,
-                lockedDrifs: lockedDrifs,
-            };
+            const optimizationRequest = createEquipmentOptimizationRequest({
+                slots: requestData.slots,
+                configuration: optimizationConfig,
+                lockedSlots,
+                lockedDrifs,
+            });
 
             try {
                 const { optimizedSetup, summary } =
