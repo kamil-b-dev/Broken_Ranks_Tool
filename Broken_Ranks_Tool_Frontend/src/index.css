@@ -1171,12 +1171,28 @@ input:focus-visible {
     left: -0.6rem;
 }
 
+.equipment-slot-overview-heading {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.4rem;
+}
+
 .equipment-slot-overview-label {
     color: #c59855;
     font-family: Georgia, Cambria, "Times New Roman", serif;
     font-size: 0.62rem;
     font-weight: 700;
     letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+.equipment-slot-overview-heading small {
+    flex: 0 0 auto;
+    color: #aaa0b8;
+    font-size: 0.54rem;
+    font-weight: 700;
     text-transform: uppercase;
 }
 
@@ -1195,14 +1211,6 @@ input:focus-visible {
     white-space: nowrap;
 }
 
-.equipment-slot-overview-item small {
-    flex: 0 0 auto;
-    color: #aaa0b8;
-    font-size: 0.54rem;
-    font-weight: 700;
-    text-transform: uppercase;
-}
-
 .equipment-slot-overview-meta {
     display: flex;
     align-items: center;
@@ -1218,6 +1226,64 @@ input:focus-visible {
     letter-spacing: -0.06em;
     text-overflow: clip;
     white-space: nowrap;
+}
+
+.equipment-slot-drif-list {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.22rem;
+}
+
+.equipment-slot-drif {
+    display: inline-flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.08rem 0.25rem 0.08rem 0.12rem;
+    border: 1px solid rgba(135, 80, 151, 0.62);
+    color: #cbb9d4;
+    background: linear-gradient(90deg, rgba(74, 34, 88, 0.58), rgba(18, 12, 21, 0.74));
+    font-size: 0.5rem;
+    line-height: 1.15;
+}
+
+.equipment-slot-drif[data-category="defensive"] {
+    border-color: rgba(69, 128, 151, 0.62);
+    color: #abc7d0;
+    background: linear-gradient(90deg, rgba(28, 64, 80, 0.58), rgba(9, 17, 21, 0.74));
+}
+
+.equipment-slot-drif[data-category="utility"] {
+    border-color: rgba(105, 132, 66, 0.62);
+    color: #bdca9d;
+    background: linear-gradient(90deg, rgba(53, 72, 29, 0.58), rgba(14, 19, 10, 0.74));
+}
+
+.equipment-slot-drif i {
+    display: grid;
+    width: 0.85rem;
+    height: 0.85rem;
+    flex: 0 0 auto;
+    place-items: center;
+    border: 1px solid currentcolor;
+    border-radius: 50%;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.45rem;
+    font-style: normal;
+    font-weight: 700;
+}
+
+.equipment-slot-drif > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.equipment-slot-drif small {
+    flex: 0 0 auto;
+    color: #d3b77a;
+    font-size: 0.46rem;
 }
 
 .equipment-slot-overview-empty {
