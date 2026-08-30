@@ -1,10 +1,9 @@
 import { createContext, useState, useContext, useCallback, useMemo } from "react";
-import { optimizeEquipmentDrifs } from "../api/equipmentApi";
 import { createBuildPayload, downloadBuildPayload, parseBuildFile } from "../utils/buildFile";
-import { createEquipmentOptimizationRequest } from "../components/optimization/equipmentOptimizationRequest";
 import { useEquipmentLocks } from "../hooks/useEquipmentLocks";
 import { useEquipmentCatalog } from "../hooks/useEquipmentCatalog";
 import { useEquipmentStats } from "../hooks/useEquipmentStats";
+import { useEquipmentOptimization } from "../hooks/useEquipmentOptimization";
 
 const EquipmentContext = createContext();
 
@@ -42,10 +41,19 @@ export const EquipmentProvider = ({ children }) => {
     const { stats, statSources, isCalculatingStats, calculateStats, resetStats } =
         useEquipmentStats(requestData);
 
-    const [optimizationTrigger, setOptimizationTrigger] = useState(0);
-
     const { lockedSlots, lockedDrifs, toggleSlotLock, toggleDrifLock, replaceLocks } =
         useEquipmentLocks();
+    const {
+        optimizationTrigger,
+        markEquipmentChanged,
+        applyOptimizationSetup,
+        runDrifOptimization,
+    } = useEquipmentOptimization({
+        slots: requestData.slots,
+        setRequestData,
+        lockedSlots,
+        lockedDrifs,
+    });
     const [characterConfig, setCharacterConfig] = useState(null);
 
     /**
@@ -102,67 +110,9 @@ export const EquipmentProvider = ({ children }) => {
             setCharacterConfig(importedBuild.characterConfig);
             replaceLocks(importedBuild.lockedSlots, importedBuild.lockedDrifs);
             resetStats();
-            setOptimizationTrigger((prev) => prev + 1);
+            markEquipmentChanged();
         },
-        [data, replaceLocks, resetStats]
-    );
-
-    /** Applies a calculator-ready equipment setup selected from optimizer variants. */
-    const applyOptimizationSetup = useCallback((setup) => {
-        if (!setup?.slots) return false;
-        setRequestData((prev) => ({
-            ...prev,
-            slots: setup.slots,
-        }));
-        setOptimizationTrigger((prev) => prev + 1);
-        return true;
-    }, []);
-
-    /**
-     * Starts drif optimization using user priorities and locked equipment.
-     * @param {object} optimizationConfig User priorities and quantity targets.
-     */
-    const runDrifOptimization = useCallback(
-        async (optimizationConfig) => {
-            if (!requestData.slots || Object.values(requestData.slots).every((s) => !s.itemId)) {
-                return {
-                    success: false,
-                    message: "Wybierz przynajmniej jeden przedmiot, aby uruchomić optymalizację.",
-                    applied: false,
-                };
-            }
-
-            const optimizationRequest = createEquipmentOptimizationRequest({
-                slots: requestData.slots,
-                configuration: optimizationConfig,
-                lockedSlots,
-                lockedDrifs,
-            });
-
-            try {
-                const { optimizedSetup, summary } =
-                    await optimizeEquipmentDrifs(optimizationRequest);
-
-                if (applyOptimizationSetup(optimizedSetup)) {
-                    return { ...summary, applied: true };
-                } else {
-                    return { ...summary, applied: false };
-                }
-            } catch (error) {
-                const backendMessage =
-                    error.response?.data?.summary?.message ||
-                    error.response?.data?.message ||
-                    error.response?.data?.error;
-                const message =
-                    backendMessage ||
-                    (error.code === "ECONNABORTED"
-                        ? "Przekroczono limit czasu optymalizacji."
-                        : error.message);
-                console.error("Błąd optymalizacji drifów:", error);
-                return { success: false, message, applied: false };
-            }
-        },
-        [requestData.slots, lockedSlots, lockedDrifs, applyOptimizationSetup]
+        [data, markEquipmentChanged, replaceLocks, resetStats]
     );
 
     const value = useMemo(
