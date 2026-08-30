@@ -12,16 +12,31 @@ describe("statsPanelDomain", () => {
         const columns = buildStatColumns({
             stats: { Siła: 10, DAMAGE_FIRE: 4, CRITICAL_CHANCE: 8, Pojemność: 20 },
             gameRules: { bonusTranslations: { DAMAGE_FIRE: "Ogień" } },
-            statSources: { drifCategories: { DAMAGE_FIRE: "OFFENSIVE" }, orbBonusTypes: ["CRITICAL_CHANCE"] },
+            statSources: {
+                drifCategories: { DAMAGE_FIRE: "OFFENSIVE" },
+                orbBonusTypes: ["CRITICAL_CHANCE"],
+            },
         });
 
-        expect(columns.map(({ title }) => title)).toEqual(["Statystyki podstawowe", "Drify", "Orby"]);
+        expect(columns.map(({ title }) => title)).toEqual([
+            "Statystyki podstawowe",
+            "Drify",
+            "Orby",
+        ]);
         expect(columns[1].categories[0].values[0].displayName).toBe("Ogień");
-        expect(columns.flatMap(({ categories }) => categories).flatMap(({ values }) => values).some(({ key }) => key === "Pojemność")).toBe(false);
+        expect(
+            columns
+                .flatMap(({ categories }) => categories)
+                .flatMap(({ values }) => values)
+                .some(({ key }) => key === "Pojemność")
+        ).toBe(false);
     });
 
     it("uses the fallback category only when a stat is not reported as an orb", () => {
-        const [column] = buildStatColumns({ stats: { MANA_REGEN: 3 }, statSources: { orbBonusTypes: ["MANA_REGEN"] } }).filter(({ title }) => title === "Orby");
+        const [column] = buildStatColumns({
+            stats: { MANA_REGEN: 3 },
+            statSources: { orbBonusTypes: ["MANA_REGEN"] },
+        }).filter(({ title }) => title === "Orby");
         expect(column.categories[0].category.title).toBe("Orby użytkowe");
     });
 });

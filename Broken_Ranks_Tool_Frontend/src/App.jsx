@@ -26,14 +26,51 @@ function App() {
         setMainView(view);
     };
 
-    return <div className={`app-shell app-shell-${mainView} mx-auto flex min-h-screen w-full max-w-[1920px] flex-col gap-4 p-4 md:p-6 xl:gap-5 xl:p-8`}>
-        <a className="skip-link" href="#workspace-content">Przejdź do głównej treści</a>
-        <AppHeader activeView={mainView} disabled={unavailable} fileInputRef={fileActions.fileInputRef} onViewChange={changeView} onSaveBuild={fileActions.saveBuild} onLoadBuild={fileActions.loadBuild} />
-        <BuildFileNotice notice={fileActions.notice} onDismiss={fileActions.dismissNotice} />
-        <WorkspaceState loading={equipment.loading} error={equipment.initialDataError} />
-        {!unavailable && <BuilderWorkspace active={mainView === "builder"} data={equipment.data} categoryNames={equipment.categoryNames} orbCategories={equipment.orbCategories} drifCategories={equipment.drifCategories} gameRules={equipment.gameRules} requestData={equipment.requestData} stats={equipment.stats} statSources={equipment.statSources} isCalculatingStats={equipment.isCalculatingStats} optimizationTrigger={equipment.optimizationTrigger} characterConfig={equipment.characterConfig} onSlotUpdate={equipment.handleSlotUpdate} onCharacterStatsUpdate={equipment.handleCharacterStatsUpdate} onCalculateStats={equipment.calculateStats} />}
-        {!unavailable && hasOpenedOptimizer && <OptimizerWorkspace active={mainView === "optimizer"} settings={optimizerSettings} onSettingsChange={setOptimizerSettings} />}
-    </div>;
+    return (
+        <div
+            className={`app-shell app-shell-${mainView} mx-auto flex min-h-screen w-full max-w-[1920px] flex-col gap-4 p-4 md:p-6 xl:gap-5 xl:p-8`}
+        >
+            <a className="skip-link" href="#workspace-content">
+                Przejdź do głównej treści
+            </a>
+            <AppHeader
+                activeView={mainView}
+                disabled={unavailable}
+                fileInputRef={fileActions.fileInputRef}
+                onViewChange={changeView}
+                onSaveBuild={fileActions.saveBuild}
+                onLoadBuild={fileActions.loadBuild}
+            />
+            <BuildFileNotice notice={fileActions.notice} onDismiss={fileActions.dismissNotice} />
+            <WorkspaceState loading={equipment.loading} error={equipment.initialDataError} />
+            {!unavailable && (
+                <BuilderWorkspace
+                    active={mainView === "builder"}
+                    data={equipment.data}
+                    categoryNames={equipment.categoryNames}
+                    orbCategories={equipment.orbCategories}
+                    drifCategories={equipment.drifCategories}
+                    gameRules={equipment.gameRules}
+                    requestData={equipment.requestData}
+                    stats={equipment.stats}
+                    statSources={equipment.statSources}
+                    isCalculatingStats={equipment.isCalculatingStats}
+                    optimizationTrigger={equipment.optimizationTrigger}
+                    characterConfig={equipment.characterConfig}
+                    onSlotUpdate={equipment.handleSlotUpdate}
+                    onCharacterStatsUpdate={equipment.handleCharacterStatsUpdate}
+                    onCalculateStats={equipment.calculateStats}
+                />
+            )}
+            {!unavailable && hasOpenedOptimizer && (
+                <OptimizerWorkspace
+                    active={mainView === "optimizer"}
+                    settings={optimizerSettings}
+                    onSettingsChange={setOptimizerSettings}
+                />
+            )}
+        </div>
+    );
 }
 
 export default App;

@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { calculateCharacterStats, normalizeCharacterConfig, trimSpentPoints } from "./characterDevelopmentDomain";
+import {
+    calculateCharacterStats,
+    normalizeCharacterConfig,
+    trimSpentPoints,
+} from "./characterDevelopmentDomain";
 
 describe("characterDevelopmentDomain", () => {
     it("normalizes imported levels and point allocations", () => {
@@ -15,6 +19,16 @@ describe("characterDevelopmentDomain", () => {
     });
 
     it("calculates final values using each statistic ratio", () => {
-        expect(calculateCharacterStats({ Siła: 2, Zręczność: 0, Moc: 0, Wiedza: 0, PŻ: 2, Mana: 0, Kondycja: 0 })).toMatchObject({ Siła: 12, PŻ: 220 });
+        expect(
+            calculateCharacterStats({
+                Siła: 2,
+                Zręczność: 0,
+                Moc: 0,
+                Wiedza: 0,
+                PŻ: 2,
+                Mana: 0,
+                Kondycja: 0,
+            })
+        ).toMatchObject({ Siła: 12, PŻ: 220 });
     });
 });
