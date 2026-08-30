@@ -22,6 +22,10 @@ import OptimizerStatusSection from "./optimization/OptimizerStatusSection";
 import OptimizerItemsByBonusSection from "./optimization/OptimizerItemsByBonusSection";
 import OptimizerGoalsSection from "./optimization/OptimizerGoalsSection";
 import OptimizerVariantsSection from "./optimization/OptimizerVariantsSection";
+import {
+    downloadOptimizerConfiguration,
+    readOptimizerConfigurationFile,
+} from "./optimization/optimizerConfigFiles";
 
 /**
  * Provides drif priorities, target limits, and equipment locking for optimization.
@@ -188,28 +192,15 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
 
     const handleSaveConfiguration = () => {
         const payload = createOptimizerConfigPayload(prioritizedBonuses, optimizerSettings);
-        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = `broken-ranks-priorytety-${new Date().toISOString().slice(0, 10)}.json`;
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+        downloadOptimizerConfiguration(payload);
     };
 
     const handleLoadConfiguration = async (event) => {
         const file = event.target.files?.[0];
         event.target.value = "";
         if (!file) return;
-        if (file.size > 1024 * 1024) {
-            alert("Plik konfiguracji jest zbyt duży.");
-            return;
-        }
-
         try {
-            const payload = JSON.parse(await file.text());
+            const payload = await readOptimizerConfigurationFile(file);
             const imported = parseOptimizerConfigPayload(payload, gameRules);
             setPrioritizedBonuses(imported.priorities);
             setExpandedPriorities(
@@ -224,8 +215,11 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
             }
             alert(`Wczytano konfigurację: ${imported.priorities.length} priorytetów.`);
         } catch (error) {
+            const message = error.message || "niepoprawny plik JSON.";
             alert(
-                `Nie udało się wczytać konfiguracji: ${error.message || "niepoprawny plik JSON."}`
+                message === "Plik konfiguracji jest zbyt duży."
+                    ? message
+                    : `Nie udało się wczytać konfiguracji: ${message}`
             );
         }
     };
