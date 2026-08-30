@@ -4,6 +4,7 @@ import {
     calculateMaximumDrifSizeIndex,
     calculateMaximumDrifSlots,
     calculateUsedDrifPower,
+    createImportedGearSlotState,
     getEffectiveDrifMultiplier,
     groupGearOptionsByType,
 } from "./gearSlotDomain";
@@ -52,5 +53,42 @@ describe("gearSlotDomain", () => {
 
         expect(Object.keys(grouped)).toEqual(["Krytyk", "MANA"]);
         expect(grouped.Krytyk).toHaveLength(2);
+    });
+
+    it("converts persisted slot identifiers and levels to editor state", () => {
+        const state = createImportedGearSlotState(
+            {
+                itemId: 7,
+                itemStars: 8,
+                orbIds: [2],
+                orbLevels: [4],
+                drifIds: [3, null],
+                drifLevels: { 0: 12 },
+            },
+            [{ id: 2, name: "Orb krytyczny" }],
+            [{ id: 3, description: "Drif krytyczny" }]
+        );
+
+        expect(state).toEqual({
+            selectedItem: "7",
+            itemStars: 8,
+            orbSlots: {
+                orb1: { id: "2", level: "4", type: "Orb krytyczny" },
+                orb2: { id: "", level: "", type: "" },
+            },
+            selectedDrifs: ["3", ""],
+            drifTypes: { 0: "Drif krytyczny" },
+            drifLevels: { 0: 12 },
+        });
+    });
+
+    it("creates an empty editor state for a removed slot", () => {
+        expect(createImportedGearSlotState(null, [], [])).toMatchObject({
+            selectedItem: "",
+            itemStars: 1,
+            selectedDrifs: [],
+            drifTypes: {},
+            drifLevels: {},
+        });
     });
 });

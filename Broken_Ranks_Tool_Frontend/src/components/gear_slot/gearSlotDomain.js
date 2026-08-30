@@ -49,3 +49,54 @@ export const calculateUsedDrifPower = ({ selectedDrifs, drifs, basePowers, level
         const basePower = basePowers[drif.bonusType] || 0;
         return total + basePower * getEffectiveDrifMultiplier(levels[index]);
     }, 0);
+
+const emptyOrb = () => ({ id: "", level: "", type: "" });
+
+/** Converts persisted slot data into the local editor state used by useGearSlot. */
+export const createImportedGearSlotState = (slot, orbs, drifs) => {
+    if (!slot) {
+        return {
+            selectedItem: "",
+            itemStars: 1,
+            orbSlots: { orb1: emptyOrb(), orb2: emptyOrb() },
+            selectedDrifs: [],
+            drifTypes: {},
+            drifLevels: {},
+        };
+    }
+
+    const orbIds = slot.orbIds || [];
+    const orbLevels = slot.orbLevels || [];
+    const toOrbState = (index) => {
+        const id = orbIds[index];
+        const orb = id ? orbs.find((candidate) => String(candidate.id) === String(id)) : null;
+        return {
+            id: id == null ? "" : String(id),
+            level: id == null ? "" : String(orbLevels[index] || 1),
+            type: orb?.name || orb?.bonusType || "",
+        };
+    };
+
+    const selectedDrifs = [];
+    const drifTypes = {};
+    const drifLevels = {};
+    (slot.drifIds || []).forEach((id, index) => {
+        if (!id) {
+            selectedDrifs[index] = "";
+            return;
+        }
+        selectedDrifs[index] = String(id);
+        const drif = drifs.find((candidate) => String(candidate.id) === String(id));
+        if (drif) drifTypes[index] = drif.name || drif.description || drif.bonusType;
+        drifLevels[index] = slot.drifLevels?.[index] ? Number.parseInt(slot.drifLevels[index]) : 21;
+    });
+
+    return {
+        selectedItem: slot.itemId == null ? "" : String(slot.itemId),
+        itemStars: Number(slot.itemStars) || 1,
+        orbSlots: { orb1: toOrbState(0), orb2: toOrbState(1) },
+        selectedDrifs,
+        drifTypes,
+        drifLevels,
+    };
+};
