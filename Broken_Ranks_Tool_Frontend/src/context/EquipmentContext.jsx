@@ -1,12 +1,9 @@
-import { createContext, useState, useEffect, useContext, useCallback, useMemo } from "react";
-import {
-    calculateEquipmentStats,
-    fetchInitialEquipmentData,
-    optimizeEquipmentDrifs,
-} from "../api/equipmentApi";
+import { createContext, useState, useContext, useCallback, useMemo } from "react";
+import { calculateEquipmentStats, optimizeEquipmentDrifs } from "../api/equipmentApi";
 import { createBuildPayload, downloadBuildPayload, parseBuildFile } from "../utils/buildFile";
 import { createEquipmentOptimizationRequest } from "../components/optimization/equipmentOptimizationRequest";
 import { useEquipmentLocks } from "../hooks/useEquipmentLocks";
+import { useEquipmentCatalog } from "../hooks/useEquipmentCatalog";
 
 const EquipmentContext = createContext();
 
@@ -30,13 +27,15 @@ export const useEquipment = () => {
  * @returns {JSX.Element} The context provider.
  */
 export const EquipmentProvider = ({ children }) => {
-    const [data, setData] = useState({ items: [], orbs: [], drifs: [] });
-    const [categoryNames, setCategoryNames] = useState({});
-    const [orbCategories, setOrbCategories] = useState({});
-    const [drifCategories, setDrifCategories] = useState({});
-    const [gameRules, setGameRules] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [initialDataError, setInitialDataError] = useState(null);
+    const {
+        data,
+        categoryNames,
+        orbCategories,
+        drifCategories,
+        gameRules,
+        loading,
+        initialDataError,
+    } = useEquipmentCatalog();
 
     const [requestData, setRequestData] = useState({ slots: {}, characterStats: {} });
     const [stats, setStats] = useState(null);
@@ -48,34 +47,6 @@ export const EquipmentProvider = ({ children }) => {
     const { lockedSlots, lockedDrifs, toggleSlotLock, toggleDrifLock, replaceLocks } =
         useEquipmentLocks();
     const [characterConfig, setCharacterConfig] = useState(null);
-
-    useEffect(() => {
-        const fetchInitialData = async () => {
-            try {
-                setLoading(true);
-                setInitialDataError(null);
-                const initialData = await fetchInitialEquipmentData();
-
-                setData({
-                    items: initialData.items || [],
-                    orbs: initialData.orbs || [],
-                    drifs: initialData.drifs || [],
-                });
-                setGameRules(initialData.gameRules || {});
-                setCategoryNames(initialData.dictionaries?.itemCategories || {});
-                setOrbCategories(initialData.dictionaries?.orbCategories || {});
-                setDrifCategories(initialData.dictionaries?.drifCategories || {});
-            } catch (error) {
-                console.error("Błąd podczas ładowania danych początkowych:", error);
-                setInitialDataError(
-                    error.response?.data?.message || "Nie udało się połączyć z backendem."
-                );
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchInitialData();
-    }, []);
 
     /**
      * Updates the equipment data for a single slot.
