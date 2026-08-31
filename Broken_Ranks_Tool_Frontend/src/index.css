@@ -900,6 +900,8 @@ input:focus-visible {
 .equipment-figure-aura {
     position: absolute;
     z-index: 1;
+    top: 50%;
+    left: 50%;
     width: 32%;
     aspect-ratio: 0.44;
     border: 1px solid rgba(173, 118, 58, 0.3);
@@ -907,6 +909,7 @@ input:focus-visible {
     box-shadow:
         0 0 40px rgba(124, 58, 32, 0.18),
         inset 0 0 28px rgba(196, 133, 61, 0.08);
+    transform: translate(-50%, -50%);
 }
 
 .equipment-center-silhouette {
@@ -921,41 +924,6 @@ input:focus-visible {
     filter: sepia(0.12) saturate(0.8) brightness(0.74)
         drop-shadow(0 0 12px rgba(176, 109, 43, 0.18));
     transform: translate(-50%, -50%);
-}
-
-.equipment-ring-core {
-    position: absolute;
-    z-index: 2;
-    top: 50%;
-    left: 50%;
-    display: grid;
-    width: 5.2rem;
-    height: 5.2rem;
-    place-content: center;
-    place-items: center;
-    border: 1px solid rgba(165, 108, 50, 0.6);
-    border-radius: 50%;
-    color: #c69755;
-    background:
-        radial-gradient(circle, rgba(78, 39, 22, 0.76), rgba(5, 7, 7, 0.94) 68%),
-        url("./assets/panel-blackened-steel-texture.png") center / 12rem;
-    box-shadow:
-        0 0 24px rgba(114, 55, 26, 0.24),
-        inset 0 0 18px rgba(0, 0, 0, 0.76);
-    transform: translate(-50%, -50%);
-}
-
-.equipment-ring-core strong {
-    font-family: Georgia, Cambria, "Times New Roman", serif;
-    font-size: 1.45rem;
-    font-weight: 400;
-    letter-spacing: 0.08em;
-}
-
-.equipment-ring-core small {
-    color: #827467;
-    font-size: 0.58rem;
-    letter-spacing: 0.12em;
 }
 
 .equipment-ring-slot {
@@ -1465,7 +1433,7 @@ input:focus-visible {
     border: 1px solid rgba(135, 80, 151, 0.62);
     color: #cbb9d4;
     background: linear-gradient(90deg, rgba(74, 34, 88, 0.58), rgba(18, 12, 21, 0.74));
-    font-size: 0.5rem;
+    font-size: 0.58rem;
     line-height: 1.15;
 }
 
@@ -1490,7 +1458,7 @@ input:focus-visible {
     border: 1px solid currentcolor;
     border-radius: 50%;
     font-family: Georgia, Cambria, "Times New Roman", serif;
-    font-size: 0.45rem;
+    font-size: 0.5rem;
     font-style: normal;
     font-weight: 700;
 }
@@ -1504,7 +1472,7 @@ input:focus-visible {
 .equipment-slot-drif small {
     flex: 0 0 auto;
     color: #d3b77a;
-    font-size: 0.46rem;
+    font-size: 0.52rem;
 }
 
 .equipment-slot-overview-empty {
