@@ -1,5 +1,4 @@
 import OptimizerPanel from "../OptimizerPanel";
-import OptimizerSettingsPanel from "../OptimizerSettingsPanel";
 import OptimizerOverviewBar from "../optimization/OptimizerOverviewBar";
 import { useEquipment } from "../../context/EquipmentContext";
 
@@ -9,7 +8,7 @@ import { useEquipment } from "../../context/EquipmentContext";
  * @param {object} props Workspace properties.
  * @returns {JSX.Element} Drif optimizer workspace.
  */
-const OptimizerWorkspace = ({ active = true, settings, onSettingsChange }) => {
+const OptimizerWorkspace = ({ active = true, settings, onSettingsChange, onBackToBuilder }) => {
     const { requestData, lockedSlots, lockedDrifs } = useEquipment();
 
     return (
@@ -22,8 +21,8 @@ const OptimizerWorkspace = ({ active = true, settings, onSettingsChange }) => {
                 slots={requestData.slots}
                 lockedSlots={lockedSlots}
                 lockedDrifs={lockedDrifs}
+                onBackToBuilder={onBackToBuilder}
             />
-            <OptimizerSettingsPanel settings={settings} onChange={onSettingsChange} />
             <OptimizerPanel
                 optimizerSettings={settings}
                 onOptimizerSettingsChange={onSettingsChange}

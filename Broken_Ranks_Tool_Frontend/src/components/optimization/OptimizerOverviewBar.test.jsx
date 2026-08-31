@@ -17,7 +17,9 @@ describe("OptimizerOverviewBar", () => {
         );
 
         expect(screen.getByText("2/12")).toBeInTheDocument();
-        expect(screen.getByText("1", { selector: "dd" })).toBeInTheDocument();
-        expect(screen.getAllByText("3", { selector: "dd" })).toHaveLength(2);
+        expect(screen.getByText("3", { selector: "dd" })).toBeInTheDocument();
+        expect(screen.getByText("Zablokowane").closest("div")).toHaveTextContent(
+            "Zablokowane1 sloty·3 drifów"
+        );
     });
 });

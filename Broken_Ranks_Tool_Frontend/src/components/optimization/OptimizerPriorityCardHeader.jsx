@@ -1,20 +1,26 @@
 /** Summarizes one priority and exposes its expand and remove actions. */
 const OptimizerPriorityCardHeader = ({ index, bonus, expanded, onToggle, onRemove }) => (
-    <div
-        className={`relative z-10 flex items-center justify-between bg-black/40 p-2 ${expanded ? "border-b border-purple-900/30" : ""}`}
-    >
+    <div className="optimizer-priority-card-header">
+        <span className="optimizer-priority-rank">{index + 1}</span>
+        <span className="optimizer-priority-handle" aria-hidden="true">
+            ⠿
+        </span>
         <button
             type="button"
             onClick={onToggle}
-            className="flex min-w-0 flex-1 items-center gap-2 text-left"
+            className="optimizer-priority-summary"
             aria-expanded={expanded}
         >
-            <span className="text-xs font-bold text-purple-500">{index + 1}.</span>
-            <span className="truncate text-xs font-bold text-stone-200 font-serif">
-                {bonus.value}
+            <span
+                className="optimizer-priority-glyph"
+                data-category={bonus.categoryKey?.toLowerCase()}
+                aria-hidden="true"
+            >
+                ◇
             </span>
+            <span className="optimizer-priority-name">{bonus.value}</span>
             {!expanded && (
-                <span className="ml-auto whitespace-nowrap text-[9px] uppercase tracking-wide text-stone-500">
+                <span className="optimizer-priority-compact-meta">
                     waga {bonus.weight} · {bonus.min}–{bonus.max}
                     {bonus.forceCap ? " · cel: cap" : ""}
                     {bonus.forcePercentage ? ` · ${bonus.forcedPercentage}%` : ""}
@@ -22,7 +28,7 @@ const OptimizerPriorityCardHeader = ({ index, bonus, expanded, onToggle, onRemov
                 </span>
             )}
             <svg
-                className={`h-3 w-3 shrink-0 text-stone-500 transition-transform ${expanded ? "rotate-180" : ""}`}
+                className={`optimizer-priority-chevron ${expanded ? "rotate-180" : ""}`}
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -39,7 +45,7 @@ const OptimizerPriorityCardHeader = ({ index, bonus, expanded, onToggle, onRemov
         <button
             type="button"
             onClick={onRemove}
-            className="ml-2 p-1 text-stone-600 transition-colors hover:text-red-500"
+            className="optimizer-priority-remove"
             title="Usuń z priorytetów"
         >
             <svg

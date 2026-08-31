@@ -15,20 +15,12 @@ const Checkmark = () => (
 const OptimizerPriorityForm = ({ bonus, potential, maxCap, onChange }) => {
     const hasCap = maxCap !== null && maxCap !== undefined;
     const toggleClass = (active, color = "purple") =>
-        `w-5 h-5 flex items-center justify-center border rounded-sm transition-all ${
-            active
-                ? color === "amber"
-                    ? "bg-amber-900 border-amber-500 text-amber-100 shadow-[0_0_8px_rgba(245,158,11,0.4)]"
-                    : "bg-purple-900 border-purple-500 text-stone-200 shadow-[0_0_8px_rgba(168,85,247,0.5)]"
-                : color === "amber"
-                  ? "bg-stone-950 border-stone-700 text-transparent hover:border-amber-800"
-                  : "bg-stone-950 border-stone-700 text-transparent hover:border-purple-800"
-        }`;
+        `optimizer-priority-toggle ${active ? "optimizer-priority-toggle-active" : ""} ${color === "amber" ? "optimizer-priority-toggle-amber" : ""}`;
 
     return (
-        <div className="flex flex-col gap-3 p-2 relative z-10">
+        <div className="optimizer-priority-form">
             {potential && (
-                <div className="flex flex-wrap items-center justify-between gap-2 border border-sky-950/80 bg-sky-950/20 px-2 py-1.5">
+                <div className="optimizer-priority-potential flex flex-wrap items-center justify-between gap-2 border border-sky-950/80 bg-sky-950/20 px-2 py-1.5">
                     <div className="text-[9px] uppercase tracking-wider text-sky-500">
                         Potencjalny zakres
                     </div>
@@ -38,7 +30,7 @@ const OptimizerPriorityForm = ({ bonus, potential, maxCap, onChange }) => {
                     </span>
                 </div>
             )}
-            <div className="flex flex-col gap-1">
+            <div className="optimizer-priority-weight flex flex-col gap-1">
                 <div className="flex justify-between items-end">
                     <span className="text-[10px] text-stone-400 uppercase tracking-wider font-semibold">
                         Waga Priorytetu
@@ -57,8 +49,8 @@ const OptimizerPriorityForm = ({ bonus, potential, maxCap, onChange }) => {
                     className="w-full h-1 bg-stone-950 border border-stone-800 rounded-sm appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-purple-900 [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:border-purple-400 [&::-webkit-slider-thumb]:rounded-sm [&::-webkit-slider-thumb]:shadow-[0_0_5px_rgba(168,85,247,0.7)] hover:[&::-webkit-slider-thumb]:bg-purple-700 hover:[&::-webkit-slider-thumb]:border-purple-300 transition-all [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-purple-900 [&::-moz-range-thumb]:border [&::-moz-range-thumb]:border-purple-400 [&::-moz-range-thumb]:rounded-sm [&::-moz-range-thumb]:shadow-[0_0_5px_rgba(168,85,247,0.7)] hover:[&::-moz-range-thumb]:bg-purple-700 hover:[&::-moz-range-thumb]:border-purple-300"
                 />
             </div>
-            <div className="flex flex-col gap-2 bg-black/30 p-2 rounded-sm border border-stone-800/50">
-                <div className="flex items-center justify-between gap-3">
+            <div className="optimizer-priority-options flex flex-col gap-2 bg-black/30 p-2 rounded-sm border border-stone-800/50">
+                <div className="optimizer-priority-option optimizer-priority-quantity flex items-center justify-between gap-3">
                     <span className="text-[10px] text-stone-500 uppercase tracking-wider whitespace-nowrap">
                         Limit Ilości:
                     </span>
@@ -83,7 +75,7 @@ const OptimizerPriorityForm = ({ bonus, potential, maxCap, onChange }) => {
                         ))}
                     </div>
                 </div>
-                <div className="flex items-center justify-between gap-3 pt-2 border-t border-stone-800/50">
+                <div className="optimizer-priority-option flex items-center justify-between gap-3 pt-2 border-t border-stone-800/50">
                     <span className="text-[10px] text-stone-500 uppercase tracking-wider whitespace-nowrap">
                         {hasCap
                             ? `Dąż do capa (${maxCap > 0 ? "+" : ""}${maxCap}%):`
@@ -91,8 +83,10 @@ const OptimizerPriorityForm = ({ bonus, potential, maxCap, onChange }) => {
                     </span>
                     {hasCap ? (
                         <button
+                            type="button"
                             onClick={() => onChange("forceCap", !bonus.forceCap)}
                             aria-label={`Dąż do capa dla ${bonus.value}`}
+                            aria-pressed={bonus.forceCap}
                             className={toggleClass(bonus.forceCap)}
                         >
                             <Checkmark />
@@ -103,7 +97,7 @@ const OptimizerPriorityForm = ({ bonus, potential, maxCap, onChange }) => {
                         </span>
                     )}
                 </div>
-                <div className="flex items-center justify-between gap-3 pt-2 border-t border-stone-800/50">
+                <div className="optimizer-priority-option optimizer-priority-percentage flex items-center justify-between gap-3 pt-2 border-t border-stone-800/50">
                     <span className="text-[10px] text-stone-500 uppercase tracking-wider whitespace-nowrap">
                         Wymuś konkretny %:
                     </span>
@@ -126,15 +120,17 @@ const OptimizerPriorityForm = ({ bonus, potential, maxCap, onChange }) => {
                             <span className="text-[10px] text-stone-500">%</span>
                         </div>
                         <button
+                            type="button"
                             onClick={() => onChange("forcePercentage", !bonus.forcePercentage)}
                             aria-label={`Wymuś konkretny procent dla ${bonus.value}`}
+                            aria-pressed={bonus.forcePercentage}
                             className={toggleClass(bonus.forcePercentage)}
                         >
                             <Checkmark />
                         </button>
                     </div>
                 </div>
-                <div className="flex items-center justify-between gap-3 pt-2 border-t border-stone-800/50">
+                <div className="optimizer-priority-option flex items-center justify-between gap-3 pt-2 border-t border-stone-800/50">
                     <span
                         className="text-[10px] text-stone-500 uppercase tracking-wider whitespace-nowrap"
                         title="Algorytm będzie dążył do najwyższej możliwej wartości tego modyfikatora, po spełnieniu limitów ilościowych i celów capa."
@@ -142,8 +138,10 @@ const OptimizerPriorityForm = ({ bonus, potential, maxCap, onChange }) => {
                         Maksymalizuj mod:
                     </span>
                     <button
+                        type="button"
                         onClick={() => onChange("maximize", !bonus.maximize)}
                         title="Maksymalizuj wartość moda, wykorzystując najpierw przedmioty z najwyższym bonusem do drifów"
+                        aria-pressed={bonus.maximize}
                         className={toggleClass(bonus.maximize, "amber")}
                     >
                         <Checkmark />

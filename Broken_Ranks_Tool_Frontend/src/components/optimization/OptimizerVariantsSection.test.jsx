@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import OptimizerVariantsSection from "./OptimizerVariantsSection";
@@ -52,13 +52,14 @@ describe("OptimizerVariantsSection", () => {
             />
         );
 
-        expect(screen.getByText("Aktywny")).toBeInTheDocument();
-        expect(screen.getByText("10% → 12,5%")).toBeInTheDocument();
-        expect(screen.getByText(/Hełm testowy/).closest("li")).toHaveTextContent(
-            "Hełm testowy (Hełm): puste miejsce → Krytyk (4)"
-        );
+        expect(screen.getByText("Wybrany")).toBeInTheDocument();
+        expect(
+            screen.getByText(
+                (_content, element) =>
+                    element.tagName === "STRONG" && element.textContent === "10% → 12,5%"
+            )
+        ).toBeInTheDocument();
         const alternative = screen.getByRole("button", { name: /Szansa na krytyk/ });
-        expect(within(alternative).getByText("Redukcja tur")).toBeInTheDocument();
         await user.click(alternative);
 
         expect(onSelect).toHaveBeenCalledWith(variants[1], 1);

@@ -29,72 +29,44 @@ const GoalCard = ({ goal, current, activeVariant, maxCap }) => {
     const result = evaluateGoal(goal, current, activeVariant, maxCap);
 
     return (
-        <div className="border border-stone-800/80 bg-black/20 p-2.5">
-            <div className="flex items-start justify-between gap-3">
-                <div>
-                    <div className="text-xs font-semibold text-stone-300">{goal.bonusName}</div>
-                    <div className="mt-1 text-[9px] uppercase tracking-wider text-stone-600">
-                        Priorytet {goal.priority}
-                    </div>
-                </div>
-                <span
-                    className={`shrink-0 border px-2 py-1 text-[9px] uppercase tracking-wider ${
-                        result.complete
-                            ? "border-emerald-900/80 bg-emerald-950/30 text-emerald-400"
-                            : "border-amber-900/80 bg-amber-950/30 text-amber-300"
-                    }`}
-                >
-                    {result.complete ? "Osiągnięty" : "Częściowo"}
-                </span>
+        <div className={`optimizer-goal-row ${result.complete ? "is-complete" : "is-partial"}`}>
+            <div className="optimizer-goal-name">
+                <strong>{goal.bonusName}</strong>
+                <small>Priorytet {goal.priority}</small>
             </div>
-            <dl className="mt-2 grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 border-t border-stone-800/70 pt-2 text-[10px]">
-                <dt className="text-stone-500">Liczba drifów</dt>
-                <dd
-                    className={
-                        result.quantitySatisfied
-                            ? "text-right text-emerald-400 tabular-nums"
-                            : "text-right text-amber-300 tabular-nums"
-                    }
-                >
+            <div className="optimizer-goal-value">
+                <span>{result.calculatorValue ?? "—"}</span>
+                <small>Wynik</small>
+            </div>
+            <div className="optimizer-goal-count">
+                <span>
                     {result.displayedCount} / {goal.minimumCount}–{result.maximumLabel}
-                </dd>
-                <dt className="text-stone-500">Kara za liczbę modów</dt>
-                <dd
-                    className={
-                        current?.penaltyPercent > 0
-                            ? "text-right text-amber-300 tabular-nums"
-                            : "text-right text-emerald-400 tabular-nums"
-                    }
-                >
+                </span>
+                <small>Liczba drifów</small>
+            </div>
+            <div className="optimizer-goal-target">
+                <span>{goal.targetLabel || "Maksimum"}</span>
+                <small>
                     {current?.penaltyPercent > 0
                         ? `−${current.penaltyPercent.toFixed(0)}%`
                         : "Bez kary"}
-                </dd>
-                {goal.targetLabel && (
-                    <>
-                        <dt className="text-stone-500">Cel wartości</dt>
-                        <dd
-                            className={
-                                result.targetSatisfied
-                                    ? "text-right text-emerald-400 tabular-nums"
-                                    : "text-right text-amber-300 tabular-nums"
-                            }
-                        >
-                            {goal.targetLabel}
-                        </dd>
-                    </>
-                )}
-            </dl>
+                </small>
+            </div>
+            <span
+                className="optimizer-goal-status"
+                title={result.complete ? "Osiągnięty" : "Częściowo"}
+            >
+                <i aria-hidden="true">{result.complete ? "✓" : "!"}</i>
+                <span>{result.complete ? "Osiągnięty" : "Częściowo"}</span>
+            </span>
         </div>
     );
 };
 
 /** Evaluates and presents how well the optimized build fulfills configured priorities. */
 const OptimizerGoalsSection = ({ goals, currentDetails, activeVariant, maxCaps }) => (
-    <section className="bg-black/40 border border-stone-800 rounded-sm p-3 lg:col-span-2">
-        <h5 className="text-[10px] text-stone-400 uppercase tracking-widest font-semibold mb-3">
-            Realizacja priorytetów
-        </h5>
+    <section className="optimizer-report-section optimizer-goals-section">
+        <h5>Realizacja celów</h5>
         {!goals?.length ? (
             <p className="text-xs text-stone-600 italic leading-relaxed">
                 {currentDetails.length > 0
@@ -102,7 +74,7 @@ const OptimizerGoalsSection = ({ goals, currentDetails, activeVariant, maxCaps }
                     : "Wyniki priorytetów pojawią się po optymalizacji."}
             </p>
         ) : (
-            <div className="grid gap-2 xl:grid-cols-2">
+            <div className="optimizer-goals-list">
                 {goals.map((goal) => (
                     <GoalCard
                         key={goal.statKey}
