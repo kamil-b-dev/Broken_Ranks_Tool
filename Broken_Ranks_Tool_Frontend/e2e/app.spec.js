@@ -122,3 +122,41 @@ test("keeps the builder and optimizer usable on a mobile viewport", async ({ pag
     );
     await expect(page.locator("html")).toHaveJSProperty("scrollWidth", 390);
 });
+
+test("constrains the item database to the equipment workbench height", async ({ page }) => {
+    await page.setViewportSize({ width: 1792, height: 900 });
+    await page.route("http://localhost:8080/api/initial-data", (route) =>
+        route.fulfill({
+            json: {
+                ...initialData,
+                items: Array.from({ length: 80 }, (_, index) => ({
+                    id: index + 1,
+                    name: `Przedmiot testowy ${index + 1}`,
+                    category: "HELMET",
+                    tier: "XII",
+                    reqLevel: 120,
+                })),
+                dictionaries: {
+                    ...initialData.dictionaries,
+                    itemCategories: { HELMET: "Hełmy" },
+                },
+            },
+        })
+    );
+
+    await page.goto("/");
+
+    const databaseColumn = page.locator(".builder-database-column");
+    const equipmentColumn = page.locator(".builder-equipment-column");
+    const databaseResults = page.locator(".item-database-theme .custom-scrollbar");
+    const [databaseBox, equipmentBox] = await Promise.all([
+        databaseColumn.boundingBox(),
+        equipmentColumn.boundingBox(),
+    ]);
+
+    expect(databaseBox?.height).toBeCloseTo(equipmentBox?.height ?? 0, 0);
+    await expect(databaseResults).toHaveCSS("overflow-y", "auto");
+    expect(
+        await databaseResults.evaluate((element) => element.scrollHeight > element.clientHeight)
+    ).toBe(true);
+});

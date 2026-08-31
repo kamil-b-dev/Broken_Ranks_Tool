@@ -8,6 +8,7 @@ import {
 import OptimizerBonusColumn from "./optimization/OptimizerBonusColumn";
 import OptimizerMobileNavigation from "./optimization/OptimizerMobileNavigation";
 import OptimizerRunAction from "./optimization/OptimizerRunAction";
+import OptimizerSettingsPanel from "./OptimizerSettingsPanel";
 import OptimizerLocksColumn from "./optimization/OptimizerLocksColumn";
 import OptimizerPriorityToolbar from "./optimization/OptimizerPriorityToolbar";
 import OptimizerPriorityList from "./optimization/OptimizerPriorityList";
@@ -15,6 +16,7 @@ import OptimizerStatusSection from "./optimization/OptimizerStatusSection";
 import OptimizerItemsByBonusSection from "./optimization/OptimizerItemsByBonusSection";
 import OptimizerGoalsSection from "./optimization/OptimizerGoalsSection";
 import OptimizerVariantsSection from "./optimization/OptimizerVariantsSection";
+import OptimizerChangesSection from "./optimization/OptimizerChangesSection";
 import { useOptimizerPriorities } from "../hooks/useOptimizerPriorities";
 import { useOptimizationRun } from "../hooks/useOptimizationRun";
 import { useOptimizerConfigFiles } from "../hooks/useOptimizerConfigFiles";
@@ -84,6 +86,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
             }),
         [data.drifs, data.items, gameRules, prioritizedBonuses, requestData.slots]
     );
+    const activeVariant = optimizationStatus?.nextVariants?.[activeVariantIndex];
 
     /** Builds the request and starts the backend optimization process. */
     const handleOptimizeClick = async () => {
@@ -96,14 +99,19 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
         await runOptimization(buildOptimizationConfig(prioritizedBonuses, optimizerSettings));
     };
 
+    /** Applies the explicitly selected result variant to the shared equipment build. */
+    const handleApplyVariant = (variant, variantIndex) => {
+        if (applyOptimizationSetup(variant?.setup)) setActiveVariantIndex(variantIndex);
+    };
+
     return (
-        <div className="optimizer-console bg-gradient-to-b from-stone-900 to-black p-3 sm:p-5 border-2 border-stone-800 shadow-[0_0_30px_rgba(0,0,0,0.9)] flex flex-col h-full relative">
+        <div className="optimizer-console">
             <OptimizerMobileNavigation
                 activeColumn={activeMobileColumn}
                 priorityCount={prioritizedBonuses.length}
                 onChange={setActiveMobileColumn}
             />
-            <div className="optimizer-main-grid grid grid-cols-1 gap-4 lg:grid-cols-12 lg:gap-4">
+            <div className="optimizer-main-grid">
                 <OptimizerLocksColumn
                     active={activeMobileColumn === "slots"}
                     slots={requestData.slots}
@@ -115,56 +123,87 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                     onToggleDrif={toggleDrifLock}
                 />
 
-                <OptimizerBonusColumn
-                    active={activeMobileColumn === "bonuses"}
-                    bonuses={availableBonuses}
-                    searchQuery={searchQuery}
-                    selectedCategory={selectedCategory}
-                    categoryLabels={drifCategories}
-                    onSearchChange={setSearchQuery}
-                    onCategoryChange={setSelectedCategory}
-                    onSelect={(bonus) => {
-                        selectBonus(bonus);
-                        setActiveMobileColumn("priorities");
-                    }}
-                />
-
-                <div
-                    className={`optimizer-workspace-column optimizer-priority-column ${activeMobileColumn === "priorities" ? "flex" : "hidden"} flex-col gap-2 lg:col-span-4 lg:flex lg:border-r lg:border-stone-800/60 lg:pr-4`}
+                <section
+                    className={`optimizer-workspace-column optimizer-goals-column ${["bonuses", "priorities"].includes(activeMobileColumn) ? "flex" : "hidden"} flex-col lg:flex`}
+                    aria-labelledby="optimizer-goals-heading"
                 >
-                    <OptimizerPriorityToolbar
-                        fileInputRef={configFiles.inputRef}
-                        priorityCount={prioritizedBonuses.length}
-                        sortDirection={prioritySortDirection}
-                        anyExpanded={expandedPriorities.size > 0}
-                        onLoad={configFiles.load}
-                        onSave={configFiles.save}
-                        onSort={sortByPriority}
-                        onToggleExpanded={toggleAllExpanded}
-                        onClear={clearAll}
-                    />
+                    <header className="optimizer-column-heading optimizer-goals-heading">
+                        <div>
+                            <span className="optimizer-heading-icon" aria-hidden="true">
+                                ◉
+                            </span>
+                            <h3 id="optimizer-goals-heading">Cele optymalizacji</h3>
+                        </div>
+                        <p>Wybierz bonusy, ustaw kolejność oraz wymagane limity.</p>
+                    </header>
+                    <div className="optimizer-goals-workspace">
+                        <OptimizerBonusColumn
+                            active={activeMobileColumn === "bonuses"}
+                            bonuses={availableBonuses}
+                            searchQuery={searchQuery}
+                            selectedCategory={selectedCategory}
+                            categoryLabels={drifCategories}
+                            onSearchChange={setSearchQuery}
+                            onCategoryChange={setSelectedCategory}
+                            onSelect={(bonus) => {
+                                selectBonus(bonus);
+                                setActiveMobileColumn("priorities");
+                            }}
+                        />
 
-                    <OptimizerPriorityList
-                        priorities={prioritizedBonuses}
-                        expandedPriorities={expandedPriorities}
-                        currentDetails={currentModDetails}
-                        maxCaps={gameRules?.drifMaxCaps}
-                        onToggle={toggleExpanded}
-                        onRemove={removeBonus}
-                        onUpdate={updateBonus}
+                        <div
+                            className={`optimizer-priority-column ${activeMobileColumn === "priorities" ? "flex" : "hidden"} min-h-0 flex-col lg:flex`}
+                        >
+                            <OptimizerPriorityToolbar
+                                fileInputRef={configFiles.inputRef}
+                                priorityCount={prioritizedBonuses.length}
+                                sortDirection={prioritySortDirection}
+                                anyExpanded={expandedPriorities.size > 0}
+                                onLoad={configFiles.load}
+                                onSave={configFiles.save}
+                                onSort={sortByPriority}
+                                onToggleExpanded={toggleAllExpanded}
+                                onClear={clearAll}
+                            />
+
+                            <OptimizerPriorityList
+                                priorities={prioritizedBonuses}
+                                expandedPriorities={expandedPriorities}
+                                currentDetails={currentModDetails}
+                                maxCaps={gameRules?.drifMaxCaps}
+                                onToggle={toggleExpanded}
+                                onRemove={removeBonus}
+                                onUpdate={updateBonus}
+                            />
+                        </div>
+                    </div>
+                    <OptimizerSettingsPanel
+                        settings={optimizerSettings}
+                        onChange={onOptimizerSettingsChange}
                     />
-                </div>
+                    <OptimizerRunAction
+                        priorityCount={prioritizedBonuses.length}
+                        isOptimizing={isOptimizing}
+                        elapsedSeconds={optimizationElapsedSeconds}
+                        lastDurationSeconds={lastOptimizationDurationSeconds}
+                        hasResult={Boolean(optimizationStatus)}
+                        onRun={handleOptimizeClick}
+                    />
+                </section>
 
                 <aside
-                    className={`optimizer-workspace-column optimizer-info-column ${activeMobileColumn === "result" ? "flex" : "hidden"} flex-col gap-4 lg:col-span-4 lg:flex`}
+                    className={`optimizer-workspace-column optimizer-info-column ${activeMobileColumn === "result" ? "flex" : "hidden"} flex-col lg:flex`}
                 >
-                    <div className="flex items-center justify-between border-b border-stone-700 pb-2 min-h-[34px] shrink-0">
-                        <h4 className="text-stone-300 font-serif font-bold uppercase tracking-widest text-xs">
-                            Raport optymalizacji
-                        </h4>
-                    </div>
+                    <header className="optimizer-column-heading optimizer-report-heading">
+                        <div>
+                            <span className="optimizer-heading-icon" aria-hidden="true">
+                                ▤
+                            </span>
+                            <h3>Raport optymalizacji</h3>
+                        </div>
+                    </header>
 
-                    <div className="overflow-y-auto pr-2 flex-1 min-h-0 space-y-4 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-stone-800 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-purple-800/70">
+                    <div className="optimizer-report-scroll custom-scrollbar">
                         <OptimizerStatusSection
                             isOptimizing={isOptimizing}
                             elapsedSeconds={optimizationElapsedSeconds}
@@ -172,40 +211,35 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                             lastDurationSeconds={lastOptimizationDurationSeconds}
                         />
 
-                        <OptimizerItemsByBonusSection
-                            itemsByBonus={optimizationStatus?.itemsByDrifBonus}
-                        />
-
                         <OptimizerGoalsSection
                             goals={optimizationStatus?.goalResults}
                             currentDetails={currentModDetails}
-                            activeVariant={optimizationStatus?.nextVariants?.[activeVariantIndex]}
+                            activeVariant={activeVariant}
                             maxCaps={gameRules?.drifMaxCaps}
                         />
 
                         <OptimizerVariantsSection
                             variants={optimizationStatus?.nextVariants}
                             activeIndex={activeVariantIndex}
+                            onSelect={(_variant, variantIndex) =>
+                                setActiveVariantIndex(variantIndex)
+                            }
+                            onApply={handleApplyVariant}
+                        />
+                        <OptimizerChangesSection
+                            variant={activeVariant}
                             maxCaps={gameRules?.drifMaxCaps}
                             translations={gameRules?.bonusTranslations}
-                            onSelect={(variant, variantIndex) => {
-                                if (applyOptimizationSetup(variant.setup)) {
-                                    setActiveVariantIndex(variantIndex);
-                                }
-                            }}
                         />
+                        <details className="optimizer-full-report">
+                            <summary>Pokaż pełny raport</summary>
+                            <OptimizerItemsByBonusSection
+                                itemsByBonus={optimizationStatus?.itemsByDrifBonus}
+                            />
+                        </details>
                     </div>
                 </aside>
             </div>
-
-            <OptimizerRunAction
-                priorityCount={prioritizedBonuses.length}
-                isOptimizing={isOptimizing}
-                elapsedSeconds={optimizationElapsedSeconds}
-                lastDurationSeconds={lastOptimizationDurationSeconds}
-                hasResult={Boolean(optimizationStatus)}
-                onRun={handleOptimizeClick}
-            />
         </div>
     );
 };

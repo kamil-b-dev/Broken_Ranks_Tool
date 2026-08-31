@@ -8,10 +8,6 @@ const ItemRow = ({ item, category, onDragStart, onHover, onLeave }) => (
         onMouseLeave={onLeave}
         className="database-result-row p-1.5 transition-colors flex justify-between items-center group cursor-grab active:cursor-grabbing hover:bg-stone-900/50 border-b border-stone-800/50"
     >
-        <span
-            className={`database-item-icon equipment-slot-icon equipment-slot-icon-${getEquipmentIconClass(category)}`}
-            aria-hidden="true"
-        />
         <span className="database-item-copy">
             <span className={`truncate font-serif ${getRarityColor(item.rarity)}`}>
                 {item.name || item.description || item.bonusType}
@@ -34,7 +30,7 @@ const ItemRow = ({ item, category, onDragStart, onHover, onLeave }) => (
 const VariantRow = ({ variants, type, bonusTranslations, onDragStart, onHover, onLeave }) => {
     const baseItem = variants[0];
     return (
-        <li className="database-result-row p-1.5 flex justify-between items-center gap-2 hover:bg-stone-900/50 transition-colors border-b border-stone-800/50">
+        <li className="database-result-row database-variant-row p-1.5 flex justify-between items-center gap-2 hover:bg-stone-900/50 transition-colors border-b border-stone-800/50">
             <span
                 className={`database-bonus-icon database-bonus-icon-${type}`}
                 aria-hidden="true"
@@ -83,7 +79,7 @@ const ItemDatabaseResults = ({
     onLeave,
     onClearFilters,
 }) => (
-    <div className="overflow-y-auto pr-2 space-y-4 flex-1 custom-scrollbar">
+    <div className="min-h-0 flex-1 overflow-y-auto pr-2 space-y-4 custom-scrollbar">
         {Object.entries(groups)
             .sort()
             .map(([category, entries]) => (

@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import { SLOTS } from "../../constants/equipment";
 
 const LockIcon = ({ locked, small = false }) => (
@@ -31,54 +32,100 @@ const OptimizerLocksColumn = ({
     lockedDrifs,
     onToggleSlot,
     onToggleDrif,
-}) => (
-    <div
-        className={`optimizer-workspace-column optimizer-lock-column ${active ? "flex" : "hidden"} flex-col gap-2 lg:col-span-2 lg:flex lg:border-r lg:border-stone-800/60 lg:pr-4`}
-    >
-        <div className="flex min-h-[34px] shrink-0 items-center justify-center border-b border-stone-700 pb-2 mb-2">
-            <h4 className="text-xs font-bold uppercase tracking-widest text-stone-300 font-serif">
-                Zablokowane Sloty
-            </h4>
-        </div>
-        <div className="grid min-h-0 flex-1 grid-cols-2 content-start gap-2 overflow-y-auto pr-2">
-            {SLOTS.map((slot) => {
+}) => {
+    const equippedSlots = useMemo(
+        () =>
+            SLOTS.map((slot) => {
                 const slotData = slots?.[slot.key];
                 const item = slotData?.itemId
                     ? items.find((candidate) => String(candidate.id) === String(slotData.itemId))
                     : null;
-                const slotLocked = lockedSlots?.includes(slot.key);
+                return { slot, slotData, item };
+            }),
+        [items, slots]
+    );
+    const [filter, setFilter] = useState("all");
+    const [expandedSlot, setExpandedSlot] = useState(
+        () => equippedSlots.find(({ item }) => item)?.slot.key || null
+    );
+    const lockedDrifCount = Object.values(lockedDrifs || {}).reduce(
+        (total, indexes) => total + (indexes?.length || 0),
+        0
+    );
+    const visibleSlots = equippedSlots.filter(
+        ({ slot }) => filter === "all" || lockedSlots?.includes(slot.key)
+    );
 
-                return (
-                    <div
-                        key={slot.key}
-                        className={`flex min-w-0 flex-col rounded-sm border bg-stone-950/60 transition-all ${slotLocked ? "border-purple-700/60 shadow-[inset_0_0_15px_rgba(88,40,130,0.24)]" : "border-stone-800/80 hover:border-purple-800"}`}
-                    >
-                        <div className="flex items-center justify-between border-b border-stone-800/60 bg-black/60 p-2">
-                            <span
-                                className={`text-[10px] font-bold uppercase tracking-widest ${slotLocked ? "text-red-500" : "text-stone-400"}`}
-                            >
-                                {slot.label}
-                            </span>
-                            {item && (
+    return (
+        <section
+            className={`optimizer-workspace-column optimizer-lock-column ${active ? "flex" : "hidden"} flex-col lg:flex`}
+            aria-labelledby="optimizer-locks-heading"
+        >
+            <header className="optimizer-column-heading">
+                <div>
+                    <span className="optimizer-heading-icon" aria-hidden="true">
+                        ◈
+                    </span>
+                    <h3 id="optimizer-locks-heading">Blokady buildu</h3>
+                </div>
+                <p>Zablokowane elementy pozostaną bez zmian.</p>
+            </header>
+            <div className="optimizer-lock-filters" role="group" aria-label="Filtr blokad">
+                <button
+                    type="button"
+                    aria-pressed={filter === "all"}
+                    onClick={() => setFilter("all")}
+                >
+                    Wszystkie
+                </button>
+                <button
+                    type="button"
+                    aria-pressed={filter === "locked"}
+                    onClick={() => setFilter("locked")}
+                >
+                    Zablokowane
+                </button>
+            </div>
+            <div className="optimizer-lock-list custom-scrollbar">
+                {visibleSlots.map(({ slot, slotData, item }) => {
+                    const slotLocked = lockedSlots?.includes(slot.key);
+                    const expanded = expandedSlot === slot.key;
+                    return (
+                        <article
+                            key={slot.key}
+                            className={`optimizer-lock-card ${slotLocked ? "optimizer-lock-card-locked" : ""}`}
+                        >
+                            <div className="optimizer-lock-card-main">
                                 <button
                                     type="button"
-                                    onClick={() => onToggleSlot(slot.key)}
-                                    title={slotLocked ? "Odblokuj slot" : "Zablokuj cały slot"}
-                                    className={`rounded-sm p-1 transition-colors ${slotLocked ? "bg-red-950/40 text-red-500 hover:text-red-400" : "bg-stone-900 text-stone-600 hover:text-stone-300"}`}
+                                    className="optimizer-lock-card-toggle"
+                                    onClick={() => setExpandedSlot(expanded ? null : slot.key)}
+                                    aria-expanded={expanded}
                                 >
-                                    <LockIcon locked={slotLocked} />
+                                    <span
+                                        className={`equipment-slot-icon equipment-slot-icon-${slot.key}`}
+                                        aria-hidden="true"
+                                    />
+                                    <span className="optimizer-lock-copy">
+                                        <span className="optimizer-lock-label">{slot.label}</span>
+                                        <strong>{item?.name || "Brak przedmiotu"}</strong>
+                                    </span>
+                                    {item?.tier && <small>Tier {item.tier}</small>}
                                 </button>
-                            )}
-                        </div>
-                        <div className="flex flex-col gap-1.5 p-2">
-                            {item ? (
-                                <>
-                                    <div
-                                        className={`truncate pb-1 text-xs font-bold ${slotLocked ? "text-stone-500" : "text-stone-300"}`}
+                                {item && (
+                                    <button
+                                        type="button"
+                                        onClick={() => onToggleSlot(slot.key)}
+                                        title={slotLocked ? "Odblokuj slot" : "Zablokuj cały slot"}
+                                        className="optimizer-lock-button"
                                     >
-                                        {item.name}
-                                    </div>
-                                    {slotData.drifIds?.map((drifId, index) => {
+                                        <LockIcon locked={slotLocked} />
+                                    </button>
+                                )}
+                            </div>
+                            {expanded && item && (
+                                <div className="optimizer-lock-drifs">
+                                    {(slotData?.drifIds || []).map((drifId, index) => {
                                         const drif = drifs.find(
                                             (candidate) => String(candidate.id) === String(drifId)
                                         );
@@ -87,11 +134,10 @@ const OptimizerLocksColumn = ({
                                         return (
                                             <div
                                                 key={`${slot.key}-${index}`}
-                                                className={`flex items-center justify-between rounded-sm border bg-black/40 p-1 ${drifLocked && !slotLocked ? "border-red-900/40" : "border-stone-800/60"}`}
+                                                className={`optimizer-lock-drif ${drifLocked ? "optimizer-lock-drif-locked" : ""}`}
+                                                data-category={drif?.category?.toLowerCase()}
                                             >
-                                                <span
-                                                    className={`truncate pr-2 text-[10px] ${drif ? (drifLocked ? "text-red-400/80" : "text-amber-600/80") : "italic text-stone-700"}`}
-                                                >
+                                                <span>
                                                     {drif
                                                         ? `${drif.name} (${drif.size})`
                                                         : "Pusty drif"}
@@ -108,7 +154,6 @@ const OptimizerLocksColumn = ({
                                                                 ? "Odblokuj drif"
                                                                 : "Zablokuj drif"
                                                         }
-                                                        className={`shrink-0 p-1 transition-colors ${drifLocked ? "text-red-500" : "text-stone-600 hover:text-stone-400"} ${slotLocked ? "cursor-not-allowed opacity-30" : "cursor-pointer"}`}
                                                     >
                                                         <LockIcon locked={drifLocked} small />
                                                     </button>
@@ -116,18 +161,25 @@ const OptimizerLocksColumn = ({
                                             </div>
                                         );
                                     })}
-                                </>
-                            ) : (
-                                <span className="py-1 text-[10px] italic text-stone-600">
-                                    Brak założonego przedmiotu
-                                </span>
+                                    {!slotData?.drifIds?.length && (
+                                        <span className="optimizer-lock-empty">Brak drifów</span>
+                                    )}
+                                </div>
                             )}
-                        </div>
-                    </div>
-                );
-            })}
-        </div>
-    </div>
-);
+                        </article>
+                    );
+                })}
+                {visibleSlots.length === 0 && (
+                    <p className="optimizer-lock-empty">Nie zablokowano jeszcze żadnego slotu.</p>
+                )}
+            </div>
+            <footer className="optimizer-lock-summary">
+                Zablokowane: <strong>{lockedSlots?.length || 0}</strong> sloty
+                <span>·</span>
+                <strong>{lockedDrifCount}</strong> drifów
+            </footer>
+        </section>
+    );
+};
 
 export default OptimizerLocksColumn;

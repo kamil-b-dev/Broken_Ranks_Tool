@@ -35,10 +35,20 @@ describe("StatsPanel", () => {
             />
         );
 
-        expect(screen.getByText("Statystyki podstawowe")).toBeInTheDocument();
-        expect(screen.getByText("Drify")).toBeInTheDocument();
-        expect(screen.getByText("Orby")).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "Statystyki podstawowe" })).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "Drify" })).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "Orby" })).toBeInTheDocument();
         expect(screen.getByText("Obrażenia od ognia")).toBeInTheDocument();
+
+        await user.click(screen.getByRole("tab", { name: "Orby" }));
+        expect(screen.getByRole("heading", { name: "Orby" })).toBeInTheDocument();
+        expect(
+            screen.queryByRole("heading", { name: "Statystyki podstawowe" })
+        ).not.toBeInTheDocument();
+        expect(screen.queryByRole("heading", { name: "Drify" })).not.toBeInTheDocument();
+
+        await user.click(screen.getByRole("tab", { name: "Wszystko" }));
+        expect(screen.getByRole("heading", { name: "Statystyki podstawowe" })).toBeInTheDocument();
         await user.click(screen.getByRole("button", { name: "Przelicz statystyki" }));
         expect(onCalculate).toHaveBeenCalledOnce();
     });

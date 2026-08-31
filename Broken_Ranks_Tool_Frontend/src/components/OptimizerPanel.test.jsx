@@ -200,6 +200,7 @@ describe("OptimizerPanel", () => {
         await user.click(await screen.findByText("Szansa na krytyk"));
         await user.click(screen.getByRole("button", { name: /Uruchom optymalizację/i }));
         await user.click(await screen.findByRole("button", { name: /Alternatywa krytyczna/i }));
+        await user.click(screen.getByRole("button", { name: /Zastosuj wybrany wariant/i }));
 
         expect(equipment.applyOptimizationSetup).toHaveBeenCalledWith(setup);
     });

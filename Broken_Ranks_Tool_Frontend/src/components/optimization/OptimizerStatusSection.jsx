@@ -7,12 +7,9 @@ const OptimizerStatusSection = ({ isOptimizing, elapsedSeconds, status, lastDura
     const duration = status?.executionTimeSeconds ?? lastDurationSeconds;
 
     return (
-        <section className="bg-black/40 border border-stone-800 rounded-sm p-3">
-            <h5 className="text-[10px] text-stone-400 uppercase tracking-widest font-semibold mb-2">
-                Status
-            </h5>
+        <section className="optimizer-report-section optimizer-status-section">
             {isOptimizing ? (
-                <div className="flex items-center gap-2 text-xs text-purple-300">
+                <div className="optimizer-status-progress">
                     <svg
                         className="animate-spin h-4 w-4 shrink-0"
                         xmlns="http://www.w3.org/2000/svg"
@@ -36,45 +33,49 @@ const OptimizerStatusSection = ({ isOptimizing, elapsedSeconds, status, lastDura
                     <span>Optymalizacja trwa ({elapsedSeconds} s).</span>
                 </div>
             ) : status ? (
-                <div
-                    className={`text-xs leading-relaxed ${status.success ? "text-emerald-300" : "text-amber-300"}`}
-                >
-                    <p>{status.message}</p>
+                <div className={status.success ? "is-success" : "is-warning"}>
+                    <p className="optimizer-status-message">
+                        <span aria-hidden="true">{status.success ? "✓" : "!"}</span>
+                        {status.message}
+                    </p>
                     {status.warnings?.length > 0 && (
-                        <ul className="mt-2 space-y-1.5 border-l-2 border-amber-700/70 pl-2.5 text-amber-200">
+                        <ul className="optimizer-status-warnings">
                             {status.warnings.map((warning, index) => (
                                 <li key={`${warning}-${index}`}>{warning}</li>
                             ))}
                         </ul>
                     )}
                     {status.applied && !status.success && (
-                        <p className="mt-2 text-stone-400">
+                        <p className="optimizer-status-applied">
                             Zastosowano najlepszy znaleziony układ.
                         </p>
                     )}
-                    <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1 text-[10px] uppercase tracking-wide">
+                    <dl className="optimizer-status-metrics">
                         {status.drifsPlaced !== undefined && (
-                            <>
-                                <dt className="text-stone-500">Umieszczono</dt>
-                                <dd className="text-right text-stone-200 tabular-nums">
-                                    {status.drifsPlaced} drifów
-                                </dd>
-                            </>
+                            <div>
+                                <dd>{status.drifsPlaced} drifów</dd>
+                                <dt>Umieszczono</dt>
+                            </div>
+                        )}
+                        {status.totalPowerUsed !== undefined && (
+                            <div>
+                                <dd>{status.totalPowerUsed}</dd>
+                                <dt>Wykorzystana moc</dt>
+                            </div>
                         )}
                         {duration !== null && duration !== undefined && (
-                            <>
-                                <dt className="text-stone-500">Czas</dt>
-                                <dd className="text-right text-stone-200 tabular-nums">
-                                    {formatDuration(duration)} s
-                                </dd>
-                            </>
+                            <div>
+                                <dd>{formatDuration(duration)} s</dd>
+                                <dt>Czas</dt>
+                            </div>
                         )}
                     </dl>
                 </div>
             ) : (
-                <p className="text-xs text-stone-600 italic leading-relaxed">
-                    Wynik i ostrzeżenia z kolejnej optymalizacji pojawią się tutaj.
-                </p>
+                <div className="optimizer-status-empty">
+                    <span aria-hidden="true">✦</span>
+                    <p>Wynik i ostrzeżenia z kolejnej optymalizacji pojawią się tutaj.</p>
+                </div>
             )}
         </section>
     );

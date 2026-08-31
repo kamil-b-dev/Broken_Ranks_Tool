@@ -1,5 +1,4 @@
 import { SLOTS } from "../../constants/equipment";
-import equipmentSilhouette from "../../assets/equipment-silhouette.png";
 import EquipmentSlotOverview from "../equipment/EquipmentSlotOverview";
 import GearSlot from "../GearSlot";
 
@@ -11,17 +10,6 @@ const BuilderEquipmentWorkbench = ({
     optimizationTrigger,
     onSlotUpdate,
 }) => {
-    const renderOverview = (slot) => (
-        <EquipmentSlotOverview
-            key={slot.key}
-            slotKey={slot.key}
-            label={slot.label}
-            slotData={requestData.slots?.[slot.key]}
-            item={model.itemForSlot(slot)}
-            active={slot.key === model.activeSlot.key}
-            onSelect={() => model.selectSlot(slot)}
-        />
-    );
     return (
         <section className="workbench builder-equipment-column flex flex-col p-5 md:p-6">
             <div className="workbench-heading">
@@ -42,12 +30,32 @@ const BuilderEquipmentWorkbench = ({
                 </strong>
             </div>
             <div className="equipment-figure-layout">
-                <div className="equipment-slot-column">{SLOTS.slice(0, 6).map(renderOverview)}</div>
-                <figure className="equipment-character-figure" aria-hidden="true">
+                <div
+                    className="equipment-character-figure"
+                    aria-label="Kołowy wybór slotów ekwipunku"
+                >
                     <span className="equipment-figure-aura" />
-                    <img src={equipmentSilhouette} alt="" />
-                </figure>
-                <div className="equipment-slot-column">{SLOTS.slice(6).map(renderOverview)}</div>
+                    <span className="equipment-center-silhouette" aria-hidden="true" />
+                    {SLOTS.map((slot) => {
+                        const equipped = Boolean(model.itemForSlot(slot));
+                        const active = slot.key === model.activeSlot.key;
+                        return (
+                            <EquipmentSlotOverview
+                                key={slot.key}
+                                variant="ring"
+                                slotKey={slot.key}
+                                label={slot.label}
+                                slotData={requestData.slots?.[slot.key]}
+                                item={model.itemForSlot(slot)}
+                                drifs={data.drifs}
+                                bonusTranslations={gameRules.bonusTranslations}
+                                active={active}
+                                onSelect={() => model.selectSlot(slot)}
+                                className={`equipment-ring-slot-${slot.key}${equipped ? " equipment-ring-slot-equipped" : ""}`}
+                            />
+                        );
+                    })}
+                </div>
             </div>
             <section className="selected-slot-editor" aria-label="Edytor wybranego slotu">
                 <div className="selected-slot-editor-heading">
