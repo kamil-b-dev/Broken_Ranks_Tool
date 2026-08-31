@@ -42,6 +42,8 @@ const EquipmentSlotOverview = ({
     item,
     drifs = [],
     bonusTranslations = {},
+    variant = "card",
+    className = "",
     active,
     onSelect,
 }) => {
@@ -53,7 +55,7 @@ const EquipmentSlotOverview = ({
             type="button"
             onClick={onSelect}
             aria-pressed={active}
-            className={`equipment-slot-overview ${active ? "equipment-slot-overview-active" : ""}`}
+            className={`equipment-slot-overview equipment-slot-overview-${variant} ${className} ${active ? "equipment-slot-overview-active" : ""}`}
         >
             <span
                 className={`equipment-slot-icon${slotKey ? ` equipment-slot-icon-${slotKey}` : ""}`}
