@@ -44,7 +44,7 @@ const ItemDatabase = ({
     const hideTooltip = () => setTooltip({ show: false, x: 0, y: 0, item: null, type: "item" });
 
     return (
-        <div className="item-database-theme bg-gradient-to-b from-stone-900 to-black p-6 border-2 border-stone-800 shadow-[0_0_30px_rgba(0,0,0,0.9)] flex flex-col relative">
+        <div className="item-database-theme bg-gradient-to-b from-stone-900 to-black p-6 border-2 border-stone-800 shadow-[0_0_30px_rgba(0,0,0,0.9)] flex h-full min-h-0 flex-col relative">
             <ItemDatabaseControls
                 activeTab={activeTab}
                 filters={filters}
