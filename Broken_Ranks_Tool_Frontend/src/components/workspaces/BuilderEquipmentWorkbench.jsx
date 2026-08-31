@@ -36,10 +36,6 @@ const BuilderEquipmentWorkbench = ({
                 >
                     <span className="equipment-figure-aura" />
                     <span className="equipment-center-silhouette" aria-hidden="true" />
-                    <span className="equipment-ring-core" aria-hidden="true">
-                        <strong>BR</strong>
-                        <small>{model.equippedSlotCount}/12</small>
-                    </span>
                     {SLOTS.map((slot) => {
                         const equipped = Boolean(model.itemForSlot(slot));
                         const active = slot.key === model.activeSlot.key;
