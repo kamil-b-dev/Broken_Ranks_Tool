@@ -48,7 +48,7 @@ export const useOptimizerPriorities = (gameRules) => {
 
     const selectBonus = (bonus) => {
         setPrioritizedBonuses((previous) => [...previous, createPriority(bonus)]);
-        setExpandedPriorities(new Set([bonus.key]));
+        setExpandedPriorities((previous) => new Set([...previous, bonus.key]));
     };
 
     const removeBonus = (bonus) => {
@@ -115,7 +115,7 @@ export const useOptimizerPriorities = (gameRules) => {
 
     const replaceConfiguration = ({ priorities }) => {
         setPrioritizedBonuses(priorities);
-        setExpandedPriorities(priorities.length > 0 ? new Set([priorities[0].key]) : new Set());
+        setExpandedPriorities(new Set(priorities.map((priority) => priority.key)));
     };
 
     return {

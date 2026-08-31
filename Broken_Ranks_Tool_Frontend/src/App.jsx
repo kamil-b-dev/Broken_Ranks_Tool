@@ -67,6 +67,7 @@ function App() {
                     active={mainView === "optimizer"}
                     settings={optimizerSettings}
                     onSettingsChange={setOptimizerSettings}
+                    onBackToBuilder={() => changeView("builder")}
                 />
             )}
         </div>

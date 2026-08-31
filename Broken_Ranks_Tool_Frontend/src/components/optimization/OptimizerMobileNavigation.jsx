@@ -1,5 +1,5 @@
 const COLUMNS = [
-    ["slots", "Przedmioty"],
+    ["slots", "Blokady"],
     ["bonuses", "Bonusy"],
     ["priorities", "Priorytety"],
     ["result", "Raport"],
