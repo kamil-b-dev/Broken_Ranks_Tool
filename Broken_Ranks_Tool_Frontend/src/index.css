@@ -753,7 +753,7 @@ input:focus-visible {
     display: grid;
     min-width: 0;
     grid-template-columns: minmax(17rem, 0.8fr) minmax(38rem, 1.8fr) minmax(19rem, 0.9fr);
-    align-items: start;
+    align-items: stretch;
     gap: 1rem;
 }
 
@@ -788,9 +788,13 @@ input:focus-visible {
     min-height: 0;
 }
 
+.builder-database-column {
+    overflow: hidden;
+}
+
 .builder-database-column > div,
 .builder-results-column > section {
-    height: auto;
+    height: 100%;
 }
 
 .builder-results-column {
@@ -2021,6 +2025,15 @@ input:focus-visible {
         position: static;
         height: auto;
         min-height: 0;
+        overflow: visible;
+    }
+
+    .builder-database-column > div {
+        height: auto;
+    }
+
+    .builder-database-column .overflow-y-auto {
+        overflow-y: visible;
     }
 
     .builder-results-column {

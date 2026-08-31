@@ -79,7 +79,7 @@ const ItemDatabaseResults = ({
     onLeave,
     onClearFilters,
 }) => (
-    <div className="pr-2 space-y-4 custom-scrollbar">
+    <div className="min-h-0 flex-1 overflow-y-auto pr-2 space-y-4 custom-scrollbar">
         {Object.entries(groups)
             .sort()
             .map(([category, entries]) => (
