@@ -783,21 +783,28 @@ input:focus-visible {
 
 .builder-database-column,
 .builder-results-column {
-    position: static;
     height: auto;
     min-height: 0;
 }
 
 .builder-database-column {
+    position: relative;
+    align-self: stretch;
     overflow: hidden;
 }
 
-.builder-database-column > div,
+.builder-database-column > div {
+    position: absolute;
+    inset: 0;
+    height: auto;
+}
+
 .builder-results-column > section {
     height: 100%;
 }
 
 .builder-results-column {
+    position: static;
     overflow: visible;
 }
 
@@ -2029,6 +2036,8 @@ input:focus-visible {
     }
 
     .builder-database-column > div {
+        position: static;
+        inset: auto;
         height: auto;
     }
 
