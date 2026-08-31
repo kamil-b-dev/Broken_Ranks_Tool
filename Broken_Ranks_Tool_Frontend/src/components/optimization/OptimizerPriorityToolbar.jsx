@@ -1,5 +1,4 @@
-const BUTTON_CLASS =
-    "rounded-sm border border-stone-700 bg-stone-900 px-2 py-1 text-[10px] uppercase tracking-wider text-stone-300 transition-all hover:border-purple-800 hover:bg-stone-800 hover:text-purple-300 disabled:cursor-not-allowed disabled:opacity-40 font-serif";
+const BUTTON_CLASS = "optimizer-toolbar-button";
 
 /** Provides file and bulk actions for the optimizer priority list. */
 const OptimizerPriorityToolbar = ({
@@ -13,11 +12,9 @@ const OptimizerPriorityToolbar = ({
     onToggleExpanded,
     onClear,
 }) => (
-    <div className="flex min-h-[34px] shrink-0 items-center justify-between border-b border-stone-700 pb-2 mb-2">
-        <h4 className="text-xs font-bold uppercase tracking-widest text-stone-300 font-serif">
-            Priorytety i Limity
-        </h4>
-        <div className="flex flex-wrap items-center justify-end gap-1.5">
+    <header className="optimizer-priority-toolbar">
+        <h4>Priorytety i limity</h4>
+        <div>
             <input
                 ref={fileInputRef}
                 type="file"
@@ -58,14 +55,14 @@ const OptimizerPriorityToolbar = ({
                     <button
                         type="button"
                         onClick={onClear}
-                        className="rounded-sm border border-red-900/50 bg-red-950/60 px-2 py-1 text-[10px] uppercase tracking-wider text-red-400 transition-all hover:bg-red-900 hover:text-red-100 font-serif"
+                        className="optimizer-toolbar-button optimizer-toolbar-clear"
                     >
                         Wyczyść
                     </button>
                 </>
             )}
         </div>
-    </div>
+    </header>
 );
 
 export default OptimizerPriorityToolbar;
