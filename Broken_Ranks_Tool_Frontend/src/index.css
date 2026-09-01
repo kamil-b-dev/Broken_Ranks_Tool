@@ -362,10 +362,49 @@ input:focus-visible {
 }
 
 .main-switch-icon {
-    display: inline-block;
-    margin-right: 0.45rem;
-    color: #bd914f;
-    font-size: 0.85rem;
+    display: inline-flex;
+    width: 1.45rem;
+    height: 1.45rem;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.68;
+    vertical-align: middle;
+    transition:
+        opacity 150ms ease,
+        filter 150ms ease,
+        transform 150ms ease;
+}
+
+.main-switch button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.main-switch-label {
+    min-width: 0;
+    line-height: 1.35;
+    text-align: center;
+}
+
+.main-switch-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    pointer-events: none;
+    user-select: none;
+}
+
+.main-switch button:hover .main-switch-icon,
+.main-switch button[aria-current="page"] .main-switch-icon {
+    opacity: 1;
+    filter: drop-shadow(0 0 0.28rem rgba(216, 162, 83, 0.3));
+}
+
+.main-switch button:hover .main-switch-icon {
+    transform: translateY(-1px);
 }
 
 .header-action:hover {

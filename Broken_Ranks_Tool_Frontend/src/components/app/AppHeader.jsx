@@ -1,4 +1,6 @@
 import crest from "../../assets/broken-ranks-crest.png";
+import drifOptimizerIcon from "../../assets/navigation-icons/drif-optimizer.png";
+import equipmentBuilderIcon from "../../assets/navigation-icons/equipment-builder.png";
 
 const AppHeader = ({
     activeView,
@@ -29,9 +31,9 @@ const AppHeader = ({
                 className={`flex-1 border-b-2 px-4 py-3 text-xs font-bold uppercase tracking-[0.15em] transition-all ${activeView === "builder" ? "border-red-700 bg-stone-900/90 text-stone-100 shadow-inner" : "border-transparent text-stone-500 hover:bg-stone-900/50 hover:text-stone-200"}`}
             >
                 <span className="main-switch-icon" aria-hidden="true">
-                    ⚔
+                    <img src={equipmentBuilderIcon} alt="" draggable="false" />
                 </span>
-                Kreator ekwipunku
+                <span className="main-switch-label">Kreator ekwipunku</span>
             </button>
             <button
                 type="button"
@@ -41,9 +43,9 @@ const AppHeader = ({
                 className={`flex-1 border-b-2 px-4 py-3 text-xs font-bold uppercase tracking-[0.15em] transition-all ${activeView === "optimizer" ? "border-purple-500 bg-purple-950/30 text-purple-300 shadow-inner" : "border-transparent text-stone-500 hover:bg-stone-900/50 hover:text-stone-200"}`}
             >
                 <span className="main-switch-icon" aria-hidden="true">
-                    ✦
+                    <img src={drifOptimizerIcon} alt="" draggable="false" />
                 </span>
-                Optymalizator drifów
+                <span className="main-switch-label">Optymalizator drifów</span>
             </button>
         </nav>
         <div className="header-actions">
