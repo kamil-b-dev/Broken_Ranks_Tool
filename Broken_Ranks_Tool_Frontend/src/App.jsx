@@ -45,7 +45,9 @@ function App() {
                 disabled={unavailable}
                 fileInputRef={fileActions.fileInputRef}
                 onViewChange={changeView}
-                onSaveBuild={fileActions.saveBuild}
+                onSaveBuild={() =>
+                    buildLibrary.saveCurrent(`Build ${buildLibrary.builds.length + 1}`)
+                }
                 onLoadBuild={fileActions.loadBuild}
             />
             <BuildFileNotice
@@ -91,6 +93,7 @@ function App() {
                     onSaveCurrent={buildLibrary.saveCurrent}
                     onOverwrite={buildLibrary.overwrite}
                     onLoad={buildLibrary.load}
+                    onExport={buildLibrary.exportBuild}
                     onRemove={buildLibrary.remove}
                     onOpenBuilder={() => changeView("builder")}
                 />

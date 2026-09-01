@@ -70,7 +70,8 @@ const AppHeader = ({
             <button
                 type="button"
                 onClick={onSaveBuild}
-                disabled={disabled}
+                disabled={disabled || buildCount >= 10}
+                title={buildCount >= 10 ? "Biblioteka lokalna jest pełna" : undefined}
                 className="header-action header-action-primary"
             >
                 <svg aria-hidden="true" viewBox="0 0 24 24">

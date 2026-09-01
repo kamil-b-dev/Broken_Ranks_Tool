@@ -6,6 +6,7 @@ import {
     replaceLocalBuildRecord,
     writeBuildLibrary,
 } from "../utils/buildLibrary";
+import { downloadBuildPayload } from "../utils/buildFile";
 
 /** Owns the persistent browser library and applies saved snapshots to the editor. */
 export const useBuildLibrary = ({ createSnapshot, applySnapshot }) => {
@@ -83,6 +84,28 @@ export const useBuildLibrary = ({ createSnapshot, applySnapshot }) => {
         [applySnapshot, builds]
     );
 
+    const exportBuild = useCallback(
+        (id) => {
+            try {
+                const record = builds.find((build) => build.id === id);
+                if (!record) throw new Error("Nie znaleziono wybranego buildu.");
+                downloadBuildPayload(record.payload);
+                setNotice({
+                    type: "success",
+                    message: `Wyeksportowano build „${record.name}” do pliku JSON.`,
+                });
+                return true;
+            } catch (error) {
+                setNotice({
+                    type: "error",
+                    message: `Nie udało się wyeksportować buildu: ${error.message}`,
+                });
+                return false;
+            }
+        },
+        [builds]
+    );
+
     const remove = useCallback(
         (id) => {
             const record = builds.find((build) => build.id === id);
@@ -106,6 +129,7 @@ export const useBuildLibrary = ({ createSnapshot, applySnapshot }) => {
         saveCurrent,
         overwrite,
         load,
+        exportBuild,
         remove,
         dismissNotice: () => setNotice(null),
     };

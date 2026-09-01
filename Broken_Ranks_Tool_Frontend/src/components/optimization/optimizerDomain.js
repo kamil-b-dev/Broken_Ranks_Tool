@@ -60,10 +60,13 @@ export const getDrifPenaltyMultiplier = (count, multipliers = {}) => {
     );
 };
 
+export const resolveDrifCategoryKey = (bonusType, drifBonusCategories = {}) =>
+    drifBonusCategories[bonusType] || DRIF_BONUS_CATEGORY_FALLBACK[bonusType] || "";
+
 export const createBonusOption = ([key, value], drifBonusCategories = {}) => ({
     key,
     value,
-    categoryKey: drifBonusCategories[key] || DRIF_BONUS_CATEGORY_FALLBACK[key] || "",
+    categoryKey: resolveDrifCategoryKey(key, drifBonusCategories),
 });
 
 export const sortBonusesByCategory = (bonuses) =>
