@@ -1,5 +1,10 @@
 import { createContext, useState, useContext, useCallback, useMemo } from "react";
-import { createBuildPayload, downloadBuildPayload, parseBuildFile } from "../utils/buildFile";
+import {
+    createBuildPayload,
+    downloadBuildPayload,
+    parseBuildFile,
+    parseBuildPayload,
+} from "../utils/buildFile";
 import { useEquipmentLocks } from "../hooks/useEquipmentLocks";
 import { useEquipmentCatalog } from "../hooks/useEquipmentCatalog";
 import { useEquipmentStats } from "../hooks/useEquipmentStats";
@@ -38,7 +43,7 @@ export const EquipmentProvider = ({ children }) => {
     } = useEquipmentCatalog();
 
     const [requestData, setRequestData] = useState({ slots: {}, characterStats: {} });
-    const { stats, statSources, isCalculatingStats, calculateStats, resetStats } =
+    const { stats, statSources, isCalculatingStats, calculateStats, restoreStats } =
         useEquipmentStats(requestData);
 
     const { lockedSlots, lockedDrifs, toggleSlotLock, toggleDrifLock, replaceLocks } =
@@ -87,16 +92,46 @@ export const EquipmentProvider = ({ children }) => {
         if (newConfig) setCharacterConfig(newConfig);
     }, []);
 
+    /** Captures the current editor state for file export or the local build library. */
+    const createBuildSnapshot = useCallback(
+        () => ({
+            payload: createBuildPayload({
+                requestData,
+                characterConfig,
+                lockedSlots,
+                lockedDrifs,
+            }),
+            stats,
+            statSources,
+        }),
+        [requestData, characterConfig, lockedSlots, lockedDrifs, stats, statSources]
+    );
+
+    const applyImportedBuild = useCallback(
+        (importedBuild, savedStats = null, savedStatSources = {}) => {
+            setRequestData(importedBuild.requestData);
+            setCharacterConfig(importedBuild.characterConfig);
+            replaceLocks(importedBuild.lockedSlots, importedBuild.lockedDrifs);
+            restoreStats(savedStats, savedStatSources, importedBuild.requestData);
+            markEquipmentChanged();
+        },
+        [markEquipmentChanged, replaceLocks, restoreStats]
+    );
+
     /** Exports the complete build as a versioned JSON file for later import. */
     const saveBuildToFile = useCallback(() => {
-        const payload = createBuildPayload({
-            requestData,
-            characterConfig,
-            lockedSlots,
-            lockedDrifs,
-        });
+        const { payload } = createBuildSnapshot();
         downloadBuildPayload(payload);
-    }, [requestData, characterConfig, lockedSlots, lockedDrifs]);
+    }, [createBuildSnapshot]);
+
+    /** Loads and validates a snapshot saved in the browser library. */
+    const loadBuildSnapshot = useCallback(
+        (snapshot) => {
+            const importedBuild = parseBuildPayload(snapshot?.payload, data);
+            applyImportedBuild(importedBuild, snapshot?.stats, snapshot?.statSources);
+        },
+        [applyImportedBuild, data]
+    );
 
     /**
      * Loads and validates a build created by the application.
@@ -106,13 +141,9 @@ export const EquipmentProvider = ({ children }) => {
     const loadBuildFromFile = useCallback(
         async (file) => {
             const importedBuild = await parseBuildFile(file, data);
-            setRequestData(importedBuild.requestData);
-            setCharacterConfig(importedBuild.characterConfig);
-            replaceLocks(importedBuild.lockedSlots, importedBuild.lockedDrifs);
-            resetStats();
-            markEquipmentChanged();
+            applyImportedBuild(importedBuild);
         },
-        [data, markEquipmentChanged, replaceLocks, resetStats]
+        [applyImportedBuild, data]
     );
 
     const value = useMemo(
@@ -141,6 +172,8 @@ export const EquipmentProvider = ({ children }) => {
             runDrifOptimization,
             saveBuildToFile,
             loadBuildFromFile,
+            createBuildSnapshot,
+            loadBuildSnapshot,
         }),
         [
             data,
@@ -167,6 +200,8 @@ export const EquipmentProvider = ({ children }) => {
             runDrifOptimization,
             saveBuildToFile,
             loadBuildFromFile,
+            createBuildSnapshot,
+            loadBuildSnapshot,
         ]
     );
 

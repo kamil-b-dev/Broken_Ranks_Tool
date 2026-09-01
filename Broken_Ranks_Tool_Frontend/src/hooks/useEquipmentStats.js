@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { calculateEquipmentStats } from "../api/equipmentApi";
 
 const emptySources = () => ({ drifCategories: {}, orbBonusTypes: [] });
@@ -7,13 +7,17 @@ const emptySources = () => ({ drifCategories: {}, orbBonusTypes: [] });
 export const useEquipmentStats = (requestData) => {
     const [stats, setStats] = useState(null);
     const [statSources, setStatSources] = useState(emptySources);
+    const [calculatedRequestFingerprint, setCalculatedRequestFingerprint] = useState(null);
     const [isCalculatingStats, setIsCalculatingStats] = useState(false);
+    const requestFingerprint = useMemo(() => JSON.stringify(requestData), [requestData]);
+    const statsAreCurrent = Boolean(stats) && calculatedRequestFingerprint === requestFingerprint;
 
     const calculateStats = useCallback(async () => {
         setIsCalculatingStats(true);
         try {
             const response = await calculateEquipmentStats(requestData);
             setStats(response.stats || response);
+            setCalculatedRequestFingerprint(requestFingerprint);
             setStatSources({
                 drifCategories: response.drifCategories || {},
                 orbBonusTypes: response.orbBonusTypes || [],
@@ -28,12 +32,35 @@ export const useEquipmentStats = (requestData) => {
         } finally {
             setIsCalculatingStats(false);
         }
-    }, [requestData]);
+    }, [requestData, requestFingerprint]);
 
     const resetStats = useCallback(() => {
         setStats(null);
         setStatSources(emptySources());
+        setCalculatedRequestFingerprint(null);
     }, []);
 
-    return { stats, statSources, isCalculatingStats, calculateStats, resetStats };
+    const restoreStats = useCallback((nextStats, nextSources = {}, nextRequestData = null) => {
+        setStats(nextStats || null);
+        setCalculatedRequestFingerprint(
+            nextStats && nextRequestData ? JSON.stringify(nextRequestData) : null
+        );
+        setStatSources(
+            nextStats
+                ? {
+                      drifCategories: nextSources.drifCategories || {},
+                      orbBonusTypes: nextSources.orbBonusTypes || [],
+                  }
+                : emptySources()
+        );
+    }, []);
+
+    return {
+        stats: statsAreCurrent ? stats : null,
+        statSources: statsAreCurrent ? statSources : emptySources(),
+        isCalculatingStats,
+        calculateStats,
+        resetStats,
+        restoreStats,
+    };
 };

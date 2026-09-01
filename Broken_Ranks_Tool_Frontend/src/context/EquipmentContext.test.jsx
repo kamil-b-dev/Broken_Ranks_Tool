@@ -234,6 +234,58 @@ describe("EquipmentProvider", () => {
         expect(exposeRef.current.isCalculatingStats).toBe(false);
     });
 
+    it("captures and restores a local build snapshot with calculated statistics", async () => {
+        server.use(
+            http.get("http://localhost:8080/api/initial-data", () =>
+                HttpResponse.json({
+                    items: [{ id: 1 }],
+                    orbs: [],
+                    drifs: [],
+                    gameRules: {},
+                    dictionaries: {},
+                })
+            ),
+            http.post("http://localhost:8080/api/calculator/calculate", () =>
+                HttpResponse.json({ stats: { Atak: 155 } })
+            )
+        );
+        const exposeRef = { current: null };
+        render(
+            <EquipmentProvider>
+                <ActionProbe exposeRef={exposeRef} />
+            </EquipmentProvider>
+        );
+        await waitFor(() => expect(exposeRef.current.loading).toBe(false));
+
+        act(() => {
+            exposeRef.current.handleSlotUpdate("helmet", {
+                itemId: 1,
+                itemStars: 5,
+                orbIds: [],
+                orbLevels: [],
+                drifIds: [],
+                drifLevels: {},
+            });
+        });
+        await act(async () => exposeRef.current.calculateStats());
+        const snapshot = exposeRef.current.createBuildSnapshot();
+
+        act(() => {
+            exposeRef.current.handleSlotUpdate("helmet", {
+                itemId: null,
+                itemStars: 1,
+                orbIds: [],
+                orbLevels: [],
+                drifIds: [],
+                drifLevels: {},
+            });
+            exposeRef.current.loadBuildSnapshot(snapshot);
+        });
+
+        expect(exposeRef.current.requestData.slots.helmet.itemId).toBe(1);
+        expect(exposeRef.current.stats).toEqual({ Atak: 155 });
+    });
+
     it("returns backend optimization errors and reports calculator failures", async () => {
         vi.spyOn(console, "error").mockImplementation(() => {});
         vi.spyOn(window, "alert").mockImplementation(() => {});
