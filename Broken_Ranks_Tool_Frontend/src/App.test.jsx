@@ -3,10 +3,16 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
 import { useEquipment } from "./context/EquipmentContext";
+import { downloadBuildPayload } from "./utils/buildFile";
 
 vi.mock("./context/EquipmentContext", async (importOriginal) => ({
     ...(await importOriginal()),
     useEquipment: vi.fn(),
+}));
+
+vi.mock("./utils/buildFile", async (importOriginal) => ({
+    ...(await importOriginal()),
+    downloadBuildPayload: vi.fn(),
 }));
 
 const equipment = {
@@ -98,7 +104,10 @@ describe("App", () => {
         expect(screen.getByText("Ustawienia optymalizatora")).not.toBeVisible();
         await user.click(screen.getByRole("button", { name: /Zapisz build/i }));
         await user.click(screen.getByRole("button", { name: /Przelicz statystyki/i }));
-        expect(equipment.saveBuildToFile).toHaveBeenCalledOnce();
+        expect(
+            JSON.parse(localStorage.getItem("broken-ranks-tool.build-library.v1")).builds
+        ).toHaveLength(1);
+        expect(equipment.saveBuildToFile).not.toHaveBeenCalled();
         expect(equipment.calculateStats).toHaveBeenCalledOnce();
 
         await user.click(screen.getByRole("button", { name: /Optymalizator drifów/i }));
@@ -146,12 +155,18 @@ describe("App", () => {
         expect(screen.getByRole("heading", { name: "Ekwipunek" })).toBeVisible();
     });
 
-    it("reports file export and allows dismissing the message", async () => {
+    it("exports a saved local build to JSON and allows dismissing the message", async () => {
         const user = userEvent.setup();
         render(<App />);
 
         await user.click(screen.getByRole("button", { name: /Zapisz build/i }));
-        expect(screen.getByRole("status")).toHaveTextContent("Build został zapisany");
+        expect(screen.getByRole("status")).toHaveTextContent("Zapisano lokalnie");
+        await user.click(screen.getByRole("button", { name: /Buildy lokalne/i }));
+        await user.click(screen.getByRole("button", { name: "Eksportuj JSON" }));
+        expect(downloadBuildPayload).toHaveBeenCalledWith(
+            expect.objectContaining({ format: "broken-ranks-tool-build" })
+        );
+        expect(screen.getByRole("status")).toHaveTextContent("Wyeksportowano build");
 
         await user.click(screen.getByRole("button", { name: "Zamknij komunikat" }));
         expect(screen.queryByRole("status")).not.toBeInTheDocument();

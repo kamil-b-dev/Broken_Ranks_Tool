@@ -963,6 +963,34 @@ input:focus-visible {
     border-color: rgba(67, 109, 109, 0.78);
 }
 
+.build-comparison-difference-strip {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin-top: 0.5rem;
+    border: 1px solid rgba(82, 61, 43, 0.52);
+    background: rgba(2, 3, 3, 0.46);
+}
+
+.build-comparison-difference-strip > span {
+    padding: 0.45rem 0.55rem;
+    border-right: 1px solid rgba(82, 61, 43, 0.52);
+    color: #756d65;
+    font-size: 0.5rem;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.build-comparison-difference-strip > span:last-child {
+    border-right: 0;
+}
+
+.build-comparison-difference-strip strong {
+    margin-right: 0.2rem;
+    color: #c59450;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.72rem;
+}
+
 .build-comparison-toolbar {
     display: flex;
     align-items: center;
@@ -1100,6 +1128,329 @@ input:focus-visible {
     font-size: 0.54rem;
 }
 
+.build-comparison-stat-section > header,
+.build-drif-analysis-heading,
+.build-drif-result-heading {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.65rem 0.7rem;
+    border-bottom: 1px solid rgba(107, 72, 40, 0.64);
+    background: linear-gradient(90deg, rgba(50, 29, 13, 0.52), rgba(5, 5, 5, 0.82));
+}
+
+.build-comparison-stat-section > header > img,
+.build-drif-profile-label > img,
+.build-drif-token > img {
+    width: 1.65rem;
+    height: 1.65rem;
+    flex: 0 0 auto;
+    object-fit: contain;
+}
+
+.build-comparison-stat-section > header > span,
+.build-drif-analysis-heading > span,
+.build-drif-result-heading {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    flex-direction: column;
+}
+
+.build-comparison-stat-section > header strong,
+.build-drif-analysis-heading strong,
+.build-drif-result-heading strong {
+    color: #c99b5d;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.61rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.build-comparison-stat-section > header small,
+.build-drif-analysis-heading small,
+.build-drif-result-heading small {
+    margin-top: 0.12rem;
+    color: #726960;
+    font-size: 0.49rem;
+}
+
+.build-comparison-stat-section > header em,
+.build-drif-analysis-heading > em {
+    display: grid;
+    min-width: 1.65rem;
+    height: 1.65rem;
+    place-items: center;
+    border: 1px solid rgba(134, 89, 44, 0.72);
+    border-radius: 50%;
+    color: #b98c53;
+    font-size: 0.54rem;
+    font-style: normal;
+}
+
+.build-comparison-drif-view {
+    min-height: 0;
+    flex: 1;
+    overflow: auto;
+    padding: 0.45rem 0.25rem 0 0;
+}
+
+.build-comparison-drif-view > .build-comparison-table {
+    overflow: visible;
+}
+
+.build-drif-analysis {
+    display: grid;
+    gap: 0.6rem;
+}
+
+.build-drif-profile,
+.build-drif-common,
+.build-drif-unique {
+    border: 1px solid rgba(82, 61, 43, 0.58);
+    background: rgba(2, 3, 3, 0.48);
+}
+
+.build-drif-profile-grid {
+    display: grid;
+    min-width: calc(10rem + var(--comparison-columns) * 12rem);
+    grid-template-columns: minmax(9rem, 0.72fr) repeat(
+            var(--comparison-columns),
+            minmax(12rem, 1fr)
+        );
+}
+
+.build-drif-profile-grid > strong {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    padding: 0.55rem 0.65rem;
+    border-left: 1px solid rgba(76, 57, 41, 0.52);
+    color: #bfb3a4;
+    font-size: 0.58rem;
+}
+
+.build-drif-profile-grid > strong small {
+    margin-top: 0.15rem;
+    color: #70685f;
+    font-size: 0.47rem;
+    font-weight: 400;
+}
+
+.build-drif-profile-row {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: minmax(9rem, 0.72fr) repeat(
+            var(--comparison-columns),
+            minmax(12rem, 1fr)
+        );
+    border-top: 1px solid rgba(76, 57, 41, 0.52);
+}
+
+.build-drif-profile-label {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.55rem 0.65rem;
+}
+
+.build-drif-profile-label > span {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+}
+
+.build-drif-profile-label strong {
+    color: #b99669;
+    font-size: 0.55rem;
+    text-transform: uppercase;
+}
+
+.build-drif-profile-label small {
+    margin-top: 0.12rem;
+    color: #675f58;
+    font-size: 0.44rem;
+}
+
+.build-drif-profile-row > div {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 0 0.45rem;
+    padding: 0.5rem 0.65rem;
+    border-left: 1px solid rgba(76, 57, 41, 0.52);
+    background: rgba(5, 5, 6, 0.38);
+}
+
+.build-drif-profile-row > div > strong {
+    grid-row: 1 / span 2;
+    color: #d0c1b1;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 1rem;
+}
+
+.build-drif-profile-row > div > span {
+    color: #7e756c;
+    font-size: 0.47rem;
+}
+
+.build-drif-profile-row > div > small {
+    display: flex;
+    grid-column: 2;
+    gap: 0.2rem;
+}
+
+.build-drif-profile-row > div i,
+.build-drif-token > i {
+    border: 1px solid rgba(88, 73, 60, 0.64);
+    color: #5d5751;
+    font-size: 0.44rem;
+    font-style: normal;
+}
+
+.build-drif-profile-row > div i {
+    padding: 0.08rem 0.18rem;
+}
+
+.build-drif-profile-row > div i.has-value {
+    border-color: rgba(152, 102, 52, 0.72);
+    color: #c09968;
+}
+
+.build-drif-category-groups {
+    display: grid;
+    gap: 0.55rem;
+    padding: 0.65rem;
+}
+
+.build-drif-category-groups > div > span {
+    display: block;
+    margin-bottom: 0.3rem;
+    color: #81766b;
+    font-size: 0.49rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.build-drif-category-groups > div > div {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+    gap: 0.35rem;
+}
+
+.build-drif-token {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 0.25rem 0.45rem;
+    align-items: center;
+    padding: 0.38rem 0.45rem;
+    border: 1px solid rgba(102, 66, 104, 0.68);
+    background: rgba(30, 13, 32, 0.35);
+}
+
+.build-drif-token[data-category="defensive"] {
+    border-color: rgba(53, 106, 119, 0.72);
+    background: rgba(8, 32, 38, 0.32);
+}
+
+.build-drif-token[data-category="utility"] {
+    border-color: rgba(68, 104, 45, 0.72);
+    background: rgba(21, 38, 9, 0.32);
+}
+
+.build-drif-token > img {
+    width: 1.35rem;
+    height: 1.35rem;
+    grid-row: 1 / span 2;
+}
+
+.build-drif-token > span {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+}
+
+.build-drif-token > span strong {
+    overflow: hidden;
+    color: #c8bbad;
+    font-size: 0.54rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.build-drif-token > span small {
+    overflow: hidden;
+    color: #716860;
+    font-size: 0.43rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.build-drif-token > i {
+    display: grid;
+    width: 1.25rem;
+    height: 1.25rem;
+    grid-column: 3;
+    grid-row: 1 / span 2;
+    place-items: center;
+    border-color: rgba(162, 108, 53, 0.72);
+    color: #d1a064;
+}
+
+.build-drif-token > em {
+    grid-column: 2 / -1;
+    color: #8d7f71;
+    font-size: 0.43rem;
+    font-style: normal;
+}
+
+.build-drif-empty {
+    margin: 0;
+    padding: 0.85rem;
+    color: #716860;
+    font-size: 0.55rem;
+    text-align: center;
+}
+
+.build-drif-unique-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--comparison-columns), minmax(0, 1fr));
+}
+
+.build-drif-unique-grid article {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: 0.55rem;
+    border-right: 1px solid rgba(76, 57, 41, 0.52);
+}
+
+.build-drif-unique-grid article:last-child {
+    border-right: 0;
+}
+
+.build-drif-unique-grid article > strong {
+    margin-bottom: 0.15rem;
+    color: #ad9273;
+    font-size: 0.54rem;
+    text-transform: uppercase;
+}
+
+.build-drif-unique-grid article > small {
+    padding: 0.55rem 0;
+    color: #6f665d;
+    font-size: 0.48rem;
+    line-height: 1.45;
+}
+
+.build-drif-result-heading {
+    margin-top: 0.8rem;
+    border: 1px solid rgba(107, 72, 40, 0.64);
+}
+
 @media (max-width: 1150px) {
     .build-library-heading {
         align-items: stretch;
@@ -1155,6 +1506,41 @@ input:focus-visible {
 
     .build-comparison-summary {
         grid-template-columns: 1fr;
+    }
+
+    .build-comparison-difference-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .build-comparison-difference-strip > span:nth-child(2) {
+        border-right: 0;
+    }
+
+    .build-comparison-difference-strip > span:nth-child(-n + 2) {
+        border-bottom: 1px solid rgba(82, 61, 43, 0.52);
+    }
+
+    .build-comparison-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+        padding-bottom: 0.55rem;
+    }
+
+    .build-comparison-toolbar > div {
+        overflow-x: auto;
+    }
+
+    .build-comparison-toolbar button {
+        white-space: nowrap;
+    }
+
+    .build-drif-unique-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .build-drif-unique-grid article {
+        border-right: 0;
+        border-bottom: 1px solid rgba(76, 57, 41, 0.52);
     }
 }
 
@@ -2326,10 +2712,10 @@ input:focus-visible {
     grid-template-columns: 2rem minmax(0, 1fr) auto;
 }
 
-.item-database-theme [aria-pressed] {
+.item-database-theme .database-tab-button {
     border-color: rgba(132, 92, 44, 0.72) !important;
     background-image:
-        linear-gradient(rgba(30, 18, 13, 0.72), rgba(3, 3, 3, 0.88)),
+        linear-gradient(rgba(62, 4, 13, 0.44), rgba(5, 2, 3, 0.72)),
         url("./assets/crimson-lacquer-texture.png");
     background-position: center;
     background-size: auto, 18rem;
@@ -2337,7 +2723,7 @@ input:focus-visible {
     color: #c9a56b;
 }
 
-.item-database-theme [aria-pressed="true"] {
+.item-database-theme .database-tab-button[aria-pressed="true"] {
     border-color: rgba(213, 155, 69, 0.92) !important;
     background-image:
         linear-gradient(rgba(77, 8, 15, 0.38), rgba(8, 3, 4, 0.74)),
@@ -2346,6 +2732,13 @@ input:focus-visible {
     box-shadow:
         inset 0 1px rgba(255, 210, 135, 0.12),
         0 0 12px rgba(107, 22, 18, 0.25);
+}
+
+.item-database-theme .database-tab-button:hover {
+    border-color: rgba(199, 73, 76, 0.88) !important;
+    background-image:
+        linear-gradient(rgba(89, 8, 18, 0.48), rgba(8, 2, 4, 0.76)),
+        url("./assets/crimson-lacquer-texture.png");
 }
 
 .database-item-copy {

@@ -40,7 +40,7 @@ const ItemDatabaseControls = ({
                         type="button"
                         onClick={() => onTabChange(tab)}
                         aria-pressed={isActive}
-                        className={`flex-1 py-2 text-xs font-serif font-bold uppercase tracking-widest transition-all ${isActive ? "bg-red-950/70 border-b-2 border-red-700" : "hover:bg-stone-900/50 border-b-2 border-transparent"}`}
+                        className={`database-tab-button flex-1 py-2 text-xs font-serif font-bold uppercase tracking-widest transition-all ${isActive ? "border-b-2 border-red-700" : "border-b-2 border-transparent"}`}
                     >
                         <span
                             className={

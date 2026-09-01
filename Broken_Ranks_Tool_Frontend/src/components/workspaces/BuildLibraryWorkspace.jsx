@@ -22,6 +22,7 @@ const BuildLibraryWorkspace = ({
     onSaveCurrent,
     onOverwrite,
     onLoad,
+    onExport,
     onRemove,
     onOpenBuilder,
 }) => {
@@ -162,6 +163,12 @@ const BuildLibraryWorkspace = ({
                                             </button>
                                             <button
                                                 type="button"
+                                                onClick={() => onExport(build.id)}
+                                            >
+                                                Eksportuj JSON
+                                            </button>
+                                            <button
+                                                type="button"
                                                 onClick={() =>
                                                     runPendingAction(
                                                         "overwrite",
@@ -210,7 +217,8 @@ const BuildLibraryWorkspace = ({
                     <BuildComparison
                         builds={selectedBuilds}
                         items={data.items}
-                        bonusTranslations={gameRules.bonusTranslations}
+                        drifs={data.drifs}
+                        gameRules={gameRules}
                     />
                 </section>
             </div>

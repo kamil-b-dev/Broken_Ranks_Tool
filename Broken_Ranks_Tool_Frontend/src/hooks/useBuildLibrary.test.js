@@ -1,6 +1,9 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { downloadBuildPayload } from "../utils/buildFile";
 import { useBuildLibrary } from "./useBuildLibrary";
+
+vi.mock("../utils/buildFile", () => ({ downloadBuildPayload: vi.fn() }));
 
 const snapshot = (itemId = 1) => ({
     payload: {
@@ -31,6 +34,10 @@ describe("useBuildLibrary", () => {
 
         act(() => result.current.load(saved.id));
         expect(applySnapshot).toHaveBeenCalledWith(expect.objectContaining({ name: "PvE" }));
+
+        act(() => result.current.exportBuild(saved.id));
+        expect(downloadBuildPayload).toHaveBeenCalledWith(saved.payload);
+        expect(result.current.notice.message).toContain("Wyeksportowano build");
 
         currentSnapshot = snapshot(2);
         act(() => result.current.overwrite(saved.id));
