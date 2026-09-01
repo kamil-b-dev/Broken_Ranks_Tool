@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { SLOTS } from "../../constants/equipment";
+import CategoryIcon from "../CategoryIcon";
 
 const LockIcon = ({ locked, small = false }) => (
     <svg
@@ -137,10 +138,17 @@ const OptimizerLocksColumn = ({
                                                 className={`optimizer-lock-drif ${drifLocked ? "optimizer-lock-drif-locked" : ""}`}
                                                 data-category={drif?.category?.toLowerCase()}
                                             >
-                                                <span>
-                                                    {drif
-                                                        ? `${drif.name} (${drif.size})`
-                                                        : "Pusty drif"}
+                                                <span className="optimizer-lock-drif-copy">
+                                                    <CategoryIcon
+                                                        kind="drif"
+                                                        category={drif?.category}
+                                                        className="optimizer-lock-drif-category-icon"
+                                                    />
+                                                    <span>
+                                                        {drif
+                                                            ? `${drif.name} (${drif.size})`
+                                                            : "Pusty drif"}
+                                                    </span>
                                                 </span>
                                                 {drif && (
                                                     <button

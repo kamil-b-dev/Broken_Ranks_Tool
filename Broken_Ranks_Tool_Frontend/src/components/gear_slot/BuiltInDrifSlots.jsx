@@ -1,4 +1,5 @@
 import React from "react";
+import CategoryIcon from "../CategoryIcon";
 
 /** Renders fixed drif types provided by epic and set items with editable levels. */
 const BuiltInDrifSlots = ({ drifs, levels, onLevelsChange }) =>
@@ -7,6 +8,11 @@ const BuiltInDrifSlots = ({ drifs, levels, onLevelsChange }) =>
             key={`builtin-${drif.bonusType}-${index}`}
             className="flex gap-1 w-full items-center p-1.5 bg-black/60 border border-yellow-900/60 shadow-[inset_0_0_15px_rgba(0,0,0,0.8)]"
         >
+            <CategoryIcon
+                kind="drif"
+                category={drif.category}
+                className="drif-selector-category-icon"
+            />
             <div
                 className="flex-[4] min-w-0 bg-transparent text-yellow-300 font-serif p-1 text-[10px] border-b border-yellow-900/50 text-center truncate pointer-events-none font-bold uppercase"
                 title={drif.displayName}
