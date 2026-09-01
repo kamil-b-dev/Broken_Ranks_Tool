@@ -1,6 +1,7 @@
 import React from "react";
 import { DRIF_MULTIPLIERS, SIZE_INDEX } from "../../utils/GearRules";
 import { formatGroupLabel, getDrifMaxLvl } from "../../utils/formatters";
+import CategoryIcon from "../CategoryIcon";
 
 const LockIcon = ({ locked }) =>
     locked ? (
@@ -62,6 +63,7 @@ const StandardDrifSlot = ({
     });
     const grouped = groupByType(allowed);
     const current = drifs.find((drif) => String(drif.id) === String(drifId));
+    const currentCategory = current?.category || grouped[currentType]?.[0]?.category;
     const maximumLevel = current ? getDrifMaxLvl(current.size) : 21;
     const borderClass = locked
         ? "border-red-900/60 bg-red-950/10"
@@ -77,6 +79,11 @@ const StandardDrifSlot = ({
             onDragLeave={locked ? undefined : onDragLeave}
             onDrop={locked ? undefined : onDrop}
         >
+            <CategoryIcon
+                kind="drif"
+                category={currentCategory}
+                className="drif-selector-category-icon"
+            />
             <select
                 value={currentType}
                 aria-label={`Wybierz rodzaj drifa ${index + 1}`}

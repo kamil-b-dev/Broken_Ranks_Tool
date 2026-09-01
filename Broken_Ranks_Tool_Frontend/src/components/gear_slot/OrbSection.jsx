@@ -1,5 +1,6 @@
 import React from "react";
 import { formatGroupLabel } from "../../utils/formatters";
+import CategoryIcon from "../CategoryIcon";
 
 /**
  * Renders orb selection, leveling, and drag-and-drop behavior for a slot.
@@ -28,7 +29,11 @@ const OrbSection = ({
     groupedOrbs,
     bonusTranslations,
 }) => {
-    const currentOrbObj = groupedOrbs[orbState.type]?.find((o) => o.id.toString() === orbState.id);
+    const currentOrbObj = groupedOrbs[orbState.type]?.find(
+        (orb) => String(orb.id) === String(orbState.id)
+    );
+    const currentOrbCategory =
+        currentOrbObj?.category || groupedOrbs[orbState.type]?.[0]?.category;
     const isSubOrb = currentOrbObj?.size?.toUpperCase() === "SUBORB";
     const availableOrbLevels = isSubOrb ? [1] : [1, 2, 3];
 
@@ -39,7 +44,12 @@ const OrbSection = ({
             onDragLeave={handleDragLeave}
             onDrop={(e) => handleDrop(e, slotKey)}
         >
-            <span className="orb-socket-glyph" aria-hidden="true" />
+            <CategoryIcon
+                kind="orb"
+                category={currentOrbCategory}
+                className="orb-socket-glyph"
+                fallback={<span className="orb-socket-glyph" aria-hidden="true" />}
+            />
             <select
                 value={orbState.type}
                 aria-label="Wybierz rodzaj orba"

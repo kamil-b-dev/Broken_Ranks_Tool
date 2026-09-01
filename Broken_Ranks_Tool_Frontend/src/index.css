@@ -1474,6 +1474,12 @@ input:focus-visible {
     font-weight: 700;
 }
 
+.equipment-slot-drif-category-icon {
+    width: 0.9rem;
+    height: 0.9rem;
+    flex: 0 0 auto;
+}
+
 .equipment-slot-drif > span {
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1752,6 +1758,23 @@ input:focus-visible {
     transform: rotate(-45deg);
 }
 
+.category-artwork {
+    display: block;
+    object-fit: contain;
+    object-position: center;
+    pointer-events: none;
+    user-select: none;
+}
+
+.category-artwork.database-bonus-icon {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    transform: none;
+}
+
 .database-result-row:hover {
     border-color: rgba(201, 147, 76, 0.9) !important;
     background-image:
@@ -1918,6 +1941,20 @@ input:focus-visible {
     box-shadow:
         inset 0 0 7px #000,
         0 0 8px rgba(196, 73, 49, 0.2);
+}
+
+.category-artwork.orb-socket-glyph {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+}
+
+.drif-selector-category-icon {
+    width: 1.55rem;
+    height: 1.55rem;
+    flex: 0 0 auto;
 }
 
 .gear-slot-editor-expanded .orb-selector-row {
@@ -3028,6 +3065,25 @@ input:focus-visible {
     white-space: nowrap;
 }
 
+.optimizer-lock-drif-copy {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.28rem;
+}
+
+.optimizer-lock-drif-copy > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.optimizer-lock-drif-category-icon {
+    width: 1.05rem;
+    height: 1.05rem;
+    flex: 0 0 auto;
+}
+
 .optimizer-lock-drif button {
     flex: 0 0 auto;
     color: #75687b;
@@ -3152,7 +3208,11 @@ input:focus-visible {
 }
 
 .optimizer-bonus-filters button {
+    display: flex;
     min-width: 0 !important;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
     padding: 0.42rem 0.25rem;
     border: 1px solid rgba(95, 66, 39, 0.7) !important;
     color: #786f68;
@@ -3161,6 +3221,12 @@ input:focus-visible {
     letter-spacing: 0.07em;
     text-transform: uppercase;
     background: rgba(3, 4, 4, 0.74) !important;
+}
+
+.optimizer-filter-category-icon {
+    width: 1rem;
+    height: 1rem;
+    flex: 0 0 auto;
 }
 
 .optimizer-bonus-filters button[aria-pressed="true"] {
@@ -3232,6 +3298,14 @@ input:focus-visible {
     border-color: rgba(78, 117, 35, 0.84);
     color: #a0c575;
     background: rgba(18, 35, 9, 0.82);
+}
+
+.category-artwork.optimizer-bonus-glyph,
+.category-artwork.optimizer-priority-glyph {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
 }
 
 .optimizer-bonus-add {

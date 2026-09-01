@@ -1,3 +1,4 @@
+import CategoryIcon from "../CategoryIcon";
 import {
     DRIF_CATEGORY_LABELS,
     DRIF_CATEGORY_ORDER,
@@ -50,6 +51,13 @@ const OptimizerBonusColumn = ({
                         onClick={() => onCategoryChange(categoryKey)}
                         aria-pressed={selected}
                     >
+                        {categoryKey !== "ALL" && (
+                            <CategoryIcon
+                                kind="drif"
+                                category={categoryKey}
+                                className="optimizer-filter-category-icon"
+                            />
+                        )}
                         {label}
                     </button>
                 );
@@ -68,13 +76,20 @@ const OptimizerBonusColumn = ({
                         onClick={() => onSelect(bonus)}
                         className="optimizer-bonus-card group"
                     >
-                        <span
+                        <CategoryIcon
+                            kind="drif"
+                            category={bonus.categoryKey}
                             className="optimizer-bonus-glyph"
-                            data-category={bonus.categoryKey?.toLowerCase()}
-                            aria-hidden="true"
-                        >
-                            ◇
-                        </span>
+                            fallback={
+                                <span
+                                    className="optimizer-bonus-glyph"
+                                    data-category={bonus.categoryKey?.toLowerCase()}
+                                    aria-hidden="true"
+                                >
+                                    ◇
+                                </span>
+                            }
+                        />
                         <span
                             className={`${DRIF_CATEGORY_TEXT_CLASSES[bonus.categoryKey] || "text-stone-400 group-hover:text-stone-200"}`}
                         >

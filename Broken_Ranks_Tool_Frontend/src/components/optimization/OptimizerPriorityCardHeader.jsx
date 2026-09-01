@@ -1,3 +1,5 @@
+import CategoryIcon from "../CategoryIcon";
+
 /** Summarizes one priority and exposes its expand and remove actions. */
 const OptimizerPriorityCardHeader = ({ index, bonus, expanded, onToggle, onRemove }) => (
     <div className="optimizer-priority-card-header">
@@ -11,13 +13,20 @@ const OptimizerPriorityCardHeader = ({ index, bonus, expanded, onToggle, onRemov
             className="optimizer-priority-summary"
             aria-expanded={expanded}
         >
-            <span
+            <CategoryIcon
+                kind="drif"
+                category={bonus.categoryKey}
                 className="optimizer-priority-glyph"
-                data-category={bonus.categoryKey?.toLowerCase()}
-                aria-hidden="true"
-            >
-                ◇
-            </span>
+                fallback={
+                    <span
+                        className="optimizer-priority-glyph"
+                        data-category={bonus.categoryKey?.toLowerCase()}
+                        aria-hidden="true"
+                    >
+                        ◇
+                    </span>
+                }
+            />
             <span className="optimizer-priority-name">{bonus.value}</span>
             {!expanded && (
                 <span className="optimizer-priority-compact-meta">
