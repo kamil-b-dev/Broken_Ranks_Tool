@@ -1,3 +1,5 @@
+import CategoryIcon from "../CategoryIcon";
+
 const DRIF_SIZE_LABELS = {
     SUBDRIF: "S",
     BIDRIF: "B",
@@ -87,6 +89,11 @@ const EquipmentSlotOverview = ({
                                             data-category={drif.category?.toLowerCase()}
                                             title={`${drif.displayName} · ${drif.size || "drif"}${level}`}
                                         >
+                                            <CategoryIcon
+                                                kind="drif"
+                                                category={drif.category}
+                                                className="equipment-slot-drif-category-icon"
+                                            />
                                             <i aria-hidden="true">{size}</i>
                                             <span>{drif.displayName}</span>
                                             {drif.level ? <small>{drif.level}</small> : null}
