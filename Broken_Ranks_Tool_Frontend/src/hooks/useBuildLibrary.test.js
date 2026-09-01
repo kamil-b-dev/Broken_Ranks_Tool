@@ -32,8 +32,14 @@ describe("useBuildLibrary", () => {
         expect(result.current.builds).toHaveLength(1);
         expect(result.current.notice.message).toContain("Zapisano lokalnie");
 
+        act(() => result.current.rename(saved.id, "PvE po zmianie"));
+        expect(result.current.builds[0].name).toBe("PvE po zmianie");
+        expect(result.current.notice.message).toContain("Zmieniono nazwę");
+
         act(() => result.current.load(saved.id));
-        expect(applySnapshot).toHaveBeenCalledWith(expect.objectContaining({ name: "PvE" }));
+        expect(applySnapshot).toHaveBeenCalledWith(
+            expect.objectContaining({ name: "PvE po zmianie" })
+        );
 
         act(() => result.current.exportBuild(saved.id));
         expect(downloadBuildPayload).toHaveBeenCalledWith(saved.payload);

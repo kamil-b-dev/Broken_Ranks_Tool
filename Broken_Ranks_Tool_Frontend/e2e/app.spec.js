@@ -24,7 +24,7 @@ test("opens the builder and switches to the optimizer", async ({ page }) => {
     await expect(page.getByRole("link", { name: "Przejdź do głównej treści" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Broken Ranks Tool" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Ekwipunek" })).toBeVisible();
-    await expect(page.getByRole("button", { name: /Zapisz build/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Zapisz lokalnie/ })).toBeVisible();
 
     await page.getByRole("button", { name: /Optymalizator drifów/ }).click();
 
@@ -77,11 +77,11 @@ test("shows initialization feedback until game data is ready", async ({ page }) 
     await page.goto("/");
 
     await expect(page.getByRole("status")).toContainText("Ładowanie danych gry");
-    await expect(page.getByRole("button", { name: /Zapisz build/ })).toBeDisabled();
+    await expect(page.getByRole("button", { name: /Zapisz lokalnie/ })).toBeDisabled();
 
     releaseResponse();
     await expect(page.getByRole("heading", { name: "Ekwipunek" })).toBeVisible();
-    await expect(page.getByRole("button", { name: /Zapisz build/ })).toBeEnabled();
+    await expect(page.getByRole("button", { name: /Zapisz lokalnie/ })).toBeEnabled();
 });
 
 test("keeps the builder and optimizer usable on a mobile viewport", async ({ page }) => {

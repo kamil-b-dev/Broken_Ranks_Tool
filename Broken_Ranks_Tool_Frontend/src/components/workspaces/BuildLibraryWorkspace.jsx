@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { MAX_SAVED_BUILDS } from "../../utils/buildLibrary";
 import BuildComparison from "../build_library/BuildComparison";
 import { summarizeLocalBuild } from "../build_library/buildLibraryDomain";
 
@@ -19,14 +18,15 @@ const BuildLibraryWorkspace = ({
     builds,
     data,
     gameRules,
-    onSaveCurrent,
+    onRename,
     onOverwrite,
     onLoad,
     onExport,
     onRemove,
     onOpenBuilder,
 }) => {
-    const [name, setName] = useState("");
+    const [name, setName] = useState(null);
+    const [renameTargetId, setRenameTargetId] = useState("");
     const [selectedIds, setSelectedIds] = useState([]);
     const [pendingAction, setPendingAction] = useState(null);
     const availableSelectedIds = useMemo(() => {
@@ -37,11 +37,12 @@ const BuildLibraryWorkspace = ({
         () => availableSelectedIds.flatMap((id) => builds.find((build) => build.id === id) || []),
         [availableSelectedIds, builds]
     );
+    const renameTarget = builds.find((build) => build.id === renameTargetId) || builds[0] || null;
+    const editedName = name ?? renameTarget?.name ?? "";
 
-    const saveCurrent = (event) => {
+    const renameBuild = (event) => {
         event.preventDefault();
-        const saved = onSaveCurrent(name || `Build ${builds.length + 1}`);
-        if (saved) setName("");
+        if (onRename(renameTarget?.id, editedName)) setName(null);
     };
     const toggleComparison = (id) => {
         setSelectedIds((current) => {
@@ -77,23 +78,42 @@ const BuildLibraryWorkspace = ({
                         porównuj najważniejsze różnice.
                     </p>
                 </div>
-                <form onSubmit={saveCurrent} className="build-library-save-form">
-                    <label htmlFor="local-build-name">Nazwa bieżącego buildu</label>
+                <form onSubmit={renameBuild} className="build-library-save-form">
+                    <label htmlFor="local-build-name">Zmień nazwę lokalnego buildu</label>
                     <div>
+                        <select
+                            aria-label="Wybierz build do zmiany nazwy"
+                            value={renameTarget?.id || ""}
+                            disabled={!builds.length}
+                            onChange={(event) => {
+                                const target = builds.find(
+                                    (build) => build.id === event.target.value
+                                );
+                                setRenameTargetId(event.target.value);
+                                setName(target?.name ?? null);
+                            }}
+                        >
+                            {builds.length ? (
+                                builds.map((build) => (
+                                    <option key={build.id} value={build.id}>
+                                        {build.name}
+                                    </option>
+                                ))
+                            ) : (
+                                <option value="">Brak zapisanych buildów</option>
+                            )}
+                        </select>
                         <input
                             id="local-build-name"
-                            value={name}
+                            value={editedName}
                             maxLength={48}
-                            placeholder={`Build ${builds.length + 1}`}
+                            disabled={!renameTarget}
                             onChange={(event) => setName(event.target.value)}
                         />
-                        <button type="submit" disabled={builds.length >= MAX_SAVED_BUILDS}>
-                            Zapisz lokalnie
+                        <button type="submit" disabled={!renameTarget || !editedName.trim()}>
+                            Zmień nazwę
                         </button>
                     </div>
-                    <small>
-                        {builds.length}/{MAX_SAVED_BUILDS} zapisanych
-                    </small>
                 </form>
             </section>
             <div className="build-library-layout">

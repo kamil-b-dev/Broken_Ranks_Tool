@@ -133,7 +133,7 @@ describe("BuildComparison", () => {
         expect(screen.getByText("Atak z orba")).toBeInTheDocument();
 
         await user.click(screen.getByRole("tab", { name: "Drify" }));
-        expect(screen.getByText("Wspólny rdzeń")).toBeInTheDocument();
+        expect(screen.getByText("Część wspólna")).toBeInTheDocument();
         expect(screen.getAllByText("Ofensywne").length).toBeGreaterThan(0);
         expect(screen.getAllByText("Defensywne").length).toBeGreaterThan(0);
         expect(screen.getAllByText("Użytkowe").length).toBeGreaterThan(0);

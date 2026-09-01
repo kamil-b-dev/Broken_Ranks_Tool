@@ -102,7 +102,7 @@ describe("App", () => {
 
         await user.click(screen.getByRole("button", { name: /Kreator ekwipunku/i }));
         expect(screen.getByText("Ustawienia optymalizatora")).not.toBeVisible();
-        await user.click(screen.getByRole("button", { name: /Zapisz build/i }));
+        await user.click(screen.getByRole("button", { name: /Zapisz lokalnie/i }));
         await user.click(screen.getByRole("button", { name: /Przelicz statystyki/i }));
         expect(
             JSON.parse(localStorage.getItem("broken-ranks-tool.build-library.v1")).builds
@@ -140,13 +140,16 @@ describe("App", () => {
         const user = userEvent.setup();
         render(<App />);
 
+        await user.click(screen.getByRole("button", { name: /Zapisz lokalnie/i }));
         await user.click(screen.getByRole("button", { name: /Buildy lokalne/i }));
         expect(screen.getByRole("heading", { name: "Buildy lokalne" })).toBeInTheDocument();
-        await user.type(screen.getByLabelText("Nazwa bieżącego buildu"), "PvE ogień");
-        await user.click(screen.getByRole("button", { name: "Zapisz lokalnie" }));
+        const nameInput = screen.getByLabelText("Zmień nazwę lokalnego buildu");
+        await user.clear(nameInput);
+        await user.type(nameInput, "PvE ogień");
+        await user.click(screen.getByRole("button", { name: "Zmień nazwę" }));
 
-        expect(screen.getByRole("status")).toHaveTextContent("Zapisano lokalnie");
-        expect(screen.getByText("PvE ogień")).toBeInTheDocument();
+        expect(screen.getByRole("status")).toHaveTextContent("Zmieniono nazwę");
+        expect(screen.getAllByText("PvE ogień")).not.toHaveLength(0);
         await user.click(screen.getByRole("button", { name: "Wczytaj" }));
 
         expect(equipment.loadBuildSnapshot).toHaveBeenCalledWith(
@@ -159,7 +162,7 @@ describe("App", () => {
         const user = userEvent.setup();
         render(<App />);
 
-        await user.click(screen.getByRole("button", { name: /Zapisz build/i }));
+        await user.click(screen.getByRole("button", { name: /Zapisz lokalnie/i }));
         expect(screen.getByRole("status")).toHaveTextContent("Zapisano lokalnie");
         await user.click(screen.getByRole("button", { name: /Buildy lokalne/i }));
         await user.click(screen.getByRole("button", { name: "Eksportuj JSON" }));
@@ -177,7 +180,7 @@ describe("App", () => {
         render(<App />);
         expect(screen.getByRole("alert")).toHaveTextContent("brak połączenia");
         expect(screen.queryByRole("heading", { name: "Ekwipunek" })).not.toBeInTheDocument();
-        expect(screen.getByRole("button", { name: /Zapisz build/i })).toBeDisabled();
+        expect(screen.getByRole("button", { name: /Zapisz lokalnie/i })).toBeDisabled();
     });
 
     it("shows a dedicated loading state before rendering the workspaces", () => {
