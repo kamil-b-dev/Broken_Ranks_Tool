@@ -6,6 +6,7 @@ import {
     createBuildPayload,
     downloadBuildPayload,
     parseBuildFile,
+    parseBuildPayload,
 } from "./buildFile";
 
 afterEach(() => {
@@ -122,5 +123,14 @@ describe("parseBuildFile", () => {
         payload.build.requestData.slots.helmet[field] = value;
 
         await expect(parseBuildFile(createFile(payload), gameData)).rejects.toThrow(message);
+    });
+});
+
+describe("parseBuildPayload", () => {
+    it("validates an in-memory payload used by the local library", () => {
+        expect(parseBuildPayload(validPayload(), gameData)).toMatchObject({
+            requestData: validPayload().build.requestData,
+            lockedSlots: ["helmet"],
+        });
     });
 });

@@ -35,6 +35,21 @@ const equipment = {
     calculateStats: vi.fn(),
     saveBuildToFile: vi.fn(),
     loadBuildFromFile: vi.fn(),
+    createBuildSnapshot: vi.fn(() => ({
+        payload: {
+            format: "broken-ranks-tool-build",
+            version: 1,
+            build: {
+                requestData: { slots: {}, characterStats: {} },
+                characterConfig: null,
+                lockedSlots: [],
+                lockedDrifs: {},
+            },
+        },
+        stats: null,
+        statSources: {},
+    })),
+    loadBuildSnapshot: vi.fn(),
     runDrifOptimization: vi.fn(),
     lockedSlots: [],
     lockedDrifs: [],
@@ -46,6 +61,7 @@ const equipment = {
 describe("App", () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        localStorage.clear();
         useEquipment.mockReturnValue(equipment);
     });
 
@@ -109,6 +125,25 @@ describe("App", () => {
                 "Nie udało się wczytać buildu: uszkodzony plik"
             )
         );
+    });
+
+    it("saves and reloads named builds from the local library", async () => {
+        const user = userEvent.setup();
+        render(<App />);
+
+        await user.click(screen.getByRole("button", { name: /Buildy lokalne/i }));
+        expect(screen.getByRole("heading", { name: "Buildy lokalne" })).toBeInTheDocument();
+        await user.type(screen.getByLabelText("Nazwa bieżącego buildu"), "PvE ogień");
+        await user.click(screen.getByRole("button", { name: "Zapisz lokalnie" }));
+
+        expect(screen.getByRole("status")).toHaveTextContent("Zapisano lokalnie");
+        expect(screen.getByText("PvE ogień")).toBeInTheDocument();
+        await user.click(screen.getByRole("button", { name: "Wczytaj" }));
+
+        expect(equipment.loadBuildSnapshot).toHaveBeenCalledWith(
+            expect.objectContaining({ name: "PvE ogień" })
+        );
+        expect(screen.getByRole("heading", { name: "Ekwipunek" })).toBeVisible();
     });
 
     it("reports file export and allows dismissing the message", async () => {

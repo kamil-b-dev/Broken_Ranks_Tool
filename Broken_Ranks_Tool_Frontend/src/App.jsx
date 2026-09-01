@@ -3,9 +3,11 @@ import AppHeader from "./components/app/AppHeader";
 import BuildFileNotice from "./components/app/BuildFileNotice";
 import WorkspaceState from "./components/app/WorkspaceState";
 import BuilderWorkspace from "./components/workspaces/BuilderWorkspace";
+import BuildLibraryWorkspace from "./components/workspaces/BuildLibraryWorkspace";
 import OptimizerWorkspace from "./components/workspaces/OptimizerWorkspace";
 import { useEquipment } from "./context/EquipmentContext";
 import { useBuildFileActions } from "./hooks/useBuildFileActions";
+import { useBuildLibrary } from "./hooks/useBuildLibrary";
 
 const DEFAULT_OPTIMIZER_SETTINGS = {
     forceMaximizationByDrifBonus: false,
@@ -20,6 +22,10 @@ function App() {
     const [optimizerSettings, setOptimizerSettings] = useState(DEFAULT_OPTIMIZER_SETTINGS);
     const equipment = useEquipment();
     const fileActions = useBuildFileActions(equipment);
+    const buildLibrary = useBuildLibrary({
+        createSnapshot: equipment.createBuildSnapshot,
+        applySnapshot: equipment.loadBuildSnapshot,
+    });
     const unavailable = equipment.loading || Boolean(equipment.initialDataError);
     const changeView = (view) => {
         if (view === "optimizer") setHasOpenedOptimizer(true);
@@ -35,13 +41,19 @@ function App() {
             </a>
             <AppHeader
                 activeView={mainView}
+                buildCount={buildLibrary.builds.length}
                 disabled={unavailable}
                 fileInputRef={fileActions.fileInputRef}
                 onViewChange={changeView}
                 onSaveBuild={fileActions.saveBuild}
                 onLoadBuild={fileActions.loadBuild}
             />
-            <BuildFileNotice notice={fileActions.notice} onDismiss={fileActions.dismissNotice} />
+            <BuildFileNotice
+                notice={buildLibrary.notice || fileActions.notice}
+                onDismiss={
+                    buildLibrary.notice ? buildLibrary.dismissNotice : fileActions.dismissNotice
+                }
+            />
             <WorkspaceState loading={equipment.loading} error={equipment.initialDataError} />
             {!unavailable && (
                 <BuilderWorkspace
@@ -68,6 +80,19 @@ function App() {
                     settings={optimizerSettings}
                     onSettingsChange={setOptimizerSettings}
                     onBackToBuilder={() => changeView("builder")}
+                />
+            )}
+            {!unavailable && (
+                <BuildLibraryWorkspace
+                    active={mainView === "builds"}
+                    builds={buildLibrary.builds}
+                    data={equipment.data}
+                    gameRules={equipment.gameRules}
+                    onSaveCurrent={buildLibrary.saveCurrent}
+                    onOverwrite={buildLibrary.overwrite}
+                    onLoad={buildLibrary.load}
+                    onRemove={buildLibrary.remove}
+                    onOpenBuilder={() => changeView("builder")}
                 />
             )}
         </div>

@@ -63,6 +63,14 @@ export const parseBuildFile = async (file, { items = [], orbs = [], drifs = [] }
         throw new Error("Plik nie zawiera poprawnego JSON-a.");
     }
 
+    return parseBuildPayload(payload, { items, orbs, drifs });
+};
+
+/**
+ * Validates an in-memory build payload against currently available game data.
+ * Used by both JSON imports and the local build library.
+ */
+export const parseBuildPayload = (payload, { items = [], orbs = [], drifs = [] }) => {
     if (payload?.format !== BUILD_FILE_FORMAT || payload?.version !== BUILD_FILE_VERSION) {
         throw new Error("Nieobsługiwany format lub wersja pliku buildu.");
     }
