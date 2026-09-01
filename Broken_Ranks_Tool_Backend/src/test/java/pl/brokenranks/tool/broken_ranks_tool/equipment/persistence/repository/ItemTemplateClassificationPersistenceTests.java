@@ -16,7 +16,7 @@ class ItemTemplateClassificationPersistenceTests {
     @Autowired private ItemTemplateRepository repository;
 
     @Test
-    void loadsTheMigratedProfilesAndUnclassifiedClassAssignments() {
+    void loadsTheMigratedProfilesAndCharacterClassAssignments() {
         var items = repository.findAll();
         Map<ITEM_PROFILE, Long> profileCounts =
                 items.stream()
@@ -31,11 +31,17 @@ class ItemTemplateClassificationPersistenceTests {
                 .containsEntry(ITEM_PROFILE.UNIVERSAL, 17L)
                 .containsEntry(ITEM_PROFILE.UNSPECIFIED, 46L);
         assertThat(items)
-                .allSatisfy(
-                        item -> {
-                            assertThat(item.getClassScope()).isEqualTo(ITEM_CLASS_SCOPE.UNKNOWN);
-                            assertThat(item.getAllowedClasses()).isEmpty();
-                        });
+                .filteredOn(item -> item.getClassScope() == ITEM_CLASS_SCOPE.RESTRICTED)
+                .hasSize(51)
+                .allSatisfy(item -> assertThat(item.getAllowedClasses()).isNotEmpty());
+        assertThat(items)
+                .filteredOn(item -> item.getClassScope() == ITEM_CLASS_SCOPE.UNIVERSAL)
+                .hasSize(123)
+                .allSatisfy(item -> assertThat(item.getAllowedClasses()).isEmpty());
+        assertThat(items)
+                .allMatch(item -> item.getClassScope() != ITEM_CLASS_SCOPE.UNKNOWN);
+        assertThat(items.stream().mapToInt(item -> item.getAllowedClasses().size()).sum())
+                .isEqualTo(69);
         assertThat(items)
                 .filteredOn(item -> item.getName().equals("Dar Skrzydlatej"))
                 .singleElement()
