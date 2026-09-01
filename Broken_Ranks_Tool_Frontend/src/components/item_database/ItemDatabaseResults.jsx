@@ -1,3 +1,4 @@
+import CategoryIcon from "../CategoryIcon";
 import { getEquipmentIconClass, getRarityColor, getVariantLabel } from "./itemDatabasePresentation";
 
 const ItemRow = ({ item, category, onDragStart, onHover, onLeave }) => (
@@ -31,9 +32,16 @@ const VariantRow = ({ variants, type, bonusTranslations, onDragStart, onHover, o
     const baseItem = variants[0];
     return (
         <li className="database-result-row database-variant-row p-1.5 flex justify-between items-center gap-2 hover:bg-stone-900/50 transition-colors border-b border-stone-800/50">
-            <span
+            <CategoryIcon
+                kind={type}
+                category={baseItem.category}
                 className={`database-bonus-icon database-bonus-icon-${type}`}
-                aria-hidden="true"
+                fallback={
+                    <span
+                        className={`database-bonus-icon database-bonus-icon-${type}`}
+                        aria-hidden="true"
+                    />
+                }
             />
             <span
                 className="truncate flex-1 cursor-help flex items-center gap-1.5"
