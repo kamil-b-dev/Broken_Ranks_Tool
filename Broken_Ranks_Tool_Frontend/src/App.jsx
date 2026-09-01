@@ -90,7 +90,7 @@ function App() {
                     builds={buildLibrary.builds}
                     data={equipment.data}
                     gameRules={equipment.gameRules}
-                    onSaveCurrent={buildLibrary.saveCurrent}
+                    onRename={buildLibrary.rename}
                     onOverwrite={buildLibrary.overwrite}
                     onLoad={buildLibrary.load}
                     onExport={buildLibrary.exportBuild}

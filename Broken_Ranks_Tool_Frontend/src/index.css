@@ -650,10 +650,11 @@ input:focus-visible {
 
 .build-library-save-form > div {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(8rem, 0.8fr) minmax(0, 1fr) auto;
 }
 
-.build-library-save-form input {
+.build-library-save-form input,
+.build-library-save-form select {
     min-width: 0;
     border: 1px solid rgba(126, 87, 44, 0.7);
     border-right: 0;
@@ -661,6 +662,10 @@ input:focus-visible {
     color: #ded4c7;
     font-size: 0.76rem;
     background: rgba(2, 3, 3, 0.82);
+}
+
+.build-library-save-form select {
+    color: #b9a994;
 }
 
 .build-library-save-form button {
@@ -817,14 +822,54 @@ input:focus-visible {
 .saved-build-compare {
     grid-column: 2;
     color: #8f8172;
-    font-size: 0.55rem;
+    font-size: 0.63rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
 }
 
 .saved-build-compare input {
+    display: inline-grid;
+    width: 0.95rem;
+    height: 0.95rem;
     margin-right: 0.35rem;
-    accent-color: #a96f35;
+    place-content: center;
+    appearance: none;
+    border: 1px solid rgba(155, 101, 45, 0.9);
+    vertical-align: -0.22rem;
+    background: linear-gradient(145deg, rgba(35, 23, 14, 0.92), rgba(3, 3, 4, 0.98));
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 218, 153, 0.05),
+        0 0 0 1px rgba(0, 0, 0, 0.7);
+    cursor: pointer;
+}
+
+.saved-build-compare input::before {
+    width: 0.45rem;
+    height: 0.45rem;
+    content: "";
+    background: #d19a4e;
+    box-shadow: 0 0 0.45rem rgba(205, 129, 47, 0.55);
+    transform: scale(0) rotate(45deg);
+    transition: transform 120ms ease-out;
+}
+
+.saved-build-compare input:checked {
+    border-color: #d49749;
+    background: linear-gradient(145deg, rgba(84, 43, 17, 0.96), rgba(13, 8, 5, 0.98));
+}
+
+.saved-build-compare input:checked::before {
+    transform: scale(1) rotate(45deg);
+}
+
+.saved-build-compare input:focus-visible {
+    outline: 1px solid #e4ad60;
+    outline-offset: 2px;
+}
+
+.saved-build-compare input:disabled {
+    cursor: not-allowed;
+    opacity: 0.38;
 }
 
 .saved-build-index {
@@ -862,7 +907,7 @@ input:focus-visible {
 .saved-build-copy span,
 .saved-build-card time {
     color: #756d64;
-    font-size: 0.52rem;
+    font-size: 0.6rem;
 }
 
 .saved-build-copy small {
@@ -888,7 +933,7 @@ input:focus-visible {
     padding: 0.28rem 0.45rem;
     border: 1px solid rgba(89, 75, 62, 0.68);
     color: #8f877e;
-    font-size: 0.5rem;
+    font-size: 0.58rem;
     letter-spacing: 0.06em;
     text-transform: uppercase;
     background: rgba(3, 3, 4, 0.62);
@@ -934,7 +979,7 @@ input:focus-visible {
 
 .build-comparison-hero > span {
     color: #a7753d;
-    font-size: 0.48rem;
+    font-size: 0.72rem;
     letter-spacing: 0.12em;
     text-transform: uppercase;
 }
@@ -944,7 +989,7 @@ input:focus-visible {
     margin-top: 0.2rem;
     color: #d8ccbd;
     font-family: Georgia, Cambria, "Times New Roman", serif;
-    font-size: 0.72rem;
+    font-size: 1.08rem;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
@@ -952,7 +997,7 @@ input:focus-visible {
 .build-comparison-hero small {
     margin-top: 0.2rem;
     color: #776f66;
-    font-size: 0.5rem;
+    font-size: 0.75rem;
 }
 
 .build-comparison-hero.tone-2 {
@@ -975,7 +1020,7 @@ input:focus-visible {
     padding: 0.45rem 0.55rem;
     border-right: 1px solid rgba(82, 61, 43, 0.52);
     color: #756d65;
-    font-size: 0.5rem;
+    font-size: 0.75rem;
     text-align: center;
     text-transform: uppercase;
 }
@@ -988,7 +1033,7 @@ input:focus-visible {
     margin-right: 0.2rem;
     color: #c59450;
     font-family: Georgia, Cambria, "Times New Roman", serif;
-    font-size: 0.72rem;
+    font-size: 1.08rem;
 }
 
 .build-comparison-toolbar {
@@ -1010,7 +1055,7 @@ input:focus-visible {
     border-bottom: 0;
     color: #776f67;
     font-family: Georgia, Cambria, "Times New Roman", serif;
-    font-size: 0.58rem;
+    font-size: 0.87rem;
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -1024,7 +1069,7 @@ input:focus-visible {
 
 .build-comparison-toolbar > label {
     color: #81776d;
-    font-size: 0.55rem;
+    font-size: 0.825rem;
     letter-spacing: 0.05em;
     text-transform: uppercase;
 }
@@ -1038,7 +1083,7 @@ input:focus-visible {
     min-height: 0;
     flex: 1;
     overflow: auto;
-    padding-top: 0.35rem;
+    padding-top: 0;
 }
 
 .build-comparison-row {
@@ -1079,7 +1124,7 @@ input:focus-visible {
 .build-comparison-row strong {
     overflow: hidden;
     color: #bfb4a8;
-    font-size: 0.6rem;
+    font-size: 0.9rem;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
@@ -1087,7 +1132,7 @@ input:focus-visible {
 .build-comparison-row small {
     margin-top: 0.18rem;
     color: #6f675f;
-    font-size: 0.48rem;
+    font-size: 0.72rem;
 }
 
 .build-comparison-label {
@@ -1095,7 +1140,7 @@ input:focus-visible {
     align-items: center;
     color: #a47a49;
     font-family: Georgia, Cambria, "Times New Roman", serif;
-    font-size: 0.56rem;
+    font-size: 0.84rem;
     font-weight: 700;
     letter-spacing: 0.07em;
     text-transform: uppercase;
@@ -1103,14 +1148,17 @@ input:focus-visible {
 
 .build-comparison-header {
     position: sticky;
-    z-index: 2;
+    z-index: 4;
     top: 0;
+    border-top: 1px solid rgba(78, 58, 40, 0.54);
     background: #090807;
+    box-shadow: 0 0.35rem 0.45rem rgba(0, 0, 0, 0.72);
 }
 
 .build-comparison-header > * {
+    background: #090807;
     color: #81766a;
-    font-size: 0.52rem;
+    font-size: 0.78rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
 }
@@ -1118,14 +1166,14 @@ input:focus-visible {
 .build-comparison-no-differences {
     margin: 2rem;
     color: #6f675f;
-    font-size: 0.64rem;
+    font-size: 0.96rem;
     text-align: center;
 }
 
 .build-comparison-hint {
     margin: 0.55rem 0 0;
     color: #776d64;
-    font-size: 0.54rem;
+    font-size: 0.81rem;
 }
 
 .build-comparison-stat-section > header,
@@ -1162,7 +1210,7 @@ input:focus-visible {
 .build-drif-result-heading strong {
     color: #c99b5d;
     font-family: Georgia, Cambria, "Times New Roman", serif;
-    font-size: 0.61rem;
+    font-size: 0.915rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
 }
@@ -1172,7 +1220,7 @@ input:focus-visible {
 .build-drif-result-heading small {
     margin-top: 0.12rem;
     color: #726960;
-    font-size: 0.49rem;
+    font-size: 0.735rem;
 }
 
 .build-comparison-stat-section > header em,
@@ -1184,7 +1232,7 @@ input:focus-visible {
     border: 1px solid rgba(134, 89, 44, 0.72);
     border-radius: 50%;
     color: #b98c53;
-    font-size: 0.54rem;
+    font-size: 0.81rem;
     font-style: normal;
 }
 
@@ -1227,13 +1275,13 @@ input:focus-visible {
     padding: 0.55rem 0.65rem;
     border-left: 1px solid rgba(76, 57, 41, 0.52);
     color: #bfb3a4;
-    font-size: 0.58rem;
+    font-size: 0.87rem;
 }
 
 .build-drif-profile-grid > strong small {
     margin-top: 0.15rem;
     color: #70685f;
-    font-size: 0.47rem;
+    font-size: 0.705rem;
     font-weight: 400;
 }
 
@@ -1263,14 +1311,14 @@ input:focus-visible {
 
 .build-drif-profile-label strong {
     color: #b99669;
-    font-size: 0.55rem;
+    font-size: 0.825rem;
     text-transform: uppercase;
 }
 
 .build-drif-profile-label small {
     margin-top: 0.12rem;
     color: #675f58;
-    font-size: 0.44rem;
+    font-size: 0.66rem;
 }
 
 .build-drif-profile-row > div {
@@ -1287,12 +1335,12 @@ input:focus-visible {
     grid-row: 1 / span 2;
     color: #d0c1b1;
     font-family: Georgia, Cambria, "Times New Roman", serif;
-    font-size: 1rem;
+    font-size: 1.5rem;
 }
 
 .build-drif-profile-row > div > span {
     color: #7e756c;
-    font-size: 0.47rem;
+    font-size: 0.705rem;
 }
 
 .build-drif-profile-row > div > small {
@@ -1305,7 +1353,7 @@ input:focus-visible {
 .build-drif-token > i {
     border: 1px solid rgba(88, 73, 60, 0.64);
     color: #5d5751;
-    font-size: 0.44rem;
+    font-size: 0.66rem;
     font-style: normal;
 }
 
@@ -1328,7 +1376,7 @@ input:focus-visible {
     display: block;
     margin-bottom: 0.3rem;
     color: #81766b;
-    font-size: 0.49rem;
+    font-size: 0.735rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
 }
@@ -1375,7 +1423,7 @@ input:focus-visible {
 .build-drif-token > span strong {
     overflow: hidden;
     color: #c8bbad;
-    font-size: 0.54rem;
+    font-size: 0.81rem;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
@@ -1383,7 +1431,7 @@ input:focus-visible {
 .build-drif-token > span small {
     overflow: hidden;
     color: #716860;
-    font-size: 0.43rem;
+    font-size: 0.645rem;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
@@ -1402,7 +1450,7 @@ input:focus-visible {
 .build-drif-token > em {
     grid-column: 2 / -1;
     color: #8d7f71;
-    font-size: 0.43rem;
+    font-size: 0.645rem;
     font-style: normal;
 }
 
@@ -1410,7 +1458,7 @@ input:focus-visible {
     margin: 0;
     padding: 0.85rem;
     color: #716860;
-    font-size: 0.55rem;
+    font-size: 0.825rem;
     text-align: center;
 }
 
@@ -1435,20 +1483,82 @@ input:focus-visible {
 .build-drif-unique-grid article > strong {
     margin-bottom: 0.15rem;
     color: #ad9273;
-    font-size: 0.54rem;
+    font-size: 0.81rem;
     text-transform: uppercase;
 }
 
 .build-drif-unique-grid article > small {
     padding: 0.55rem 0;
     color: #6f665d;
-    font-size: 0.48rem;
+    font-size: 0.72rem;
     line-height: 1.45;
 }
 
 .build-drif-result-heading {
     margin-top: 0.8rem;
     border: 1px solid rgba(107, 72, 40, 0.64);
+}
+
+/* Material hierarchy for the comparison workspace. Dark overlays keep the
+   textures subordinate to data and preserve contrast at every scroll level. */
+.build-comparison-panel.workbench {
+    background:
+        linear-gradient(155deg, rgba(18, 17, 17, 0.94), rgba(4, 5, 6, 0.97) 68%),
+        url("./assets/panel-blackened-steel-texture.png") center / 32rem;
+    background-blend-mode: normal, soft-light;
+}
+
+.build-comparison-panel .build-comparison-hero,
+.build-comparison-panel .build-comparison-difference-strip {
+    background:
+        linear-gradient(115deg, rgba(24, 18, 14, 0.9), rgba(3, 4, 4, 0.96)),
+        url("./assets/panel-aged-leather-texture.png") center / 22rem;
+    background-blend-mode: normal, soft-light;
+}
+
+.build-comparison-panel .build-comparison-toolbar,
+.build-comparison-panel .build-comparison-header {
+    background:
+        linear-gradient(180deg, rgba(20, 19, 19, 0.94), rgba(4, 5, 5, 0.98)),
+        url("./assets/hammered-black-iron-texture.png") center / 20rem;
+    background-blend-mode: normal, soft-light;
+}
+
+.build-comparison-panel .build-comparison-header > * {
+    background: rgba(7, 7, 7, 0.84);
+}
+
+.build-comparison-panel .build-comparison-stat-section > header,
+.build-comparison-panel .build-drif-analysis-heading,
+.build-comparison-panel .build-drif-result-heading {
+    background:
+        linear-gradient(90deg, rgba(43, 26, 14, 0.9), rgba(5, 5, 5, 0.96)),
+        url("./assets/smoked-parchment-texture.png") center / 24rem;
+    background-blend-mode: normal, soft-light;
+}
+
+.build-comparison-panel .build-comparison-toolbar button[aria-selected="true"] {
+    border-color: rgba(191, 132, 56, 0.86);
+    background:
+        linear-gradient(180deg, rgba(91, 58, 22, 0.72), rgba(24, 14, 7, 0.94)),
+        url("./assets/brushed-bronze-texture.png") center / 10rem;
+    background-blend-mode: normal, multiply;
+    box-shadow: inset 0 1px rgba(255, 225, 159, 0.13);
+}
+
+.build-comparison-panel .build-comparison-row > div.is-different {
+    background:
+        linear-gradient(90deg, rgba(62, 20, 19, 0.74), rgba(19, 8, 8, 0.9)),
+        url("./assets/panel-oxblood-texture.png") center / 18rem;
+    background-blend-mode: normal, soft-light;
+}
+
+.build-comparison-panel .build-library-empty,
+.build-comparison-panel .build-comparison-empty {
+    background:
+        radial-gradient(circle at center, rgba(26, 21, 18, 0.72), rgba(3, 4, 5, 0.94) 72%),
+        url("./assets/dark-basalt-texture.png") center / 28rem;
+    background-blend-mode: normal, soft-light;
 }
 
 @media (max-width: 1150px) {
@@ -1487,7 +1597,8 @@ input:focus-visible {
         grid-template-columns: 1fr;
     }
 
-    .build-library-save-form input {
+    .build-library-save-form input,
+    .build-library-save-form select {
         border-right: 1px solid rgba(126, 87, 44, 0.7);
         border-bottom: 0;
     }
@@ -4889,6 +5000,105 @@ input:focus-visible {
     font-size: 0.6rem;
     font-style: italic;
     line-height: 1.45;
+}
+
+/* Material hierarchy for the optimizer: textures identify function while
+   dark overlays keep controls and numerical results visually dominant. */
+.optimizer-console {
+    background:
+        linear-gradient(145deg, rgba(18, 16, 15, 0.94), rgba(3, 4, 5, 0.98) 72%),
+        url("./assets/dark-forged-metal-texture.webp") center / 30rem;
+    background-blend-mode: normal, soft-light;
+}
+
+.optimizer-lock-card {
+    background:
+        linear-gradient(105deg, rgba(25, 18, 14, 0.9), rgba(3, 4, 4, 0.96)),
+        url("./assets/panel-aged-leather-texture.png") center / 18rem;
+    background-blend-mode: normal, soft-light;
+}
+
+.optimizer-lock-card-locked {
+    background:
+        linear-gradient(105deg, rgba(58, 34, 16, 0.82), rgba(4, 4, 4, 0.96)),
+        url("./assets/panel-aged-leather-texture.png") center / 18rem;
+    background-blend-mode: normal, soft-light;
+}
+
+.optimizer-bonus-column {
+    background:
+        linear-gradient(155deg, rgba(13, 13, 14, 0.88), rgba(2, 3, 3, 0.96)),
+        url("./assets/hammered-black-iron-texture.png") center / 24rem !important;
+    background-blend-mode: normal, soft-light;
+}
+
+.optimizer-priority-card-expanded {
+    background:
+        linear-gradient(110deg, rgba(42, 25, 17, 0.88), rgba(7, 5, 6, 0.96)),
+        url("./assets/smoked-parchment-texture.png") center / 24rem;
+    background-blend-mode: normal, soft-light;
+}
+
+.optimizer-lock-filters button[aria-pressed="true"],
+.optimizer-bonus-filters button[aria-pressed="true"],
+.optimizer-priority-toggle-amber.optimizer-priority-toggle-active {
+    border-color: rgba(194, 132, 55, 0.9) !important;
+    background:
+        linear-gradient(180deg, rgba(86, 52, 19, 0.72), rgba(21, 12, 6, 0.94)),
+        url("./assets/brushed-bronze-texture.png") center / 11rem !important;
+    background-blend-mode: normal, multiply;
+    box-shadow: inset 0 1px rgba(255, 224, 153, 0.12);
+}
+
+.optimizer-settings-strip {
+    background:
+        linear-gradient(90deg, rgba(15, 14, 14, 0.92), rgba(3, 4, 4, 0.97)),
+        url("./assets/hammered-black-iron-texture.png") center / 26rem !important;
+    background-blend-mode: normal, soft-light;
+}
+
+.optimizer-status-section > .is-success {
+    padding: 0.55rem;
+    border: 1px solid rgba(72, 117, 57, 0.54);
+    background:
+        linear-gradient(105deg, rgba(18, 48, 22, 0.72), rgba(4, 10, 6, 0.93)),
+        url("./assets/smoked-parchment-texture.png") center / 22rem;
+    background-blend-mode: normal, soft-light;
+}
+
+.optimizer-status-section > .is-warning,
+.optimizer-goal-row.is-partial {
+    background:
+        linear-gradient(90deg, rgba(62, 20, 19, 0.72), rgba(16, 7, 8, 0.92)),
+        url("./assets/panel-oxblood-texture.png") center / 20rem;
+    background-blend-mode: normal, soft-light;
+}
+
+.optimizer-status-section > .is-warning {
+    padding: 0.55rem;
+    border: 1px solid rgba(142, 57, 52, 0.66);
+}
+
+.optimizer-status-empty,
+.optimizer-report-empty {
+    border: 1px solid rgba(70, 63, 57, 0.48);
+    background:
+        radial-gradient(circle at center, rgba(25, 20, 17, 0.68), rgba(3, 4, 5, 0.94) 74%),
+        url("./assets/dark-basalt-texture.png") center / 24rem;
+    background-blend-mode: normal, soft-light;
+}
+
+.optimizer-report-empty {
+    display: block;
+    padding: 0.65rem;
+}
+
+.optimizer-column-heading,
+.optimizer-subcolumn-heading,
+.optimizer-priority-toolbar,
+.optimizer-report-section > h5,
+.optimizer-full-report > summary {
+    border-image: linear-gradient(90deg, transparent, rgba(190, 129, 53, 0.72), transparent) 1;
 }
 
 .optimizer-variant-list {

@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import {
     MAX_SAVED_BUILDS,
     createLocalBuildRecord,
+    normalizeBuildName,
     readBuildLibrary,
     replaceLocalBuildRecord,
     writeBuildLibrary,
@@ -63,6 +64,34 @@ export const useBuildLibrary = ({ createSnapshot, applySnapshot }) => {
             }
         },
         [builds, commit, createSnapshot]
+    );
+
+    const rename = useCallback(
+        (id, name) => {
+            try {
+                const existing = builds.find((build) => build.id === id);
+                if (!existing) throw new Error("Nie znaleziono wybranego buildu.");
+                const normalizedName = normalizeBuildName(name, existing.name);
+                const next = builds.map((build) =>
+                    build.id === id
+                        ? { ...build, name: normalizedName, updatedAt: new Date().toISOString() }
+                        : build
+                );
+                commit(next);
+                setNotice({
+                    type: "success",
+                    message: `Zmieniono nazwę buildu na „${normalizedName}”.`,
+                });
+                return true;
+            } catch (error) {
+                setNotice({
+                    type: "error",
+                    message: `Nie udało się zmienić nazwy buildu: ${error.message}`,
+                });
+                return false;
+            }
+        },
+        [builds, commit]
     );
 
     const load = useCallback(
@@ -128,6 +157,7 @@ export const useBuildLibrary = ({ createSnapshot, applySnapshot }) => {
         notice,
         saveCurrent,
         overwrite,
+        rename,
         load,
         exportBuild,
         remove,

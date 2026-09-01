@@ -77,7 +77,7 @@ const AppHeader = ({
                 <svg aria-hidden="true" viewBox="0 0 24 24">
                     <path d="M5 3h12l2 2v16H5V3Zm3 0v6h8V3M8 21v-8h8v8" />
                 </svg>
-                Zapisz build
+                Zapisz lokalnie
             </button>
             <button
                 type="button"

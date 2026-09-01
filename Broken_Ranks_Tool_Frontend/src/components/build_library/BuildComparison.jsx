@@ -167,7 +167,7 @@ const DrifComposition = ({ analysis, comparisonStyle }) => (
         <section className="build-drif-common">
             <div className="build-drif-analysis-heading">
                 <span>
-                    <strong>Wspólny rdzeń</strong>
+                    <strong>Część wspólna</strong>
                     <small>Te same drify obecne w każdym porównywanym buildzie</small>
                 </span>
                 <em>{analysis.common.reduce((sum, entry) => sum + entry.count, 0)}</em>
@@ -199,7 +199,7 @@ const DrifComposition = ({ analysis, comparisonStyle }) => (
         <section className="build-drif-unique">
             <div className="build-drif-analysis-heading">
                 <span>
-                    <strong>Poza wspólnym rdzeniem</strong>
+                    <strong>Poza wspólną częścią</strong>
                     <small>Drify, którymi buildy różnią się od wspólnej części</small>
                 </span>
             </div>
@@ -258,7 +258,6 @@ const BuildComparison = ({ builds, items = [], drifs = [], gameRules = {} }) => 
         {
             key: "character",
             title: "Statystyki postaci",
-            description: "Atrybuty, atak, obrona i pozostałe parametry",
             rows: statGroups.character,
         },
         {
@@ -400,8 +399,7 @@ const BuildComparison = ({ builds, items = [], drifs = [], gameRules = {} }) => 
                 <div className="build-comparison-drif-view custom-scrollbar">
                     <DrifComposition analysis={drifAnalysis} comparisonStyle={comparisonStyle} />
                     <div className="build-drif-result-heading">
-                        <strong>Wpływ na statystyki</strong>
-                        <small>Wynikowe bonusy drifów po przeliczeniu buildu</small>
+                        <strong>Różnica w statystykach</strong>
                     </div>
                     <StatComparisonTable
                         builds={builds}
