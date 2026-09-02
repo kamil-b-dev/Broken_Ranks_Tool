@@ -57,7 +57,7 @@ class CalculatorControllerTests {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("{\"slots\":{}}"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Bad Request"))
+                .andExpect(jsonPath("$.code").value("INVALID_REQUEST"))
                 .andExpect(jsonPath("$.message").value("Niepoprawny ekwipunek."));
     }
 }

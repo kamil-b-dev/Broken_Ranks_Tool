@@ -1,5 +1,7 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.controller;
 
+import jakarta.validation.Valid;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +24,7 @@ public class OptimizationController {
      */
     @PostMapping("/drifs")
     public ResponseEntity<OptimizationResponse> optimizeDrifs(
-            @RequestBody OptimizationRequest request) {
+            @Valid @RequestBody OptimizationRequest request) {
         OptimizationResponse response = executionGuard.optimize(request);
         return ResponseEntity.ok(response);
     }

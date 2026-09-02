@@ -32,11 +32,27 @@ class OptimizationControllerTests {
         mockMvc.perform(
                         post("/api/optimizer/drifs")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content("{}"))
+                                .content(
+                                        """
+                                        {
+                                          "originalSlots": {"helmet": {"itemId": 1}},
+                                          "priorities": {"DAMAGE_MAGIC": 10}
+                                        }
+                                        """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.optimizedSetup").doesNotExist())
                 .andExpect(jsonPath("$.summary").doesNotExist());
 
         verify(executionGuard).optimize(any(OptimizationRequest.class));
+    }
+
+    @Test
+    void rejectsAnInvalidContractBeforeStartingOptimization() throws Exception {
+        mockMvc.perform(
+                        post("/api/optimizer/drifs")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_REQUEST"));
     }
 }
