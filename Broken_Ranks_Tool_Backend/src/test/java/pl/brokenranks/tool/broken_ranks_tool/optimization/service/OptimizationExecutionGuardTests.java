@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationResponse;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.config.OptimizationProperties;
 
 class OptimizationExecutionGuardTests {
 
@@ -28,7 +29,9 @@ class OptimizationExecutionGuardTests {
                             release.await(2, TimeUnit.SECONDS);
                             return response;
                         });
-        OptimizationExecutionGuard guard = new OptimizationExecutionGuard(service);
+        OptimizationExecutionGuard guard =
+                new OptimizationExecutionGuard(
+                        service, new OptimizationProperties(55_000, 20_000, 25_000, 1));
         ExecutorService executor = Executors.newSingleThreadExecutor();
 
         try {
