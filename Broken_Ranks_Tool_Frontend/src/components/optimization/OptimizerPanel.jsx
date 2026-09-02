@@ -1,25 +1,22 @@
 import React, { useState, useMemo } from "react";
-import { useEquipment } from "../context/EquipmentContext";
-import { calculateCurrentModDetails } from "./optimization/optimizerDomain";
-import {
-    buildOptimizationConfig,
-    findInvalidPercentageTarget,
-} from "./optimization/optimizerConfiguration";
-import OptimizerBonusColumn from "./optimization/OptimizerBonusColumn";
-import OptimizerMobileNavigation from "./optimization/OptimizerMobileNavigation";
-import OptimizerRunAction from "./optimization/OptimizerRunAction";
+import { useEquipment } from "../../context/EquipmentContext";
+import { calculateCurrentModDetails } from "./optimizerDomain";
+import { buildOptimizationConfig, findInvalidPercentageTarget } from "./optimizerConfiguration";
+import OptimizerBonusColumn from "./OptimizerBonusColumn";
+import OptimizerMobileNavigation from "./OptimizerMobileNavigation";
+import OptimizerRunAction from "./OptimizerRunAction";
 import OptimizerSettingsPanel from "./OptimizerSettingsPanel";
-import OptimizerLocksColumn from "./optimization/OptimizerLocksColumn";
-import OptimizerPriorityToolbar from "./optimization/OptimizerPriorityToolbar";
-import OptimizerPriorityList from "./optimization/OptimizerPriorityList";
-import OptimizerStatusSection from "./optimization/OptimizerStatusSection";
-import OptimizerItemsByBonusSection from "./optimization/OptimizerItemsByBonusSection";
-import OptimizerGoalsSection from "./optimization/OptimizerGoalsSection";
-import OptimizerVariantsSection from "./optimization/OptimizerVariantsSection";
-import OptimizerChangesSection from "./optimization/OptimizerChangesSection";
-import { useOptimizerPriorities } from "../hooks/useOptimizerPriorities";
-import { useOptimizationRun } from "../hooks/useOptimizationRun";
-import { useOptimizerConfigFiles } from "../hooks/useOptimizerConfigFiles";
+import OptimizerLocksColumn from "./OptimizerLocksColumn";
+import OptimizerPriorityToolbar from "./OptimizerPriorityToolbar";
+import OptimizerPriorityList from "./OptimizerPriorityList";
+import OptimizerStatusSection from "./OptimizerStatusSection";
+import OptimizerItemsByBonusSection from "./OptimizerItemsByBonusSection";
+import OptimizerGoalsSection from "./OptimizerGoalsSection";
+import OptimizerVariantsSection from "./OptimizerVariantsSection";
+import OptimizerChangesSection from "./OptimizerChangesSection";
+import { useOptimizerPriorities } from "../../hooks/useOptimizerPriorities";
+import { useOptimizationRun } from "../../hooks/useOptimizationRun";
+import { useOptimizerConfigFiles } from "../../hooks/useOptimizerConfigFiles";
 
 /**
  * Provides drif priorities, target limits, and equipment locking for optimization.

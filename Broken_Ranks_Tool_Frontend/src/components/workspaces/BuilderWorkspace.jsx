@@ -1,7 +1,7 @@
 import { useBuilderWorkspace } from "../../hooks/useBuilderWorkspace";
-import CharacterPanel from "../CharacterPanel";
-import ItemDatabase from "../ItemDatabase";
-import StatsPanel from "../StatsPanel";
+import CharacterPanel from "../character/CharacterPanel";
+import ItemDatabase from "../item_database/ItemDatabase";
+import StatsPanel from "../stats_panel/StatsPanel";
 import BuilderEquipmentWorkbench from "./BuilderEquipmentWorkbench";
 
 /** Composes the manual equipment builder workflow. */
