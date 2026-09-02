@@ -1,6 +1,6 @@
 import { SLOTS } from "../../constants/equipment";
 import EquipmentSlotOverview from "../equipment/EquipmentSlotOverview";
-import GearSlot from "../GearSlot";
+import GearSlot from "../gear_slot/GearSlot";
 
 const BuilderEquipmentWorkbench = ({
     model,

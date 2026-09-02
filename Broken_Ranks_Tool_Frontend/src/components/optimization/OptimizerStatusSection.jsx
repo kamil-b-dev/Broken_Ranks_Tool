@@ -60,7 +60,7 @@ const OptimizerStatusSection = ({ isOptimizing, elapsedSeconds, status, lastDura
                         {status.totalPowerUsed !== undefined && (
                             <div>
                                 <dd>{status.totalPowerUsed}</dd>
-                                <dt>Wykorzystana moc</dt>
+                                <dt>Wykorzystana pojemność</dt>
                             </div>
                         )}
                         {duration !== null && duration !== undefined && (

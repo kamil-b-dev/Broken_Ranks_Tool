@@ -1,4 +1,4 @@
-import OptimizerPanel from "../OptimizerPanel";
+import OptimizerPanel from "../optimization/OptimizerPanel";
 import OptimizerOverviewBar from "../optimization/OptimizerOverviewBar";
 import { useEquipment } from "../../context/EquipmentContext";
 

@@ -2,9 +2,9 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import OptimizerPanel from "./OptimizerPanel";
-import { useEquipment } from "../context/EquipmentContext";
+import { useEquipment } from "../../context/EquipmentContext";
 
-vi.mock("../context/EquipmentContext", () => ({
+vi.mock("../../context/EquipmentContext", () => ({
     useEquipment: vi.fn(),
 }));
 

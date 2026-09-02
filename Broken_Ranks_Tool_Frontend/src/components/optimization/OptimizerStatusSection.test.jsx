@@ -18,6 +18,7 @@ describe("OptimizerStatusSection", () => {
                     message: "Znaleziono częściowy wynik.",
                     warnings: ["Nie osiągnięto celu."],
                     drifsPlaced: 8,
+                    totalPowerUsed: 302,
                     executionTimeSeconds: 1.236,
                 }}
             />
@@ -27,6 +28,7 @@ describe("OptimizerStatusSection", () => {
         expect(screen.getByText("Nie osiągnięto celu.")).toBeInTheDocument();
         expect(screen.getByText("Zastosowano najlepszy znaleziony układ.")).toBeInTheDocument();
         expect(screen.getByText("8 drifów")).toBeInTheDocument();
+        expect(screen.getByText("Wykorzystana pojemność")).toBeInTheDocument();
         expect(screen.getByText("1.24 s")).toBeInTheDocument();
     });
 

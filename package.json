@@ -1,0 +1,12 @@
+{
+  "name": "broken-ranks-tool-infrastructure",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "railway:plan": "railway config plan",
+    "railway:apply": "railway config apply"
+  },
+  "devDependencies": {
+    "railway": "3.11.0"
+  }
+}

@@ -1,9 +1,9 @@
 import React from "react";
-import { useGearSlot } from "../hooks/useGearSlot.js";
-import { useEquipment } from "../context/EquipmentContext";
-import ItemSection from "./gear_slot/ItemSection.jsx";
-import OrbSection from "./gear_slot/OrbSection.jsx";
-import DrifSection from "./gear_slot/DrifSection.jsx";
+import { useGearSlot } from "../../hooks/useGearSlot.js";
+import { useEquipment } from "../../context/EquipmentContext";
+import ItemSection from "./ItemSection.jsx";
+import OrbSection from "./OrbSection.jsx";
+import DrifSection from "./DrifSection.jsx";
 
 /**
  * Renders one equipment slot with item, orb, and drif sections.

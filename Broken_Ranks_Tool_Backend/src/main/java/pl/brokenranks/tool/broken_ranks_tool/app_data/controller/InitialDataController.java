@@ -3,7 +3,6 @@ package pl.brokenranks.tool.broken_ranks_tool.app_data.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -13,7 +12,6 @@ import pl.brokenranks.tool.broken_ranks_tool.app_data.service.InitialDataService
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class InitialDataController {
 
     private final InitialDataService initialDataService;
