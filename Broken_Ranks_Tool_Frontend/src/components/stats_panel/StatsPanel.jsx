@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { buildStatColumns } from "./stats_panel/statsPanelDomain";
-import StatSummaryColumn from "./stats_panel/StatSummaryColumn";
-import crest from "../assets/broken-ranks-crest.png";
+import { buildStatColumns } from "./statsPanelDomain";
+import StatSummaryColumn from "./StatSummaryColumn";
+import crest from "../../assets/broken-ranks-crest.png";
 
 /** Displays calculated statistics grouped by their purpose and source. */
 const StatsPanel = ({
