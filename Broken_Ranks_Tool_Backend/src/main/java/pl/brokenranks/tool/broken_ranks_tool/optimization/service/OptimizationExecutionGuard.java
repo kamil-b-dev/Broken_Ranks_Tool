@@ -2,6 +2,7 @@ package pl.brokenranks.tool.broken_ranks_tool.optimization.service;
 
 import java.util.concurrent.Semaphore;
 import org.springframework.stereotype.Service;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.config.OptimizationProperties;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationResponse;
 
@@ -10,10 +11,12 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRespon
 public class OptimizationExecutionGuard {
 
     private final ModsOptimizationService optimizationService;
-    private final Semaphore permits = new Semaphore(1, true);
+    private final Semaphore permits;
 
-    public OptimizationExecutionGuard(ModsOptimizationService optimizationService) {
+    public OptimizationExecutionGuard(
+            ModsOptimizationService optimizationService, OptimizationProperties properties) {
         this.optimizationService = optimizationService;
+        this.permits = new Semaphore(properties.maxConcurrentRuns(), true);
     }
 
     /** Runs one optimization or rejects the request when the worker is occupied. */
