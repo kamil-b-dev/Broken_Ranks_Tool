@@ -69,9 +69,11 @@ After deployment verify:
 GET /actuator/health/readiness
 GET /
 GET /api/initial-data
-GET /actuator/metrics/optimizer.active
-GET /actuator/metrics/optimizer.duration
 ```
 
 Every response contains `X-Request-ID`. Error responses repeat that value as `requestId`, which can
 be used to find the corresponding Railway log entry.
+
+Spring Security keeps actuator metrics private on the public service. Inspect optimizer metrics
+from an authenticated Railway shell or export them to a dedicated monitoring backend before they
+need to be queried outside the application process.
