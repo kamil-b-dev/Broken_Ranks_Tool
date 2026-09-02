@@ -15,18 +15,18 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationResponse;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.service.ModsOptimizationService;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.service.OptimizationExecutionGuard;
 
 @WebMvcTest(OptimizationController.class)
 class OptimizationControllerTests {
 
     @Autowired private MockMvc mockMvc;
 
-    @MockBean private ModsOptimizationService optimizationService;
+    @MockBean private OptimizationExecutionGuard executionGuard;
 
     @Test
     void delegatesOptimizationAndReturnsItsContract() throws Exception {
-        when(optimizationService.optimize(any(OptimizationRequest.class)))
+        when(executionGuard.optimize(any(OptimizationRequest.class)))
                 .thenReturn(new OptimizationResponse(null, null));
 
         mockMvc.perform(
@@ -37,6 +37,6 @@ class OptimizationControllerTests {
                 .andExpect(jsonPath("$.optimizedSetup").doesNotExist())
                 .andExpect(jsonPath("$.summary").doesNotExist());
 
-        verify(optimizationService).optimize(any(OptimizationRequest.class));
+        verify(executionGuard).optimize(any(OptimizationRequest.class));
     }
 }

@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationResponse;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.service.ModsOptimizationService;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.service.OptimizationExecutionGuard;
 
 @RestController
 @RequestMapping("/api/optimizer")
@@ -13,7 +13,7 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.service.ModsOptimizati
 @CrossOrigin(origins = "*")
 public class OptimizationController {
 
-    private final ModsOptimizationService optimizationService;
+    private final OptimizationExecutionGuard executionGuard;
 
     /**
      * Starts drif optimization using the submitted priorities and constraints.
@@ -23,7 +23,7 @@ public class OptimizationController {
     @PostMapping("/drifs")
     public ResponseEntity<OptimizationResponse> optimizeDrifs(
             @RequestBody OptimizationRequest request) {
-        OptimizationResponse response = optimizationService.optimize(request);
+        OptimizationResponse response = executionGuard.optimize(request);
         return ResponseEntity.ok(response);
     }
 }
