@@ -27,7 +27,7 @@ public class EquipmentRequest {
         private Long itemId;
 
         @Min(0)
-        @Max(5)
+        @Max(9)
         private Integer itemStars;
 
         @Size(max = 2)
