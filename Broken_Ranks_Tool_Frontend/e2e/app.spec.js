@@ -13,7 +13,7 @@ const initialData = {
 };
 
 test("opens the builder and switches to the optimizer", async ({ page }) => {
-    await page.route("http://localhost:8080/api/initial-data", (route) =>
+    await page.route("**/api/initial-data", (route) =>
         route.fulfill({ json: initialData })
     );
 
@@ -33,7 +33,7 @@ test("opens the builder and switches to the optimizer", async ({ page }) => {
 });
 
 test("preserves optimizer state when switching workspaces", async ({ page }) => {
-    await page.route("http://localhost:8080/api/initial-data", (route) =>
+    await page.route("**/api/initial-data", (route) =>
         route.fulfill({ json: initialData })
     );
 
@@ -51,7 +51,7 @@ test("preserves optimizer state when switching workspaces", async ({ page }) => 
 });
 
 test("shows a useful message when startup data cannot be loaded", async ({ page }) => {
-    await page.route("http://localhost:8080/api/initial-data", (route) =>
+    await page.route("**/api/initial-data", (route) =>
         route.fulfill({
             status: 503,
             contentType: "application/json",
@@ -69,7 +69,7 @@ test("shows initialization feedback until game data is ready", async ({ page }) 
     const responseReady = new Promise((resolve) => {
         releaseResponse = resolve;
     });
-    await page.route("http://localhost:8080/api/initial-data", async (route) => {
+    await page.route("**/api/initial-data", async (route) => {
         await responseReady;
         await route.fulfill({ json: initialData });
     });
@@ -86,7 +86,7 @@ test("shows initialization feedback until game data is ready", async ({ page }) 
 
 test("keeps the builder and optimizer usable on a mobile viewport", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.route("http://localhost:8080/api/initial-data", (route) =>
+    await page.route("**/api/initial-data", (route) =>
         route.fulfill({
             json: {
                 ...initialData,
@@ -125,7 +125,7 @@ test("keeps the builder and optimizer usable on a mobile viewport", async ({ pag
 
 test("constrains the item database to the equipment workbench height", async ({ page }) => {
     await page.setViewportSize({ width: 1792, height: 900 });
-    await page.route("http://localhost:8080/api/initial-data", (route) =>
+    await page.route("**/api/initial-data", (route) =>
         route.fulfill({
             json: {
                 ...initialData,

@@ -1,0 +1,15 @@
+.git
+.github
+.idea
+.codex
+.agents
+**/.idea
+**/node_modules
+**/target
+**/dist
+**/coverage
+**/playwright-report
+**/test-results
+Merch_Showcase
+*.log
+*.tmp
