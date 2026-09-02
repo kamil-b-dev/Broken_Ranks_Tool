@@ -24,6 +24,14 @@ const CompactCharacterPanel = ({ development }) => (
                     <div className="character-stat-actions">
                         <button
                             type="button"
+                            onClick={() => development.changePoints(name, -10)}
+                            disabled={development.spentPoints[name] < 10}
+                            aria-label={`Odejmij 10 punktów: ${name}`}
+                        >
+                            −10
+                        </button>
+                        <button
+                            type="button"
                             onClick={() => development.changePoints(name, -1)}
                             disabled={development.spentPoints[name] <= 0}
                             aria-label={`Odejmij punkt: ${name}`}
@@ -37,6 +45,14 @@ const CompactCharacterPanel = ({ development }) => (
                             aria-label={`Dodaj punkt: ${name}`}
                         >
                             +
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => development.changePoints(name, 10)}
+                            disabled={development.pointsLeft < 10}
+                            aria-label={`Dodaj 10 punktów: ${name}`}
+                        >
+                            +10
                         </button>
                     </div>
                 </div>
