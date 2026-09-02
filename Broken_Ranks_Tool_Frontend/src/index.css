@@ -384,9 +384,19 @@ input:focus-visible {
 }
 
 .main-switch-label {
+    display: inline-flex;
     min-width: 0;
+    flex-direction: column;
+    align-items: center;
     line-height: 1.35;
     text-align: center;
+}
+
+.main-switch-label small {
+    color: #806d55;
+    font-size: 0.48rem;
+    letter-spacing: 0.08em;
+    line-height: 1.2;
 }
 
 .main-switch-icon img {
@@ -395,6 +405,21 @@ input:focus-visible {
     object-fit: contain;
     pointer-events: none;
     user-select: none;
+}
+
+.main-switch-icon svg {
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: square;
+    stroke-linejoin: miter;
+    stroke-width: 1.35;
+}
+
+.main-switch-library-icon {
+    color: #bc8842;
+    filter: drop-shadow(0 0 0.18rem rgba(188, 136, 66, 0.18));
 }
 
 .main-switch button:hover .main-switch-icon,
@@ -561,7 +586,7 @@ input:focus-visible {
 
 .main-switch {
     display: flex;
-    width: min(100%, 34rem);
+    width: min(100%, 44rem);
     justify-self: center;
     overflow: hidden;
     border: 1px solid rgba(102, 91, 80, 0.56);
@@ -570,6 +595,1064 @@ input:focus-visible {
         0 12px 30px rgba(0, 0, 0, 0.32),
         inset 0 1px rgba(255, 255, 255, 0.04),
         inset 0 0 18px rgba(0, 0, 0, 0.58);
+}
+
+/* Local build library and comparison workspace */
+.build-library-theme {
+    color: var(--ui-text);
+}
+
+.build-library-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    padding: 1.25rem 1.5rem;
+}
+
+.build-library-heading h2,
+.build-library-panel-heading h3 {
+    margin: 0;
+    color: #e6ddcf;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.build-library-heading h2 {
+    font-size: 1.25rem;
+}
+
+.build-library-heading > div > p:last-child {
+    max-width: 46rem;
+    margin: 0.55rem 0 0;
+    color: #8e857b;
+    font-size: 0.76rem;
+    line-height: 1.55;
+}
+
+.build-library-save-form {
+    width: min(100%, 30rem);
+    flex: 0 0 auto;
+}
+
+.build-library-save-form > label {
+    display: block;
+    margin-bottom: 0.35rem;
+    color: #a77b43;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.build-library-save-form > div {
+    display: grid;
+    grid-template-columns: minmax(8rem, 0.8fr) minmax(0, 1fr) auto;
+}
+
+.build-library-save-form input,
+.build-library-save-form select {
+    min-width: 0;
+    border: 1px solid rgba(126, 87, 44, 0.7);
+    border-right: 0;
+    padding: 0.7rem 0.8rem;
+    color: #ded4c7;
+    font-size: 0.76rem;
+    background: rgba(2, 3, 3, 0.82);
+}
+
+.build-library-save-form select {
+    color: #b9a994;
+}
+
+.build-library-save-form button {
+    border: 1px solid rgba(179, 108, 39, 0.88);
+    padding: 0.65rem 1rem;
+    color: #e1b96f;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.64rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    background: linear-gradient(180deg, rgba(84, 41, 14, 0.88), rgba(20, 10, 5, 0.98));
+}
+
+.build-library-save-form button:hover:not(:disabled) {
+    border-color: #d89a47;
+    color: #ffe0a1;
+}
+
+.build-library-save-form button:disabled {
+    cursor: not-allowed;
+    opacity: 0.42;
+}
+
+.build-library-save-form > small {
+    display: block;
+    margin-top: 0.35rem;
+    color: #746b61;
+    font-size: 0.56rem;
+    text-align: right;
+}
+
+.build-library-layout {
+    display: grid;
+    height: clamp(42rem, calc(100vh - 15rem), 64rem);
+    min-height: 0;
+    grid-template-columns: minmax(19rem, 0.72fr) minmax(34rem, 1.7fr);
+    gap: 1rem;
+}
+
+.build-library-list-panel,
+.build-comparison-panel {
+    display: flex;
+    min-height: 0;
+    flex-direction: column;
+    padding: 1rem;
+}
+
+.build-library-panel-heading {
+    display: flex;
+    min-height: 3.5rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0 0.25rem 0.85rem;
+    border-bottom: 1px solid rgba(119, 77, 40, 0.62);
+}
+
+.build-library-panel-heading h3 {
+    font-size: 0.86rem;
+}
+
+.build-library-panel-heading > span,
+.build-library-panel-heading > button {
+    color: #877a6c;
+    font-size: 0.56rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.build-library-panel-heading > button {
+    border-bottom: 1px solid rgba(153, 104, 49, 0.55);
+    color: #b08753;
+}
+
+.build-library-list {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+    gap: 0.55rem;
+    overflow-y: auto;
+    padding: 0.75rem 0.35rem 0 0;
+}
+
+.build-library-empty,
+.build-comparison-empty {
+    display: flex;
+    min-height: 16rem;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    color: #6e655c;
+    text-align: center;
+}
+
+.build-library-empty > span,
+.build-comparison-empty > span {
+    display: grid;
+    width: 3rem;
+    height: 3rem;
+    margin-bottom: 0.85rem;
+    place-items: center;
+    border: 1px solid rgba(145, 97, 43, 0.72);
+    border-radius: 50%;
+    color: #b17a3f;
+    font-size: 1.35rem;
+    box-shadow: 0 0 20px rgba(138, 83, 34, 0.1);
+}
+
+.build-library-empty strong,
+.build-comparison-empty strong {
+    color: #bcaa94;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.78rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+}
+
+.build-library-empty p,
+.build-comparison-empty p {
+    max-width: 24rem;
+    margin: 0.45rem 0 0;
+    font-size: 0.66rem;
+    line-height: 1.55;
+}
+
+.saved-build-card {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 0.35rem 0.7rem;
+    padding: 0.75rem;
+    border: 1px solid rgba(93, 66, 41, 0.72);
+    background:
+        linear-gradient(105deg, rgba(26, 21, 18, 0.82), rgba(4, 5, 5, 0.96)),
+        url("./assets/panel-aged-leather-texture.png") center / 24rem;
+    background-blend-mode: normal, soft-light;
+    box-shadow: inset 0 1px rgba(255, 239, 210, 0.035);
+}
+
+.saved-build-card.is-selected {
+    border-color: rgba(179, 116, 53, 0.92);
+    background:
+        linear-gradient(105deg, rgba(66, 34, 17, 0.82), rgba(6, 6, 6, 0.97)),
+        url("./assets/panel-aged-leather-texture.png") center / 24rem;
+    box-shadow:
+        inset 3px 0 rgba(201, 130, 53, 0.72),
+        inset 0 1px rgba(255, 239, 210, 0.05);
+}
+
+.saved-build-compare {
+    grid-column: 2;
+    color: #8f8172;
+    font-size: 0.63rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.saved-build-compare input {
+    display: inline-grid;
+    width: 0.95rem;
+    height: 0.95rem;
+    margin-right: 0.35rem;
+    place-content: center;
+    appearance: none;
+    border: 1px solid rgba(155, 101, 45, 0.9);
+    vertical-align: -0.22rem;
+    background: linear-gradient(145deg, rgba(35, 23, 14, 0.92), rgba(3, 3, 4, 0.98));
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 218, 153, 0.05),
+        0 0 0 1px rgba(0, 0, 0, 0.7);
+    cursor: pointer;
+}
+
+.saved-build-compare input::before {
+    width: 0.45rem;
+    height: 0.45rem;
+    content: "";
+    background: #d19a4e;
+    box-shadow: 0 0 0.45rem rgba(205, 129, 47, 0.55);
+    transform: scale(0) rotate(45deg);
+    transition: transform 120ms ease-out;
+}
+
+.saved-build-compare input:checked {
+    border-color: #d49749;
+    background: linear-gradient(145deg, rgba(84, 43, 17, 0.96), rgba(13, 8, 5, 0.98));
+}
+
+.saved-build-compare input:checked::before {
+    transform: scale(1) rotate(45deg);
+}
+
+.saved-build-compare input:focus-visible {
+    outline: 1px solid #e4ad60;
+    outline-offset: 2px;
+}
+
+.saved-build-compare input:disabled {
+    cursor: not-allowed;
+    opacity: 0.38;
+}
+
+.saved-build-index {
+    display: grid;
+    width: 2.2rem;
+    height: 2.2rem;
+    grid-column: 1;
+    grid-row: 1 / span 3;
+    place-items: center;
+    align-self: center;
+    border: 1px solid rgba(144, 91, 43, 0.72);
+    border-radius: 50%;
+    color: #bd8d4e;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.65rem;
+}
+
+.saved-build-copy {
+    display: flex;
+    min-width: 0;
+    grid-column: 2;
+    flex-direction: column;
+}
+
+.saved-build-copy strong {
+    overflow: hidden;
+    color: #ddd1c1;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.78rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.saved-build-copy small,
+.saved-build-copy span,
+.saved-build-card time {
+    color: #756d64;
+    font-size: 0.6rem;
+}
+
+.saved-build-copy small {
+    margin-top: 0.16rem;
+    color: #9b8b78;
+}
+
+.saved-build-card time {
+    grid-column: 3;
+    grid-row: 1;
+    white-space: nowrap;
+}
+
+.saved-build-actions {
+    display: flex;
+    grid-column: 2 / -1;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: 0.25rem;
+}
+
+.saved-build-actions button {
+    padding: 0.28rem 0.45rem;
+    border: 1px solid rgba(89, 75, 62, 0.68);
+    color: #8f877e;
+    font-size: 0.58rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: rgba(3, 3, 4, 0.62);
+}
+
+.saved-build-actions button:hover {
+    border-color: rgba(170, 125, 72, 0.82);
+    color: #d9c8b3;
+}
+
+.saved-build-actions .is-primary {
+    border-color: rgba(161, 97, 40, 0.78);
+    color: #d2a665;
+}
+
+.saved-build-actions .is-danger {
+    margin-left: auto;
+    color: #9b6565;
+}
+
+.build-comparison-content {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+    padding-top: 0.75rem;
+}
+
+.build-comparison-summary {
+    display: grid;
+    grid-template-columns: repeat(var(--comparison-columns), minmax(0, 1fr));
+    gap: 0.5rem;
+}
+
+.build-comparison-hero {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid rgba(113, 75, 42, 0.72);
+    background: rgba(4, 4, 5, 0.74);
+}
+
+.build-comparison-hero > span {
+    color: #a7753d;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.build-comparison-hero strong {
+    overflow: hidden;
+    margin-top: 0.2rem;
+    color: #d8ccbd;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 1.08rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.build-comparison-hero small {
+    margin-top: 0.2rem;
+    color: #776f66;
+    font-size: 0.75rem;
+}
+
+.build-comparison-hero.tone-2 {
+    border-color: rgba(109, 74, 125, 0.78);
+}
+
+.build-comparison-hero.tone-3 {
+    border-color: rgba(67, 109, 109, 0.78);
+}
+
+.build-comparison-difference-strip {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin-top: 0.5rem;
+    border: 1px solid rgba(82, 61, 43, 0.52);
+    background: rgba(2, 3, 3, 0.46);
+}
+
+.build-comparison-difference-strip > span {
+    padding: 0.45rem 0.55rem;
+    border-right: 1px solid rgba(82, 61, 43, 0.52);
+    color: #756d65;
+    font-size: 0.75rem;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.build-comparison-difference-strip > span:last-child {
+    border-right: 0;
+}
+
+.build-comparison-difference-strip strong {
+    margin-right: 0.2rem;
+    color: #c59450;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 1.08rem;
+}
+
+.build-comparison-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 0.75rem;
+    border-bottom: 1px solid rgba(104, 73, 43, 0.62);
+}
+
+.build-comparison-toolbar > div {
+    display: flex;
+}
+
+.build-comparison-toolbar button {
+    padding: 0.55rem 0.8rem;
+    border: 1px solid transparent;
+    border-bottom: 0;
+    color: #776f67;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.87rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.build-comparison-toolbar button[aria-selected="true"] {
+    border-color: rgba(128, 85, 43, 0.72);
+    color: #d0a15e;
+    background: rgba(55, 30, 12, 0.42);
+}
+
+.build-comparison-toolbar > label {
+    color: #81776d;
+    font-size: 0.825rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.build-comparison-toolbar input {
+    margin-right: 0.35rem;
+    accent-color: #9f6833;
+}
+
+.build-comparison-table {
+    min-height: 0;
+    flex: 1;
+    overflow: auto;
+    padding-top: 0;
+}
+
+.build-comparison-row {
+    display: grid;
+    min-width: calc(12rem + var(--comparison-columns) * 12rem);
+    grid-template-columns: minmax(8rem, 0.72fr) repeat(
+            var(--comparison-columns),
+            minmax(12rem, 1fr)
+        );
+    border-bottom: 1px solid rgba(78, 58, 40, 0.54);
+}
+
+.build-comparison-row > * {
+    min-width: 0;
+    padding: 0.55rem 0.65rem;
+    border-right: 1px solid rgba(69, 52, 39, 0.5);
+}
+
+.build-comparison-row > *:last-child {
+    border-right: 0;
+}
+
+.build-comparison-row > div {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: rgba(2, 3, 3, 0.34);
+}
+
+.build-comparison-row > div.is-different {
+    background: rgba(66, 37, 16, 0.22);
+}
+
+.build-comparison-row > div.is-highest {
+    box-shadow: inset 3px 0 rgba(91, 149, 68, 0.72);
+}
+
+.build-comparison-row strong {
+    overflow: hidden;
+    color: #bfb4a8;
+    font-size: 0.9rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.build-comparison-row small {
+    margin-top: 0.18rem;
+    color: #6f675f;
+    font-size: 0.72rem;
+}
+
+.build-comparison-label {
+    display: flex;
+    align-items: center;
+    color: #a47a49;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.84rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+}
+
+.build-comparison-header {
+    position: sticky;
+    z-index: 4;
+    top: 0;
+    border-top: 1px solid rgba(78, 58, 40, 0.54);
+    background: #090807;
+    box-shadow: 0 0.35rem 0.45rem rgba(0, 0, 0, 0.72);
+}
+
+.build-comparison-header > * {
+    background: #090807;
+    color: #81766a;
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.build-comparison-no-differences {
+    margin: 2rem;
+    color: #6f675f;
+    font-size: 0.96rem;
+    text-align: center;
+}
+
+.build-comparison-hint {
+    margin: 0.55rem 0 0;
+    color: #776d64;
+    font-size: 0.81rem;
+}
+
+.build-comparison-stat-section > header,
+.build-drif-analysis-heading,
+.build-drif-result-heading {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.65rem 0.7rem;
+    border-bottom: 1px solid rgba(107, 72, 40, 0.64);
+    background: linear-gradient(90deg, rgba(50, 29, 13, 0.52), rgba(5, 5, 5, 0.82));
+}
+
+.build-comparison-stat-section > header > img,
+.build-drif-profile-label > img,
+.build-drif-token > img {
+    width: 1.65rem;
+    height: 1.65rem;
+    flex: 0 0 auto;
+    object-fit: contain;
+}
+
+.build-comparison-stat-section > header > span,
+.build-drif-analysis-heading > span,
+.build-drif-result-heading {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    flex-direction: column;
+}
+
+.build-comparison-stat-section > header strong,
+.build-drif-analysis-heading strong,
+.build-drif-result-heading strong {
+    color: #c99b5d;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.915rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.build-comparison-stat-section > header small,
+.build-drif-analysis-heading small,
+.build-drif-result-heading small {
+    margin-top: 0.12rem;
+    color: #726960;
+    font-size: 0.735rem;
+}
+
+.build-comparison-stat-section > header em,
+.build-drif-analysis-heading > em {
+    display: grid;
+    min-width: 1.65rem;
+    height: 1.65rem;
+    place-items: center;
+    border: 1px solid rgba(134, 89, 44, 0.72);
+    border-radius: 50%;
+    color: #b98c53;
+    font-size: 0.81rem;
+    font-style: normal;
+}
+
+.build-comparison-drif-view {
+    min-height: 0;
+    flex: 1;
+    overflow: auto;
+    padding: 0.45rem 0.25rem 0 0;
+}
+
+.build-comparison-drif-view > .build-comparison-table {
+    overflow: visible;
+}
+
+.build-drif-analysis {
+    display: grid;
+    gap: 0.6rem;
+}
+
+.build-drif-profile,
+.build-drif-common,
+.build-drif-unique {
+    border: 1px solid rgba(82, 61, 43, 0.58);
+    background: rgba(2, 3, 3, 0.48);
+}
+
+.build-drif-profile-grid {
+    display: grid;
+    min-width: calc(10rem + var(--comparison-columns) * 12rem);
+    grid-template-columns: minmax(9rem, 0.72fr) repeat(
+            var(--comparison-columns),
+            minmax(12rem, 1fr)
+        );
+}
+
+.build-drif-profile-grid > strong {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    padding: 0.55rem 0.65rem;
+    border-left: 1px solid rgba(76, 57, 41, 0.52);
+    color: #bfb3a4;
+    font-size: 0.87rem;
+}
+
+.build-drif-profile-grid > strong small {
+    margin-top: 0.15rem;
+    color: #70685f;
+    font-size: 0.705rem;
+    font-weight: 400;
+}
+
+.build-drif-profile-row {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: minmax(9rem, 0.72fr) repeat(
+            var(--comparison-columns),
+            minmax(12rem, 1fr)
+        );
+    border-top: 1px solid rgba(76, 57, 41, 0.52);
+}
+
+.build-drif-profile-label {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.55rem 0.65rem;
+}
+
+.build-drif-profile-label > span {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+}
+
+.build-drif-profile-label strong {
+    color: #b99669;
+    font-size: 0.825rem;
+    text-transform: uppercase;
+}
+
+.build-drif-profile-label small {
+    margin-top: 0.12rem;
+    color: #675f58;
+    font-size: 0.66rem;
+}
+
+.build-drif-profile-row > div {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 0 0.45rem;
+    padding: 0.5rem 0.65rem;
+    border-left: 1px solid rgba(76, 57, 41, 0.52);
+    background: rgba(5, 5, 6, 0.38);
+}
+
+.build-drif-profile-row > div > strong {
+    grid-row: 1 / span 2;
+    color: #d0c1b1;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 1.5rem;
+}
+
+.build-drif-profile-row > div > span {
+    color: #7e756c;
+    font-size: 0.705rem;
+}
+
+.build-drif-profile-row > div > small {
+    display: flex;
+    grid-column: 2;
+    gap: 0.2rem;
+}
+
+.build-drif-profile-row > div i,
+.build-drif-token > i {
+    border: 1px solid rgba(88, 73, 60, 0.64);
+    color: #5d5751;
+    font-size: 0.66rem;
+    font-style: normal;
+}
+
+.build-drif-profile-row > div i {
+    padding: 0.08rem 0.18rem;
+}
+
+.build-drif-profile-row > div i.has-value {
+    border-color: rgba(152, 102, 52, 0.72);
+    color: #c09968;
+}
+
+.build-drif-category-groups {
+    display: grid;
+    gap: 0.55rem;
+    padding: 0.65rem;
+}
+
+.build-drif-category-groups > div > span {
+    display: block;
+    margin-bottom: 0.3rem;
+    color: #81766b;
+    font-size: 0.735rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.build-drif-category-groups > div > div {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+    gap: 0.35rem;
+}
+
+.build-drif-token {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 0.25rem 0.45rem;
+    align-items: center;
+    padding: 0.38rem 0.45rem;
+    border: 1px solid rgba(102, 66, 104, 0.68);
+    background: rgba(30, 13, 32, 0.35);
+}
+
+.build-drif-token[data-category="defensive"] {
+    border-color: rgba(53, 106, 119, 0.72);
+    background: rgba(8, 32, 38, 0.32);
+}
+
+.build-drif-token[data-category="utility"] {
+    border-color: rgba(68, 104, 45, 0.72);
+    background: rgba(21, 38, 9, 0.32);
+}
+
+.build-drif-token > img {
+    width: 1.35rem;
+    height: 1.35rem;
+    grid-row: 1 / span 2;
+}
+
+.build-drif-token > span {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+}
+
+.build-drif-token > span strong {
+    overflow: hidden;
+    color: #c8bbad;
+    font-size: 0.81rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.build-drif-token > span small {
+    overflow: hidden;
+    color: #716860;
+    font-size: 0.645rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.build-drif-token > i {
+    display: grid;
+    width: 1.25rem;
+    height: 1.25rem;
+    grid-column: 3;
+    grid-row: 1 / span 2;
+    place-items: center;
+    border-color: rgba(162, 108, 53, 0.72);
+    color: #d1a064;
+}
+
+.build-drif-token > em {
+    grid-column: 2 / -1;
+    color: #8d7f71;
+    font-size: 0.645rem;
+    font-style: normal;
+}
+
+.build-drif-empty {
+    margin: 0;
+    padding: 0.85rem;
+    color: #716860;
+    font-size: 0.825rem;
+    text-align: center;
+}
+
+.build-drif-unique-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--comparison-columns), minmax(0, 1fr));
+}
+
+.build-drif-unique-grid article {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: 0.55rem;
+    border-right: 1px solid rgba(76, 57, 41, 0.52);
+}
+
+.build-drif-unique-grid article:last-child {
+    border-right: 0;
+}
+
+.build-drif-unique-grid article > strong {
+    margin-bottom: 0.15rem;
+    color: #ad9273;
+    font-size: 0.81rem;
+    text-transform: uppercase;
+}
+
+.build-drif-unique-grid article > small {
+    padding: 0.55rem 0;
+    color: #6f665d;
+    font-size: 0.72rem;
+    line-height: 1.45;
+}
+
+.build-drif-result-heading {
+    margin-top: 0.8rem;
+    border: 1px solid rgba(107, 72, 40, 0.64);
+}
+
+/* Material hierarchy for the comparison workspace. Dark overlays keep the
+   textures subordinate to data and preserve contrast at every scroll level. */
+.build-comparison-panel.workbench {
+    background:
+        linear-gradient(155deg, rgba(18, 17, 17, 0.94), rgba(4, 5, 6, 0.97) 68%),
+        url("./assets/panel-blackened-steel-texture.png") center / 32rem;
+    background-blend-mode: normal, soft-light;
+}
+
+.build-comparison-panel .build-comparison-hero,
+.build-comparison-panel .build-comparison-difference-strip {
+    background:
+        linear-gradient(115deg, rgba(24, 18, 14, 0.9), rgba(3, 4, 4, 0.96)),
+        url("./assets/panel-aged-leather-texture.png") center / 22rem;
+    background-blend-mode: normal, soft-light;
+}
+
+.build-comparison-panel .build-comparison-toolbar,
+.build-comparison-panel .build-comparison-header {
+    background:
+        linear-gradient(180deg, rgba(20, 19, 19, 0.94), rgba(4, 5, 5, 0.98)),
+        url("./assets/hammered-black-iron-texture.png") center / 20rem;
+    background-blend-mode: normal, soft-light;
+}
+
+.build-comparison-panel .build-comparison-header > * {
+    background: rgba(7, 7, 7, 0.84);
+}
+
+.build-comparison-panel .build-comparison-stat-section > header,
+.build-comparison-panel .build-drif-analysis-heading,
+.build-comparison-panel .build-drif-result-heading {
+    background:
+        linear-gradient(90deg, rgba(43, 26, 14, 0.9), rgba(5, 5, 5, 0.96)),
+        url("./assets/smoked-parchment-texture.png") center / 24rem;
+    background-blend-mode: normal, soft-light;
+}
+
+.build-comparison-panel .build-comparison-toolbar button[aria-selected="true"] {
+    border-color: rgba(191, 132, 56, 0.86);
+    background:
+        linear-gradient(180deg, rgba(91, 58, 22, 0.72), rgba(24, 14, 7, 0.94)),
+        url("./assets/brushed-bronze-texture.png") center / 10rem;
+    background-blend-mode: normal, multiply;
+    box-shadow: inset 0 1px rgba(255, 225, 159, 0.13);
+}
+
+.build-comparison-panel .build-comparison-row > div.is-different {
+    background:
+        linear-gradient(90deg, rgba(62, 20, 19, 0.74), rgba(19, 8, 8, 0.9)),
+        url("./assets/panel-oxblood-texture.png") center / 18rem;
+    background-blend-mode: normal, soft-light;
+}
+
+.build-comparison-panel .build-library-empty,
+.build-comparison-panel .build-comparison-empty {
+    background:
+        radial-gradient(circle at center, rgba(26, 21, 18, 0.72), rgba(3, 4, 5, 0.94) 72%),
+        url("./assets/dark-basalt-texture.png") center / 28rem;
+    background-blend-mode: normal, soft-light;
+}
+
+@media (max-width: 1150px) {
+    .build-library-heading {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .build-library-save-form {
+        width: 100%;
+    }
+
+    .build-library-layout {
+        height: auto;
+        grid-template-columns: 1fr;
+    }
+
+    .build-library-list-panel {
+        min-height: 28rem;
+        max-height: 38rem;
+    }
+
+    .build-comparison-panel {
+        min-height: 42rem;
+    }
+}
+
+@media (max-width: 620px) {
+    .build-library-heading,
+    .build-library-list-panel,
+    .build-comparison-panel {
+        padding: 0.85rem;
+    }
+
+    .build-library-save-form > div {
+        grid-template-columns: 1fr;
+    }
+
+    .build-library-save-form input,
+    .build-library-save-form select {
+        border-right: 1px solid rgba(126, 87, 44, 0.7);
+        border-bottom: 0;
+    }
+
+    .saved-build-card {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .saved-build-card time {
+        display: none;
+    }
+
+    .saved-build-actions {
+        grid-column: 1 / -1;
+    }
+
+    .build-comparison-summary {
+        grid-template-columns: 1fr;
+    }
+
+    .build-comparison-difference-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .build-comparison-difference-strip > span:nth-child(2) {
+        border-right: 0;
+    }
+
+    .build-comparison-difference-strip > span:nth-child(-n + 2) {
+        border-bottom: 1px solid rgba(82, 61, 43, 0.52);
+    }
+
+    .build-comparison-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+        padding-bottom: 0.55rem;
+    }
+
+    .build-comparison-toolbar > div {
+        overflow-x: auto;
+    }
+
+    .build-comparison-toolbar button {
+        white-space: nowrap;
+    }
+
+    .build-drif-unique-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .build-drif-unique-grid article {
+        border-right: 0;
+        border-bottom: 1px solid rgba(76, 57, 41, 0.52);
+    }
 }
 
 @media (max-width: 1250px) {
@@ -1740,10 +2823,10 @@ input:focus-visible {
     grid-template-columns: 2rem minmax(0, 1fr) auto;
 }
 
-.item-database-theme [aria-pressed] {
+.item-database-theme .database-tab-button {
     border-color: rgba(132, 92, 44, 0.72) !important;
     background-image:
-        linear-gradient(rgba(30, 18, 13, 0.72), rgba(3, 3, 3, 0.88)),
+        linear-gradient(rgba(62, 4, 13, 0.44), rgba(5, 2, 3, 0.72)),
         url("./assets/crimson-lacquer-texture.png");
     background-position: center;
     background-size: auto, 18rem;
@@ -1751,7 +2834,7 @@ input:focus-visible {
     color: #c9a56b;
 }
 
-.item-database-theme [aria-pressed="true"] {
+.item-database-theme .database-tab-button[aria-pressed="true"] {
     border-color: rgba(213, 155, 69, 0.92) !important;
     background-image:
         linear-gradient(rgba(77, 8, 15, 0.38), rgba(8, 3, 4, 0.74)),
@@ -1760,6 +2843,13 @@ input:focus-visible {
     box-shadow:
         inset 0 1px rgba(255, 210, 135, 0.12),
         0 0 12px rgba(107, 22, 18, 0.25);
+}
+
+.item-database-theme .database-tab-button:hover {
+    border-color: rgba(199, 73, 76, 0.88) !important;
+    background-image:
+        linear-gradient(rgba(89, 8, 18, 0.48), rgba(8, 2, 4, 0.76)),
+        url("./assets/crimson-lacquer-texture.png");
 }
 
 .database-item-copy {
@@ -3910,6 +5000,105 @@ input:focus-visible {
     font-size: 0.6rem;
     font-style: italic;
     line-height: 1.45;
+}
+
+/* Material hierarchy for the optimizer: textures identify function while
+   dark overlays keep controls and numerical results visually dominant. */
+.optimizer-console {
+    background:
+        linear-gradient(145deg, rgba(18, 16, 15, 0.94), rgba(3, 4, 5, 0.98) 72%),
+        url("./assets/dark-forged-metal-texture.webp") center / 30rem;
+    background-blend-mode: normal, soft-light;
+}
+
+.optimizer-lock-card {
+    background:
+        linear-gradient(105deg, rgba(25, 18, 14, 0.9), rgba(3, 4, 4, 0.96)),
+        url("./assets/panel-aged-leather-texture.png") center / 18rem;
+    background-blend-mode: normal, soft-light;
+}
+
+.optimizer-lock-card-locked {
+    background:
+        linear-gradient(105deg, rgba(58, 34, 16, 0.82), rgba(4, 4, 4, 0.96)),
+        url("./assets/panel-aged-leather-texture.png") center / 18rem;
+    background-blend-mode: normal, soft-light;
+}
+
+.optimizer-bonus-column {
+    background:
+        linear-gradient(155deg, rgba(13, 13, 14, 0.88), rgba(2, 3, 3, 0.96)),
+        url("./assets/hammered-black-iron-texture.png") center / 24rem !important;
+    background-blend-mode: normal, soft-light;
+}
+
+.optimizer-priority-card-expanded {
+    background:
+        linear-gradient(110deg, rgba(42, 25, 17, 0.88), rgba(7, 5, 6, 0.96)),
+        url("./assets/smoked-parchment-texture.png") center / 24rem;
+    background-blend-mode: normal, soft-light;
+}
+
+.optimizer-lock-filters button[aria-pressed="true"],
+.optimizer-bonus-filters button[aria-pressed="true"],
+.optimizer-priority-toggle-amber.optimizer-priority-toggle-active {
+    border-color: rgba(194, 132, 55, 0.9) !important;
+    background:
+        linear-gradient(180deg, rgba(86, 52, 19, 0.72), rgba(21, 12, 6, 0.94)),
+        url("./assets/brushed-bronze-texture.png") center / 11rem !important;
+    background-blend-mode: normal, multiply;
+    box-shadow: inset 0 1px rgba(255, 224, 153, 0.12);
+}
+
+.optimizer-settings-strip {
+    background:
+        linear-gradient(90deg, rgba(15, 14, 14, 0.92), rgba(3, 4, 4, 0.97)),
+        url("./assets/hammered-black-iron-texture.png") center / 26rem !important;
+    background-blend-mode: normal, soft-light;
+}
+
+.optimizer-status-section > .is-success {
+    padding: 0.55rem;
+    border: 1px solid rgba(72, 117, 57, 0.54);
+    background:
+        linear-gradient(105deg, rgba(18, 48, 22, 0.72), rgba(4, 10, 6, 0.93)),
+        url("./assets/smoked-parchment-texture.png") center / 22rem;
+    background-blend-mode: normal, soft-light;
+}
+
+.optimizer-status-section > .is-warning,
+.optimizer-goal-row.is-partial {
+    background:
+        linear-gradient(90deg, rgba(62, 20, 19, 0.72), rgba(16, 7, 8, 0.92)),
+        url("./assets/panel-oxblood-texture.png") center / 20rem;
+    background-blend-mode: normal, soft-light;
+}
+
+.optimizer-status-section > .is-warning {
+    padding: 0.55rem;
+    border: 1px solid rgba(142, 57, 52, 0.66);
+}
+
+.optimizer-status-empty,
+.optimizer-report-empty {
+    border: 1px solid rgba(70, 63, 57, 0.48);
+    background:
+        radial-gradient(circle at center, rgba(25, 20, 17, 0.68), rgba(3, 4, 5, 0.94) 74%),
+        url("./assets/dark-basalt-texture.png") center / 24rem;
+    background-blend-mode: normal, soft-light;
+}
+
+.optimizer-report-empty {
+    display: block;
+    padding: 0.65rem;
+}
+
+.optimizer-column-heading,
+.optimizer-subcolumn-heading,
+.optimizer-priority-toolbar,
+.optimizer-report-section > h5,
+.optimizer-full-report > summary {
+    border-image: linear-gradient(90deg, transparent, rgba(190, 129, 53, 0.72), transparent) 1;
 }
 
 .optimizer-variant-list {

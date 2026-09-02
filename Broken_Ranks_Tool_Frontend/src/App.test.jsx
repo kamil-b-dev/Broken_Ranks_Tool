@@ -3,10 +3,16 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
 import { useEquipment } from "./context/EquipmentContext";
+import { downloadBuildPayload } from "./utils/buildFile";
 
 vi.mock("./context/EquipmentContext", async (importOriginal) => ({
     ...(await importOriginal()),
     useEquipment: vi.fn(),
+}));
+
+vi.mock("./utils/buildFile", async (importOriginal) => ({
+    ...(await importOriginal()),
+    downloadBuildPayload: vi.fn(),
 }));
 
 const equipment = {
@@ -35,6 +41,21 @@ const equipment = {
     calculateStats: vi.fn(),
     saveBuildToFile: vi.fn(),
     loadBuildFromFile: vi.fn(),
+    createBuildSnapshot: vi.fn(() => ({
+        payload: {
+            format: "broken-ranks-tool-build",
+            version: 1,
+            build: {
+                requestData: { slots: {}, characterStats: {} },
+                characterConfig: null,
+                lockedSlots: [],
+                lockedDrifs: {},
+            },
+        },
+        stats: null,
+        statSources: {},
+    })),
+    loadBuildSnapshot: vi.fn(),
     runDrifOptimization: vi.fn(),
     lockedSlots: [],
     lockedDrifs: [],
@@ -46,6 +67,7 @@ const equipment = {
 describe("App", () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        localStorage.clear();
         useEquipment.mockReturnValue(equipment);
     });
 
@@ -80,9 +102,12 @@ describe("App", () => {
 
         await user.click(screen.getByRole("button", { name: /Kreator ekwipunku/i }));
         expect(screen.getByText("Ustawienia optymalizatora")).not.toBeVisible();
-        await user.click(screen.getByRole("button", { name: /Zapisz build/i }));
+        await user.click(screen.getByRole("button", { name: /Zapisz lokalnie/i }));
         await user.click(screen.getByRole("button", { name: /Przelicz statystyki/i }));
-        expect(equipment.saveBuildToFile).toHaveBeenCalledOnce();
+        expect(
+            JSON.parse(localStorage.getItem("broken-ranks-tool.build-library.v1")).builds
+        ).toHaveLength(1);
+        expect(equipment.saveBuildToFile).not.toHaveBeenCalled();
         expect(equipment.calculateStats).toHaveBeenCalledOnce();
 
         await user.click(screen.getByRole("button", { name: /Optymalizator drifów/i }));
@@ -111,12 +136,40 @@ describe("App", () => {
         );
     });
 
-    it("reports file export and allows dismissing the message", async () => {
+    it("saves and reloads named builds from the local library", async () => {
         const user = userEvent.setup();
         render(<App />);
 
-        await user.click(screen.getByRole("button", { name: /Zapisz build/i }));
-        expect(screen.getByRole("status")).toHaveTextContent("Build został zapisany");
+        await user.click(screen.getByRole("button", { name: /Zapisz lokalnie/i }));
+        await user.click(screen.getByRole("button", { name: /Buildy lokalne/i }));
+        expect(screen.getByRole("heading", { name: "Buildy lokalne" })).toBeInTheDocument();
+        const nameInput = screen.getByLabelText("Zmień nazwę lokalnego buildu");
+        await user.clear(nameInput);
+        await user.type(nameInput, "PvE ogień");
+        await user.click(screen.getByRole("button", { name: "Zmień nazwę" }));
+
+        expect(screen.getByRole("status")).toHaveTextContent("Zmieniono nazwę");
+        expect(screen.getAllByText("PvE ogień")).not.toHaveLength(0);
+        await user.click(screen.getByRole("button", { name: "Wczytaj" }));
+
+        expect(equipment.loadBuildSnapshot).toHaveBeenCalledWith(
+            expect.objectContaining({ name: "PvE ogień" })
+        );
+        expect(screen.getByRole("heading", { name: "Ekwipunek" })).toBeVisible();
+    });
+
+    it("exports a saved local build to JSON and allows dismissing the message", async () => {
+        const user = userEvent.setup();
+        render(<App />);
+
+        await user.click(screen.getByRole("button", { name: /Zapisz lokalnie/i }));
+        expect(screen.getByRole("status")).toHaveTextContent("Zapisano lokalnie");
+        await user.click(screen.getByRole("button", { name: /Buildy lokalne/i }));
+        await user.click(screen.getByRole("button", { name: "Eksportuj JSON" }));
+        expect(downloadBuildPayload).toHaveBeenCalledWith(
+            expect.objectContaining({ format: "broken-ranks-tool-build" })
+        );
+        expect(screen.getByRole("status")).toHaveTextContent("Wyeksportowano build");
 
         await user.click(screen.getByRole("button", { name: "Zamknij komunikat" }));
         expect(screen.queryByRole("status")).not.toBeInTheDocument();
@@ -127,7 +180,7 @@ describe("App", () => {
         render(<App />);
         expect(screen.getByRole("alert")).toHaveTextContent("brak połączenia");
         expect(screen.queryByRole("heading", { name: "Ekwipunek" })).not.toBeInTheDocument();
-        expect(screen.getByRole("button", { name: /Zapisz build/i })).toBeDisabled();
+        expect(screen.getByRole("button", { name: /Zapisz lokalnie/i })).toBeDisabled();
     });
 
     it("shows a dedicated loading state before rendering the workspaces", () => {

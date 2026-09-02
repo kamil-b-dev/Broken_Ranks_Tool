@@ -43,4 +43,23 @@ describe("useEquipmentStats", () => {
         expect(alert).toHaveBeenCalledWith("BŁĄD ZAPISU: Niepoprawny build");
         expect(result.current.isCalculatingStats).toBe(false);
     });
+
+    it("hides stale results after an edit and restores stats for a loaded snapshot", async () => {
+        calculateEquipmentStats.mockResolvedValue({ stats: { Atak: 150 } });
+        const initialRequest = { slots: { helmet: { itemId: 1 } } };
+        const { result, rerender } = renderHook(
+            ({ requestData }) => useEquipmentStats(requestData),
+            { initialProps: { requestData: initialRequest } }
+        );
+
+        await act(async () => result.current.calculateStats());
+        expect(result.current.stats).toEqual({ Atak: 150 });
+
+        const changedRequest = { slots: { helmet: { itemId: 2 } } };
+        rerender({ requestData: changedRequest });
+        expect(result.current.stats).toBeNull();
+
+        act(() => result.current.restoreStats({ Atak: 170 }, {}, changedRequest));
+        expect(result.current.stats).toEqual({ Atak: 170 });
+    });
 });

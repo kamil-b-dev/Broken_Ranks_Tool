@@ -32,8 +32,7 @@ const OrbSection = ({
     const currentOrbObj = groupedOrbs[orbState.type]?.find(
         (orb) => String(orb.id) === String(orbState.id)
     );
-    const currentOrbCategory =
-        currentOrbObj?.category || groupedOrbs[orbState.type]?.[0]?.category;
+    const currentOrbCategory = currentOrbObj?.category || groupedOrbs[orbState.type]?.[0]?.category;
     const isSubOrb = currentOrbObj?.size?.toUpperCase() === "SUBORB";
     const availableOrbLevels = isSubOrb ? [1] : [1, 2, 3];
 
