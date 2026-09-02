@@ -5,6 +5,7 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.config.OptimizationProperties;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationResponse;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationSummary;
@@ -23,10 +24,7 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.service.ModsOptimizati
 @RequiredArgsConstructor
 public class CustomModsOptimizationServiceImpl implements ModsOptimizationService {
 
-    private static final int BEAM_SEARCH_STEPS = 55_000;
-    private static final int MAXIMIZATION_SEARCH_STEPS = 20_000;
-    private static final int REFINEMENT_SEARCH_STEPS = 25_000;
-
+    private final OptimizationProperties properties;
     private final OptimizationContextFactory contextFactory;
     private final OptimizationSearchPipeline searchPipeline;
     private final OptimizationResultAssembler resultAssembler;
@@ -69,7 +67,10 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
 
     private OptimizationContext createContext(OptimizationRequest request) {
         return contextFactory.create(
-                request, BEAM_SEARCH_STEPS, MAXIMIZATION_SEARCH_STEPS, REFINEMENT_SEARCH_STEPS);
+                request,
+                properties.beamSearchSteps(),
+                properties.maximizationSearchSteps(),
+                properties.refinementSearchSteps());
     }
 
     private OptimizationResponse successfulResponse(

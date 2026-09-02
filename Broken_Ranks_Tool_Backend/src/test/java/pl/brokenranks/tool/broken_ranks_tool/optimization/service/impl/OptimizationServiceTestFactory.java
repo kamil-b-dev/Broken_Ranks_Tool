@@ -7,6 +7,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCal
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.processor.ItemStatProcessor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentPlacementRules;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.UpgradeLevelPolicy;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.config.OptimizationProperties;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.constraints.OptimizationLockService;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context.OptimizationContextFactory;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context.OptimizationInitialStateFactory;
@@ -56,6 +57,7 @@ final class OptimizationServiceTestFactory {
         OptimizationInitialStateFactory initialStates =
                 new OptimizationInitialStateFactory(levelPolicy);
         return new CustomModsOptimizationServiceImpl(
+                new OptimizationProperties(55_000, 20_000, 25_000, 1),
                 new OptimizationContextFactory(
                         drifRepository,
                         itemRepository,

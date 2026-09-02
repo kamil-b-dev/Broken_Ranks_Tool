@@ -13,7 +13,6 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.It
 @RestController
 @RequestMapping("/api/items")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class ItemTemplatesController {
 
     private final ItemTemplateRepository itemRepository;

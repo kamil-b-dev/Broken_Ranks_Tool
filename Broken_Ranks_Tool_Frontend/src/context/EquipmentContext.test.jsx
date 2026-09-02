@@ -24,7 +24,7 @@ const ActionProbe = ({ exposeRef }) => {
 describe("EquipmentProvider", () => {
     it("loads initial game data from the backend", async () => {
         server.use(
-            http.get("http://localhost:8080/api/initial-data", () =>
+            http.get("*/api/initial-data", () =>
                 HttpResponse.json({
                     items: [{ id: 1 }],
                     orbs: [],
@@ -48,7 +48,7 @@ describe("EquipmentProvider", () => {
     it("exposes a backend error to the application", async () => {
         vi.spyOn(console, "error").mockImplementation(() => {});
         server.use(
-            http.get("http://localhost:8080/api/initial-data", () =>
+            http.get("*/api/initial-data", () =>
                 HttpResponse.json({ message: "Dane gry są niedostępne." }, { status: 503 })
             )
         );
@@ -66,7 +66,7 @@ describe("EquipmentProvider", () => {
 
     it("updates slots and locks while protecting optimization without equipment", async () => {
         server.use(
-            http.get("http://localhost:8080/api/initial-data", () =>
+            http.get("*/api/initial-data", () =>
                 HttpResponse.json({
                     items: [],
                     orbs: [],
@@ -119,7 +119,7 @@ describe("EquipmentProvider", () => {
         let receivedRequest;
         const optimizedSlots = { helmet: { itemId: 2, drifIds: [9], drifLevels: { 0: 5 } } };
         server.use(
-            http.get("http://localhost:8080/api/initial-data", () =>
+            http.get("*/api/initial-data", () =>
                 HttpResponse.json({
                     items: [],
                     orbs: [],
@@ -128,7 +128,7 @@ describe("EquipmentProvider", () => {
                     dictionaries: {},
                 })
             ),
-            http.post("http://localhost:8080/api/optimizer/drifs", async ({ request }) => {
+            http.post("*/api/optimizer/drifs", async ({ request }) => {
                 receivedRequest = await request.json();
                 return HttpResponse.json({
                     optimizedSetup: { slots: optimizedSlots },
@@ -187,7 +187,7 @@ describe("EquipmentProvider", () => {
     it("stores calculated stats together with their display sources", async () => {
         let receivedRequest;
         server.use(
-            http.get("http://localhost:8080/api/initial-data", () =>
+            http.get("*/api/initial-data", () =>
                 HttpResponse.json({
                     items: [],
                     orbs: [],
@@ -196,7 +196,7 @@ describe("EquipmentProvider", () => {
                     dictionaries: {},
                 })
             ),
-            http.post("http://localhost:8080/api/calculator/calculate", async ({ request }) => {
+            http.post("*/api/calculator/calculate", async ({ request }) => {
                 receivedRequest = await request.json();
                 return HttpResponse.json({
                     stats: { hp: 1234 },
@@ -236,7 +236,7 @@ describe("EquipmentProvider", () => {
 
     it("captures and restores a local build snapshot with calculated statistics", async () => {
         server.use(
-            http.get("http://localhost:8080/api/initial-data", () =>
+            http.get("*/api/initial-data", () =>
                 HttpResponse.json({
                     items: [{ id: 1 }],
                     orbs: [],
@@ -245,7 +245,7 @@ describe("EquipmentProvider", () => {
                     dictionaries: {},
                 })
             ),
-            http.post("http://localhost:8080/api/calculator/calculate", () =>
+            http.post("*/api/calculator/calculate", () =>
                 HttpResponse.json({ stats: { Atak: 155 } })
             )
         );
@@ -290,7 +290,7 @@ describe("EquipmentProvider", () => {
         vi.spyOn(console, "error").mockImplementation(() => {});
         vi.spyOn(window, "alert").mockImplementation(() => {});
         server.use(
-            http.get("http://localhost:8080/api/initial-data", () =>
+            http.get("*/api/initial-data", () =>
                 HttpResponse.json({
                     items: [],
                     orbs: [],
@@ -299,13 +299,13 @@ describe("EquipmentProvider", () => {
                     dictionaries: {},
                 })
             ),
-            http.post("http://localhost:8080/api/optimizer/drifs", () =>
+            http.post("*/api/optimizer/drifs", () =>
                 HttpResponse.json(
                     { summary: { message: "Nie znaleziono dopuszczalnego układu." } },
                     { status: 422 }
                 )
             ),
-            http.post("http://localhost:8080/api/calculator/calculate", () =>
+            http.post("*/api/calculator/calculate", () =>
                 HttpResponse.json({ message: "Niepoprawny ekwipunek." }, { status: 400 })
             )
         );

@@ -1,12 +1,9 @@
 import { useMemo, useState } from "react";
-import { useItemDatabaseFilters } from "../hooks/useItemDatabaseFilters";
-import ItemDatabaseControls from "./item_database/ItemDatabaseControls";
-import {
-    buildItemDatabaseGroups,
-    filterItemDatabaseGroups,
-} from "./item_database/itemDatabaseDomain";
-import ItemDatabaseResults from "./item_database/ItemDatabaseResults";
-import ItemDatabaseTooltip from "./item_database/ItemDatabaseTooltip";
+import { useItemDatabaseFilters } from "../../hooks/useItemDatabaseFilters";
+import ItemDatabaseControls from "./ItemDatabaseControls";
+import { buildItemDatabaseGroups, filterItemDatabaseGroups } from "./itemDatabaseDomain";
+import ItemDatabaseResults from "./ItemDatabaseResults";
+import ItemDatabaseTooltip from "./ItemDatabaseTooltip";
 
 /** Provides searchable equipment data and drag-and-drop selection. */
 const ItemDatabase = ({

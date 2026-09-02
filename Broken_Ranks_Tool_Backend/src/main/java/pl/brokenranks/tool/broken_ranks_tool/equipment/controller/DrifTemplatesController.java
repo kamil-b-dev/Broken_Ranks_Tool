@@ -13,7 +13,6 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.Dr
 @RestController
 @RequestMapping("/api/drifs")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class DrifTemplatesController {
 
     private final DrifTemplateRepository drifRepository;

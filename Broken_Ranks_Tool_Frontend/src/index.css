@@ -1759,7 +1759,7 @@ input:focus-visible {
 .character-stat-strip {
     display: grid;
     min-width: 0;
-    grid-template-columns: repeat(7, minmax(7.25rem, 1fr));
+    grid-template-columns: repeat(7, minmax(9.5rem, 1fr));
     gap: 0.45rem;
     overflow-x: auto;
     padding-bottom: 0.15rem;
@@ -1769,9 +1769,9 @@ input:focus-visible {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 0.4rem;
-    padding: 0.45rem 0.55rem;
-    min-height: 3.35rem;
+    gap: 0.35rem;
+    padding: 0.2rem 0.35rem;
+    min-height: 4rem;
     border: 1px solid rgba(148, 103, 52, 0.72);
     background: rgba(18, 14, 15, 0.82);
 }
@@ -1783,36 +1783,53 @@ input:focus-visible {
 }
 
 .character-stat-icon {
-    width: 2.35rem;
-    height: 2.35rem;
+    position: relative;
+    width: 3.5rem;
+    height: 3.5rem;
     flex: 0 0 auto;
+    overflow: hidden;
+    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.9));
+}
+
+.character-stat-icon::before {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 3.5rem;
+    height: 7rem;
+    content: "";
     background-image: url("./assets/character-stat-icons.png");
     background-repeat: no-repeat;
     background-size: 400% 200%;
-    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.9));
-    transform: scale(1.28);
-    transform-origin: center;
+    transform: translate(-50%, -50%) scale(0.68);
 }
 
-.character-stat-control:nth-child(1) .character-stat-icon {
+.character-stat-control:nth-child(1) .character-stat-icon::before {
+    top: calc(50% - 0.3rem);
     background-position: 0 0;
 }
-.character-stat-control:nth-child(2) .character-stat-icon {
+.character-stat-control:nth-child(2) .character-stat-icon::before {
+    top: calc(50% - 0.3rem);
     background-position: 33.333% 0;
 }
-.character-stat-control:nth-child(3) .character-stat-icon {
+.character-stat-control:nth-child(3) .character-stat-icon::before {
+    top: calc(50% - 0.3rem);
     background-position: 66.667% 0;
 }
-.character-stat-control:nth-child(4) .character-stat-icon {
+.character-stat-control:nth-child(4) .character-stat-icon::before {
+    top: calc(50% - 0.3rem);
     background-position: 100% 0;
 }
-.character-stat-control:nth-child(5) .character-stat-icon {
+.character-stat-control:nth-child(5) .character-stat-icon::before {
+    top: calc(50% + 0.3rem);
     background-position: 0 100%;
 }
-.character-stat-control:nth-child(6) .character-stat-icon {
+.character-stat-control:nth-child(6) .character-stat-icon::before {
+    top: calc(50% + 0.3rem);
     background-position: 33.333% 100%;
 }
-.character-stat-control:nth-child(7) .character-stat-icon {
+.character-stat-control:nth-child(7) .character-stat-icon::before {
+    top: calc(50% + 0.3rem);
     background-position: 66.667% 100%;
 }
 
@@ -1834,13 +1851,14 @@ input:focus-visible {
 }
 
 .character-stat-actions {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(2, 1.65rem);
     gap: 0.2rem;
 }
 
 .character-stat-actions button {
     display: grid;
-    width: 1.45rem;
+    width: 1.65rem;
     height: 1.45rem;
     place-items: center;
     border: 1px solid rgba(91, 75, 65, 0.8);
@@ -1849,6 +1867,7 @@ input:focus-visible {
         linear-gradient(rgba(0, 0, 0, 0.61), rgba(0, 0, 0, 0.73)),
         url("./assets/hammered-black-iron-texture.png") center / 13rem;
     background-blend-mode: normal, soft-light;
+    font-size: 0.63rem;
 }
 
 .character-stat-actions button:hover:not(:disabled) {

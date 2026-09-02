@@ -13,13 +13,16 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import pl.brokenranks.tool.broken_ranks_tool.core.config.SecurityConfig;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.CalculationResultDto;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCalculatorService;
 
 @WebMvcTest(CalculatorController.class)
+@Import(SecurityConfig.class)
 class CalculatorControllerTests {
 
     @Autowired private MockMvc mockMvc;
@@ -57,7 +60,28 @@ class CalculatorControllerTests {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("{\"slots\":{}}"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Bad Request"))
+                .andExpect(jsonPath("$.code").value("INVALID_REQUEST"))
                 .andExpect(jsonPath("$.message").value("Niepoprawny ekwipunek."));
+    }
+
+    @Test
+    void acceptsTheMaximumUpgradeLevelUsedByTheFrontend() throws Exception {
+        when(calculatorService.calculateWithSources(any(EquipmentRequest.class)))
+                .thenReturn(new CalculationResultDto(Map.of(), Map.of(), Set.of()));
+
+        mockMvc.perform(
+                        post("/api/calculator/calculate")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        """
+                                        {
+                                          "slots": {
+                                            "weapon": {"itemId": 1, "itemStars": 9}
+                                          }
+                                        }
+                                        """))
+                .andExpect(status().isOk());
+
+        verify(calculatorService).calculateWithSources(any(EquipmentRequest.class));
     }
 }
