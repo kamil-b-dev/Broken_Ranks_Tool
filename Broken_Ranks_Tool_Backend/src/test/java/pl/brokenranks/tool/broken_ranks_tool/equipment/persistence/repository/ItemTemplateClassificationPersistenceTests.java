@@ -38,8 +38,7 @@ class ItemTemplateClassificationPersistenceTests {
                 .filteredOn(item -> item.getClassScope() == ITEM_CLASS_SCOPE.UNIVERSAL)
                 .hasSize(123)
                 .allSatisfy(item -> assertThat(item.getAllowedClasses()).isEmpty());
-        assertThat(items)
-                .allMatch(item -> item.getClassScope() != ITEM_CLASS_SCOPE.UNKNOWN);
+        assertThat(items).allMatch(item -> item.getClassScope() != ITEM_CLASS_SCOPE.UNKNOWN);
         assertThat(items.stream().mapToInt(item -> item.getAllowedClasses().size()).sum())
                 .isEqualTo(69);
         assertThat(items)
