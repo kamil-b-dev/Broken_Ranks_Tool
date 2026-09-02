@@ -66,4 +66,26 @@ describe("CharacterPanel", () => {
             expect.objectContaining({ level: 2 })
         );
     });
+
+    it("changes compact character stats by ten points with one click", async () => {
+        const user = userEvent.setup();
+        render(<CharacterPanel compact onStatsChange={vi.fn()} />);
+
+        fireEvent.change(screen.getByRole("spinbutton", { name: "Poziom postaci" }), {
+            target: { value: "4" },
+        });
+
+        const addTen = screen.getByRole("button", { name: "Dodaj 10 punktów: Siła" });
+        const subtractTen = screen.getByRole("button", { name: "Odejmij 10 punktów: Siła" });
+        expect(addTen).toBeEnabled();
+        expect(subtractTen).toBeDisabled();
+
+        await user.click(addTen);
+        expect(screen.getByText("20")).toBeInTheDocument();
+        expect(subtractTen).toBeEnabled();
+
+        await user.click(subtractTen);
+        expect(screen.getAllByText("10").length).toBeGreaterThan(0);
+        expect(subtractTen).toBeDisabled();
+    });
 });
