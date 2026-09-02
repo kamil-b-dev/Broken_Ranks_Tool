@@ -21,7 +21,8 @@ class RequestTracingFilterTests {
 
         filter.doFilter(request, response, new MockFilterChain());
 
-        assertEquals("client-request-1", response.getHeader(RequestTracingFilter.REQUEST_ID_HEADER));
+        assertEquals(
+                "client-request-1", response.getHeader(RequestTracingFilter.REQUEST_ID_HEADER));
         assertNull(MDC.get(RequestTracingFilter.REQUEST_ID));
     }
 }

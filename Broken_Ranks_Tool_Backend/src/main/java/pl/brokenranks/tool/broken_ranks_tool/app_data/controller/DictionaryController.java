@@ -3,7 +3,6 @@ package pl.brokenranks.tool.broken_ranks_tool.app_data.controller;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -14,7 +13,6 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ORB_CATEGORY
 /** Exposes API endpoints for the core translation dictionaries. */
 @RestController
 @RequestMapping("/api/dictionaries")
-@CrossOrigin(origins = "*")
 public class DictionaryController {
 
     /** @return Translations for item categories keyed by enum name. */

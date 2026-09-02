@@ -13,9 +13,7 @@ const initialData = {
 };
 
 test("opens the builder and switches to the optimizer", async ({ page }) => {
-    await page.route("**/api/initial-data", (route) =>
-        route.fulfill({ json: initialData })
-    );
+    await page.route("**/api/initial-data", (route) => route.fulfill({ json: initialData }));
 
     await page.goto("/");
 
@@ -33,9 +31,7 @@ test("opens the builder and switches to the optimizer", async ({ page }) => {
 });
 
 test("preserves optimizer state when switching workspaces", async ({ page }) => {
-    await page.route("**/api/initial-data", (route) =>
-        route.fulfill({ json: initialData })
-    );
+    await page.route("**/api/initial-data", (route) => route.fulfill({ json: initialData }));
 
     await page.goto("/");
     await page.getByRole("button", { name: /Optymalizator drifów/ }).click();

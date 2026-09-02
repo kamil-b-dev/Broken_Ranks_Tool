@@ -12,7 +12,6 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.Or
 @RestController
 @RequestMapping("/api/orbs")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class OrbTemplatesController {
 
     private final OrbTemplateRepository orbRepository;

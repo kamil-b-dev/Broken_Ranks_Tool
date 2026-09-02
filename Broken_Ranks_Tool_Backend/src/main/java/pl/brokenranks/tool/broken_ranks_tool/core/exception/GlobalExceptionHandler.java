@@ -8,8 +8,8 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.service.OptimizerBusyException;
 import pl.brokenranks.tool.broken_ranks_tool.core.config.RequestTracingFilter;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.service.OptimizerBusyException;
 
 /** Maps application failures to a stable and intentionally small API contract. */
 @RestControllerAdvice

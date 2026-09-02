@@ -1,7 +1,6 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.controller;
 
 import jakarta.validation.Valid;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,7 +11,6 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.service.OptimizationEx
 @RestController
 @RequestMapping("/api/optimizer")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class OptimizationController {
 
     private final OptimizationExecutionGuard executionGuard;
