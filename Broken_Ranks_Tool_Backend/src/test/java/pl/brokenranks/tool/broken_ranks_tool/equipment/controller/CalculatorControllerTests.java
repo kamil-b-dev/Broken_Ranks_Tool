@@ -63,4 +63,25 @@ class CalculatorControllerTests {
                 .andExpect(jsonPath("$.code").value("INVALID_REQUEST"))
                 .andExpect(jsonPath("$.message").value("Niepoprawny ekwipunek."));
     }
+
+    @Test
+    void acceptsTheMaximumUpgradeLevelUsedByTheFrontend() throws Exception {
+        when(calculatorService.calculateWithSources(any(EquipmentRequest.class)))
+                .thenReturn(new CalculationResultDto(Map.of(), Map.of(), Set.of()));
+
+        mockMvc.perform(
+                        post("/api/calculator/calculate")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        """
+                                        {
+                                          "slots": {
+                                            "weapon": {"itemId": 1, "itemStars": 9}
+                                          }
+                                        }
+                                        """))
+                .andExpect(status().isOk());
+
+        verify(calculatorService).calculateWithSources(any(EquipmentRequest.class));
+    }
 }
