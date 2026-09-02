@@ -1,20 +1,20 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.service;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.config.OptimizationProperties;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationResponse;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.config.OptimizationProperties;
 
 class OptimizationExecutionGuardTests {
 
@@ -44,18 +44,15 @@ class OptimizationExecutionGuardTests {
             entered.await(2, TimeUnit.SECONDS);
 
             assertThrows(
-                    OptimizerBusyException.class,
-                    () -> guard.optimize(new OptimizationRequest()));
+                    OptimizerBusyException.class, () -> guard.optimize(new OptimizationRequest()));
 
             release.countDown();
             first.get(2, TimeUnit.SECONDS);
             guard.optimize(new OptimizationRequest());
             assertEquals(
-                    1.0,
-                    meterRegistry.counter("optimizer.runs", "outcome", "rejected").count());
+                    1.0, meterRegistry.counter("optimizer.runs", "outcome", "rejected").count());
             assertEquals(
-                    2.0,
-                    meterRegistry.counter("optimizer.runs", "outcome", "no_solution").count());
+                    2.0, meterRegistry.counter("optimizer.runs", "outcome", "no_solution").count());
             assertEquals(0.0, meterRegistry.get("optimizer.active").gauge().value());
         } finally {
             release.countDown();

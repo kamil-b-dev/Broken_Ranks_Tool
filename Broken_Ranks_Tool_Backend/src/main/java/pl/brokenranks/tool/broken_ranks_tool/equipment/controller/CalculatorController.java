@@ -1,7 +1,6 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.controller;
 
 import jakarta.validation.Valid;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,7 +12,6 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCal
 @RestController
 @RequestMapping("/api/calculator")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class CalculatorController {
 
     private final EquipmentStatsCalculatorService calculatorService;

@@ -4,7 +4,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
-
 import java.util.List;
 import java.util.Map;
 import lombok.Data;
@@ -26,6 +25,7 @@ public class EquipmentRequest {
     @Data
     public static class SlotData {
         private Long itemId;
+
         @Min(0)
         @Max(5)
         private Integer itemStars;

@@ -27,6 +27,7 @@ AGENTS.md
 .agents/
 
 # Local environment and secrets
+node_modules/
 .env
 .env.*
 !.env.example
