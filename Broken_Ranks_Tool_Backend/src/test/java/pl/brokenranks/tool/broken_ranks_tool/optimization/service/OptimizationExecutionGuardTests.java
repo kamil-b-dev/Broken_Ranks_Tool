@@ -1,6 +1,7 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.service;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -8,6 +9,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
@@ -29,9 +31,12 @@ class OptimizationExecutionGuardTests {
                             release.await(2, TimeUnit.SECONDS);
                             return response;
                         });
+        SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
         OptimizationExecutionGuard guard =
                 new OptimizationExecutionGuard(
-                        service, new OptimizationProperties(55_000, 20_000, 25_000, 1));
+                        service,
+                        new OptimizationProperties(55_000, 20_000, 25_000, 1),
+                        meterRegistry);
         ExecutorService executor = Executors.newSingleThreadExecutor();
 
         try {
@@ -45,6 +50,13 @@ class OptimizationExecutionGuardTests {
             release.countDown();
             first.get(2, TimeUnit.SECONDS);
             guard.optimize(new OptimizationRequest());
+            assertEquals(
+                    1.0,
+                    meterRegistry.counter("optimizer.runs", "outcome", "rejected").count());
+            assertEquals(
+                    2.0,
+                    meterRegistry.counter("optimizer.runs", "outcome", "no_solution").count());
+            assertEquals(0.0, meterRegistry.get("optimizer.active").gauge().value());
         } finally {
             release.countDown();
             executor.shutdownNow();
