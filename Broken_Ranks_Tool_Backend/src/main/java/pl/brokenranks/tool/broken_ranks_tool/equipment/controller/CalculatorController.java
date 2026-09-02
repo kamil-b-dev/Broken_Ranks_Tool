@@ -1,5 +1,7 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.controller;
 
+import jakarta.validation.Valid;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +25,7 @@ public class CalculatorController {
      */
     @PostMapping("/calculate")
     public ResponseEntity<CalculationResultDto> calculateStats(
-            @RequestBody EquipmentRequest request) {
+            @Valid @RequestBody EquipmentRequest request) {
         CalculationResultDto result = calculatorService.calculateWithSources(request);
         return ResponseEntity.ok(result);
     }
