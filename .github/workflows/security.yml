@@ -16,8 +16,8 @@ jobs:
       run:
         working-directory: Broken_Ranks_Tool_Frontend
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: "22"
           cache: npm
@@ -32,8 +32,8 @@ jobs:
       run:
         working-directory: Broken_Ranks_Tool_Backend
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: "21"
@@ -43,7 +43,7 @@ jobs:
         run: ./mvnw --batch-mode -Psecurity dependency-check:check
       - name: Upload dependency report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: backend-dependency-report
           path: Broken_Ranks_Tool_Backend/target/dependency-check-report.*
