@@ -7,7 +7,7 @@ import {
 import {
     createOptimizerConfigPayload,
     parseOptimizerConfigPayload,
-} from "./optimizerConfiguration";
+} from "../optimizerConfiguration";
 
 const rules = {
     bonusTranslations: {

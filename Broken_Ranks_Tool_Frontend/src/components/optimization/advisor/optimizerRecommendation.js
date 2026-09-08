@@ -1,4 +1,4 @@
-import { SLOTS } from "../../constants/equipment";
+import { SLOTS } from "../../../constants/equipment";
 
 const valueAt = (values, index) => values?.[index] || null;
 const levelAt = (slot, index) =>

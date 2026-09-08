@@ -17,10 +17,10 @@ import OptimizerChangesSection from "./OptimizerChangesSection";
 import { useOptimizerPriorities } from "../../hooks/useOptimizerPriorities";
 import { useOptimizationRun } from "../../hooks/useOptimizationRun";
 import { useOptimizerConfigFiles } from "../../hooks/useOptimizerConfigFiles";
-import { createRecommendationChanges } from "./optimizerRecommendation";
-import { buildAdvisorConfiguration } from "./advisorConfiguration";
-import AdvisorGoalsPanel from "./AdvisorGoalsPanel";
-import { advisorBuildSignature } from "./advisorBuildSignature";
+import { createRecommendationChanges } from "./advisor/optimizerRecommendation";
+import { buildAdvisorConfiguration } from "./advisor/advisorConfiguration";
+import AdvisorGoalsPanel from "./advisor/AdvisorGoalsPanel";
+import { advisorBuildSignature } from "./advisor/advisorBuildSignature";
 
 /**
  * Provides drif priorities, target limits, and equipment locking for optimization.
