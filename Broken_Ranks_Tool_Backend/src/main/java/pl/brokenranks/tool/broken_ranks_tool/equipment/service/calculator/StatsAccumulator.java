@@ -81,6 +81,13 @@ public class StatsAccumulator {
         return finalStats;
     }
 
+    /** Snapshot before display rounding, for composing cached slot contributions. */
+    public Map<String, Double> getNumericResults() {
+        Map<String, Double> result = new HashMap<>(flatStats);
+        result.putAll(percentStats);
+        return result;
+    }
+
     private String formatValue(double value, boolean isPercent) {
         BigDecimal bd =
                 BigDecimal.valueOf(value).setScale(2, RoundingMode.HALF_UP).stripTrailingZeros();

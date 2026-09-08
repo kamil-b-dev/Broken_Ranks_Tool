@@ -29,10 +29,24 @@ export const useOptimizerConfigFiles = ({
                 gameRules
             );
             replaceConfiguration(imported);
-            if (imported.maxVariantLossPercent !== null)
+            if (imported.maxVariantLossPercent !== null || imported.mode !== null)
                 onSettingsChange((previous) => ({
                     ...previous,
-                    maxVariantLossPercent: imported.maxVariantLossPercent,
+                    advisorProfession: imported.advisorProfession,
+                    ...(imported.advisorGoal !== null ? { advisorGoal: imported.advisorGoal } : {}),
+                    ...(imported.advisorSearch !== null
+                        ? { advisorSearch: imported.advisorSearch }
+                        : {}),
+                    ...(imported.advisorProtectedModifiers !== null
+                        ? { advisorProtectedModifiers: imported.advisorProtectedModifiers }
+                        : {}),
+                    ...(imported.advisorAllowedChanges !== null
+                        ? { advisorAllowedChanges: imported.advisorAllowedChanges }
+                        : {}),
+                    ...(imported.maxVariantLossPercent !== null
+                        ? { maxVariantLossPercent: imported.maxVariantLossPercent }
+                        : {}),
+                    ...(imported.mode !== null ? { mode: imported.mode } : {}),
                 }));
             alert(`Wczytano konfigurację: ${imported.priorities.length} priorytetów.`);
         } catch (error) {

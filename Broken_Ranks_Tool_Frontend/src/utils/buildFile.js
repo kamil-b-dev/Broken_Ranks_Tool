@@ -1,3 +1,5 @@
+import { parseGameBuildPayload } from "./gameBuildFile";
+
 export const BUILD_FILE_FORMAT = "broken-ranks-tool-build";
 export const BUILD_FILE_VERSION = 1;
 export const MAX_BUILD_FILE_SIZE = 5 * 1024 * 1024;
@@ -63,6 +65,12 @@ export const parseBuildFile = async (file, { items = [], orbs = [], drifs = [] }
         throw new Error("Plik nie zawiera poprawnego JSON-a.");
     }
 
+    if (payload?.format === BUILD_FILE_FORMAT) {
+        return parseBuildPayload(payload, { items, orbs, drifs });
+    }
+    if (payload?.stats && payload?.equipped && payload?.equipmentList) {
+        return parseGameBuildPayload(payload, { items, orbs, drifs });
+    }
     return parseBuildPayload(payload, { items, orbs, drifs });
 };
 

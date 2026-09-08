@@ -76,6 +76,7 @@ describe("App", () => {
         render(<App />);
 
         expect(screen.getByRole("heading", { name: "Broken Ranks Tool" })).toBeInTheDocument();
+        expect(screen.getByText("także z Broken HUD")).toBeInTheDocument();
         expect(screen.getByRole("link", { name: "Przejdź do głównej treści" })).toHaveAttribute(
             "href",
             "#workspace-content"
@@ -93,7 +94,7 @@ describe("App", () => {
             "aria-current",
             "page"
         );
-        expect(screen.getByText("Ustawienia optymalizatora")).toBeInTheDocument();
+        expect(screen.getByText("Ustawienia budowania")).toBeInTheDocument();
         const optimizerSearch = screen.getByPlaceholderText("Szukaj statystyki...");
         await user.type(optimizerSearch, "krytyk");
         expect(
@@ -101,7 +102,7 @@ describe("App", () => {
         ).not.toBeInTheDocument();
 
         await user.click(screen.getByRole("button", { name: /Kreator ekwipunku/i }));
-        expect(screen.getByText("Ustawienia optymalizatora")).not.toBeVisible();
+        expect(screen.getByText("Ustawienia budowania")).not.toBeVisible();
         await user.click(screen.getByRole("button", { name: /Zapisz lokalnie/i }));
         await user.click(screen.getByRole("button", { name: /Przelicz statystyki/i }));
         expect(
