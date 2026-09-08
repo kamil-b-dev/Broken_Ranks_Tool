@@ -83,17 +83,21 @@ const AppHeader = ({
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={disabled}
+                title="Wczytaj build zapisany w Broken Ranks Tool lub wyeksportowany z Broken HUD"
                 className="header-action"
             >
                 <svg aria-hidden="true" viewBox="0 0 24 24">
                     <path d="M3 6h7l2 2h9v12H3V6Zm9 11V10m0 0-3 3m3-3 3 3" />
                 </svg>
-                Wczytaj build
+                <span className="header-action-label">
+                    Wczytaj build
+                    <small>także z Broken HUD</small>
+                </span>
             </button>
             <input
                 ref={fileInputRef}
                 type="file"
-                accept="application/json,.json"
+                accept="application/json,text/plain,.json,.txt"
                 onChange={onLoadBuild}
                 className="hidden"
             />

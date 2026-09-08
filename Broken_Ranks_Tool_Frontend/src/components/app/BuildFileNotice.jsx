@@ -4,7 +4,7 @@ const BuildFileNotice = ({ notice, onDismiss }) =>
             className={`build-file-notice build-file-notice-${notice.type}`}
             role={notice.type === "error" ? "alert" : "status"}
         >
-            <span aria-hidden="true">{notice.type === "error" ? "!" : "✓"}</span>
+            <span aria-hidden="true">{notice.type === "success" ? "✓" : "!"}</span>
             <p>{notice.message}</p>
             <button type="button" onClick={onDismiss} aria-label="Zamknij komunikat">
                 ×
