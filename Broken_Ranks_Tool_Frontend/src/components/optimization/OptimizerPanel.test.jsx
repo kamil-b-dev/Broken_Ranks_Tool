@@ -83,7 +83,6 @@ describe("OptimizerPanel", () => {
         vi.spyOn(window, "alert").mockImplementation(() => {});
     });
 
-
     it("builds a normalized optimization request from the selected priority", async () => {
         const user = userEvent.setup();
         renderPanel();
@@ -227,4 +226,3 @@ describe("OptimizerPanel", () => {
         expect(onSettingsChange).toHaveBeenCalledWith({ ...settings, mode: "ADVISOR" });
     });
 });
-

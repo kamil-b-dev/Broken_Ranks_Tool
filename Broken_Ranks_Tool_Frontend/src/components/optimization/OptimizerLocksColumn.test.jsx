@@ -34,5 +34,4 @@ describe("OptimizerLocksColumn", () => {
         expect(screen.getByTitle("Odblokuj slot")).toBeInTheDocument();
         expect(screen.getByTitle("Odblokuj drif")).toBeDisabled();
     });
-
 });
