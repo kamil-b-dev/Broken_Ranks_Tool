@@ -14,7 +14,6 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.AdvisorOptions;
 /** Bounded, deterministic beam over short action plans, including compensating moves. */
 final class AdvisorSearch {
     static final double EPSILON = 1e-8;
-    private static final int BEAM_PER_KIND = 8;
     final AdvisorEquipmentModel model;
     final AdvisorOptions options;
     final double[] baseline;
@@ -22,6 +21,7 @@ final class AdvisorSearch {
     final double target;
     final AdvisorSearchControl control;
     final Comparator<Node> ranking;
+    final AdvisorBeamPolicy beamPolicy = new AdvisorBeamPolicy();
     final Set<String> seen = new HashSet<>();
     final List<Node> finalists = new ArrayList<>();
     private final Map<String, List<ItemTemplate>> replacements = new HashMap<>();
@@ -143,41 +143,12 @@ final class AdvisorSearch {
     }
 
     private void trimBeam(List<Node> nodes) {
-        // Retain feasible plans and promising repair paths independently in every cost class.
-        List<Node> selected = new ArrayList<>();
-        for (int kind = 0; kind < 3; kind++) {
-            int group = kind;
-            List<Node> matching = nodes.stream().filter(n -> n.kind() == group).toList();
-            matching.stream()
-                    .sorted(
-                            Comparator.comparingDouble((Node n) -> deficit(n.stats()))
-                                    .thenComparing(ranking()))
-                    .limit(BEAM_PER_KIND)
-                    .forEach(selected::add);
-            matching.stream()
-                    .sorted(
-                            Comparator.comparingDouble(
-                                    (Node n) -> -(gain(n.stats()) - deficit(n.stats()))))
-                    .limit(4)
-                    .filter(n -> !selected.contains(n))
-                    .forEach(selected::add);
-        }
-        nodes.clear();
-        nodes.addAll(selected);
+        beamPolicy.trimSearchBeam(
+                nodes, ranking, node -> deficit(node.stats()), node -> gain(node.stats()));
     }
 
     private void trimFinalists() {
-        List<Node> selected = new ArrayList<>();
-        for (int kind = 0; kind < 3; kind++) {
-            int group = kind;
-            finalists.stream()
-                    .filter(n -> n.kind() == group)
-                    .sorted(ranking())
-                    .limit(8)
-                    .forEach(selected::add);
-        }
-        finalists.clear();
-        finalists.addAll(selected);
+        beamPolicy.trimFinalists(finalists, ranking);
     }
 
     private void neighbors(Node node, Consumer<Node> accept) {
