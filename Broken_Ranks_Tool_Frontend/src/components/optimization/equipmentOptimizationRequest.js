@@ -5,6 +5,7 @@ export const createEquipmentOptimizationRequest = ({
     lockedSlots,
     lockedDrifs,
 }) => ({
+    mode: configuration.mode || "BUILD_FROM_SCRATCH",
     originalSlots: slots,
     priorities: configuration.priorities || {},
     targetQuantities: configuration.targetQuantities || {},
@@ -16,4 +17,10 @@ export const createEquipmentOptimizationRequest = ({
     maxVariantLossPercent: Number(configuration.maxVariantLossPercent),
     lockedSlots,
     lockedDrifs,
+    ...(configuration.mode === "ADVISOR"
+        ? {
+              advisor: configuration.advisor,
+              characterStats: configuration.characterStats || {},
+          }
+        : {}),
 });

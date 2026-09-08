@@ -17,3 +17,9 @@ export const optimizeEquipmentDrifs = async (optimizationRequest) => {
     const response = await apiClient.post("/optimizer/drifs", optimizationRequest);
     return response.data;
 };
+
+/** Stops the search; its original request still returns already verified recommendations. */
+export const cancelAdvisorOptimization = async (runId) => {
+    const response = await apiClient.post(`/optimizer/advisor/${encodeURIComponent(runId)}/cancel`);
+    return response.data;
+};

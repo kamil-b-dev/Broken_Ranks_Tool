@@ -6,7 +6,8 @@ const evaluateGoal = (goal, current, activeVariant, maxCap) => {
         (change) => change.statKey === goal.statKey
     );
     const calculatorValue = variantChange?.variantValue ?? goal.calculatorValue;
-    const displayedCount = current?.count ?? goal.placedCount;
+    const displayedCount =
+        activeVariant?.advisorCounts?.[goal.statKey] ?? current?.count ?? goal.placedCount;
     const quantitySatisfied =
         displayedCount >= goal.minimumCount && displayedCount <= goal.maximumCount;
     const targetValue = numericStatValue(goal.targetLabel);

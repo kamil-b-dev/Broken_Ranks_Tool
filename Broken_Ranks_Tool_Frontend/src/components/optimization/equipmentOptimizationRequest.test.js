@@ -17,6 +17,7 @@ describe("createEquipmentOptimizationRequest", () => {
         });
 
         expect(request).toEqual({
+            mode: "BUILD_FROM_SCRATCH",
             originalSlots: slots,
             priorities: { CRITICAL_CHANCE: 20 },
             targetQuantities: {},
