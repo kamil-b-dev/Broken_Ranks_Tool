@@ -82,9 +82,9 @@ class EquipmentValidationPoliciesTests {
 
         assertTrue(placementRules.isValidItem(helmet, "helmet"));
         assertFalse(placementRules.isValidItem(helmet, "weapon"));
-        assertTrue(placementRules.isValidOrb(defensiveOrb, "helmet", false));
-        assertFalse(placementRules.isValidOrb(defensiveOrb, "helmet", true));
-        assertTrue(placementRules.isValidOrb(offensiveOrb, "helmet", true));
+        assertTrue(placementRules.isValidOrb(defensiveOrb, "helmet", helmet, false));
+        assertFalse(placementRules.isValidOrb(defensiveOrb, "helmet", helmet, true));
+        assertFalse(placementRules.isValidOrb(offensiveOrb, "helmet", helmet, true));
         assertTrue(placementRules.isElementalDrifPositionValid(fire, "weapon"));
         assertFalse(placementRules.isElementalDrifPositionValid(fire, "helmet"));
         assertTrue(placementRules.isValidDrifSizeForTier(fire, helmet));
@@ -97,6 +97,26 @@ class EquipmentValidationPoliciesTests {
                 levelPolicy.sanitizeDrifLevel(
                         -5, drif(DRIF_BONUS_TYPE.DAMAGE_FIRE, DRIF_SIZE.SUBDRIF)));
         assertEquals(1, levelPolicy.sanitizeOrbLevel(-5, orb(ORB_CATEGORY.DEFENSIVE)));
+    }
+
+    @Test
+    void allowsOffensiveOrbsInBothLegendaryPositionsOnly() {
+        OrbTemplate offensive = orb(ORB_CATEGORY.OFFENSIVE);
+        OrbTemplate defensive = orb(ORB_CATEGORY.DEFENSIVE);
+        OrbTemplate utility = orb(ORB_CATEGORY.UTILITY);
+        ItemTemplate legendary = item(4, ITEM_CATEGORY.HELMET, RARITY.LEGENDARY, "XII");
+
+        assertTrue(placementRules.isValidOrb(offensive, "helmet", legendary, false));
+        assertTrue(placementRules.isValidOrb(offensive, "helmet", legendary, true));
+        assertTrue(placementRules.isValidOrb(defensive, "helmet", legendary, false));
+        assertFalse(placementRules.isValidOrb(defensive, "helmet", legendary, true));
+        assertFalse(placementRules.isValidOrb(utility, "helmet", legendary, false));
+        assertFalse(placementRules.isValidOrb(offensive, "weapon", legendary, false));
+        for (RARITY rarity : List.of(RARITY.RARE, RARITY.EPIC, RARITY.SET)) {
+            ItemTemplate helmet = item(4, ITEM_CATEGORY.HELMET, rarity, "XII");
+            assertFalse(placementRules.isValidOrb(offensive, "helmet", helmet, false));
+            assertFalse(placementRules.isValidOrb(offensive, "helmet", helmet, true));
+        }
     }
 
     @Test
