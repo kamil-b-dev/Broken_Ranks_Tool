@@ -281,7 +281,8 @@ public class AdvisorOptimizationService {
                                         + " sprawdzonych planów poprawy: "
                                         + search.options.getGoal().getDescription()
                                         + ".";
-        if (search.cancelled.get()) message += " Analizę zatrzymano; pokazano sprawdzone wyniki.";
+        if (search.control.cancelled())
+            message += " Analizę zatrzymano; pokazano sprawdzone wyniki.";
         else if (search.limited())
             message += " Osiągnięto limit wyszukiwania; wynik nie jest gwarancją optimum.";
         boolean reached =
@@ -323,9 +324,9 @@ public class AdvisorOptimizationService {
                                 variants));
         response.setAdvisorReport(
                 new AdvisorReport(
-                        search.evaluated,
+                        search.control.evaluated(),
                         search.limited(),
-                        search.cancelled.get(),
+                        search.control.cancelled(),
                         reached,
                         search.baseline[search.options.getGoal().ordinal()],
                         search.options.getGoal().name(),

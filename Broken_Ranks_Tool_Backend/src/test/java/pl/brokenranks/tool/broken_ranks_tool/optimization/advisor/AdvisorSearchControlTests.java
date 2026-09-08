@@ -23,7 +23,7 @@ class AdvisorSearchControlTests {
         assertFalse(search(Long.MAX_VALUE, cancelled).running());
 
         AdvisorSearch exhausted = search(Long.MAX_VALUE, new AtomicBoolean());
-        exhausted.evaluated = 20_000;
+        exhausted.control.exhaustForTest();
         assertFalse(exhausted.running());
         assertTrue(exhausted.limited());
 

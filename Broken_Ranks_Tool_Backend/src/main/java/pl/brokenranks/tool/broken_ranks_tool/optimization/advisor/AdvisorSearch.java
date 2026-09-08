@@ -14,19 +14,16 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.AdvisorOptions;
 /** Bounded, deterministic beam over short action plans, including compensating moves. */
 final class AdvisorSearch {
     static final double EPSILON = 1e-8;
-    private static final int STATE_LIMIT = 20000;
     private static final int BEAM_PER_KIND = 8;
     final AdvisorEquipmentModel model;
     final AdvisorOptions options;
     final double[] baseline;
     final double[] minima = new double[TYPES.length];
     final double target;
-    final long deadline;
-    final AtomicBoolean cancelled;
+    final AdvisorSearchControl control;
     final Set<String> seen = new HashSet<>();
     final List<Node> finalists = new ArrayList<>();
     private final Map<String, List<ItemTemplate>> replacements = new HashMap<>();
-    int evaluated;
 
     record Node(
             Map<String, SlotData> slots,
@@ -49,8 +46,7 @@ final class AdvisorSearch {
         this.model = model;
         this.options = options;
         this.baseline = baseline;
-        this.deadline = deadline;
-        this.cancelled = cancelled;
+        this.control = new AdvisorSearchControl(deadline, cancelled);
         Arrays.fill(minima, Double.NEGATIVE_INFINITY);
         for (var type : TYPES) {
             if (type == options.getGoal() || Math.abs(baseline[type.ordinal()]) < EPSILON) continue;
@@ -84,7 +80,7 @@ final class AdvisorSearch {
                         node,
                         candidate -> {
                             if (!running() || !seen.add(signature(candidate.slots()))) return;
-                            evaluated++;
+                            control.recordEvaluation();
                             Node scored =
                                     new Node(
                                             candidate.slots(),
@@ -110,14 +106,11 @@ final class AdvisorSearch {
     }
 
     boolean running() {
-        return !cancelled.get()
-                && !Thread.currentThread().isInterrupted()
-                && evaluated < STATE_LIMIT
-                && System.nanoTime() < deadline;
+        return control.running();
     }
 
     boolean limited() {
-        return evaluated >= STATE_LIMIT || System.nanoTime() >= deadline;
+        return control.limited();
     }
 
     double value(double[] stats) {
