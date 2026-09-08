@@ -21,6 +21,7 @@ final class AdvisorSearch {
     final double[] minima = new double[TYPES.length];
     final double target;
     final AdvisorSearchControl control;
+    final Comparator<Node> ranking;
     final Set<String> seen = new HashSet<>();
     final List<Node> finalists = new ArrayList<>();
     private final Map<String, List<ItemTemplate>> replacements = new HashMap<>();
@@ -66,6 +67,9 @@ final class AdvisorSearch {
                         : options.getTargetGain() != null
                                 ? value(baseline) + options.getTargetGain()
                                 : Double.POSITIVE_INFINITY;
+        ranking =
+                AdvisorPlanRanking.create(
+                        target, node -> reached(node.stats()), node -> value(node.stats()));
     }
 
     List<Node> run(Map<String, SlotData> slots) {
@@ -135,25 +139,7 @@ final class AdvisorSearch {
     }
 
     Comparator<Node> ranking() {
-        return (a, b) -> {
-            if (Double.isFinite(target)) {
-                int reached = Boolean.compare(reached(b.stats()), reached(a.stats()));
-                if (reached != 0) return reached;
-                if (reached(a.stats()) && reached(b.stats())) {
-                    int cost = costCompare(a, b);
-                    if (cost != 0) return cost;
-                }
-            }
-            int gain = Double.compare(value(b.stats()), value(a.stats()));
-            return gain != 0 ? gain : costCompare(a, b);
-        };
-    }
-
-    private int costCompare(Node a, Node b) {
-        int c = Integer.compare(a.upgrades(), b.upgrades());
-        if (c == 0) c = Integer.compare(a.effort(), b.effort());
-        if (c == 0) c = Integer.compare(a.actions().size(), b.actions().size());
-        return c;
+        return ranking;
     }
 
     private void trimBeam(List<Node> nodes) {
