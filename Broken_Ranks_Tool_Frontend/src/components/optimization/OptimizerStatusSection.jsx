@@ -50,6 +50,13 @@ const OptimizerStatusSection = ({ isOptimizing, elapsedSeconds, status, lastDura
                             Zastosowano najlepszy znaleziony układ.
                         </p>
                     )}
+                    {status.applied === false && status.nextVariants?.length > 0 && (
+                        <p className="optimizer-status-applied">
+                            Wynik nie został zastosowany automatycznie. Procenty w raporcie dotyczą
+                            proponowanego układu, a kalkulator liczy aktualny ekwipunek. Przycisk
+                            „Zastosuj wybrany wariant” przenosi propozycję do kalkulatora.
+                        </p>
+                    )}
                     <dl className="optimizer-status-metrics">
                         {status.drifsPlaced !== undefined && (
                             <div>

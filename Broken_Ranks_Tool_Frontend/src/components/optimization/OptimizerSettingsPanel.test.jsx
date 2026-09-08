@@ -1,41 +1,49 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import OptimizerSettingsPanel from "./OptimizerSettingsPanel";
+import OptimizerSettingsPanel, { OptimizerModeNavigation } from "./OptimizerSettingsPanel";
 
 const settings = {
-    forceMaximizationByDrifBonus: false,
-    generateVariants: false,
-    maxVariantLossPercent: 10,
+    forceMaximizationByDrifBonus: true,
+    generateVariants: true,
+    maxVariantLossPercent: 5,
 };
 
 describe("OptimizerSettingsPanel", () => {
-    it("publishes each optimizer setting change", async () => {
-        const user = userEvent.setup();
-        const onChange = vi.fn();
-        const { rerender } = render(
-            <OptimizerSettingsPanel settings={settings} onChange={onChange} />
+    it("offers only the optimizer and advisor modes", () => {
+        render(
+            <OptimizerModeNavigation
+                settings={{ ...settings, mode: "BUILD_FROM_SCRATCH" }}
+                onChange={vi.fn()}
+            />
         );
 
-        const [forceMaximum, variants] = screen.getAllByRole("checkbox");
-        const maximumLoss = screen.getByRole("spinbutton");
-        expect(maximumLoss).toBeDisabled();
+        expect(screen.getByText("Od zera")).toBeInTheDocument();
+        expect(screen.getByText("Doradca")).toBeInTheDocument();
+        expect(screen.queryByText("Reorganizacja")).not.toBeInTheDocument();
+    });
 
-        await user.click(forceMaximum);
-        expect(onChange).toHaveBeenLastCalledWith({
-            ...settings,
-            forceMaximizationByDrifBonus: true,
-        });
+    it("shows build-from-scratch controls only in that workspace", () => {
+        render(
+            <OptimizerSettingsPanel
+                settings={{ ...settings, mode: "BUILD_FROM_SCRATCH" }}
+                onChange={vi.fn()}
+            />
+        );
 
-        await user.click(variants);
-        expect(onChange).toHaveBeenLastCalledWith({ ...settings, generateVariants: true });
+        expect(screen.getByText("Ustawienia budowania")).toBeInTheDocument();
+        expect(screen.getByText(/Wymuś maksymalizację/)).toBeInTheDocument();
+    });
 
-        const enabledSettings = { ...settings, generateVariants: true };
-        rerender(<OptimizerSettingsPanel settings={enabledSettings} onChange={onChange} />);
-        fireEvent.change(maximumLoss, { target: { value: "25" } });
-        expect(onChange).toHaveBeenLastCalledWith({
-            ...enabledSettings,
-            maxVariantLossPercent: 25,
-        });
+    it("uses recommendation-specific options in advisor workspace", () => {
+        render(
+            <OptimizerSettingsPanel
+                settings={{ ...settings, mode: "ADVISOR" }}
+                onChange={vi.fn()}
+            />
+        );
+
+        expect(screen.getByText("Zakres rekomendacji")).toBeInTheDocument();
+        expect(screen.queryByText("Maksymalna strata:")).not.toBeInTheDocument();
+        expect(screen.queryByText(/Wymuś maksymalizację/)).not.toBeInTheDocument();
     });
 });

@@ -53,6 +53,7 @@ export const EquipmentProvider = ({ children }) => {
         markEquipmentChanged,
         applyOptimizationSetup,
         runDrifOptimization,
+        cancelDrifOptimization,
     } = useEquipmentOptimization({
         slots: requestData.slots,
         setRequestData,
@@ -142,6 +143,7 @@ export const EquipmentProvider = ({ children }) => {
         async (file) => {
             const importedBuild = await parseBuildFile(file, data);
             applyImportedBuild(importedBuild);
+            return importedBuild.importSummary || null;
         },
         [applyImportedBuild, data]
     );
@@ -170,6 +172,7 @@ export const EquipmentProvider = ({ children }) => {
             calculateStats,
             applyOptimizationSetup,
             runDrifOptimization,
+            cancelDrifOptimization,
             saveBuildToFile,
             loadBuildFromFile,
             createBuildSnapshot,
@@ -198,6 +201,7 @@ export const EquipmentProvider = ({ children }) => {
             calculateStats,
             applyOptimizationSetup,
             runDrifOptimization,
+            cancelDrifOptimization,
             saveBuildToFile,
             loadBuildFromFile,
             createBuildSnapshot,

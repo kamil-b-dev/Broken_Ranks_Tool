@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const currentTime = () => performance.now();
 
@@ -40,6 +40,11 @@ export const useOptimizationRun = (runOptimization, now = currentTime) => {
         }
     };
 
+    const reset = useCallback(() => {
+        setStatus(null);
+        setActiveVariantIndex(0);
+    }, []);
+
     return {
         isOptimizing,
         elapsedSeconds,
@@ -47,6 +52,7 @@ export const useOptimizationRun = (runOptimization, now = currentTime) => {
         status,
         activeVariantIndex,
         setActiveVariantIndex,
+        reset,
         run,
     };
 };

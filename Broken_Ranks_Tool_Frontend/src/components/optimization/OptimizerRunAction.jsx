@@ -6,6 +6,8 @@ const OptimizerRunAction = ({
     lastDurationSeconds,
     hasResult,
     onRun,
+    onCancel,
+    mode,
 }) => (
     <div className="optimizer-run-panel">
         <div className="optimizer-run-inner">
@@ -51,11 +53,22 @@ const OptimizerRunAction = ({
                         <span className="text-purple-300 tabular-nums">({elapsedSeconds} s)</span>
                     </>
                 ) : hasResult ? (
-                    "OPTYMALIZUJ PONOWNIE"
+                    mode === "ADVISOR" ? (
+                        "ANALIZUJ PONOWNIE"
+                    ) : (
+                        "OPTYMALIZUJ PONOWNIE"
+                    )
+                ) : mode === "ADVISOR" ? (
+                    "ANALIZUJ BUILD"
                 ) : (
                     "URUCHOM OPTYMALIZACJĘ"
                 )}
             </button>
+            {isOptimizing && mode === "ADVISOR" && onCancel && (
+                <button type="button" className="optimizer-apply-variant" onClick={onCancel}>
+                    Zatrzymaj i pokaż znalezione plany
+                </button>
+            )}
         </div>
     </div>
 );
