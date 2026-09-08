@@ -25,11 +25,12 @@ public class EquipmentPlacementRules {
         return drif != null && drif.getBonusType() != null;
     }
 
-    public boolean isValidOrb(OrbTemplate orb, String slot, boolean second) {
-        if (orb == null) return false;
-        return second
-                ? orb.getCategory() == ORB_CATEGORY.OFFENSIVE
-                : rules.isOrbAllowedInSlot(orb.getCategory(), slot);
+    public boolean isValidOrb(OrbTemplate orb, String slot, ItemTemplate item, boolean second) {
+        if (orb == null || !isValidItem(item, slot)) return false;
+        boolean legendary = item.getRarity() == RARITY.LEGENDARY;
+        if (second) return legendary && orb.getCategory() == ORB_CATEGORY.OFFENSIVE;
+        return rules.isOrbAllowedInSlot(orb.getCategory(), slot)
+                || legendary && orb.getCategory() == ORB_CATEGORY.OFFENSIVE;
     }
 
     public boolean isElementalDamage(DRIF_BONUS_TYPE type) {

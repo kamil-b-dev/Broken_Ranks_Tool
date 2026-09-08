@@ -46,7 +46,7 @@ public class OrbStatProcessor {
             OrbTemplate orb = orbsToProcess.get(i);
             boolean isSecondOrb = i > 0;
 
-            if (!placementRules.isValidOrb(orb, slotKey, isSecondOrb)) {
+            if (!placementRules.isValidOrb(orb, slotKey, item, isSecondOrb)) {
                 continue;
             }
 
