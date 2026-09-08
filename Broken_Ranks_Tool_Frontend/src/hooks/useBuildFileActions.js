@@ -17,8 +17,15 @@ export const useBuildFileActions = ({ saveBuildToFile, loadBuildFromFile }) => {
         const file = event.target.files?.[0];
         if (!file) return;
         try {
-            await loadBuildFromFile(file);
-            setNotice({ type: "success", message: `Wczytano build z pliku ${file.name}.` });
+            const summary = await loadBuildFromFile(file);
+            const skipped = (summary?.skippedDrifs || 0) + (summary?.skippedOrbs || 0);
+            const details = summary
+                ? ` (${summary.importedItems}/12 przedmiotów, ${summary.importedDrifs} drifów${skipped ? `; pominięto ${skipped} nierozpoznanych dodatków` : ""})`
+                : "";
+            setNotice({
+                type: skipped ? "warning" : "success",
+                message: `Wczytano build z pliku ${file.name}${details}.`,
+            });
         } catch (error) {
             setNotice({ type: "error", message: `Nie udało się wczytać buildu: ${error.message}` });
         } finally {
