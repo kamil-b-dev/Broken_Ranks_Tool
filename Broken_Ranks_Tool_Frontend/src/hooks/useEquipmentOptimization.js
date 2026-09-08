@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 import { cancelAdvisorOptimization, optimizeEquipmentDrifs } from "../api/equipmentApi";
 import { createEquipmentOptimizationRequest } from "../components/optimization/equipmentOptimizationRequest";
-import { advisorBuildSignature } from "../components/optimization/advisorBuildSignature";
+import { advisorBuildSignature } from "../components/optimization/advisor/advisorBuildSignature";
 
 const failureMessage = (error) =>
     error.response?.data?.summary?.message ||

@@ -4,7 +4,7 @@ import {
     OPTIMIZER_CONFIG_VERSION,
     sortBonusesByCategory,
 } from "./optimizerDomain";
-import { DEFAULT_ADVISOR_CHANGES, DEFAULT_ADVISOR_SEARCH } from "./advisorConfiguration";
+import { DEFAULT_ADVISOR_CHANGES, DEFAULT_ADVISOR_SEARCH } from "./advisor/advisorConfiguration";
 
 const clamp = (value, minimum, maximum) => Math.max(minimum, Math.min(maximum, value));
 
