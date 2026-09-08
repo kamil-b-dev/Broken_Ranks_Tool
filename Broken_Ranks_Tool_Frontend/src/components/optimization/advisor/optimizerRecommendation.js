@@ -7,7 +7,13 @@ const drifLabel = (drif) =>
     drif ? [drif.size, drif.name || drif.bonusType].filter(Boolean).join(" ") : null;
 
 /** Describes how a suggested setup differs from the build currently being inspected. */
-export const createRecommendationChanges = ({ currentSlots, suggestedSlots, items, drifs, orbs = [] }) => {
+export const createRecommendationChanges = ({
+    currentSlots,
+    suggestedSlots,
+    items,
+    drifs,
+    orbs = [],
+}) => {
     const drifsById = new Map(drifs.map((drif) => [String(drif.id), drif]));
     const itemsById = new Map(items.map((item) => [String(item.id), item]));
     const orbsById = new Map(orbs.map((orb) => [String(orb.id), orb]));
@@ -54,9 +60,13 @@ export const createRecommendationChanges = ({ currentSlots, suggestedSlots, item
             changes.push({
                 slotKey: key,
                 itemName: itemsById.get(String(suggested?.itemId || current?.itemId))?.name || key,
-                fromModifier: fromOrbId ? `Orb: ${orbsById.get(String(fromOrbId))?.name || fromOrbId}` : null,
+                fromModifier: fromOrbId
+                    ? `Orb: ${orbsById.get(String(fromOrbId))?.name || fromOrbId}`
+                    : null,
                 fromLevel: fromOrbLevel,
-                toModifier: toOrbId ? `Orb: ${orbsById.get(String(toOrbId))?.name || toOrbId}` : null,
+                toModifier: toOrbId
+                    ? `Orb: ${orbsById.get(String(toOrbId))?.name || toOrbId}`
+                    : null,
                 toLevel: toOrbLevel,
             });
         }

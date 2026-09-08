@@ -4411,18 +4411,81 @@ input:focus-visible {
     font-size: 0.64rem;
 }
 
-.advisor-goal-card > label, .advisor-goal-card strong { color: #d0a45d; text-transform: uppercase; letter-spacing: .07em; }
-.advisor-goal-card select { width: 100%; margin: .5rem 0; padding: .5rem; border: 1px solid rgba(128,86,42,.85); background: #050505; color: #ddd0bd; }
-.advisor-goal-card p { margin-top: .45rem; color: #827a73; line-height: 1.5; }
-.advisor-goal-card-heading { display: flex; justify-content: space-between; gap: .5rem; padding-bottom: .5rem; border-bottom: 1px solid rgba(100,67,34,.55); }
-.advisor-goal-card-heading span { color: #776f68; }
-.advisor-modifier-row { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: .75rem; padding: .5rem 0; border-bottom: 1px solid rgba(74,53,34,.45); }
-.advisor-modifier-row > label:first-child, .advisor-change-options label { display: flex; align-items: center; gap: .45rem; color: #b4aca4; }
-.advisor-modifier-row b { margin-left: auto; color: #d0a45d; font-weight: 400; }
-.advisor-loss-control { display: flex; align-items: center; gap: .35rem; color: #736c66; white-space: nowrap; }
-.advisor-loss-control input { width: 4.2rem; padding: .3rem; border: 1px solid rgba(104,70,38,.75); background: #030303; color: #d4cbc1; text-align: center; }
-.advisor-change-options { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: .65rem; }
-.advisor-goal-card input[type="checkbox"] { width: .9rem; height: .9rem; accent-color: #9558a5; }
+.advisor-goal-card > label,
+.advisor-goal-card strong {
+    color: #d0a45d;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+}
+.advisor-goal-card select {
+    width: 100%;
+    margin: 0.5rem 0;
+    padding: 0.5rem;
+    border: 1px solid rgba(128, 86, 42, 0.85);
+    background: #050505;
+    color: #ddd0bd;
+}
+.advisor-goal-card p {
+    margin-top: 0.45rem;
+    color: #827a73;
+    line-height: 1.5;
+}
+.advisor-goal-card-heading {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(100, 67, 34, 0.55);
+}
+.advisor-goal-card-heading span {
+    color: #776f68;
+}
+.advisor-modifier-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(74, 53, 34, 0.45);
+}
+.advisor-modifier-row > label:first-child,
+.advisor-change-options label {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: #b4aca4;
+}
+.advisor-modifier-row b {
+    margin-left: auto;
+    color: #d0a45d;
+    font-weight: 400;
+}
+.advisor-loss-control {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: #736c66;
+    white-space: nowrap;
+}
+.advisor-loss-control input {
+    width: 4.2rem;
+    padding: 0.3rem;
+    border: 1px solid rgba(104, 70, 38, 0.75);
+    background: #030303;
+    color: #d4cbc1;
+    text-align: center;
+}
+.advisor-change-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 0.65rem;
+}
+.advisor-goal-card input[type="checkbox"] {
+    width: 0.9rem;
+    height: 0.9rem;
+    accent-color: #9558a5;
+}
 
 .optimizer-bonus-column,
 .optimizer-priority-column {
@@ -5588,7 +5651,13 @@ input:focus-visible {
     }
 }
 
-
-.advisor-action-list { list-style: decimal; padding-left: 1.4rem; color: #d4cbc1; font-size: .8rem; line-height: 1.65; }
-.advisor-action-list li { padding: .35rem 0; }
-
+.advisor-action-list {
+    list-style: decimal;
+    padding-left: 1.4rem;
+    color: #d4cbc1;
+    font-size: 0.8rem;
+    line-height: 1.65;
+}
+.advisor-action-list li {
+    padding: 0.35rem 0;
+}

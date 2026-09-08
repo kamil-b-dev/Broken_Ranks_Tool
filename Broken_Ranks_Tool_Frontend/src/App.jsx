@@ -17,7 +17,13 @@ const DEFAULT_OPTIMIZER_SETTINGS = {
     advisorProfession: "AUTO",
     advisorGoal: "",
     advisorProtectedModifiers: {},
-    advisorAllowedChanges: { stars: true, items: false, orbs: false, drifs: false, drifUpgrades: false },
+    advisorAllowedChanges: {
+        stars: true,
+        items: false,
+        orbs: false,
+        drifs: false,
+        drifUpgrades: false,
+    },
     advisorSearch: { targetMode: "MAXIMIZE", target: "", maxActions: 3, timeBudgetMs: 1500 },
 };
 

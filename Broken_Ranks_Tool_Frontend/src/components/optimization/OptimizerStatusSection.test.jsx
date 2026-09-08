@@ -68,6 +68,8 @@ describe("OptimizerStatusSection", () => {
             />
         );
 
-        expect(screen.queryByText(/Wynik nie został zastosowany automatycznie/)).not.toBeInTheDocument();
+        expect(
+            screen.queryByText(/Wynik nie został zastosowany automatycznie/)
+        ).not.toBeInTheDocument();
     });
 });
