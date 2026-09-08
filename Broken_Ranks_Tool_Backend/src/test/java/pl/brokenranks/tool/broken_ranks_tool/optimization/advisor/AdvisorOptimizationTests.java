@@ -1,4 +1,4 @@
-package pl.brokenranks.tool.broken_ranks_tool.equipment.service.impl;
+package pl.brokenranks.tool.broken_ranks_tool.optimization.advisor;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -16,8 +16,8 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.*;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.input.*;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.processor.*;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.random.RandomProvider;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.impl.EquipmentStatsCalculatorTestFactory;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.*;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.advisor.*;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.*;
 
 /** End-to-end advisor search with real calculation/validation and in-memory catalog repositories. */
@@ -442,7 +442,7 @@ class AdvisorOptimizationTests {
         DrifValueCalculator values = new DrifValueCalculator();
         EquipmentStatsCalculatorService calculator =
                 spy(
-                        new EquipmentStatsCalculatorServiceImpl(
+                        EquipmentStatsCalculatorTestFactory.create(
                                 new EquipmentDataProvider(itemRepo, orbRepo, drifRepo),
                                 new EquipmentRequestValidator(),
                                 placement,
