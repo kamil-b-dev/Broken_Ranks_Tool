@@ -26,6 +26,7 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationSummar
 @Service
 @RequiredArgsConstructor
 public class AdvisorOptimizationService {
+    private final AdvisorOptionsValidator optionsValidator = new AdvisorOptionsValidator();
     private final ItemTemplateRepository itemRepository;
     private final DrifTemplateRepository drifRepository;
     private final OrbTemplateRepository orbRepository;
@@ -41,7 +42,7 @@ public class AdvisorOptimizationService {
     public OptimizationResponse optimize(OptimizationRequest request) {
         long started = System.nanoTime();
         AdvisorOptions options = request.getAdvisor();
-        if (!validOptions(options))
+        if (!optionsValidator.valid(options))
             return failure("Nieprawidłowy cel lub zakres analizy Doradcy.", started);
         var cancelled = runs.start(options.getRunId());
         try {
@@ -363,32 +364,6 @@ public class AdvisorOptimizationService {
                         || a.upgrades() < b.upgrades()
                         || a.effort() < b.effort()
                         || a.actions().size() < b.actions().size());
-    }
-
-    private boolean validOptions(AdvisorOptions options) {
-        if (options == null
-                || options.getGoal() == null
-                || options.getAllowedChanges() == null
-                || options.getTimeBudgetMs() < 200
-                || options.getTimeBudgetMs() > 5000
-                || options.getMaxActions() < 1
-                || options.getMaxActions() > 3
-                || options.getTargetValue() != null && options.getTargetGain() != null)
-            return false;
-        if (options.getTargetValue() != null
-                && (!Double.isFinite(options.getTargetValue()) || options.getTargetValue() < 0))
-            return false;
-        if (options.getTargetGain() != null
-                && (!Double.isFinite(options.getTargetGain()) || options.getTargetGain() < 0))
-            return false;
-        return options.getProtectedModifiers() == null
-                || options.getProtectedModifiers().entrySet().stream()
-                        .allMatch(
-                                e ->
-                                        e.getKey() != null
-                                                && e.getValue() != null
-                                                && Double.isFinite(e.getValue().getLoss())
-                                                && e.getValue().getLoss() >= 0);
     }
 
     private OptimizationResponse failure(String message, long started) {
