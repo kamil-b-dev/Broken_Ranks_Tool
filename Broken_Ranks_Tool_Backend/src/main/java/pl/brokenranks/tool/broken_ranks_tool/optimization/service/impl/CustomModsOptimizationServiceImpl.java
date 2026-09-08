@@ -5,7 +5,9 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.advisor.AdvisorOptimizationService;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.config.OptimizationProperties;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationMode;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationResponse;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationSummary;
@@ -29,6 +31,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
     private final OptimizationSearchPipeline searchPipeline;
     private final OptimizationResultAssembler resultAssembler;
     private final OptimizationVariantGenerator variantGenerator;
+    private final AdvisorOptimizationService advisor;
 
     /**
      * Builds the best equipment configuration within the requested priorities,
@@ -43,6 +46,8 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
         if (requestError != null) {
             return failedResponse(requestError, elapsedSeconds(startTime));
         }
+
+        if (request.getMode() == OptimizationMode.ADVISOR) return advisor.optimize(request);
 
         OptimizationContext context = createContext(request);
         if (context.slots().isEmpty()) {

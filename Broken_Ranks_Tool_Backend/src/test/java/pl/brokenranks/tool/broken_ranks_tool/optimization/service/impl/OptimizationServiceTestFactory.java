@@ -86,6 +86,7 @@ final class OptimizationServiceTestFactory {
                                         evaluation, evaluator, assembler)),
                         neighborhoodSearch),
                 assembler,
-                new OptimizationVariantGenerator(neighborhoodSearch, evaluator, assembler));
+                new OptimizationVariantGenerator(neighborhoodSearch, evaluator, assembler),
+                null);
     }
 }

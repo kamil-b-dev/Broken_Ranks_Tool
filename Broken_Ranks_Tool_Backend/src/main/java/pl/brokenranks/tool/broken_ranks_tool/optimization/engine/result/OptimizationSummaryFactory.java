@@ -95,7 +95,7 @@ final class OptimizationSummaryFactory {
             Map<String, String> calculatorStats,
             OptimizationContext context) {
         DRIF_BONUS_TYPE type = priority.getKey();
-        var range = context.request().getTargetQuantities().get(type);
+        var range = safeQuantities(context.request()).get(type);
         int count = metrics.counts().getOrDefault(type, 0);
         int minimum = range != null ? range.getMin() : 0;
         int maximum = range != null ? range.getMax() : Integer.MAX_VALUE;
