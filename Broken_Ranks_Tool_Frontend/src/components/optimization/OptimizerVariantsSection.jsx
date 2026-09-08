@@ -3,7 +3,13 @@ import React from "react";
 const formatNumber = (value) => Number(value).toLocaleString("pl-PL", { maximumFractionDigits: 2 });
 
 /** Presents alternative optimization setups and delegates selection to the workflow owner. */
-const OptimizerVariantsSection = ({ variants, activeIndex, onSelect, onApply }) => (
+const OptimizerVariantsSection = ({
+    variants,
+    activeIndex,
+    onSelect,
+    onApply,
+    advisory = false,
+}) => (
     <section className="optimizer-report-section optimizer-variants-section">
         <h5>Warianty</h5>
         {variants?.length > 0 ? (
@@ -18,15 +24,25 @@ const OptimizerVariantsSection = ({ variants, activeIndex, onSelect, onApply }) 
                         >
                             <span className="optimizer-variant-radio" aria-hidden="true" />
                             <span className="optimizer-variant-copy">
-                                <strong>{variant.main ? "Wynik główny" : variant.bonusName}</strong>
+                                <strong>
+                                    {advisory
+                                        ? variant.bonusName
+                                        : variant.main
+                                          ? "Wynik główny"
+                                          : variant.bonusName}
+                                </strong>
                                 <small>
-                                    {variant.main
-                                        ? "Konfiguracja bazowa optymalizatora"
-                                        : `Zysk +${formatNumber(variant.gain)} · strata ${formatNumber(variant.totalLoss)}`}
+                                    {advisory
+                                        ? `${formatNumber(variant.finalValue)}% → ${formatNumber(variant.variantValue)}% · poprawa +${formatNumber(variant.advisorGain ?? variant.gain)} p.p.`
+                                        : variant.main
+                                          ? "Konfiguracja bazowa optymalizatora"
+                                          : `Zysk +${formatNumber(variant.gain)} · strata ${formatNumber(variant.totalLoss)}`}
                                 </small>
                             </span>
                             <span className="optimizer-variant-score">
-                                {variant.main ? (
+                                {advisory ? (
+                                    <strong>{variant.changeCount} działań</strong>
+                                ) : variant.main ? (
                                     <strong>
                                         {activeIndex === variantIndex ? "Wybrany" : "Główny"}
                                     </strong>

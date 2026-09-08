@@ -39,4 +39,37 @@ describe("OptimizerStatusSection", () => {
             screen.getByText("Wynik i ostrzeżenia z kolejnej optymalizacji pojawią się tutaj.")
         ).toBeInTheDocument();
     });
+
+    it("explains why an unapplied result differs from the calculator", () => {
+        render(
+            <OptimizerStatusSection
+                status={{
+                    success: false,
+                    applied: false,
+                    message: "Nie osiągnięto capa.",
+                    warnings: ["Podwojny atak (59.18/60.00)."],
+                    nextVariants: [{ main: true }],
+                }}
+            />
+        );
+
+        expect(screen.getByText(/Wynik nie został zastosowany automatycznie/)).toHaveTextContent(
+            "kalkulator liczy aktualny ekwipunek"
+        );
+        expect(screen.getByText(/Wynik nie został zastosowany automatycznie/)).toHaveTextContent(
+            "Zastosuj wybrany wariant"
+        );
+    });
+
+    it("does not offer a proposal when optimization returned no variants", () => {
+        render(
+            <OptimizerStatusSection
+                status={{ success: false, applied: false, message: "Błąd", nextVariants: [] }}
+            />
+        );
+
+        expect(
+            screen.queryByText(/Wynik nie został zastosowany automatycznie/)
+        ).not.toBeInTheDocument();
+    });
 });

@@ -4,6 +4,7 @@ import {
     OPTIMIZER_CONFIG_VERSION,
     sortBonusesByCategory,
 } from "./optimizerDomain";
+import { DEFAULT_ADVISOR_CHANGES, DEFAULT_ADVISOR_SEARCH } from "./advisor/advisorConfiguration";
 
 const clamp = (value, minimum, maximum) => Math.max(minimum, Math.min(maximum, value));
 
@@ -13,6 +14,12 @@ export const createOptimizerConfigPayload = (priorities, settings, exportedAt = 
     version: OPTIMIZER_CONFIG_VERSION,
     exportedAt: exportedAt.toISOString(),
     settings: {
+        mode: settings?.mode || "BUILD_FROM_SCRATCH",
+        advisorProfession: settings?.advisorProfession || "AUTO",
+        advisorGoal: settings?.advisorGoal || "",
+        advisorProtectedModifiers: settings?.advisorProtectedModifiers || {},
+        advisorAllowedChanges: { ...DEFAULT_ADVISOR_CHANGES, ...settings?.advisorAllowedChanges },
+        advisorSearch: { ...DEFAULT_ADVISOR_SEARCH, ...settings?.advisorSearch },
         maxVariantLossPercent: clamp(Number(settings?.maxVariantLossPercent) || 0, 0, 100),
     },
     priorities: priorities.map(
@@ -85,6 +92,7 @@ export const parseOptimizerConfigPayload = (payload, gameRules = {}) => {
     }
 
     const importedMaxLoss = Number(payload.settings?.maxVariantLossPercent);
+    const knownModes = new Set(["BUILD_FROM_SCRATCH", "ADVISOR"]);
     return {
         priorities,
         availableBonuses: sortBonusesByCategory(
@@ -95,6 +103,50 @@ export const parseOptimizerConfigPayload = (payload, gameRules = {}) => {
         maxVariantLossPercent: Number.isFinite(importedMaxLoss)
             ? clamp(Math.trunc(importedMaxLoss), 0, 100)
             : null,
+        mode: knownModes.has(payload.settings?.mode) ? payload.settings.mode : null,
+        advisorProfession: ["AUTO", "MAGICAL", "PHYSICAL"].includes(
+            payload.settings?.advisorProfession
+        )
+            ? payload.settings.advisorProfession
+            : "AUTO",
+        advisorGoal:
+            typeof payload.settings?.advisorGoal === "string" ? payload.settings.advisorGoal : null,
+        advisorSearch: payload.settings?.advisorSearch
+            ? {
+                  targetMode: ["MAXIMIZE", "VALUE", "GAIN"].includes(
+                      payload.settings.advisorSearch.targetMode
+                  )
+                      ? payload.settings.advisorSearch.targetMode
+                      : "MAXIMIZE",
+                  target:
+                      Number.isFinite(Number(payload.settings.advisorSearch.target)) &&
+                      Number(payload.settings.advisorSearch.target) >= 0
+                          ? payload.settings.advisorSearch.target
+                          : "",
+                  maxActions: clamp(
+                      Math.trunc(Number(payload.settings.advisorSearch.maxActions)) || 3,
+                      1,
+                      3
+                  ),
+                  timeBudgetMs: payload.settings.advisorSearch.timeBudgetMs === 5000 ? 5000 : 1500,
+              }
+            : null,
+        advisorProtectedModifiers:
+            payload.settings?.advisorProtectedModifiers &&
+            typeof payload.settings.advisorProtectedModifiers === "object"
+                ? payload.settings.advisorProtectedModifiers
+                : null,
+        advisorAllowedChanges:
+            payload.settings?.advisorAllowedChanges &&
+            typeof payload.settings.advisorAllowedChanges === "object"
+                ? {
+                      stars: payload.settings.advisorAllowedChanges.stars !== false,
+                      items: payload.settings.advisorAllowedChanges.items !== false,
+                      orbs: payload.settings.advisorAllowedChanges.orbs !== false,
+                      drifs: payload.settings.advisorAllowedChanges.drifs === true,
+                      drifUpgrades: payload.settings.advisorAllowedChanges.drifUpgrades === true,
+                  }
+                : null,
     };
 };
 
@@ -110,6 +162,7 @@ export const findInvalidPercentageTarget = (priorities) =>
 /** Converts editable priority values into the backend optimization contract. */
 export const buildOptimizationConfig = (priorities, settings = {}) => {
     const config = {
+        mode: settings.mode || "BUILD_FROM_SCRATCH",
         priorities: {},
         targetQuantities: {},
         forceCapBonuses: [],

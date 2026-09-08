@@ -33,6 +33,7 @@ const OptimizerLocksColumn = ({
     lockedDrifs,
     onToggleSlot,
     onToggleDrif,
+    mode,
 }) => {
     const equippedSlots = useMemo(
         () =>
@@ -56,6 +57,11 @@ const OptimizerLocksColumn = ({
     const visibleSlots = equippedSlots.filter(
         ({ slot }) => filter === "all" || lockedSlots?.includes(slot.key)
     );
+    const heading = mode === "ADVISOR" ? "Analizowany build" : "Blokady buildu";
+    const description =
+        mode === "ADVISOR"
+            ? "Zablokuj elementy, których doradca nie powinien wymieniać."
+            : "Zablokowane elementy pozostaną bez zmian.";
 
     return (
         <section
@@ -67,9 +73,9 @@ const OptimizerLocksColumn = ({
                     <span className="optimizer-heading-icon" aria-hidden="true">
                         ◈
                     </span>
-                    <h3 id="optimizer-locks-heading">Blokady buildu</h3>
+                    <h3 id="optimizer-locks-heading">{heading}</h3>
                 </div>
-                <p>Zablokowane elementy pozostaną bez zmian.</p>
+                <p>{description}</p>
             </header>
             <div className="optimizer-lock-filters" role="group" aria-label="Filtr blokad">
                 <button

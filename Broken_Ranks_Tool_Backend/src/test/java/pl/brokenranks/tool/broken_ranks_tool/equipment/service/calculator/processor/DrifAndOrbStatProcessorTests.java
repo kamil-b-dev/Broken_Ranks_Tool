@@ -118,6 +118,45 @@ class DrifAndOrbStatProcessorTests {
                         .get(ORB_BONUS_TYPE.DMG_REDUCTION_MELEE.name()));
     }
 
+    @Test
+    void countsBothOffensiveOrbsOnLegendaryHelmet() {
+        ItemTemplate item = item(1L, ITEM_CATEGORY.HELMET);
+        item.setRarity(RARITY.LEGENDARY);
+        OrbTemplate first =
+                OrbTemplate.builder()
+                        .id(20L)
+                        .category(ORB_CATEGORY.OFFENSIVE)
+                        .bonusType(ORB_BONUS_TYPE.EXTRA_EXP)
+                        .size(ORB_SIZE.BIORB)
+                        .bonusLvl1("2%")
+                        .build();
+        OrbTemplate second =
+                OrbTemplate.builder()
+                        .id(21L)
+                        .category(ORB_CATEGORY.OFFENSIVE)
+                        .bonusType(ORB_BONUS_TYPE.EXTRA_GOLD)
+                        .size(ORB_SIZE.BIORB)
+                        .bonusLvl1("4%")
+                        .build();
+        EquipmentRequest.SlotData slot = slot(1L, List.of());
+        slot.setOrbIds(List.of(20L, 21L));
+        slot.setOrbLevels(List.of(1, 1));
+        CalculationState state =
+                new CalculationState(
+                        new CalculationContext(
+                                Map.of(1L, item), Map.of(20L, first, 21L, second), Map.of()));
+        new OrbStatProcessor(placementRules, levelPolicy, securityValidator)
+                .process("helmet", slot, item, 8, state);
+
+        assertEquals(
+                Map.of(
+                        ORB_BONUS_TYPE.EXTRA_EXP.name(),
+                        "3%",
+                        ORB_BONUS_TYPE.EXTRA_GOLD.name(),
+                        "6%"),
+                state.getAccumulator().getFormattedResults());
+    }
+
     private EquipmentRequest.SlotData slot(Long itemId, List<Long> drifIds) {
         EquipmentRequest.SlotData slot = new EquipmentRequest.SlotData();
         slot.setItemId(itemId);

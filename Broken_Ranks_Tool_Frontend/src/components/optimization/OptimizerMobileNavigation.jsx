@@ -1,17 +1,20 @@
-const COLUMNS = [
-    ["slots", "Blokady"],
-    ["bonuses", "Bonusy"],
-    ["priorities", "Priorytety"],
-    ["result", "Raport"],
-];
+const COLUMN_LABELS = {
+    BUILD_FROM_SCRATCH: "Blokady",
+    ADVISOR: "Build",
+};
 
 /** Switches between optimizer columns on narrow screens. */
-const OptimizerMobileNavigation = ({ activeColumn, priorityCount, onChange }) => (
+const OptimizerMobileNavigation = ({ activeColumn, priorityCount, onChange, mode }) => (
     <nav
         className="lg:hidden grid grid-cols-4 gap-1 mb-3 shrink-0"
         aria-label="Sekcje optymalizatora"
     >
-        {COLUMNS.map(([key, label]) => (
+        {[
+            ["slots", COLUMN_LABELS[mode] || "Build"],
+            ["bonuses", "Bonusy"],
+            ["priorities", "Priorytety"],
+            ["result", mode === "ADVISOR" ? "Porady" : "Raport"],
+        ].map(([key, label]) => (
             <button
                 key={key}
                 type="button"

@@ -27,7 +27,7 @@ describe("optimizerConfiguration", () => {
                     maximize: true,
                 },
             ],
-            { maxVariantLossPercent: 140 },
+            { mode: "ADVISOR", maxVariantLossPercent: 140 },
             new Date("2026-08-30T00:00:00.000Z")
         );
 
@@ -35,7 +35,7 @@ describe("optimizerConfiguration", () => {
             format: "broken-ranks-tool-optimizer-config",
             version: 1,
             exportedAt: "2026-08-30T00:00:00.000Z",
-            settings: { maxVariantLossPercent: 100 },
+            settings: { mode: "ADVISOR", maxVariantLossPercent: 100 },
             priorities: [{ key: "ARMOR", weight: 20, min: 1, max: 4, maximize: true }],
         });
     });
@@ -66,6 +66,7 @@ describe("optimizerConfiguration", () => {
         ]);
         expect(imported.availableBonuses.map(({ key }) => key)).toEqual(["ARMOR"]);
         expect(imported.maxVariantLossPercent).toBe(0);
+        expect(imported.mode).toBeNull();
     });
 
     it("rejects unsupported files and files without current bonuses", () => {
@@ -100,6 +101,7 @@ describe("optimizerConfiguration", () => {
 
         expect(findInvalidPercentageTarget(priorities)).toBeUndefined();
         expect(buildOptimizationConfig(priorities, { generateVariants: true })).toEqual({
+            mode: "BUILD_FROM_SCRATCH",
             priorities: { CRITICAL_CHANCE: 15 },
             targetQuantities: { CRITICAL_CHANCE: { min: 0, max: 12 } },
             forceCapBonuses: [],

@@ -3,6 +3,11 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import OptimizerPanel from "./OptimizerPanel";
 import { useEquipment } from "../../context/EquipmentContext";
+vi.mock("../../api/equipmentApi", () => ({
+    calculateEquipmentStats: vi
+        .fn()
+        .mockResolvedValue({ stats: { CRITICAL_CHANCE: "18.25%", ARMOR: "5%" } }),
+}));
 
 vi.mock("../../context/EquipmentContext", () => ({
     useEquipment: vi.fn(),
@@ -56,6 +61,7 @@ const equipment = {
 };
 
 const settings = {
+    mode: "BUILD_FROM_SCRATCH",
     forceMaximizationByDrifBonus: true,
     generateVariants: true,
     maxVariantLossPercent: 125,
@@ -92,6 +98,7 @@ describe("OptimizerPanel", () => {
 
         await waitFor(() => expect(equipment.runDrifOptimization).toHaveBeenCalledOnce());
         expect(equipment.runDrifOptimization).toHaveBeenCalledWith({
+            mode: "BUILD_FROM_SCRATCH",
             priorities: { CRITICAL_CHANCE: 15 },
             targetQuantities: { CRITICAL_CHANCE: { min: 0, max: 12 } },
             forceCapBonuses: [],
@@ -170,7 +177,11 @@ describe("OptimizerPanel", () => {
         expect(screen.getByText(/waga 30 · 0–12 · cel: cap/i)).toBeInTheDocument();
         expect(window.alert).toHaveBeenCalledWith("Wczytano konfigurację: 1 priorytetów.");
         const updateSettings = onSettingsChange.mock.calls[0][0];
-        expect(updateSettings(settings)).toEqual({ ...settings, maxVariantLossPercent: 0 });
+        expect(updateSettings(settings)).toEqual({
+            ...settings,
+            advisorProfession: "AUTO",
+            maxVariantLossPercent: 0,
+        });
     });
 
     it("applies a selected optimization variant to the calculator", async () => {
@@ -203,5 +214,15 @@ describe("OptimizerPanel", () => {
         await user.click(screen.getByRole("button", { name: /Zastosuj wybrany wariant/i }));
 
         expect(equipment.applyOptimizationSetup).toHaveBeenCalledWith(setup);
+    });
+
+    it("switches to advisor mode through the visible mode selector", async () => {
+        const user = userEvent.setup();
+        const onSettingsChange = vi.fn();
+        renderPanel(onSettingsChange);
+
+        await user.click(screen.getByRole("button", { name: /Doradca/i }));
+
+        expect(onSettingsChange).toHaveBeenCalledWith({ ...settings, mode: "ADVISOR" });
     });
 });

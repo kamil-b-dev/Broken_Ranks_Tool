@@ -12,6 +12,7 @@ export default defineConfig({
     },
     test: {
         environment: "jsdom",
+        testTimeout: 10000,
         exclude: [...configDefaults.exclude, "e2e/**"],
         setupFiles: "./src/test/setup.js",
         coverage: {

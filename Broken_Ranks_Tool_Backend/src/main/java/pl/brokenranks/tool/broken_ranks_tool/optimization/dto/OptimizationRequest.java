@@ -18,6 +18,14 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 @Data
 public class OptimizationRequest {
 
+    /** Optimization workflow selected by the user. */
+    @NotNull private OptimizationMode mode = OptimizationMode.BUILD_FROM_SCRATCH;
+
+    @Valid private AdvisorOptions advisor;
+
+    @Size(max = 32)
+    private Map<String, Integer> characterStats;
+
     /** Original equipment setup used as the optimization baseline. */
     @Valid
     @NotEmpty
