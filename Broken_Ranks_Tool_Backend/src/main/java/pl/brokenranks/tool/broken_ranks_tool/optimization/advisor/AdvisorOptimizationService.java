@@ -27,6 +27,7 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationSummar
 @RequiredArgsConstructor
 public class AdvisorOptimizationService {
     private final AdvisorOptionsValidator optionsValidator = new AdvisorOptionsValidator();
+    private final AdvisorFinalistVerifier finalistVerifier = new AdvisorFinalistVerifier();
     private final ItemTemplateRepository itemRepository;
     private final DrifTemplateRepository drifRepository;
     private final OrbTemplateRepository orbRepository;
@@ -98,76 +99,12 @@ public class AdvisorOptimizationService {
             if (search.reached(baseline))
                 return response(model, search, slots, before, List.of(), started);
             List<AdvisorSearch.Node> candidates = new ArrayList<>(search.run(slots));
-            List<Verified> verified = new ArrayList<>();
-            // Interleave cost classes so verification also preserves a pure-move alternative.
-            candidates.sort(search.ranking());
-            List<AdvisorSearch.Node> queue = diversify(candidates);
-            int checks = 0;
-            for (var candidate : queue) {
-                if (checks >= 18 || System.nanoTime() >= deadline) break;
-                checks++;
-                Map<String, String> actual =
-                        calculator.calculateTotalStats(model.setup(candidate.slots()));
-                double[] stats = parsed(actual);
-                if (search.deficit(stats) > AdvisorSearch.EPSILON
-                        || search.gain(stats) <= AdvisorSearch.EPSILON) continue;
-                var checked =
-                        new AdvisorSearch.Node(
-                                candidate.slots(),
-                                stats,
-                                candidate.actions(),
-                                candidate.changed(),
-                                candidate.upgrades(),
-                                candidate.effort());
-                verified.add(new Verified(checked, actual));
-            }
-            verified.sort((a, b) -> search.ranking().compare(a.node(), b.node()));
-            List<Verified> allVerified = List.copyOf(verified);
-            verified.removeIf(
-                    candidate ->
-                            allVerified.stream()
-                                    .anyMatch(
-                                            other ->
-                                                    other != candidate
-                                                            && dominates(
-                                                                    other.node(),
-                                                                    candidate.node(),
-                                                                    search)));
-            List<Verified> selected = new ArrayList<>();
-            if (!verified.isEmpty()) {
-                selected.add(verified.getFirst());
-                for (int kind = 0; kind < 3; kind++) {
-                    int group = kind;
-                    verified.stream()
-                            .filter(v -> v.node().kind() == group)
-                            .findFirst()
-                            .filter(v -> !selected.contains(v))
-                            .ifPresent(selected::add);
-                }
-                verified.stream()
-                        .filter(v -> !selected.contains(v))
-                        .limit(6 - selected.size())
-                        .forEach(selected::add);
-            }
+            List<AdvisorFinalistVerifier.Verified> selected =
+                    finalistVerifier.verify(candidates, model, search, calculator, deadline);
             return response(model, search, slots, before, selected, started);
         } finally {
             runs.finish(options.getRunId());
         }
-    }
-
-    private List<AdvisorSearch.Node> diversify(List<AdvisorSearch.Node> candidates) {
-        List<AdvisorSearch.Node> queue = new ArrayList<>();
-        for (int round = 0; round < 8; round++) {
-            for (int kind = 0; kind < 3; kind++) {
-                int group = kind;
-                candidates.stream()
-                        .filter(n -> n.kind() == group)
-                        .skip(round)
-                        .findFirst()
-                        .ifPresent(queue::add);
-            }
-        }
-        return queue;
     }
 
     private OptimizationResponse response(
@@ -175,11 +112,11 @@ public class AdvisorOptimizationService {
             AdvisorSearch search,
             Map<String, SlotData> original,
             Map<String, String> before,
-            List<Verified> selected,
+            List<AdvisorFinalistVerifier.Verified> selected,
             long started) {
         List<OptimizationVariant> variants = new ArrayList<>();
         List<AdvisorReport.Plan> plans = new ArrayList<>();
-        for (Verified verified : selected) {
+        for (AdvisorFinalistVerifier.Verified verified : selected) {
             var node = verified.node();
             String kind = node.kind() == 0 ? "MOVES" : node.kind() == 1 ? "ONE_UPGRADE" : "PLAN";
             String label =
@@ -354,18 +291,6 @@ public class AdvisorOptimizationService {
         return type == search.options.getGoal() ? search.target : search.minima[type.ordinal()];
     }
 
-    /** Avoid suggesting an extra upgrade when a simpler plan achieves at least the same effect. */
-    private boolean dominates(AdvisorSearch.Node a, AdvisorSearch.Node b, AdvisorSearch search) {
-        return search.value(a.stats()) + AdvisorSearch.EPSILON >= search.value(b.stats())
-                && a.upgrades() <= b.upgrades()
-                && a.effort() <= b.effort()
-                && a.actions().size() <= b.actions().size()
-                && (search.value(a.stats()) > search.value(b.stats()) + AdvisorSearch.EPSILON
-                        || a.upgrades() < b.upgrades()
-                        || a.effort() < b.effort()
-                        || a.actions().size() < b.actions().size());
-    }
-
     private OptimizationResponse failure(String message, long started) {
         return new OptimizationResponse(
                 new EquipmentRequest(),
@@ -380,6 +305,4 @@ public class AdvisorOptimizationService {
                         List.of(),
                         List.of()));
     }
-
-    private record Verified(AdvisorSearch.Node node, Map<String, String> stats) {}
 }
