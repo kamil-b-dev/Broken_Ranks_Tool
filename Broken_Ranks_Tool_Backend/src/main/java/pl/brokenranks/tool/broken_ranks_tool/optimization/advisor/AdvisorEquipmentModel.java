@@ -26,6 +26,7 @@ final class AdvisorEquipmentModel {
     private final ItemStatProcessor items;
     private final OrbStatProcessor orbs;
     private final DrifValueCalculator values;
+    private final AdvisorEquipmentValidator validator;
     private final Map<String, Contribution> contributions = new HashMap<>();
     private final Map<String, double[]> equipmentValues = new HashMap<>();
     private final Map<String, Double> drifValues = new HashMap<>();
@@ -47,6 +48,7 @@ final class AdvisorEquipmentModel {
         this.items = items;
         this.orbs = orbs;
         this.values = values;
+        this.validator = new AdvisorEquipmentValidator(this, rules, levels);
     }
 
     double[] evaluate(Map<String, SlotData> slots) {
@@ -120,71 +122,11 @@ final class AdvisorEquipmentModel {
     }
 
     boolean valid(Map<String, SlotData> slots) {
-        Set<ORB_BONUS_TYPE> used = new HashSet<>();
-        for (var entry : slots.entrySet()) {
-            if (!validSlot(entry.getKey(), entry.getValue())) return false;
-            if (entry.getValue().getOrbIds() != null) {
-                for (Long id : entry.getValue().getOrbIds()) {
-                    if (id != null && !used.add(templates.orbs().get(id).getBonusType()))
-                        return false;
-                }
-            }
-        }
-        return true;
+        return validator.valid(slots);
     }
 
     boolean validSlot(String key, SlotData slot) {
-        ItemTemplate item = item(slot);
-        if (!placement.isValidItem(item, key)) return false;
-        if (stars(slot) < 1 || stars(slot) > 9) return false;
-        Set<DRIF_BONUS_TYPE> types = new HashSet<>();
-        int count = 0, power = 0, elements = 0;
-        List<String> builtins =
-                EquipmentRulesRegistry.EPIC_BUILTIN_DRIFS.getOrDefault(
-                        Objects.toString(item.getName(), "").replaceFirst("\\s+[IVX]+$", ""),
-                        List.of());
-        for (int i = 0; i < size(slot); i++) {
-            if (id(slot, i) == null) continue;
-            DrifTemplate drif = templates.drifs().get(id(slot, i));
-            if (!placement.isValidDrif(drif)
-                    || drif.getSize() == null
-                    || !types.add(drif.getBonusType())
-                    || level(slot, i) < 1
-                    || level(slot, i) > drif.getSize().getMaxLevel()) return false;
-            if (special(slot)) {
-                if (drif.getSize() != DRIF_SIZE.MAGNIDRIF
-                        || i >= builtins.size()
-                        || !builtins.get(i).equals(drif.getBonusType().name())) return false;
-            } else if (!placement.isValidDrifSizeForTier(drif, item)
-                    || !placement.isElementalDrifPositionValid(drif, key)) return false;
-            if (placement.isElementalDamage(drif.getBonusType())) elements++;
-            count++;
-            power += DrifPowerRules.power(drif.getBonusType().getBasePower(), level(slot, i));
-            if (!special(slot) && i >= maxDrifs(slot)) return false;
-        }
-        if (!special(slot)
-                && (count > maxDrifs(slot)
-                        || elements > 1
-                        || power > levels.calculateItemCapacity(item, stars(slot)))) return false;
-        List<Long> orbIds = slot.getOrbIds() == null ? List.of() : slot.getOrbIds();
-        if (orbIds.size() > (item.getRarity() == RARITY.LEGENDARY ? 2 : 1)) return false;
-        Set<ORB_BONUS_TYPE> orbTypes = new HashSet<>();
-        boolean gap = false;
-        for (int i = 0; i < orbIds.size(); i++) {
-            if (orbIds.get(i) == null) {
-                gap = true;
-                continue;
-            }
-            OrbTemplate orb = templates.orbs().get(orbIds.get(i));
-            int level = orbLevel(slot, i);
-            if (gap
-                    || !placement.isValidOrb(orb, key, item, i > 0)
-                    || orb.getSize() == null
-                    || level < 1
-                    || level > orb.getSize().getMaxLevel()
-                    || !orbTypes.add(orb.getBonusType())) return false;
-        }
-        return true;
+        return validator.validSlot(key, slot);
     }
 
     int maxDrifs(SlotData slot) {
