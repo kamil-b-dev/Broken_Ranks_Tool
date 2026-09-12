@@ -12,7 +12,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import pl.brokenranks.tool.broken_ranks_tool.core.config.RequestTracingFilter;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.service.OptimizerBusyException;
 
@@ -86,6 +90,40 @@ class GlobalExceptionHandlerTests {
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "INTERNAL_ERROR",
                 "Wystąpił nieoczekiwany błąd serwera.",
+                null);
+    }
+
+    @Test
+    void mapsInvalidPathParametersAndMissingResourcesWithoutAnInternalError() {
+        assertError(
+                handler.handleTypeMismatch(mock(MethodArgumentTypeMismatchException.class)),
+                HttpStatus.BAD_REQUEST,
+                "INVALID_REQUEST",
+                "Nieprawidłowy parametr żądania.",
+                null);
+
+        assertError(
+                handler.handleMissingResource(mock(NoResourceFoundException.class)),
+                HttpStatus.NOT_FOUND,
+                "NOT_FOUND",
+                "Nie znaleziono zasobu.",
+                null);
+    }
+
+    @Test
+    void mapsUnsupportedContentTypesAndMethodsAsClientErrors() {
+        assertError(
+                handler.handleUnsupportedMediaType(mock(HttpMediaTypeNotSupportedException.class)),
+                HttpStatus.UNSUPPORTED_MEDIA_TYPE,
+                "UNSUPPORTED_MEDIA_TYPE",
+                "Endpoint przyjmuje żądania w formacie application/json.",
+                null);
+
+        assertError(
+                handler.handleUnsupportedMethod(mock(HttpRequestMethodNotSupportedException.class)),
+                HttpStatus.METHOD_NOT_ALLOWED,
+                "METHOD_NOT_ALLOWED",
+                "Ta metoda HTTP nie jest obsługiwana dla wskazanego zasobu.",
                 null);
     }
 

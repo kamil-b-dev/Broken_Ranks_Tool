@@ -1,5 +1,7 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.controller;
 
+import static pl.brokenranks.tool.broken_ranks_tool.core.config.PublicDataResponse.ok;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -53,6 +55,6 @@ public class RulesController {
         response.put("elementalTypes", registry.getElementalDamageTypes());
         response.put("epicBuiltInDrifs", EquipmentRulesRegistry.EPIC_BUILTIN_DRIFS);
 
-        return ResponseEntity.ok(response);
+        return ok(response);
     }
 }

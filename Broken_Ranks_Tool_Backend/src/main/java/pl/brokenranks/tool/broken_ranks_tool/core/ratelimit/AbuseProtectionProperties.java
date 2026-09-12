@@ -4,10 +4,15 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /** Configurable request limits for public, computationally expensive endpoints. */
 @ConfigurationProperties("abuse-protection")
-public record AbuseProtectionProperties(int maxRequestBytes, Limit optimizer, Limit calculator) {
+public record AbuseProtectionProperties(
+        int maxRequestBytes, Limit optimizer, Limit calculator, Limit control, Limit publicData) {
 
     public AbuseProtectionProperties {
-        if (maxRequestBytes <= 0 || optimizer == null || calculator == null) {
+        if (maxRequestBytes <= 0
+                || optimizer == null
+                || calculator == null
+                || control == null
+                || publicData == null) {
             throw new IllegalArgumentException("Abuse-protection limits must be configured.");
         }
     }

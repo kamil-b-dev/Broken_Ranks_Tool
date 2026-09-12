@@ -5,9 +5,13 @@ import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import pl.brokenranks.tool.broken_ranks_tool.core.config.RequestTracingFilter;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.service.OptimizerBusyException;
 
@@ -18,7 +22,10 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiError> handleIllegalArgumentException(IllegalArgumentException ex) {
-        log.warn("Zablokowano nieprawidłowe żądanie: {}", ex.getMessage());
+        log.warn(
+                "Zablokowano nieprawidłowe żądanie (typ: {}, requestId: {})",
+                ex.getClass().getSimpleName(),
+                MDC.get(RequestTracingFilter.REQUEST_ID));
         return error(HttpStatus.BAD_REQUEST, "INVALID_REQUEST", ex.getMessage());
     }
 
@@ -35,6 +42,34 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiError> handleUnreadableMessage(HttpMessageNotReadableException ex) {
         return error(HttpStatus.BAD_REQUEST, "MALFORMED_JSON", "Nie można odczytać żądania JSON.");
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiError> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        return error(HttpStatus.BAD_REQUEST, "INVALID_REQUEST", "Nieprawidłowy parametr żądania.");
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ApiError> handleMissingResource(NoResourceFoundException ex) {
+        return error(HttpStatus.NOT_FOUND, "NOT_FOUND", "Nie znaleziono zasobu.");
+    }
+
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<ApiError> handleUnsupportedMediaType(
+            HttpMediaTypeNotSupportedException ex) {
+        return error(
+                HttpStatus.UNSUPPORTED_MEDIA_TYPE,
+                "UNSUPPORTED_MEDIA_TYPE",
+                "Endpoint przyjmuje żądania w formacie application/json.");
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ApiError> handleUnsupportedMethod(
+            HttpRequestMethodNotSupportedException ex) {
+        return error(
+                HttpStatus.METHOD_NOT_ALLOWED,
+                "METHOD_NOT_ALLOWED",
+                "Ta metoda HTTP nie jest obsługiwana dla wskazanego zasobu.");
     }
 
     @ExceptionHandler(OptimizerBusyException.class)

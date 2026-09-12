@@ -1,5 +1,7 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.controller;
 
+import static pl.brokenranks.tool.broken_ranks_tool.core.config.PublicDataResponse.ok;
+
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +29,6 @@ public class DrifTemplatesController {
                 drifRepository.findAll().stream()
                         .map(DrifTemplateDto::fromEntity)
                         .collect(Collectors.toList());
-        return ResponseEntity.ok(drifDtos);
+        return ok(drifDtos);
     }
 }
