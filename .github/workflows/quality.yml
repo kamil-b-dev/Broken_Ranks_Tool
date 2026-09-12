@@ -2,8 +2,9 @@ name: Quality checks
 
 on:
   push:
-    branches: [dev, main]
+    branches: [dev, master]
   pull_request:
+    branches: [dev, master]
 
 permissions:
   contents: read
@@ -91,3 +92,16 @@ jobs:
           name: browser-test-report
           path: Broken_Ranks_Tool_Frontend/playwright-report
           if-no-files-found: ignore
+
+  container-smoke:
+    name: Production container smoke test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    needs: [backend, frontend]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Build and verify the production image
+        shell: pwsh
+        run: ./scripts/smoke-test.ps1
