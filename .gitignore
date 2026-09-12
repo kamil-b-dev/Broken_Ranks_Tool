@@ -38,6 +38,15 @@ node_modules/
 *.tmp
 *.temp
 *.bak
+/tmp/
+
+# Local database artifacts
+/broken_ranks.db
+/db/*.mv.db
+/db/*.trace.db
+
+# Local showcase prototype
+/Merch_Showcase/
 
 # Operating system files
 .DS_Store
