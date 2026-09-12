@@ -44,7 +44,8 @@ public class SecurityConfig {
                                         .requestMatchers(
                                                 HttpMethod.POST,
                                                 "/api/calculator/calculate",
-                                                "/api/optimizer/drifs")
+                                                "/api/optimizer/drifs",
+                                                "/api/optimizer/advisor/*/cancel")
                                         .permitAll()
                                         .anyRequest()
                                         .denyAll())

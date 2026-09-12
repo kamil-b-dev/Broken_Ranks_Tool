@@ -22,6 +22,7 @@ public class AdvisorRunRegistry {
     }
 
     public boolean cancel(String id) {
+        if (id == null) return false;
         AtomicBoolean flag = active.get(id);
         if (flag == null) return false;
         flag.set(true);

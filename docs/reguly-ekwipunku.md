@@ -116,6 +116,8 @@ Capy i bazowe moce są zapisane w `DRIF_BONUS_TYPE`; nie każdy typ ma cap. Redu
 
 Kalkulator uwzględnia również źródła inne niż drify: statystyki przedmiotów, orby, dane postaci i domyślne 2% krytyka oraz po 5% regeneracji many i kondycji. Cel procentowy trzeba odnosić do właściwej sumy, nie wyłącznie do wkładu przekładanych drifów.
 
+Tryb optymalizacji „od zera” przekazuje bazowe statystyki postaci do kalkulatora oraz zachowuje je w wynikowym zestawie i wariantach. Wynik zawiera niezależną kopię tych danych, aby jego późniejsza edycja nie zmieniała żądania wejściowego.
+
 ## 7. Orby
 
 - Maksymalnie jeden orb w zwykłym, epickim i setowym przedmiocie; maksymalnie dwa w legendarnym. Drugi orb musi być ofensywny.
