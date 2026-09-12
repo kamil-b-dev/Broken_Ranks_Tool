@@ -1,8 +1,9 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import OptimizerPanel from "./OptimizerPanel";
 import { useEquipment } from "../../context/EquipmentContext";
+import { advisorBuildSignature } from "./advisor/advisorBuildSignature";
 vi.mock("../../api/equipmentApi", () => ({
     calculateEquipmentStats: vi
         .fn()
@@ -224,5 +225,164 @@ describe("OptimizerPanel", () => {
         await user.click(screen.getByRole("button", { name: /Doradca/i }));
 
         expect(onSettingsChange).toHaveBeenCalledWith({ ...settings, mode: "ADVISOR" });
+    });
+
+    it("builds an advisor request and applies a recommendation for the unchanged build", async () => {
+        const user = userEvent.setup();
+        const currentSlots = {
+            helmet: {
+                itemId: 1,
+                itemStars: 1,
+                orbIds: [],
+                orbLevels: [],
+                drifIds: [],
+                drifLevels: {},
+            },
+        };
+        const recommendedSetup = {
+            slots: { ...currentSlots, helmet: { ...currentSlots.helmet, itemStars: 2 } },
+        };
+        const recommendation = {
+            ...optimizationResult,
+            baselineSignature: advisorBuildSignature(currentSlots),
+            nextVariants: [
+                {
+                    bonusName: "Lepszy krytyk",
+                    finalValue: 10,
+                    variantValue: 12,
+                    gain: 2,
+                    advisorGain: 2,
+                    changeCount: 1,
+                    changes: [],
+                    statChanges: [],
+                    setup: recommendedSetup,
+                },
+            ],
+        };
+        const advisorEquipment = {
+            ...equipment,
+            requestData: { slots: currentSlots, characterStats: { Siła: 100 } },
+            data: { items: [], drifs: [], orbs: [] },
+            stats: { CRITICAL_CHANCE: "10%" },
+            calculateStats: vi.fn(),
+            cancelDrifOptimization: vi.fn(),
+            runDrifOptimization: vi.fn().mockResolvedValue(recommendation),
+            applyOptimizationSetup: vi.fn(() => true),
+        };
+        useEquipment.mockReturnValue(advisorEquipment);
+        render(
+            <OptimizerPanel
+                optimizerSettings={{
+                    ...settings,
+                    mode: "ADVISOR",
+                    advisorGoal: "CRITICAL_CHANCE",
+                    advisorProfession: "PHYSICAL",
+                    advisorSearch: { targetMode: "GAIN", target: "2", maxActions: 2 },
+                    advisorAllowedChanges: { stars: true },
+                    advisorProtectedModifiers: {},
+                }}
+                onOptimizerSettingsChange={vi.fn()}
+            />
+        );
+
+        await user.click(screen.getByRole("button", { name: "ANALIZUJ BUILD" }));
+        await screen.findByRole("button", { name: /Lepszy krytyk/i });
+        expect(advisorEquipment.runDrifOptimization).toHaveBeenCalledWith({
+            mode: "ADVISOR",
+            priorities: { CRITICAL_CHANCE: 30 },
+            characterStats: { Siła: 100 },
+            advisor: expect.objectContaining({
+                goal: "CRITICAL_CHANCE",
+                profession: "PHYSICAL",
+                targetGain: 2,
+                maxActions: 2,
+            }),
+        });
+
+        await user.click(screen.getByRole("button", { name: /Zastosuj wybrany wariant/i }));
+        expect(advisorEquipment.applyOptimizationSetup).toHaveBeenCalledWith(recommendedSetup);
+    });
+
+    it("refreshes missing advisor stats and rejects stale recommendations", async () => {
+        const user = userEvent.setup();
+        const calculateStats = vi.fn();
+        const applyOptimizationSetup = vi.fn();
+        const advisorEquipment = {
+            ...equipment,
+            requestData: { slots: { helmet: { itemId: 1 } }, characterStats: {} },
+            data: { items: [], drifs: [], orbs: [] },
+            stats: null,
+            calculateStats,
+            cancelDrifOptimization: vi.fn(),
+            applyOptimizationSetup,
+            runDrifOptimization: vi.fn().mockResolvedValue({
+                ...optimizationResult,
+                baselineSignature: "stary-build",
+                nextVariants: [
+                    {
+                        bonusName: "Nieaktualny plan",
+                        finalValue: 0,
+                        variantValue: 1,
+                        advisorGain: 1,
+                        changeCount: 1,
+                        changes: [],
+                        statChanges: [],
+                        setup: { slots: { helmet: { itemId: 2 } } },
+                    },
+                ],
+            }),
+        };
+        useEquipment.mockReturnValue(advisorEquipment);
+        render(
+            <OptimizerPanel
+                optimizerSettings={{ ...settings, mode: "ADVISOR" }}
+                onOptimizerSettingsChange={vi.fn()}
+            />
+        );
+
+        expect(calculateStats).toHaveBeenCalledOnce();
+        await user.click(screen.getByRole("button", { name: "ANALIZUJ BUILD" }));
+        await user.click(await screen.findByRole("button", { name: /Zastosuj wybrany wariant/i }));
+
+        expect(window.alert).toHaveBeenCalledWith(
+            "Build zmienił się od analizy. Uruchom Doradcę ponownie."
+        );
+        expect(applyOptimizationSetup).not.toHaveBeenCalled();
+    });
+
+    it("reports a failed advisor cancellation while preserving the running request", async () => {
+        let finish;
+        const cancelDrifOptimization = vi.fn().mockRejectedValue(new Error("network"));
+        const runDrifOptimization = vi.fn(
+            () =>
+                new Promise((resolve) => {
+                    finish = resolve;
+                })
+        );
+        useEquipment.mockReturnValue({
+            ...equipment,
+            data: { items: [], drifs: [], orbs: [] },
+            stats: { CRITICAL_CHANCE: "10%" },
+            calculateStats: vi.fn(),
+            cancelDrifOptimization,
+            runDrifOptimization,
+        });
+        render(
+            <OptimizerPanel
+                optimizerSettings={{ ...settings, mode: "ADVISOR" }}
+                onOptimizerSettingsChange={vi.fn()}
+            />
+        );
+
+        fireEvent.click(screen.getByRole("button", { name: "ANALIZUJ BUILD" }));
+        await userEvent.click(
+            await screen.findByRole("button", { name: /Zatrzymaj i pokaż znalezione plany/i })
+        );
+
+        expect(cancelDrifOptimization).toHaveBeenCalledOnce();
+        expect(window.alert).toHaveBeenCalledWith(
+            "Nie udało się zatrzymać analizy. Zakończy się po upływie limitu czasu."
+        );
+        await act(async () => finish(optimizationResult));
     });
 });

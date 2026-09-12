@@ -1,5 +1,5 @@
 import { act, renderHook } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { downloadBuildPayload } from "../utils/buildFile";
 import { useBuildLibrary } from "./useBuildLibrary";
 
@@ -17,6 +17,7 @@ const snapshot = (itemId = 1) => ({
 
 describe("useBuildLibrary", () => {
     beforeEach(() => localStorage.clear());
+    afterEach(() => vi.restoreAllMocks());
 
     it("saves, loads, overwrites and removes local builds", () => {
         let currentSnapshot = snapshot();
@@ -51,5 +52,60 @@ describe("useBuildLibrary", () => {
 
         act(() => result.current.remove(saved.id));
         expect(result.current.builds).toEqual([]);
+    });
+
+    it("reports invalid snapshots and storage failures", () => {
+        const { result } = renderHook(() =>
+            useBuildLibrary({ createSnapshot: () => ({}), applySnapshot: vi.fn() })
+        );
+
+        act(() => expect(result.current.saveCurrent("pusty")).toBeNull());
+        expect(result.current.notice).toMatchObject({
+            type: "error",
+            message: expect.stringContaining("pustej konfiguracji"),
+        });
+
+        vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+            throw new Error("quota");
+        });
+        const valid = renderHook(() =>
+            useBuildLibrary({ createSnapshot: () => snapshot(), applySnapshot: vi.fn() })
+        );
+        act(() => expect(valid.result.current.saveCurrent("PvP")).toBeNull());
+        expect(valid.result.current.notice.message).toContain("quota");
+    });
+
+    it("rejects unknown records and dismisses errors", () => {
+        const { result } = renderHook(() =>
+            useBuildLibrary({ createSnapshot: () => snapshot(), applySnapshot: vi.fn() })
+        );
+
+        act(() => expect(result.current.rename("missing", "nazwa")).toBe(false));
+        expect(result.current.notice.message).toContain("Nie znaleziono");
+        act(() => expect(result.current.load("missing")).toBe(false));
+        act(() => expect(result.current.exportBuild("missing")).toBe(false));
+        act(() => result.current.overwrite("missing"));
+        expect(result.current.notice.type).toBe("error");
+        act(() => result.current.remove("missing"));
+        act(() => result.current.dismissNotice());
+        expect(result.current.notice).toBeNull();
+    });
+
+    it("enforces the bounded local library", () => {
+        const { result } = renderHook(() =>
+            useBuildLibrary({ createSnapshot: () => snapshot(), applySnapshot: vi.fn() })
+        );
+
+        for (let index = 0; index < 10; index += 1) {
+            act(() => result.current.saveCurrent(`Build ${index + 1}`));
+        }
+        let overflow;
+        act(() => {
+            overflow = result.current.saveCurrent("Build 11");
+        });
+
+        expect(result.current.builds).toHaveLength(10);
+        expect(overflow).toBeNull();
+        expect(result.current.notice.message).toContain("maksymalnie 10 buildów");
     });
 });

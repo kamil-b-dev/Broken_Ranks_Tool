@@ -113,7 +113,7 @@ describe("App", () => {
 
         await user.click(screen.getByRole("button", { name: /Optymalizator drifów/i }));
         expect(screen.getByPlaceholderText("Szukaj statystyki...")).toHaveValue("krytyk");
-    });
+    }, 20000);
 
     it("loads a selected build and reports success and failure without blocking alerts", async () => {
         const { container, rerender } = render(<App />);

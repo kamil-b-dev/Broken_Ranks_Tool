@@ -62,4 +62,72 @@ describe("useOptimizerPriorities", () => {
         );
         expect(result.current.expandedPriorities.has("CRITICAL_CHANCE")).toBe(true);
     });
+
+    it("returns no choices before rules arrive and excludes bonuses without drif power", () => {
+        const empty = renderHook(() => useOptimizerPriorities(null));
+        expect(empty.result.current.availableBonuses).toEqual([]);
+
+        const rules = {
+            ...gameRules,
+            bonusTranslations: { ...gameRules.bonusTranslations, ORB_ONLY: "Tylko orb" },
+        };
+        const { result } = renderHook(() => useOptimizerPriorities(rules));
+        expect(result.current.availableBonuses.map((bonus) => bonus.key)).not.toContain("ORB_ONLY");
+    });
+
+    it("filters by category, updates regular fields and clears the configuration", () => {
+        const { result } = renderHook(() => useOptimizerPriorities(gameRules));
+
+        act(() => result.current.setSelectedCategory("UTILITY"));
+        expect(result.current.availableBonuses.map((bonus) => bonus.key)).toEqual(["MANA_REGEN"]);
+        act(() => result.current.selectBonus(result.current.availableBonuses[0]));
+        act(() => result.current.updateBonus("MANA_REGEN", "weight", 27));
+        expect(result.current.prioritizedBonuses[0].weight).toBe(27);
+        act(() => result.current.clearAll());
+        expect(result.current.prioritizedBonuses).toEqual([]);
+        expect(result.current.expandedPriorities.size).toBe(0);
+    });
+
+    it("sorts priorities in both directions while keeping equal weights stable", () => {
+        const { result } = renderHook(() => useOptimizerPriorities(gameRules));
+        act(() =>
+            result.current.replaceConfiguration({
+                priorities: [
+                    { key: "CRITICAL_CHANCE", weight: 5 },
+                    { key: "MANA_REGEN", weight: 20 },
+                ],
+            })
+        );
+
+        act(() => result.current.sortByPriority());
+        expect(result.current.prioritizedBonuses.map((bonus) => bonus.key)).toEqual([
+            "MANA_REGEN",
+            "CRITICAL_CHANCE",
+        ]);
+        expect(result.current.prioritySortDirection).toBe("asc");
+
+        act(() => result.current.sortByPriority());
+        expect(result.current.prioritizedBonuses.map((bonus) => bonus.key)).toEqual([
+            "CRITICAL_CHANCE",
+            "MANA_REGEN",
+        ]);
+    });
+
+    it("toggles individual and all priority cards", () => {
+        const { result } = renderHook(() => useOptimizerPriorities(gameRules));
+        act(() =>
+            result.current.replaceConfiguration({
+                priorities: [{ key: "CRITICAL_CHANCE" }, { key: "MANA_REGEN" }],
+            })
+        );
+
+        act(() => result.current.toggleExpanded("CRITICAL_CHANCE"));
+        expect(result.current.expandedPriorities.has("CRITICAL_CHANCE")).toBe(false);
+        act(() => result.current.toggleExpanded("CRITICAL_CHANCE"));
+        expect(result.current.expandedPriorities.has("CRITICAL_CHANCE")).toBe(true);
+        act(() => result.current.toggleAllExpanded());
+        expect(result.current.expandedPriorities.size).toBe(0);
+        act(() => result.current.toggleAllExpanded());
+        expect(result.current.expandedPriorities.size).toBe(2);
+    });
 });
