@@ -34,4 +34,32 @@ describe("OptimizerChangesSection", () => {
         expect(screen.getByText("Krytyk 4")).toBeInTheDocument();
         expect(screen.getByText(/Szansa na krytyk/)).toHaveTextContent("10% → 12,5%");
     });
+
+    it("prefers advisor actions and hides unchanged calculator values", () => {
+        render(
+            <OptimizerChangesSection
+                advisory
+                variant={{
+                    advisorActions: ["Kup nowy drif", "Przenieś drif do hełmu"],
+                    changes: [{ slotKey: "helmet", itemName: "Hełm" }],
+                    statChanges: [
+                        { statKey: "same", finalValue: "10%", variantValue: "10%" },
+                        { statKey: "mana", finalValue: "-10%", variantValue: "-15%" },
+                    ],
+                }}
+                maxCaps={{ mana: -60 }}
+                translations={{ same: "Bez zmiany", mana: "Zużycie many" }}
+            />
+        );
+
+        expect(screen.getByRole("list", { name: "Plan zmian" })).toHaveTextContent("Kup nowy drif");
+        expect(screen.queryByText("Hełm")).not.toBeInTheDocument();
+        expect(screen.queryByText(/Bez zmiany/)).not.toBeInTheDocument();
+        expect(screen.getByText(/Zużycie many/)).toHaveClass("is-positive");
+    });
+
+    it("shows a prompt when no alternative is selected", () => {
+        render(<OptimizerChangesSection variant={null} />);
+        expect(screen.getByText(/Wybierz wariant alternatywny/)).toBeInTheDocument();
+    });
 });
