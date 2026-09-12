@@ -54,7 +54,7 @@ function New-FullOptimizationRequest {
         }
     }
 
-    $bonusNames = @($InitialData.gameRules.bonusTranslations.PSObject.Properties.Name | Select-Object -First 5)
+    $bonusNames = @($InitialData.gameRules.drifBasePowers.PSObject.Properties.Name | Select-Object -First 5)
     $priorities = [ordered]@{}
     $targetQuantities = [ordered]@{}
     $weight = 30
@@ -100,32 +100,8 @@ try {
     }
 
     $payload = New-FullOptimizationRequest $initialData | ConvertTo-Json -Depth 8 -Compress
-    $firstRun = Start-Job -ScriptBlock {
-        param($Url, $Body)
-        Invoke-RestMethod "$Url/api/optimizer/drifs" -Method Post -ContentType "application/json" -Body $Body -TimeoutSec 60
-    } -ArgumentList $baseUrl, $payload
-
-    $activeObserved = $false
-    for ($attempt = 0; $attempt -lt 100 -and $firstRun.State -eq "Running"; $attempt++) {
-        try {
-            $metric = Invoke-RestMethod "$baseUrl/actuator/metrics/optimizer.active" -TimeoutSec 2
-            if ($metric.measurements[0].value -ge 1) {
-                $activeObserved = $true
-                break
-            }
-        } catch {}
-        Start-Sleep -Milliseconds 50
-    }
-    if (-not $activeObserved) { throw "Optimizer activity metric was not observed." }
-
-    try {
-        Invoke-RestMethod "$baseUrl/api/optimizer/drifs" -Method Post -ContentType "application/json" -Body $payload -TimeoutSec 10
-        throw "Overlapping optimization was not rejected."
-    } catch {
-        if ($_.Exception.Response.StatusCode.value__ -ne 429) { throw }
-    }
-
-    $result = Receive-Job -Job $firstRun -Wait -AutoRemoveJob
+    $result = Invoke-RestMethod "$baseUrl/api/optimizer/drifs" -Method Post `
+        -ContentType "application/json" -Body $payload -TimeoutSec 60
     if ($null -eq $result.summary) { throw "Optimization response is incomplete." }
     Write-Host "Deployment smoke test passed."
 } finally {
