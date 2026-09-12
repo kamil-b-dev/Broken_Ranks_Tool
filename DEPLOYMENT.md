@@ -61,6 +61,14 @@ The application reads Railway's injected `PORT`. SQLite is copied to `/app/data/
 inside every immutable image. Do not attach a volume unless the application starts persisting user
 data; at that point migrate those writes to PostgreSQL instead of relying on image-local SQLite.
 
+Public calculation endpoints are protected by per-client and whole-instance, one-minute request
+limits. The production defaults allow 3 optimizer requests per client and 12 globally, and 120
+calculator requests per client and 600 globally. Requests larger than 256 KiB are rejected before
+JSON parsing. Tune these values with `OPTIMIZER_CLIENT_REQUESTS_PER_MINUTE`,
+`OPTIMIZER_GLOBAL_REQUESTS_PER_MINUTE`, `CALCULATOR_CLIENT_REQUESTS_PER_MINUTE`,
+`CALCULATOR_GLOBAL_REQUESTS_PER_MINUTE`, and `ABUSE_PROTECTION_MAX_REQUEST_BYTES`. A rejected rate
+limit response uses HTTP 429 and includes `Retry-After`.
+
 ## Production checks
 
 After deployment verify:
