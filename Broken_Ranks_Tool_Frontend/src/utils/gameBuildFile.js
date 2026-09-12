@@ -19,6 +19,10 @@ const ITEM_CATEGORY_BY_GEAR_TYPE = {
     pants: "LEGS",
     bracers: "OFF_HAND",
     amulet: "NECKLACE",
+    bow: "WEAPON_RANGED",
+    weapon_1h: "WEAPON_1H",
+    weapon_2h: "WEAPON_2H",
+    weapon_ranged: "WEAPON_RANGED",
 };
 
 const DRIF_SIZE_BY_PREFIX = {

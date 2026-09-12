@@ -69,13 +69,16 @@ const OrbSection = ({
             <select
                 value={orbState.id}
                 aria-label="Wybierz wielkość orba"
-                onChange={(e) =>
+                onChange={(e) => {
+                    const selectedOrb = groupedOrbs[orbState.type]?.find(
+                        (orb) => String(orb.id) === e.target.value
+                    );
                     setOrbState((prev) => ({
                         ...prev,
                         id: e.target.value,
-                        level: isSubOrb ? "1" : "",
-                    }))
-                }
+                        level: selectedOrb?.size?.toUpperCase() === "SUBORB" ? "1" : "",
+                    }));
+                }}
                 disabled={!orbState.type}
                 className="flex-[3] min-w-0 bg-transparent text-stone-300 font-serif p-1 text-xs border-b border-rose-900/70 focus:border-rose-500 outline-none text-center disabled:opacity-30 cursor-pointer"
             >
