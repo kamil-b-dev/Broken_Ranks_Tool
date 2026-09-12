@@ -93,6 +93,7 @@ public class EquipmentRulesRegistry {
      * @return Whether the category is allowed.
      */
     public boolean isItemAllowedInSlot(ITEM_CATEGORY category, String slotKey) {
+        if (category == null || slotKey == null) return false;
         return slotItemRules.getOrDefault(slotKey, List.of()).contains(category);
     }
 
@@ -103,6 +104,7 @@ public class EquipmentRulesRegistry {
      * @return Whether the category is allowed.
      */
     public boolean isOrbAllowedInSlot(ORB_CATEGORY category, String slotKey) {
+        if (category == null || slotKey == null) return false;
         return slotOrbRules.getOrDefault(slotKey, List.of()).contains(category);
     }
 
@@ -112,6 +114,7 @@ public class EquipmentRulesRegistry {
      * @return Whether the bonus is elemental damage.
      */
     public boolean isElementalDamage(DRIF_BONUS_TYPE type) {
+        if (type == null) return false;
         return elementalDamageTypes.contains(type);
     }
 
