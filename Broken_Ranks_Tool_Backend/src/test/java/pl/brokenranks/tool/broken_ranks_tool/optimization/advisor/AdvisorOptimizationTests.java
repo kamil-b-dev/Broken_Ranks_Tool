@@ -194,6 +194,110 @@ class AdvisorOptimizationTests {
     }
 
     @Test
+    void upgradesAnOwnedDrifWithoutRemovingOrDowngradingIt() {
+        DrifTemplate owned = drif(10, A, "2%");
+        owned.setIncrement("1%");
+        Fixture f = fixture(List.of(item(1, ITEM_CATEGORY.HELMET, "I", 10, 0)), List.of(owned));
+        SlotData helmet = slot(1, 1, 10L);
+        helmet.setDrifLevels(Map.of("0", 1));
+        var request = request(A, Map.of("helmet", helmet));
+        request.getAdvisor().getAllowedChanges().setDrifUpgrades(true);
+        request.getAdvisor().setTargetGain(3.0);
+
+        var result = f.service.optimize(request);
+
+        SlotData optimized = result.getOptimizedSetup().getSlots().get("helmet");
+        assertEquals(List.of(10L), optimized.getDrifIds());
+        assertEquals(4, optimized.getDrifLevels().get("0"));
+        assertEquals(List.of(10L), request.getOriginalSlots().get("helmet").getDrifIds());
+        assertEquals(1, request.getOriginalSlots().get("helmet").getDrifLevels().get("0"));
+        assertTrue(
+                result.getAdvisorReport()
+                        .plans()
+                        .getFirst()
+                        .actions()
+                        .getFirst()
+                        .contains("Ulepsz"));
+    }
+
+    @Test
+    void itemReplacementHonorsExplicitProfessionAndKeepsStarsAndDrifs() {
+        ItemTemplate current = item(1, ITEM_CATEGORY.HELMET, "I", 10, 0);
+        current.setProfile(ITEM_PROFILE.UNIVERSAL);
+        ItemTemplate physical = item(2, ITEM_CATEGORY.HELMET, "I", 10, 20);
+        physical.setProfile(ITEM_PROFILE.PHYSICAL);
+        ItemTemplate magical = item(3, ITEM_CATEGORY.HELMET, "I", 10, 50);
+        magical.setProfile(ITEM_PROFILE.MAGICAL);
+        Fixture f = fixture(List.of(current, physical, magical), List.of(drif(10, A, "10%")));
+        SlotData helmet = slot(1, 7, 10L);
+        helmet.setDrifLevels(Map.of("0", 6));
+        var request = request(A, Map.of("helmet", helmet));
+        request.getAdvisor().getAllowedChanges().setItems(true);
+        request.getAdvisor().setProfession("PHYSICAL");
+        request.getAdvisor().setTargetGain(1.0);
+
+        var result = f.service.optimize(request);
+
+        SlotData optimized = result.getOptimizedSetup().getSlots().get("helmet");
+        assertEquals(2L, optimized.getItemId());
+        assertEquals(7, optimized.getItemStars());
+        assertEquals(List.of(10L), optimized.getDrifIds());
+        assertEquals(6, optimized.getDrifLevels().get("0"));
+        assertTrue(
+                result.getAdvisorReport()
+                        .plans()
+                        .getFirst()
+                        .actions()
+                        .getFirst()
+                        .contains("Zmień"));
+    }
+
+    @Test
+    void automaticProfessionUsesCharacterStatsAndRejectsSpecialReplacementItems() {
+        ItemTemplate current = item(1, ITEM_CATEGORY.HELMET, "I", 10, 0);
+        current.setProfile(ITEM_PROFILE.UNSPECIFIED);
+        ItemTemplate physical = item(2, ITEM_CATEGORY.HELMET, "I", 10, 20);
+        physical.setProfile(ITEM_PROFILE.PHYSICAL);
+        ItemTemplate magical = item(3, ITEM_CATEGORY.HELMET, "I", 10, 40);
+        magical.setProfile(ITEM_PROFILE.MAGICAL);
+        ItemTemplate epic = item(4, ITEM_CATEGORY.HELMET, "I", 10, 90);
+        epic.setProfile(ITEM_PROFILE.PHYSICAL);
+        epic.setRarity(RARITY.EPIC);
+        Fixture f = fixture(List.of(current, physical, magical, epic), List.of(drif(10, A, "10%")));
+        var request = request(A, Map.of("helmet", slot(1, 1, 10L)));
+        request.setCharacterStats(Map.of("Siła", 50, "Moc", 1));
+        request.getAdvisor().getAllowedChanges().setItems(true);
+
+        var result = f.service.optimize(request);
+
+        assertEquals(2L, result.getOptimizedSetup().getSlots().get("helmet").getItemId());
+    }
+
+    @Test
+    void purchaseGenerationSupportsEveryAllowedBoundaryLevelAndSkipsWrongBonus() {
+        DrifTemplate goal = drif(10, A, "2%");
+        goal.setSize(DRIF_SIZE.ARCYDRIF);
+        goal.setIncrement("1%");
+        DrifTemplate unrelated = drif(20, B, "100%");
+        unrelated.setSize(DRIF_SIZE.ARCYDRIF);
+        Fixture f =
+                fixture(
+                        List.of(item(1, ITEM_CATEGORY.HELMET, "X", 40, 0)),
+                        List.of(goal, unrelated));
+        var request = request(A, Map.of("helmet", slot(1, 1)));
+        request.getAdvisor().getAllowedChanges().setDrifs(true);
+        request.getAdvisor().setTargetGain(17.0);
+
+        var result = f.service.optimize(request);
+
+        assertTrue(result.getAdvisorReport().targetReached());
+        assertEquals(
+                List.of(10L), result.getOptimizedSetup().getSlots().get("helmet").getDrifIds());
+        assertEquals(
+                21, result.getOptimizedSetup().getSlots().get("helmet").getDrifLevels().get("0"));
+    }
+
+    @Test
     void rejectsInvalidCapacityTierAndDuplicateBuilds() {
         DrifTemplate large = drif(11, A, "10%");
         large.setSize(DRIF_SIZE.ARCYDRIF);
