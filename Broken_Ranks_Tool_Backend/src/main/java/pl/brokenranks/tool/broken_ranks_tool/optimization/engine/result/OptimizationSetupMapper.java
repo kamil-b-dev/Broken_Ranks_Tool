@@ -30,6 +30,9 @@ final class OptimizationSetupMapper {
 
         EquipmentRequest setup = new EquipmentRequest();
         setup.setSlots(slots);
+        if (context.request().getCharacterStats() != null) {
+            setup.setCharacterStats(new HashMap<>(context.request().getCharacterStats()));
+        }
         return setup;
     }
 
