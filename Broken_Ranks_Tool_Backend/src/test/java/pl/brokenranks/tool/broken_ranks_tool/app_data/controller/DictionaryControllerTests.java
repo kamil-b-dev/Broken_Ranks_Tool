@@ -13,18 +13,24 @@ class DictionaryControllerTests {
 
     @Test
     void exposesCompleteItemOrbAndDrifDictionaries() {
-        assertThat(controller.getCategoryDictionary()).hasSize(ITEM_CATEGORY.values().length);
-        assertThat(controller.getCategoryDictionary())
+        assertThat(controller.getCategoryDictionary().getBody())
+                .hasSize(ITEM_CATEGORY.values().length);
+        assertThat(controller.getCategoryDictionary().getBody())
                 .containsEntry(ITEM_CATEGORY.HELMET.name(), ITEM_CATEGORY.HELMET.getDescription());
 
-        assertThat(controller.getOrbCategoryDictionary()).hasSize(ORB_CATEGORY.values().length);
-        assertThat(controller.getOrbCategoryDictionary())
+        assertThat(controller.getOrbCategoryDictionary().getBody())
+                .hasSize(ORB_CATEGORY.values().length);
+        assertThat(controller.getOrbCategoryDictionary().getBody())
                 .containsEntry(
                         ORB_CATEGORY.OFFENSIVE.name(), ORB_CATEGORY.OFFENSIVE.getDescription());
 
-        assertThat(controller.getDrifCategoryDictionary()).hasSize(DRIF_CATEGORY.values().length);
-        assertThat(controller.getDrifCategoryDictionary())
+        assertThat(controller.getDrifCategoryDictionary().getBody())
+                .hasSize(DRIF_CATEGORY.values().length);
+        assertThat(controller.getDrifCategoryDictionary().getBody())
                 .containsEntry(
                         DRIF_CATEGORY.UTILITY.name(), DRIF_CATEGORY.UTILITY.getDescription());
+
+        assertThat(controller.getCategoryDictionary().getHeaders().getCacheControl())
+                .isEqualTo("max-age=3600, public");
     }
 }

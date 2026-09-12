@@ -63,11 +63,26 @@ data; at that point migrate those writes to PostgreSQL instead of relying on ima
 
 Public calculation endpoints are protected by per-client and whole-instance, one-minute request
 limits. The production defaults allow 3 optimizer requests per client and 12 globally, and 120
-calculator requests per client and 600 globally. Requests larger than 256 KiB are rejected before
-JSON parsing. Tune these values with `OPTIMIZER_CLIENT_REQUESTS_PER_MINUTE`,
+calculator requests per client and 600 globally. Advisor cancellation is limited to 30 requests
+per client and 300 globally. Public API reads are limited to 300 requests per client and 3000
+globally. Requests larger than 256 KiB are rejected before JSON parsing, including requests
+streamed without a `Content-Length` header. Tune these values with
+`OPTIMIZER_CLIENT_REQUESTS_PER_MINUTE`,
 `OPTIMIZER_GLOBAL_REQUESTS_PER_MINUTE`, `CALCULATOR_CLIENT_REQUESTS_PER_MINUTE`,
-`CALCULATOR_GLOBAL_REQUESTS_PER_MINUTE`, and `ABUSE_PROTECTION_MAX_REQUEST_BYTES`. A rejected rate
-limit response uses HTTP 429 and includes `Retry-After`.
+`CALCULATOR_GLOBAL_REQUESTS_PER_MINUTE`, `CONTROL_CLIENT_REQUESTS_PER_MINUTE`,
+`CONTROL_GLOBAL_REQUESTS_PER_MINUTE`, `PUBLIC_DATA_CLIENT_REQUESTS_PER_MINUTE`,
+`PUBLIC_DATA_GLOBAL_REQUESTS_PER_MINUTE`, and `ABUSE_PROTECTION_MAX_REQUEST_BYTES`. A rejected
+rate limit response uses HTTP 429 and includes `Retry-After`.
+
+The production profile trusts forwarded client addresses only when the direct proxy address
+matches private, loopback, link-local, or carrier-grade NAT proxy ranges. Tomcat expects this
+allowlist as a Java regular expression, not CIDR notation. Keep the service reachable through
+Railway's public proxy; if the hosting topology changes, override `TRUSTED_PROXY_REGEX` with an
+exact proxy-address regular expression instead of trusting arbitrary forwarded headers.
+
+Successful public catalogue responses use `Cache-Control: public, max-age=3600`. Keep write and
+error responses uncached. Railway Edge Rules may use a longer cache TTL for these immutable GET
+endpoints if traffic grows.
 
 ## Production checks
 

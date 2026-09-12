@@ -3,6 +3,7 @@ package pl.brokenranks.tool.broken_ranks_tool.app_data.controller;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -42,6 +43,7 @@ class InitialDataControllerTests {
 
         mockMvc.perform(get("/api/initial-data"))
                 .andExpect(status().isOk())
+                .andExpect(header().string("Cache-Control", "max-age=3600, public"))
                 .andExpect(jsonPath("$.items").isArray())
                 .andExpect(jsonPath("$.orbs").isArray())
                 .andExpect(jsonPath("$.drifs").isArray())

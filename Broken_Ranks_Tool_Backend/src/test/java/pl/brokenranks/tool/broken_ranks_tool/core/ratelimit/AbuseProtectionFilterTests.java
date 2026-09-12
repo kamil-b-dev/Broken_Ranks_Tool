@@ -1,20 +1,31 @@
 package pl.brokenranks.tool.broken_ranks_tool.core.ratelimit;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
+import java.nio.charset.StandardCharsets;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
@@ -24,12 +35,18 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.controller.CalculatorCont
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.CalculationResultDto;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCalculatorService;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.advisor.AdvisorRunRegistry;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.controller.AdvisorCancellationController;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.controller.OptimizationController;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationResponse;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.service.OptimizationExecutionGuard;
 
-@WebMvcTest({OptimizationController.class, CalculatorController.class})
+@WebMvcTest({
+    OptimizationController.class,
+    CalculatorController.class,
+    AdvisorCancellationController.class
+})
 @Import({SecurityConfig.class, RequestTracingFilter.class, AbuseProtectionFilter.class})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @TestPropertySource(
@@ -38,7 +55,11 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.service.OptimizationEx
             "abuse-protection.optimizer.client-requests-per-minute=2",
             "abuse-protection.optimizer.global-requests-per-minute=10",
             "abuse-protection.calculator.client-requests-per-minute=2",
-            "abuse-protection.calculator.global-requests-per-minute=4"
+            "abuse-protection.calculator.global-requests-per-minute=4",
+            "abuse-protection.control.client-requests-per-minute=2",
+            "abuse-protection.control.global-requests-per-minute=4",
+            "abuse-protection.public-data.client-requests-per-minute=2",
+            "abuse-protection.public-data.global-requests-per-minute=4"
         })
 class AbuseProtectionFilterTests {
 
@@ -56,6 +77,8 @@ class AbuseProtectionFilterTests {
 
     @MockBean private EquipmentStatsCalculatorService calculatorService;
 
+    @MockBean private AdvisorRunRegistry advisorRunRegistry;
+
     @Test
     void rejectsRequestsAboveTheConfiguredBodySize() throws Exception {
         mockMvc.perform(
@@ -70,14 +93,45 @@ class AbuseProtectionFilterTests {
     }
 
     @Test
-    void rejectsRepeatedOptimizationRequestsFromOneClient() throws Exception {
+    void rejectsAnOversizedBodyWhenContentLengthIsUnknown() throws Exception {
+        AbuseProtectionFilter filter = createFilter();
+        HttpServletRequest request = unknownLengthRequest(new byte[257]);
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        FilterChain chain = mock(FilterChain.class);
+
+        filter.doFilter(request, response, chain);
+
+        org.assertj.core.api.Assertions.assertThat(response.getStatus()).isEqualTo(413);
+        org.assertj.core.api.Assertions.assertThat(response.getContentAsString())
+                .contains("REQUEST_TOO_LARGE");
+        verify(chain, never()).doFilter(any(), any());
+    }
+
+    @Test
+    void replaysAnAllowedBodyWhenContentLengthIsUnknown() throws Exception {
+        AbuseProtectionFilter filter = createFilter();
+        byte[] body = "{\"priorities\":{}}".getBytes(StandardCharsets.UTF_8);
+        HttpServletRequest request = unknownLengthRequest(body);
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        AtomicReference<byte[]> forwardedBody = new AtomicReference<>();
+        FilterChain chain =
+                (forwardedRequest, forwardedResponse) ->
+                        forwardedBody.set(forwardedRequest.getInputStream().readAllBytes());
+
+        filter.doFilter(request, response, chain);
+
+        org.assertj.core.api.Assertions.assertThat(forwardedBody.get()).isEqualTo(body);
+    }
+
+    @Test
+    void ignoresSpoofedForwardedForWhenLimitingOneClient() throws Exception {
         when(executionGuard.optimize(any(OptimizationRequest.class)))
                 .thenReturn(new OptimizationResponse(null, null));
 
         for (int request = 0; request < 2; request++) {
             mockMvc.perform(
                             post("/api/optimizer/drifs")
-                                    .header("X-Forwarded-For", "198.51.100.25")
+                                    .header("X-Forwarded-For", "198.51.100." + request)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(VALID_REQUEST))
                     .andExpect(status().isOk());
@@ -85,7 +139,7 @@ class AbuseProtectionFilterTests {
 
         mockMvc.perform(
                         post("/api/optimizer/drifs")
-                                .header("X-Forwarded-For", "198.51.100.25")
+                                .header("X-Forwarded-For", "203.0.113.77")
                                 .header("X-Request-ID", "rate-limit-test")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(VALID_REQUEST))
@@ -103,9 +157,14 @@ class AbuseProtectionFilterTests {
                 .thenReturn(new OptimizationResponse(null, null));
 
         for (int request = 0; request < 10; request++) {
+            String clientAddress = "198.51.100." + request;
             mockMvc.perform(
                             post("/api/optimizer/drifs")
-                                    .header("X-Forwarded-For", "198.51.100." + request)
+                                    .with(
+                                            httpRequest -> {
+                                                httpRequest.setRemoteAddr(clientAddress);
+                                                return httpRequest;
+                                            })
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(VALID_REQUEST))
                     .andExpect(status().isOk());
@@ -113,7 +172,11 @@ class AbuseProtectionFilterTests {
 
         mockMvc.perform(
                         post("/api/optimizer/drifs")
-                                .header("X-Forwarded-For", "203.0.113.1")
+                                .with(
+                                        httpRequest -> {
+                                            httpRequest.setRemoteAddr("203.0.113.1");
+                                            return httpRequest;
+                                        })
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(VALID_REQUEST))
                 .andExpect(status().isTooManyRequests())
@@ -146,5 +209,72 @@ class AbuseProtectionFilterTests {
                 .andExpect(jsonPath("$.code").value("RATE_LIMITED"));
 
         verify(calculatorService, times(2)).calculateWithSources(any());
+    }
+
+    @Test
+    void rateLimitsAdvisorCancellationRequests() throws Exception {
+        String path = "/api/optimizer/advisor/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa/cancel";
+
+        for (int request = 0; request < 2; request++) {
+            mockMvc.perform(post(path)).andExpect(status().isOk());
+        }
+
+        mockMvc.perform(post(path))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(jsonPath("$.code").value("RATE_LIMITED"));
+
+        verify(advisorRunRegistry, times(2)).cancel("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+    }
+
+    @Test
+    void rateLimitsPublicApiReadsWithoutLimitingStaticRoutes() throws Exception {
+        for (int request = 0; request < 2; request++) {
+            mockMvc.perform(get("/api/missing")).andExpect(status().isNotFound());
+        }
+
+        mockMvc.perform(get("/api/missing"))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(header().exists("Retry-After"))
+                .andExpect(jsonPath("$.code").value("RATE_LIMITED"));
+
+        mockMvc.perform(get("/missing-page")).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void returnsUnsupportedMediaTypeWithoutTreatingItAsAServerFailure() throws Exception {
+        mockMvc.perform(
+                        post("/api/calculator/calculate")
+                                .contentType(MediaType.TEXT_PLAIN)
+                                .content("{}"))
+                .andExpect(status().isUnsupportedMediaType())
+                .andExpect(jsonPath("$.code").value("UNSUPPORTED_MEDIA_TYPE"));
+
+        mockMvc.perform(get("/api/calculator/calculate"))
+                .andExpect(status().isMethodNotAllowed())
+                .andExpect(jsonPath("$.code").value("METHOD_NOT_ALLOWED"));
+    }
+
+    private AbuseProtectionFilter createFilter() {
+        AbuseProtectionProperties.Limit limit = new AbuseProtectionProperties.Limit(2, 10);
+        AbuseProtectionProperties properties =
+                new AbuseProtectionProperties(256, limit, limit, limit, limit);
+        return new AbuseProtectionFilter(properties, new RequestRateLimiter(), new ObjectMapper());
+    }
+
+    private HttpServletRequest unknownLengthRequest(byte[] content) {
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/optimizer/drifs");
+        request.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        request.setContent(content);
+        return new HttpServletRequestWrapper(request) {
+            @Override
+            public int getContentLength() {
+                return -1;
+            }
+
+            @Override
+            public long getContentLengthLong() {
+                return -1;
+            }
+        };
     }
 }

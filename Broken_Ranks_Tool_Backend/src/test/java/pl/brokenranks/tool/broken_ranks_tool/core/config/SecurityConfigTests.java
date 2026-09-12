@@ -33,7 +33,19 @@ class SecurityConfigTests {
         mockMvc.perform(get("/api/initial-data"))
                 .andExpect(status().isOk())
                 .andExpect(header().exists("Content-Security-Policy"))
-                .andExpect(header().string("X-Frame-Options", "DENY"));
+                .andExpect(header().string("X-Frame-Options", "DENY"))
+                .andExpect(header().string("Cache-Control", "max-age=3600, public"));
+    }
+
+    @Test
+    void returnsANotFoundResponseWithoutTreatingUnknownApiPathsAsServerFailures() throws Exception {
+        mockMvc.perform(get("/api/missing"))
+                .andExpect(status().isNotFound())
+                .andExpect(
+                        header().string(
+                                        "Cache-Control",
+                                        "no-cache, no-store, max-age=0, must-revalidate"))
+                .andExpect(jsonPath("$.code").value("NOT_FOUND"));
     }
 
     @Test

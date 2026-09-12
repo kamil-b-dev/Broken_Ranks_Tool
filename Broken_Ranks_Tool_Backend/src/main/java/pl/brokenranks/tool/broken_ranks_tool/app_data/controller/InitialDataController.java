@@ -1,5 +1,7 @@
 package pl.brokenranks.tool.broken_ranks_tool.app_data.controller;
 
+import static pl.brokenranks.tool.broken_ranks_tool.core.config.PublicDataResponse.ok;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +25,6 @@ public class InitialDataController {
     @GetMapping("/initial-data")
     @Cacheable("initialData")
     public ResponseEntity<InitialDataDto> getInitialData() {
-        return ResponseEntity.ok(initialDataService.getInitialData());
+        return ok(initialDataService.getInitialData());
     }
 }

@@ -1,5 +1,7 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.controller;
 
+import static pl.brokenranks.tool.broken_ranks_tool.core.config.PublicDataResponse.ok;
+
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
@@ -21,7 +23,7 @@ public class ItemTemplatesController {
     @GetMapping
     @Cacheable("allItems")
     public ResponseEntity<List<ItemTemplate>> getAllItems() {
-        return ResponseEntity.ok(itemRepository.findAll());
+        return ok(itemRepository.findAll());
     }
 
     /**
@@ -36,6 +38,6 @@ public class ItemTemplatesController {
         if (items.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(items);
+        return ok(items);
     }
 }
