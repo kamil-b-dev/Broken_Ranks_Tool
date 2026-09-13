@@ -1,5 +1,5 @@
 import CategoryIcon from "../../../shared/ui/CategoryIcon";
-import { formatComparisonValue } from "../buildLibraryDomain";
+import { formatComparisonValue } from "./comparisonValues";
 
 const StatRows = ({ builds, rows }) =>
     rows.map((row) => (

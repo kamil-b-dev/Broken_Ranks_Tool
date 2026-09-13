@@ -5,14 +5,15 @@ import {
 } from "../../shared/domain/equipment/drifCategories";
 import TabList from "../../shared/ui/TabList";
 import {
-    createDrifComposition,
     createEquipmentComparisonRows,
-    createStatComparisonGroups,
     summarizeLocalBuild,
-} from "./buildLibraryDomain";
+} from "./comparison/buildComparisonData";
+import { createDrifComposition } from "./comparison/drifComparison";
+import { createStatComparisonGroups } from "./comparison/statComparison";
 import DrifComposition from "./comparison/DrifComposition";
 import StatComparisonTable from "./comparison/StatComparisonTable";
 import { CATEGORY_DESCRIPTIONS } from "./comparison/comparisonPresentation";
+import EquipmentComparisonTable from "./comparison/EquipmentComparisonTable";
 
 const COMPARISON_TABS = [
     { value: "equipment", label: "Ekwipunek" },
@@ -49,7 +50,6 @@ const BuildComparison = ({ builds, items = [], drifs = [], gameRules = {} }) => 
             </div>
         );
 
-    const visibleEquipmentRows = equipmentRows.filter((row) => !onlyDifferences || row.differs);
     const characterSections = [
         { key: "character", title: "Statystyki postaci", rows: statGroups.character },
         {
@@ -127,48 +127,13 @@ const BuildComparison = ({ builds, items = [], drifs = [], gameRules = {} }) => 
                 </label>
             </div>
 
-            <div
-                id="build-comparison-panel-equipment"
-                role="tabpanel"
-                aria-labelledby="build-comparison-tab-equipment"
-                tabIndex={0}
-                hidden={activeSection !== "equipment"}
-                className="build-comparison-table custom-scrollbar"
-                style={comparisonStyle}
-            >
-                <div className="build-comparison-row build-comparison-header">
-                    <span>Slot</span>
-                    {builds.map((build) => (
-                        <strong key={build.id}>{build.name}</strong>
-                    ))}
-                </div>
-                {visibleEquipmentRows.length ? (
-                    visibleEquipmentRows.map((row) => (
-                        <div className="build-comparison-row" key={row.key}>
-                            <span className="build-comparison-label">{row.label}</span>
-                            {row.values.map((value, index) => (
-                                <div
-                                    key={`${builds[index].id}-${row.key}`}
-                                    className={row.differs ? "is-different" : ""}
-                                >
-                                    <strong>{value.itemName}</strong>
-                                    {value.itemName !== "Pusty slot" && (
-                                        <small>
-                                            {value.tier ? `Tier ${value.tier} · ` : ""}
-                                            {value.stars > 0 ? `${value.stars}★ · ` : ""}
-                                            {value.drifCount} drif · {value.orbCount} orb
-                                        </small>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    ))
-                ) : (
-                    <p className="build-comparison-no-differences">
-                        Brak różnic w wybranym zakresie.
-                    </p>
-                )}
-            </div>
+            <EquipmentComparisonTable
+                active={activeSection === "equipment"}
+                builds={builds}
+                rows={equipmentRows}
+                onlyDifferences={onlyDifferences}
+                comparisonStyle={comparisonStyle}
+            />
 
             <div
                 id="build-comparison-panel-character"
