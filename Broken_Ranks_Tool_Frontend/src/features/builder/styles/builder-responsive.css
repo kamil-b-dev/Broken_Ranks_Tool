@@ -19,7 +19,7 @@
         grid-template-columns: minmax(17rem, 0.8fr) minmax(36rem, 1.5fr);
     }
 
-    .builder-results-column {
+    .builder-slot-editor-column {
         position: static;
         grid-column: 1 / -1;
         height: auto;
@@ -63,7 +63,7 @@
         overflow-y: visible;
     }
 
-    .builder-results-column {
+    .builder-slot-editor-column {
         grid-column: auto;
     }
 
@@ -153,7 +153,7 @@
         min-width: 0;
     }
 
-    .builder-results-column {
+    .builder-slot-editor-column {
         order: 3;
     }
 

@@ -58,10 +58,6 @@ const OptimizerLocksColumn = ({
         ({ slot }) => filter === "all" || lockedSlots?.includes(slot.key)
     );
     const heading = mode === "ADVISOR" ? "Analizowany build" : "Blokady buildu";
-    const description =
-        mode === "ADVISOR"
-            ? "Zablokuj elementy, których doradca nie powinien wymieniać."
-            : "Zablokowane elementy pozostaną bez zmian.";
 
     return (
         <section
@@ -75,7 +71,6 @@ const OptimizerLocksColumn = ({
                     </span>
                     <h3 id="optimizer-locks-heading">{heading}</h3>
                 </div>
-                <p>{description}</p>
             </header>
             <div className="optimizer-lock-filters" role="group" aria-label="Filtr blokad">
                 <button

@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import EquipmentSlotOverview from "./EquipmentSlotOverview";
@@ -59,5 +59,53 @@ describe("EquipmentSlotOverview", () => {
 
         expect(screen.getByText("Wybierz przedmiot")).toBeInTheDocument();
         expect(screen.queryByText(/Tier/)).not.toBeInTheDocument();
+    });
+
+    it("accepts a compatible item dropped from the database", () => {
+        const onItemDrop = vi.fn();
+        const onSelect = vi.fn();
+        render(
+            <EquipmentSlotOverview
+                label="Hełm"
+                acceptedItemIds={[7]}
+                onItemDrop={onItemDrop}
+                onSelect={onSelect}
+            />
+        );
+        const slot = screen.getByRole("button", { name: /Hełm/i });
+        const dataTransfer = {
+            dropEffect: "none",
+            getData: () => JSON.stringify({ id: 7, name: "Hełm testowy", dragType: "items" }),
+        };
+
+        fireEvent.dragOver(slot, { dataTransfer });
+        expect(slot).toHaveClass("equipment-slot-overview-drop-target");
+        fireEvent.drop(slot, { dataTransfer });
+
+        expect(onSelect).toHaveBeenCalledOnce();
+        expect(onItemDrop).toHaveBeenCalledWith(
+            expect.objectContaining({ id: 7, name: "Hełm testowy" })
+        );
+        expect(slot).not.toHaveClass("equipment-slot-overview-drop-target");
+    });
+
+    it("rejects an item incompatible with the target slot", () => {
+        const onItemDrop = vi.fn();
+        render(
+            <EquipmentSlotOverview
+                label="Hełm"
+                acceptedItemIds={[7]}
+                onItemDrop={onItemDrop}
+                onSelect={vi.fn()}
+            />
+        );
+
+        fireEvent.drop(screen.getByRole("button", { name: /Hełm/i }), {
+            dataTransfer: {
+                getData: () => JSON.stringify({ id: 9, name: "Zbroja", dragType: "items" }),
+            },
+        });
+
+        expect(onItemDrop).not.toHaveBeenCalled();
     });
 });

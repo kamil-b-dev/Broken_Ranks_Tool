@@ -78,12 +78,7 @@ const OptimizerStatusSection = ({ isOptimizing, elapsedSeconds, status, lastDura
                         )}
                     </dl>
                 </div>
-            ) : (
-                <div className="optimizer-status-empty">
-                    <span aria-hidden="true">✦</span>
-                    <p>Wynik i ostrzeżenia z kolejnej optymalizacji pojawią się tutaj.</p>
-                </div>
-            )}
+            ) : null}
         </section>
     );
 };

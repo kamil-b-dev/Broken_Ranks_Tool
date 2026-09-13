@@ -1,12 +1,12 @@
 const MODES = [
-    ["BUILD_FROM_SCRATCH", "Od zera", "Nowy układ z pełnego katalogu drifów."],
-    ["ADVISOR", "Doradca", "Plan zakupów i zamian dla obecnego buildu."],
+    ["BUILD_FROM_SCRATCH", "Od zera"],
+    ["ADVISOR", "Doradca"],
 ];
 
 /** Switches between the optimizer and advisor workspaces. */
 export const OptimizerModeNavigation = ({ settings, onChange }) => (
     <nav className="optimizer-mode-navigation" aria-label="Tryb optymalizatora">
-        {MODES.map(([value, label, description]) => (
+        {MODES.map(([value, label]) => (
             <button
                 key={value}
                 type="button"
@@ -15,7 +15,6 @@ export const OptimizerModeNavigation = ({ settings, onChange }) => (
                 onClick={() => onChange({ ...settings, mode: value })}
             >
                 <strong>{label}</strong>
-                <small>{description}</small>
             </button>
         ))}
     </nav>

@@ -27,7 +27,12 @@ describe("optimizerConfiguration", () => {
                     maximize: true,
                 },
             ],
-            { mode: "ADVISOR", maxVariantLossPercent: 140 },
+            {
+                mode: "ADVISOR",
+                forceMaximizationByDrifBonus: true,
+                generateVariants: true,
+                maxVariantLossPercent: 140,
+            },
             new Date("2026-08-30T00:00:00.000Z")
         );
 
@@ -35,7 +40,12 @@ describe("optimizerConfiguration", () => {
             format: "broken-ranks-tool-optimizer-config",
             version: 1,
             exportedAt: "2026-08-30T00:00:00.000Z",
-            settings: { mode: "ADVISOR", maxVariantLossPercent: 100 },
+            settings: {
+                mode: "ADVISOR",
+                forceMaximizationByDrifBonus: true,
+                generateVariants: true,
+                maxVariantLossPercent: 100,
+            },
             priorities: [{ key: "ARMOR", weight: 20, min: 1, max: 4, maximize: true }],
         });
     });

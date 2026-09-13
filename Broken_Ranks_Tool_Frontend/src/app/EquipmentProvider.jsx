@@ -1,10 +1,11 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { useEquipmentBuildTransfer } from "../features/builds/useEquipmentBuildTransfer";
 import { useEquipmentLocks } from "../features/equipment/useEquipmentLocks";
 import { useEquipmentCatalog } from "../features/equipment/useEquipmentCatalog";
 import { useEquipmentStats } from "../features/equipment/useEquipmentStats";
 import { useEquipmentOptimization } from "../features/optimizer/useEquipmentOptimization";
 import { EquipmentContext } from "../shared/state/EquipmentContext";
+import { readEquipmentDraft, writeEquipmentDraft } from "./storage/workingDraftStorage";
 
 /**
  * Provides application state for equipment, character stats, and optimization.
@@ -14,6 +15,7 @@ import { EquipmentContext } from "../shared/state/EquipmentContext";
  * @returns {JSX.Element} The context provider.
  */
 export const EquipmentProvider = ({ children }) => {
+    const [initialDraft] = useState(readEquipmentDraft);
     const {
         data,
         categoryNames,
@@ -24,7 +26,9 @@ export const EquipmentProvider = ({ children }) => {
         initialDataError,
     } = useEquipmentCatalog();
 
-    const [requestData, setRequestData] = useState({ slots: {}, characterStats: {} });
+    const [requestData, setRequestData] = useState(
+        () => initialDraft?.requestData || { slots: {}, characterStats: {} }
+    );
     const {
         stats,
         statSources,
@@ -36,7 +40,7 @@ export const EquipmentProvider = ({ children }) => {
     } = useEquipmentStats(requestData);
 
     const { lockedSlots, lockedDrifs, toggleSlotLock, toggleDrifLock, replaceLocks } =
-        useEquipmentLocks();
+        useEquipmentLocks(initialDraft?.lockedSlots, initialDraft?.lockedDrifs);
     const {
         optimizationTrigger,
         markEquipmentChanged,
@@ -49,7 +53,16 @@ export const EquipmentProvider = ({ children }) => {
         lockedSlots,
         lockedDrifs,
     });
-    const [characterConfig, setCharacterConfig] = useState(null);
+    const [characterConfig, setCharacterConfig] = useState(initialDraft?.characterConfig || null);
+
+    useEffect(() => {
+        writeEquipmentDraft({
+            requestData,
+            characterConfig,
+            lockedSlots,
+            lockedDrifs,
+        });
+    }, [characterConfig, lockedDrifs, lockedSlots, requestData]);
 
     /**
      * Updates the equipment data for a single slot.

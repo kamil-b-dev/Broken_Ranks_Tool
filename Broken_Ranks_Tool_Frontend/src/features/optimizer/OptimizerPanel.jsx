@@ -1,8 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useEquipment } from "../../shared/state/EquipmentContext";
 import AppNotice from "../../shared/ui/AppNotice";
 import { calculateCurrentModDetails } from "./optimizerDomain";
-import { buildOptimizationConfig, findInvalidPercentageTarget } from "./optimizerConfiguration";
+import {
+    buildOptimizationConfig,
+    createOptimizerConfigPayload,
+    findInvalidPercentageTarget,
+    mergeOptimizerSettings,
+    parseOptimizerConfigPayload,
+} from "./optimizerConfiguration";
 import OptimizerMobileNavigation from "./OptimizerMobileNavigation";
 import { OptimizerModeNavigation } from "./OptimizerSettingsPanel";
 import OptimizerLocksColumn from "./OptimizerLocksColumn";
@@ -14,6 +20,7 @@ import { useOptimizerConfigFiles } from "./useOptimizerConfigFiles";
 import { createRecommendationChanges } from "./advisor/optimizerRecommendation";
 import { buildAdvisorConfiguration } from "./advisor/advisorConfiguration";
 import { advisorBuildSignature } from "./advisor/advisorBuildSignature";
+import { readOptimizerDraft, writeOptimizerDraft } from "../../app/storage/workingDraftStorage";
 
 /**
  * Provides drif priorities, target limits, and equipment locking for optimization.
@@ -66,6 +73,31 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
     } = useOptimizationRun(runDrifOptimization);
     const [activeMobileColumn, setActiveMobileColumn] = useState("priorities");
     const [notice, setNotice] = useState(null);
+    const draftRestoredRef = useRef(false);
+    const skipDraftSaveRef = useRef(false);
+    useEffect(() => {
+        if (draftRestoredRef.current || !gameRules?.bonusTranslations) return;
+        draftRestoredRef.current = true;
+        skipDraftSaveRef.current = true;
+        const savedDraft = readOptimizerDraft();
+        if (savedDraft) {
+            try {
+                const imported = parseOptimizerConfigPayload(savedDraft, gameRules);
+                replaceConfiguration(imported);
+                onOptimizerSettingsChange((previous) => mergeOptimizerSettings(previous, imported));
+            } catch {
+                // Ignore drafts from obsolete or malformed application versions.
+            }
+        }
+    }, [gameRules, onOptimizerSettingsChange, replaceConfiguration]);
+    useEffect(() => {
+        if (!draftRestoredRef.current) return;
+        if (skipDraftSaveRef.current) {
+            skipDraftSaveRef.current = false;
+            return;
+        }
+        writeOptimizerDraft(createOptimizerConfigPayload(prioritizedBonuses, optimizerSettings));
+    }, [optimizerSettings, prioritizedBonuses]);
     useEffect(() => resetOptimization(), [optimizerSettings.mode, resetOptimization]);
     useEffect(() => {
         if (optimizerSettings.mode === "ADVISOR" && !stats && calculateStats) calculateStats();
