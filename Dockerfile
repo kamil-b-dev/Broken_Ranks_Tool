@@ -13,7 +13,7 @@ COPY Broken_Ranks_Tool_Backend/src ./src
 COPY --from=frontend-build /workspace/frontend/dist ./src/main/resources/static
 RUN mvn -B -DskipTests package
 
-FROM eclipse-temurin:21-jre-jammy AS runtime
+FROM eclipse-temurin:25-jre-jammy AS runtime
 WORKDIR /app
 RUN groupadd --system app && useradd --system --gid app --home-dir /app app \
     && mkdir -p /app/data
