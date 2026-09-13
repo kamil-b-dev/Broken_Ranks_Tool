@@ -1,11 +1,11 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.advisor;
 
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.advisor.AdvisorEquipmentModel.*;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.advisor.AdvisorSlotData.*;
 
 import java.util.*;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.*;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.DrifPowerRules;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRulesRegistry;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.util.DrifPowerRules;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest.SlotData;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.*;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.UpgradeLevelPolicy;

@@ -1,0 +1,523 @@
+.selected-slot-editor {
+    margin-top: 0.8rem;
+    border: 1px solid rgba(133, 77, 39, 0.72);
+    background:
+        linear-gradient(rgba(3, 5, 5, 0.87), rgba(3, 5, 5, 0.94)),
+        url("../../../assets/panel-blackened-steel-texture.webp") center / 34rem;
+    background-blend-mode: normal, soft-light;
+}
+
+.selected-slot-editor-heading {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0;
+    padding: 0.65rem 0.9rem;
+    border-bottom: 1px solid rgba(133, 77, 39, 0.72);
+    background:
+        linear-gradient(90deg, rgba(20, 20, 19, 0.82), rgba(5, 6, 6, 0.9)),
+        url("../../../assets/hammered-black-iron-texture.webp") center / 28rem;
+    background-blend-mode: normal, luminosity;
+}
+
+.selected-slot-editor-heading h3 {
+    color: #d9a45d;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.selected-slot-editor-heading > span {
+    color: #837a72;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.7rem;
+}
+
+.selected-slot-editor-content {
+    display: flex;
+    min-height: 28rem;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 1.25rem;
+    border: 0;
+    background: rgba(3, 3, 4, 0.62);
+}
+
+.gear-slot-editor-expanded {
+    display: grid;
+    width: min(100%, 58rem);
+    grid-template-columns: minmax(12rem, 0.9fr) minmax(13rem, 1fr) minmax(15rem, 1.25fr);
+    align-items: start;
+    gap: 1rem;
+    border-color: rgba(166, 118, 54, 0.88) !important;
+}
+
+.gear-slot-editor-expanded:hover {
+    border-color: rgba(218, 167, 86, 0.96) !important;
+}
+
+.gear-slot-editor-expanded,
+.gear-slot-editor-expanded > *,
+.gear-slot-editor-expanded .gear-slot-item-section {
+    min-width: 0;
+}
+
+.gear-slot-editor-expanded .gear-slot-item-section {
+    overflow: hidden;
+}
+
+.gear-slot-editor-expanded .gear-slot-item-section > div,
+.gear-slot-editor-expanded .gear-slot-item-section select {
+    width: 100%;
+    min-width: 0;
+}
+
+.gear-slot-editor-expanded .gear-slot-item-section [class*="justify-center"][class*="gap-1"] {
+    gap: 0;
+    overflow: hidden;
+}
+
+.gear-slot-editor-expanded
+    .gear-slot-item-section
+    [class*="justify-center"][class*="gap-1"]
+    > span {
+    min-width: 0;
+    flex: 1 1 0;
+    font-size: clamp(0.72rem, 1vw, 1.05rem);
+    text-align: center;
+}
+
+.gear-slot-editor-expanded > div:nth-child(2) {
+    grid-column: 1 / -1;
+}
+
+.gear-slot-editor-expanded .gear-slot-item-section,
+.gear-slot-editor-expanded .gear-slot-orb-section,
+.gear-slot-editor-expanded .gear-slot-drif-section {
+    align-self: stretch;
+    padding: 0.75rem;
+    border: 1px solid rgba(78, 42, 47, 0.72);
+    background:
+        linear-gradient(rgba(4, 5, 5, 0.74), rgba(0, 0, 0, 0.86)),
+        url("../../../assets/panel-blackened-steel-texture.webp") center / 22rem;
+    background-blend-mode: normal, soft-light;
+    box-shadow:
+        inset 0 1px rgba(230, 179, 106, 0.035),
+        inset 0 0 24px rgba(0, 0, 0, 0.55);
+}
+
+.gear-slot-editor-expanded select,
+.gear-slot-editor-expanded [class*="bg-black"] {
+    background-image:
+        linear-gradient(rgba(2, 2, 2, 0.58), rgba(2, 2, 2, 0.76)),
+        url("../../../assets/panel-aged-leather-texture.webp");
+    background-position: center;
+    background-size: auto, 15rem;
+    background-blend-mode: normal, soft-light;
+}
+
+.gear-slot-editor-expanded .gear-slot-drif-section .h-1 {
+    background:
+        linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.72)),
+        url("../../../assets/panel-aged-leather-texture.webp") center / 12rem;
+}
+
+.gear-slot-editor-expanded .gear-slot-drif-section .h-1 > div {
+    background-image:
+        linear-gradient(90deg, rgba(69, 38, 11, 0.42), rgba(239, 190, 95, 0.2)),
+        url("../../../assets/brushed-bronze-texture.webp") !important;
+    background-position: center;
+    background-size: auto, 12rem;
+    background-blend-mode: normal, overlay;
+}
+
+.item-database-theme,
+.builder-stats-panel {
+    background-image:
+        linear-gradient(155deg, rgba(16, 16, 16, 0.9), rgba(2, 3, 3, 0.96) 68%),
+        url("../../../assets/panel-blackened-steel-texture.webp");
+    background-position: center;
+    background-size: auto, 38rem;
+    background-blend-mode: normal, soft-light;
+}
+
+.builder-theme .item-database-theme {
+    background-image:
+        linear-gradient(155deg, rgba(16, 16, 15, 0.82), rgba(2, 3, 3, 0.93) 68%),
+        url("../../../assets/database-panel-backdrop-texture.webp");
+    background-position: center top;
+    background-size:
+        auto,
+        34rem 34rem;
+    background-repeat: no-repeat, repeat;
+    background-blend-mode: normal, luminosity;
+}
+
+.database-result-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    min-height: 2.75rem;
+    margin-bottom: 0.3rem;
+    border: 1px solid rgba(127, 91, 49, 0.62) !important;
+    background-image:
+        linear-gradient(90deg, rgba(8, 5, 4, 0.69), rgba(1, 2, 2, 0.84)),
+        url("../../../assets/smoked-parchment-texture.webp");
+    background-position: center;
+    background-size: auto, 14rem;
+    background-blend-mode: normal, soft-light;
+}
+
+.database-variant-row {
+    grid-template-columns: 2rem minmax(0, 1fr) auto;
+}
+
+.item-database-theme .database-tab-button {
+    border-color: rgba(132, 92, 44, 0.72) !important;
+    background-image:
+        linear-gradient(rgba(62, 4, 13, 0.44), rgba(5, 2, 3, 0.72)),
+        url("../../../assets/crimson-lacquer-texture.webp");
+    background-position: center;
+    background-size: auto, 18rem;
+    background-blend-mode: normal, soft-light;
+    color: #c9a56b;
+}
+
+.item-database-theme .database-tab-button[aria-pressed="true"] {
+    border-color: rgba(213, 155, 69, 0.92) !important;
+    background-image:
+        linear-gradient(rgba(77, 8, 15, 0.38), rgba(8, 3, 4, 0.74)),
+        url("../../../assets/crimson-lacquer-texture.webp");
+    color: #efc77e;
+    box-shadow:
+        inset 0 1px rgba(255, 210, 135, 0.12),
+        0 0 12px rgba(107, 22, 18, 0.25);
+}
+
+.item-database-theme .database-tab-button:hover {
+    border-color: rgba(199, 73, 76, 0.88) !important;
+    background-image:
+        linear-gradient(rgba(89, 8, 18, 0.48), rgba(8, 2, 4, 0.76)),
+        url("../../../assets/crimson-lacquer-texture.webp");
+}
+
+.database-item-copy {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.1rem;
+}
+
+.database-item-copy small {
+    overflow: hidden;
+    color: #766a5d;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.52rem;
+    letter-spacing: 0.09em;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.database-category-heading {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.database-category-icon {
+    width: 1.45rem;
+    height: 1.45rem;
+}
+
+.database-bonus-icon {
+    position: relative;
+    display: grid;
+    width: 2rem;
+    height: 2rem;
+    flex: 0 0 auto;
+    place-items: center;
+    border: 1px solid rgba(130, 91, 48, 0.62);
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #9a4f45, #310b0c 48%, #050505 72%);
+    box-shadow:
+        inset 0 0 7px #000,
+        0 0 8px rgba(166, 84, 52, 0.16);
+}
+
+.database-bonus-icon::after {
+    color: #e2b666;
+    content: "✦";
+    font-size: 0.7rem;
+}
+
+.database-bonus-icon-drifs {
+    border-radius: 0.25rem 50% 50%;
+    background: radial-gradient(circle at 35% 30%, #6a5a9a, #21143f 48%, #050505 72%);
+    transform: rotate(45deg);
+}
+
+.database-bonus-icon-drifs::after {
+    transform: rotate(-45deg);
+}
+
+.category-artwork {
+    display: block;
+    object-fit: contain;
+    object-position: center;
+    pointer-events: none;
+    user-select: none;
+}
+
+.category-artwork.database-bonus-icon {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    transform: none;
+}
+
+.database-result-row:hover {
+    border-color: rgba(201, 147, 76, 0.9) !important;
+    background-image:
+        linear-gradient(90deg, rgba(42, 19, 14, 0.66), rgba(7, 7, 7, 0.82)),
+        url("../../../assets/smoked-parchment-texture.webp");
+}
+
+.builder-stats-panel .stat-summary-column,
+.builder-stats-panel .stat-category-card {
+    box-sizing: border-box;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    background-image:
+        linear-gradient(rgba(2, 3, 4, 0.72), rgba(1, 2, 3, 0.87)),
+        url("../../../assets/dark-basalt-texture.webp");
+    background-position: center;
+    background-size: auto, 22rem;
+    background-blend-mode: normal, soft-light;
+}
+
+.builder-stats-panel {
+    min-width: 0;
+    overflow: hidden;
+}
+
+.stats-result-tabs {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.25rem;
+    margin-bottom: 1rem;
+    padding: 0.25rem;
+    border: 1px solid rgba(113, 79, 40, 0.6);
+    background: rgba(0, 0, 0, 0.58);
+}
+
+.stats-result-tabs button {
+    min-width: 0;
+    padding: 0.55rem 0.3rem;
+    border: 1px solid rgba(104, 74, 40, 0.52);
+    background-image:
+        linear-gradient(rgba(12, 12, 12, 0.7), rgba(2, 2, 2, 0.88)),
+        url("../../../assets/panel-blackened-steel-texture.webp");
+    background-position: center;
+    background-size: auto, 14rem;
+    color: #a78a60;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.stats-result-tabs button[aria-selected="true"] {
+    border-color: rgba(210, 150, 67, 0.9);
+    background-image:
+        linear-gradient(rgba(72, 7, 14, 0.4), rgba(5, 2, 3, 0.78)),
+        url("../../../assets/crimson-lacquer-texture.webp");
+    color: #efc77e;
+    box-shadow: inset 0 -2px rgba(146, 24, 22, 0.72);
+}
+
+.stats-result-content,
+.stats-result-content > * {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.builder-stats-panel .stat-category-card {
+    background-size: auto, 16rem;
+    box-shadow:
+        inset 0 1px rgba(220, 185, 128, 0.035),
+        inset 0 0 25px rgba(0, 0, 0, 0.72);
+}
+
+.builder-stats-panel > div:first-child button {
+    background-image:
+        linear-gradient(rgba(62, 4, 13, 0.44), rgba(5, 2, 3, 0.72)),
+        url("../../../assets/crimson-lacquer-texture.webp");
+    background-position: center;
+    background-size: auto, 18rem;
+    background-blend-mode: normal, soft-light;
+}
+
+.stats-empty-state {
+    display: flex;
+    min-height: 24rem;
+    align-items: center;
+    flex-direction: column;
+    justify-content: center;
+    padding: 2rem 1rem;
+    color: #756c61;
+    text-align: center;
+    background: radial-gradient(circle at center, rgba(132, 91, 43, 0.08), transparent 10rem);
+}
+
+.stats-empty-state img {
+    width: 8.5rem;
+    margin-bottom: 1rem;
+    opacity: 0.2;
+    filter: grayscale(0.35) sepia(0.35) drop-shadow(0 5px 12px #000);
+}
+
+.stats-empty-state strong {
+    color: #b28b51;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+}
+
+.stats-empty-state p {
+    max-width: 16rem;
+    margin: 0.45rem 0 0;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.7rem;
+    line-height: 1.5;
+}
+
+.gear-item-preview {
+    display: grid;
+    grid-template-columns: 3.5rem minmax(0, 1fr);
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.5rem;
+    border: 1px solid rgba(126, 88, 45, 0.48);
+    background: rgba(2, 3, 3, 0.48);
+}
+
+.gear-item-preview-icon {
+    width: 3.5rem;
+    height: 3.5rem;
+}
+
+.gear-item-preview > div {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+}
+
+.gear-item-preview strong {
+    overflow: hidden;
+    color: #d7ad68;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.8rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.gear-item-preview small {
+    color: #756d64;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.58rem;
+}
+
+.orb-socket-glyph {
+    display: block;
+    width: 1.55rem;
+    height: 1.55rem;
+    flex: 0 0 auto;
+    border: 1px solid rgba(189, 126, 57, 0.68);
+    border-radius: 50%;
+    background: radial-gradient(circle at 34% 28%, #dc765c, #6c1215 35%, #190506 65%, #020202 72%);
+    box-shadow:
+        inset 0 0 7px #000,
+        0 0 8px rgba(196, 73, 49, 0.2);
+}
+
+.category-artwork.orb-socket-glyph {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+}
+
+.drif-selector-category-icon {
+    width: 1.55rem;
+    height: 1.55rem;
+    flex: 0 0 auto;
+}
+
+.gear-slot-editor-expanded .orb-selector-row {
+    display: grid;
+    grid-template-columns: 1.7rem minmax(0, 1fr);
+    align-items: center;
+    gap: 0.3rem 0.55rem;
+}
+
+.gear-slot-editor-expanded .orb-selector-row .orb-socket-glyph {
+    grid-row: 1 / 4;
+}
+
+.gear-slot-editor-expanded .orb-selector-row select {
+    width: 100%;
+    grid-column: 2;
+    text-align: left;
+}
+
+.drif-empty-state {
+    display: flex;
+    min-height: 5.5rem;
+    align-items: center;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.35rem;
+    color: #6f685f;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.58rem;
+    letter-spacing: 0.08em;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.drif-empty-state i {
+    display: grid;
+    width: 2rem;
+    height: 2rem;
+    place-items: center;
+    border: 1px solid rgba(126, 91, 53, 0.5);
+    color: #a8834f;
+    font-size: 1rem;
+    font-style: normal;
+    transform: rotate(45deg);
+}
+
+.drif-empty-state i::first-letter {
+    transform: rotate(-45deg);
+}
+
+.gear-slot-editor-expanded .gear-slot-item-section {
+    grid-column: 1;
+}
+
+.gear-slot-editor-expanded .gear-slot-orb-section {
+    grid-column: 2;
+}
+
+.gear-slot-editor-expanded .gear-slot-drif-section {
+    grid-column: 3;
+}

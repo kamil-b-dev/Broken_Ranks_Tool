@@ -1,11 +1,12 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.advisor;
 
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.constraints.EquipmentSlotDataCopier.copySlot;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.advisor.AdvisorSlotData.*;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.advisor.AdvisorStatValues.*;
 
 import java.util.*;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.*;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.parsing.RomanNumeralParser;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.*;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.util.*;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest.SlotData;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.*;
@@ -17,7 +18,6 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationReques
 
 /** Request-local template and contribution caches; no catalog queries inside search. */
 final class AdvisorEquipmentModel {
-    static final DRIF_BONUS_TYPE[] TYPES = DRIF_BONUS_TYPE.values();
     final CalculationContext templates;
     final OptimizationRequest request;
     final EquipmentPlacementRules placement;
@@ -157,96 +157,11 @@ final class AdvisorEquipmentModel {
         return slot == null ? null : templates.items().get(slot.getItemId());
     }
 
-    static int stars(SlotData slot) {
-        return slot.getItemStars() == null || slot.getItemStars() == 0 ? 1 : slot.getItemStars();
-    }
-
-    static int size(SlotData slot) {
-        return slot.getDrifIds() == null ? 0 : slot.getDrifIds().size();
-    }
-
-    static Long id(SlotData slot, int i) {
-        return i < size(slot) ? slot.getDrifIds().get(i) : null;
-    }
-
-    static int level(SlotData slot, int i) {
-        Integer requested =
-                slot.getDrifLevels() == null ? 1 : slot.getDrifLevels().getOrDefault("" + i, 1);
-        return requested == null ? 0 : requested;
-    }
-
-    static int orbLevel(SlotData slot, int i) {
-        return slot.getOrbLevels() == null
-                        || i >= slot.getOrbLevels().size()
-                        || slot.getOrbLevels().get(i) == null
-                ? 1
-                : slot.getOrbLevels().get(i);
-    }
-
-    static SlotData placed(SlotData source, int index, Long id, int level) {
-        SlotData slot = copySlot(source);
-        if (slot.getDrifIds() == null) slot.setDrifIds(new ArrayList<>());
-        if (slot.getDrifLevels() == null) slot.setDrifLevels(new HashMap<>());
-        while (slot.getDrifIds().size() <= index) slot.getDrifIds().add(null);
-        slot.getDrifIds().set(index, id);
-        if (id == null) slot.getDrifLevels().remove("" + index);
-        else slot.getDrifLevels().put("" + index, level);
-        return slot;
-    }
-
-    static String signature(Map<String, SlotData> slots) {
-        StringBuilder key = new StringBuilder();
-        slots.forEach((name, slot) -> key.append(slotSignature(name, slot)).append('|'));
-        return key.toString();
-    }
-
-    private static String slotSignature(String name, SlotData slot) {
-        StringBuilder key =
-                new StringBuilder(name)
-                        .append(':')
-                        .append(slot.getItemId())
-                        .append(':')
-                        .append(stars(slot))
-                        .append(':')
-                        .append(slot.getOrbIds())
-                        .append(':')
-                        .append(slot.getOrbLevels());
-        int last = size(slot) - 1;
-        while (last >= 0 && id(slot, last) == null) last--;
-        for (int i = 0; i <= last; i++)
-            key.append(':')
-                    .append(id(slot, i))
-                    .append('@')
-                    .append(id(slot, i) == null ? 0 : level(slot, i));
-        return key.toString();
-    }
-
     EquipmentRequest setup(Map<String, SlotData> slots) {
         EquipmentRequest setup = new EquipmentRequest();
         setup.setSlots(slots);
         setup.setCharacterStats(request.getCharacterStats());
         return setup;
-    }
-
-    static double parse(String value) {
-        if (value == null) return 0;
-        return Double.parseDouble(value.replace("%", "").replace(',', '.').trim());
-    }
-
-    static double[] numeric(Map<String, Double> stats) {
-        double[] result = new double[TYPES.length];
-        for (var type : TYPES) result[type.ordinal()] = stats.getOrDefault(type.name(), 0.0);
-        return result;
-    }
-
-    static double[] parsed(Map<String, String> stats) {
-        double[] result = new double[TYPES.length];
-        for (var type : TYPES) result[type.ordinal()] = parse(stats.get(type.name()));
-        return result;
-    }
-
-    static double directed(DRIF_BONUS_TYPE type, double value) {
-        return type.getMaxCap() != null && type.getMaxCap() < 0 ? -value : value;
     }
 
     private record Contribution(double[] base, double[] drifs, int[] counts) {}

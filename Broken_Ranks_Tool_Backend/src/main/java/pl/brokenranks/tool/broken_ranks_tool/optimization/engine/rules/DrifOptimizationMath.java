@@ -3,7 +3,7 @@ package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules;
 import java.util.List;
 import java.util.Objects;
 import lombok.experimental.UtilityClass;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.util.DrifPowerRules;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.DrifPowerRules;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
 

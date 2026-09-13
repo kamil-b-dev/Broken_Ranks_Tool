@@ -1,0 +1,346 @@
+openapi: 3.1.0
+info:
+  title: Broken Ranks Tool API
+  version: 1.0.0
+  description: Same-origin API used by the equipment builder and optimizer.
+  license:
+    name: Proprietary
+    url: https://github.com/kamil-b-dev/Broken_Ranks_Tool/blob/master/LICENSE
+servers:
+  - url: /
+security: []
+paths:
+  /api/initial-data:
+    get:
+      operationId: getInitialData
+      summary: Return the complete catalogue, dictionaries, and game rules.
+      responses:
+        "200":
+          description: Initial application data.
+          headers:
+            Cache-Control:
+              schema: { type: string }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/InitialData" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+  /api/items:
+    get:
+      operationId: getItems
+      summary: Return all item templates.
+      responses:
+        "200": { $ref: "#/components/responses/CatalogueList" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+  /api/items/category/{category}:
+    get:
+      operationId: getItemsByCategory
+      summary: Return item templates in one equipment category.
+      parameters:
+        - name: category
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { $ref: "#/components/responses/CatalogueList" }
+        "400": { $ref: "#/components/responses/ApiFailure" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+  /api/orbs:
+    get:
+      operationId: getOrbs
+      summary: Return all orb templates.
+      responses:
+        "200": { $ref: "#/components/responses/CatalogueList" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+  /api/drifs:
+    get:
+      operationId: getDrifs
+      summary: Return all drif templates.
+      responses:
+        "200": { $ref: "#/components/responses/CatalogueList" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+  /api/rules:
+    get:
+      operationId: getGameRules
+      summary: Return calculation and placement rules used by the frontend.
+      responses:
+        "200":
+          description: Game rules keyed by stable enum names.
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        "429": { $ref: "#/components/responses/RateLimited" }
+  /api/dictionaries/categories:
+    get:
+      operationId: getItemCategoryDictionary
+      summary: Return translated item category names.
+      responses:
+        "200": { $ref: "#/components/responses/Dictionary" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+  /api/dictionaries/orb-categories:
+    get:
+      operationId: getOrbCategoryDictionary
+      summary: Return translated orb category names.
+      responses:
+        "200": { $ref: "#/components/responses/Dictionary" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+  /api/dictionaries/drif-categories:
+    get:
+      operationId: getDrifCategoryDictionary
+      summary: Return translated drif category names.
+      responses:
+        "200": { $ref: "#/components/responses/Dictionary" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+  /api/calculator/calculate:
+    post:
+      operationId: calculateEquipment
+      summary: Validate an equipment setup and calculate its statistics.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EquipmentRequest" }
+      responses:
+        "200":
+          description: Calculated values with source classifications.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CalculationResult" }
+        "400": { $ref: "#/components/responses/ApiFailure" }
+        "413": { $ref: "#/components/responses/RequestTooLarge" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+  /api/optimizer/drifs:
+    post:
+      operationId: optimizeDrifs
+      summary: Optimize from the catalogue or advise changes to the current build.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/OptimizationRequest" }
+      responses:
+        "200":
+          description: Optimized setup, summary, and optional advisor report.
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        "400": { $ref: "#/components/responses/ApiFailure" }
+        "413": { $ref: "#/components/responses/RequestTooLarge" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+  /api/optimizer/advisor/{runId}/cancel:
+    post:
+      operationId: cancelAdvisorRun
+      summary: Request cooperative cancellation of an advisor run.
+      parameters:
+        - name: runId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Whether a matching active run was marked for cancellation.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [cancelled]
+                properties:
+                  cancelled: { type: boolean }
+        "400": { $ref: "#/components/responses/ApiFailure" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+components:
+  responses:
+    CatalogueList:
+      description: Catalogue templates.
+      content:
+        application/json:
+          schema:
+            type: array
+            items: { type: object, additionalProperties: true }
+    Dictionary:
+      description: Labels keyed by stable enum names.
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: { type: string }
+    ApiFailure:
+      description: Invalid or forbidden request.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+    RequestTooLarge:
+      description: Request body exceeds the configured 256 KiB default limit.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+    RateLimited:
+      description: Per-client or whole-instance one-minute allowance exhausted.
+      headers:
+        Retry-After:
+          schema: { type: integer, minimum: 1 }
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+  schemas:
+    ApiError:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string }
+        message: { type: string }
+        requestId: { type: [string, "null"] }
+    SlotData:
+      type: object
+      properties:
+        itemId: { type: [integer, "null"], format: int64 }
+        itemStars: { type: [integer, "null"], minimum: 0, maximum: 9 }
+        orbIds:
+          type: [array, "null"]
+          maxItems: 2
+          items: { type: [integer, "null"], format: int64 }
+        orbLevels:
+          type: [array, "null"]
+          maxItems: 2
+          items: { type: [integer, "null"] }
+        drifIds:
+          type: [array, "null"]
+          maxItems: 8
+          items: { type: [integer, "null"], format: int64 }
+        drifLevels:
+          type: [object, "null"]
+          maxProperties: 8
+          additionalProperties: { type: integer }
+    EquipmentRequest:
+      type: object
+      properties:
+        slots:
+          type: [object, "null"]
+          maxProperties: 12
+          additionalProperties: { $ref: "#/components/schemas/SlotData" }
+        characterStats:
+          type: [object, "null"]
+          maxProperties: 32
+          additionalProperties: { type: integer }
+    CalculationResult:
+      type: object
+      required: [stats, drifCategories, orbBonusTypes]
+      properties:
+        stats:
+          type: object
+          additionalProperties: { type: string }
+        drifCategories:
+          type: object
+          additionalProperties: { type: string }
+        orbBonusTypes:
+          type: array
+          uniqueItems: true
+          items: { type: string }
+    OptimizationRequest:
+      type: object
+      required: [mode, originalSlots, priorities]
+      properties:
+        mode: { type: string, enum: [BUILD_FROM_SCRATCH, ADVISOR] }
+        characterStats:
+          type: [object, "null"]
+          maxProperties: 32
+          additionalProperties: { type: integer }
+        originalSlots:
+          type: object
+          minProperties: 1
+          maxProperties: 12
+          additionalProperties: { $ref: "#/components/schemas/SlotData" }
+        priorities:
+          type: object
+          minProperties: 1
+          maxProperties: 32
+          additionalProperties: { type: integer, minimum: 1, maximum: 30 }
+        targetQuantities:
+          type: object
+          maxProperties: 32
+          additionalProperties:
+            type: object
+            required: [min, max]
+            properties:
+              min: { type: integer, minimum: 0, maximum: 12 }
+              max: { type: integer, minimum: 0, maximum: 12 }
+        lockedSlots:
+          type: array
+          maxItems: 12
+          uniqueItems: true
+          items: { type: string }
+        lockedDrifs:
+          type: object
+          maxProperties: 12
+          additionalProperties:
+            type: array
+            maxItems: 8
+            uniqueItems: true
+            items: { type: integer }
+        forceCapBonuses:
+          type: array
+          maxItems: 32
+          uniqueItems: true
+          items: { type: string }
+        forcedPercentageTargets:
+          type: object
+          maxProperties: 32
+          additionalProperties: { type: number, minimum: 0 }
+        maximizeBonuses:
+          type: array
+          maxItems: 32
+          uniqueItems: true
+          items: { type: string }
+        forceMaximizationByDrifBonus: { type: boolean }
+        generateVariants: { type: boolean }
+        maxVariantLossPercent: { type: integer, minimum: 0, maximum: 100 }
+        advisor:
+          oneOf:
+            - $ref: "#/components/schemas/AdvisorOptions"
+            - type: "null"
+    AdvisorOptions:
+      type: object
+      required: [goal]
+      properties:
+        goal: { type: string }
+        runId:
+          type: [string, "null"]
+          format: uuid
+        timeBudgetMs:
+          { type: integer, minimum: 200, maximum: 5000, default: 1500 }
+        maxActions: { type: integer, minimum: 1, maximum: 3, default: 3 }
+        targetValue: { type: [number, "null"], minimum: 0 }
+        targetGain: { type: [number, "null"], minimum: 0 }
+        profession:
+          type: string
+          enum: [AUTO, MAGICAL, PHYSICAL, UNIVERSAL]
+          default: AUTO
+        allowedChanges:
+          type: object
+          properties:
+            stars: { type: boolean, default: true }
+            items: { type: boolean, default: false }
+            drifs: { type: boolean, default: false }
+            drifUpgrades: { type: boolean, default: false }
+        protectedModifiers:
+          type: object
+          maxProperties: 32
+          additionalProperties:
+            type: object
+            properties:
+              enabled: { type: boolean, default: true }
+              loss: { type: number, minimum: 0, default: 0 }
+    InitialData:
+      type: object
+      required: [items, orbs, drifs, gameRules, dictionaries]
+      properties:
+        items:
+          type: array
+          items: { type: object, additionalProperties: true }
+        orbs:
+          type: array
+          items: { type: object, additionalProperties: true }
+        drifs:
+          type: array
+          items: { type: object, additionalProperties: true }
+        gameRules: { type: object, additionalProperties: true }
+        dictionaries: { type: object, additionalProperties: true }

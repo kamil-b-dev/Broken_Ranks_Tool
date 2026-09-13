@@ -12,9 +12,9 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import pl.brokenranks.tool.broken_ranks_tool.core.config.SecurityConfig;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.CalculationResultDto;
@@ -27,7 +27,7 @@ class CalculatorControllerTests {
 
     @Autowired private MockMvc mockMvc;
 
-    @MockBean private EquipmentStatsCalculatorService calculatorService;
+    @MockitoBean private EquipmentStatsCalculatorService calculatorService;
 
     @Test
     void returnsCalculatedStatisticsAndSources() throws Exception {

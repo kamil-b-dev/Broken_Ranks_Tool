@@ -11,7 +11,9 @@ import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
-import pl.brokenranks.tool.broken_ranks_tool.core.exception.ApiError;
+import org.springframework.security.web.header.writers.PermissionsPolicyHeaderWriter;
+import pl.brokenranks.tool.broken_ranks_tool.core.web.error.ApiError;
+import pl.brokenranks.tool.broken_ranks_tool.core.web.filter.RequestTracingFilter;
 
 /** Security policy for the public, same-origin SPA and API. */
 @Configuration
@@ -44,7 +46,8 @@ public class SecurityConfig {
                                         .requestMatchers(
                                                 HttpMethod.POST,
                                                 "/api/calculator/calculate",
-                                                "/api/optimizer/drifs")
+                                                "/api/optimizer/drifs",
+                                                "/api/optimizer/advisor/*/cancel")
                                         .permitAll()
                                         .anyRequest()
                                         .denyAll())
@@ -67,10 +70,9 @@ public class SecurityConfig {
                                                     org.springframework.security.web.header.writers
                                                             .ReferrerPolicyHeaderWriter
                                                             .ReferrerPolicy.NO_REFERRER));
-                            headers.permissionsPolicy(
-                                    policy ->
-                                            policy.policy(
-                                                    "camera=(), microphone=(), geolocation=()"));
+                            headers.addHeaderWriter(
+                                    new PermissionsPolicyHeaderWriter(
+                                            "camera=(), microphone=(), geolocation=()"));
                             headers.frameOptions(frame -> frame.deny());
                             headers.httpStrictTransportSecurity(
                                     hsts -> hsts.includeSubDomains(true));
@@ -85,6 +87,8 @@ public class SecurityConfig {
         objectMapper.writeValue(
                 response.getOutputStream(),
                 new ApiError(
-                        "FORBIDDEN", "Dostęp do zasobu jest zabroniony.", MDC.get("requestId")));
+                        "FORBIDDEN",
+                        "Dostęp do zasobu jest zabroniony.",
+                        MDC.get(RequestTracingFilter.REQUEST_ID)));
     }
 }
