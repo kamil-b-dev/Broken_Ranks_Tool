@@ -1,8 +1,12 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import App from "./App.jsx";
-import "./index.css";
-import { EquipmentProvider } from "./context/EquipmentContext.jsx";
+import App from "./app/App.jsx";
+import "./styles/base.css";
+import "./styles/build-library.css";
+import "./styles/builder.css";
+import "./styles/themes.css";
+import "./styles/optimizer.css";
+import { EquipmentProvider } from "./app/EquipmentProvider.jsx";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
     <React.StrictMode>

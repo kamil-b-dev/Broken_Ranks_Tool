@@ -30,6 +30,28 @@ test("opens the builder and switches to the optimizer", async ({ page }) => {
     await expect(page.locator(".builder-theme")).toBeHidden();
 });
 
+test("loads the application artwork without broken assets", async ({ page }) => {
+    const failedAssets = [];
+    page.on("requestfailed", (request) => {
+        if (/\.(?:png|webp)$/u.test(new URL(request.url()).pathname)) {
+            failedAssets.push(request.url());
+        }
+    });
+    await page.route("**/api/initial-data", (route) => route.fulfill({ json: initialData }));
+
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
+
+    const images = page.locator("img");
+    expect(await images.count()).toBeGreaterThanOrEqual(3);
+    expect(
+        await images.evaluateAll((elements) =>
+            elements.every((image) => image.complete && image.naturalWidth > 0)
+        )
+    ).toBe(true);
+    expect(failedAssets).toEqual([]);
+});
+
 test("preserves optimizer state when switching workspaces", async ({ page }) => {
     await page.route("**/api/initial-data", (route) => route.fulfill({ json: initialData }));
 

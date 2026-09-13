@@ -1,0 +1,237 @@
+import { fireEvent, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import App from "./App";
+import { useEquipment } from "../shared/state/EquipmentContext";
+import { downloadBuildPayload } from "../features/builds/buildFile";
+
+vi.mock("../shared/state/EquipmentContext", async (importOriginal) => ({
+    ...(await importOriginal()),
+    useEquipment: vi.fn(),
+}));
+
+vi.mock("../features/builds/buildFile", async (importOriginal) => ({
+    ...(await importOriginal()),
+    downloadBuildPayload: vi.fn(),
+}));
+
+const equipment = {
+    data: { items: [], orbs: [], drifs: [] },
+    categoryNames: {},
+    orbCategories: {},
+    drifCategories: {},
+    gameRules: {
+        slotOrbRules: {},
+        elementalTypes: [],
+        drifBasePowers: {},
+        epicBuiltInDrifs: {},
+        bonusTranslations: {},
+        drifBonusCategories: {},
+    },
+    loading: false,
+    initialDataError: null,
+    requestData: { slots: {} },
+    stats: null,
+    statSources: {},
+    isCalculatingStats: false,
+    optimizationTrigger: 0,
+    characterConfig: null,
+    handleSlotUpdate: vi.fn(),
+    handleCharacterStatsUpdate: vi.fn(),
+    calculateStats: vi.fn(),
+    saveBuildToFile: vi.fn(),
+    loadBuildFromFile: vi.fn(),
+    createBuildSnapshot: vi.fn(() => ({
+        payload: {
+            format: "broken-ranks-tool-build",
+            version: 1,
+            build: {
+                requestData: { slots: {}, characterStats: {} },
+                characterConfig: null,
+                lockedSlots: [],
+                lockedDrifs: {},
+            },
+        },
+        stats: null,
+        statSources: {},
+    })),
+    loadBuildSnapshot: vi.fn(),
+    runDrifOptimization: vi.fn(),
+    lockedSlots: [],
+    lockedDrifs: [],
+    toggleSlotLock: vi.fn(),
+    toggleDrifLock: vi.fn(),
+    applyOptimizationSetup: vi.fn(),
+};
+
+describe("App", () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        localStorage.clear();
+        useEquipment.mockReturnValue(equipment);
+    });
+
+    it("navigates through the builder and optimizer workspaces", async () => {
+        const user = userEvent.setup();
+        render(<App />);
+
+        expect(screen.getByRole("heading", { name: "Broken Ranks Tool" })).toBeInTheDocument();
+        expect(screen.getByText("także z Broken HUD")).toBeInTheDocument();
+        expect(screen.getByRole("link", { name: "Przejdź do głównej treści" })).toHaveAttribute(
+            "href",
+            "#workspace-content"
+        );
+        expect(screen.getByRole("heading", { name: "Ekwipunek" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /Kreator ekwipunku/i })).toHaveAttribute(
+            "aria-current",
+            "page"
+        );
+
+        expect(screen.getByRole("region", { name: /Rozwój bohatera/i })).toBeInTheDocument();
+        expect(screen.getByRole("spinbutton", { name: /Poziom postaci/i })).toBeInTheDocument();
+        await user.click(screen.getByRole("button", { name: /Optymalizator drifów/i }));
+        expect(screen.getByRole("button", { name: /Optymalizator drifów/i })).toHaveAttribute(
+            "aria-current",
+            "page"
+        );
+        expect(screen.getByText("Ustawienia budowania")).toBeInTheDocument();
+        const optimizerSearch = screen.getByPlaceholderText("Szukaj statystyki...");
+        await user.type(optimizerSearch, "krytyk");
+        expect(
+            screen.queryByRole("button", { name: /Przelicz statystyki/i })
+        ).not.toBeInTheDocument();
+
+        await user.click(screen.getByRole("button", { name: /Kreator ekwipunku/i }));
+        expect(screen.getByText("Ustawienia budowania")).not.toBeVisible();
+        await user.click(screen.getByRole("button", { name: /Zapisz lokalnie/i }));
+        await user.click(screen.getByRole("button", { name: /Przelicz statystyki/i }));
+        expect(
+            JSON.parse(localStorage.getItem("broken-ranks-tool.build-library.v1")).builds
+        ).toHaveLength(1);
+        expect(equipment.saveBuildToFile).not.toHaveBeenCalled();
+        expect(equipment.calculateStats).toHaveBeenCalledOnce();
+
+        await user.click(screen.getByRole("button", { name: /Optymalizator drifów/i }));
+        expect(screen.getByPlaceholderText("Szukaj statystyki...")).toHaveValue("krytyk");
+    }, 20000);
+
+    it("loads a selected build and reports success and failure without blocking alerts", async () => {
+        const { container, rerender } = render(<App />);
+        const input = container.querySelector('input[type="file"]');
+        const file = new File(["{}"], "build.json", { type: "application/json" });
+
+        fireEvent.change(input, { target: { files: [file] } });
+        await vi.waitFor(() =>
+            expect(screen.getByRole("status")).toHaveTextContent(
+                "Wczytano build z pliku build.json"
+            )
+        );
+
+        equipment.loadBuildFromFile.mockRejectedValueOnce(new Error("uszkodzony plik"));
+        rerender(<App />);
+        fireEvent.change(input, { target: { files: [file] } });
+        await vi.waitFor(() =>
+            expect(screen.getByRole("alert")).toHaveTextContent(
+                "Nie udało się wczytać buildu: uszkodzony plik"
+            )
+        );
+    });
+
+    it("saves and reloads named builds from the local library", async () => {
+        const user = userEvent.setup();
+        render(<App />);
+
+        await user.click(screen.getByRole("button", { name: /Zapisz lokalnie/i }));
+        await user.click(screen.getByRole("button", { name: /Buildy lokalne/i }));
+        expect(screen.getByRole("heading", { name: "Buildy lokalne" })).toBeInTheDocument();
+        const nameInput = screen.getByLabelText("Zmień nazwę lokalnego buildu");
+        await user.clear(nameInput);
+        await user.type(nameInput, "PvE ogień");
+        await user.click(screen.getByRole("button", { name: "Zmień nazwę" }));
+
+        expect(screen.getByRole("status")).toHaveTextContent("Zmieniono nazwę");
+        expect(screen.getAllByText("PvE ogień")).not.toHaveLength(0);
+        await user.click(screen.getByRole("button", { name: "Wczytaj" }));
+
+        expect(equipment.loadBuildSnapshot).toHaveBeenCalledWith(
+            expect.objectContaining({ name: "PvE ogień" })
+        );
+        expect(screen.getByRole("heading", { name: "Ekwipunek" })).toBeVisible();
+    });
+
+    it("exports a saved local build to JSON and allows dismissing the message", async () => {
+        const user = userEvent.setup();
+        render(<App />);
+
+        await user.click(screen.getByRole("button", { name: /Zapisz lokalnie/i }));
+        expect(screen.getByRole("status")).toHaveTextContent("Zapisano lokalnie");
+        await user.click(screen.getByRole("button", { name: /Buildy lokalne/i }));
+        await user.click(screen.getByRole("button", { name: "Eksportuj JSON" }));
+        expect(downloadBuildPayload).toHaveBeenCalledWith(
+            expect.objectContaining({ format: "broken-ranks-tool-build" })
+        );
+        expect(screen.getByRole("status")).toHaveTextContent("Wyeksportowano build");
+
+        await user.click(screen.getByRole("button", { name: "Zamknij komunikat" }));
+        expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    });
+
+    it("shows the initial API error", () => {
+        useEquipment.mockReturnValue({ ...equipment, initialDataError: "brak połączenia" });
+        render(<App />);
+        expect(screen.getByRole("alert")).toHaveTextContent("brak połączenia");
+        expect(screen.queryByRole("heading", { name: "Ekwipunek" })).not.toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /Zapisz lokalnie/i })).toBeDisabled();
+    });
+
+    it("shows a dedicated loading state before rendering the workspaces", () => {
+        useEquipment.mockReturnValue({ ...equipment, loading: true });
+        render(<App />);
+
+        expect(screen.getByRole("status")).toHaveTextContent("Ładowanie danych gry");
+        expect(screen.queryByRole("heading", { name: "Ekwipunek" })).not.toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /Optymalizator drifów/i })).toBeDisabled();
+    });
+
+    it("keeps optimizer lock controls out of the manual builder", async () => {
+        useEquipment.mockReturnValue({
+            ...equipment,
+            data: {
+                items: [
+                    {
+                        id: 1,
+                        name: "Hełm testowy",
+                        category: "HELMET",
+                        tier: "X",
+                        rarity: "RARE",
+                        capacity: 10,
+                    },
+                ],
+                orbs: [],
+                drifs: [],
+            },
+            requestData: {
+                slots: {
+                    helmet: {
+                        itemId: 1,
+                        itemStars: 1,
+                        orbIds: [],
+                        orbLevels: [],
+                        drifIds: [],
+                        drifLevels: {},
+                    },
+                },
+                characterStats: {},
+            },
+            lockedSlots: ["helmet"],
+        });
+
+        render(<App />);
+
+        await vi.waitFor(() =>
+            expect(screen.getByLabelText("Wybierz przedmiot dla slotu Hełm")).toHaveValue("1")
+        );
+        expect(screen.queryByTitle("Odblokuj slot")).not.toBeInTheDocument();
+        expect(screen.queryByTitle("Zablokuj slot w optymalizatorze")).not.toBeInTheDocument();
+    });
+});
