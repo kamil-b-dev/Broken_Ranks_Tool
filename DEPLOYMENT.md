@@ -57,7 +57,8 @@ Configure settings that are scoped to the Railway workspace and billing account 
 - disable pull-request environments unless they are explicitly needed
 - generate one public Railway domain for the service
 
-The application reads Railway's injected `PORT`. SQLite is copied to `/app/data/broken_ranks.db`
+The application reads Railway's injected `PORT`. The versioned catalog database from
+`Broken_Ranks_Tool_Backend/database/catalog/broken_ranks.db` is copied to `/app/data/broken_ranks.db`
 inside every immutable image. Do not attach a volume unless the application starts persisting user
 data; at that point migrate those writes to PostgreSQL instead of relying on image-local SQLite.
 

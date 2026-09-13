@@ -4,6 +4,20 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "17 4 * * 1"
+  pull_request:
+    branches: [dev, master]
+    paths:
+      - ".github/workflows/security.yml"
+      - "Broken_Ranks_Tool_Backend/pom.xml"
+      - "Broken_Ranks_Tool_Frontend/package.json"
+      - "Broken_Ranks_Tool_Frontend/package-lock.json"
+  push:
+    branches: [master]
+    paths:
+      - ".github/workflows/security.yml"
+      - "Broken_Ranks_Tool_Backend/pom.xml"
+      - "Broken_Ranks_Tool_Frontend/package.json"
+      - "Broken_Ranks_Tool_Frontend/package-lock.json"
 
 permissions:
   contents: read
