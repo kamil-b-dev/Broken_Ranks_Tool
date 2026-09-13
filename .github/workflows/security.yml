@@ -11,6 +11,9 @@ on:
       - "Broken_Ranks_Tool_Backend/pom.xml"
       - "Broken_Ranks_Tool_Frontend/package.json"
       - "Broken_Ranks_Tool_Frontend/package-lock.json"
+      - "package.json"
+      - "package-lock.json"
+      - "Dockerfile"
   push:
     branches: [master]
     paths:
@@ -18,6 +21,9 @@ on:
       - "Broken_Ranks_Tool_Backend/pom.xml"
       - "Broken_Ranks_Tool_Frontend/package.json"
       - "Broken_Ranks_Tool_Frontend/package-lock.json"
+      - "package.json"
+      - "package-lock.json"
+      - "Dockerfile"
 
 permissions:
   contents: read
@@ -30,14 +36,52 @@ jobs:
       run:
         working-directory: Broken_Ranks_Tool_Frontend
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: "22"
           cache: npm
           cache-dependency-path: Broken_Ranks_Tool_Frontend/package-lock.json
       - run: npm ci
       - run: npm audit --audit-level=high
+
+  infrastructure-audit:
+    name: Audit infrastructure dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - run: npm audit --audit-level=high
+
+  container-audit:
+    name: Scan production container
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Build production image
+        run: docker build --tag broken-ranks-tool:security .
+      - name: Scan image with Trivy
+        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # v0.33.1
+        with:
+          image-ref: broken-ranks-tool:security
+          format: sarif
+          output: trivy-results.sarif
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "1"
+      - name: Upload container findings
+        if: always() && hashFiles('trivy-results.sarif') != ''
+        uses: github/codeql-action/upload-sarif@c20e34f438d671fc35777cc9820dd7adf8252874 # v3
+        with:
+          sarif_file: trivy-results.sarif
 
   backend-audit:
     name: Audit backend dependencies
