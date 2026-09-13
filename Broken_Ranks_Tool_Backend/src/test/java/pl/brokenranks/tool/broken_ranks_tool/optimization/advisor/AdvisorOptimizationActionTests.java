@@ -325,7 +325,7 @@ class AdvisorOptimizationActionTests extends AdvisorOptimizationTestSupport {
                         List.of(drif(10, A, "10%")));
         var request = request(A, Map.of("helmet", slot(1, 1, 10L)));
         String id = UUID.randomUUID().toString();
-        request.getAdvisor().setRunId(id);
+        request.getAdvisor().setRunId(UUID.fromString(id));
         doAnswer(
                         invocation -> {
                             assertTrue(f.runs.cancel(id));

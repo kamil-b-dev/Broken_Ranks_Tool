@@ -113,6 +113,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
 
     /** Builds the request and starts the backend optimization process. */
     const handleOptimizeClick = async () => {
+        setNotice(null);
         if (optimizerSettings.mode === "ADVISOR") {
             try {
                 await runOptimization(

@@ -56,15 +56,22 @@ Configure settings that are scoped to the Railway workspace and billing account 
 - compute usage hard limit: 15 USD
 - disable pull-request environments unless they are explicitly needed
 - generate one public Railway domain for the service
-- enable GitHub private vulnerability reporting under **Settings → Security**
+
+## Repository security
+
+In the GitHub repository settings, enable private vulnerability reporting before making the
+application public. This is a repository setting, independent of Railway.
+
+## Runtime safeguards
 
 The application reads Railway's injected `PORT`. The versioned catalog database from
 `Broken_Ranks_Tool_Backend/database/catalog/broken_ranks.db` is copied to `/app/data/broken_ranks.db`
 inside every immutable image. Do not attach a volume unless the application starts persisting user
 data; at that point migrate those writes to PostgreSQL instead of relying on image-local SQLite.
-The production JDBC URL opens this catalogue in read-only mode and the image stores it with `0444`
-permissions owned by root. Treat a startup failure caused by a write attempt as a defect instead of
-making the file writable.
+The production JDBC URL opens this catalogue in read-only mode. The image stores the application
+directory, JAR, catalogue directory, and database without write permission and assigns them to root.
+Treat a startup failure caused by a write attempt as a defect instead of making these paths
+writable; the JVM can still use the container's temporary directory.
 
 Public calculation endpoints are protected by per-client and whole-instance, one-minute request
 limits. The production defaults allow 3 optimizer requests per client and 12 globally, and 120

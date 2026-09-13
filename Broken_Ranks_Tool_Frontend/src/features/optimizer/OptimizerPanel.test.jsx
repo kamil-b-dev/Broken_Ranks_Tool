@@ -110,7 +110,7 @@ describe("OptimizerPanel", () => {
         });
     });
 
-    it("rejects an enabled percentage target without a valid value", async () => {
+    it("rejects an invalid percentage and clears the notice after correction", async () => {
         const user = userEvent.setup();
         renderPanel();
 
@@ -122,6 +122,12 @@ describe("OptimizerPanel", () => {
             "Podaj poprawny, nieujemny procent dla: Szansa na krytyk."
         );
         expect(equipment.runDrifOptimization).not.toHaveBeenCalled();
+
+        await user.type(screen.getByRole("spinbutton", { name: /Wymuszony procent/i }), "42");
+        await user.click(screen.getByRole("button", { name: /Uruchom optymalizację/i }));
+
+        expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+        await waitFor(() => expect(equipment.runDrifOptimization).toHaveBeenCalledOnce());
     });
 
     it("filters, selects, removes, and restores available bonuses", async () => {
