@@ -62,5 +62,14 @@ Szczegóły konfiguracji Railway, limitów zasobów i kontroli po wdrożeniu opi
 [`DEPLOYMENT.md`](DEPLOYMENT.md).
 
 Zasady prywatnego zgłaszania podatności opisuje [`SECURITY.md`](SECURITY.md).
-Kod jest udostępniony bez licencji na kopiowanie i modyfikację; szczegóły zawiera
-plik [`LICENSE`](LICENSE).
+
+## Licencja
+
+Oryginalny kod źródłowy Broken Ranks Tool jest udostępniany na warunkach
+[`GNU Affero General Public License v3.0`](LICENSE). Zmodyfikowana wersja
+udostępniana użytkownikom przez sieć musi zapewniać im dostęp do odpowiadającego
+jej kodu źródłowego zgodnie z AGPL-3.0.
+
+Informację o autorze i źródłowym repozytorium zawiera plik [`NOTICE`](NOTICE).
+Wyłączenia dotyczące nazw, znaków, grafik i innych materiałów osób trzecich
+opisano w [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
