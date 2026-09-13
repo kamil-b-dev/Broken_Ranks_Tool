@@ -1,11 +1,5 @@
 import CategoryIcon from "../../../shared/ui/CategoryIcon";
-
-const DRIF_SIZE_LABELS = {
-    SUBDRIF: "S",
-    BIDRIF: "B",
-    MAGNIDRIF: "M",
-    ARCYDRIF: "A",
-};
+import { DRIF_SIZE_LABELS } from "../../../shared/domain/equipment/drifCategories";
 
 const getConfiguredDrifs = (slotData, drifs, bonusTranslations) =>
     (slotData?.drifIds || []).flatMap((id, index) => {

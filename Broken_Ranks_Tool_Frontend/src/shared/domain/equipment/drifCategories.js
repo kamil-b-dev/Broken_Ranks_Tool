@@ -6,6 +6,22 @@ export const DRIF_CATEGORY_LABELS = {
     UTILITY: "Użytkowe",
 };
 
+export const DRIF_SIZE_ORDER = ["SUBDRIF", "BIDRIF", "MAGNIDRIF", "ARCYDRIF"];
+
+export const DRIF_SIZE_LABELS = {
+    SUBDRIF: "S",
+    BIDRIF: "B",
+    MAGNIDRIF: "M",
+    ARCYDRIF: "A",
+};
+
+export const normalizeDrifCategoryKey = (value) => {
+    const category = String(value || "")
+        .trim()
+        .toUpperCase();
+    return DRIF_CATEGORY_ORDER.includes(category) ? category : "";
+};
+
 const DRIF_BONUS_CATEGORY_FALLBACK = {
     CC_PROTECTION: "DEFENSIVE",
     CRITICAL_DAMAGE_CHANCE_REDUCTION: "DEFENSIVE",

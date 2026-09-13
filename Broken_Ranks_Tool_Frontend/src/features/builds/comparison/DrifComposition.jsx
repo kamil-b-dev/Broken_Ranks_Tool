@@ -3,7 +3,7 @@ import {
     DRIF_CATEGORY_LABELS,
     DRIF_CATEGORY_ORDER,
 } from "../../../shared/domain/equipment/drifCategories";
-import { DRIF_SIZE_LABELS, DRIF_SIZE_ORDER } from "../buildLibraryDomain";
+import { DRIF_SIZE_LABELS, DRIF_SIZE_ORDER } from "../../../shared/domain/equipment/drifCategories";
 import { CATEGORY_DESCRIPTIONS, formatAverage } from "./comparisonPresentation";
 
 const DrifToken = ({ entry }) => {

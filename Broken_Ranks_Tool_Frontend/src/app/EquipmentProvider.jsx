@@ -1,10 +1,5 @@
 import { useState, useCallback, useMemo } from "react";
-import {
-    createBuildPayload,
-    downloadBuildPayload,
-    parseBuildFile,
-    parseBuildPayload,
-} from "../features/builds/buildFile";
+import { useEquipmentBuildTransfer } from "../features/builds/useEquipmentBuildTransfer";
 import { useEquipmentLocks } from "../features/equipment/useEquipmentLocks";
 import { useEquipmentCatalog } from "../features/equipment/useEquipmentCatalog";
 import { useEquipmentStats } from "../features/equipment/useEquipmentStats";
@@ -87,60 +82,21 @@ export const EquipmentProvider = ({ children }) => {
         if (newConfig) setCharacterConfig(newConfig);
     }, []);
 
-    /** Captures the current editor state for file export or the local build library. */
-    const createBuildSnapshot = useCallback(
-        () => ({
-            payload: createBuildPayload({
-                requestData,
-                characterConfig,
-                lockedSlots,
-                lockedDrifs,
-            }),
+    const { saveBuildToFile, loadBuildFromFile, createBuildSnapshot, loadBuildSnapshot } =
+        useEquipmentBuildTransfer({
+            data,
+            requestData,
+            characterConfig,
+            lockedSlots,
+            lockedDrifs,
             stats,
             statSources,
-        }),
-        [requestData, characterConfig, lockedSlots, lockedDrifs, stats, statSources]
-    );
-
-    const applyImportedBuild = useCallback(
-        (importedBuild, savedStats = null, savedStatSources = {}) => {
-            setRequestData(importedBuild.requestData);
-            setCharacterConfig(importedBuild.characterConfig);
-            replaceLocks(importedBuild.lockedSlots, importedBuild.lockedDrifs);
-            restoreStats(savedStats, savedStatSources, importedBuild.requestData);
-            markEquipmentChanged();
-        },
-        [markEquipmentChanged, replaceLocks, restoreStats]
-    );
-
-    /** Exports the complete build as a versioned JSON file for later import. */
-    const saveBuildToFile = useCallback(() => {
-        const { payload } = createBuildSnapshot();
-        downloadBuildPayload(payload);
-    }, [createBuildSnapshot]);
-
-    /** Loads and validates a snapshot saved in the browser library. */
-    const loadBuildSnapshot = useCallback(
-        (snapshot) => {
-            const importedBuild = parseBuildPayload(snapshot?.payload, data);
-            applyImportedBuild(importedBuild, snapshot?.stats, snapshot?.statSources);
-        },
-        [applyImportedBuild, data]
-    );
-
-    /**
-     * Loads and validates a build created by the application.
-     * @param {File} file JSON build file selected by the user.
-     * @throws {Error} If the file is missing, invalid, unsupported, or references unknown data.
-     */
-    const loadBuildFromFile = useCallback(
-        async (file) => {
-            const importedBuild = await parseBuildFile(file, data);
-            applyImportedBuild(importedBuild);
-            return importedBuild.importSummary || null;
-        },
-        [applyImportedBuild, data]
-    );
+            setRequestData,
+            setCharacterConfig,
+            replaceLocks,
+            restoreStats,
+            markEquipmentChanged,
+        });
 
     const value = useMemo(
         () => ({
