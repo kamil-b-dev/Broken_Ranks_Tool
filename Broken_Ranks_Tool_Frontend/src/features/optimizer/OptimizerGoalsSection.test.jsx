@@ -14,14 +14,12 @@ const goal = {
 };
 
 describe("OptimizerGoalsSection", () => {
-    it("explains that configured priorities require an optimization run", () => {
-        render(<OptimizerGoalsSection currentDetails={[{ key: "a" }, { key: "b" }]} />);
+    it("does not add placeholder copy without optimization results", () => {
+        const { container } = render(
+            <OptimizerGoalsSection currentDetails={[{ key: "a" }, { key: "b" }]} />
+        );
 
-        expect(
-            screen.getByText(
-                "Uruchom optymalizację, aby kalkulator ocenił 2 wybranych priorytetów."
-            )
-        ).toBeInTheDocument();
+        expect(container.querySelector(".optimizer-goals-list")).not.toBeInTheDocument();
     });
 
     it("uses the selected variant when evaluating a completed goal", () => {

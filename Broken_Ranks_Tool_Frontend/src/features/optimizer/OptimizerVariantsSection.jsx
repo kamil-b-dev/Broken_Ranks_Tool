@@ -67,11 +67,7 @@ const OptimizerVariantsSection = ({
                     Zastosuj wybrany wariant
                 </button>
             </>
-        ) : (
-            <p className="optimizer-report-empty">
-                Brak ocenionych wariantów poprawiających maksymalizowany mod.
-            </p>
-        )}
+        ) : null}
     </section>
 );
 

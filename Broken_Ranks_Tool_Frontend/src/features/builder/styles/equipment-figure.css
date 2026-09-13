@@ -290,6 +290,16 @@
     transform: translateY(-1px);
 }
 
+.equipment-slot-overview.equipment-slot-overview-drop-target {
+    border-color: rgba(238, 179, 79, 0.98);
+    background:
+        linear-gradient(105deg, rgba(94, 53, 17, 0.84), rgba(12, 7, 3, 0.96) 66%),
+        url("../../../assets/brushed-bronze-texture.webp") center / 18rem;
+    box-shadow:
+        inset 0 0 20px rgba(194, 117, 37, 0.28),
+        0 0 16px rgba(230, 151, 53, 0.42);
+}
+
 .equipment-slot-overview-ring.equipment-slot-overview-active {
     border-color: rgba(235, 61, 48, 0.96);
     background:
