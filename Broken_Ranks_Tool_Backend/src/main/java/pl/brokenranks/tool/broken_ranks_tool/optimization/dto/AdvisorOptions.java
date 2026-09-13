@@ -41,7 +41,6 @@ public class AdvisorOptions {
     public static class Changes {
         private boolean stars = true;
         private boolean items;
-        private boolean orbs;
         private boolean drifs;
         private boolean drifUpgrades;
     }

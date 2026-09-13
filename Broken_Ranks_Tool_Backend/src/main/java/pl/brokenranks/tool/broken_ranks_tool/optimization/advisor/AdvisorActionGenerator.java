@@ -15,7 +15,6 @@ final class AdvisorActionGenerator {
     private final AdvisorEquipmentModel model;
     private final AdvisorNodeFactory nodes;
     private final AdvisorDrifActionGenerator drifs;
-    private final AdvisorOrbActionGenerator orbs;
     private final AdvisorItemActionGenerator items;
 
     AdvisorActionGenerator(AdvisorSearch search) {
@@ -23,7 +22,6 @@ final class AdvisorActionGenerator {
         this.model = search.model;
         this.nodes = new AdvisorNodeFactory(search);
         this.drifs = new AdvisorDrifActionGenerator(search, nodes);
-        this.orbs = new AdvisorOrbActionGenerator(search, nodes);
         this.items = new AdvisorItemActionGenerator(search, nodes);
     }
 
@@ -37,7 +35,6 @@ final class AdvisorActionGenerator {
             SlotData slot = node.slots().get(key);
             if (allowed.isStars() && !node.changed().contains("stars:" + key))
                 generateStarChanges(node, key, slot, accept);
-            if (allowed.isOrbs()) orbs.generateChanges(node, key, slot, accept);
             if (model.special(slot)) continue;
             if (allowed.isDrifs() || allowed.isDrifUpgrades())
                 drifs.generateChanges(node, key, slot, accept);

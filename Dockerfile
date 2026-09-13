@@ -18,7 +18,8 @@ WORKDIR /app
 RUN groupadd --system app && useradd --system --gid app --home-dir /app app \
     && mkdir -p /app/data && chown -R app:app /app
 COPY --from=backend-build --chown=app:app /workspace/backend/target/Broken_Ranks_Tool_Backend-*.jar /app/application.jar
-COPY --chown=app:app Broken_Ranks_Tool_Backend/database/catalog/broken_ranks.db /app/data/broken_ranks.db
+COPY --chown=root:root Broken_Ranks_Tool_Backend/database/catalog/broken_ranks.db /app/data/broken_ranks.db
+RUN chmod 0444 /app/data/broken_ranks.db
 USER app
 ENV SPRING_PROFILES_ACTIVE=prod
 EXPOSE 8080

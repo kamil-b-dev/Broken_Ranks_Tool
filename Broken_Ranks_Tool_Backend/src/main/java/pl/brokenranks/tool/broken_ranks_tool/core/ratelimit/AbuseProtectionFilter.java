@@ -2,20 +2,12 @@ package pl.brokenranks.tool.broken_ranks_tool.core.ratelimit;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
-import jakarta.servlet.ReadListener;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -126,7 +118,7 @@ public class AbuseProtectionFilter extends OncePerRequestFilter {
             return;
         }
 
-        filterChain.doFilter(new CachedBodyRequest(request, requestBody), response);
+        filterChain.doFilter(new CachedBodyHttpServletRequest(request, requestBody), response);
     }
 
     private String clientId(HttpServletRequest request) {
@@ -166,84 +158,5 @@ public class AbuseProtectionFilter extends OncePerRequestFilter {
         objectMapper.writeValue(
                 response.getOutputStream(),
                 new ApiError(code, message, MDC.get(RequestTracingFilter.REQUEST_ID)));
-    }
-
-    private static final class CachedBodyRequest extends HttpServletRequestWrapper {
-
-        private final byte[] body;
-
-        private CachedBodyRequest(HttpServletRequest request, byte[] body) {
-            super(request);
-            this.body = body;
-        }
-
-        @Override
-        public ServletInputStream getInputStream() {
-            return new CachedBodyServletInputStream(body);
-        }
-
-        @Override
-        public BufferedReader getReader() {
-            String encoding = getCharacterEncoding();
-            Charset charset = StandardCharsets.UTF_8;
-            if (encoding != null) {
-                try {
-                    charset = Charset.forName(encoding);
-                } catch (IllegalArgumentException ignored) {
-                    // Invalid client-provided encodings are handled downstream as malformed input.
-                }
-            }
-            return new BufferedReader(new InputStreamReader(getInputStream(), charset));
-        }
-
-        @Override
-        public int getContentLength() {
-            return body.length;
-        }
-
-        @Override
-        public long getContentLengthLong() {
-            return body.length;
-        }
-    }
-
-    private static final class CachedBodyServletInputStream extends ServletInputStream {
-
-        private final ByteArrayInputStream input;
-
-        private CachedBodyServletInputStream(byte[] body) {
-            input = new ByteArrayInputStream(body);
-        }
-
-        @Override
-        public boolean isFinished() {
-            return input.available() == 0;
-        }
-
-        @Override
-        public boolean isReady() {
-            return true;
-        }
-
-        @Override
-        public void setReadListener(ReadListener readListener) {
-            Objects.requireNonNull(readListener, "readListener");
-            try {
-                if (!isFinished()) readListener.onDataAvailable();
-                if (isFinished()) readListener.onAllDataRead();
-            } catch (IOException exception) {
-                readListener.onError(exception);
-            }
-        }
-
-        @Override
-        public int read() {
-            return input.read();
-        }
-
-        @Override
-        public int read(byte[] bytes, int offset, int length) {
-            return input.read(bytes, offset, length);
-        }
     }
 }
