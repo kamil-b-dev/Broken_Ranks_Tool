@@ -232,7 +232,7 @@
 
 .builder-database-column,
 .builder-equipment-column,
-.builder-results-column {
+.builder-slot-editor-column {
     min-width: 0;
 }
 
@@ -256,7 +256,7 @@
 }
 
 .builder-database-column,
-.builder-results-column {
+.builder-slot-editor-column {
     height: auto;
     min-height: 0;
 }
@@ -273,13 +273,36 @@
     height: auto;
 }
 
-.builder-results-column > section {
+.builder-slot-editor-column > section {
     height: 100%;
 }
 
-.builder-results-column {
+.builder-slot-editor-column {
     position: static;
     overflow: visible;
+}
+
+.builder-slot-editor-column .gear-slot-editor-expanded {
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 0.75rem;
+    padding: 0.75rem;
+}
+
+.builder-slot-editor-column .gear-slot-item-section,
+.builder-slot-editor-column .gear-slot-orb-section,
+.builder-slot-editor-column .gear-slot-drif-section {
+    width: 100%;
+    grid-column: 1 !important;
+}
+
+.builder-slot-editor-column .selected-slot-editor-content {
+    justify-content: stretch;
+    padding: 0.75rem;
+}
+
+.builder-slot-editor-column .selected-slot-editor-content > div {
+    width: 100%;
 }
 
 .builder-stats-panel .space-y-3,

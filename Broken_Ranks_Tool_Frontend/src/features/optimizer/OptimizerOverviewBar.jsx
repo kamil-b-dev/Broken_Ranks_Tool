@@ -22,7 +22,6 @@ const OptimizerOverviewBar = ({
     return (
         <section className="optimizer-overview" aria-label="Konfiguracja źródłowa optymalizatora">
             <div className="optimizer-overview-title">
-                <span>Build źródłowy</span>
                 <strong>Aktualny build</strong>
             </div>
             <dl>

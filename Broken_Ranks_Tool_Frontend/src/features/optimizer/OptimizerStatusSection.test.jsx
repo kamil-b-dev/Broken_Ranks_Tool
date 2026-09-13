@@ -32,12 +32,10 @@ describe("OptimizerStatusSection", () => {
         expect(screen.getByText("1.24 s")).toBeInTheDocument();
     });
 
-    it("shows an empty report hint before the first run", () => {
-        render(<OptimizerStatusSection isOptimizing={false} />);
+    it("does not add placeholder copy before the first run", () => {
+        const { container } = render(<OptimizerStatusSection isOptimizing={false} />);
 
-        expect(
-            screen.getByText("Wynik i ostrzeżenia z kolejnej optymalizacji pojawią się tutaj.")
-        ).toBeInTheDocument();
+        expect(container.querySelector(".optimizer-status-section")).toBeEmptyDOMElement();
     });
 
     it("explains why an unapplied result differs from the calculator", () => {

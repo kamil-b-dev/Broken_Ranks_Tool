@@ -32,35 +32,47 @@ const OptimizerReportColumn = ({
             </div>
         </header>
         <div className="optimizer-report-scroll custom-scrollbar">
-            <OptimizerStatusSection
-                isOptimizing={isOptimizing}
-                elapsedSeconds={elapsedSeconds}
-                status={status}
-                lastDurationSeconds={lastDurationSeconds}
-            />
-            <OptimizerGoalsSection
-                goals={status?.goalResults}
-                currentDetails={currentDetails}
-                activeVariant={displayedVariant}
-                maxCaps={maxCaps}
-            />
-            <OptimizerVariantsSection
-                variants={status?.nextVariants}
-                activeIndex={activeVariantIndex}
-                onSelect={onSelectVariant}
-                onApply={onApplyVariant}
-                advisory={advisory}
-            />
-            <OptimizerChangesSection
-                variant={displayedVariant}
-                maxCaps={maxCaps}
-                translations={translations}
-                advisory={advisory}
-            />
-            <details className="optimizer-full-report">
-                <summary>Pokaż pełny raport</summary>
-                <OptimizerItemsByBonusSection itemsByBonus={status?.itemsByDrifBonus} />
-            </details>
+            {(isOptimizing || status) && (
+                <>
+                    <OptimizerStatusSection
+                        isOptimizing={isOptimizing}
+                        elapsedSeconds={elapsedSeconds}
+                        status={status}
+                        lastDurationSeconds={lastDurationSeconds}
+                    />
+                    {status && (
+                        <>
+                            <OptimizerGoalsSection
+                                goals={status.goalResults}
+                                currentDetails={currentDetails}
+                                activeVariant={displayedVariant}
+                                maxCaps={maxCaps}
+                            />
+                            <OptimizerVariantsSection
+                                variants={status.nextVariants}
+                                activeIndex={activeVariantIndex}
+                                onSelect={onSelectVariant}
+                                onApply={onApplyVariant}
+                                advisory={advisory}
+                            />
+                            <OptimizerChangesSection
+                                variant={displayedVariant}
+                                maxCaps={maxCaps}
+                                translations={translations}
+                                advisory={advisory}
+                            />
+                            {Object.keys(status.itemsByDrifBonus || {}).length > 0 && (
+                                <details className="optimizer-full-report">
+                                    <summary>Pokaż pełny raport</summary>
+                                    <OptimizerItemsByBonusSection
+                                        itemsByBonus={status.itemsByDrifBonus}
+                                    />
+                                </details>
+                            )}
+                        </>
+                    )}
+                </>
+            )}
         </div>
     </aside>
 );

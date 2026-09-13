@@ -68,13 +68,7 @@ const GoalCard = ({ goal, current, activeVariant, maxCap }) => {
 const OptimizerGoalsSection = ({ goals, currentDetails, activeVariant, maxCaps }) => (
     <section className="optimizer-report-section optimizer-goals-section">
         <h5>Realizacja celów</h5>
-        {!goals?.length ? (
-            <p className="text-xs text-stone-600 italic leading-relaxed">
-                {currentDetails.length > 0
-                    ? `Uruchom optymalizację, aby kalkulator ocenił ${currentDetails.length} wybranych priorytetów.`
-                    : "Wyniki priorytetów pojawią się po optymalizacji."}
-            </p>
-        ) : (
+        {goals?.length ? (
             <div className="optimizer-goals-list">
                 {goals.map((goal) => (
                     <GoalCard
@@ -86,7 +80,7 @@ const OptimizerGoalsSection = ({ goals, currentDetails, activeVariant, maxCaps }
                     />
                 ))}
             </div>
-        )}
+        ) : null}
     </section>
 );
 
