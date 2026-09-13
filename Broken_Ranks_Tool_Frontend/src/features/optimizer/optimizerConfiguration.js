@@ -20,6 +20,8 @@ export const createOptimizerConfigPayload = (priorities, settings, exportedAt = 
         advisorProtectedModifiers: settings?.advisorProtectedModifiers || {},
         advisorAllowedChanges: { ...DEFAULT_ADVISOR_CHANGES, ...settings?.advisorAllowedChanges },
         advisorSearch: { ...DEFAULT_ADVISOR_SEARCH, ...settings?.advisorSearch },
+        forceMaximizationByDrifBonus: Boolean(settings?.forceMaximizationByDrifBonus),
+        generateVariants: Boolean(settings?.generateVariants),
         maxVariantLossPercent: clamp(Number(settings?.maxVariantLossPercent) || 0, 0, 100),
     },
     priorities: priorities.map(
@@ -111,6 +113,14 @@ export const parseOptimizerConfigPayload = (payload, gameRules = {}) => {
             : "AUTO",
         advisorGoal:
             typeof payload.settings?.advisorGoal === "string" ? payload.settings.advisorGoal : null,
+        forceMaximizationByDrifBonus:
+            typeof payload.settings?.forceMaximizationByDrifBonus === "boolean"
+                ? payload.settings.forceMaximizationByDrifBonus
+                : null,
+        generateVariants:
+            typeof payload.settings?.generateVariants === "boolean"
+                ? payload.settings.generateVariants
+                : null,
         advisorSearch: payload.settings?.advisorSearch
             ? {
                   targetMode: ["MAXIMIZE", "VALUE", "GAIN"].includes(
@@ -148,6 +158,28 @@ export const parseOptimizerConfigPayload = (payload, gameRules = {}) => {
                 : null,
     };
 };
+
+/** Merges a validated optimizer import or browser draft into editable settings. */
+export const mergeOptimizerSettings = (previous, imported) => ({
+    ...previous,
+    advisorProfession: imported.advisorProfession,
+    ...(imported.advisorGoal !== null ? { advisorGoal: imported.advisorGoal } : {}),
+    ...(imported.advisorSearch !== null ? { advisorSearch: imported.advisorSearch } : {}),
+    ...(imported.advisorProtectedModifiers !== null
+        ? { advisorProtectedModifiers: imported.advisorProtectedModifiers }
+        : {}),
+    ...(imported.advisorAllowedChanges !== null
+        ? { advisorAllowedChanges: imported.advisorAllowedChanges }
+        : {}),
+    ...(imported.maxVariantLossPercent !== null
+        ? { maxVariantLossPercent: imported.maxVariantLossPercent }
+        : {}),
+    ...(imported.forceMaximizationByDrifBonus !== null
+        ? { forceMaximizationByDrifBonus: imported.forceMaximizationByDrifBonus }
+        : {}),
+    ...(imported.generateVariants !== null ? { generateVariants: imported.generateVariants } : {}),
+    ...(imported.mode !== null ? { mode: imported.mode } : {}),
+});
 
 export const findInvalidPercentageTarget = (priorities) =>
     priorities.find(
