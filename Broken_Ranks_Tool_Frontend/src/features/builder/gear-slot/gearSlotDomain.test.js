@@ -4,6 +4,8 @@ import {
     calculateMaximumDrifSizeIndex,
     calculateMaximumDrifSlots,
     calculateUsedDrifPower,
+    createBuiltInDrifs,
+    createGearSlotUpdate,
     createImportedGearSlotState,
     collectUsedOrbTypes,
     getAvailablePrimaryOrbs,
@@ -83,7 +85,57 @@ describe("gearSlotDomain", () => {
             selectedDrifs: ["3", ""],
             drifTypes: { 0: "Drif krytyczny" },
             drifLevels: { 0: 12 },
+            builtInLvls: [1, 1],
         });
+    });
+
+    it("preserves imported built-in levels and publishes them after regular drifs", () => {
+        const imported = createImportedGearSlotState(
+            {
+                itemId: 7,
+                drifIds: [3, 4],
+                drifLevels: { 0: 12, 1: 16 },
+            },
+            [],
+            [],
+            2
+        );
+        expect(imported.builtInLvls).toEqual([12, 16]);
+
+        expect(
+            createGearSlotUpdate({
+                selectedItem: "7",
+                itemStars: 9,
+                orbSlots: {
+                    orb1: { id: "2", level: "3" },
+                    orb2: { id: "", level: "" },
+                },
+                isLegendary: false,
+                selectedDrifs: [],
+                drifLevels: {},
+                maxDrifs: 0,
+                builtInDrifs: [{ id: 3 }, { id: 4 }],
+                builtInLvls: imported.builtInLvls,
+            })
+        ).toEqual({
+            itemId: "7",
+            itemStars: 9,
+            orbIds: ["2"],
+            orbLevels: [3],
+            drifIds: [3, 4],
+            drifLevels: { 0: 12, 1: 16 },
+        });
+    });
+
+    it("resolves built-in drif templates from the shared item rule", () => {
+        expect(
+            createBuiltInDrifs({
+                item: { name: "Hełm X", rarity: "EPIC" },
+                epicBuiltInDrifs: { Hełm: ["CRIT"] },
+                drifs: [{ id: 3, size: "MAGNIDRIF", bonusType: "CRIT" }],
+                bonusTranslations: { CRIT: "Krytyk" },
+            })
+        ).toEqual([{ id: 3, bonusType: "CRIT", displayName: "Krytyk" }]);
     });
 
     it("creates an empty editor state for a removed slot", () => {
