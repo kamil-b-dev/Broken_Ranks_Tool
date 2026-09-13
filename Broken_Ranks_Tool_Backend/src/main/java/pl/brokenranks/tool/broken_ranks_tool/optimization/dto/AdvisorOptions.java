@@ -3,6 +3,7 @@ package pl.brokenranks.tool.broken_ranks_tool.optimization.dto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import java.util.Map;
+import java.util.UUID;
 import lombok.Data;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 
@@ -11,8 +12,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_T
 public class AdvisorOptions {
     @NotNull private DRIF_BONUS_TYPE goal;
 
-    @Pattern(regexp = "[a-zA-Z0-9-]{1,64}")
-    private String runId;
+    private UUID runId;
 
     @Min(200)
     @Max(5000)

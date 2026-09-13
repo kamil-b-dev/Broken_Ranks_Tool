@@ -54,7 +54,8 @@ public class AdvisorOptimizationService {
         AdvisorOptions options = request.getAdvisor();
         if (!optionsValidator.valid(options))
             return responses.failure("Nieprawidłowy cel lub zakres analizy Doradcy.", started);
-        var cancelled = runs.start(options.getRunId());
+        String runId = options.getRunId() == null ? null : options.getRunId().toString();
+        var cancelled = runs.start(runId);
         try {
             AdvisorEquipmentModel model = createModel(request, loadTemplates());
             Map<String, SlotData> slots = copySlots(request.getOriginalSlots());
@@ -84,7 +85,7 @@ public class AdvisorOptimizationService {
                     finalistVerifier.verify(candidates, model, search, calculator, deadline);
             return responses.success(model, search, slots, before, selected, started);
         } finally {
-            runs.finish(options.getRunId());
+            runs.finish(runId);
         }
     }
 
