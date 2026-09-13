@@ -1,4 +1,4 @@
-FROM node:22-alpine AS frontend-build
+FROM node:26-alpine AS frontend-build
 WORKDIR /workspace/frontend
 COPY Broken_Ranks_Tool_Frontend/package.json Broken_Ranks_Tool_Frontend/package-lock.json ./
 RUN npm ci
