@@ -3,10 +3,10 @@ package pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import pl.brokenranks.tool.broken_ranks_tool.core.entity.BaseNamedEntity;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ORB_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ORB_CATEGORY;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ORB_SIZE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.BaseNamedEntity;
 
 /** Defines a reusable orb template. */
 @Entity

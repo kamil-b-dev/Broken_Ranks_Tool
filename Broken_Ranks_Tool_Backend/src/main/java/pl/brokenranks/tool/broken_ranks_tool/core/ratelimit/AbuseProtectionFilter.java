@@ -25,8 +25,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import pl.brokenranks.tool.broken_ranks_tool.core.config.RequestTracingFilter;
-import pl.brokenranks.tool.broken_ranks_tool.core.exception.ApiError;
+import pl.brokenranks.tool.broken_ranks_tool.core.web.error.ApiError;
+import pl.brokenranks.tool.broken_ranks_tool.core.web.filter.RequestTracingFilter;
 
 /** Rejects oversized or excessively frequent requests before request bodies are parsed. */
 @Component

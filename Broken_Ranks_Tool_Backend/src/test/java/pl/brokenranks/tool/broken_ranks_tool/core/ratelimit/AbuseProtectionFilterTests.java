@@ -21,16 +21,16 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import pl.brokenranks.tool.broken_ranks_tool.core.config.RequestTracingFilter;
 import pl.brokenranks.tool.broken_ranks_tool.core.config.SecurityConfig;
+import pl.brokenranks.tool.broken_ranks_tool.core.web.filter.RequestTracingFilter;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.controller.CalculatorController;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.CalculationResultDto;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
@@ -73,11 +73,11 @@ class AbuseProtectionFilterTests {
 
     @Autowired private MockMvc mockMvc;
 
-    @MockBean private OptimizationExecutionGuard executionGuard;
+    @MockitoBean private OptimizationExecutionGuard executionGuard;
 
-    @MockBean private EquipmentStatsCalculatorService calculatorService;
+    @MockitoBean private EquipmentStatsCalculatorService calculatorService;
 
-    @MockBean private AdvisorRunRegistry advisorRunRegistry;
+    @MockitoBean private AdvisorRunRegistry advisorRunRegistry;
 
     @Test
     void rejectsRequestsAboveTheConfiguredBodySize() throws Exception {

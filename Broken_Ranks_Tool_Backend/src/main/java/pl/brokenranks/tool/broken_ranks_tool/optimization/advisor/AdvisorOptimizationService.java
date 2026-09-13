@@ -1,26 +1,34 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.advisor;
 
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.advisor.AdvisorEquipmentModel.*;
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.constraints.EquipmentSlotDataCopier.copySlots;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.advisor.AdvisorStatValues.parsed;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.support.EquipmentSlotDataCopier.copySlots;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.*;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.util.DrifPowerRules;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.DrifValueCalculator;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRulesRegistry;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest.SlotData;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.*;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.*;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.OrbTemplate;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.DrifTemplateRepository;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.ItemTemplateRepository;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.OrbTemplateRepository;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCalculatorService;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.input.EquipmentDataProvider.CalculationContext;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.processor.*;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.*;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.*;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationSummary.*;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.processor.ItemStatProcessor;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.processor.OrbStatProcessor;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentPlacementRules;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.UpgradeLevelPolicy;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.AdvisorOptions;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationResponse;
 
 /** Owns one bounded advisor run and verifies its finalists with the shared calculator. */
 @Service
@@ -28,6 +36,7 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationSummar
 public class AdvisorOptimizationService {
     private final AdvisorOptionsValidator optionsValidator = new AdvisorOptionsValidator();
     private final AdvisorFinalistVerifier finalistVerifier = new AdvisorFinalistVerifier();
+    private final AdvisorResponseFactory responses = new AdvisorResponseFactory();
     private final ItemTemplateRepository itemRepository;
     private final DrifTemplateRepository drifRepository;
     private final OrbTemplateRepository orbRepository;
@@ -44,50 +53,21 @@ public class AdvisorOptimizationService {
         long started = System.nanoTime();
         AdvisorOptions options = request.getAdvisor();
         if (!optionsValidator.valid(options))
-            return failure("Nieprawidłowy cel lub zakres analizy Doradcy.", started);
+            return responses.failure("Nieprawidłowy cel lub zakres analizy Doradcy.", started);
         var cancelled = runs.start(options.getRunId());
         try {
-            CalculationContext templates =
-                    new CalculationContext(
-                            itemRepository.findAll().stream()
-                                    .collect(
-                                            Collectors.toMap(
-                                                    ItemTemplate::getId,
-                                                    Function.identity(),
-                                                    (a, b) -> a,
-                                                    TreeMap::new)),
-                            orbRepository.findAll().stream()
-                                    .collect(
-                                            Collectors.toMap(
-                                                    OrbTemplate::getId,
-                                                    Function.identity(),
-                                                    (a, b) -> a,
-                                                    TreeMap::new)),
-                            drifRepository.findAll().stream()
-                                    .collect(
-                                            Collectors.toMap(
-                                                    DrifTemplate::getId,
-                                                    Function.identity(),
-                                                    (a, b) -> a,
-                                                    TreeMap::new)));
-            AdvisorEquipmentModel model =
-                    new AdvisorEquipmentModel(
-                            templates,
-                            request,
-                            placement,
-                            levels,
-                            rules,
-                            itemProcessor,
-                            orbProcessor,
-                            values);
+            AdvisorEquipmentModel model = createModel(request, loadTemplates());
             Map<String, SlotData> slots = copySlots(request.getOriginalSlots());
             slots.entrySet()
-                    .removeIf(e -> e.getValue() == null || e.getValue().getItemId() == null);
-            if (slots.isEmpty() || !model.valid(slots)) {
-                return failure(
+                    .removeIf(
+                            entry ->
+                                    entry.getValue() == null
+                                            || entry.getValue().getItemId() == null);
+            if (slots.isEmpty() || !model.valid(slots))
+                return responses.failure(
                         "Popraw obecny build: sprawdź tier, poziomy, gniazda, pojemność i unikalność kamieni.",
                         started);
-            }
+
             Map<String, String> before = calculator.calculateTotalStats(model.setup(slots));
             double[] baseline = parsed(before);
             long deadline = started + options.getTimeBudgetMs() * 1_000_000L;
@@ -97,212 +77,34 @@ public class AdvisorOptimizationService {
             AdvisorSearch search =
                     new AdvisorSearch(model, options, baseline, searchDeadline, cancelled);
             if (search.reached(baseline))
-                return response(model, search, slots, before, List.of(), started);
+                return responses.success(model, search, slots, before, List.of(), started);
+
             List<AdvisorSearch.Node> candidates = new ArrayList<>(search.run(slots));
             List<AdvisorFinalistVerifier.Verified> selected =
                     finalistVerifier.verify(candidates, model, search, calculator, deadline);
-            return response(model, search, slots, before, selected, started);
+            return responses.success(model, search, slots, before, selected, started);
         } finally {
             runs.finish(options.getRunId());
         }
     }
 
-    private OptimizationResponse response(
-            AdvisorEquipmentModel model,
-            AdvisorSearch search,
-            Map<String, SlotData> original,
-            Map<String, String> before,
-            List<AdvisorFinalistVerifier.Verified> selected,
-            long started) {
-        List<OptimizationVariant> variants = new ArrayList<>();
-        List<AdvisorReport.Plan> plans = new ArrayList<>();
-        for (AdvisorFinalistVerifier.Verified verified : selected) {
-            var node = verified.node();
-            String kind = node.kind() == 0 ? "MOVES" : node.kind() == 1 ? "ONE_UPGRADE" : "PLAN";
-            String label =
-                    node.kind() == 0
-                            ? "Same przełożenia"
-                            : node.kind() == 1 ? "Jedno ulepszenie lub zakup" : "Plan kilku zmian";
-            List<StatChange> changes =
-                    Arrays.stream(TYPES)
-                            .map(
-                                    type ->
-                                            new StatChange(
-                                                    type.name(),
-                                                    before.getOrDefault(type.name(), "0%"),
-                                                    verified.stats()
-                                                            .getOrDefault(type.name(), "0%")))
-                            .toList();
-            double loss =
-                    Arrays.stream(TYPES)
-                            .mapToDouble(
-                                    type ->
-                                            Math.max(
-                                                    0,
-                                                    directed(type, search.baseline[type.ordinal()])
-                                                            - directed(
-                                                                    type,
-                                                                    node.stats()[type.ordinal()])))
-                            .sum();
-            variants.add(
-                    new OptimizationVariant(
-                            variants.isEmpty(),
-                            label,
-                            search.baseline[search.options.getGoal().ordinal()],
-                            node.stats()[search.options.getGoal().ordinal()],
-                            search.gain(node.stats()),
-                            loss,
-                            node.actions().size(),
-                            search.value(node.stats()),
-                            List.of(),
-                            changes,
-                            model.setup(node.slots())));
-            Map<String, Integer> counts =
-                    Arrays.stream(TYPES)
-                            .collect(
-                                    Collectors.toMap(
-                                            Enum::name, type -> count(node.slots(), model, type)));
-            plans.add(
-                    new AdvisorReport.Plan(
-                            kind,
-                            node.actions(),
-                            node.upgrades(),
-                            search.reached(node.stats()),
-                            counts));
-        }
-        Map<String, String> bestStats = selected.isEmpty() ? before : selected.getFirst().stats();
-        Map<String, SlotData> bestSlots =
-                selected.isEmpty() ? original : selected.getFirst().node().slots();
-        List<GoalResult> goals =
-                Arrays.stream(TYPES)
-                        .filter(
-                                type ->
-                                        type == search.options.getGoal()
-                                                || parse(before.get(type.name())) != 0
-                                                || parse(bestStats.get(type.name())) != 0)
-                        .map(
-                                type ->
-                                        new GoalResult(
-                                                type.name(),
-                                                type.getDescription(),
-                                                type == search.options.getGoal() ? 30 : 1,
-                                                count(bestSlots, model, type),
-                                                0,
-                                                12,
-                                                bestStats.getOrDefault(type.name(), "0%"),
-                                                Double.isFinite(goalTarget(search, type))
-                                                        ? String.format(
-                                                                Locale.ROOT,
-                                                                "%.2f%%",
-                                                                goalTarget(search, type))
-                                                        : null,
-                                                true,
-                                                Double.isFinite(goalTarget(search, type))
-                                                        ? directed(
-                                                                                type,
-                                                                                parse(
-                                                                                        bestStats
-                                                                                                .get(
-                                                                                                        type
-                                                                                                                .name())))
-                                                                        + AdvisorSearch.EPSILON
-                                                                >= goalTarget(search, type)
-                                                        : null))
-                        .toList();
-        String message =
-                selected.isEmpty() && search.reached(search.baseline)
-                        ? "Obecny build już spełnia zadany cel. Nie potrzebujesz dodatkowych zmian."
-                        : selected.isEmpty()
-                                ? "Nie znaleziono poprawy w sprawdzonym zakresie przy obecnej ochronie modów i dozwolonych zmianach."
-                                : "Znaleziono "
-                                        + selected.size()
-                                        + " sprawdzonych planów poprawy: "
-                                        + search.options.getGoal().getDescription()
-                                        + ".";
-        if (search.control.cancelled())
-            message += " Analizę zatrzymano; pokazano sprawdzone wyniki.";
-        else if (search.limited())
-            message += " Osiągnięto limit wyszukiwania; wynik nie jest gwarancją optimum.";
-        boolean reached =
-                search.reached(
-                        selected.isEmpty() ? search.baseline : selected.getFirst().node().stats());
-        if (Double.isFinite(search.target) && !reached) message += " Nie osiągnięto zadanego celu.";
-        int total = Arrays.stream(TYPES).mapToInt(type -> count(bestSlots, model, type)).sum();
-        int power =
-                bestSlots.values().stream()
-                        .filter(s -> !model.special(s))
-                        .mapToInt(
-                                s -> {
-                                    int sum = 0;
-                                    for (int i = 0; i < size(s); i++)
-                                        if (id(s, i) != null)
-                                            sum +=
-                                                    DrifPowerRules.power(
-                                                            model.templates
-                                                                    .drifs()
-                                                                    .get(id(s, i))
-                                                                    .getBonusType()
-                                                                    .getBasePower(),
-                                                            level(s, i));
-                                    return sum;
-                                })
-                        .sum();
-        OptimizationResponse response =
-                new OptimizationResponse(
-                        model.setup(bestSlots),
-                        new OptimizationSummary(
-                                true,
-                                message,
-                                total,
-                                power,
-                                (System.nanoTime() - started) / 1_000_000_000.0,
-                                List.of(),
-                                Map.of(),
-                                goals,
-                                variants));
-        response.setAdvisorReport(
-                new AdvisorReport(
-                        search.control.evaluated(),
-                        search.limited(),
-                        search.control.cancelled(),
-                        reached,
-                        search.baseline[search.options.getGoal().ordinal()],
-                        search.options.getGoal().name(),
-                        plans));
-        return response;
+    private CalculationContext loadTemplates() {
+        return new CalculationContext(
+                index(itemRepository.findAll(), ItemTemplate::getId),
+                index(orbRepository.findAll(), OrbTemplate::getId),
+                index(drifRepository.findAll(), DrifTemplate::getId));
     }
 
-    private int count(
-            Map<String, SlotData> slots, AdvisorEquipmentModel model, DRIF_BONUS_TYPE type) {
-        return slots.values().stream()
-                .mapToInt(
-                        slot -> {
-                            int count = 0;
-                            for (int i = 0; i < size(slot); i++)
-                                if (id(slot, i) != null
-                                        && model.templates.drifs().get(id(slot, i)).getBonusType()
-                                                == type) count++;
-                            return count;
-                        })
-                .sum();
+    private <T> Map<Long, T> index(List<T> templates, Function<T, Long> id) {
+        return templates.stream()
+                .collect(
+                        Collectors.toMap(
+                                id, Function.identity(), (first, ignored) -> first, TreeMap::new));
     }
 
-    private double goalTarget(AdvisorSearch search, DRIF_BONUS_TYPE type) {
-        return type == search.options.getGoal() ? search.target : search.minima[type.ordinal()];
-    }
-
-    private OptimizationResponse failure(String message, long started) {
-        return new OptimizationResponse(
-                new EquipmentRequest(),
-                new OptimizationSummary(
-                        false,
-                        message,
-                        0,
-                        0,
-                        (System.nanoTime() - started) / 1_000_000_000.0,
-                        List.of(),
-                        Map.of(),
-                        List.of(),
-                        List.of()));
+    private AdvisorEquipmentModel createModel(
+            OptimizationRequest request, CalculationContext templates) {
+        return new AdvisorEquipmentModel(
+                templates, request, placement, levels, rules, itemProcessor, orbProcessor, values);
     }
 }

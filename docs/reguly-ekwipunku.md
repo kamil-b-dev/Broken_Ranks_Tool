@@ -172,14 +172,17 @@ Obecny katalog orbów używa innych kluczy statystyk niż drify. Włączenie zmi
 | --- | --- |
 | Kategorie slotów, orby, wbudowane drify, kary | `equipment/domain/rules/EquipmentRulesRegistry.java` |
 | Gwiazdki, rozmiary, moce i capy | `equipment/domain/enums/ITEM_STAR.java`, `DRIF_SIZE.java`, `ORB_SIZE.java`, `DRIF_BONUS_TYPE.java`, `RARITY.java` |
-| Poziomy, pojemność, moc | `equipment/service/validator/UpgradeLevelPolicy.java`, `equipment/domain/util/DrifPowerRules.java` |
+| Poziomy, pojemność, moc | `equipment/service/validator/UpgradeLevelPolicy.java`, `equipment/domain/rules/DrifPowerRules.java` |
 | Dopasowanie i walidacja kamieni | `equipment/service/validator/EquipmentPlacementRules.java`, `DrifSecurityValidator.java`, `OrbSecurityValidator.java` |
 | Statystyki, bonusy i naliczanie kary | `equipment/service/calculator/processor/ItemStatProcessor.java`, `DrifStatProcessor.java`, `OrbStatProcessor.java`; `equipment/service/calculator/DrifCounter.java`, `StatsAccumulator.java` |
 | Wartość drifa | `equipment/domain/rules/DrifValueCalculator.java`; `optimization/engine/rules/DrifOptimizationMath.java` |
 | Gniazda i inwentarz optymalizatora | `optimization/engine/context/OptimizationSlotContextFactory.java`, `OptimizationInitialStateFactory.java` |
-| Blokady optymalizatora i doradcy | `optimization/constraints/OptimizationLockService.java` |
+| Blokady optymalizatora i doradcy | `optimization/locking/OptimizationLockService.java` |
 | Kontrola końcowego układu | `optimization/engine/result/OptimizationFinalResultValidator.java`, `OptimizationSetupMapper.java` |
 
-Odpowiedniki frontendowe względem `Broken_Ranks_Tool_Frontend/src/`: `components/gear_slot/gearSlotDomain.js`, `StandardDrifSlot.jsx`, `BuiltInDrifSlots.jsx`; `hooks/useGearSlot.js`, `useGearSlotDragDrop.js`; `components/optimization/OptimizerSettingsPanel.jsx`, `OptimizerLocksColumn.jsx`.
+Odpowiedniki frontendowe względem `Broken_Ranks_Tool_Frontend/src/`:
+`shared/domain/equipment/equipmentRules.js`; `features/builder/gear-slot/gearSlotDomain.js`,
+`StandardDrifSlot.jsx`, `BuiltInDrifSlots.jsx`, `useGearSlot.js`, `useGearSlotDragDrop.js`;
+`features/optimizer/OptimizerSettingsPanel.jsx`, `OptimizerLocksColumn.jsx`.
 
 Przy zmianach reguł sprawdzaj powiązane warstwy zamiast zakładać, że edytor lub sam optymalizator jest jedynym źródłem zachowania.
