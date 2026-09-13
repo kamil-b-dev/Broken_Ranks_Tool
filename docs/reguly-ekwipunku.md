@@ -116,6 +116,8 @@ Capy i bazowe moce są zapisane w `DRIF_BONUS_TYPE`; nie każdy typ ma cap. Redu
 
 Kalkulator uwzględnia również źródła inne niż drify: statystyki przedmiotów, orby, dane postaci i domyślne 2% krytyka oraz po 5% regeneracji many i kondycji. Cel procentowy trzeba odnosić do właściwej sumy, nie wyłącznie do wkładu przekładanych drifów.
 
+Tryb optymalizacji „od zera” przekazuje bazowe statystyki postaci do kalkulatora oraz zachowuje je w wynikowym zestawie i wariantach. Wynik zawiera niezależną kopię tych danych, aby jego późniejsza edycja nie zmieniała żądania wejściowego.
+
 ## 7. Orby
 
 - Maksymalnie jeden orb w zwykłym, epickim i setowym przedmiocie; maksymalnie dwa w legendarnym. Drugi orb musi być ofensywny.
@@ -142,7 +144,7 @@ Doradca analizuje aktualny build i przedstawia rekomendowane zakupy oraz zamiany
 
 Cele Doradcy są względne wobec statystyk obliczonych przez backend dla aktualnego buildu. Użytkownik wskazuje główny modyfikator, również obecnie równy zero. Może maksymalizować jego efekt, wskazać wartość docelową albo przyrost w punktach procentowych. Dla redukcji większy efekt oznacza bardziej ujemną wartość; cel podaje się jako dodatnią wielkość redukcji. Pozostałe obecne mody są domyślnie chronione na aktualnym poziomie. Dla każdego można dopuścić spadek w p.p. albo wyłączyć ochronę. Końcowe plany muszą spełniać minima według kalkulatora; Doradca nie stosuje tolerancji 0,5 p.p. z trybu „od zera”.
 
-Doradca ma osobne wyszukiwanie zaczynające się od posiadanych drifów, z zachowaniem ich liczby, rozmiarów i poziomów. Przełożenia do wolnego gniazda i zamiany dwóch sztuk są zawsze dopuszczone. Osobne opcje pozwalają analizować gwiazdki, ulepszanie drifów, zakup dodatkowych drifów, wymiany przedmiotów i zmiany orbów. Domyślnie włączone są tylko przełożenia i gwiazdki. Żadna opcja nie pozwala usuwać posiadanych drifów lub obniżać ich poziomów. Drify wbudowane nie są przekładane ani ulepszane; gwiazdki i orby ich przedmiotu mogą być zmieniane, o ile cały slot nie jest zablokowany.
+Doradca ma osobne wyszukiwanie zaczynające się od posiadanych drifów, z zachowaniem ich liczby, rozmiarów i poziomów. Przełożenia do wolnego gniazda i zamiany dwóch sztuk są zawsze dopuszczone. Osobne opcje pozwalają analizować gwiazdki, ulepszanie drifów, zakup dodatkowych drifów i wymiany przedmiotów. Domyślnie włączone są tylko przełożenia i gwiazdki. Żadna opcja nie pozwala usuwać posiadanych drifów lub obniżać ich poziomów. Drify wbudowane nie są przekładane ani ulepszane. Zwiększenie bonusów istniejących orbów przez gwiazdki pozostaje uwzględnione w końcowym kalkulatorze, ale Doradca nie proponuje wymiany orbów, ponieważ ich katalog używa innych typów statystyk niż cele Doradcy.
 
 Plan zawiera maksymalnie 1–3 działania. Jedno działanie to przełożenie, zamiana dwóch drifów, podniesienie jednego przedmiotu do wybranej liczby gwiazdek, ulepszenie jednego drifa lub pojedynczy zakup/wymiana. Gwiazdki analizowane są na wszystkich wyższych poziomach do 9, razem ze zmianami pojemności, gniazd i bonusów. Wymiana przedmiotu zachowuje jego aktualne gwiazdki i kamienie oraz wymaga zgodności z nowym przedmiotem; podniesienie gwiazdek jest osobnym działaniem. Wyszukiwanie może przejściowo naruszać minima modów, aby znaleźć kompensującą kombinację; prezentowany wynik musi je spełniać.
 
@@ -150,11 +152,9 @@ W jednym żądaniu backend ładuje katalog i współdzieli cache wkładów slot�
 
 Przy maksymalizacji ranking preferuje większy efekt do capa, a przy równym efekcie mniejszą ingerencję. Przy zadanym celu pierwszeństwo mają plany, które go osiągają, następnie mniej zakupów/ulepszeń, mniej podniesionych poziomów i mniej działań. To miara ingerencji, nie koszt walutowy. Cele już spełnione przez aktualny build nie wymagają zmian. Po ręcznej zmianie buildu, bazowych statystyk lub blokad trzeba ponowić analizę przed zastosowaniem starego planu.
 
-Profil profesji może być wybrany ręcznie jako magiczny lub fizyczny. W trybie automatycznym wynika z całego założonego ekwipunku i bazowych statystyk postaci: Moc/Wiedza wskazują profil magiczny, a Siła/Zręczność fizyczny. Przy remisie profil jest uniwersalny. Zamiennik przedmiotu musi należeć do wybranego profilu albo być uniwersalny; niesklasyfikowane bronie są dopuszczalne dla obu profili. Blokada slotu wyłącza jego gwiazdki, przedmiot i orb z rekomendowanych zmian.
+Profil profesji może być wybrany ręcznie jako magiczny lub fizyczny. W trybie automatycznym wynika z całego założonego ekwipunku i bazowych statystyk postaci: Moc/Wiedza wskazują profil magiczny, a Siła/Zręczność fizyczny. Przy remisie profil jest uniwersalny. Zamiennik przedmiotu musi należeć do wybranego profilu albo być uniwersalny; niesklasyfikowane bronie są dopuszczalne dla obu profili. Blokada slotu wyłącza w nim wszystkie rekomendowane zmiany, w tym gwiazdki, przedmiot i drify.
 
 Ograniczenia obecnego algorytmu Doradcy: wymiany przedmiotów dotyczą zwykłych slotów i do trzech kandydatów na slot, wybranych według bonusu do drifów i pojemności. Zakupy drifów dotyczą głównego moda i poziomów 1/6/11/16/21 dopuszczonych przez rozmiar. Nie są to ograniczenia domenowe gry. Pełną przebudowę z katalogu nadal obsługuje tryb „od zera”.
-
-Obecny katalog orbów używa innych kluczy statystyk niż drify. Włączenie zmian orbów nie powoduje ich przeszukiwania, jeśli nie mogą wpłynąć na wybrany mod ani chronione mody. Zwiększenie bonusów istniejących orbów przez gwiazdki pozostaje uwzględnione w końcowym kalkulatorze.
 
 ## 9. Znane rozbieżności implementacji
 - Ograniczenie tieru orba jest filtrem edytora, nie kontrolą w `OrbStatProcessor`.
@@ -170,14 +170,17 @@ Obecny katalog orbów używa innych kluczy statystyk niż drify. Włączenie zmi
 | --- | --- |
 | Kategorie slotów, orby, wbudowane drify, kary | `equipment/domain/rules/EquipmentRulesRegistry.java` |
 | Gwiazdki, rozmiary, moce i capy | `equipment/domain/enums/ITEM_STAR.java`, `DRIF_SIZE.java`, `ORB_SIZE.java`, `DRIF_BONUS_TYPE.java`, `RARITY.java` |
-| Poziomy, pojemność, moc | `equipment/service/validator/UpgradeLevelPolicy.java`, `equipment/domain/util/DrifPowerRules.java` |
+| Poziomy, pojemność, moc | `equipment/service/validator/UpgradeLevelPolicy.java`, `equipment/domain/rules/DrifPowerRules.java` |
 | Dopasowanie i walidacja kamieni | `equipment/service/validator/EquipmentPlacementRules.java`, `DrifSecurityValidator.java`, `OrbSecurityValidator.java` |
 | Statystyki, bonusy i naliczanie kary | `equipment/service/calculator/processor/ItemStatProcessor.java`, `DrifStatProcessor.java`, `OrbStatProcessor.java`; `equipment/service/calculator/DrifCounter.java`, `StatsAccumulator.java` |
 | Wartość drifa | `equipment/domain/rules/DrifValueCalculator.java`; `optimization/engine/rules/DrifOptimizationMath.java` |
 | Gniazda i inwentarz optymalizatora | `optimization/engine/context/OptimizationSlotContextFactory.java`, `OptimizationInitialStateFactory.java` |
-| Blokady optymalizatora i doradcy | `optimization/constraints/OptimizationLockService.java` |
+| Blokady optymalizatora i doradcy | `optimization/locking/OptimizationLockService.java` |
 | Kontrola końcowego układu | `optimization/engine/result/OptimizationFinalResultValidator.java`, `OptimizationSetupMapper.java` |
 
-Odpowiedniki frontendowe względem `Broken_Ranks_Tool_Frontend/src/`: `components/gear_slot/gearSlotDomain.js`, `StandardDrifSlot.jsx`, `BuiltInDrifSlots.jsx`; `hooks/useGearSlot.js`, `useGearSlotDragDrop.js`; `components/optimization/OptimizerSettingsPanel.jsx`, `OptimizerLocksColumn.jsx`.
+Odpowiedniki frontendowe względem `Broken_Ranks_Tool_Frontend/src/`:
+`shared/domain/equipment/equipmentRules.js`; `features/builder/gear-slot/gearSlotDomain.js`,
+`StandardDrifSlot.jsx`, `BuiltInDrifSlots.jsx`, `useGearSlot.js`, `useGearSlotDragDrop.js`;
+`features/optimizer/OptimizerSettingsPanel.jsx`, `OptimizerLocksColumn.jsx`.
 
 Przy zmianach reguł sprawdzaj powiązane warstwy zamiast zakładać, że edytor lub sam optymalizator jest jedynym źródłem zachowania.

@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
 
 const initialData = {
     items: [],
@@ -28,6 +29,44 @@ test("opens the builder and switches to the optimizer", async ({ page }) => {
 
     await expect(page.locator(".optimizer-theme")).toBeVisible();
     await expect(page.locator(".builder-theme")).toBeHidden();
+});
+
+test("has no automatically detectable WCAG A or AA violations", async ({ page }) => {
+    await page.route("**/api/initial-data", (route) => route.fulfill({ json: initialData }));
+    await page.goto("/");
+
+    const builderScan = await new AxeBuilder({ page })
+        .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+        .analyze();
+    expect(builderScan.violations).toEqual([]);
+
+    await page.getByRole("button", { name: /Optymalizator drifów/ }).click();
+    const optimizerScan = await new AxeBuilder({ page })
+        .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+        .analyze();
+    expect(optimizerScan.violations).toEqual([]);
+});
+
+test("loads the application artwork without broken assets", async ({ page }) => {
+    const failedAssets = [];
+    page.on("requestfailed", (request) => {
+        if (/\.(?:png|webp)$/u.test(new URL(request.url()).pathname)) {
+            failedAssets.push(request.url());
+        }
+    });
+    await page.route("**/api/initial-data", (route) => route.fulfill({ json: initialData }));
+
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
+
+    const images = page.locator("img");
+    expect(await images.count()).toBeGreaterThanOrEqual(3);
+    expect(
+        await images.evaluateAll((elements) =>
+            elements.every((image) => image.complete && image.naturalWidth > 0)
+        )
+    ).toBe(true);
+    expect(failedAssets).toEqual([]);
 });
 
 test("preserves optimizer state when switching workspaces", async ({ page }) => {

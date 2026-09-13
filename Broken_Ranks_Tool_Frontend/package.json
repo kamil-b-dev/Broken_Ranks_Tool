@@ -6,11 +6,13 @@
     "scripts": {
         "dev": "vite",
         "build": "vite build",
+        "check:bundle-size": "node scripts/check-bundle-size.mjs",
+        "assets:optimize": "node scripts/optimize-assets.mjs",
         "format": "prettier --write .",
         "format:check": "prettier --check .",
         "lint": "eslint .",
         "test": "vitest run",
-        "test:coverage": "vitest run --coverage",
+        "test:coverage": "vitest run --coverage && node scripts/check-coverage-floor.mjs",
         "test:e2e": "playwright test",
         "preview": "vite preview",
         "docs": "jsdoc -c jsdoc.json"
@@ -21,6 +23,7 @@
         "react-dom": "^19.2.0"
     },
     "devDependencies": {
+        "@axe-core/playwright": "^4.13.0",
         "@eslint/js": "^9.39.1",
         "@playwright/test": "^1.62.1",
         "@testing-library/jest-dom": "^7.0.1",
@@ -40,6 +43,7 @@
         "msw": "^2.15.0",
         "postcss": "^8.5.6",
         "prettier": "^3.9.6",
+        "sharp": "^0.35.4",
         "tailwindcss": "^3.4.19",
         "vite": "^7.3.1",
         "vitest": "^4.1.11"

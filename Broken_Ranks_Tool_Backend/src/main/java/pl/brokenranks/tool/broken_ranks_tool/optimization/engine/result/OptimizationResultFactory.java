@@ -2,8 +2,8 @@ package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result;
 
 import lombok.experimental.UtilityClass;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCalculatorService;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.constraints.OptimizationLockService;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.locking.OptimizationLockService;
 
 /** Assembles collaborators responsible for optimizer result processing. */
 @UtilityClass

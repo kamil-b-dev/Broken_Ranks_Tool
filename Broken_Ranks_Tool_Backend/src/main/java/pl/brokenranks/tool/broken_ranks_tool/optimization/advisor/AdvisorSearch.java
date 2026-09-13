@@ -1,6 +1,7 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.advisor;
 
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.advisor.AdvisorEquipmentModel.*;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.advisor.AdvisorSlotData.signature;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.advisor.AdvisorStatValues.*;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;

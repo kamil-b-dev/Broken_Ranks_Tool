@@ -1,6 +1,7 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -15,8 +16,44 @@ import org.mockito.Mockito;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.config.OptimizationProperties;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationResponse;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationSummary;
 
 class OptimizationExecutionGuardTests {
+
+    @Test
+    void recordsSuccessfulOptimizationsAndTheirDuration() {
+        ModsOptimizationService service = Mockito.mock(ModsOptimizationService.class);
+        OptimizationSummary summary = new OptimizationSummary();
+        summary.setSuccess(true);
+        OptimizationResponse response = new OptimizationResponse(null, summary);
+        when(service.optimize(any())).thenReturn(response);
+        SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
+        OptimizationExecutionGuard guard = guard(service, meterRegistry);
+
+        assertSame(response, guard.optimize(new OptimizationRequest()));
+        assertEquals(1.0, meterRegistry.counter("optimizer.runs", "outcome", "success").count());
+        assertEquals(1L, meterRegistry.timer("optimizer.duration").count());
+        assertEquals(0.0, meterRegistry.get("optimizer.active").gauge().value());
+    }
+
+    @Test
+    void recordsFailuresAndAlwaysReleasesThePermit() {
+        ModsOptimizationService service = Mockito.mock(ModsOptimizationService.class);
+        when(service.optimize(any()))
+                .thenThrow(new IllegalStateException("boom"))
+                .thenReturn(new OptimizationResponse(null, null));
+        SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
+        OptimizationExecutionGuard guard = guard(service, meterRegistry);
+
+        assertThrows(IllegalStateException.class, () -> guard.optimize(new OptimizationRequest()));
+        guard.optimize(new OptimizationRequest());
+
+        assertEquals(1.0, meterRegistry.counter("optimizer.runs", "outcome", "error").count());
+        assertEquals(
+                1.0, meterRegistry.counter("optimizer.runs", "outcome", "no_solution").count());
+        assertEquals(2L, meterRegistry.timer("optimizer.duration").count());
+        assertEquals(0.0, meterRegistry.get("optimizer.active").gauge().value());
+    }
 
     @Test
     void rejectsAnOverlappingOptimizationAndReleasesThePermit() throws Exception {
@@ -32,11 +69,7 @@ class OptimizationExecutionGuardTests {
                             return response;
                         });
         SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
-        OptimizationExecutionGuard guard =
-                new OptimizationExecutionGuard(
-                        service,
-                        new OptimizationProperties(55_000, 20_000, 25_000, 1),
-                        meterRegistry);
+        OptimizationExecutionGuard guard = guard(service, meterRegistry);
         ExecutorService executor = Executors.newSingleThreadExecutor();
 
         try {
@@ -58,5 +91,11 @@ class OptimizationExecutionGuardTests {
             release.countDown();
             executor.shutdownNow();
         }
+    }
+
+    private OptimizationExecutionGuard guard(
+            ModsOptimizationService service, SimpleMeterRegistry meterRegistry) {
+        return new OptimizationExecutionGuard(
+                service, new OptimizationProperties(55_000, 20_000, 25_000, 1), meterRegistry);
     }
 }

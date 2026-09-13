@@ -1,0 +1,356 @@
+/* Local build library and comparison workspace */
+.build-library-theme {
+    color: var(--ui-text);
+}
+
+.build-library-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    padding: 1.25rem 1.5rem;
+}
+
+.build-library-heading h2,
+.build-library-panel-heading h3 {
+    margin: 0;
+    color: #e6ddcf;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.build-library-heading h2 {
+    font-size: 1.25rem;
+}
+
+.build-library-heading > div > p:last-child {
+    max-width: 46rem;
+    margin: 0.55rem 0 0;
+    color: #8e857b;
+    font-size: 0.76rem;
+    line-height: 1.55;
+}
+
+.build-library-save-form {
+    width: min(100%, 30rem);
+    flex: 0 0 auto;
+}
+
+.build-library-save-form > label {
+    display: block;
+    margin-bottom: 0.35rem;
+    color: #a77b43;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.build-library-save-form > div {
+    display: grid;
+    grid-template-columns: minmax(8rem, 0.8fr) minmax(0, 1fr) auto;
+}
+
+.build-library-save-form input,
+.build-library-save-form select {
+    min-width: 0;
+    border: 1px solid rgba(126, 87, 44, 0.7);
+    border-right: 0;
+    padding: 0.7rem 0.8rem;
+    color: #ded4c7;
+    font-size: 0.76rem;
+    background: rgba(2, 3, 3, 0.82);
+}
+
+.build-library-save-form select {
+    color: #b9a994;
+}
+
+.build-library-save-form button {
+    border: 1px solid rgba(179, 108, 39, 0.88);
+    padding: 0.65rem 1rem;
+    color: #e1b96f;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.64rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    background: linear-gradient(180deg, rgba(84, 41, 14, 0.88), rgba(20, 10, 5, 0.98));
+}
+
+.build-library-save-form button:hover:not(:disabled) {
+    border-color: #d89a47;
+    color: #ffe0a1;
+}
+
+.build-library-save-form button:disabled {
+    cursor: not-allowed;
+    opacity: 0.42;
+}
+
+.build-library-save-form > small {
+    display: block;
+    margin-top: 0.35rem;
+    color: #746b61;
+    font-size: 0.56rem;
+    text-align: right;
+}
+
+.build-library-layout {
+    display: grid;
+    height: clamp(42rem, calc(100vh - 15rem), 64rem);
+    min-height: 0;
+    grid-template-columns: minmax(19rem, 0.72fr) minmax(34rem, 1.7fr);
+    gap: 1rem;
+}
+
+.build-library-list-panel,
+.build-comparison-panel {
+    display: flex;
+    min-height: 0;
+    flex-direction: column;
+    padding: 1rem;
+}
+
+.build-library-panel-heading {
+    display: flex;
+    min-height: 3.5rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0 0.25rem 0.85rem;
+    border-bottom: 1px solid rgba(119, 77, 40, 0.62);
+}
+
+.build-library-panel-heading h3 {
+    font-size: 0.86rem;
+}
+
+.build-library-panel-heading > span,
+.build-library-panel-heading > button {
+    color: #877a6c;
+    font-size: 0.56rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.build-library-panel-heading > button {
+    border-bottom: 1px solid rgba(153, 104, 49, 0.55);
+    color: #b08753;
+}
+
+.build-library-list {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+    gap: 0.55rem;
+    overflow-y: auto;
+    padding: 0.75rem 0.35rem 0 0;
+}
+
+.build-library-empty,
+.build-comparison-empty {
+    display: flex;
+    min-height: 16rem;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    color: #6e655c;
+    text-align: center;
+}
+
+.build-library-empty > span,
+.build-comparison-empty > span {
+    display: grid;
+    width: 3rem;
+    height: 3rem;
+    margin-bottom: 0.85rem;
+    place-items: center;
+    border: 1px solid rgba(145, 97, 43, 0.72);
+    border-radius: 50%;
+    color: #b17a3f;
+    font-size: 1.35rem;
+    box-shadow: 0 0 20px rgba(138, 83, 34, 0.1);
+}
+
+.build-library-empty strong,
+.build-comparison-empty strong {
+    color: #bcaa94;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.78rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+}
+
+.build-library-empty p,
+.build-comparison-empty p {
+    max-width: 24rem;
+    margin: 0.45rem 0 0;
+    font-size: 0.66rem;
+    line-height: 1.55;
+}
+
+.saved-build-card {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 0.35rem 0.7rem;
+    padding: 0.75rem;
+    border: 1px solid rgba(93, 66, 41, 0.72);
+    background:
+        linear-gradient(105deg, rgba(26, 21, 18, 0.82), rgba(4, 5, 5, 0.96)),
+        url("../../../assets/panel-aged-leather-texture.webp") center / 24rem;
+    background-blend-mode: normal, soft-light;
+    box-shadow: inset 0 1px rgba(255, 239, 210, 0.035);
+}
+
+.saved-build-card.is-selected {
+    border-color: rgba(179, 116, 53, 0.92);
+    background:
+        linear-gradient(105deg, rgba(66, 34, 17, 0.82), rgba(6, 6, 6, 0.97)),
+        url("../../../assets/panel-aged-leather-texture.webp") center / 24rem;
+    box-shadow:
+        inset 3px 0 rgba(201, 130, 53, 0.72),
+        inset 0 1px rgba(255, 239, 210, 0.05);
+}
+
+.saved-build-compare {
+    grid-column: 2;
+    color: #8f8172;
+    font-size: 0.63rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.saved-build-compare input {
+    display: inline-grid;
+    width: 0.95rem;
+    height: 0.95rem;
+    margin-right: 0.35rem;
+    place-content: center;
+    appearance: none;
+    border: 1px solid rgba(155, 101, 45, 0.9);
+    vertical-align: -0.22rem;
+    background: linear-gradient(145deg, rgba(35, 23, 14, 0.92), rgba(3, 3, 4, 0.98));
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 218, 153, 0.05),
+        0 0 0 1px rgba(0, 0, 0, 0.7);
+    cursor: pointer;
+}
+
+.saved-build-compare input::before {
+    width: 0.45rem;
+    height: 0.45rem;
+    content: "";
+    background: #d19a4e;
+    box-shadow: 0 0 0.45rem rgba(205, 129, 47, 0.55);
+    transform: scale(0) rotate(45deg);
+    transition: transform 120ms ease-out;
+}
+
+.saved-build-compare input:checked {
+    border-color: #d49749;
+    background: linear-gradient(145deg, rgba(84, 43, 17, 0.96), rgba(13, 8, 5, 0.98));
+}
+
+.saved-build-compare input:checked::before {
+    transform: scale(1) rotate(45deg);
+}
+
+.saved-build-compare input:focus-visible {
+    outline: 1px solid #e4ad60;
+    outline-offset: 2px;
+}
+
+.saved-build-compare input:disabled {
+    cursor: not-allowed;
+    opacity: 0.38;
+}
+
+.saved-build-index {
+    display: grid;
+    width: 2.2rem;
+    height: 2.2rem;
+    grid-column: 1;
+    grid-row: 1 / span 3;
+    place-items: center;
+    align-self: center;
+    border: 1px solid rgba(144, 91, 43, 0.72);
+    border-radius: 50%;
+    color: #bd8d4e;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.65rem;
+}
+
+.saved-build-copy {
+    display: flex;
+    min-width: 0;
+    grid-column: 2;
+    flex-direction: column;
+}
+
+.saved-build-copy strong {
+    overflow: hidden;
+    color: #ddd1c1;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.78rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.saved-build-copy small,
+.saved-build-copy span,
+.saved-build-card time {
+    color: #756d64;
+    font-size: 0.6rem;
+}
+
+.saved-build-copy small {
+    margin-top: 0.16rem;
+    color: #9b8b78;
+}
+
+.saved-build-card time {
+    grid-column: 3;
+    grid-row: 1;
+    white-space: nowrap;
+}
+
+.saved-build-actions {
+    display: flex;
+    grid-column: 2 / -1;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: 0.25rem;
+}
+
+.saved-build-actions button {
+    padding: 0.28rem 0.45rem;
+    border: 1px solid rgba(89, 75, 62, 0.68);
+    color: #8f877e;
+    font-size: 0.58rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: rgba(3, 3, 4, 0.62);
+}
+
+.saved-build-actions button:hover {
+    border-color: rgba(170, 125, 72, 0.82);
+    color: #d9c8b3;
+}
+
+.saved-build-actions .is-primary {
+    border-color: rgba(161, 97, 40, 0.78);
+    color: #d2a665;
+}
+
+.saved-build-actions .is-danger {
+    margin-left: auto;
+    color: #9b6565;
+}

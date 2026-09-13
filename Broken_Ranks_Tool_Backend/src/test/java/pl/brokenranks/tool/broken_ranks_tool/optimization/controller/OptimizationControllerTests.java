@@ -2,6 +2,7 @@ package pl.brokenranks.tool.broken_ranks_tool.optimization.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -10,9 +11,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import pl.brokenranks.tool.broken_ranks_tool.core.config.SecurityConfig;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
@@ -25,7 +26,7 @@ class OptimizationControllerTests {
 
     @Autowired private MockMvc mockMvc;
 
-    @MockBean private OptimizationExecutionGuard executionGuard;
+    @MockitoBean private OptimizationExecutionGuard executionGuard;
 
     @Test
     void delegatesOptimizationAndReturnsItsContract() throws Exception {
@@ -57,5 +58,28 @@ class OptimizationControllerTests {
                                 .content("{}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("INVALID_REQUEST"));
+    }
+
+    @Test
+    void rejectsANonUuidAdvisorRunIdBeforeStartingOptimization() throws Exception {
+        mockMvc.perform(
+                        post("/api/optimizer/drifs")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        """
+                                        {
+                                          "mode": "ADVISOR",
+                                          "advisor": {
+                                            "goal": "DAMAGE_MAGIC",
+                                            "runId": "predictable-id"
+                                          },
+                                          "originalSlots": {"helmet": {"itemId": 1}},
+                                          "priorities": {"DAMAGE_MAGIC": 10}
+                                        }
+                                        """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("MALFORMED_JSON"));
+
+        verifyNoInteractions(executionGuard);
     }
 }

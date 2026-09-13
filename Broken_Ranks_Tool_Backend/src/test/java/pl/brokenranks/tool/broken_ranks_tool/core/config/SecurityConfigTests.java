@@ -1,5 +1,6 @@
 package pl.brokenranks.tool.broken_ranks_tool.core.config;
 
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -9,26 +10,43 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import pl.brokenranks.tool.broken_ranks_tool.app_data.controller.InitialDataController;
-import pl.brokenranks.tool.broken_ranks_tool.app_data.service.InitialDataService;
+import pl.brokenranks.tool.broken_ranks_tool.catalog.controller.InitialDataController;
+import pl.brokenranks.tool.broken_ranks_tool.catalog.service.InitialDataService;
+import pl.brokenranks.tool.broken_ranks_tool.core.web.filter.RequestTracingFilter;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.advisor.AdvisorRunRegistry;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.controller.AdvisorCancellationController;
 
-@WebMvcTest(InitialDataController.class)
+@WebMvcTest({InitialDataController.class, AdvisorCancellationController.class})
 @Import({SecurityConfig.class, RequestTracingFilter.class})
 class SecurityConfigTests {
 
     @Autowired private MockMvc mockMvc;
 
-    @MockBean private InitialDataService initialDataService;
+    @MockitoBean private InitialDataService initialDataService;
+
+    @MockitoBean private AdvisorRunRegistry advisorRunRegistry;
 
     @Test
     void permitsPublicGetRequestsAndAddsSecurityHeaders() throws Exception {
         mockMvc.perform(get("/api/initial-data"))
                 .andExpect(status().isOk())
                 .andExpect(header().exists("Content-Security-Policy"))
-                .andExpect(header().string("X-Frame-Options", "DENY"));
+                .andExpect(header().string("X-Frame-Options", "DENY"))
+                .andExpect(header().string("Cache-Control", "max-age=3600, public"));
+    }
+
+    @Test
+    void returnsANotFoundResponseWithoutTreatingUnknownApiPathsAsServerFailures() throws Exception {
+        mockMvc.perform(get("/api/missing"))
+                .andExpect(status().isNotFound())
+                .andExpect(
+                        header().string(
+                                        "Cache-Control",
+                                        "no-cache, no-store, max-age=0, must-revalidate"))
+                .andExpect(jsonPath("$.code").value("NOT_FOUND"));
     }
 
     @Test
@@ -38,6 +56,15 @@ class SecurityConfigTests {
                 .andExpect(header().string("X-Request-ID", "security-test"))
                 .andExpect(jsonPath("$.code").value("FORBIDDEN"))
                 .andExpect(jsonPath("$.requestId").value("security-test"));
+    }
+
+    @Test
+    void permitsTheDeclaredAdvisorCancellationEndpoint() throws Exception {
+        when(advisorRunRegistry.cancel("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")).thenReturn(true);
+
+        mockMvc.perform(post("/api/optimizer/advisor/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa/cancel"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.cancelled").value(true));
     }
 
     @Test
