@@ -151,7 +151,7 @@ class AdvisorEquipmentValidatorTests {
         return new Fixture(new AdvisorEquipmentValidator(model, rules, levels));
     }
 
-    private static <T extends pl.brokenranks.tool.broken_ranks_tool.core.entity.BaseEntity>
+    private static <T extends pl.brokenranks.tool.broken_ranks_tool.equipment.entity.BaseEntity>
             Map<Long, T> index(List<T> values) {
         Map<Long, T> result = new HashMap<>();
         for (T value : values) result.put(value.getId(), value);

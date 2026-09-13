@@ -3,7 +3,7 @@ WORKDIR /workspace/frontend
 COPY Broken_Ranks_Tool_Frontend/package.json Broken_Ranks_Tool_Frontend/package-lock.json ./
 RUN npm ci
 COPY Broken_Ranks_Tool_Frontend/ ./
-RUN npm run build
+RUN npm run build && npm run check:bundle-size
 
 FROM maven:3.9.12-eclipse-temurin-21 AS backend-build
 WORKDIR /workspace/backend
@@ -18,7 +18,7 @@ WORKDIR /app
 RUN groupadd --system app && useradd --system --gid app --home-dir /app app \
     && mkdir -p /app/data && chown -R app:app /app
 COPY --from=backend-build --chown=app:app /workspace/backend/target/Broken_Ranks_Tool_Backend-*.jar /app/application.jar
-COPY --chown=app:app Broken_Ranks_Tool_Backend/broken_ranks.db /app/data/broken_ranks.db
+COPY --chown=app:app Broken_Ranks_Tool_Backend/database/catalog/broken_ranks.db /app/data/broken_ranks.db
 USER app
 ENV SPRING_PROFILES_ACTIVE=prod
 EXPOSE 8080

@@ -6,13 +6,13 @@ import java.util.Map;
 import java.util.Set;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import pl.brokenranks.tool.broken_ranks_tool.core.entity.BaseNamedEntity;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.CHARACTER_CLASS;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ITEM_CATEGORY;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ITEM_CLASS_SCOPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ITEM_PROFILE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.RARITY;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.ItemProfileClassifier;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.BaseNamedEntity;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.converter.MapToStringConverter;
 
 /** Defines shared item properties independently from user-owned item instances. */

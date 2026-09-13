@@ -10,11 +10,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import pl.brokenranks.tool.broken_ranks_tool.app_data.controller.InitialDataController;
-import pl.brokenranks.tool.broken_ranks_tool.app_data.service.InitialDataService;
+import pl.brokenranks.tool.broken_ranks_tool.catalog.controller.InitialDataController;
+import pl.brokenranks.tool.broken_ranks_tool.catalog.service.InitialDataService;
+import pl.brokenranks.tool.broken_ranks_tool.core.web.filter.RequestTracingFilter;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.advisor.AdvisorRunRegistry;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.controller.AdvisorCancellationController;
 
@@ -24,9 +25,9 @@ class SecurityConfigTests {
 
     @Autowired private MockMvc mockMvc;
 
-    @MockBean private InitialDataService initialDataService;
+    @MockitoBean private InitialDataService initialDataService;
 
-    @MockBean private AdvisorRunRegistry advisorRunRegistry;
+    @MockitoBean private AdvisorRunRegistry advisorRunRegistry;
 
     @Test
     void permitsPublicGetRequestsAndAddsSecurityHeaders() throws Exception {

@@ -16,8 +16,8 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.proces
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.random.RandomProvider;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.impl.EquipmentStatsCalculatorTestFactory;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.*;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.constraints.OptimizationLockService;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.locking.OptimizationLockService;
 
 /** Uses production search and calculator; only catalog persistence and randomness are replaced. */
 record OptimizationCalculatorFixture(
