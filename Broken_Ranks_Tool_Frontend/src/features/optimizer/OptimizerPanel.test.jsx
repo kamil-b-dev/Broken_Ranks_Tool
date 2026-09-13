@@ -81,7 +81,6 @@ describe("OptimizerPanel", () => {
         vi.clearAllMocks();
         equipment.runDrifOptimization.mockResolvedValue(optimizationResult);
         useEquipment.mockReturnValue(equipment);
-        vi.spyOn(window, "alert").mockImplementation(() => {});
     });
 
     it("builds a normalized optimization request from the selected priority", async () => {
@@ -119,7 +118,7 @@ describe("OptimizerPanel", () => {
         await user.click(screen.getByRole("button", { name: /Wymuś konkretny procent/i }));
         await user.click(screen.getByRole("button", { name: /Uruchom optymalizację/i }));
 
-        expect(window.alert).toHaveBeenCalledWith(
+        expect(screen.getByRole("alert")).toHaveTextContent(
             "Podaj poprawny, nieujemny procent dla: Szansa na krytyk."
         );
         expect(equipment.runDrifOptimization).not.toHaveBeenCalled();
@@ -176,7 +175,9 @@ describe("OptimizerPanel", () => {
         expect(await screen.findByText("Szansa na krytyk")).toBeInTheDocument();
         await user.click(screen.getByRole("button", { expanded: true }));
         expect(screen.getByText(/waga 30 · 0–12 · cel: cap/i)).toBeInTheDocument();
-        expect(window.alert).toHaveBeenCalledWith("Wczytano konfigurację: 1 priorytetów.");
+        expect(screen.getByRole("status")).toHaveTextContent(
+            "Wczytano konfigurację: 1 priorytetów."
+        );
         const updateSettings = onSettingsChange.mock.calls[0][0];
         expect(updateSettings(settings)).toEqual({
             ...settings,
@@ -344,7 +345,7 @@ describe("OptimizerPanel", () => {
         await user.click(screen.getByRole("button", { name: "ANALIZUJ BUILD" }));
         await user.click(await screen.findByRole("button", { name: /Zastosuj wybrany wariant/i }));
 
-        expect(window.alert).toHaveBeenCalledWith(
+        expect(screen.getByRole("alert")).toHaveTextContent(
             "Build zmienił się od analizy. Uruchom Doradcę ponownie."
         );
         expect(applyOptimizationSetup).not.toHaveBeenCalled();
@@ -380,7 +381,7 @@ describe("OptimizerPanel", () => {
         );
 
         expect(cancelDrifOptimization).toHaveBeenCalledOnce();
-        expect(window.alert).toHaveBeenCalledWith(
+        expect(screen.getByRole("alert")).toHaveTextContent(
             "Nie udało się zatrzymać analizy. Zakończy się po upływie limitu czasu."
         );
         await act(async () => finish(optimizationResult));

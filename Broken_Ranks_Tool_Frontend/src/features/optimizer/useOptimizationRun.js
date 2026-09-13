@@ -10,6 +10,7 @@ export const useOptimizationRun = (runOptimization, now = currentTime) => {
     const [status, setStatus] = useState(null);
     const [activeVariantIndex, setActiveVariantIndex] = useState(0);
     const startedAtRef = useRef(null);
+    const runVersionRef = useRef(0);
 
     useEffect(() => {
         if (!isOptimizing) return undefined;
@@ -21,6 +22,7 @@ export const useOptimizationRun = (runOptimization, now = currentTime) => {
     }, [isOptimizing, now]);
 
     const run = async (configuration) => {
+        const runVersion = ++runVersionRef.current;
         setIsOptimizing(true);
         setElapsedSeconds(0);
         const startedAt = now();
@@ -28,19 +30,26 @@ export const useOptimizationRun = (runOptimization, now = currentTime) => {
 
         try {
             const result = await runOptimization(configuration);
+            if (runVersion !== runVersionRef.current) return result;
             setStatus(result);
             setActiveVariantIndex(0);
             return result;
         } finally {
-            const durationSeconds = Math.floor((now() - startedAt) / 1000);
-            setElapsedSeconds(durationSeconds);
-            setLastDurationSeconds(durationSeconds);
-            startedAtRef.current = null;
-            setIsOptimizing(false);
+            if (runVersion === runVersionRef.current) {
+                const durationSeconds = Math.floor((now() - startedAt) / 1000);
+                setElapsedSeconds(durationSeconds);
+                setLastDurationSeconds(durationSeconds);
+                startedAtRef.current = null;
+                setIsOptimizing(false);
+            }
         }
     };
 
     const reset = useCallback(() => {
+        runVersionRef.current += 1;
+        startedAtRef.current = null;
+        setIsOptimizing(false);
+        setElapsedSeconds(0);
         setStatus(null);
         setActiveVariantIndex(0);
     }, []);

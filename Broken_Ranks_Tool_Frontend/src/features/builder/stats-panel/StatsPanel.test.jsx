@@ -40,7 +40,10 @@ describe("StatsPanel", () => {
         expect(screen.getByRole("heading", { name: "Orby" })).toBeInTheDocument();
         expect(screen.getByText("Obrażenia od ognia")).toBeInTheDocument();
 
-        await user.click(screen.getByRole("tab", { name: "Orby" }));
+        const orbsTab = screen.getByRole("tab", { name: "Orby" });
+        expect(orbsTab).toHaveAttribute("aria-controls", "stats-result-panel");
+        await user.click(orbsTab);
+        expect(screen.getByRole("tabpanel")).toHaveAttribute("aria-labelledby", orbsTab.id);
         expect(screen.getByRole("heading", { name: "Orby" })).toBeInTheDocument();
         expect(
             screen.queryByRole("heading", { name: "Statystyki podstawowe" })

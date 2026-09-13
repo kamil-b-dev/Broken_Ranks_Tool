@@ -1,0 +1,292 @@
+.workbench {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--ui-line);
+    background: linear-gradient(155deg, rgba(31, 27, 25, 0.98), rgba(9, 9, 10, 0.98) 60%);
+    box-shadow:
+        0 20px 42px rgba(0, 0, 0, 0.4),
+        inset 0 1px rgba(255, 243, 219, 0.05),
+        inset 0 0 42px rgba(83, 30, 22, 0.06);
+}
+
+.workbench::before {
+    position: absolute;
+    top: 0;
+    right: 12%;
+    left: 12%;
+    height: 1px;
+    content: "";
+    background: linear-gradient(90deg, transparent, rgba(188, 130, 52, 0.55), transparent);
+}
+
+.workbench-heading {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(133, 75, 47, 0.48);
+}
+
+.workbench-heading h2 {
+    font-size: 1.12rem;
+    letter-spacing: 0.12em;
+}
+
+.workbench-help {
+    max-width: 22rem;
+    margin: 0;
+    color: #827b73;
+    font-size: 0.72rem;
+    line-height: 1.5;
+    text-align: right;
+}
+
+.character-summary {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: stretch;
+    gap: 0.75rem;
+    padding: 0.65rem;
+    border: 1px solid rgba(112, 68, 46, 0.54);
+    background:
+        linear-gradient(90deg, rgba(17, 13, 13, 0.82), rgba(7, 7, 8, 0.9)),
+        url("../../../assets/panel-aged-leather-texture.webp") center / 30rem;
+    background-blend-mode: normal, soft-light;
+    box-shadow: inset 0 1px rgba(255, 235, 210, 0.04);
+}
+
+.character-level-control,
+.character-points-summary {
+    display: flex;
+    min-width: 7.5rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid rgba(81, 67, 58, 0.72);
+    background:
+        linear-gradient(rgba(0, 0, 0, 0.62), rgba(0, 0, 0, 0.72)),
+        url("../../../assets/hammered-black-iron-texture.webp") center / 15rem;
+    background-blend-mode: normal, soft-light;
+    color: #9b958d;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.character-level-control input {
+    width: 3.5rem;
+    border: 0;
+    background: transparent;
+    color: #e5b75f;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+.character-stat-strip {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: repeat(7, minmax(9.5rem, 1fr));
+    gap: 0.45rem;
+    overflow-x: auto;
+    padding-bottom: 0.15rem;
+}
+
+.character-stat-control {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.35rem;
+    padding: 0.2rem 0.35rem;
+    min-height: 4rem;
+    border: 1px solid rgba(148, 103, 52, 0.72);
+    background: rgba(18, 14, 15, 0.82);
+}
+
+.character-stat-control > div {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+}
+
+.character-stat-icon {
+    position: relative;
+    width: 3.5rem;
+    height: 3.5rem;
+    flex: 0 0 auto;
+    overflow: hidden;
+    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.9));
+}
+
+.character-stat-icon::before {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 3.5rem;
+    height: 7rem;
+    content: "";
+    background-image: url("../../../assets/character-stat-icons.webp");
+    background-repeat: no-repeat;
+    background-size: 400% 200%;
+    transform: translate(-50%, -50%) scale(0.68);
+}
+
+.character-stat-control:nth-child(1) .character-stat-icon::before {
+    top: calc(50% - 0.3rem);
+    background-position: 0 0;
+}
+.character-stat-control:nth-child(2) .character-stat-icon::before {
+    top: calc(50% - 0.3rem);
+    background-position: 33.333% 0;
+}
+.character-stat-control:nth-child(3) .character-stat-icon::before {
+    top: calc(50% - 0.3rem);
+    background-position: 66.667% 0;
+}
+.character-stat-control:nth-child(4) .character-stat-icon::before {
+    top: calc(50% - 0.3rem);
+    background-position: 100% 0;
+}
+.character-stat-control:nth-child(5) .character-stat-icon::before {
+    top: calc(50% + 0.3rem);
+    background-position: 0 100%;
+}
+.character-stat-control:nth-child(6) .character-stat-icon::before {
+    top: calc(50% + 0.3rem);
+    background-position: 33.333% 100%;
+}
+.character-stat-control:nth-child(7) .character-stat-icon::before {
+    top: calc(50% + 0.3rem);
+    background-position: 66.667% 100%;
+}
+
+.character-stat-control span,
+.character-points-summary span,
+.character-points-summary small {
+    color: #807a73;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.58rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.character-stat-control strong,
+.character-points-summary strong {
+    color: #ddd6ca;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 1rem;
+}
+
+.character-stat-actions {
+    display: grid;
+    grid-template-columns: repeat(2, 1.65rem);
+    gap: 0.2rem;
+}
+
+.character-stat-actions button {
+    display: grid;
+    width: 1.65rem;
+    height: 1.45rem;
+    place-items: center;
+    border: 1px solid rgba(91, 75, 65, 0.8);
+    color: #c9c1b7;
+    background:
+        linear-gradient(rgba(0, 0, 0, 0.61), rgba(0, 0, 0, 0.73)),
+        url("../../../assets/hammered-black-iron-texture.webp") center / 13rem;
+    background-blend-mode: normal, soft-light;
+    font-size: 0.63rem;
+}
+
+.character-stat-actions button:hover:not(:disabled) {
+    border-color: rgba(183, 54, 75, 0.9);
+    color: #fff;
+}
+
+.character-stat-actions button:disabled {
+    opacity: 0.25;
+}
+
+.character-points-summary {
+    min-width: 8.5rem;
+    flex-wrap: wrap;
+    border-color: rgba(134, 85, 35, 0.62);
+}
+
+.character-points-summary strong {
+    color: #e5b75f;
+    font-size: 1.25rem;
+}
+
+.builder-workspace-grid {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: minmax(17rem, 0.8fr) minmax(38rem, 1.8fr) minmax(19rem, 0.9fr);
+    align-items: stretch;
+    gap: 1rem;
+}
+
+.builder-database-column,
+.builder-equipment-column,
+.builder-results-column {
+    min-width: 0;
+}
+
+.builder-equipment-column {
+    background-image:
+        linear-gradient(155deg, rgba(22, 19, 17, 0.82), rgba(3, 4, 4, 0.94) 64%),
+        url("../../../assets/panel-blackened-steel-texture.webp");
+    background-position: center;
+    background-size:
+        auto,
+        42rem 42rem;
+    background-blend-mode: normal, soft-light;
+}
+
+.builder-theme .workbench.builder-equipment-column {
+    background:
+        linear-gradient(155deg, rgba(17, 17, 17, 0.76), rgba(2, 3, 3, 0.92) 68%),
+        url("../../../assets/equipment-config-backdrop-texture.webp") center top / 48rem 48rem
+            repeat;
+    background-blend-mode: normal, luminosity;
+}
+
+.builder-database-column,
+.builder-results-column {
+    height: auto;
+    min-height: 0;
+}
+
+.builder-database-column {
+    position: relative;
+    align-self: stretch;
+    overflow: hidden;
+}
+
+.builder-database-column > div {
+    position: absolute;
+    inset: 0;
+    height: auto;
+}
+
+.builder-results-column > section {
+    height: 100%;
+}
+
+.builder-results-column {
+    position: static;
+    overflow: visible;
+}
+
+.builder-stats-panel .space-y-3,
+.builder-stats-panel .flex.flex-col.gap-1 {
+    gap: 0.35rem;
+}
+
+.builder-stats-panel section {
+    padding: 0.75rem;
+}

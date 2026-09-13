@@ -9,11 +9,13 @@ export const useEquipmentStats = (requestData) => {
     const [statSources, setStatSources] = useState(emptySources);
     const [calculatedRequestFingerprint, setCalculatedRequestFingerprint] = useState(null);
     const [isCalculatingStats, setIsCalculatingStats] = useState(false);
+    const [calculationNotice, setCalculationNotice] = useState(null);
     const requestFingerprint = useMemo(() => JSON.stringify(requestData), [requestData]);
     const statsAreCurrent = Boolean(stats) && calculatedRequestFingerprint === requestFingerprint;
 
     const calculateStats = useCallback(async () => {
         setIsCalculatingStats(true);
+        setCalculationNotice(null);
         try {
             const response = await calculateEquipmentStats(requestData);
             setStats(response.stats || response);
@@ -24,9 +26,15 @@ export const useEquipmentStats = (requestData) => {
             });
         } catch (error) {
             if (error.response?.data?.message) {
-                alert(`BŁĄD ZAPISU: ${error.response.data.message}`);
+                setCalculationNotice({
+                    type: "error",
+                    message: `Błąd obliczeń: ${error.response.data.message}`,
+                });
             } else {
-                alert("Błąd połączenia z serwerem obliczeniowym.");
+                setCalculationNotice({
+                    type: "error",
+                    message: "Błąd połączenia z serwerem obliczeniowym.",
+                });
             }
             console.error("Błąd podczas obliczania mocy:", error);
         } finally {
@@ -39,6 +47,7 @@ export const useEquipmentStats = (requestData) => {
         setStatSources(emptySources());
         setCalculatedRequestFingerprint(null);
     }, []);
+    const dismissCalculationNotice = useCallback(() => setCalculationNotice(null), []);
 
     const restoreStats = useCallback((nextStats, nextSources = {}, nextRequestData = null) => {
         setStats(nextStats || null);
@@ -59,6 +68,8 @@ export const useEquipmentStats = (requestData) => {
         stats: statsAreCurrent ? stats : null,
         statSources: statsAreCurrent ? statSources : emptySources(),
         isCalculatingStats,
+        calculationNotice,
+        dismissCalculationNotice,
         calculateStats,
         resetStats,
         restoreStats,

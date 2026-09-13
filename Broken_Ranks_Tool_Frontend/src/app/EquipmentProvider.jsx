@@ -30,8 +30,15 @@ export const EquipmentProvider = ({ children }) => {
     } = useEquipmentCatalog();
 
     const [requestData, setRequestData] = useState({ slots: {}, characterStats: {} });
-    const { stats, statSources, isCalculatingStats, calculateStats, restoreStats } =
-        useEquipmentStats(requestData);
+    const {
+        stats,
+        statSources,
+        isCalculatingStats,
+        calculationNotice,
+        dismissCalculationNotice,
+        calculateStats,
+        restoreStats,
+    } = useEquipmentStats(requestData);
 
     const { lockedSlots, lockedDrifs, toggleSlotLock, toggleDrifLock, replaceLocks } =
         useEquipmentLocks();
@@ -148,6 +155,8 @@ export const EquipmentProvider = ({ children }) => {
             stats,
             statSources,
             isCalculatingStats,
+            calculationNotice,
+            dismissCalculationNotice,
             optimizationTrigger,
             lockedSlots,
             lockedDrifs,
@@ -177,6 +186,8 @@ export const EquipmentProvider = ({ children }) => {
             stats,
             statSources,
             isCalculatingStats,
+            calculationNotice,
+            dismissCalculationNotice,
             optimizationTrigger,
             lockedSlots,
             lockedDrifs,

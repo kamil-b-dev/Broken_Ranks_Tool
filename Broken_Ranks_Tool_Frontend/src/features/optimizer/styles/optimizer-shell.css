@@ -1,0 +1,402 @@
+/* Optimizer redesign: protect the build, define goals, then review the result. */
+.app-shell-optimizer .main-switch button[aria-current="page"] {
+    border-bottom-color: rgba(203, 145, 62, 0.95) !important;
+    color: #e1b969 !important;
+    background:
+        linear-gradient(rgba(100, 59, 19, 0.16), rgba(3, 3, 4, 0.92)),
+        url("../../../assets/dark-forged-metal-texture.webp") center / 18rem !important;
+    box-shadow:
+        inset 0 0 18px rgba(135, 82, 28, 0.1),
+        0 1px rgba(234, 184, 96, 0.08) !important;
+}
+
+.optimizer-theme {
+    gap: 0.75rem !important;
+}
+
+.optimizer-overview {
+    min-height: 3.6rem;
+    overflow: hidden;
+}
+
+.optimizer-overview-title {
+    min-width: 13.5rem;
+    padding: 0.65rem 1rem;
+}
+
+.optimizer-overview dl {
+    min-width: 27rem;
+    grid-template-columns: repeat(3, minmax(8rem, 1fr));
+}
+
+.optimizer-overview dl > div {
+    padding: 0.65rem 1rem;
+}
+
+.optimizer-overview-locks dd {
+    display: flex;
+    align-items: baseline;
+    gap: 0.32rem;
+    white-space: nowrap;
+}
+
+.optimizer-overview-locks dd small {
+    color: #82776d;
+    font-size: 0.58rem;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.optimizer-overview-locks dd span {
+    margin-inline: 0.25rem;
+    color: #6d4a2a;
+}
+
+.optimizer-back-action {
+    display: flex;
+    min-width: 12.5rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    margin: 0.55rem;
+    padding: 0.55rem 1rem;
+    border: 1px solid rgba(145, 98, 45, 0.74);
+    color: #cba05b;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.66rem;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    background: rgba(5, 5, 5, 0.76);
+    transition:
+        border-color 150ms ease,
+        color 150ms ease,
+        background-color 150ms ease;
+}
+
+.optimizer-back-action:hover {
+    border-color: rgba(219, 159, 75, 0.92);
+    color: #edc57d;
+    background-color: rgba(47, 30, 15, 0.66);
+}
+
+.optimizer-console {
+    min-height: 0;
+    padding: 0 !important;
+    overflow: hidden;
+    border: 1px solid rgba(137, 93, 43, 0.76) !important;
+    box-shadow:
+        0 20px 46px rgba(0, 0, 0, 0.48),
+        inset 0 1px rgba(246, 201, 125, 0.035) !important;
+}
+
+.optimizer-main-grid {
+    display: grid;
+    min-height: 44rem;
+    grid-template-columns: minmax(14rem, 0.82fr) minmax(34rem, 1.82fr) minmax(21rem, 1.08fr) !important;
+    gap: 0 !important;
+}
+
+.optimizer-main-grid > * {
+    min-width: 0;
+    grid-column: auto !important;
+}
+
+.optimizer-workspace-column {
+    height: clamp(44rem, calc(100vh - 13.5rem), 58rem) !important;
+    min-height: 44rem !important;
+    max-height: 58rem !important;
+    padding: 0 !important;
+}
+
+.optimizer-column-heading {
+    display: flex;
+    min-height: 4.25rem;
+    flex: 0 0 auto;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.28rem;
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid rgba(148, 99, 43, 0.74);
+    background:
+        linear-gradient(90deg, rgba(20, 16, 13, 0.88), rgba(5, 5, 6, 0.62)),
+        url("../../../assets/panel-blackened-steel-texture.webp") center / 22rem;
+    background-blend-mode: normal, soft-light;
+}
+
+.optimizer-column-heading > div {
+    display: flex;
+    align-items: center;
+    gap: 0.48rem;
+}
+
+.optimizer-column-heading h3 {
+    color: #dfb66a;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.optimizer-column-heading p {
+    color: #776f69;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.62rem;
+    line-height: 1.35;
+}
+
+.optimizer-heading-icon {
+    color: #a36f34;
+    font-size: 0.82rem;
+}
+
+.optimizer-lock-column {
+    overflow: hidden;
+    border-right: 1px solid rgba(124, 83, 39, 0.72);
+    background:
+        linear-gradient(155deg, rgba(18, 16, 14, 0.94), rgba(3, 4, 4, 0.98) 65%),
+        url("../../../assets/database-panel-backdrop-texture.webp") center / 34rem;
+    background-blend-mode: normal, luminosity;
+}
+
+.optimizer-lock-filters {
+    display: grid;
+    flex: 0 0 auto;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0.75rem 0.75rem 0.6rem;
+    border: 1px solid rgba(122, 82, 40, 0.7);
+}
+
+.optimizer-lock-filters button {
+    padding: 0.52rem 0.4rem;
+    border-right: 1px solid rgba(94, 62, 31, 0.64);
+    color: #77716d;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.58rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: rgba(4, 4, 5, 0.76);
+}
+
+.optimizer-lock-filters button:last-child {
+    border-right: 0;
+}
+
+.optimizer-lock-filters button[aria-pressed="true"] {
+    color: #e0b66a;
+    background:
+        linear-gradient(90deg, rgba(102, 58, 20, 0.38), rgba(31, 17, 9, 0.35)),
+        url("../../../assets/brushed-bronze-texture.webp") center / 11rem;
+    background-blend-mode: normal, multiply;
+}
+
+.optimizer-lock-list {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+    gap: 0.32rem;
+    padding: 0 0.6rem 0.6rem;
+    overflow-y: auto;
+}
+
+.optimizer-lock-card {
+    flex: 0 0 auto;
+    overflow: hidden;
+    border: 1px solid rgba(88, 66, 43, 0.66);
+    background: rgba(3, 4, 4, 0.72);
+    box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.72);
+}
+
+.optimizer-lock-card:hover {
+    border-color: rgba(155, 105, 49, 0.8);
+}
+
+.optimizer-lock-card-locked {
+    border-color: rgba(184, 126, 55, 0.92);
+    box-shadow:
+        inset 2px 0 rgba(217, 161, 76, 0.72),
+        inset 0 0 16px rgba(91, 54, 18, 0.16);
+}
+
+.optimizer-lock-card-main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 2.4rem;
+    align-items: stretch;
+}
+
+.optimizer-lock-card-toggle {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: 2.35rem minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.38rem 0.45rem;
+    text-align: left;
+}
+
+.optimizer-lock-card-toggle .equipment-slot-icon,
+.optimizer-change-row .equipment-slot-icon {
+    width: 2.35rem;
+    height: 2.35rem;
+    flex: 0 0 auto;
+    border-color: rgba(126, 83, 40, 0.58);
+}
+
+.optimizer-lock-copy {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.12rem;
+}
+
+.optimizer-lock-label {
+    color: #bd914f;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.55rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.optimizer-lock-copy strong {
+    overflow: hidden;
+    color: #c6c0b8;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.68rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.optimizer-lock-card-toggle > small {
+    color: #857b8e;
+    font-size: 0.5rem;
+    text-transform: uppercase;
+}
+
+.optimizer-lock-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-left: 1px solid rgba(94, 65, 37, 0.6);
+    color: #70675e;
+    background: rgba(0, 0, 0, 0.36);
+}
+
+.optimizer-lock-card-locked .optimizer-lock-button {
+    color: #d8a959;
+    background: rgba(63, 38, 14, 0.26);
+}
+
+.optimizer-lock-drifs {
+    display: flex;
+    flex-direction: column;
+    gap: 0.24rem;
+    padding: 0.36rem 0.45rem 0.45rem 3.35rem;
+    border-top: 1px solid rgba(86, 58, 31, 0.48);
+    background: rgba(0, 0, 0, 0.34);
+}
+
+.optimizer-lock-drif {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.4rem;
+    padding: 0.22rem 0.35rem;
+    border: 1px solid rgba(84, 43, 101, 0.72);
+    color: #b895cb;
+    font-size: 0.58rem;
+    background: rgba(21, 7, 27, 0.7);
+}
+
+.optimizer-lock-drif[data-category="defensive"] {
+    border-color: rgba(44, 103, 118, 0.78);
+    color: #86c0ce;
+    background: rgba(7, 24, 29, 0.72);
+}
+
+.optimizer-lock-drif[data-category="utility"] {
+    border-color: rgba(73, 108, 35, 0.76);
+    color: #9bbe6e;
+    background: rgba(15, 28, 8, 0.72);
+}
+
+.optimizer-lock-drif > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.optimizer-lock-drif-copy {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.28rem;
+}
+
+.optimizer-lock-drif-copy > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.optimizer-lock-drif-category-icon {
+    width: 1.05rem;
+    height: 1.05rem;
+    flex: 0 0 auto;
+}
+
+.optimizer-lock-drif button {
+    flex: 0 0 auto;
+    color: #75687b;
+}
+
+.optimizer-level-lock {
+    display: inline-flex;
+    flex: 0 0 auto;
+    cursor: pointer;
+    align-items: center;
+    gap: 0.25rem;
+    color: #9c8ca4;
+    font-size: 0.52rem;
+    white-space: nowrap;
+}
+
+.optimizer-level-lock input {
+    accent-color: #9d68d2;
+}
+
+.optimizer-lock-drif-locked button {
+    color: #d5a45b;
+}
+
+.optimizer-lock-empty {
+    padding: 1rem;
+    color: #6b625b;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.65rem;
+    font-style: italic;
+    text-align: center;
+}
+
+.optimizer-lock-summary {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    padding: 0.85rem 0.6rem;
+    border-top: 1px solid rgba(128, 86, 42, 0.72);
+    color: #a67f48;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 0.61rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: rgba(2, 3, 3, 0.82);
+}
+
+.optimizer-lock-summary strong {
+    color: #e0b66a;
+}

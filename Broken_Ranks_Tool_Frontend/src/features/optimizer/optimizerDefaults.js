@@ -9,7 +9,6 @@ export const DEFAULT_OPTIMIZER_SETTINGS = {
     advisorAllowedChanges: {
         stars: true,
         items: false,
-        orbs: false,
         drifs: false,
         drifUpgrades: false,
     },

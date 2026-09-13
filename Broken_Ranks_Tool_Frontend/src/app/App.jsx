@@ -1,6 +1,6 @@
 import { useState } from "react";
 import AppHeader from "./components/AppHeader";
-import BuildFileNotice from "./components/BuildFileNotice";
+import AppNotice from "../shared/ui/AppNotice";
 import WorkspaceState from "./components/WorkspaceState";
 import BuilderWorkspace from "../features/builder/BuilderWorkspace";
 import BuildLibraryWorkspace from "../features/builds/BuildLibraryWorkspace";
@@ -45,11 +45,15 @@ function App() {
                 }
                 onLoadBuild={fileActions.loadBuild}
             />
-            <BuildFileNotice
+            <AppNotice
                 notice={buildLibrary.notice || fileActions.notice}
                 onDismiss={
                     buildLibrary.notice ? buildLibrary.dismissNotice : fileActions.dismissNotice
                 }
+            />
+            <AppNotice
+                notice={equipment.calculationNotice}
+                onDismiss={equipment.dismissCalculationNotice}
             />
             <WorkspaceState loading={equipment.loading} error={equipment.initialDataError} />
             {!unavailable && (

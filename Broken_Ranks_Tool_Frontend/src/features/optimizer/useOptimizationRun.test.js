@@ -41,4 +41,28 @@ describe("useOptimizationRun", () => {
         expect(result.current.isOptimizing).toBe(false);
         expect(result.current.lastDurationSeconds).toBe(0);
     });
+
+    it("ignores a stale response after reset and a newer run", async () => {
+        const resolvers = [];
+        const runOptimization = vi.fn(() => new Promise((resolve) => resolvers.push(resolve)));
+        const { result } = renderHook(() => useOptimizationRun(runOptimization, () => 1000));
+
+        let first;
+        act(() => {
+            first = result.current.run({ id: "first" });
+        });
+        act(() => result.current.reset());
+        let second;
+        act(() => {
+            second = result.current.run({ id: "second" });
+        });
+
+        await act(async () => resolvers[1]({ message: "new" }));
+        expect(result.current.status).toEqual({ message: "new" });
+        await act(async () => resolvers[0]({ message: "stale" }));
+        await Promise.all([first, second]);
+
+        expect(result.current.status).toEqual({ message: "new" });
+        expect(result.current.isOptimizing).toBe(false);
+    });
 });

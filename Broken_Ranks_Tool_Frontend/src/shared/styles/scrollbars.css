@@ -1,0 +1,16 @@
+.custom-scrollbar::-webkit-scrollbar {
+    width: 7px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.38);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    border: 1px solid #171313;
+    background: linear-gradient(#6b3734, #351a19);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #8a493b;
+}

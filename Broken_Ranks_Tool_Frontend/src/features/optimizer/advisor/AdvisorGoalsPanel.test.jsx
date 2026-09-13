@@ -104,7 +104,6 @@ describe("AdvisorGoalsPanel", () => {
             "Ulepszanie drifów",
             "Zakupy drifów",
             "Zakupy przedmiotów",
-            "Zmiany orbów",
         ]) {
             onChange.mockClear();
             await user.click(screen.getByRole("checkbox", { name: label }));
