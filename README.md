@@ -12,6 +12,7 @@ wersjonowany, tylko-do-odczytu katalog SQLite.
   optymalizacji i wspólnej infrastruktury HTTP.
 - `docs/reguly-ekwipunku.md` — źródło reguł domenowych obowiązujących wszystkie
   warstwy aplikacji.
+- `docs/openapi.yaml` — wersjonowany kontrakt publicznego API.
 - `Dockerfile`, `.railway/` i `DEPLOYMENT.md` — produkcyjny obraz oraz konfiguracja
   Railway.
 
@@ -59,3 +60,7 @@ kontenera po zmianie `master`.
 
 Szczegóły konfiguracji Railway, limitów zasobów i kontroli po wdrożeniu opisuje
 [`DEPLOYMENT.md`](DEPLOYMENT.md).
+
+Zasady prywatnego zgłaszania podatności opisuje [`SECURITY.md`](SECURITY.md).
+Kod jest udostępniony bez licencji na kopiowanie i modyfikację; szczegóły zawiera
+plik [`LICENSE`](LICENSE).

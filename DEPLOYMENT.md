@@ -56,11 +56,15 @@ Configure settings that are scoped to the Railway workspace and billing account 
 - compute usage hard limit: 15 USD
 - disable pull-request environments unless they are explicitly needed
 - generate one public Railway domain for the service
+- enable GitHub private vulnerability reporting under **Settings → Security**
 
 The application reads Railway's injected `PORT`. The versioned catalog database from
 `Broken_Ranks_Tool_Backend/database/catalog/broken_ranks.db` is copied to `/app/data/broken_ranks.db`
 inside every immutable image. Do not attach a volume unless the application starts persisting user
 data; at that point migrate those writes to PostgreSQL instead of relying on image-local SQLite.
+The production JDBC URL opens this catalogue in read-only mode and the image stores it with `0444`
+permissions owned by root. Treat a startup failure caused by a write attempt as a defect instead of
+making the file writable.
 
 Public calculation endpoints are protected by per-client and whole-instance, one-minute request
 limits. The production defaults allow 3 optimizer requests per client and 12 globally, and 120
@@ -75,15 +79,20 @@ streamed without a `Content-Length` header. Tune these values with
 `PUBLIC_DATA_GLOBAL_REQUESTS_PER_MINUTE`, and `ABUSE_PROTECTION_MAX_REQUEST_BYTES`. A rejected
 rate limit response uses HTTP 429 and includes `Retry-After`.
 
+The limiter is intentionally process-local. Keep the declared Railway service at one replica. Do
+not enable horizontal scaling until these counters are moved to a shared store or equivalent limits
+are enforced at the edge; otherwise every replica would grant a separate allowance.
+
 The production profile trusts forwarded client addresses only when the direct proxy address
 matches private, loopback, link-local, or carrier-grade NAT proxy ranges. Tomcat expects this
 allowlist as a Java regular expression, not CIDR notation. Keep the service reachable through
 Railway's public proxy; if the hosting topology changes, override `TRUSTED_PROXY_REGEX` with an
 exact proxy-address regular expression instead of trusting arbitrary forwarded headers.
 
-Successful public catalogue responses use `Cache-Control: public, max-age=3600`. Keep write and
-error responses uncached. Railway Edge Rules may use a longer cache TTL for these immutable GET
-endpoints if traffic grows.
+Successful public catalogue responses use `Cache-Control: public, max-age=3600`. Vite's
+content-hashed files under `/assets/` use a one-year public immutable cache, while HTML, write and
+error responses remain uncached. Railway Edge Rules may use a longer cache TTL for immutable GET
+API endpoints if traffic grows.
 
 ## Production checks
 
@@ -96,7 +105,8 @@ GET /api/initial-data
 ```
 
 Every response contains `X-Request-ID`. Error responses repeat that value as `requestId`, which can
-be used to find the corresponding Railway log entry.
+be used to find the corresponding Railway log entry. Production console logs use structured
+Logstash JSON; MDC fields place the same `requestId` in a searchable top-level field.
 
 Spring Security keeps actuator metrics private on the public service. Inspect optimizer metrics
 from an authenticated Railway shell or export them to a dedicated monitoring backend before they
