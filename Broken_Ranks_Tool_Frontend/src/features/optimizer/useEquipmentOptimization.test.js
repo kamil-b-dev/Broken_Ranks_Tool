@@ -211,4 +211,38 @@ describe("useEquipmentOptimization", () => {
             expect((await pending).advisorReport.cancelled).toBe(true);
         });
     });
+
+    it("keeps cancellation attached to the newest overlapping advisor run", async () => {
+        const finishes = [];
+        optimizeEquipmentDrifs.mockImplementation(
+            () => new Promise((resolve) => finishes.push(resolve))
+        );
+        const { result } = renderOptimization({ helmet: { itemId: 7 } });
+        let first;
+        let second;
+
+        act(() => {
+            first = result.current.runDrifOptimization({
+                mode: "ADVISOR",
+                advisor: { goal: "TEST" },
+            });
+            second = result.current.runDrifOptimization({
+                mode: "ADVISOR",
+                advisor: { goal: "TEST" },
+            });
+        });
+        const newestRunId = optimizeEquipmentDrifs.mock.calls[1][0].advisor.runId;
+
+        await act(async () => {
+            finishes[0]({ summary: { success: true } });
+            await first;
+        });
+        await act(async () => result.current.cancelDrifOptimization());
+        expect(cancelAdvisorOptimization).toHaveBeenCalledWith(newestRunId);
+
+        await act(async () => {
+            finishes[1]({ summary: { success: true } });
+            await second;
+        });
+    });
 });

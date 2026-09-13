@@ -132,7 +132,6 @@ const AdvisorGoalsPanel = ({ stats = {}, gameRules = {}, settings, onChange }) =
                         ["drifUpgrades", "Ulepszanie drifów"],
                         ["drifs", "Zakupy drifów"],
                         ["items", "Zakupy przedmiotów"],
-                        ["orbs", "Zmiany orbów"],
                     ].map(([key, label]) => (
                         <label key={key}>
                             <input

@@ -1,25 +1,18 @@
-import React, { useEffect, useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useEquipment } from "../../shared/state/EquipmentContext";
+import AppNotice from "../../shared/ui/AppNotice";
 import { calculateCurrentModDetails } from "./optimizerDomain";
 import { buildOptimizationConfig, findInvalidPercentageTarget } from "./optimizerConfiguration";
-import OptimizerBonusColumn from "./OptimizerBonusColumn";
 import OptimizerMobileNavigation from "./OptimizerMobileNavigation";
-import OptimizerRunAction from "./OptimizerRunAction";
-import OptimizerSettingsPanel, { OptimizerModeNavigation } from "./OptimizerSettingsPanel";
+import { OptimizerModeNavigation } from "./OptimizerSettingsPanel";
 import OptimizerLocksColumn from "./OptimizerLocksColumn";
-import OptimizerPriorityToolbar from "./OptimizerPriorityToolbar";
-import OptimizerPriorityList from "./OptimizerPriorityList";
-import OptimizerStatusSection from "./OptimizerStatusSection";
-import OptimizerItemsByBonusSection from "./OptimizerItemsByBonusSection";
-import OptimizerGoalsSection from "./OptimizerGoalsSection";
-import OptimizerVariantsSection from "./OptimizerVariantsSection";
-import OptimizerChangesSection from "./OptimizerChangesSection";
+import OptimizerGoalsColumn from "./OptimizerGoalsColumn";
+import OptimizerReportColumn from "./OptimizerReportColumn";
 import { useOptimizerPriorities } from "./useOptimizerPriorities";
 import { useOptimizationRun } from "./useOptimizationRun";
 import { useOptimizerConfigFiles } from "./useOptimizerConfigFiles";
 import { createRecommendationChanges } from "./advisor/optimizerRecommendation";
 import { buildAdvisorConfiguration } from "./advisor/advisorConfiguration";
-import AdvisorGoalsPanel from "./advisor/AdvisorGoalsPanel";
 import { advisorBuildSignature } from "./advisor/advisorBuildSignature";
 
 /**
@@ -72,6 +65,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
         run: runOptimization,
     } = useOptimizationRun(runDrifOptimization);
     const [activeMobileColumn, setActiveMobileColumn] = useState("priorities");
+    const [notice, setNotice] = useState(null);
     useEffect(() => resetOptimization(), [optimizerSettings.mode, resetOptimization]);
     useEffect(() => {
         if (optimizerSettings.mode === "ADVISOR" && !stats && calculateStats) calculateStats();
@@ -82,6 +76,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
         gameRules,
         replaceConfiguration,
         onSettingsChange: onOptimizerSettingsChange,
+        onNotice: setNotice,
     });
     const currentModDetails = useMemo(
         () =>
@@ -129,14 +124,17 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                     )
                 );
             } catch (error) {
-                alert(error.message);
+                setNotice({ type: "error", message: error.message });
             }
             return;
         }
         if (optimizerSettings.mode !== "ADVISOR" && prioritizedBonuses.length === 0) return;
         const invalidPercentageTarget = findInvalidPercentageTarget(prioritizedBonuses);
         if (invalidPercentageTarget) {
-            alert(`Podaj poprawny, nieujemny procent dla: ${invalidPercentageTarget.value}.`);
+            setNotice({
+                type: "error",
+                message: `Podaj poprawny, nieujemny procent dla: ${invalidPercentageTarget.value}.`,
+            });
             return;
         }
         const configuration = buildOptimizationConfig(prioritizedBonuses, optimizerSettings);
@@ -160,7 +158,10 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                         (v) => advisorBuildSignature(v.setup?.slots) === current
                     ))
             ) {
-                alert("Build zmienił się od analizy. Uruchom Doradcę ponownie.");
+                setNotice({
+                    type: "error",
+                    message: "Build zmienił się od analizy. Uruchom Doradcę ponownie.",
+                });
                 return;
             }
         }
@@ -173,6 +174,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                 settings={optimizerSettings}
                 onChange={onOptimizerSettingsChange}
             />
+            <AppNotice notice={notice} onDismiss={() => setNotice(null)} />
             <OptimizerMobileNavigation
                 activeColumn={activeMobileColumn}
                 priorityCount={prioritizedBonuses.length}
@@ -192,149 +194,67 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                     mode={optimizerSettings.mode}
                 />
 
-                <section
-                    className={`optimizer-workspace-column optimizer-goals-column ${["bonuses", "priorities"].includes(activeMobileColumn) ? "flex" : "hidden"} flex-col lg:flex`}
-                    aria-labelledby="optimizer-goals-heading"
-                >
-                    <header className="optimizer-column-heading optimizer-goals-heading">
-                        <div>
-                            <span className="optimizer-heading-icon" aria-hidden="true">
-                                ◉
-                            </span>
-                            <h3 id="optimizer-goals-heading">Cele optymalizacji</h3>
-                        </div>
-                        <p>Wybierz bonusy, ustaw kolejność oraz wymagane limity.</p>
-                    </header>
-                    {optimizerSettings.mode === "ADVISOR" ? (
-                        <AdvisorGoalsPanel
-                            stats={stats || {}}
-                            gameRules={gameRules}
-                            settings={optimizerSettings}
-                            onChange={onOptimizerSettingsChange}
-                        />
-                    ) : (
-                        <div className="optimizer-goals-workspace">
-                            <OptimizerBonusColumn
-                                active={activeMobileColumn === "bonuses"}
-                                bonuses={availableBonuses}
-                                searchQuery={searchQuery}
-                                selectedCategory={selectedCategory}
-                                categoryLabels={drifCategories}
-                                onSearchChange={setSearchQuery}
-                                onCategoryChange={setSelectedCategory}
-                                onSelect={(bonus) => {
-                                    selectBonus(bonus);
-                                    setActiveMobileColumn("priorities");
-                                }}
-                            />
-
-                            <div
-                                className={`optimizer-priority-column ${activeMobileColumn === "priorities" ? "flex" : "hidden"} min-h-0 flex-col lg:flex`}
-                            >
-                                <OptimizerPriorityToolbar
-                                    fileInputRef={configFiles.inputRef}
-                                    priorityCount={prioritizedBonuses.length}
-                                    sortDirection={prioritySortDirection}
-                                    anyExpanded={expandedPriorities.size > 0}
-                                    onLoad={configFiles.load}
-                                    onSave={configFiles.save}
-                                    onSort={sortByPriority}
-                                    onToggleExpanded={toggleAllExpanded}
-                                    onClear={clearAll}
-                                />
-
-                                <OptimizerPriorityList
-                                    priorities={prioritizedBonuses}
-                                    expandedPriorities={expandedPriorities}
-                                    currentDetails={currentModDetails}
-                                    maxCaps={gameRules?.drifMaxCaps}
-                                    onToggle={toggleExpanded}
-                                    onRemove={removeBonus}
-                                    onUpdate={updateBonus}
-                                />
-                            </div>
-                        </div>
-                    )}
-                    <OptimizerSettingsPanel
-                        settings={optimizerSettings}
-                        onChange={onOptimizerSettingsChange}
-                    />
-                    <OptimizerRunAction
-                        priorityCount={
-                            optimizerSettings.mode === "ADVISOR" ? 1 : prioritizedBonuses.length
+                <OptimizerGoalsColumn
+                    activeMobileColumn={activeMobileColumn}
+                    settings={optimizerSettings}
+                    onSettingsChange={onOptimizerSettingsChange}
+                    stats={stats}
+                    gameRules={gameRules}
+                    priorities={prioritizedBonuses}
+                    availableBonuses={availableBonuses}
+                    searchQuery={searchQuery}
+                    selectedCategory={selectedCategory}
+                    categoryLabels={drifCategories}
+                    onSearchChange={setSearchQuery}
+                    onCategoryChange={setSelectedCategory}
+                    onSelectBonus={(bonus) => {
+                        selectBonus(bonus);
+                        setActiveMobileColumn("priorities");
+                    }}
+                    sortDirection={prioritySortDirection}
+                    expandedPriorities={expandedPriorities}
+                    currentDetails={currentModDetails}
+                    onTogglePriority={toggleExpanded}
+                    onRemovePriority={removeBonus}
+                    onUpdatePriority={updateBonus}
+                    configFiles={configFiles}
+                    onSort={sortByPriority}
+                    onToggleExpanded={toggleAllExpanded}
+                    onClear={clearAll}
+                    isOptimizing={isOptimizing}
+                    elapsedSeconds={optimizationElapsedSeconds}
+                    lastDurationSeconds={lastOptimizationDurationSeconds}
+                    hasResult={Boolean(optimizationStatus)}
+                    onRun={handleOptimizeClick}
+                    onCancel={async () => {
+                        try {
+                            await cancelDrifOptimization?.();
+                        } catch {
+                            setNotice({
+                                type: "error",
+                                message:
+                                    "Nie udało się zatrzymać analizy. Zakończy się po upływie limitu czasu.",
+                            });
                         }
-                        isOptimizing={isOptimizing}
-                        elapsedSeconds={optimizationElapsedSeconds}
-                        lastDurationSeconds={lastOptimizationDurationSeconds}
-                        hasResult={Boolean(optimizationStatus)}
-                        onRun={handleOptimizeClick}
-                        onCancel={async () => {
-                            try {
-                                await cancelDrifOptimization?.();
-                            } catch {
-                                alert(
-                                    "Nie udało się zatrzymać analizy. Zakończy się po upływie limitu czasu."
-                                );
-                            }
-                        }}
-                        mode={optimizerSettings.mode}
-                    />
-                </section>
-
-                <aside
-                    className={`optimizer-workspace-column optimizer-info-column ${activeMobileColumn === "result" ? "flex" : "hidden"} flex-col lg:flex`}
-                >
-                    <header className="optimizer-column-heading optimizer-report-heading">
-                        <div>
-                            <span className="optimizer-heading-icon" aria-hidden="true">
-                                ▤
-                            </span>
-                            <h3>
-                                {optimizerSettings.mode === "ADVISOR"
-                                    ? "Rekomendacje doradcy"
-                                    : "Raport optymalizacji"}
-                            </h3>
-                        </div>
-                    </header>
-
-                    <div className="optimizer-report-scroll custom-scrollbar">
-                        <OptimizerStatusSection
-                            isOptimizing={isOptimizing}
-                            elapsedSeconds={optimizationElapsedSeconds}
-                            status={optimizationStatus}
-                            lastDurationSeconds={lastOptimizationDurationSeconds}
-                        />
-
-                        <OptimizerGoalsSection
-                            goals={optimizationStatus?.goalResults}
-                            currentDetails={currentModDetails}
-                            activeVariant={displayedVariant}
-                            maxCaps={gameRules?.drifMaxCaps}
-                        />
-
-                        <OptimizerVariantsSection
-                            variants={optimizationStatus?.nextVariants}
-                            activeIndex={activeVariantIndex}
-                            onSelect={(_variant, variantIndex) =>
-                                setActiveVariantIndex(variantIndex)
-                            }
-                            onApply={handleApplyVariant}
-                            advisory={optimizerSettings.mode === "ADVISOR"}
-                        />
-                        <OptimizerChangesSection
-                            variant={displayedVariant}
-                            maxCaps={gameRules?.drifMaxCaps}
-                            translations={gameRules?.bonusTranslations}
-                            advisory={optimizerSettings.mode === "ADVISOR"}
-                        />
-                        <details className="optimizer-full-report">
-                            <summary>Pokaż pełny raport</summary>
-                            <OptimizerItemsByBonusSection
-                                itemsByBonus={optimizationStatus?.itemsByDrifBonus}
-                            />
-                        </details>
-                    </div>
-                </aside>
+                    }}
+                />
+                <OptimizerReportColumn
+                    active={activeMobileColumn === "result"}
+                    advisory={optimizerSettings.mode === "ADVISOR"}
+                    isOptimizing={isOptimizing}
+                    elapsedSeconds={optimizationElapsedSeconds}
+                    status={optimizationStatus}
+                    lastDurationSeconds={lastOptimizationDurationSeconds}
+                    currentDetails={currentModDetails}
+                    displayedVariant={displayedVariant}
+                    maxCaps={gameRules?.drifMaxCaps}
+                    translations={gameRules?.bonusTranslations}
+                    activeVariantIndex={activeVariantIndex}
+                    onSelectVariant={(_variant, variantIndex) =>
+                        setActiveVariantIndex(variantIndex)
+                    }
+                    onApplyVariant={handleApplyVariant}
+                />
             </div>
         </div>
     );

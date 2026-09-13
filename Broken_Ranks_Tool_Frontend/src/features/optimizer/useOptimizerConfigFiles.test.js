@@ -33,10 +33,7 @@ const validPayload = {
 };
 
 describe("useOptimizerConfigFiles", () => {
-    beforeEach(() => {
-        vi.clearAllMocks();
-        vi.stubGlobal("alert", vi.fn());
-    });
+    beforeEach(() => vi.clearAllMocks());
 
     afterEach(() => vi.unstubAllGlobals());
 
@@ -67,6 +64,7 @@ describe("useOptimizerConfigFiles", () => {
         readOptimizerConfigurationFile.mockResolvedValue(validPayload);
         const replaceConfiguration = vi.fn();
         const onSettingsChange = vi.fn();
+        const onNotice = vi.fn();
         const { result } = renderHook(() =>
             useOptimizerConfigFiles({
                 priorities: [],
@@ -74,6 +72,7 @@ describe("useOptimizerConfigFiles", () => {
                 gameRules,
                 replaceConfiguration,
                 onSettingsChange,
+                onNotice,
             })
         );
         const input = { files: [{ name: "config.json" }], value: "selected" };
@@ -97,10 +96,14 @@ describe("useOptimizerConfigFiles", () => {
             advisorProtectedModifiers: { CRITICAL_CHANCE: true },
             advisorAllowedChanges: expect.objectContaining({ items: true, drifs: false }),
         });
-        expect(alert).toHaveBeenCalledWith("Wczytano konfigurację: 1 priorytetów.");
+        expect(onNotice).toHaveBeenCalledWith({
+            type: "success",
+            message: "Wczytano konfigurację: 1 priorytetów.",
+        });
     });
 
     it("ignores an empty file input and reports specific and generic failures", async () => {
+        const onNotice = vi.fn();
         const { result } = renderHook(() =>
             useOptimizerConfigFiles({
                 priorities: [],
@@ -108,6 +111,7 @@ describe("useOptimizerConfigFiles", () => {
                 gameRules,
                 replaceConfiguration: vi.fn(),
                 onSettingsChange: vi.fn(),
+                onNotice,
             })
         );
 
@@ -118,12 +122,16 @@ describe("useOptimizerConfigFiles", () => {
             new Error("Plik konfiguracji jest zbyt duży.")
         );
         await act(() => result.current.load({ target: { files: [{}], value: "selected" } }));
-        expect(alert).toHaveBeenLastCalledWith("Plik konfiguracji jest zbyt duży.");
+        expect(onNotice).toHaveBeenLastCalledWith({
+            type: "error",
+            message: "Plik konfiguracji jest zbyt duży.",
+        });
 
         readOptimizerConfigurationFile.mockRejectedValueOnce({});
         await act(() => result.current.load({ target: { files: [{}], value: "selected" } }));
-        expect(alert).toHaveBeenLastCalledWith(
-            "Nie udało się wczytać konfiguracji: niepoprawny plik JSON."
-        );
+        expect(onNotice).toHaveBeenLastCalledWith({
+            type: "error",
+            message: "Nie udało się wczytać konfiguracji: niepoprawny plik JSON.",
+        });
     });
 });

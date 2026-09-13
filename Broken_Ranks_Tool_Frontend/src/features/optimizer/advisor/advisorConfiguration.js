@@ -1,7 +1,6 @@
 export const DEFAULT_ADVISOR_CHANGES = {
     stars: true,
     items: false,
-    orbs: false,
     drifs: false,
     drifUpgrades: false,
 };

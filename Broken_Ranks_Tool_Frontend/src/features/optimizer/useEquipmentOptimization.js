@@ -41,6 +41,7 @@ export const useEquipmentOptimization = ({ slots, setRequestData, lockedSlots, l
                 };
             }
             const advisory = configuration.mode === "ADVISOR";
+            let advisorRunId = null;
             const request = createEquipmentOptimizationRequest({
                 slots,
                 configuration,
@@ -48,9 +49,9 @@ export const useEquipmentOptimization = ({ slots, setRequestData, lockedSlots, l
                 lockedDrifs,
             });
             if (advisory && request.advisor) {
-                const runId = crypto.randomUUID();
-                request.advisor = { ...request.advisor, runId };
-                activeAdvisor.current = runId;
+                advisorRunId = crypto.randomUUID();
+                request.advisor = { ...request.advisor, runId: advisorRunId };
+                activeAdvisor.current = advisorRunId;
             }
             try {
                 const { optimizedSetup, summary, advisorReport } =
@@ -95,7 +96,7 @@ export const useEquipmentOptimization = ({ slots, setRequestData, lockedSlots, l
                 console.error("Błąd optymalizacji drifów:", error);
                 return { success: false, message: failureMessage(error), applied: false };
             } finally {
-                activeAdvisor.current = null;
+                if (activeAdvisor.current === advisorRunId) activeAdvisor.current = null;
             }
         },
         [slots, lockedSlots, lockedDrifs, applyOptimizationSetup]

@@ -12,7 +12,7 @@
         "format:check": "prettier --check .",
         "lint": "eslint .",
         "test": "vitest run",
-        "test:coverage": "vitest run --coverage",
+        "test:coverage": "vitest run --coverage && node scripts/check-coverage-floor.mjs",
         "test:e2e": "playwright test",
         "preview": "vite preview",
         "docs": "jsdoc -c jsdoc.json"
@@ -23,6 +23,7 @@
         "react-dom": "^19.2.0"
     },
     "devDependencies": {
+        "@axe-core/playwright": "^4.13.0",
         "@eslint/js": "^9.39.1",
         "@playwright/test": "^1.62.1",
         "@testing-library/jest-dom": "^7.0.1",

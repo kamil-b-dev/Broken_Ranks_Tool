@@ -30,7 +30,6 @@ describe("useEquipmentStats", () => {
 
     it("reports backend errors and can reset a previous result", async () => {
         vi.spyOn(console, "error").mockImplementation(() => {});
-        const alert = vi.spyOn(window, "alert").mockImplementation(() => {});
         calculateEquipmentStats
             .mockResolvedValueOnce({ hp: 100 })
             .mockRejectedValueOnce({ response: { data: { message: "Niepoprawny build" } } });
@@ -40,7 +39,12 @@ describe("useEquipmentStats", () => {
         expect(result.current.stats).toBeNull();
 
         await act(async () => result.current.calculateStats());
-        expect(alert).toHaveBeenCalledWith("BŁĄD ZAPISU: Niepoprawny build");
+        expect(result.current.calculationNotice).toEqual({
+            type: "error",
+            message: "Błąd obliczeń: Niepoprawny build",
+        });
+        act(() => result.current.dismissCalculationNotice());
+        expect(result.current.calculationNotice).toBeNull();
         expect(result.current.isCalculatingStats).toBe(false);
     });
 

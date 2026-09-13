@@ -13,7 +13,11 @@ const CompactCharacterPanel = ({ development }) => (
                 aria-label="Poziom postaci"
             />
         </div>
-        <div className="character-stat-strip custom-scrollbar">
+        <div
+            className="character-stat-strip custom-scrollbar"
+            tabIndex={0}
+            aria-label="Statystyki postaci"
+        >
             {Object.keys(STAT_CONFIG).map((name) => (
                 <div className="character-stat-control" key={name}>
                     <span className="character-stat-icon" aria-hidden="true" />

@@ -289,7 +289,6 @@ describe("EquipmentProvider", () => {
 
     it("returns backend optimization errors and reports calculator failures", async () => {
         vi.spyOn(console, "error").mockImplementation(() => {});
-        vi.spyOn(window, "alert").mockImplementation(() => {});
         server.use(
             http.get("*/api/initial-data", () =>
                 HttpResponse.json({
@@ -339,7 +338,12 @@ describe("EquipmentProvider", () => {
             message: "Nie znaleziono dopuszczalnego układu.",
             applied: false,
         });
-        expect(window.alert).toHaveBeenCalledWith("BŁĄD ZAPISU: Niepoprawny ekwipunek.");
+        expect(exposeRef.current.calculationNotice).toEqual({
+            type: "error",
+            message: "Błąd obliczeń: Niepoprawny ekwipunek.",
+        });
+        act(() => exposeRef.current.dismissCalculationNotice());
+        expect(exposeRef.current.calculationNotice).toBeNull();
         expect(exposeRef.current.isCalculatingStats).toBe(false);
     });
 });

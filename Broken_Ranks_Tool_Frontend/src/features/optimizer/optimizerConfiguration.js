@@ -142,7 +142,6 @@ export const parseOptimizerConfigPayload = (payload, gameRules = {}) => {
                 ? {
                       stars: payload.settings.advisorAllowedChanges.stars !== false,
                       items: payload.settings.advisorAllowedChanges.items !== false,
-                      orbs: payload.settings.advisorAllowedChanges.orbs !== false,
                       drifs: payload.settings.advisorAllowedChanges.drifs === true,
                       drifUpgrades: payload.settings.advisorAllowedChanges.drifUpgrades === true,
                   }

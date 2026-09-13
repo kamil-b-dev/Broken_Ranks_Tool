@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { buildStatColumns } from "./statsPanelDomain";
 import StatSummaryColumn from "./StatSummaryColumn";
+import TabList from "../../../shared/ui/TabList";
 import crest from "../../../assets/broken-ranks-crest.webp";
 
 /** Displays calculated statistics grouped by their purpose and source. */
@@ -53,25 +54,25 @@ const StatsPanel = ({
                 </div>
             ) : (
                 <>
-                    <div className="stats-result-tabs" role="tablist" aria-label="Zakres wyniku">
-                        {[
-                            ["all", "Wszystko"],
-                            ["stats", "Statystyki"],
-                            ["orbs", "Orby"],
-                            ["drifs", "Drify"],
-                        ].map(([value, label]) => (
-                            <button
-                                key={value}
-                                type="button"
-                                role="tab"
-                                aria-selected={activeResultView === value}
-                                onClick={() => setActiveResultView(value)}
-                            >
-                                {label}
-                            </button>
-                        ))}
-                    </div>
+                    <TabList
+                        className="stats-result-tabs"
+                        label="Zakres wyniku"
+                        idPrefix="stats-result"
+                        panelId="stats-result-panel"
+                        active={activeResultView}
+                        onChange={setActiveResultView}
+                        tabs={[
+                            { value: "all", label: "Wszystko" },
+                            { value: "stats", label: "Statystyki" },
+                            { value: "orbs", label: "Orby" },
+                            { value: "drifs", label: "Drify" },
+                        ]}
+                    />
                     <div
+                        id="stats-result-panel"
+                        role="tabpanel"
+                        aria-labelledby={`stats-result-tab-${activeResultView}`}
+                        tabIndex={0}
                         className={`stats-result-content grid grid-cols-1 gap-5 ${compact || activeResultView !== "all" ? "" : "lg:grid-cols-3"}`}
                     >
                         {visibleColumns.map((column) => (
