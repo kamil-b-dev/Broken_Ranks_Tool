@@ -4,6 +4,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import OptimizerPanel from "./OptimizerPanel";
 import { useEquipment } from "../../shared/state/EquipmentContext";
 import { advisorBuildSignature } from "./advisor/advisorBuildSignature";
+import { writeOptimizerDraft } from "../../app/storage/workingDraftStorage";
+import { createOptimizerConfigPayload } from "./optimizerConfiguration";
 vi.mock("../../api/equipmentApi", () => ({
     calculateEquipmentStats: vi
         .fn()
@@ -78,9 +80,49 @@ const renderPanel = (onOptimizerSettingsChange = vi.fn()) =>
 
 describe("OptimizerPanel", () => {
     beforeEach(() => {
+        localStorage.clear();
         vi.clearAllMocks();
         equipment.runDrifOptimization.mockResolvedValue(optimizationResult);
         useEquipment.mockReturnValue(equipment);
+    });
+
+    it("restores priorities and optimizer settings from the browser draft", async () => {
+        writeOptimizerDraft(
+            createOptimizerConfigPayload(
+                [
+                    {
+                        key: "CRITICAL_CHANCE",
+                        weight: 22,
+                        min: 2,
+                        max: 6,
+                        forceCap: false,
+                        forcePercentage: false,
+                        forcedPercentage: "",
+                        maximize: true,
+                    },
+                ],
+                {
+                    mode: "BUILD_FROM_SCRATCH",
+                    forceMaximizationByDrifBonus: false,
+                    generateVariants: false,
+                    maxVariantLossPercent: 8,
+                }
+            )
+        );
+        const onSettingsChange = vi.fn();
+
+        renderPanel(onSettingsChange);
+
+        await waitFor(() =>
+            expect(screen.getByRole("button", { name: /Uruchom optymalizację/i })).toBeEnabled()
+        );
+        expect(screen.getByText("Szansa na krytyk")).toBeInTheDocument();
+        const restoreSettings = onSettingsChange.mock.calls[0][0];
+        expect(restoreSettings(settings)).toMatchObject({
+            forceMaximizationByDrifBonus: false,
+            generateVariants: false,
+            maxVariantLossPercent: 8,
+        });
     });
 
     it("builds a normalized optimization request from the selected priority", async () => {
