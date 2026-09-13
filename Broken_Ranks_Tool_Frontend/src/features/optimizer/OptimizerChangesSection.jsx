@@ -93,11 +93,7 @@ const OptimizerChangesSection = ({
                     </div>
                 )}
             </>
-        ) : (
-            <p className="optimizer-report-empty">
-                Wybierz wariant alternatywny, aby zobaczyć różnice względem wyniku głównego.
-            </p>
-        )}
+        ) : null}
     </section>
 );
 

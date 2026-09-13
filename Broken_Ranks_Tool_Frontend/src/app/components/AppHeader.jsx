@@ -16,12 +16,7 @@ const AppHeader = ({
             <div className="brand-crest" aria-hidden="true">
                 <img src={crest} alt="" />
             </div>
-            <div>
-                <h1>Broken Ranks Tool</h1>
-                <p className="brand-subtitle">
-                    Zbuduj ekwipunek, ustaw drify i sprawdź gotową konfigurację.
-                </p>
-            </div>
+            <h1>Broken Ranks Tool</h1>
         </div>
         <nav className="main-switch" aria-label="Główne widoki aplikacji">
             <button

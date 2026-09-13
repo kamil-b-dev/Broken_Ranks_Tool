@@ -58,8 +58,9 @@ describe("OptimizerChangesSection", () => {
         expect(screen.getByText(/Zużycie many/)).toHaveClass("is-positive");
     });
 
-    it("shows a prompt when no alternative is selected", () => {
-        render(<OptimizerChangesSection variant={null} />);
-        expect(screen.getByText(/Wybierz wariant alternatywny/)).toBeInTheDocument();
+    it("does not add placeholder copy when no alternative is selected", () => {
+        const { container } = render(<OptimizerChangesSection variant={null} />);
+
+        expect(container.querySelector(".optimizer-change-list")).not.toBeInTheDocument();
     });
 });

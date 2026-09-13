@@ -48,7 +48,6 @@ const OptimizerGoalsColumn = ({
                 </span>
                 <h3 id="optimizer-goals-heading">Cele optymalizacji</h3>
             </div>
-            <p>Wybierz bonusy, ustaw kolejność oraz wymagane limity.</p>
         </header>
         {settings.mode === "ADVISOR" ? (
             <AdvisorGoalsPanel

@@ -1,10 +1,11 @@
 import { act, render, screen, waitFor } from "@testing-library/react";
 import { HttpResponse, http } from "msw";
 import { useEffect } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { EquipmentProvider } from "./EquipmentProvider";
 import { useEquipment } from "../shared/state/EquipmentContext";
 import { server } from "../test/server";
+import { readEquipmentDraft, writeEquipmentDraft } from "./storage/workingDraftStorage";
 
 const ContextProbe = () => {
     const { data, gameRules, loading, initialDataError } = useEquipment();
@@ -23,6 +24,39 @@ const ActionProbe = ({ exposeRef }) => {
 };
 
 describe("EquipmentProvider", () => {
+    beforeEach(() => localStorage.clear());
+
+    it("restores the equipment workspace and keeps later changes in browser storage", async () => {
+        writeEquipmentDraft({
+            requestData: {
+                slots: { helmet: { itemId: 7, itemStars: 4 } },
+                characterStats: { strength: 120 },
+            },
+            characterConfig: { level: 140 },
+            lockedSlots: ["helmet"],
+            lockedDrifs: { helmet: [0] },
+        });
+        const exposeRef = { current: null };
+
+        render(
+            <EquipmentProvider>
+                <ActionProbe exposeRef={exposeRef} />
+            </EquipmentProvider>
+        );
+        await waitFor(() => expect(exposeRef.current.loading).toBe(false));
+
+        expect(exposeRef.current.requestData).toEqual({
+            slots: { helmet: { itemId: 7, itemStars: 4 } },
+            characterStats: { strength: 120 },
+        });
+        expect(exposeRef.current.characterConfig).toEqual({ level: 140 });
+        expect(exposeRef.current.lockedSlots).toEqual(["helmet"]);
+        expect(exposeRef.current.lockedDrifs).toEqual({ helmet: [0] });
+
+        act(() => exposeRef.current.toggleSlotLock("helmet"));
+        await waitFor(() => expect(readEquipmentDraft().lockedSlots).toEqual([]));
+    });
+
     it("loads initial game data from the backend", async () => {
         server.use(
             http.get("*/api/initial-data", () =>

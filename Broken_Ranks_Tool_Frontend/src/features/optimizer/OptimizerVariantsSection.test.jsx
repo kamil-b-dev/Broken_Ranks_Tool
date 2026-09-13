@@ -31,12 +31,10 @@ const variants = [
 ];
 
 describe("OptimizerVariantsSection", () => {
-    it("shows the empty report state", () => {
-        render(<OptimizerVariantsSection />);
+    it("does not add placeholder copy when variants are unavailable", () => {
+        const { container } = render(<OptimizerVariantsSection />);
 
-        expect(
-            screen.getByText("Brak ocenionych wariantów poprawiających maksymalizowany mod.")
-        ).toBeInTheDocument();
+        expect(container.querySelector(".optimizer-variant-list")).not.toBeInTheDocument();
     });
 
     it("presents variant changes and delegates selection", async () => {

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import CategoryIcon from "../../../shared/ui/CategoryIcon";
 import { DRIF_SIZE_LABELS } from "../../../shared/domain/equipment/drifCategories";
 
@@ -29,6 +30,8 @@ const getConfiguredDrifs = (slotData, drifs, bonusTranslations) =>
  * @param {object|null} props.item Selected item template.
  * @param {boolean} props.active Whether this slot is currently edited.
  * @param {Function} props.onSelect Selects this slot for editing.
+ * @param {Array<string|number>} props.acceptedItemIds Items accepted by this slot.
+ * @param {Function} props.onItemDrop Applies a compatible dropped item.
  * @returns {JSX.Element} Equipment slot summary button.
  */
 const EquipmentSlotOverview = ({
@@ -42,16 +45,40 @@ const EquipmentSlotOverview = ({
     className = "",
     active,
     onSelect,
+    acceptedItemIds = [],
+    onItemDrop,
 }) => {
+    const [dropTarget, setDropTarget] = useState(false);
     const stars = item ? Math.max(1, Math.min(9, Number(slotData?.itemStars) || 1)) : 0;
     const configuredDrifs = getConfiguredDrifs(slotData, drifs, bonusTranslations);
+    const handleDragOver = (event) => {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "copy";
+        setDropTarget(true);
+    };
+    const handleDrop = (event) => {
+        event.preventDefault();
+        setDropTarget(false);
+        try {
+            const droppedItem = JSON.parse(event.dataTransfer.getData("application/json"));
+            const accepted = acceptedItemIds.some((id) => String(id) === String(droppedItem.id));
+            if (droppedItem.dragType !== "items" || !accepted) return;
+            onSelect?.();
+            onItemDrop?.(droppedItem);
+        } catch {
+            // Ignore malformed or unrelated drag payloads.
+        }
+    };
 
     return (
         <button
             type="button"
             onClick={onSelect}
+            onDragOver={handleDragOver}
+            onDragLeave={() => setDropTarget(false)}
+            onDrop={handleDrop}
             aria-pressed={active}
-            className={`equipment-slot-overview equipment-slot-overview-${variant} ${className} ${active ? "equipment-slot-overview-active" : ""}`}
+            className={`equipment-slot-overview equipment-slot-overview-${variant} ${className} ${active ? "equipment-slot-overview-active" : ""} ${dropTarget ? "equipment-slot-overview-drop-target" : ""}`}
         >
             <span
                 className={`equipment-slot-icon${slotKey ? ` equipment-slot-icon-${slotKey}` : ""}`}

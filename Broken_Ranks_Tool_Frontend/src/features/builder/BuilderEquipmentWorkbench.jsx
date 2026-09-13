@@ -1,14 +1,13 @@
 import { SLOTS } from "../../shared/domain/equipment/equipmentSlots";
 import EquipmentSlotOverview from "./equipment/EquipmentSlotOverview";
-import GearSlot from "./gear-slot/GearSlot";
 
 const BuilderEquipmentWorkbench = ({
     model,
     data,
     requestData,
     gameRules,
-    optimizationTrigger,
-    onSlotUpdate,
+    onOverviewItemDrop,
+    children,
 }) => {
     return (
         <section className="workbench builder-equipment-column flex flex-col p-5 md:p-6">
@@ -51,42 +50,17 @@ const BuilderEquipmentWorkbench = ({
                                 bonusTranslations={gameRules.bonusTranslations}
                                 active={active}
                                 onSelect={() => model.selectSlot(slot)}
+                                acceptedItemIds={(model.itemsBySlot[slot.key] || []).map(
+                                    (candidate) => candidate.id
+                                )}
+                                onItemDrop={(item) => onOverviewItemDrop(slot, item)}
                                 className={`equipment-ring-slot-${slot.key}${equipped ? " equipment-ring-slot-equipped" : ""}`}
                             />
                         );
                     })}
                 </div>
             </div>
-            <section className="selected-slot-editor" aria-label="Edytor wybranego slotu">
-                <div className="selected-slot-editor-heading">
-                    <div>
-                        <p className="section-kicker">Edytowany slot</p>
-                        <h3>{model.activeSlot.label}</h3>
-                    </div>
-                    <span>{model.activeItem?.name || "Brak wybranego przedmiotu"}</span>
-                </div>
-                <div className="selected-slot-editor-content">
-                    {SLOTS.map((slot) => (
-                        <div
-                            key={slot.key}
-                            className={slot.key === model.activeSlot.key ? "block" : "hidden"}
-                        >
-                            <GearSlot
-                                expanded
-                                slotKey={slot.key}
-                                label={slot.label}
-                                items={model.itemsBySlot[slot.key] || []}
-                                orbs={data.orbs}
-                                drifs={data.drifs}
-                                allSlots={requestData.slots || {}}
-                                onUpdate={onSlotUpdate}
-                                gameRules={gameRules}
-                                optimizationTrigger={optimizationTrigger}
-                            />
-                        </div>
-                    ))}
-                </div>
-            </section>
+            {children}
         </section>
     );
 };

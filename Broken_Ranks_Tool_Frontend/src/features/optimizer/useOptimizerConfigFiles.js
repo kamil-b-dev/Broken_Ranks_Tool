@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import {
     createOptimizerConfigPayload,
+    mergeOptimizerSettings,
     parseOptimizerConfigPayload,
 } from "./optimizerConfiguration";
 import {
@@ -31,24 +32,7 @@ export const useOptimizerConfigFiles = ({
             );
             replaceConfiguration(imported);
             if (imported.maxVariantLossPercent !== null || imported.mode !== null)
-                onSettingsChange((previous) => ({
-                    ...previous,
-                    advisorProfession: imported.advisorProfession,
-                    ...(imported.advisorGoal !== null ? { advisorGoal: imported.advisorGoal } : {}),
-                    ...(imported.advisorSearch !== null
-                        ? { advisorSearch: imported.advisorSearch }
-                        : {}),
-                    ...(imported.advisorProtectedModifiers !== null
-                        ? { advisorProtectedModifiers: imported.advisorProtectedModifiers }
-                        : {}),
-                    ...(imported.advisorAllowedChanges !== null
-                        ? { advisorAllowedChanges: imported.advisorAllowedChanges }
-                        : {}),
-                    ...(imported.maxVariantLossPercent !== null
-                        ? { maxVariantLossPercent: imported.maxVariantLossPercent }
-                        : {}),
-                    ...(imported.mode !== null ? { mode: imported.mode } : {}),
-                }));
+                onSettingsChange((previous) => mergeOptimizerSettings(previous, imported));
             onNotice({
                 type: "success",
                 message: `Wczytano konfigurację: ${imported.priorities.length} priorytetów.`,

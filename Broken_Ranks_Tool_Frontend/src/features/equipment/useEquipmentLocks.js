@@ -1,9 +1,9 @@
 import { useCallback, useState } from "react";
 
 /** Owns whole-slot and individual-drif locks used by the optimizer. */
-export const useEquipmentLocks = () => {
-    const [lockedSlots, setLockedSlots] = useState([]);
-    const [lockedDrifs, setLockedDrifs] = useState({});
+export const useEquipmentLocks = (initialSlots = [], initialDrifs = {}) => {
+    const [lockedSlots, setLockedSlots] = useState(initialSlots);
+    const [lockedDrifs, setLockedDrifs] = useState(initialDrifs);
 
     const toggleSlotLock = useCallback((slotKey) => {
         setLockedSlots((previous) =>
