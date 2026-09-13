@@ -5,7 +5,7 @@ RUN npm ci
 COPY Broken_Ranks_Tool_Frontend/ ./
 RUN npm run build && npm run check:bundle-size
 
-FROM maven:3.9.12-eclipse-temurin-21 AS backend-build
+FROM maven:3.9.15-eclipse-temurin-26 AS backend-build
 WORKDIR /workspace/backend
 COPY Broken_Ranks_Tool_Backend/pom.xml ./
 RUN mvn -B dependency:go-offline
