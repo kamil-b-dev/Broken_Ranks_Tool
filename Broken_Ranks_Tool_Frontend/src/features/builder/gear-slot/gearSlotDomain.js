@@ -53,7 +53,7 @@ export const calculateUsedDrifPower = ({ selectedDrifs, drifs, basePowers, level
 const emptyOrb = () => ({ id: "", level: "", type: "" });
 
 /** Converts persisted slot data into the local editor state used by useGearSlot. */
-export const createImportedGearSlotState = (slot, orbs, drifs) => {
+export const createImportedGearSlotState = (slot, orbs, drifs, builtInDrifCount = 0) => {
     if (!slot) {
         return {
             selectedItem: "",
@@ -62,6 +62,7 @@ export const createImportedGearSlotState = (slot, orbs, drifs) => {
             selectedDrifs: [],
             drifTypes: {},
             drifLevels: {},
+            builtInLvls: [1, 1],
         };
     }
 
@@ -91,6 +92,12 @@ export const createImportedGearSlotState = (slot, orbs, drifs) => {
         drifLevels[index] = slot.drifLevels?.[index] ? Number.parseInt(slot.drifLevels[index]) : 21;
     });
 
+    const builtInStartIndex = Math.max(0, selectedDrifs.length - builtInDrifCount);
+    const builtInLvls = [0, 1].map((index) => {
+        if (index >= builtInDrifCount) return 1;
+        return Number.parseInt(slot.drifLevels?.[builtInStartIndex + index]) || 1;
+    });
+
     return {
         selectedItem: slot.itemId == null ? "" : String(slot.itemId),
         itemStars: Number(slot.itemStars) || 1,
@@ -98,6 +105,66 @@ export const createImportedGearSlotState = (slot, orbs, drifs) => {
         selectedDrifs,
         drifTypes,
         drifLevels,
+        builtInLvls,
+    };
+};
+
+export const getBuiltInDrifBonusTypes = (item, epicBuiltInDrifs = {}) => {
+    const rarity = item?.rarity?.toUpperCase();
+    if (!item || !["EPIC", "SET"].includes(rarity)) return [];
+    const baseItemName = item.name?.replace(/\s+[IVX]+$/, "").trim();
+    return epicBuiltInDrifs[baseItemName] || [];
+};
+
+export const createBuiltInDrifs = ({ item, epicBuiltInDrifs, drifs, bonusTranslations }) =>
+    getBuiltInDrifBonusTypes(item, epicBuiltInDrifs).map((bonusType) => {
+        const foundDrif = drifs.find(
+            (drif) => drif.size?.toUpperCase() === "MAGNIDRIF" && drif.bonusType === bonusType
+        );
+        return {
+            id: foundDrif?.id ?? null,
+            bonusType,
+            displayName: bonusTranslations?.[bonusType] || bonusType,
+        };
+    });
+
+export const createGearSlotUpdate = ({
+    selectedItem,
+    itemStars,
+    orbSlots,
+    isLegendary,
+    selectedDrifs,
+    drifLevels,
+    maxDrifs,
+    builtInDrifs,
+    builtInLvls,
+}) => {
+    const drifIds = [];
+    const publishedDrifLevels = {};
+
+    for (let index = 0; index < maxDrifs; index += 1) {
+        drifIds.push(selectedDrifs[index] || "");
+        if (drifLevels[index]) publishedDrifLevels[index] = drifLevels[index];
+    }
+
+    builtInDrifs.forEach((drif, index) => {
+        if (!drif.id) return;
+        const appendedIndex = drifIds.length;
+        drifIds.push(Number.parseInt(drif.id));
+        publishedDrifLevels[appendedIndex] = builtInLvls[index] || 1;
+    });
+
+    const selectedOrbs = [orbSlots.orb1, isLegendary ? orbSlots.orb2 : null].filter(
+        (orb) => orb?.id
+    );
+
+    return {
+        itemId: selectedItem || null,
+        itemStars,
+        orbIds: selectedOrbs.map((orb) => orb.id),
+        orbLevels: selectedOrbs.map((orb) => Number.parseInt(orb.level)),
+        drifIds,
+        drifLevels: publishedDrifLevels,
     };
 };
 

@@ -196,4 +196,37 @@ describe("useGearSlot", () => {
             )
         );
     });
+
+    it("keeps built-in drif levels when an epic slot is imported", async () => {
+        const onUpdate = vi.fn();
+        const imported = {
+            weapon: {
+                itemId: 3,
+                itemStars: 8,
+                drifIds: [22],
+                drifLevels: { 0: 12 },
+            },
+        };
+
+        const { result } = renderHook(() =>
+            useGearSlot({
+                slotKey: "weapon",
+                items,
+                orbs,
+                drifs,
+                allSlots: imported,
+                gameRules,
+                onUpdate,
+                optimizationTrigger: 1,
+            })
+        );
+
+        expect(result.current.builtInLvls).toEqual([12, 1]);
+        await waitFor(() =>
+            expect(onUpdate).toHaveBeenLastCalledWith(
+                "weapon",
+                expect.objectContaining({ drifIds: [22], drifLevels: { 0: 12 } })
+            )
+        );
+    });
 });
