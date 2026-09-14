@@ -98,7 +98,7 @@
         width: 100%;
     }
 
-    .main-switch button {
+    .main-switch a {
         min-height: 3rem;
         padding-inline: 0.6rem;
         letter-spacing: 0.08em;

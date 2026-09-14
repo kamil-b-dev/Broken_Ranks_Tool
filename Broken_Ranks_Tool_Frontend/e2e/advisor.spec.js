@@ -157,7 +157,7 @@ test("analyzes the current build once, displays a plan and applies it explicitly
                 })
             ),
         });
-    await page.getByRole("button", { name: /Optymalizator drifów/ }).click();
+    await page.getByRole("link", { name: /Optymalizator drifów/ }).click();
     await page.getByRole("button", { name: /^Doradca/ }).click();
     await page.getByLabel("Główny cel").selectOption("CRITICAL_CHANCE");
     await expect(page.getByRole("option", { name: /Obrażenia magiczne.*0%/ })).toBeAttached();
