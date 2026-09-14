@@ -13,16 +13,19 @@ const initialData = {
     },
 };
 
-test("opens the builder and switches to the optimizer", async ({ page }) => {
+test("opens the home page, builder, and optimizer", async ({ page }) => {
     await page.route("**/api/initial-data", (route) => route.fulfill({ json: initialData }));
 
     await page.goto("/");
-    await expect(page).toHaveURL(/\/kreator$/u);
 
     await page.locator("body").press("Tab");
     await expect(page.getByRole("link", { name: "Przejdź do głównej treści" })).toBeFocused();
     await expect(page.getByRole("link", { name: "Przejdź do głównej treści" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Broken Ranks Tool" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Broken Ranks Tool" })).toHaveCount(2);
+    await expect(page.locator(".home-destinations")).toHaveCount(0);
+    await page.getByRole("link", { name: /Kreator ekwipunku/ }).click();
+    await expect(page).toHaveURL(/\/kreator$/u);
     await expect(page.getByRole("heading", { name: "Ekwipunek" })).toBeVisible();
     await expect(page.getByRole("button", { name: /Zapisz lokalnie/ })).toBeVisible();
 
@@ -35,7 +38,7 @@ test("opens the builder and switches to the optimizer", async ({ page }) => {
 
 test("has no automatically detectable WCAG A or AA violations", async ({ page }) => {
     await page.route("**/api/initial-data", (route) => route.fulfill({ json: initialData }));
-    await page.goto("/");
+    await page.goto("/kreator");
 
     const builderScan = await new AxeBuilder({ page })
         .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
@@ -58,7 +61,7 @@ test("loads the application artwork without broken assets", async ({ page }) => 
     });
     await page.route("**/api/initial-data", (route) => route.fulfill({ json: initialData }));
 
-    await page.goto("/");
+    await page.goto("/kreator");
     await page.waitForLoadState("networkidle");
 
     const images = page.locator("img");
@@ -94,7 +97,7 @@ test("shows a useful message when startup data cannot be loaded", async ({ page 
         })
     );
 
-    await page.goto("/");
+    await page.goto("/kreator");
 
     await expect(page.getByRole("alert")).toContainText("Dane gry są chwilowo niedostępne.");
 });
@@ -109,7 +112,7 @@ test("shows initialization feedback until game data is ready", async ({ page }) 
         await route.fulfill({ json: initialData });
     });
 
-    await page.goto("/");
+    await page.goto("/kreator");
 
     await expect(page.getByRole("status")).toContainText("Ładowanie danych gry");
     await expect(page.getByRole("button", { name: /Zapisz lokalnie/ })).toBeDisabled();
@@ -142,7 +145,7 @@ test("keeps the builder and optimizer usable on a mobile viewport", async ({ pag
         })
     );
 
-    await page.goto("/");
+    await page.goto("/kreator");
 
     await expect(page.getByRole("heading", { name: "Ekwipunek" })).toBeVisible();
     await expect(page.locator(".builder-equipment-column")).toHaveCSS("order", "1");
@@ -179,7 +182,7 @@ test("constrains the item database to the equipment workbench height", async ({ 
         })
     );
 
-    await page.goto("/");
+    await page.goto("/kreator");
 
     const databaseColumn = page.locator(".builder-database-column");
     const equipmentColumn = page.locator(".builder-equipment-column");

@@ -68,7 +68,7 @@ describe("App", () => {
     beforeEach(() => {
         vi.clearAllMocks();
         localStorage.clear();
-        window.history.replaceState(null, "", "/");
+        window.history.replaceState(null, "", "/kreator");
         useEquipment.mockReturnValue(equipment);
     });
 
@@ -77,7 +77,6 @@ describe("App", () => {
         render(<App />);
 
         expect(screen.getByRole("heading", { name: "Broken Ranks Tool" })).toBeInTheDocument();
-        expect(window.location.pathname).toBe("/kreator");
         expect(screen.getByText("także z Broken HUD")).toBeInTheDocument();
         expect(screen.getByRole("link", { name: "Przejdź do głównej treści" })).toHaveAttribute(
             "href",
@@ -211,6 +210,19 @@ describe("App", () => {
         window.history.back();
         window.dispatchEvent(new PopStateEvent("popstate"));
         expect(await screen.findByText("Ustawienia budowania")).toBeInTheDocument();
+    });
+
+    it("renders the home page at the root and opens a selected tool", async () => {
+        window.history.replaceState(null, "", "/");
+        const user = userEvent.setup();
+        render(<App />);
+
+        expect(screen.getAllByRole("heading", { name: "Broken Ranks Tool" })).toHaveLength(2);
+        expect(screen.queryByText("Warsztat świadomych wyborów")).not.toBeInTheDocument();
+        await user.click(screen.getByRole("link", { name: /Kreator ekwipunku/i }));
+
+        expect(window.location.pathname).toBe("/kreator");
+        expect(screen.getByRole("heading", { name: "Ekwipunek" })).toBeVisible();
     });
 
     it("keeps optimizer lock controls out of the manual builder", async () => {

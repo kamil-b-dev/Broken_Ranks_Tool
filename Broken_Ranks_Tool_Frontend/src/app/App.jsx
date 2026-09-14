@@ -10,6 +10,7 @@ import { useEquipment } from "../shared/state/EquipmentContext";
 import { useBuildFileActions } from "../features/builds/useBuildFileActions";
 import { useBuildLibrary } from "../features/builds/useBuildLibrary";
 import { useAppRoute } from "./useAppRoute";
+import HomeWorkspace from "./components/HomeWorkspace";
 
 /** Root application composition and workspace navigation. */
 function App() {
@@ -51,7 +52,10 @@ function App() {
                 notice={equipment.calculationNotice}
                 onDismiss={equipment.dismissCalculationNotice}
             />
-            <WorkspaceState loading={equipment.loading} error={equipment.initialDataError} />
+            {mainView !== "home" && (
+                <WorkspaceState loading={equipment.loading} error={equipment.initialDataError} />
+            )}
+            {mainView === "home" && <HomeWorkspace />}
             {!unavailable && mainView === "builder" && (
                 <BuilderWorkspace
                     data={equipment.data}
