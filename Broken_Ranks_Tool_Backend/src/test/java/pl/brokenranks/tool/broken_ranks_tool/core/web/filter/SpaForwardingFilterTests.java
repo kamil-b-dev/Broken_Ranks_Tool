@@ -13,12 +13,14 @@ class SpaForwardingFilterTests {
 
     @Test
     void forwardsBrowserRoutesToTheFrontendEntryPoint() throws Exception {
-        MockHttpServletRequest request = request("/optimizer/configuration", "text/html");
-        MockHttpServletResponse response = new MockHttpServletResponse();
+        for (String route : new String[] {"/kreator", "/optymalizator", "/buildy"}) {
+            MockHttpServletRequest request = request(route, "text/html");
+            MockHttpServletResponse response = new MockHttpServletResponse();
 
-        filter.doFilter(request, response, new MockFilterChain());
+            filter.doFilter(request, response, new MockFilterChain());
 
-        assertEquals("/index.html", response.getForwardedUrl());
+            assertEquals("/index.html", response.getForwardedUrl());
+        }
     }
 
     @Test
