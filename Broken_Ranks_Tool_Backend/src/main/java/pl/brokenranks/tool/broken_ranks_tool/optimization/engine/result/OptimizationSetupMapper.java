@@ -22,6 +22,10 @@ final class OptimizationSetupMapper {
         Map<String, EquipmentRequest.SlotData> slots =
                 copySlots(context.request().getOriginalSlots());
         for (SlotContext slot : context.slots()) {
+            if (slot.special()) {
+                slots.put(slot.key(), maximizedSpecialSlot(state, slot));
+                continue;
+            }
             if (!slot.optimizable()) continue;
             slots.put(slot.key(), optimizedSlot(state, slot));
         }
@@ -34,6 +38,20 @@ final class OptimizationSetupMapper {
             setup.setCharacterStats(new HashMap<>(context.request().getCharacterStats()));
         }
         return setup;
+    }
+
+    private EquipmentRequest.SlotData maximizedSpecialSlot(BuildState state, SlotContext slot) {
+        EquipmentRequest.SlotData output = copySlot(slot.original());
+        Map<String, Integer> levels = output.getDrifLevels() != null
+                ? new HashMap<>(output.getDrifLevels())
+                : new HashMap<>();
+        List<Placement> placements = state.slots().getOrDefault(slot.key(), List.of());
+        for (int index = 0; index < placements.size(); index++) {
+            Placement placement = placements.get(index);
+            if (placement != null) levels.put(String.valueOf(index), placement.level());
+        }
+        output.setDrifLevels(levels);
+        return output;
     }
 
     private EquipmentRequest.SlotData optimizedSlot(BuildState state, SlotContext slot) {
