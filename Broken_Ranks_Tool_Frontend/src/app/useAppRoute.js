@@ -1,16 +1,17 @@
 import { useCallback, useEffect, useState } from "react";
 
 export const APP_ROUTES = {
+    home: "/",
     builder: "/kreator",
     optimizer: "/optymalizator",
     builds: "/buildy",
 };
 
 const routeForPath = (pathname) =>
-    Object.entries(APP_ROUTES).find(([, path]) => path === pathname)?.[0] ?? "builder";
+    Object.entries(APP_ROUTES).find(([, path]) => path === pathname)?.[0] ?? "home";
 
 const canonicalPath = (pathname) =>
-    Object.values(APP_ROUTES).includes(pathname) ? pathname : APP_ROUTES.builder;
+    Object.values(APP_ROUTES).includes(pathname) ? pathname : APP_ROUTES.home;
 
 /** Keeps application navigation in sync with the browser History API. */
 export const useAppRoute = () => {
@@ -32,7 +33,7 @@ export const useAppRoute = () => {
     }, []);
 
     const navigate = useCallback((view) => {
-        const path = APP_ROUTES[view] ?? APP_ROUTES.builder;
+        const path = APP_ROUTES[view] ?? APP_ROUTES.home;
         if (path !== window.location.pathname) window.history.pushState(null, "", path);
         setActiveView(routeForPath(path));
     }, []);

@@ -13,13 +13,38 @@ const AppHeader = ({
     onLoadBuild,
 }) => (
     <header className="app-masthead shrink-0">
-        <div className="brand-lockup">
+        <a
+            className="brand-lockup"
+            href={APP_ROUTES.home}
+            aria-label="Broken Ranks Tool — strona główna"
+            aria-current={activeView === "home" ? "page" : undefined}
+            onClick={(event) => {
+                event.preventDefault();
+                onViewChange("home");
+            }}
+        >
             <div className="brand-crest" aria-hidden="true">
                 <img src={crest} alt="" />
             </div>
             <h1>Broken Ranks Tool</h1>
-        </div>
+        </a>
         <nav className="main-switch" aria-label="Główne widoki aplikacji">
+            <a
+                href={APP_ROUTES.home}
+                onClick={(event) => {
+                    event.preventDefault();
+                    onViewChange("home");
+                }}
+                aria-current={activeView === "home" ? "page" : undefined}
+                className={`flex-1 border-b-2 px-4 py-3 text-xs font-bold uppercase tracking-[0.15em] transition-all ${activeView === "home" ? "border-amber-700 bg-stone-900/90 text-stone-100 shadow-inner" : "border-transparent text-stone-500 hover:bg-stone-900/50 hover:text-stone-200"}`}
+            >
+                <span className="main-switch-icon main-switch-home-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24">
+                        <path d="m3 11 9-8 9 8M5.5 9.5V21h13V9.5M9 21v-7h6v7" />
+                    </svg>
+                </span>
+                <span className="main-switch-label">Strona główna</span>
+            </a>
             <a
                 href={APP_ROUTES.builder}
                 onClick={(event) => {
