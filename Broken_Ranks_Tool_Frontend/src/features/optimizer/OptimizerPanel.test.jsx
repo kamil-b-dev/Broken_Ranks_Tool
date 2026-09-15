@@ -237,6 +237,11 @@ describe("OptimizerPanel", () => {
     it("applies a selected optimization variant to the calculator", async () => {
         const user = userEvent.setup();
         const setup = { slots: { helmet: { itemId: 7 } } };
+        const calculationResult = {
+            stats: { CRITICAL_CHANCE: "45%" },
+            drifCategories: { CRITICAL_CHANCE: "OFFENSIVE" },
+            orbBonusTypes: [],
+        };
         equipment.applyOptimizationSetup.mockReturnValue(true);
         equipment.runDrifOptimization.mockResolvedValue({
             ...optimizationResult,
@@ -253,6 +258,7 @@ describe("OptimizerPanel", () => {
                     changes: [],
                     statChanges: [],
                     setup,
+                    calculationResult,
                 },
             ],
         });
@@ -263,7 +269,7 @@ describe("OptimizerPanel", () => {
         await user.click(await screen.findByRole("button", { name: /Alternatywa krytyczna/i }));
         await user.click(screen.getByRole("button", { name: /Zastosuj wybrany wariant/i }));
 
-        expect(equipment.applyOptimizationSetup).toHaveBeenCalledWith(setup);
+        expect(equipment.applyOptimizationSetup).toHaveBeenCalledWith(setup, calculationResult);
     });
 
     it("switches to advisor mode through the visible mode selector", async () => {
@@ -291,6 +297,11 @@ describe("OptimizerPanel", () => {
         const recommendedSetup = {
             slots: { ...currentSlots, helmet: { ...currentSlots.helmet, itemStars: 2 } },
         };
+        const calculationResult = {
+            stats: { CRITICAL_CHANCE: "12%" },
+            drifCategories: { CRITICAL_CHANCE: "OFFENSIVE" },
+            orbBonusTypes: [],
+        };
         const recommendation = {
             ...optimizationResult,
             baselineSignature: advisorBuildSignature(currentSlots),
@@ -305,6 +316,7 @@ describe("OptimizerPanel", () => {
                     changes: [],
                     statChanges: [],
                     setup: recommendedSetup,
+                    calculationResult,
                 },
             ],
         };
@@ -349,7 +361,10 @@ describe("OptimizerPanel", () => {
         });
 
         await user.click(screen.getByRole("button", { name: /Zastosuj wybrany wariant/i }));
-        expect(advisorEquipment.applyOptimizationSetup).toHaveBeenCalledWith(recommendedSetup);
+        expect(advisorEquipment.applyOptimizationSetup).toHaveBeenCalledWith(
+            recommendedSetup,
+            calculationResult
+        );
     });
 
     it("refreshes missing advisor stats and rejects stale recommendations", async () => {

@@ -9,11 +9,12 @@ import { DEFAULT_OPTIMIZER_SETTINGS } from "../features/optimizer/optimizerDefau
 import { useEquipment } from "../shared/state/EquipmentContext";
 import { useBuildFileActions } from "../features/builds/useBuildFileActions";
 import { useBuildLibrary } from "../features/builds/useBuildLibrary";
+import { useAppRoute } from "./useAppRoute";
+import HomeWorkspace from "./components/HomeWorkspace";
 
 /** Root application composition and workspace navigation. */
 function App() {
-    const [mainView, setMainView] = useState("builder");
-    const [hasOpenedOptimizer, setHasOpenedOptimizer] = useState(false);
+    const { activeView: mainView, navigate } = useAppRoute();
     const [optimizerSettings, setOptimizerSettings] = useState(DEFAULT_OPTIMIZER_SETTINGS);
     const equipment = useEquipment();
     const fileActions = useBuildFileActions(equipment);
@@ -22,14 +23,10 @@ function App() {
         applySnapshot: equipment.loadBuildSnapshot,
     });
     const unavailable = equipment.loading || Boolean(equipment.initialDataError);
-    const changeView = (view) => {
-        if (view === "optimizer") setHasOpenedOptimizer(true);
-        setMainView(view);
-    };
 
     return (
         <div
-            className={`app-shell app-shell-${mainView} mx-auto flex min-h-screen w-full max-w-[1920px] flex-col gap-4 p-4 md:p-6 xl:gap-5 xl:p-8`}
+            className={`app-shell app-shell-${mainView} flex min-h-screen w-full max-w-none flex-col gap-4 p-4 md:p-6 xl:gap-5 xl:p-8`}
         >
             <a className="skip-link" href="#workspace-content">
                 Przejdź do głównej treści
@@ -39,7 +36,7 @@ function App() {
                 buildCount={buildLibrary.builds.length}
                 disabled={unavailable}
                 fileInputRef={fileActions.fileInputRef}
-                onViewChange={changeView}
+                onViewChange={navigate}
                 onSaveBuild={() =>
                     buildLibrary.saveCurrent(`Build ${buildLibrary.builds.length + 1}`)
                 }
@@ -55,10 +52,12 @@ function App() {
                 notice={equipment.calculationNotice}
                 onDismiss={equipment.dismissCalculationNotice}
             />
-            <WorkspaceState loading={equipment.loading} error={equipment.initialDataError} />
-            {!unavailable && (
+            {mainView !== "home" && (
+                <WorkspaceState loading={equipment.loading} error={equipment.initialDataError} />
+            )}
+            {mainView === "home" && <HomeWorkspace />}
+            {!unavailable && mainView === "builder" && (
                 <BuilderWorkspace
-                    active={mainView === "builder"}
                     data={equipment.data}
                     categoryNames={equipment.categoryNames}
                     orbCategories={equipment.orbCategories}
@@ -75,17 +74,15 @@ function App() {
                     onCalculateStats={equipment.calculateStats}
                 />
             )}
-            {!unavailable && hasOpenedOptimizer && (
+            {!unavailable && mainView === "optimizer" && (
                 <OptimizerWorkspace
-                    active={mainView === "optimizer"}
                     settings={optimizerSettings}
                     onSettingsChange={setOptimizerSettings}
-                    onBackToBuilder={() => changeView("builder")}
+                    onBackToBuilder={() => navigate("builder")}
                 />
             )}
-            {!unavailable && (
+            {!unavailable && mainView === "builds" && (
                 <BuildLibraryWorkspace
-                    active={mainView === "builds"}
                     builds={buildLibrary.builds}
                     data={equipment.data}
                     gameRules={equipment.gameRules}
@@ -94,7 +91,7 @@ function App() {
                     onLoad={buildLibrary.load}
                     onExport={buildLibrary.exportBuild}
                     onRemove={buildLibrary.remove}
-                    onOpenBuilder={() => changeView("builder")}
+                    onOpenBuilder={() => navigate("builder")}
                 />
             )}
         </div>

@@ -69,7 +69,7 @@ class CustomModsOptimizationConstraintTests extends CustomModsOptimizationTestSu
 
         EquipmentRequest.SlotData weapon = slot(epic.getId());
         weapon.setDrifIds(List.of(criticalChance.getId(), doubleAttack.getId()));
-        weapon.setDrifLevels(Map.of("0", 21, "1", 21));
+        weapon.setDrifLevels(Map.of("0", 1, "1", 6));
         OptimizationRequest request = new OptimizationRequest();
         request.setOriginalSlots(Map.of("weapon", weapon));
         request.setPriorities(Map.of(DRIF_BONUS_TYPE.CRITICAL_CHANCE, 20));
@@ -84,8 +84,14 @@ class CustomModsOptimizationConstraintTests extends CustomModsOptimizationTestSu
         assertTrue(response.getSummary().isSuccess());
         EquipmentRequest.SlotData result = response.getOptimizedSetup().getSlots().get("weapon");
         assertEquals(List.of(criticalChance.getId(), doubleAttack.getId()), result.getDrifIds());
-        assertEquals(Map.of("0", 21, "1", 21), result.getDrifLevels());
+        assertEquals(Map.of("0", 16, "1", 16), result.getDrifLevels());
         assertEquals(0, response.getSummary().getTotalPowerUsed());
+
+        request.setLockedSlots(Set.of("weapon"));
+        OptimizationResponse lockedResponse = service.optimize(request);
+        EquipmentRequest.SlotData lockedResult =
+                lockedResponse.getOptimizedSetup().getSlots().get("weapon");
+        assertEquals(Map.of("0", 1, "1", 6), lockedResult.getDrifLevels());
     }
 
     @Test

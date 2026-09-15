@@ -332,7 +332,7 @@ class AdvisorOptimizationActionTests extends AdvisorOptimizationTestSupport {
                             return invocation.callRealMethod();
                         })
                 .when(f.calculator)
-                .calculateTotalStats(any());
+                .calculateWithSources(any());
         var result = f.service.optimize(request);
         assertTrue(result.getAdvisorReport().cancelled());
         assertEquals(request.getOriginalSlots(), result.getOptimizedSetup().getSlots());

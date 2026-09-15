@@ -73,6 +73,9 @@ class OptimizationCalculatorIntegrationTests {
         assertEquals(List.of(20L), slot.getOrbIds());
         assertEquals(List.of(1), slot.getOrbLevels());
         var actual = fixture.calculator().calculateTotalStats(output);
+        assertEquals(actual, response.getCalculationResult().stats());
+        assertNotNull(response.getCalculationResult().drifCategories());
+        assertNotNull(response.getCalculationResult().orbBonusTypes());
         assertEquals(116, number(actual, "Siła"), 1e-9);
         assertEquals(8.75, number(actual, ORB_BONUS_TYPE.DMG_REDUCTION_MELEE.name()), 1e-9);
         assertEquals(10.05, number(actual, DRIF_BONUS_TYPE.CRITICAL_CHANCE.name()), 1e-9);
@@ -83,7 +86,7 @@ class OptimizationCalculatorIntegrationTests {
     }
 
     @Test
-    void builtInDrifParticipatesInGlobalPenaltyWhileEpicSlotRemainsUnchanged() {
+    void builtInDrifParticipatesInGlobalPenaltyWhileEpicSlotIsMaximized() {
         var type = DRIF_BONUS_TYPE.CRITICAL_CHANCE;
         var normal = drif(10, type, DRIF_SIZE.SUBDRIF, "2%", "1%");
         var builtin = drif(11, type, DRIF_SIZE.MAGNIDRIF, "2%", "1%");
@@ -112,10 +115,12 @@ class OptimizationCalculatorIntegrationTests {
         var response = fixture.service().optimize(request);
         assertTrue(
                 response.getSummary().isSuccess(), response.getSummary().getWarnings().toString());
-        assertEquals(epicSlot, response.getOptimizedSetup().getSlots().get("weapon"));
-        // Three ordinary 7% drifs and one built-in 2% drif: 23 * .95 + default 2%.
+        var optimizedEpic = response.getOptimizedSetup().getSlots().get("weapon");
+        assertEquals(epicSlot.getDrifIds(), optimizedEpic.getDrifIds());
+        assertEquals(Map.of("0", 16), optimizedEpic.getDrifLevels());
+        // The built-in drif is raised from level 1 to 16 before global penalties are applied.
         assertEquals(
-                23.85,
+                38.1,
                 number(
                         fixture.calculator().calculateTotalStats(response.getOptimizedSetup()),
                         type.name()),

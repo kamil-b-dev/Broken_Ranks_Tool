@@ -57,10 +57,14 @@ describe("StatsPanel", () => {
     });
 
     it("shows empty and calculating states", () => {
-        const { rerender } = render(
+        const { container, rerender } = render(
             <StatsPanel stats={null} onCalculate={vi.fn()} gameRules={{}} />
         );
-        expect(screen.getByText("Wybierz ekwipunek")).toBeInTheDocument();
+        expect(container.querySelector(".stats-empty-state img")).toBeInTheDocument();
+        expect(screen.queryByText("Wybierz ekwipunek")).not.toBeInTheDocument();
+        expect(
+            screen.queryByText("Gotowy build przeliczysz przyciskiem powyżej.")
+        ).not.toBeInTheDocument();
 
         rerender(<StatsPanel stats={{}} onCalculate={vi.fn()} isCalculating gameRules={{}} />);
         expect(screen.getByRole("button", { name: "Przeliczanie..." })).toBeDisabled();

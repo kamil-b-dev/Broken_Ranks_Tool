@@ -1,5 +1,4 @@
 .selected-slot-editor {
-    margin-top: 0.8rem;
     border: 1px solid rgba(133, 77, 39, 0.72);
     background:
         linear-gradient(rgba(3, 5, 5, 0.87), rgba(3, 5, 5, 0.94)),
@@ -28,12 +27,6 @@
     font-weight: 700;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-}
-
-.selected-slot-editor-heading > span {
-    color: #837a72;
-    font-family: Georgia, Cambria, "Times New Roman", serif;
-    font-size: 0.7rem;
 }
 
 .selected-slot-editor-content {
