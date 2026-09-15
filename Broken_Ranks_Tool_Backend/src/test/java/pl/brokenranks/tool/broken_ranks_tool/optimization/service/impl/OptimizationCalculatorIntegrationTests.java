@@ -73,6 +73,9 @@ class OptimizationCalculatorIntegrationTests {
         assertEquals(List.of(20L), slot.getOrbIds());
         assertEquals(List.of(1), slot.getOrbLevels());
         var actual = fixture.calculator().calculateTotalStats(output);
+        assertEquals(actual, response.getCalculationResult().stats());
+        assertNotNull(response.getCalculationResult().drifCategories());
+        assertNotNull(response.getCalculationResult().orbBonusTypes());
         assertEquals(116, number(actual, "Siła"), 1e-9);
         assertEquals(8.75, number(actual, ORB_BONUS_TYPE.DMG_REDUCTION_MELEE.name()), 1e-9);
         assertEquals(10.05, number(actual, DRIF_BONUS_TYPE.CRITICAL_CHANCE.name()), 1e-9);

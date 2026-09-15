@@ -5,6 +5,7 @@ import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.CalculationResultDto;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 
 /** Contains optimization metadata and result summary. */
@@ -58,7 +59,8 @@ public class OptimizationSummary {
             double score,
             List<PlacementChange> changes,
             List<StatChange> statChanges,
-            EquipmentRequest setup) {}
+            EquipmentRequest setup,
+            CalculationResultDto calculationResult) {}
 
     /** Calculator value changed by selecting an alternative variant. */
     public record StatChange(String statKey, String finalValue, String variantValue) {}

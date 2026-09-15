@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.CalculationResultDto;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest.SlotData;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.AdvisorReport;
@@ -23,12 +24,15 @@ final class AdvisorResponseFactory {
             AdvisorEquipmentModel model,
             AdvisorSearch search,
             Map<String, SlotData> original,
-            Map<String, String> before,
+            CalculationResultDto baselineCalculation,
             List<AdvisorFinalistVerifier.Verified> selected,
             long started) {
+        Map<String, String> before = baselineCalculation.stats();
         AdvisorPlanResultFactory.Result output =
                 planResults.create(model, search, before, selected);
         Map<String, String> bestStats = selected.isEmpty() ? before : selected.getFirst().stats();
+        CalculationResultDto bestCalculation =
+                selected.isEmpty() ? baselineCalculation : selected.getFirst().calculation();
         Map<String, SlotData> bestSlots =
                 selected.isEmpty() ? original : selected.getFirst().node().slots();
         boolean reached =
@@ -46,7 +50,8 @@ final class AdvisorResponseFactory {
                                 List.of(),
                                 Map.of(),
                                 goals(bestSlots, bestStats, before, model, search),
-                                output.variants()));
+                                output.variants()),
+                        bestCalculation);
         response.setAdvisorReport(
                 new AdvisorReport(
                         search.control.evaluated(),
