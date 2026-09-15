@@ -67,6 +67,23 @@ describe("CharacterPanel", () => {
         );
     });
 
+    it("changes the compact character level with permanently visible controls", async () => {
+        const user = userEvent.setup();
+        render(<CharacterPanel compact onStatsChange={vi.fn()} />);
+
+        const decrease = screen.getByRole("button", { name: "Zmniejsz poziom postaci" });
+        const increase = screen.getByRole("button", { name: "Zwiększ poziom postaci" });
+        const level = screen.getByRole("spinbutton", { name: "Poziom postaci" });
+
+        expect(level).toHaveValue(1);
+        expect(decrease).toBeDisabled();
+        await user.click(increase);
+        expect(level).toHaveValue(2);
+        expect(decrease).toBeEnabled();
+        await user.click(decrease);
+        expect(level).toHaveValue(1);
+    });
+
     it("changes compact character stats by ten points with one click", async () => {
         const user = userEvent.setup();
         render(<CharacterPanel compact onStatsChange={vi.fn()} />);
