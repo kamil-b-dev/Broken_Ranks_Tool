@@ -264,7 +264,7 @@
 .builder-workspace-grid {
     display: grid;
     min-width: 0;
-    grid-template-columns: minmax(17rem, 0.8fr) minmax(38rem, 1.8fr) minmax(19rem, 0.9fr);
+    grid-template-columns: minmax(17rem, 0.65fr) minmax(42rem, 2.25fr) minmax(19rem, 0.8fr);
     align-items: stretch;
     gap: 1rem;
 }
