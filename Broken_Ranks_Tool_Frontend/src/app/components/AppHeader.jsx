@@ -1,6 +1,9 @@
 import crest from "../../assets/broken-ranks-crest.webp";
 import drifOptimizerIcon from "../../assets/navigation-icons/drif-optimizer.png";
 import equipmentBuilderIcon from "../../assets/navigation-icons/equipment-builder.png";
+import homeIcon from "../../assets/navigation-icons/home.png";
+import localBuildsIcon from "../../assets/navigation-icons/local-builds.png";
+import { APP_ROUTES } from "../useAppRoute";
 
 const AppHeader = ({
     activeView,
@@ -12,17 +15,43 @@ const AppHeader = ({
     onLoadBuild,
 }) => (
     <header className="app-masthead shrink-0">
-        <div className="brand-lockup">
+        <a
+            className="brand-lockup"
+            href={APP_ROUTES.home}
+            aria-label="Broken Ranks Tool — strona główna"
+            aria-current={activeView === "home" ? "page" : undefined}
+            onClick={(event) => {
+                event.preventDefault();
+                onViewChange("home");
+            }}
+        >
             <div className="brand-crest" aria-hidden="true">
                 <img src={crest} alt="" />
             </div>
             <h1>Broken Ranks Tool</h1>
-        </div>
+        </a>
         <nav className="main-switch" aria-label="Główne widoki aplikacji">
-            <button
-                type="button"
-                onClick={() => onViewChange("builder")}
-                disabled={disabled}
+            <a
+                href={APP_ROUTES.home}
+                onClick={(event) => {
+                    event.preventDefault();
+                    onViewChange("home");
+                }}
+                aria-current={activeView === "home" ? "page" : undefined}
+                className={`flex-1 border-b-2 px-4 py-3 text-xs font-bold uppercase tracking-[0.15em] transition-all ${activeView === "home" ? "border-amber-700 bg-stone-900/90 text-stone-100 shadow-inner" : "border-transparent text-stone-500 hover:bg-stone-900/50 hover:text-stone-200"}`}
+            >
+                <span className="main-switch-icon" aria-hidden="true">
+                    <img src={homeIcon} alt="" draggable="false" />
+                </span>
+                <span className="main-switch-label">Strona główna</span>
+            </a>
+            <a
+                href={APP_ROUTES.builder}
+                onClick={(event) => {
+                    event.preventDefault();
+                    if (!disabled) onViewChange("builder");
+                }}
+                aria-disabled={disabled || undefined}
                 aria-current={activeView === "builder" ? "page" : undefined}
                 className={`flex-1 border-b-2 px-4 py-3 text-xs font-bold uppercase tracking-[0.15em] transition-all ${activeView === "builder" ? "border-red-700 bg-stone-900/90 text-stone-100 shadow-inner" : "border-transparent text-stone-500 hover:bg-stone-900/50 hover:text-stone-200"}`}
             >
@@ -30,11 +59,14 @@ const AppHeader = ({
                     <img src={equipmentBuilderIcon} alt="" draggable="false" />
                 </span>
                 <span className="main-switch-label">Kreator ekwipunku</span>
-            </button>
-            <button
-                type="button"
-                onClick={() => onViewChange("optimizer")}
-                disabled={disabled}
+            </a>
+            <a
+                href={APP_ROUTES.optimizer}
+                onClick={(event) => {
+                    event.preventDefault();
+                    if (!disabled) onViewChange("optimizer");
+                }}
+                aria-disabled={disabled || undefined}
                 aria-current={activeView === "optimizer" ? "page" : undefined}
                 className={`flex-1 border-b-2 px-4 py-3 text-xs font-bold uppercase tracking-[0.15em] transition-all ${activeView === "optimizer" ? "border-purple-500 bg-purple-950/30 text-purple-300 shadow-inner" : "border-transparent text-stone-500 hover:bg-stone-900/50 hover:text-stone-200"}`}
             >
@@ -42,24 +74,25 @@ const AppHeader = ({
                     <img src={drifOptimizerIcon} alt="" draggable="false" />
                 </span>
                 <span className="main-switch-label">Optymalizator drifów</span>
-            </button>
-            <button
-                type="button"
-                onClick={() => onViewChange("builds")}
-                disabled={disabled}
+            </a>
+            <a
+                href={APP_ROUTES.builds}
+                onClick={(event) => {
+                    event.preventDefault();
+                    if (!disabled) onViewChange("builds");
+                }}
+                aria-disabled={disabled || undefined}
                 aria-current={activeView === "builds" ? "page" : undefined}
                 className={`flex-1 border-b-2 px-4 py-3 text-xs font-bold uppercase tracking-[0.15em] transition-all ${activeView === "builds" ? "border-amber-600 bg-amber-950/25 text-amber-200 shadow-inner" : "border-transparent text-stone-500 hover:bg-stone-900/50 hover:text-stone-200"}`}
             >
-                <span className="main-switch-icon main-switch-library-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M5 5.5h10.5v13H5zM8.5 2.5H19v13h-3.5M8 9h4.5M8 12h4.5M8 15h3" />
-                    </svg>
+                <span className="main-switch-icon" aria-hidden="true">
+                    <img src={localBuildsIcon} alt="" draggable="false" />
                 </span>
                 <span className="main-switch-label">
                     Buildy lokalne
                     <small>{buildCount}/10</small>
                 </span>
-            </button>
+            </a>
         </nav>
         <div className="header-actions">
             <button

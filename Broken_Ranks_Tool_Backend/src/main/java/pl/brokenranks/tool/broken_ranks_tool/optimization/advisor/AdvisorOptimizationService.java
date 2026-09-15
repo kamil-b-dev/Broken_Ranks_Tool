@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.DrifValueCalculator;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRulesRegistry;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.CalculationResultDto;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest.SlotData;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
@@ -69,7 +70,9 @@ public class AdvisorOptimizationService {
                         "Popraw obecny build: sprawdź tier, poziomy, gniazda, pojemność i unikalność kamieni.",
                         started);
 
-            Map<String, String> before = calculator.calculateTotalStats(model.setup(slots));
+            CalculationResultDto baselineCalculation =
+                    calculator.calculateWithSources(model.setup(slots));
+            Map<String, String> before = baselineCalculation.stats();
             double[] baseline = parsed(before);
             long deadline = started + options.getTimeBudgetMs() * 1_000_000L;
             // Reserve part of the common budget for final calculator verification.
@@ -78,12 +81,14 @@ public class AdvisorOptimizationService {
             AdvisorSearch search =
                     new AdvisorSearch(model, options, baseline, searchDeadline, cancelled);
             if (search.reached(baseline))
-                return responses.success(model, search, slots, before, List.of(), started);
+                return responses.success(
+                        model, search, slots, baselineCalculation, List.of(), started);
 
             List<AdvisorSearch.Node> candidates = new ArrayList<>(search.run(slots));
             List<AdvisorFinalistVerifier.Verified> selected =
                     finalistVerifier.verify(candidates, model, search, calculator, deadline);
-            return responses.success(model, search, slots, before, selected, started);
+            return responses.success(
+                    model, search, slots, baselineCalculation, selected, started);
         } finally {
             runs.finish(runId);
         }

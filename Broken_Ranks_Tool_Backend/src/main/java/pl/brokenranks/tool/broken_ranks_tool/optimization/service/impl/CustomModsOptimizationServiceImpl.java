@@ -97,7 +97,10 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
         OptimizationSummary summary =
                 resultAssembler.createSummary(
                         state, context, elapsedSeconds(startTime), forcedCapWarnings, variants);
-        return new OptimizationResponse(optimizedSetup, summary);
+        return new OptimizationResponse(
+                optimizedSetup,
+                summary,
+                summary.getNextVariants().getFirst().calculationResult());
     }
 
     private OptimizationResponse failedResponse(String message, double seconds) {
