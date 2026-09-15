@@ -48,8 +48,6 @@ const StatsPanel = ({
             {statColumns.length === 0 ? (
                 <div className="stats-empty-state">
                     <img src={crest} alt="" aria-hidden="true" />
-                    <strong>Wybierz ekwipunek</strong>
-                    <p>Gotowy build przeliczysz przyciskiem powyżej.</p>
                 </div>
             ) : (
                 <>
