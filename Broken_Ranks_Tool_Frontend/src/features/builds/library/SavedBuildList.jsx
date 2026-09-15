@@ -37,9 +37,7 @@ const SavedBuildList = ({
     if (builds.length === 0)
         return (
             <div className="build-library-empty">
-                <span aria-hidden="true">＋</span>
                 <strong>Brak lokalnych buildów</strong>
-                <p>Nazwij bieżącą konfigurację i zapisz ją formularzem powyżej.</p>
             </div>
         );
 
