@@ -42,9 +42,10 @@ final class OptimizationSetupMapper {
 
     private EquipmentRequest.SlotData maximizedSpecialSlot(BuildState state, SlotContext slot) {
         EquipmentRequest.SlotData output = copySlot(slot.original());
-        Map<String, Integer> levels = output.getDrifLevels() != null
-                ? new HashMap<>(output.getDrifLevels())
-                : new HashMap<>();
+        Map<String, Integer> levels =
+                output.getDrifLevels() != null
+                        ? new HashMap<>(output.getDrifLevels())
+                        : new HashMap<>();
         List<Placement> placements = state.slots().getOrDefault(slot.key(), List.of());
         for (int index = 0; index < placements.size(); index++) {
             Placement placement = placements.get(index);
