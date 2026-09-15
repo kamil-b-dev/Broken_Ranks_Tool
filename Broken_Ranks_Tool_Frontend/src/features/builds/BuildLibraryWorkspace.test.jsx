@@ -98,13 +98,13 @@ describe("BuildLibraryWorkspace", () => {
         await user.click(checks[1]);
         await user.click(checks[2]);
 
-        expect(screen.getByText("3/3 do porównania")).toBeInTheDocument();
         expect(checks[3]).toBeDisabled();
         expect(screen.getByTestId("comparison")).toHaveTextContent("A,B,C");
         expect(screen.getByText("Nieznana data")).toBeInTheDocument();
 
         await user.click(screen.getByRole("button", { name: "Wyczyść wybór" }));
-        expect(screen.getByText("0/3 do porównania")).toBeInTheDocument();
+        expect(checks[3]).toBeEnabled();
+        expect(screen.queryByRole("button", { name: "Wyczyść wybór" })).not.toBeInTheDocument();
         expect(screen.getByTestId("comparison")).toBeEmptyDOMElement();
     });
 });

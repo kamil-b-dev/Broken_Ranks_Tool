@@ -41,12 +41,7 @@ const BuildComparison = ({ builds, items = [], drifs = [], gameRules = {} }) => 
     if (builds.length < 2)
         return (
             <div className="build-comparison-empty">
-                <span aria-hidden="true">⇄</span>
                 <strong>Wybierz co najmniej dwa buildy</strong>
-                <p>
-                    Zaznacz konfiguracje po lewej stronie, aby zestawić ekwipunek, statystyki
-                    postaci i drify.
-                </p>
             </div>
         );
 

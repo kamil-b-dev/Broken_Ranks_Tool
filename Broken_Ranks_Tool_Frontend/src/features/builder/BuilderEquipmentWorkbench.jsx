@@ -13,13 +13,8 @@ const BuilderEquipmentWorkbench = ({
         <section className="workbench builder-equipment-column flex flex-col p-5 md:p-6">
             <div className="workbench-heading">
                 <div>
-                    <p className="section-kicker">Konfiguracja</p>
                     <h2>Ekwipunek</h2>
                 </div>
-                <p className="workbench-help">
-                    Wybierz przedmiot lub przeciągnij go z bazy. Karmazynowa obwódka oznacza aktywne
-                    pole.
-                </p>
             </div>
             <span className="equipment-ornament-divider" aria-hidden="true" />
             <div className="equipment-figure-heading" aria-live="polite">
