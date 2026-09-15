@@ -1,12 +1,14 @@
 /** Maps optimizer UI configuration and equipment locks to the backend request contract. */
 export const createEquipmentOptimizationRequest = ({
     slots,
+    characterStats,
     configuration,
     lockedSlots,
     lockedDrifs,
 }) => ({
     mode: configuration.mode || "BUILD_FROM_SCRATCH",
     originalSlots: slots,
+    characterStats: characterStats || {},
     priorities: configuration.priorities || {},
     targetQuantities: configuration.targetQuantities || {},
     forceCapBonuses: configuration.forceCapBonuses || [],
@@ -20,7 +22,6 @@ export const createEquipmentOptimizationRequest = ({
     ...(configuration.mode === "ADVISOR"
         ? {
               advisor: configuration.advisor,
-              characterStats: configuration.characterStats || {},
           }
         : {}),
 });
