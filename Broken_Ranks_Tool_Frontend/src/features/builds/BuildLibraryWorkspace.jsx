@@ -43,12 +43,7 @@ const BuildLibraryWorkspace = ({
         >
             <section className="build-library-heading workbench">
                 <div>
-                    <p className="section-kicker">Konfiguracje użytkownika</p>
                     <h2>Buildy lokalne</h2>
-                    <p>
-                        Zapisuj warianty w tej przeglądarce, wracaj do nich jednym kliknięciem i
-                        porównuj najważniejsze różnice.
-                    </p>
                 </div>
                 <BuildRenameForm builds={builds} onRename={onRename} />
             </section>
@@ -56,10 +51,8 @@ const BuildLibraryWorkspace = ({
                 <aside className="build-library-list-panel workbench">
                     <div className="build-library-panel-heading">
                         <div>
-                            <p className="section-kicker">Biblioteka</p>
                             <h3>Zapisane buildy</h3>
                         </div>
-                        <span>{availableSelectedIds.length}/3 do porównania</span>
                     </div>
                     <SavedBuildList
                         builds={builds}
@@ -78,7 +71,6 @@ const BuildLibraryWorkspace = ({
                 >
                     <div className="build-library-panel-heading">
                         <div>
-                            <p className="section-kicker">Analiza wariantów</p>
                             <h3 id="comparison-heading">Porównywarka buildów</h3>
                         </div>
                         {availableSelectedIds.length > 0 && (

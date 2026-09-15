@@ -16,6 +16,7 @@ const lossyAssets = [
     "equipment-config-backdrop-texture.png",
     "equipment-workbench-texture.png",
     "hammered-black-iron-texture.png",
+    "home-hero-abstract.png",
     "panel-aged-leather-texture.png",
     "panel-blackened-steel-texture.png",
     "panel-oxblood-texture.png",

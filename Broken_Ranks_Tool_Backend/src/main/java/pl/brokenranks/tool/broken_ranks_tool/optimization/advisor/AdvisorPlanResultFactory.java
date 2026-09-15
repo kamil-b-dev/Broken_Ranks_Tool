@@ -80,7 +80,8 @@ final class AdvisorPlanResultFactory {
                 search.value(node.stats()),
                 List.of(),
                 changes,
-                model.setup(node.slots()));
+                model.setup(node.slots()),
+                verified.calculation());
     }
 
     private String planKind(AdvisorSearch.Node node) {

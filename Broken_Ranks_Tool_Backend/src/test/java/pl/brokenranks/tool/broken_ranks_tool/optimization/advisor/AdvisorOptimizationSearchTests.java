@@ -65,7 +65,12 @@ class AdvisorOptimizationSearchTests extends AdvisorOptimizationTestSupport {
         request.getAdvisor().setTargetGain(2.0);
         var result = f.service.optimize(request);
         assertTrue(result.getAdvisorReport().targetReached());
+        assertNotNull(result.getCalculationResult());
         assertEquals(2, result.getAdvisorReport().plans().getFirst().actions().size());
+        assertNotNull(result.getSummary().getNextVariants().getFirst().calculationResult());
+        assertEquals(
+                result.getSummary().getNextVariants().getFirst().calculationResult().stats(),
+                result.getCalculationResult().stats());
         assertTrue(
                 result.getSummary().getGoalResults().stream()
                         .filter(g -> g.statKey().equals(B.name()))

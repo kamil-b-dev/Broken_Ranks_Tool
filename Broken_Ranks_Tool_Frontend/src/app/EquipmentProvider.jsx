@@ -48,8 +48,9 @@ export const EquipmentProvider = ({ children }) => {
         runDrifOptimization,
         cancelDrifOptimization,
     } = useEquipmentOptimization({
-        slots: requestData.slots,
+        requestData,
         setRequestData,
+        restoreStats,
         lockedSlots,
         lockedDrifs,
     });

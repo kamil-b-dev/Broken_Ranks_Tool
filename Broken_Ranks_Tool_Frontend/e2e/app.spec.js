@@ -13,7 +13,7 @@ const initialData = {
     },
 };
 
-test("opens the builder and switches to the optimizer", async ({ page }) => {
+test("opens the home page, builder, and optimizer", async ({ page }) => {
     await page.route("**/api/initial-data", (route) => route.fulfill({ json: initialData }));
 
     await page.goto("/");
@@ -21,26 +21,30 @@ test("opens the builder and switches to the optimizer", async ({ page }) => {
     await page.locator("body").press("Tab");
     await expect(page.getByRole("link", { name: "Przejdź do głównej treści" })).toBeFocused();
     await expect(page.getByRole("link", { name: "Przejdź do głównej treści" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Broken Ranks Tool" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 2, name: "Broken Ranks Tool" })).toBeVisible();
+    await expect(page.locator(".home-destinations")).toHaveCount(0);
+    await page.getByRole("link", { name: /Kreator ekwipunku/ }).click();
+    await expect(page).toHaveURL(/\/kreator$/u);
     await expect(page.getByRole("heading", { name: "Ekwipunek" })).toBeVisible();
     await expect(page.getByRole("button", { name: /Zapisz lokalnie/ })).toBeVisible();
 
-    await page.getByRole("button", { name: /Optymalizator drifów/ }).click();
+    await page.getByRole("link", { name: /Optymalizator drifów/ }).click();
 
     await expect(page.locator(".optimizer-theme")).toBeVisible();
-    await expect(page.locator(".builder-theme")).toBeHidden();
+    await expect(page.locator(".builder-theme")).toHaveCount(0);
+    await expect(page).toHaveURL(/\/optymalizator$/u);
 });
 
 test("has no automatically detectable WCAG A or AA violations", async ({ page }) => {
     await page.route("**/api/initial-data", (route) => route.fulfill({ json: initialData }));
-    await page.goto("/");
+    await page.goto("/kreator");
 
     const builderScan = await new AxeBuilder({ page })
         .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
         .analyze();
     expect(builderScan.violations).toEqual([]);
 
-    await page.getByRole("button", { name: /Optymalizator drifów/ }).click();
+    await page.getByRole("link", { name: /Optymalizator drifów/ }).click();
     const optimizerScan = await new AxeBuilder({ page })
         .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
         .analyze();
@@ -56,7 +60,7 @@ test("loads the application artwork without broken assets", async ({ page }) => 
     });
     await page.route("**/api/initial-data", (route) => route.fulfill({ json: initialData }));
 
-    await page.goto("/");
+    await page.goto("/kreator");
     await page.waitForLoadState("networkidle");
 
     const images = page.locator("img");
@@ -69,20 +73,18 @@ test("loads the application artwork without broken assets", async ({ page }) => 
     expect(failedAssets).toEqual([]);
 });
 
-test("preserves optimizer state when switching workspaces", async ({ page }) => {
+test("supports direct routes and browser back/forward navigation", async ({ page }) => {
     await page.route("**/api/initial-data", (route) => route.fulfill({ json: initialData }));
 
-    await page.goto("/");
-    await page.getByRole("button", { name: /Optymalizator drifów/ }).click();
-
-    const bonusSearch = page.getByPlaceholder("Szukaj statystyki...");
-    await bonusSearch.fill("obrażenia krytyczne");
-
-    await page.getByRole("button", { name: /Kreator ekwipunku/i }).click();
-    await expect(page.locator(".optimizer-theme")).toBeHidden();
-
-    await page.getByRole("button", { name: /Optymalizator drifów/ }).click();
-    await expect(bonusSearch).toHaveValue("obrażenia krytyczne");
+    await page.goto("/optymalizator");
+    await expect(page.locator(".optimizer-theme")).toBeVisible();
+    await page.getByRole("link", { name: /Buildy lokalne/i }).click();
+    await expect(page).toHaveURL(/\/buildy$/u);
+    await page.goBack();
+    await expect(page).toHaveURL(/\/optymalizator$/u);
+    await expect(page.locator(".optimizer-theme")).toBeVisible();
+    await page.goForward();
+    await expect(page.getByRole("heading", { name: "Buildy lokalne" })).toBeVisible();
 });
 
 test("shows a useful message when startup data cannot be loaded", async ({ page }) => {
@@ -94,7 +96,7 @@ test("shows a useful message when startup data cannot be loaded", async ({ page 
         })
     );
 
-    await page.goto("/");
+    await page.goto("/kreator");
 
     await expect(page.getByRole("alert")).toContainText("Dane gry są chwilowo niedostępne.");
 });
@@ -109,7 +111,7 @@ test("shows initialization feedback until game data is ready", async ({ page }) 
         await route.fulfill({ json: initialData });
     });
 
-    await page.goto("/");
+    await page.goto("/kreator");
 
     await expect(page.getByRole("status")).toContainText("Ładowanie danych gry");
     await expect(page.getByRole("button", { name: /Zapisz lokalnie/ })).toBeDisabled();
@@ -142,14 +144,14 @@ test("keeps the builder and optimizer usable on a mobile viewport", async ({ pag
         })
     );
 
-    await page.goto("/");
+    await page.goto("/kreator");
 
     await expect(page.getByRole("heading", { name: "Ekwipunek" })).toBeVisible();
     await expect(page.locator(".builder-equipment-column")).toHaveCSS("order", "1");
     await expect(page.locator(".builder-database-column")).toHaveCSS("order", "2");
     await expect(page.locator("html")).toHaveJSProperty("scrollWidth", 390);
 
-    await page.getByRole("button", { name: /Optymalizator drifów/ }).click();
+    await page.getByRole("link", { name: /Optymalizator drifów/ }).click();
 
     await expect(page.locator(".optimizer-overview dl")).toHaveCSS(
         "grid-template-columns",
@@ -179,7 +181,7 @@ test("constrains the item database to the equipment workbench height", async ({ 
         })
     );
 
-    await page.goto("/");
+    await page.goto("/kreator");
 
     const databaseColumn = page.locator(".builder-database-column");
     const equipmentColumn = page.locator(".builder-equipment-column");

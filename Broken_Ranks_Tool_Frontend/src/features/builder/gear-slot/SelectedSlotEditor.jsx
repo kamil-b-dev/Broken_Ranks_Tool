@@ -16,7 +16,6 @@ const SelectedSlotEditor = ({
                 <p className="section-kicker">Edytowany slot</p>
                 <h3>{model.activeSlot.label}</h3>
             </div>
-            <span>{model.activeItem?.name || "Brak wybranego przedmiotu"}</span>
         </div>
         <div className="selected-slot-editor-content">
             {SLOTS.map((slot) => (

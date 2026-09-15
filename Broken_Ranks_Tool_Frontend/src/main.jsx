@@ -12,6 +12,7 @@ import "./features/builder/styles/builder-controls.css";
 import "./features/builder/styles/builder-responsive.css";
 import "./shared/styles/scrollbars.css";
 import "./styles/themes.css";
+import "./styles/home.css";
 import "./features/optimizer/styles/optimizer-shell.css";
 import "./features/optimizer/styles/optimizer-goals.css";
 import "./features/optimizer/styles/optimizer-report.css";

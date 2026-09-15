@@ -57,7 +57,8 @@ final class OptimizationVariantSummaryFactory {
                 0.0,
                 List.of(),
                 List.of(),
-                setupMapper.toSetup(finalState, context));
+                setupMapper.toSetup(finalState, context),
+                calculatorAdapter.calculationResult(finalState, context));
     }
 
     private List<OptimizationVariantSelectionPolicy.Candidate> variantCandidates(
@@ -104,7 +105,8 @@ final class OptimizationVariantSummaryFactory {
                 candidate.score(),
                 candidate.changes(),
                 diffAnalyzer.statChanges(finalState, candidate.state(), context),
-                setupMapper.toSetup(candidate.state(), context));
+                setupMapper.toSetup(candidate.state(), context),
+                calculatorAdapter.calculationResult(candidate.state(), context));
     }
 
     private double totalLoss(

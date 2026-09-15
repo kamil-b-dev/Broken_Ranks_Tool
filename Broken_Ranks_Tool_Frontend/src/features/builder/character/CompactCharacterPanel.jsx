@@ -4,14 +4,32 @@ const CompactCharacterPanel = ({ development }) => (
     <section className="character-summary" aria-label="Rozwój bohatera">
         <div className="character-level-control">
             <span>Poziom</span>
-            <input
-                type="number"
-                min="1"
-                max="140"
-                value={development.level}
-                onChange={(event) => development.changeLevel(event.target.value)}
-                aria-label="Poziom postaci"
-            />
+            <div className="character-level-stepper">
+                <button
+                    type="button"
+                    onClick={() => development.changeLevel(development.level - 1)}
+                    disabled={development.level <= 1}
+                    aria-label="Zmniejsz poziom postaci"
+                >
+                    −
+                </button>
+                <input
+                    type="number"
+                    min="1"
+                    max="140"
+                    value={development.level}
+                    onChange={(event) => development.changeLevel(event.target.value)}
+                    aria-label="Poziom postaci"
+                />
+                <button
+                    type="button"
+                    onClick={() => development.changeLevel(development.level + 1)}
+                    disabled={development.level >= 140}
+                    aria-label="Zwiększ poziom postaci"
+                >
+                    +
+                </button>
+            </div>
         </div>
         <div
             className="character-stat-strip custom-scrollbar"

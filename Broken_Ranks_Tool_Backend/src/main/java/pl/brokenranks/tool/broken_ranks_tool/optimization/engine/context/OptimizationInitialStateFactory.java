@@ -18,9 +18,12 @@ public final class OptimizationInitialStateFactory {
         BuildState state = new BuildState();
         for (SlotContext slot : context.slots()) {
             List<Placement> placements =
-                    mustPreserveEntireSlot(slot, context)
-                            ? readOriginalPlacements(slot, context)
-                            : createUnlockedPlacements(slot, context);
+                    slot.special()
+                            ? readOriginalPlacements(
+                                    slot, context, !isEntireSlotLocked(slot, context))
+                            : isEntireSlotLocked(slot, context) || !slot.optimizable()
+                                    ? readOriginalPlacements(slot, context, false)
+                                    : createUnlockedPlacements(slot, context);
             state.slots().put(slot.key(), placements);
         }
         return state;
@@ -43,7 +46,8 @@ public final class OptimizationInitialStateFactory {
         return placements;
     }
 
-    private List<Placement> readOriginalPlacements(SlotContext slot, OptimizationContext context) {
+    private List<Placement> readOriginalPlacements(
+            SlotContext slot, OptimizationContext context, boolean maximizeLevels) {
         List<Long> ids =
                 slot.original().getDrifIds() != null ? slot.original().getDrifIds() : List.of();
         List<Placement> placements = new ArrayList<>();
@@ -51,21 +55,30 @@ public final class OptimizationInitialStateFactory {
             Long id = ids.get(index);
             placements.add(
                     id != null && context.drifs().containsKey(id)
-                            ? originalPlacement(slot, index, context)
+                            ? originalPlacement(slot, index, context, maximizeLevels)
                             : null);
         }
         return placements;
     }
 
     private Placement originalPlacement(SlotContext slot, int index, OptimizationContext context) {
+        return originalPlacement(slot, index, context, false);
+    }
+
+    private Placement originalPlacement(
+            SlotContext slot, int index, OptimizationContext context, boolean maximizeLevel) {
         List<Long> ids = slot.original().getDrifIds();
         if (ids == null || index >= ids.size() || ids.get(index) == null) return null;
         DrifTemplate drif = context.drifs().get(ids.get(index));
         if (drif == null) return null;
         int level =
-                slot.original().getDrifLevels() != null
-                        ? slot.original().getDrifLevels().getOrDefault(String.valueOf(index), 1)
-                        : 1;
+                maximizeLevel && drif.getSize() != null
+                        ? drif.getSize().getMaxLevel()
+                        : slot.original().getDrifLevels() != null
+                                ? slot.original()
+                                        .getDrifLevels()
+                                        .getOrDefault(String.valueOf(index), 1)
+                                : 1;
         return new Placement(drif, levelPolicy.sanitizeDrifLevel(level, drif), true);
     }
 
@@ -77,9 +90,8 @@ public final class OptimizationInitialStateFactory {
                 .orElse(-1);
     }
 
-    private boolean mustPreserveEntireSlot(SlotContext slot, OptimizationContext context) {
-        return !slot.optimizable()
-                || context.request().getLockedSlots() != null
-                        && context.request().getLockedSlots().contains(slot.key());
+    private boolean isEntireSlotLocked(SlotContext slot, OptimizationContext context) {
+        return context.request().getLockedSlots() != null
+                && context.request().getLockedSlots().contains(slot.key());
     }
 }

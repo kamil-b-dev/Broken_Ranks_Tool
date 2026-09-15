@@ -6,6 +6,7 @@ describe("createEquipmentOptimizationRequest", () => {
         const slots = { helmet: { itemId: 7 } };
         const request = createEquipmentOptimizationRequest({
             slots,
+            characterStats: { Siła: 100 },
             configuration: {
                 priorities: { CRITICAL_CHANCE: 20 },
                 forceMaximizationByDrifBonus: 1,
@@ -19,6 +20,7 @@ describe("createEquipmentOptimizationRequest", () => {
         expect(request).toEqual({
             mode: "BUILD_FROM_SCRATCH",
             originalSlots: slots,
+            characterStats: { Siła: 100 },
             priorities: { CRITICAL_CHANCE: 20 },
             targetQuantities: {},
             forceCapBonuses: [],

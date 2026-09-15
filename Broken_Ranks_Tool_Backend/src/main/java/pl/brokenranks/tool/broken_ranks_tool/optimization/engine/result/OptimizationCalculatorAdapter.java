@@ -5,6 +5,7 @@ import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.Op
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.CalculationResultDto;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCalculatorService;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
@@ -48,6 +49,10 @@ final class OptimizationCalculatorAdapter {
         } catch (RuntimeException exception) {
             return Map.of();
         }
+    }
+
+    CalculationResultDto calculationResult(BuildState state, OptimizationContext context) {
+        return calculatorService.calculateWithSources(setupMapper.toSetup(state, context));
     }
 
     double parseValue(String value) {

@@ -68,6 +68,7 @@ describe("App", () => {
     beforeEach(() => {
         vi.clearAllMocks();
         localStorage.clear();
+        window.history.replaceState(null, "", "/kreator");
         useEquipment.mockReturnValue(equipment);
     });
 
@@ -82,15 +83,15 @@ describe("App", () => {
             "#workspace-content"
         );
         expect(screen.getByRole("heading", { name: "Ekwipunek" })).toBeInTheDocument();
-        expect(screen.getByRole("button", { name: /Kreator ekwipunku/i })).toHaveAttribute(
+        expect(screen.getByRole("link", { name: /Kreator ekwipunku/i })).toHaveAttribute(
             "aria-current",
             "page"
         );
 
         expect(screen.getByRole("region", { name: /Rozwój bohatera/i })).toBeInTheDocument();
         expect(screen.getByRole("spinbutton", { name: /Poziom postaci/i })).toBeInTheDocument();
-        await user.click(screen.getByRole("button", { name: /Optymalizator drifów/i }));
-        expect(screen.getByRole("button", { name: /Optymalizator drifów/i })).toHaveAttribute(
+        await user.click(screen.getByRole("link", { name: /Optymalizator drifów/i }));
+        expect(screen.getByRole("link", { name: /Optymalizator drifów/i })).toHaveAttribute(
             "aria-current",
             "page"
         );
@@ -101,8 +102,8 @@ describe("App", () => {
             screen.queryByRole("button", { name: /Przelicz statystyki/i })
         ).not.toBeInTheDocument();
 
-        await user.click(screen.getByRole("button", { name: /Kreator ekwipunku/i }));
-        expect(screen.getByText("Ustawienia budowania")).not.toBeVisible();
+        await user.click(screen.getByRole("link", { name: /Kreator ekwipunku/i }));
+        expect(screen.queryByText("Ustawienia budowania")).not.toBeInTheDocument();
         await user.click(screen.getByRole("button", { name: /Zapisz lokalnie/i }));
         await user.click(screen.getByRole("button", { name: /Przelicz statystyki/i }));
         expect(
@@ -111,8 +112,8 @@ describe("App", () => {
         expect(equipment.saveBuildToFile).not.toHaveBeenCalled();
         expect(equipment.calculateStats).toHaveBeenCalledOnce();
 
-        await user.click(screen.getByRole("button", { name: /Optymalizator drifów/i }));
-        expect(screen.getByPlaceholderText("Szukaj statystyki...")).toHaveValue("krytyk");
+        await user.click(screen.getByRole("link", { name: /Optymalizator drifów/i }));
+        expect(window.location.pathname).toBe("/optymalizator");
     }, 20000);
 
     it("loads a selected build and reports success and failure without blocking alerts", async () => {
@@ -142,7 +143,7 @@ describe("App", () => {
         render(<App />);
 
         await user.click(screen.getByRole("button", { name: /Zapisz lokalnie/i }));
-        await user.click(screen.getByRole("button", { name: /Buildy lokalne/i }));
+        await user.click(screen.getByRole("link", { name: /Buildy lokalne/i }));
         expect(screen.getByRole("heading", { name: "Buildy lokalne" })).toBeInTheDocument();
         const nameInput = screen.getByLabelText("Zmień nazwę lokalnego buildu");
         await user.clear(nameInput);
@@ -165,7 +166,7 @@ describe("App", () => {
 
         await user.click(screen.getByRole("button", { name: /Zapisz lokalnie/i }));
         expect(screen.getByRole("status")).toHaveTextContent("Zapisano lokalnie");
-        await user.click(screen.getByRole("button", { name: /Buildy lokalne/i }));
+        await user.click(screen.getByRole("link", { name: /Buildy lokalne/i }));
         await user.click(screen.getByRole("button", { name: "Eksportuj JSON" }));
         expect(downloadBuildPayload).toHaveBeenCalledWith(
             expect.objectContaining({ format: "broken-ranks-tool-build" })
@@ -190,7 +191,38 @@ describe("App", () => {
 
         expect(screen.getByRole("status")).toHaveTextContent("Ładowanie danych gry");
         expect(screen.queryByRole("heading", { name: "Ekwipunek" })).not.toBeInTheDocument();
-        expect(screen.getByRole("button", { name: /Optymalizator drifów/i })).toBeDisabled();
+        expect(screen.getByRole("link", { name: /Optymalizator drifów/i })).toHaveAttribute(
+            "aria-disabled",
+            "true"
+        );
+    });
+
+    it("supports direct routes and browser history", async () => {
+        window.history.replaceState(null, "", "/optymalizator");
+        const user = userEvent.setup();
+        render(<App />);
+
+        expect(screen.getByText("Ustawienia budowania")).toBeInTheDocument();
+        expect(screen.queryByRole("heading", { name: "Ekwipunek" })).not.toBeInTheDocument();
+
+        await user.click(screen.getByRole("link", { name: /Buildy lokalne/i }));
+        expect(window.location.pathname).toBe("/buildy");
+        window.history.back();
+        window.dispatchEvent(new PopStateEvent("popstate"));
+        expect(await screen.findByText("Ustawienia budowania")).toBeInTheDocument();
+    });
+
+    it("renders the home page at the root and opens a selected tool", async () => {
+        window.history.replaceState(null, "", "/");
+        const user = userEvent.setup();
+        render(<App />);
+
+        expect(screen.getAllByRole("heading", { name: "Broken Ranks Tool" })).toHaveLength(2);
+        expect(screen.queryByText("Warsztat świadomych wyborów")).not.toBeInTheDocument();
+        await user.click(screen.getByRole("link", { name: /Kreator ekwipunku/i }));
+
+        expect(window.location.pathname).toBe("/kreator");
+        expect(screen.getByRole("heading", { name: "Ekwipunek" })).toBeVisible();
     });
 
     it("keeps optimizer lock controls out of the manual builder", async () => {
