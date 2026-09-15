@@ -26,7 +26,7 @@ function App() {
 
     return (
         <div
-            className={`app-shell app-shell-${mainView} mx-auto flex min-h-screen w-full max-w-[1920px] flex-col gap-4 p-4 md:p-6 xl:gap-5 xl:p-8`}
+            className={`app-shell app-shell-${mainView} flex min-h-screen w-full max-w-none flex-col gap-4 p-4 md:p-6 xl:gap-5 xl:p-8`}
         >
             <a className="skip-link" href="#workspace-content">
                 Przejdź do głównej treści
