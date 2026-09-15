@@ -7,6 +7,7 @@ import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.Op
 import java.util.*;
 import org.junit.jupiter.api.Test;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.CalculationResultDto;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
@@ -25,14 +26,17 @@ class OptimizationVariantSummaryFactoryTests {
         OptimizationContext context = context(request);
         BuildState main = new BuildState();
         EquipmentRequest setup = new EquipmentRequest();
+        CalculationResultDto calculation =
+                new CalculationResultDto(Map.of("Siła", "100"), Map.of(), Set.of());
         when(mapper.toSetup(main, context)).thenReturn(setup);
+        when(calculator.calculationResult(main, context)).thenReturn(calculation);
 
         var result = factory.create(main, List.of(), context);
 
         assertEquals(1, result.size());
         assertTrue(result.getFirst().main());
         assertSame(setup, result.getFirst().setup());
-        verifyNoInteractions(calculator);
+        assertSame(calculation, result.getFirst().calculationResult());
     }
 
     @Test

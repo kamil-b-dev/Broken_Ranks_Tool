@@ -5,6 +5,7 @@ import static pl.brokenranks.tool.broken_ranks_tool.optimization.advisor.Advisor
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.CalculationResultDto;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCalculatorService;
 
 /** Verifies approximate candidates with the authoritative equipment calculator. */
@@ -21,12 +22,13 @@ final class AdvisorFinalistVerifier {
         for (AdvisorSearch.Node candidate : diversify(candidates)) {
             if (checks >= 18 || System.nanoTime() >= deadline) break;
             checks++;
-            Map<String, String> actual =
-                    calculator.calculateTotalStats(model.setup(candidate.slots()));
+            CalculationResultDto calculation =
+                    calculator.calculateWithSources(model.setup(candidate.slots()));
+            Map<String, String> actual = calculation.stats();
             double[] stats = parsed(actual);
             if (search.deficit(stats) > AdvisorSearch.EPSILON
                     || search.gain(stats) <= AdvisorSearch.EPSILON) continue;
-            verified.add(new Verified(withStats(candidate, stats), actual));
+            verified.add(new Verified(withStats(candidate, stats), calculation));
         }
         verified.sort((a, b) -> search.ranking().compare(a.node(), b.node()));
         List<Verified> all = List.copyOf(verified);
@@ -92,5 +94,9 @@ final class AdvisorFinalistVerifier {
                         || a.actions().size() < b.actions().size());
     }
 
-    record Verified(AdvisorSearch.Node node, Map<String, String> stats) {}
+    record Verified(AdvisorSearch.Node node, CalculationResultDto calculation) {
+        Map<String, String> stats() {
+            return calculation.stats();
+        }
+    }
 }
