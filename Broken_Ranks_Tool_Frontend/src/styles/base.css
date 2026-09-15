@@ -432,11 +432,6 @@ input:focus-visible {
     stroke-width: 1.35;
 }
 
-.main-switch-library-icon {
-    color: #bc8842;
-    filter: drop-shadow(0 0 0.18rem rgba(188, 136, 66, 0.18));
-}
-
 .main-switch a:hover .main-switch-icon,
 .main-switch a[aria-current="page"] .main-switch-icon {
     opacity: 1;

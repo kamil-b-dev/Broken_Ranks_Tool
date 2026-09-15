@@ -1,6 +1,8 @@
 import crest from "../../assets/broken-ranks-crest.webp";
 import drifOptimizerIcon from "../../assets/navigation-icons/drif-optimizer.png";
 import equipmentBuilderIcon from "../../assets/navigation-icons/equipment-builder.png";
+import homeIcon from "../../assets/navigation-icons/home.png";
+import localBuildsIcon from "../../assets/navigation-icons/local-builds.png";
 import { APP_ROUTES } from "../useAppRoute";
 
 const AppHeader = ({
@@ -38,10 +40,8 @@ const AppHeader = ({
                 aria-current={activeView === "home" ? "page" : undefined}
                 className={`flex-1 border-b-2 px-4 py-3 text-xs font-bold uppercase tracking-[0.15em] transition-all ${activeView === "home" ? "border-amber-700 bg-stone-900/90 text-stone-100 shadow-inner" : "border-transparent text-stone-500 hover:bg-stone-900/50 hover:text-stone-200"}`}
             >
-                <span className="main-switch-icon main-switch-home-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24">
-                        <path d="m3 11 9-8 9 8M5.5 9.5V21h13V9.5M9 21v-7h6v7" />
-                    </svg>
+                <span className="main-switch-icon" aria-hidden="true">
+                    <img src={homeIcon} alt="" draggable="false" />
                 </span>
                 <span className="main-switch-label">Strona główna</span>
             </a>
@@ -85,10 +85,8 @@ const AppHeader = ({
                 aria-current={activeView === "builds" ? "page" : undefined}
                 className={`flex-1 border-b-2 px-4 py-3 text-xs font-bold uppercase tracking-[0.15em] transition-all ${activeView === "builds" ? "border-amber-600 bg-amber-950/25 text-amber-200 shadow-inner" : "border-transparent text-stone-500 hover:bg-stone-900/50 hover:text-stone-200"}`}
             >
-                <span className="main-switch-icon main-switch-library-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M5 5.5h10.5v13H5zM8.5 2.5H19v13h-3.5M8 9h4.5M8 12h4.5M8 15h3" />
-                    </svg>
+                <span className="main-switch-icon" aria-hidden="true">
+                    <img src={localBuildsIcon} alt="" draggable="false" />
                 </span>
                 <span className="main-switch-label">
                     Buildy lokalne
