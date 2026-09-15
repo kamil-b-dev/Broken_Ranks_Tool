@@ -198,7 +198,9 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                 return;
             }
         }
-        if (applyOptimizationSetup(variant?.setup)) setActiveVariantIndex(variantIndex);
+        if (applyOptimizationSetup(variant?.setup, variant?.calculationResult)) {
+            setActiveVariantIndex(variantIndex);
+        }
     };
 
     return (

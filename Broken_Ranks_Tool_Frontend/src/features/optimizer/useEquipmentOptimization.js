@@ -10,7 +10,14 @@ const failureMessage = (error) =>
     (error.code === "ECONNABORTED" ? "Przekroczono limit czasu optymalizacji." : error.message);
 
 /** Owns a single optimizer request and explicit application of advisor recommendations. */
-export const useEquipmentOptimization = ({ slots, setRequestData, lockedSlots, lockedDrifs }) => {
+export const useEquipmentOptimization = ({
+    requestData,
+    setRequestData,
+    restoreStats,
+    lockedSlots,
+    lockedDrifs,
+}) => {
+    const slots = requestData?.slots;
     const [optimizationTrigger, setOptimizationTrigger] = useState(0);
     const activeAdvisor = useRef(null);
     const markEquipmentChanged = useCallback(
@@ -18,13 +25,21 @@ export const useEquipmentOptimization = ({ slots, setRequestData, lockedSlots, l
         []
     );
     const applyOptimizationSetup = useCallback(
-        (setup) => {
+        (setup, calculationResult = null) => {
             if (!setup?.slots) return false;
-            setRequestData((previous) => ({ ...previous, slots: setup.slots }));
+            const nextRequestData = {
+                ...requestData,
+                slots: setup.slots,
+                characterStats: setup.characterStats || requestData?.characterStats || {},
+            };
+            setRequestData(nextRequestData);
+            if (calculationResult?.stats) {
+                restoreStats?.(calculationResult.stats, calculationResult, nextRequestData);
+            }
             markEquipmentChanged();
             return true;
         },
-        [markEquipmentChanged, setRequestData]
+        [markEquipmentChanged, requestData, restoreStats, setRequestData]
     );
 
     const cancelDrifOptimization = useCallback(async () => {
@@ -44,6 +59,7 @@ export const useEquipmentOptimization = ({ slots, setRequestData, lockedSlots, l
             let advisorRunId = null;
             const request = createEquipmentOptimizationRequest({
                 slots,
+                characterStats: requestData?.characterStats,
                 configuration,
                 lockedSlots,
                 lockedDrifs,
@@ -54,7 +70,7 @@ export const useEquipmentOptimization = ({ slots, setRequestData, lockedSlots, l
                 activeAdvisor.current = advisorRunId;
             }
             try {
-                const { optimizedSetup, summary, advisorReport } =
+                const { optimizedSetup, summary, advisorReport, calculationResult } =
                     await optimizeEquipmentDrifs(request);
                 if (advisory) {
                     return {
@@ -90,7 +106,8 @@ export const useEquipmentOptimization = ({ slots, setRequestData, lockedSlots, l
                 );
                 return {
                     ...summary,
-                    applied: hasEquipment && applyOptimizationSetup(optimizedSetup),
+                    applied:
+                        hasEquipment && applyOptimizationSetup(optimizedSetup, calculationResult),
                 };
             } catch (error) {
                 console.error("Błąd optymalizacji drifów:", error);
@@ -99,7 +116,7 @@ export const useEquipmentOptimization = ({ slots, setRequestData, lockedSlots, l
                 if (activeAdvisor.current === advisorRunId) activeAdvisor.current = null;
             }
         },
-        [slots, lockedSlots, lockedDrifs, applyOptimizationSetup]
+        [slots, requestData?.characterStats, lockedSlots, lockedDrifs, applyOptimizationSetup]
     );
 
     return {

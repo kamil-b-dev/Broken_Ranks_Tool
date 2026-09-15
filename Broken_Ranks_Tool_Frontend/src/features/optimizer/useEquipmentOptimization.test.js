@@ -15,15 +15,18 @@ afterEach(() => {
 
 const renderOptimization = (slots = {}) => {
     const setRequestData = vi.fn();
+    const restoreStats = vi.fn();
+    const requestData = { slots, characterStats: { Moc: 135 } };
     const hook = renderHook(() =>
         useEquipmentOptimization({
-            slots,
+            requestData,
             setRequestData,
+            restoreStats,
             lockedSlots: ["helmet"],
             lockedDrifs: { helmet: [0] },
         })
     );
-    return { ...hook, setRequestData };
+    return { ...hook, setRequestData, restoreStats, requestData };
 };
 
 describe("useEquipmentOptimization", () => {
@@ -41,11 +44,19 @@ describe("useEquipmentOptimization", () => {
 
     it("sends locks, applies the optimized setup, and signals a refresh", async () => {
         const optimizedSetup = { slots: { helmet: { itemId: 9 } } };
+        const calculationResult = {
+            stats: { Moc: "135", CRITICAL_CHANCE: "9%" },
+            drifCategories: { CRITICAL_CHANCE: "OFFENSIVE" },
+            orbBonusTypes: [],
+        };
         optimizeEquipmentDrifs.mockResolvedValue({
             optimizedSetup,
             summary: { success: true },
+            calculationResult,
         });
-        const { result, setRequestData } = renderOptimization({ helmet: { itemId: 7 } });
+        const { result, setRequestData, restoreStats } = renderOptimization({
+            helmet: { itemId: 7 },
+        });
 
         let response;
         await act(async () => {
@@ -55,12 +66,22 @@ describe("useEquipmentOptimization", () => {
         expect(optimizeEquipmentDrifs).toHaveBeenCalledWith(
             expect.objectContaining({
                 originalSlots: { helmet: { itemId: 7 } },
+                characterStats: { Moc: 135 },
                 lockedSlots: ["helmet"],
                 lockedDrifs: { helmet: [0] },
             })
         );
         expect(response).toEqual({ success: true, applied: true });
-        expect(setRequestData).toHaveBeenCalledWith(expect.any(Function));
+        const nextRequestData = {
+            slots: optimizedSetup.slots,
+            characterStats: { Moc: 135 },
+        };
+        expect(setRequestData).toHaveBeenCalledWith(nextRequestData);
+        expect(restoreStats).toHaveBeenCalledWith(
+            calculationResult.stats,
+            calculationResult,
+            nextRequestData
+        );
         expect(result.current.optimizationTrigger).toBe(1);
     });
 
@@ -84,10 +105,9 @@ describe("useEquipmentOptimization", () => {
         });
 
         expect(response).toEqual({ ...summary, applied: true });
-        const previous = { slots: {}, characterStats: { Moc: 135 } };
-        expect(setRequestData.mock.calls[0][0](previous)).toEqual({
-            ...previous,
+        expect(setRequestData).toHaveBeenCalledWith({
             slots: optimizedSetup.slots,
+            characterStats: { Moc: 135 },
         });
         expect(result.current.optimizationTrigger).toBe(1);
     });

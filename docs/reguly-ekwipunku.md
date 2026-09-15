@@ -116,7 +116,9 @@ Capy i bazowe moce są zapisane w `DRIF_BONUS_TYPE`; nie każdy typ ma cap. Redu
 
 Kalkulator uwzględnia również źródła inne niż drify: statystyki przedmiotów, orby, dane postaci i domyślne 2% krytyka oraz po 5% regeneracji many i kondycji. Cel procentowy trzeba odnosić do właściwej sumy, nie wyłącznie do wkładu przekładanych drifów.
 
-Tryb optymalizacji „od zera” przekazuje bazowe statystyki postaci do kalkulatora oraz zachowuje je w wynikowym zestawie i wariantach. Wynik zawiera niezależną kopię tych danych, aby jego późniejsza edycja nie zmieniała żądania wejściowego.
+Bazowe statystyki postaci nie wpływają na samo wyszukiwanie układu drifów ani jego ocenę przez algorytm optymalizatora. Są natomiast potrzebne do końcowego przeliczenia całego zestawu przez serwis kalkulatora ekwipunku.
+
+Odpowiedź optymalizatora powinna zawierać statystyki końcowego zestawu obliczone z uwzględnieniem bazowych statystyk postaci. Dotyczy to wyniku trybu „od zera” oraz każdego zwróconego wariantu Doradcy. Frontend wykorzystuje wynik odpowiadający zastosowanemu układowi, bez wymagania od użytkownika ponownego kliknięcia „Przelicz statystyki” i wysyłania drugiego żądania do serwera. Jest to wymaganie dotyczące integracji wyników optymalizacji z kalkulatorem, a nie reguła wpływająca na dobór drifów.
 
 ## 7. Orby
 
