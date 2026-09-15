@@ -30,7 +30,6 @@ const StatsPanel = ({
                 className={`flex flex-col gap-4 border-b-4 border-double border-red-900/70 pb-4 ${compact ? "mb-4" : "mb-6 md:flex-row md:items-end md:justify-between"}`}
             >
                 <div>
-                    <p className="section-kicker">Wynik konfiguracji</p>
                     <h3
                         className={`${compact ? "text-lg" : "text-xl md:text-2xl"} font-serif font-bold text-stone-200 uppercase tracking-[0.18em] drop-shadow-[0_2px_5px_rgba(0,0,0,1)]`}
                     >
