@@ -23,7 +23,7 @@ public final class OptimizationInitialStateFactory {
                                     slot, context, !isEntireSlotLocked(slot, context))
                             : isEntireSlotLocked(slot, context) || !slot.optimizable()
                                     ? readOriginalPlacements(slot, context, false)
-                            : createUnlockedPlacements(slot, context);
+                                    : createUnlockedPlacements(slot, context);
             state.slots().put(slot.key(), placements);
         }
         return state;
@@ -66,19 +66,19 @@ public final class OptimizationInitialStateFactory {
     }
 
     private Placement originalPlacement(
-            SlotContext slot,
-            int index,
-            OptimizationContext context,
-            boolean maximizeLevel) {
+            SlotContext slot, int index, OptimizationContext context, boolean maximizeLevel) {
         List<Long> ids = slot.original().getDrifIds();
         if (ids == null || index >= ids.size() || ids.get(index) == null) return null;
         DrifTemplate drif = context.drifs().get(ids.get(index));
         if (drif == null) return null;
-        int level = maximizeLevel && drif.getSize() != null
-                ? drif.getSize().getMaxLevel()
-                : slot.original().getDrifLevels() != null
-                        ? slot.original().getDrifLevels().getOrDefault(String.valueOf(index), 1)
-                        : 1;
+        int level =
+                maximizeLevel && drif.getSize() != null
+                        ? drif.getSize().getMaxLevel()
+                        : slot.original().getDrifLevels() != null
+                                ? slot.original()
+                                        .getDrifLevels()
+                                        .getOrDefault(String.valueOf(index), 1)
+                                : 1;
         return new Placement(drif, levelPolicy.sanitizeDrifLevel(level, drif), true);
     }
 

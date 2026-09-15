@@ -87,8 +87,7 @@ public class AdvisorOptimizationService {
             List<AdvisorSearch.Node> candidates = new ArrayList<>(search.run(slots));
             List<AdvisorFinalistVerifier.Verified> selected =
                     finalistVerifier.verify(candidates, model, search, calculator, deadline);
-            return responses.success(
-                    model, search, slots, baselineCalculation, selected, started);
+            return responses.success(model, search, slots, baselineCalculation, selected, started);
         } finally {
             runs.finish(runId);
         }
