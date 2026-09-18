@@ -1,6 +1,7 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -15,11 +16,19 @@ class StatsAccumulatorTests {
 
         accumulator.addRawValue("Damage", "10,25%", 2.0);
         accumulator.addRawValue("Armor", "3", 1.0);
-        accumulator.addRawValue("Armor", "not-a-number", 1.0);
         accumulator.addFlatValue("Armor", 1.5);
 
         assertEquals("20.5%", accumulator.getFormattedResults().get("Damage"));
         assertEquals("4.5", accumulator.getFormattedResults().get("Armor"));
+    }
+
+    @Test
+    void rejectsMalformedValuesInsteadOfSilentlyDroppingThem() {
+        StatsAccumulator accumulator = new StatsAccumulator();
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> accumulator.addRawValue("Armor", "not-a-number", 1.0));
     }
 
     @Test

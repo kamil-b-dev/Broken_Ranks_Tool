@@ -60,6 +60,11 @@ public class AdvisorOptimizationService {
         try {
             AdvisorEquipmentModel model = createModel(request, loadTemplates());
             Map<String, SlotData> slots = copySlots(request.getOriginalSlots());
+            if (!validSlotAndLockReferences(request, slots)) {
+                return responses.failure(
+                        "Popraw obecny build: pusty slot nie może zawierać kamieni, a blokady muszą wskazywać istniejące drify.",
+                        started);
+            }
             slots.entrySet()
                     .removeIf(
                             entry ->
@@ -91,6 +96,50 @@ public class AdvisorOptimizationService {
         } finally {
             runs.finish(runId);
         }
+    }
+
+    private boolean validSlotAndLockReferences(
+            OptimizationRequest request, Map<String, SlotData> slots) {
+        for (var entry : slots.entrySet()) {
+            String key = entry.getKey();
+            SlotData slot = entry.getValue();
+            if (key == null || !rules.getSlotItemRules().containsKey(key) || slot == null) {
+                return false;
+            }
+            if (slot.getItemId() == null && hasStonePayload(slot)) return false;
+        }
+        if (request.getLockedSlots() != null) {
+            for (String key : request.getLockedSlots()) {
+                if (!equipped(slots.get(key))) return false;
+            }
+        }
+        if (request.getLockedDrifs() != null) {
+            for (var entry : request.getLockedDrifs().entrySet()) {
+                SlotData slot = slots.get(entry.getKey());
+                if (!equipped(slot) || entry.getValue() == null) return false;
+                List<Long> ids = slot.getDrifIds() != null ? slot.getDrifIds() : List.of();
+                for (Integer index : entry.getValue()) {
+                    if (index == null || index < 0 || index >= ids.size() || ids.get(index) == null)
+                        return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private boolean equipped(SlotData slot) {
+        return slot != null && slot.getItemId() != null;
+    }
+
+    private boolean hasStonePayload(SlotData slot) {
+        boolean hasDrif =
+                slot.getDrifIds() != null
+                                && slot.getDrifIds().stream().anyMatch(java.util.Objects::nonNull)
+                        || slot.getDrifLevels() != null && !slot.getDrifLevels().isEmpty();
+        boolean hasOrb =
+                slot.getOrbIds() != null
+                        && slot.getOrbIds().stream().anyMatch(java.util.Objects::nonNull);
+        return hasDrif || hasOrb;
     }
 
     private CalculationContext loadTemplates() {

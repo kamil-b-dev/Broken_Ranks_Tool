@@ -46,6 +46,8 @@ final class AdvisorEquipmentValidator {
                 rules.EPIC_BUILTIN_DRIFS.getOrDefault(
                         Objects.toString(item.getName(), "").replaceFirst("\\s+[IVX]+$", ""),
                         List.of());
+        if (model.special(slot) && size(slot) != builtins.size()) return false;
+        if (!validDrifLevelKeys(slot)) return false;
         for (int i = 0; i < size(slot); i++) {
             if (id(slot, i) == null) continue;
             DrifTemplate drif = model.templates.drifs().get(id(slot, i));
@@ -75,6 +77,7 @@ final class AdvisorEquipmentValidator {
     private boolean validOrbs(String key, SlotData slot, ItemTemplate item) {
         List<Long> orbIds = slot.getOrbIds() == null ? List.of() : slot.getOrbIds();
         if (orbIds.size() > (item.getRarity() == RARITY.LEGENDARY ? 2 : 1)) return false;
+        if (slot.getOrbLevels() != null && slot.getOrbLevels().size() > orbIds.size()) return false;
         Set<ORB_BONUS_TYPE> types = new HashSet<>();
         boolean gap = false;
         for (int i = 0; i < orbIds.size(); i++) {
@@ -83,13 +86,34 @@ final class AdvisorEquipmentValidator {
                 continue;
             }
             OrbTemplate orb = model.templates.orbs().get(orbIds.get(i));
+            if (slot.getOrbLevels() != null
+                    && i < slot.getOrbLevels().size()
+                    && slot.getOrbLevels().get(i) == null) return false;
             int level = orbLevel(slot, i);
             if (gap
                     || !model.placement.isValidOrb(orb, key, item, i > 0)
+                    || !model.placement.isValidOrbSizeForTier(orb, item)
                     || orb.getSize() == null
                     || level < 1
                     || level > orb.getSize().getMaxLevel()
                     || !types.add(orb.getBonusType())) return false;
+        }
+        return true;
+    }
+
+    private boolean validDrifLevelKeys(SlotData slot) {
+        if (slot.getDrifLevels() == null) return true;
+        for (var entry : slot.getDrifLevels().entrySet()) {
+            try {
+                int index = Integer.parseInt(entry.getKey());
+                if (index >= 0
+                        && index < size(slot)
+                        && id(slot, index) != null
+                        && entry.getValue() != null) continue;
+            } catch (NumberFormatException ignored) {
+                // Invalid keys are rejected below.
+            }
+            return false;
         }
         return true;
     }

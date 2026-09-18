@@ -64,6 +64,12 @@ final class OptimizationVariantContextFactory {
 
     private OptimizationRequest copyRequest(OptimizationRequest source) {
         OptimizationRequest copy = new OptimizationRequest();
+        copy.setMode(source.getMode());
+        copy.setAdvisor(source.getAdvisor());
+        copy.setCharacterStats(
+                source.getCharacterStats() != null
+                        ? new HashMap<>(source.getCharacterStats())
+                        : null);
         copy.setOriginalSlots(source.getOriginalSlots());
         copy.setPriorities(source.getPriorities());
         copy.setTargetQuantities(source.getTargetQuantities());

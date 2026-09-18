@@ -20,6 +20,27 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.*;
 /** Advisor actions, upgrades, locks, and catalogue replacement scenarios. */
 class AdvisorOptimizationActionTests extends AdvisorOptimizationTestSupport {
     @Test
+    void rejectsOrphanedStonesAndInvalidLockReferences() {
+        Fixture f =
+                fixture(
+                        List.of(item(1, ITEM_CATEGORY.HELMET, "I", 4, 0)),
+                        List.of(drif(10, A, "2%")));
+
+        SlotData emptyWithDrif = slot(1, 1, 10L);
+        emptyWithDrif.setItemId(null);
+        var orphaned = f.service.optimize(request(A, Map.of("helmet", emptyWithDrif)));
+        assertFalse(orphaned.getSummary().isSuccess());
+
+        OptimizationRequest unknownSlotLock = request(A, Map.of("helmet", slot(1, 1, 10L)));
+        unknownSlotLock.setLockedSlots(Set.of("armor"));
+        assertFalse(f.service.optimize(unknownSlotLock).getSummary().isSuccess());
+
+        OptimizationRequest missingDrifLock = request(A, Map.of("helmet", slot(1, 1, 10L)));
+        missingDrifLock.setLockedDrifs(Map.of("helmet", Set.of(1)));
+        assertFalse(f.service.optimize(missingDrifLock).getSummary().isSuccess());
+    }
+
+    @Test
     void movesOwnedSmallDrifWithoutBuyingLargerCatalogTemplate() {
         Fixture f =
                 fixture(

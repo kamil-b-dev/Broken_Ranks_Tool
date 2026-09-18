@@ -22,7 +22,11 @@ public class EquipmentPlacementRules {
     }
 
     public boolean isValidDrif(DrifTemplate drif) {
-        return drif != null && drif.getBonusType() != null;
+        return drif != null
+                && drif.getBonusType() != null
+                && drif.getSize() != null
+                && isModifierNumber(drif.getBaseValue())
+                && isModifierNumber(drif.getIncrement());
     }
 
     public boolean isValidOrb(OrbTemplate orb, String slot, ItemTemplate item, boolean second) {
@@ -45,11 +49,43 @@ public class EquipmentPlacementRules {
     public boolean isValidDrifSizeForTier(DrifTemplate drif, ItemTemplate item) {
         if (drif == null || drif.getSize() == null || item == null) return false;
         if (item.getRarity() == RARITY.EPIC || item.getRarity() == RARITY.SET) return true;
+        return drif.getSize().ordinal() <= allowedStoneSize(item);
+    }
+
+    public boolean isValidOrbSizeForTier(OrbTemplate orb, ItemTemplate item) {
+        return orb != null
+                && orb.getSize() != null
+                && item != null
+                && orb.getSize().ordinal() <= allowedStoneSize(item);
+    }
+
+    public int maxDrifs(ItemTemplate item, int stars) {
+        if (item == null || item.getRarity() == RARITY.EPIC || item.getRarity() == RARITY.SET) {
+            return 0;
+        }
         int tier =
                 item.getTier() == null
                         ? 1
                         : RomanNumeralParser.convertRomanToInteger(item.getTier());
-        int allowed = tier >= 10 ? 3 : tier >= 7 ? 2 : tier >= 4 ? 1 : 0;
-        return drif.getSize().ordinal() <= allowed;
+        int max = tier >= 10 ? 3 : tier >= 4 ? 2 : tier >= 1 ? 1 : 0;
+        return (tier == 2 || tier == 3) && stars >= 7 ? max + 1 : max;
+    }
+
+    private int allowedStoneSize(ItemTemplate item) {
+        int tier =
+                item.getTier() == null
+                        ? 1
+                        : RomanNumeralParser.convertRomanToInteger(item.getTier());
+        return tier >= 10 ? 3 : tier >= 7 ? 2 : tier >= 4 ? 1 : 0;
+    }
+
+    private boolean isModifierNumber(String value) {
+        if (value == null || value.isBlank()) return false;
+        try {
+            Double.parseDouble(value.replace("%", "").replace(",", ".").trim());
+            return true;
+        } catch (NumberFormatException exception) {
+            return false;
+        }
     }
 }

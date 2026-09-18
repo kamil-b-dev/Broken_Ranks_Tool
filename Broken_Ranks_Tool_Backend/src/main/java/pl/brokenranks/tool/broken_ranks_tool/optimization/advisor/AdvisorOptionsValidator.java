@@ -12,17 +12,22 @@ final class AdvisorOptionsValidator {
                 || options.getTimeBudgetMs() > 5000
                 || options.getMaxActions() < 1
                 || options.getMaxActions() > 3
+                || !("AUTO".equals(options.getProfession())
+                        || "MAGICAL".equals(options.getProfession())
+                        || "PHYSICAL".equals(options.getProfession())
+                        || "UNIVERSAL".equals(options.getProfession()))
                 || options.getTargetValue() != null && options.getTargetGain() != null)
             return false;
         if (invalid(options.getTargetValue()) || invalid(options.getTargetGain())) return false;
         return options.getProtectedModifiers() == null
-                || options.getProtectedModifiers().entrySet().stream()
-                        .allMatch(
-                                e ->
-                                        e.getKey() != null
-                                                && e.getValue() != null
-                                                && Double.isFinite(e.getValue().getLoss())
-                                                && e.getValue().getLoss() >= 0);
+                || options.getProtectedModifiers().entrySet().stream().limit(33).count() <= 32
+                        && options.getProtectedModifiers().entrySet().stream()
+                                .allMatch(
+                                        e ->
+                                                e.getKey() != null
+                                                        && e.getValue() != null
+                                                        && Double.isFinite(e.getValue().getLoss())
+                                                        && e.getValue().getLoss() >= 0);
     }
 
     private boolean invalid(Double target) {

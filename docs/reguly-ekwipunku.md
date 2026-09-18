@@ -118,13 +118,15 @@ Kalkulator uwzględnia również źródła inne niż drify: statystyki przedmiot
 
 Bazowe statystyki postaci nie wpływają na samo wyszukiwanie układu drifów ani jego ocenę przez algorytm optymalizatora. Są natomiast potrzebne do końcowego przeliczenia całego zestawu przez serwis kalkulatora ekwipunku.
 
+Każda bazowa statystyka postaci musi być liczbą całkowitą z zakresu 0–50 000.
+
 Odpowiedź optymalizatora powinna zawierać statystyki końcowego zestawu obliczone z uwzględnieniem bazowych statystyk postaci. Dotyczy to wyniku trybu „od zera” oraz każdego zwróconego wariantu Doradcy. Frontend wykorzystuje wynik odpowiadający zastosowanemu układowi, bez wymagania od użytkownika ponownego kliknięcia „Przelicz statystyki” i wysyłania drugiego żądania do serwera. Jest to wymaganie dotyczące integracji wyników optymalizacji z kalkulatorem, a nie reguła wpływająca na dobór drifów.
 
 ## 7. Orby
 
 - Maksymalnie jeden orb w zwykłym, epickim i setowym przedmiocie; maksymalnie dwa w legendarnym. Drugi orb musi być ofensywny.
-- Typ bonusu orba nie powinien powtarzać się w całym zestawie. Backend odrzuca powtórzenia wewnątrz przedmiotu, a przy obliczaniu kolejnych przedmiotów pomija już użyty typ.
-- Edytor dopuszcza orby o tierze nie większym niż tier przedmiotu.
+- Typ bonusu orba nie może powtarzać się w całym zestawie. Backend odrzuca powtórzenia zarówno wewnątrz przedmiotu, jak i między przedmiotami.
+- Orb nie może mieć rozmiaru wyższego niż dopuszczony przez tier przedmiotu; regułę sprawdzają edytor, kalkulator i optymalizator.
 - SUBORB ma maksymalnie poziom 1; BIORB, MAGNIORB i ARCYORB — poziom 3. Wartości na poziomach pochodzą z pól `bonusLvl1/2/3`, a nie ze wzoru przyrostów drifa.
 - Bonus orba mnoży się przez `1 + orbMod` gwiazdek z tabeli. Nie stosuje się do niego bonusu przedmiotu do drifów ani kary za liczbę drifów.
 
@@ -139,6 +141,8 @@ Kategorie pierwszego orba według slotu:
 | ring1, ring2, necklace | UTILITY |
 
 Legenda ma dwa dostępne miejsca na orby; nie ma obowiązku zapełniania obu. Pierwszy orb może należeć do kategorii dopuszczonej dla slotu lub być ofensywny, drugi musi być ofensywny. Dozwolone są więc także dwa ofensywne orby o różnych bonusach. Edytor i backend uwzględniają ten wyjątek dla legend. Backend sprawdza rzadkość przedmiotu przy dopuszczaniu drugiego orba, limit dwóch orbów i zakaz powtarzania bonusu w przedmiocie.
+
+Wartość `null` na pozycji orba oznacza brak orba. Końcowe puste pozycje są dozwolone, natomiast po pustej pozycji nie może wystąpić kolejny orb.
 
 ## 8. Doradca i blokady
 
@@ -156,13 +160,13 @@ Przy maksymalizacji ranking preferuje większy efekt do capa, a przy równym efe
 
 Profil profesji może być wybrany ręcznie jako magiczny lub fizyczny. W trybie automatycznym wynika z całego założonego ekwipunku i bazowych statystyk postaci: Moc/Wiedza wskazują profil magiczny, a Siła/Zręczność fizyczny. Przy remisie profil jest uniwersalny. Zamiennik przedmiotu musi należeć do wybranego profilu albo być uniwersalny; niesklasyfikowane bronie są dopuszczalne dla obu profili. Blokada slotu wyłącza w nim wszystkie rekomendowane zmiany, w tym gwiazdki, przedmiot i drify.
 
-Ograniczenia obecnego algorytmu Doradcy: wymiany przedmiotów dotyczą zwykłych slotów i do trzech kandydatów na slot, wybranych według bonusu do drifów i pojemności. Zakupy drifów dotyczą głównego moda i poziomów 1/6/11/16/21 dopuszczonych przez rozmiar. Nie są to ograniczenia domenowe gry. Pełną przebudowę z katalogu nadal obsługuje tryb „od zera”.
+Ograniczenia obecnego algorytmu Doradcy: wymiany przedmiotów dotyczą zwykłych slotów i do trzech kandydatów na slot, wybranych według bonusu do drifów i pojemności. Zakupy drifów dotyczą głównego moda i poziomów 1/6/11/16/21 dopuszczonych przez rozmiar. Nie są to ograniczenia domenowe gry. Pełną przebudowę drifów z ich katalogu na przekazanym ekwipunku nadal obsługuje tryb „od zera”; nie dobiera on przedmiotów, gwiazdek ani orbów.
 
 ## 9. Znane rozbieżności implementacji
-- Ograniczenie tieru orba jest filtrem edytora, nie kontrolą w `OrbStatProcessor`.
-- `DrifSecurityValidator` sprawdza przekroczenie pojemności tylko wtedy, gdy wynosi ona więcej niż 0. Nie kontroluje liczby gniazd. Nie oznacza to nieskończonej pojemności lub liczby gniazd dla danych wejściowych API.
-- Końcowy walidator optymalizatora sprawdza ilości, liczbę drifów, pojemność i duplikaty; nie powtarza całej kontroli tieru, żywiołów ani zachowania inwentarza. Nie zastępuje sprawdzania poprawności ruchów i danych wejściowych.
-- Dla brakującego poziomu import edytora stosuje 21, a backend zwykle 1 i normalizację do rozmiaru. Przy interpretowaniu niepełnych konfiguracji trzeba uwzględnić tę różnicę.
+
+- Dla brakującego poziomu import edytora stosuje 21, a backend przyjmuje 1. Jawnie podany poziom spoza zakresu nie jest normalizowany — żądanie zostaje odrzucone.
+
+Kalkulator i oba tryby optymalizatora odrzucają osierocone kamienie i poziomy w pustym slocie, drify umieszczone poza fizycznymi gniazdami oraz zwykłe drify przekraczające także zerową pojemność. Czysty pusty slot pozostaje poprawny i jest pomijany w obliczeniach.
 
 ## 10. Mapa implementacji
 

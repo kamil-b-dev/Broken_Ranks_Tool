@@ -1,6 +1,8 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.processor;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.HashMap;
 import java.util.List;
@@ -109,7 +111,9 @@ class DrifAndOrbStatProcessorTests {
                 new OrbStatProcessor(placementRules, levelPolicy, securityValidator);
 
         processor.process("helmet", slot, item, 8, state);
-        processor.process("helmet", slot, item, 8, state);
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> processor.process("helmet", slot, item, 8, state));
 
         assertEquals(
                 "15%",
@@ -155,6 +159,45 @@ class DrifAndOrbStatProcessorTests {
                         ORB_BONUS_TYPE.EXTRA_GOLD.name(),
                         "6%"),
                 state.getAccumulator().getFormattedResults());
+    }
+
+    @Test
+    void treatsTrailingNullOrbPositionAsNoOrbButRejectsAGap() {
+        ItemTemplate item = item(1L, ITEM_CATEGORY.HELMET);
+        item.setRarity(RARITY.LEGENDARY);
+        OrbTemplate orb =
+                OrbTemplate.builder()
+                        .id(20L)
+                        .name("Defensive orb")
+                        .category(ORB_CATEGORY.DEFENSIVE)
+                        .bonusType(ORB_BONUS_TYPE.DMG_REDUCTION_MELEE)
+                        .size(ORB_SIZE.BIORB)
+                        .bonusLvl1("2%")
+                        .build();
+        CalculationState state =
+                new CalculationState(
+                        new CalculationContext(Map.of(1L, item), Map.of(20L, orb), Map.of()));
+        OrbStatProcessor processor =
+                new OrbStatProcessor(placementRules, levelPolicy, securityValidator);
+        EquipmentRequest.SlotData trailingEmpty = slot(1L, List.of());
+        trailingEmpty.setOrbIds(java.util.Arrays.asList(20L, null));
+        trailingEmpty.setOrbLevels(List.of(1, 1));
+        assertDoesNotThrow(() -> processor.process("helmet", trailingEmpty, item, 1, state));
+
+        EquipmentRequest.SlotData gap = slot(1L, List.of());
+        gap.setOrbIds(java.util.Arrays.asList(null, 20L));
+        gap.setOrbLevels(List.of(1, 1));
+        assertThrows(
+                IllegalArgumentException.class,
+                () ->
+                        processor.process(
+                                "helmet",
+                                gap,
+                                item,
+                                1,
+                                new CalculationState(
+                                        new CalculationContext(
+                                                Map.of(1L, item), Map.of(20L, orb), Map.of()))));
     }
 
     private EquipmentRequest.SlotData slot(Long itemId, List<Long> drifIds) {

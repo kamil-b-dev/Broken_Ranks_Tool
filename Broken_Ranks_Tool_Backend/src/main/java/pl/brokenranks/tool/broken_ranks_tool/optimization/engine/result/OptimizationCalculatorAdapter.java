@@ -41,14 +41,10 @@ final class OptimizationCalculatorAdapter {
         String key = state.signature();
         Map<String, String> cached = context.calculatorCache().get(key);
         if (cached != null) return cached;
-        try {
-            Map<String, String> calculated =
-                    calculatorService.calculateTotalStats(setupMapper.toSetup(state, context));
-            context.calculatorCache().put(key, calculated);
-            return calculated;
-        } catch (RuntimeException exception) {
-            return Map.of();
-        }
+        Map<String, String> calculated =
+                calculatorService.calculateTotalStats(setupMapper.toSetup(state, context));
+        context.calculatorCache().put(key, calculated);
+        return calculated;
     }
 
     CalculationResultDto calculationResult(BuildState state, OptimizationContext context) {

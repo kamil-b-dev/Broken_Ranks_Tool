@@ -16,6 +16,7 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.BuildStat
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationContext;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultAssembler;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.pipeline.OptimizationSearchPipeline;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.validation.OptimizationInputValidator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.validation.OptimizationRequestValidator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.variant.GeneratedOptimizationVariant;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.variant.OptimizationVariantGenerator;
@@ -27,6 +28,7 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.service.ModsOptimizati
 public class CustomModsOptimizationServiceImpl implements ModsOptimizationService {
 
     private final OptimizationProperties properties;
+    private final OptimizationInputValidator inputValidator;
     private final OptimizationContextFactory contextFactory;
     private final OptimizationSearchPipeline searchPipeline;
     private final OptimizationResultAssembler resultAssembler;
@@ -50,6 +52,10 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
         if (request.getMode() == OptimizationMode.ADVISOR) return advisor.optimize(request);
 
         OptimizationContext context = createContext(request);
+        String inputError = inputValidator.validate(context);
+        if (inputError != null) {
+            return failedResponse(inputError, elapsedSeconds(startTime));
+        }
         if (context.slots().isEmpty()) {
             return failedResponse(
                     "Brak poprawnie skonfigurowanych przedmiotów do optymalizacji.",
@@ -59,7 +65,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
         OptimizationSearchPipeline.PipelineResult searchResult = searchPipeline.optimize(context);
         if (searchResult == null) {
             return failedResponse(
-                    "Nie można spełnić limitów ilościowych przy obecnych blokadach, slotach i pojemności.",
+                    "Nie znaleziono poprawnego układu w dostępnym budżecie wyszukiwania. Nie oznacza to dowodu, że rozwiązanie nie istnieje.",
                     elapsedSeconds(startTime));
         }
         return successfulResponse(searchResult, context, startTime);

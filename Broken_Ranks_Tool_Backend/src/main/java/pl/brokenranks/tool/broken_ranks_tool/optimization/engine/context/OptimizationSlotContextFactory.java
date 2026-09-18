@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.RARITY;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.parsing.RomanNumeralParser;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
@@ -21,6 +20,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.Equipme
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.UpgradeLevelPolicy;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.SlotContext;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.DrifOptimizationMath;
 
 /** Converts request slots and templates into search-ready slot contexts. */
 @RequiredArgsConstructor
@@ -79,9 +79,16 @@ final class OptimizationSlotContextFactory {
                 data,
                 item,
                 levelPolicy.calculateItemCapacity(item, stars),
-                special ? 0 : maxDrifs(item, stars),
+                special ? 0 : placementRules.maxDrifs(item, stars),
                 itemStatProcessor.calculateFinalDrifMod(item, stars),
-                special ? new ArrayList<>() : candidates(entry.getKey(), item, request, drifs),
+                special
+                        ? new ArrayList<>()
+                        : candidates(
+                                entry.getKey(),
+                                item,
+                                levelPolicy.calculateItemCapacity(item, stars),
+                                request,
+                                drifs),
                 locks,
                 special);
     }
@@ -89,9 +96,11 @@ final class OptimizationSlotContextFactory {
     private List<DrifTemplate> candidates(
             String slot,
             ItemTemplate item,
+            int capacity,
             OptimizationRequest request,
             Map<Long, DrifTemplate> drifs) {
         return drifs.values().stream()
+                .filter(placementRules::isValidDrif)
                 .filter(drif -> placementRules.isValidDrifSizeForTier(drif, item))
                 .filter(drif -> placementRules.isElementalDrifPositionValid(drif, slot))
                 .filter(drif -> request.getPriorities().containsKey(drif.getBonusType()))
@@ -99,27 +108,26 @@ final class OptimizationSlotContextFactory {
                         Collectors.toMap(
                                 DrifTemplate::getBonusType,
                                 Function.identity(),
-                                this::preferLarger,
+                                (left, right) -> preferMoreValuable(left, right, capacity),
                                 () -> new EnumMap<>(DRIF_BONUS_TYPE.class)))
                 .values()
                 .stream()
                 .collect(Collectors.toCollection(ArrayList::new));
     }
 
-    private DrifTemplate preferLarger(DrifTemplate left, DrifTemplate right) {
+    private DrifTemplate preferMoreValuable(
+            DrifTemplate left, DrifTemplate right, int availablePower) {
+        int leftLevel = DrifOptimizationMath.highestLevelForPower(left, availablePower);
+        int rightLevel = DrifOptimizationMath.highestLevelForPower(right, availablePower);
         int comparison =
-                Integer.compare(left.getSize().getMaxLevel(), right.getSize().getMaxLevel());
+                Double.compare(
+                        DrifOptimizationMath.calculateDrifValue(left, leftLevel),
+                        DrifOptimizationMath.calculateDrifValue(right, rightLevel));
+        if (comparison == 0) {
+            comparison = Integer.compare(leftLevel, rightLevel);
+        }
         return comparison == 0
                 ? (left.getId() <= right.getId() ? left : right)
                 : (comparison > 0 ? left : right);
-    }
-
-    private int maxDrifs(ItemTemplate item, int stars) {
-        int tier =
-                item.getTier() == null
-                        ? 1
-                        : RomanNumeralParser.convertRomanToInteger(item.getTier());
-        int max = tier >= 10 ? 3 : tier >= 4 ? 2 : tier >= 1 ? 1 : 0;
-        return (tier == 2 || tier == 3) && stars >= 7 ? max + 1 : max;
     }
 }

@@ -31,7 +31,10 @@ public class StatsAccumulator {
             } else {
                 flatStats.merge(statName, totalValue, Double::sum);
             }
-        } catch (NumberFormatException ignored) {
+        } catch (NumberFormatException exception) {
+            throw new IllegalArgumentException(
+                    "Niepoprawna wartość statystyki " + statName + ": " + rawValue + ".",
+                    exception);
         }
     }
 

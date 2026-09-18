@@ -175,7 +175,11 @@ class OptimizationVariantGeneratorTests {
                         });
         OptimizationResultAssembler assembler =
                 OptimizationResultFactory.create(
-                        new OptimizationLockService(), calculator, evaluator);
+                        new OptimizationLockService(),
+                        calculator,
+                        evaluator,
+                        new pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator
+                                .EquipmentPlacementRules(rules));
         OptimizationLargeNeighborhoodSearch search =
                 OptimizationNeighborhoodFactory.create(rules, evaluator, assembler);
         return new Fixture(

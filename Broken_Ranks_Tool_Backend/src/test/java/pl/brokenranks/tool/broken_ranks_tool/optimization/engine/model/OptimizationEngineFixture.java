@@ -41,6 +41,9 @@ public final class OptimizationEngineFixture {
         EquipmentRequest.SlotData original = new EquipmentRequest.SlotData();
         original.setItemId(item.getId());
         original.setItemStars(1);
+        if (special) {
+            original.setDrifIds(Arrays.stream(candidates).map(DrifTemplate::getId).toList());
+        }
         return new SlotContext(
                 key, original, item, capacity, sockets, bonus, List.of(candidates), locks, special);
     }
