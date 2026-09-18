@@ -14,6 +14,24 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.*;
 
 class OptimizationCalculatorIntegrationTests {
     @Test
+    void identicalEquipmentAlwaysProducesIdenticalStarBonusDistribution() {
+        var item = item(1, ITEM_CATEGORY.HELMET, "I", 4);
+        item.setStats(Map.of("Siła", 10.0, "Moc", 10.0, "Wiedza", 10.0));
+        var fixture = create(List.of(item), List.of(), List.of());
+        var setup = new EquipmentRequest();
+        var equipped = slot(1);
+        equipped.setItemStars(9);
+        setup.setSlots(Map.of("helmet", equipped));
+
+        var first = fixture.calculator().calculateTotalStats(setup);
+        var second = fixture.calculator().calculateTotalStats(setup);
+
+        assertEquals(first, second);
+        assertEquals(
+                45, number(first, "Siła") + number(first, "Moc") + number(first, "Wiedza"), 1e-9);
+    }
+
+    @Test
     void rejectsDrifPlacedOutsideTheItemsPhysicalSockets() {
         var item = item(1, ITEM_CATEGORY.HELMET, "I", 20);
         var drif = drif(10, DRIF_BONUS_TYPE.CRITICAL_CHANCE, DRIF_SIZE.SUBDRIF, "2%", "1%");

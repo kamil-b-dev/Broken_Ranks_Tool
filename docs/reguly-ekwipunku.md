@@ -46,7 +46,7 @@ Wartości procentowe w tabeli oznaczają zwiększenie względem bazy, nie kolejn
 - Dodatkowa pojemność obowiązuje tylko przy niezerowej bazowej pojemności. Baza 0 lub brak wartości daje pojemność 0.
 - Bonus do drifów z gwiazdek dodaje się do własnego bonusu przedmiotu. Przykład: własne 20% i 9 gwiazdek daje mnożnik `1 + 0,20 + 0,15 = 1,35`.
 - Statystyki specjalne nie otrzymują zwykłego zwiększenia statystyk. `ItemStatProcessor` wydziela je przed rozdziałem premii.
-- Kalkulator rozdziela pulę dodatkowych punktów osobno między statystyki bazowe i odporności. Pula to zaokrąglona suma wartości danej grupy pomnożona przez premię gwiazdek, a rozdział korzysta z `RandomProvider`. Nie zakładaj, że każda statystyka indywidualnie wzrośnie dokładnie o procent z tabeli.
+- Kalkulator rozdziela pulę dodatkowych punktów osobno między statystyki bazowe i odporności. Pula to zaokrąglona suma wartości danej grupy pomnożona przez premię gwiazdek. Punkty są dzielone możliwie równo między statystyki w stabilnej kolejności nazw; ewentualna reszta trafia do pierwszych nazw w tej kolejności. Ta sama konfiguracja zawsze daje ten sam wynik, ale pojedyncza statystyka nie musi wzrosnąć dokładnie o procent z tabeli.
 - Dla tierów II i III od 7 gwiazdek dochodzi drugie zwykłe gniazdo drifa. Pozostałe tiery nie otrzymują dodatkowego gniazda z gwiazdek.
 
 ## 4. Zwykłe drify: tier, rozmiar i gniazda
