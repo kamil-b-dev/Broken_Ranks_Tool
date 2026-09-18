@@ -2,20 +2,16 @@ package pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.proce
 
 import java.util.HashMap;
 import java.util.Map;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ITEM_STAR;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.RESISTANCE_STAT_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.SPECIAL_STAT_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.CalculationState;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.random.RandomProvider;
 
 /** Calculates item base statistics, star modifiers, and bonus-point distribution. */
 @Component
-@RequiredArgsConstructor
 public class ItemStatProcessor {
-    private final RandomProvider randomProvider;
 
     /** Calculates the final drif modifier from item stars and built-in bonuses. */
     public double calculateFinalDrifMod(ItemTemplate item, int starLevel) {
@@ -64,7 +60,7 @@ public class ItemStatProcessor {
                             }
                         });
 
-        state.getAccumulator().distributeRandomly(baseStats, statMod, randomProvider);
-        state.getAccumulator().distributeRandomly(baseResists, statMod, randomProvider);
+        state.getAccumulator().distributeBonusDeterministically(baseStats, statMod);
+        state.getAccumulator().distributeBonusDeterministically(baseResists, statMod);
     }
 }

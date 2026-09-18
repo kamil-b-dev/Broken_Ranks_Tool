@@ -3,7 +3,6 @@ package pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.random.RandomProvider;
 
 /** Accumulates flat and percentage statistics for one calculation. */
 public class StatsAccumulator {
@@ -47,25 +46,28 @@ public class StatsAccumulator {
         flatStats.merge(statName, value, Double::sum);
     }
 
-    /**
-     * Distributes a bonus pool randomly across the supplied base statistics.
-     * @param baseValues Base statistics receiving the pool.
-     * @param multiplier Multiplier determining pool size.
-     * @param randomProvider Random source used for distribution.
-     */
-    public void distributeRandomly(
-            Map<String, Integer> baseValues, double multiplier, RandomProvider randomProvider) {
+    /** Distributes the rounded bonus pool evenly in a stable statistic-name order. */
+    public void distributeBonusDeterministically(
+            Map<String, Integer> baseValues, double multiplier) {
         if (baseValues.isEmpty()) return;
 
         int totalBase = baseValues.values().stream().mapToInt(Integer::intValue).sum();
         int bonusPool = (int) Math.round(totalBase * multiplier);
 
         Map<String, Integer> finalValues = new HashMap<>(baseValues);
-        List<String> keys = new ArrayList<>(baseValues.keySet());
-
-        for (int i = 0; i < bonusPool; i++) {
-            String randomKey = keys.get(randomProvider.nextInt(keys.size()));
-            finalValues.put(randomKey, finalValues.get(randomKey) + 1);
+        List<String> keys =
+                baseValues.keySet().stream()
+                        .sorted(
+                                String.CASE_INSENSITIVE_ORDER.thenComparing(
+                                        Comparator.naturalOrder()))
+                        .toList();
+        if (bonusPool > 0) {
+            int perStat = bonusPool / keys.size();
+            int remainder = bonusPool % keys.size();
+            for (int index = 0; index < keys.size(); index++) {
+                String key = keys.get(index);
+                finalValues.put(key, finalValues.get(key) + perStat + (index < remainder ? 1 : 0));
+            }
         }
 
         finalValues.forEach((stat, val) -> addFlatValue(stat, (double) val));
