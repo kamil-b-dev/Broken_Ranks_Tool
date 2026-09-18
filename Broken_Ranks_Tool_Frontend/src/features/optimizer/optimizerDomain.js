@@ -150,8 +150,9 @@ export const calculateCurrentModDetails = ({
             if (!drif) return [];
 
             const stars = Math.max(1, Math.min(9, Number(slot.itemStars) || 1));
+            const baseCapacity = Number(item.capacity) || 0;
             const capacityBonus = stars === 7 ? 1 : stars === 8 ? 2 : stars === 9 ? 4 : 0;
-            const capacity = (Number(item.capacity) || 0) + capacityBonus;
+            const capacity = baseCapacity === 0 ? 0 : baseCapacity + capacityBonus;
             if (capacity <= 0 || capacity < basePower) return [];
 
             const itemDrifBonus =

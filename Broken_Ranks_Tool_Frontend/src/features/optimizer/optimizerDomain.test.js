@@ -118,4 +118,26 @@ describe("optimizerDomain", () => {
 
         expect(details.potentialMaximumCount).toBe(1);
     });
+
+    it("does not create drif capacity from stars when base capacity is zero", () => {
+        const [details] = calculateCurrentModDetails({
+            prioritizedBonuses: [{ key: "CRITICAL_CHANCE", min: 0, max: 1 }],
+            slots: { helmet: { itemId: 1, itemStars: 9, drifIds: [] } },
+            drifs: [
+                {
+                    id: 10,
+                    bonusType: "CRITICAL_CHANCE",
+                    size: "SUBDRIF",
+                    baseValue: "5%",
+                    increment: "1%",
+                },
+            ],
+            items: [{ id: 1, tier: "X", rarity: "RARE", capacity: 0, stats: {} }],
+            gameRules: { drifBasePowers: { CRITICAL_CHANCE: 1 } },
+        });
+
+        expect(details.potentialMinimumCount).toBe(0);
+        expect(details.potentialMaximumCount).toBe(0);
+        expect(details.potentialMaximum).toBe(0);
+    });
 });

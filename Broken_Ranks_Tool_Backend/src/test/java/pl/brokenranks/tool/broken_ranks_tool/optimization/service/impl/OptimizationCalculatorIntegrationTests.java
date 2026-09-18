@@ -8,10 +8,27 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.*;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.*;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.*;
 
 class OptimizationCalculatorIntegrationTests {
+    @Test
+    void rejectsDrifPlacedOutsideTheItemsPhysicalSockets() {
+        var item = item(1, ITEM_CATEGORY.HELMET, "I", 20);
+        var drif = drif(10, DRIF_BONUS_TYPE.CRITICAL_CHANCE, DRIF_SIZE.SUBDRIF, "2%", "1%");
+        var fixture = create(List.of(item), List.of(drif), List.of());
+        var invalidSlot = slot(1);
+        invalidSlot.setDrifIds(Arrays.asList(null, 10L));
+        invalidSlot.setDrifLevels(Map.of("1", 1));
+        EquipmentRequest setup = new EquipmentRequest();
+        setup.setSlots(Map.of("helmet", invalidSlot));
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> fixture.calculator().calculateTotalStats(setup));
+    }
+
     @ParameterizedTest
     @CsvSource({
         "CRITICAL_CHANCE,2%,1%,9,9",
@@ -90,11 +107,13 @@ class OptimizationCalculatorIntegrationTests {
         var type = DRIF_BONUS_TYPE.CRITICAL_CHANCE;
         var normal = drif(10, type, DRIF_SIZE.SUBDRIF, "2%", "1%");
         var builtin = drif(11, type, DRIF_SIZE.MAGNIDRIF, "2%", "1%");
+        var secondBuiltin =
+                drif(12, DRIF_BONUS_TYPE.HIT_CHANCE_MELEE, DRIF_SIZE.MAGNIDRIF, "1%", "1%");
         var epic = item(4, ITEM_CATEGORY.WEAPON_1H, "VII", 0);
         epic.setName("Washi");
         epic.setRarity(RARITY.EPIC);
-        var epicSlot = slot(4, 11L);
-        epicSlot.setDrifLevels(Map.of("0", 1));
+        var epicSlot = slot(4, 11L, 12L);
+        epicSlot.setDrifLevels(Map.of("0", 1, "1", 1));
         var fixture =
                 create(
                         List.of(
@@ -102,7 +121,7 @@ class OptimizationCalculatorIntegrationTests {
                                 item(2, ITEM_CATEGORY.ARMOR, "I", 4),
                                 item(3, ITEM_CATEGORY.BOOTS, "I", 4),
                                 epic),
-                        List.of(normal, builtin),
+                        List.of(normal, builtin, secondBuiltin),
                         List.of());
         var request =
                 request(
@@ -117,7 +136,7 @@ class OptimizationCalculatorIntegrationTests {
                 response.getSummary().isSuccess(), response.getSummary().getWarnings().toString());
         var optimizedEpic = response.getOptimizedSetup().getSlots().get("weapon");
         assertEquals(epicSlot.getDrifIds(), optimizedEpic.getDrifIds());
-        assertEquals(Map.of("0", 16), optimizedEpic.getDrifLevels());
+        assertEquals(Map.of("0", 16, "1", 16), optimizedEpic.getDrifLevels());
         // The built-in drif is raised from level 1 to 16 before global penalties are applied.
         assertEquals(
                 38.1,
@@ -126,7 +145,7 @@ class OptimizationCalculatorIntegrationTests {
                         type.name()),
                 1e-9);
         assertEquals(12, response.getSummary().getTotalPowerUsed());
-        assertEquals(4, response.getSummary().getDrifsPlaced());
+        assertEquals(5, response.getSummary().getDrifsPlaced());
     }
 
     @Test

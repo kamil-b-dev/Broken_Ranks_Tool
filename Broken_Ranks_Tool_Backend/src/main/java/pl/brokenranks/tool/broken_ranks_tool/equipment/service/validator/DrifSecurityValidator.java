@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_SIZE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.RARITY;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.DrifPowerRules;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRulesRegistry;
@@ -30,6 +31,7 @@ public class DrifSecurityValidator {
         if (item == null || drifs == null || drifs.isEmpty()) return;
         Set<DRIF_BONUS_TYPE> unique = new HashSet<>();
         int usedPower = 0;
+        int elemental = 0;
         boolean builtInItem = item.getRarity() == RARITY.EPIC || item.getRarity() == RARITY.SET;
         String baseName =
                 item.getName() == null ? "" : item.getName().replaceAll("\\s+[IVX]+$", "").trim();
@@ -38,6 +40,24 @@ public class DrifSecurityValidator {
                         ? EquipmentRulesRegistry.EPIC_BUILTIN_DRIFS.getOrDefault(
                                 baseName, List.of())
                         : List.of();
+        if (builtInItem) {
+            if (drifs.size() != builtIn.size()) {
+                throw new IllegalArgumentException(
+                        "Konfiguracja wbudowanych drifów nie pasuje do przedmiotu.");
+            }
+            for (int index = 0; index < drifs.size(); index++) {
+                DrifTemplate drif = drifs.get(index);
+                if (drif == null
+                        || drif.getSize() != DRIF_SIZE.MAGNIDRIF
+                        || drif.getBonusType() == null
+                        || !builtIn.get(index).equals(drif.getBonusType().name())) {
+                    throw new IllegalArgumentException(
+                            "Konfiguracja wbudowanych drifów nie pasuje do przedmiotu.");
+                }
+            }
+        } else if (drifs.size() > placementRules.maxDrifs(item, stars)) {
+            throw new IllegalArgumentException("Przekroczono liczbę gniazd drifów w przedmiocie.");
+        }
         for (int index = 0; index < drifs.size(); index++) {
             DrifTemplate drif = drifs.get(index);
             int requested =
@@ -45,9 +65,21 @@ public class DrifSecurityValidator {
                             ? requestedLevels.get(index)
                             : 1;
             int level = levels.sanitizeDrifLevel(requested, drif);
+            if (requested < 1
+                    || drif.getSize() == null
+                    || requested > drif.getSize().getMaxLevel()) {
+                throw new IllegalArgumentException("Poziom drifa jest poza dozwolonym zakresem.");
+            }
+            if (!placementRules.isValidDrifSizeForTier(drif, item)) {
+                throw new IllegalArgumentException("Rozmiar drifa przekracza tier przedmiotu.");
+            }
             if (!placementRules.isElementalDrifPositionValid(drif, slot)) {
                 throw new IllegalArgumentException(
                         "Drify żywiołowe mogą znajdować się wyłącznie w broni.");
+            }
+            if (placementRules.isElementalDamage(drif.getBonusType()) && ++elemental > 1) {
+                throw new IllegalArgumentException(
+                        "Broń może zawierać tylko jeden drif żywiołowy.");
             }
             if (!unique.add(drif.getBonusType())) {
                 log.error(
@@ -61,7 +93,7 @@ public class DrifSecurityValidator {
             }
         }
         int capacity = levels.calculateItemCapacity(item, stars);
-        if (capacity > 0 && usedPower > capacity) {
+        if (usedPower > capacity) {
             log.error(
                     "[SECURITY] Oszustwo API! Przekroczono pojemność. Użyto: {}, Max: {}",
                     usedPower,

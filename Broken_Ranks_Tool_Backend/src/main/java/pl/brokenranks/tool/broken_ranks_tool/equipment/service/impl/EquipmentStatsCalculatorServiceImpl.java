@@ -98,16 +98,21 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
             EquipmentRequest.SlotData slotData,
             CalculationContext ctx,
             CalculationState state) {
-        if (slotData.getItemId() == null || !ctx.items().containsKey(slotData.getItemId())) {
-            return;
-        }
+        if (slotData.getItemId() == null) return;
+        if (!ctx.items().containsKey(slotData.getItemId()))
+            throw new IllegalArgumentException(
+                    "Nie znaleziono przedmiotu o ID " + slotData.getItemId() + ".");
         ItemTemplate item = ctx.items().get(slotData.getItemId());
         if (!placementRules.isValidItem(item, slotKey)) {
-            return;
+            throw new IllegalArgumentException("Przedmiot nie pasuje do slotu " + slotKey + ".");
         }
 
         int requestedStarLevel = slotData.getItemStars() != null ? slotData.getItemStars() : 1;
-        int starLevel = levelPolicy.sanitizeItemStars(requestedStarLevel);
+        if (requestedStarLevel < 1 || requestedStarLevel > 9) {
+            throw new IllegalArgumentException("Liczba gwiazdek musi mieścić się w zakresie 1–9.");
+        }
+        int starLevel = requestedStarLevel;
+        validateDrifPositions(slotKey, slotData, item, starLevel);
 
         SlotDrifSelection drifSelection = drifSelectionFactory.create(slotData, ctx);
 
@@ -119,5 +124,30 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
         itemProcessor.process(item, starLevel, state);
         orbProcessor.process(slotKey, slotData, item, starLevel, state);
         drifProcessor.process(slotKey, slotData, item, finalDrifMod, state);
+    }
+
+    private void validateDrifPositions(
+            String slotKey, EquipmentRequest.SlotData slotData, ItemTemplate item, int starLevel) {
+        if (slotData.getDrifIds() == null
+                || item.getRarity()
+                        == pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.RARITY.EPIC
+                || item.getRarity()
+                        == pl.brokenranks
+                                .tool
+                                .broken_ranks_tool
+                                .equipment
+                                .domain
+                                .enums
+                                .RARITY
+                                .SET) {
+            return;
+        }
+        int maxDrifs = placementRules.maxDrifs(item, starLevel);
+        for (int index = maxDrifs; index < slotData.getDrifIds().size(); index++) {
+            if (slotData.getDrifIds().get(index) != null) {
+                throw new IllegalArgumentException(
+                        "Drif w slocie " + slotKey + " znajduje się poza dostępnymi gniazdami.");
+            }
+        }
     }
 }

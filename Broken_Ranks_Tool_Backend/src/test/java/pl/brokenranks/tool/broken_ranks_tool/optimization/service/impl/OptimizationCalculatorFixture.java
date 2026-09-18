@@ -38,7 +38,7 @@ record OptimizationCalculatorFixture(
         var calculator =
                 EquipmentStatsCalculatorTestFactory.create(
                         new EquipmentDataProvider(itemRepo, orbRepo, drifRepo),
-                        new EquipmentRequestValidator(),
+                        new EquipmentRequestValidator(rules),
                         placement,
                         levels,
                         new DrifSecurityValidator(placement, levels),
@@ -52,6 +52,7 @@ record OptimizationCalculatorFixture(
                 OptimizationServiceTestFactory.create(
                         drifRepo,
                         itemRepo,
+                        orbRepo,
                         placement,
                         levels,
                         rules,

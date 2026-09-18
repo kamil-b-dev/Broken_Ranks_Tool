@@ -19,7 +19,7 @@ public class EquipmentRequest {
 
     /** Character base statistics keyed by statistic name. */
     @Size(max = 32)
-    private Map<String, Integer> characterStats;
+    private Map<String, @Min(0) @Max(50_000) Integer> characterStats;
 
     /** Request data for one equipment slot. */
     @Data

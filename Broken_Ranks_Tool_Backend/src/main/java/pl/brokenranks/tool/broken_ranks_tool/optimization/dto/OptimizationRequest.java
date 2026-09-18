@@ -24,7 +24,7 @@ public class OptimizationRequest {
     @Valid private AdvisorOptions advisor;
 
     @Size(max = 32)
-    private Map<String, Integer> characterStats;
+    private Map<String, @Min(0) @Max(50_000) Integer> characterStats;
 
     /** Original equipment setup used as the optimization baseline. */
     @Valid

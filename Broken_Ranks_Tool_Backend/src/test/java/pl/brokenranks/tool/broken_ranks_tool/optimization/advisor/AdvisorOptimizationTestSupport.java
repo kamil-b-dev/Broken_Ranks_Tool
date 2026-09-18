@@ -92,7 +92,7 @@ abstract class AdvisorOptimizationTestSupport {
                 spy(
                         EquipmentStatsCalculatorTestFactory.create(
                                 new EquipmentDataProvider(itemRepo, orbRepo, drifRepo),
-                                new EquipmentRequestValidator(),
+                                new EquipmentRequestValidator(rules),
                                 placement,
                                 levels,
                                 new DrifSecurityValidator(placement, levels),

@@ -113,7 +113,8 @@ final class OptimizationSetupMapper {
 
     private boolean isIndexWithinLimit(String index, int limit) {
         try {
-            return Integer.parseInt(index) < limit;
+            int parsed = Integer.parseInt(index);
+            return parsed >= 0 && parsed < limit;
         } catch (NumberFormatException exception) {
             return false;
         }

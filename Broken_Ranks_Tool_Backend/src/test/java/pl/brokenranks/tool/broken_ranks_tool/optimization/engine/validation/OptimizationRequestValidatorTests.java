@@ -117,4 +117,69 @@ class OptimizationRequestValidatorTests {
                                 .SlotData()));
         assertNotNull(OptimizationRequestValidator.validate(request));
     }
+
+    @Test
+    void rejectsPriorityOutsideServiceContract() {
+        OptimizationRequest request = new OptimizationRequest();
+        request.setOriginalSlots(
+                Map.of(
+                        "helmet",
+                        new pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest
+                                .SlotData()));
+        request.setPriorities(Map.of(DRIF_BONUS_TYPE.CRITICAL_CHANCE, 31));
+
+        assertNotNull(OptimizationRequestValidator.validate(request));
+    }
+
+    @Test
+    void rejectsSettingsForTypesThatAreNotPriorities() {
+        OptimizationRequest request = new OptimizationRequest();
+        request.setPriorities(Map.of(DRIF_BONUS_TYPE.CRITICAL_CHANCE, 10));
+        request.setTargetQuantities(
+                Map.of(DRIF_BONUS_TYPE.DAMAGE_MAGIC, new OptimizationRequest.QuantityRange(1, 2)));
+
+        assertNotNull(OptimizationRequestValidator.validateSettings(request));
+    }
+
+    @Test
+    void rejectsCapForTypeWithoutCapAndCapCombinedWithMaximization() {
+        OptimizationRequest withoutCap = new OptimizationRequest();
+        withoutCap.setPriorities(Map.of(DRIF_BONUS_TYPE.DAMAGE_MAGIC, 10));
+        withoutCap.setForceCapBonuses(Set.of(DRIF_BONUS_TYPE.DAMAGE_MAGIC));
+        assertNotNull(OptimizationRequestValidator.validateSettings(withoutCap));
+
+        OptimizationRequest conflicting = new OptimizationRequest();
+        conflicting.setPriorities(Map.of(DRIF_BONUS_TYPE.CRITICAL_CHANCE, 10));
+        conflicting.setForceCapBonuses(Set.of(DRIF_BONUS_TYPE.CRITICAL_CHANCE));
+        conflicting.setMaximizeBonuses(Set.of(DRIF_BONUS_TYPE.CRITICAL_CHANCE));
+        assertNotNull(OptimizationRequestValidator.validateSettings(conflicting));
+    }
+
+    @Test
+    void rejectsUnknownAndNullCharacterStats() {
+        OptimizationRequest unknown = new OptimizationRequest();
+        unknown.setCharacterStats(Map.of("NOT_A_STAT", 1));
+        assertNotNull(OptimizationRequestValidator.validateSettings(unknown));
+
+        OptimizationRequest nullValue = new OptimizationRequest();
+        Map<String, Integer> stats = new HashMap<>();
+        stats.put("STRENGTH", null);
+        nullValue.setCharacterStats(stats);
+        assertNotNull(OptimizationRequestValidator.validateSettings(nullValue));
+    }
+
+    @Test
+    void acceptsCharacterStatBoundariesAndRejectsValuesOutsideThem() {
+        OptimizationRequest boundaries = new OptimizationRequest();
+        boundaries.setCharacterStats(Map.of("Siła", 0, "Moc", 50_000));
+        assertNull(OptimizationRequestValidator.validateSettings(boundaries));
+
+        OptimizationRequest negative = new OptimizationRequest();
+        negative.setCharacterStats(Map.of("Siła", -1));
+        assertNotNull(OptimizationRequestValidator.validateSettings(negative));
+
+        OptimizationRequest excessive = new OptimizationRequest();
+        excessive.setCharacterStats(Map.of("Siła", 50_001));
+        assertNotNull(OptimizationRequestValidator.validateSettings(excessive));
+    }
 }
