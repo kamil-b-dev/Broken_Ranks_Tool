@@ -12,6 +12,11 @@ public record AdvisorReport(
         boolean targetReached,
         double baselineValue,
         String goal,
+        int maxActions,
+        boolean searchSpaceExhausted,
+        boolean proofComplete,
+        int verifiedCandidates,
+        int candidateCount,
         List<Plan> plans) {
     public record Plan(
             String kind,

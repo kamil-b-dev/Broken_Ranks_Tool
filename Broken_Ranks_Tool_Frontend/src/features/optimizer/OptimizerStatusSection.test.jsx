@@ -32,6 +32,31 @@ describe("OptimizerStatusSection", () => {
         expect(screen.getByText("1.24 s")).toBeInTheDocument();
     });
 
+    it("shows advisor quality, limits, and proof scope", () => {
+        render(
+            <OptimizerStatusSection
+                status={{
+                    success: true,
+                    message: "Gotowe.",
+                    advisorReport: {
+                        status: "OPTIMAL",
+                        evaluatedStates: 42,
+                        verifiedCandidates: 12,
+                        candidateCount: 12,
+                        maxActions: 3,
+                        searchSpaceExhausted: true,
+                        proofComplete: true,
+                    },
+                }}
+            />
+        );
+
+        expect(screen.getByText("Optimum potwierdzone")).toBeInTheDocument();
+        expect(screen.getByText("42")).toBeInTheDocument();
+        expect(screen.getByText("12/12")).toBeInTheDocument();
+        expect(screen.getByText("pełny dowód")).toBeInTheDocument();
+    });
+
     it("does not add placeholder copy before the first run", () => {
         const { container } = render(<OptimizerStatusSection isOptimizing={false} />);
 

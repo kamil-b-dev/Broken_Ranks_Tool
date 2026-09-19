@@ -65,9 +65,17 @@ export const useEquipmentOptimization = ({
                 lockedDrifs,
             });
             if (advisory && request.advisor) {
+                const previousAdvisorRunId = activeAdvisor.current;
                 advisorRunId = crypto.randomUUID();
                 request.advisor = { ...request.advisor, runId: advisorRunId };
                 activeAdvisor.current = advisorRunId;
+                if (previousAdvisorRunId) {
+                    try {
+                        await cancelAdvisorOptimization(previousAdvisorRunId);
+                    } catch (error) {
+                        console.warn("Nie udało się zatrzymać poprzedniej analizy Doradcy:", error);
+                    }
+                }
             }
             try {
                 const { optimizedSetup, summary, advisorReport, calculationResult } =

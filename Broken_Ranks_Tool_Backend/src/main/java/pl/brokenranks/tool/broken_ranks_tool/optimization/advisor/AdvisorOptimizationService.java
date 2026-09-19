@@ -88,12 +88,18 @@ public class AdvisorOptimizationService {
             if (search.reached(baseline)
                     && options.getStrategy() == AdvisorOptions.Strategy.MINIMUM_CHANGE)
                 return responses.success(
-                        model, search, slots, baselineCalculation, List.of(), started);
+                        model,
+                        search,
+                        slots,
+                        baselineCalculation,
+                        new AdvisorFinalistVerifier.Result(List.of(), true, 0, 0, false),
+                        started);
 
             List<AdvisorSearch.Node> candidates = new ArrayList<>(search.run(slots));
-            List<AdvisorFinalistVerifier.Verified> selected =
+            AdvisorFinalistVerifier.Result verification =
                     finalistVerifier.verify(candidates, model, search, calculator, deadline);
-            return responses.success(model, search, slots, baselineCalculation, selected, started);
+            return responses.success(
+                    model, search, slots, baselineCalculation, verification, started);
         } finally {
             runs.finish(runId, cancelled);
         }

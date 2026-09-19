@@ -25,8 +25,9 @@ final class AdvisorResponseFactory {
             AdvisorSearch search,
             Map<String, SlotData> original,
             CalculationResultDto baselineCalculation,
-            List<AdvisorFinalistVerifier.Verified> selected,
+            AdvisorFinalistVerifier.Result verification,
             long started) {
+        List<AdvisorFinalistVerifier.Verified> selected = verification.selected();
         Map<String, String> before = baselineCalculation.stats();
         AdvisorPlanResultFactory.Result output =
                 planResults.create(model, search, before, selected);
@@ -43,7 +44,7 @@ final class AdvisorResponseFactory {
                         model.setup(bestSlots),
                         new OptimizationSummary(
                                 true,
-                                message(search, selected.size(), reached),
+                                message(search, verification, reached),
                                 metrics.total(bestSlots, model),
                                 metrics.power(bestSlots, model),
                                 elapsedSeconds(started),
@@ -55,23 +56,28 @@ final class AdvisorResponseFactory {
         response.setAdvisorReport(
                 new AdvisorReport(
                         search.control.evaluated(),
-                        search.limited(),
+                        search.limited() || verification.timeLimitReached(),
                         search.control.cancelled(),
-                        status(search, selected, reached),
+                        status(search, verification, reached),
                         reached,
                         search.baseline[search.options.getGoal().ordinal()],
                         search.options.getGoal().name(),
+                        search.options.getMaxActions(),
+                        search.exhaustive(),
+                        verification.proofComplete(),
+                        verification.verifiedCandidates(),
+                        verification.candidateCount(),
                         output.plans()));
         return response;
     }
 
     private String status(
             AdvisorSearch search,
-            List<AdvisorFinalistVerifier.Verified> selected,
+            AdvisorFinalistVerifier.Result verification,
             boolean reached) {
         if (search.control.cancelled()) return "CANCELLED";
-        if (search.exhaustive()) return selected.isEmpty() && !reached ? "INFEASIBLE" : "OPTIMAL";
-        if (selected.isEmpty() && reached) return "OPTIMAL";
+        if (verification.proofComplete())
+            return verification.selected().isEmpty() && !reached ? "INFEASIBLE" : "OPTIMAL";
         return "BEST_FOUND";
     }
 
@@ -129,7 +135,9 @@ final class AdvisorResponseFactory {
                         : null);
     }
 
-    private String message(AdvisorSearch search, int selectedCount, boolean reached) {
+    private String message(
+            AdvisorSearch search, AdvisorFinalistVerifier.Result verification, boolean reached) {
+        int selectedCount = verification.selected().size();
         String message;
         if (selectedCount > 0)
             message =
@@ -145,9 +153,9 @@ final class AdvisorResponseFactory {
                     "Nie znaleziono poprawy w sprawdzonym zakresie przy obecnej ochronie modów i dozwolonych zmianach.";
         if (search.control.cancelled())
             message += " Analizę zatrzymano; pokazano sprawdzone wyniki.";
-        else if (search.limited())
+        else if (search.limited() || verification.timeLimitReached())
             message += " Osiągnięto limit wyszukiwania; wynik nie jest gwarancją optimum.";
-        else if (search.exhaustive())
+        else if (verification.proofComplete())
             message +=
                     selectedCount == 0 && !reached
                             ? " W pełni sprawdzonym zakresie nie istnieje poprawny plan poprawy."
