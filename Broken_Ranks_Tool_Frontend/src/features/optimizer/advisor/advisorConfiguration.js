@@ -5,6 +5,7 @@ export const DEFAULT_ADVISOR_CHANGES = {
     drifUpgrades: false,
 };
 export const DEFAULT_ADVISOR_SEARCH = {
+    strategy: "MINIMUM_CHANGE",
     targetMode: "MAXIMIZE",
     target: "",
     maxActions: 3,
@@ -59,7 +60,10 @@ export const buildAdvisorConfiguration = (settings, stats, gameRules, characterS
             profession: settings.advisorProfession || "AUTO",
             allowedChanges: { ...DEFAULT_ADVISOR_CHANGES, ...settings.advisorAllowedChanges },
             protectedModifiers,
-            maxActions: Math.max(1, Math.min(3, Number(search.maxActions) || 3)),
+            strategy: ["MINIMUM_CHANGE", "BEST_RESULT"].includes(search.strategy)
+                ? search.strategy
+                : "MINIMUM_CHANGE",
+            maxActions: Math.max(1, Math.min(10, Number(search.maxActions) || 3)),
             timeBudgetMs: search.timeBudgetMs === 5000 ? 5000 : 1500,
             ...(search.targetMode === "VALUE" ? { targetValue: target } : {}),
             ...(search.targetMode === "GAIN" ? { targetGain: target } : {}),

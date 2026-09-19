@@ -57,10 +57,17 @@ describe("AdvisorGoalsPanel", () => {
         });
 
         onChange.mockClear();
-        await user.selectOptions(screen.getByLabelText("Maksymalna liczba działań w planie"), "3");
+        await user.selectOptions(screen.getByLabelText("Strategia planu"), "BEST_RESULT");
         expect(onChange).toHaveBeenCalledWith({
             ...settings,
-            advisorSearch: expect.objectContaining({ maxActions: 3 }),
+            advisorSearch: expect.objectContaining({ strategy: "BEST_RESULT" }),
+        });
+
+        onChange.mockClear();
+        await user.selectOptions(screen.getByLabelText("Maksymalna liczba działań w planie"), "10");
+        expect(onChange).toHaveBeenCalledWith({
+            ...settings,
+            advisorSearch: expect.objectContaining({ maxActions: 10 }),
         });
 
         onChange.mockClear();

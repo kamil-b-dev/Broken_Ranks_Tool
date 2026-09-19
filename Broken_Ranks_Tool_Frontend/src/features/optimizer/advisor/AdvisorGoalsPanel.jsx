@@ -61,6 +61,24 @@ const AdvisorGoalsPanel = ({ stats = {}, gameRules = {}, settings, onChange }) =
             </section>
 
             <section className="advisor-goal-card">
+                <label htmlFor="advisor-strategy">Strategia planu</label>
+                <select
+                    id="advisor-strategy"
+                    value={search.strategy}
+                    onChange={(event) =>
+                        update({ advisorSearch: { ...search, strategy: event.target.value } })
+                    }
+                >
+                    <option value="MINIMUM_CHANGE">Najmniejsza ingerencja</option>
+                    <option value="BEST_RESULT">Najlepszy wynik</option>
+                </select>
+                <p>
+                    Najmniejsza ingerencja szuka najtańszego planu osiągającego cel. Najlepszy wynik
+                    może zaproponować droższy plan, jeśli daje użyteczną poprawę do capa.
+                </p>
+            </section>
+
+            <section className="advisor-goal-card">
                 <div className="advisor-goal-card-heading">
                     <strong>Chronione modyfikatory</strong>
                     <span>minimum względem obecnej wartości</span>
@@ -170,9 +188,11 @@ const AdvisorGoalsPanel = ({ stats = {}, gameRules = {}, settings, onChange }) =
                         })
                     }
                 >
-                    <option value="1">1 działanie</option>
-                    <option value="2">2 działania</option>
-                    <option value="3">3 działania</option>
+                    {Array.from({ length: 10 }, (_, index) => index + 1).map((count) => (
+                        <option key={count} value={count}>
+                            {count} {count === 1 ? "działanie" : "działań"}
+                        </option>
+                    ))}
                 </select>
                 <label htmlFor="advisor-speed">Dokładność analizy</label>
                 <select

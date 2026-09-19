@@ -19,7 +19,7 @@ final class AdvisorFinalistVerifier {
         candidates.sort(search.ranking());
         List<Verified> verified = new ArrayList<>();
         int checks = 0;
-        for (AdvisorSearch.Node candidate : diversify(candidates)) {
+        for (AdvisorSearch.Node candidate : diversify(candidates, search)) {
             if (checks >= 18 || System.nanoTime() >= deadline) break;
             checks++;
             CalculationResultDto calculation =
@@ -42,11 +42,15 @@ final class AdvisorFinalistVerifier {
                                                                 other.node(),
                                                                 candidate.node(),
                                                                 search)));
-        return select(verified);
+        return select(verified, search);
     }
 
-    private List<AdvisorSearch.Node> diversify(List<AdvisorSearch.Node> candidates) {
+    private List<AdvisorSearch.Node> diversify(
+            List<AdvisorSearch.Node> candidates, AdvisorSearch search) {
         List<AdvisorSearch.Node> queue = new ArrayList<>();
+        addBest(queue, candidates, search.ranking());
+        addBest(queue, candidates, search.minimumChangeRanking());
+        addBest(queue, candidates, search.bestResultRanking());
         for (int round = 0; round < 8; round++)
             for (int kind = 0; kind < 3; kind++) {
                 int group = kind;
@@ -54,15 +58,25 @@ final class AdvisorFinalistVerifier {
                         .filter(n -> n.kind() == group)
                         .skip(round)
                         .findFirst()
+                        .filter(node -> !queue.contains(node))
                         .ifPresent(queue::add);
             }
         return queue;
     }
 
-    private List<Verified> select(List<Verified> verified) {
+    private void addBest(
+            List<AdvisorSearch.Node> queue,
+            List<AdvisorSearch.Node> candidates,
+            java.util.Comparator<AdvisorSearch.Node> ranking) {
+        candidates.stream().min(ranking).filter(node -> !queue.contains(node)).ifPresent(queue::add);
+    }
+
+    private List<Verified> select(List<Verified> verified, AdvisorSearch search) {
         if (verified.isEmpty()) return List.of();
         List<Verified> selected = new ArrayList<>();
         selected.add(verified.getFirst());
+        addBestVerified(selected, verified, search.minimumChangeRanking());
+        addBestVerified(selected, verified, search.bestResultRanking());
         for (int kind = 0; kind < 3; kind++) {
             int group = kind;
             verified.stream()
@@ -76,6 +90,16 @@ final class AdvisorFinalistVerifier {
                 .limit(6 - selected.size())
                 .forEach(selected::add);
         return selected;
+    }
+
+    private void addBestVerified(
+            List<Verified> selected,
+            List<Verified> verified,
+            java.util.Comparator<AdvisorSearch.Node> ranking) {
+        verified.stream()
+                .min((left, right) -> ranking.compare(left.node(), right.node()))
+                .filter(value -> !selected.contains(value))
+                .ifPresent(selected::add);
     }
 
     private AdvisorSearch.Node withStats(AdvisorSearch.Node n, double[] stats) {

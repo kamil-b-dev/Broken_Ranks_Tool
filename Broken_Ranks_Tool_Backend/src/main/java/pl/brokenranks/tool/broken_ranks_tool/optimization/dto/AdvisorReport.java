@@ -8,6 +8,7 @@ public record AdvisorReport(
         int evaluatedStates,
         boolean timeLimitReached,
         boolean cancelled,
+        String status,
         boolean targetReached,
         double baselineValue,
         String goal,

@@ -57,11 +57,22 @@ final class AdvisorResponseFactory {
                         search.control.evaluated(),
                         search.limited(),
                         search.control.cancelled(),
+                        status(search, selected, reached),
                         reached,
                         search.baseline[search.options.getGoal().ordinal()],
                         search.options.getGoal().name(),
                         output.plans()));
         return response;
+    }
+
+    private String status(
+            AdvisorSearch search,
+            List<AdvisorFinalistVerifier.Verified> selected,
+            boolean reached) {
+        if (search.control.cancelled()) return "CANCELLED";
+        if (search.exhaustive()) return selected.isEmpty() && !reached ? "INFEASIBLE" : "OPTIMAL";
+        if (selected.isEmpty() && reached) return "OPTIMAL";
+        return "BEST_FOUND";
     }
 
     OptimizationResponse failure(String message, long started) {
@@ -113,7 +124,7 @@ final class AdvisorResponseFactory {
                 Double.isFinite(target) ? String.format(Locale.ROOT, "%.2f%%", target) : null,
                 true,
                 Double.isFinite(target)
-                        ? directed(type, parse(bestStats.get(type.name()))) + AdvisorSearch.EPSILON
+                        ? useful(type, parse(bestStats.get(type.name()))) + AdvisorSearch.EPSILON
                                 >= target
                         : null);
     }
@@ -136,7 +147,16 @@ final class AdvisorResponseFactory {
             message += " Analizę zatrzymano; pokazano sprawdzone wyniki.";
         else if (search.limited())
             message += " Osiągnięto limit wyszukiwania; wynik nie jest gwarancją optimum.";
+        else if (search.exhaustive())
+            message +=
+                    selectedCount == 0 && !reached
+                            ? " W pełni sprawdzonym zakresie nie istnieje poprawny plan poprawy."
+                            : " Przeszukano cały zakres; wynik jest optymalny.";
+        else if (!(selectedCount == 0 && reached))
+            message += " Wynik jest najlepszym znalezionym planem, bez gwarancji optimum.";
         if (Double.isFinite(search.target) && !reached) message += " Nie osiągnięto zadanego celu.";
+        if (search.targetClamped())
+            message += " Cel przekraczał cap i został ograniczony do jego użytecznej wartości.";
         return message;
     }
 

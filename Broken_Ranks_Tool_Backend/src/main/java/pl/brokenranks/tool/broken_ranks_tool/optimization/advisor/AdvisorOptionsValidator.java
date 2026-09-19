@@ -7,11 +7,12 @@ final class AdvisorOptionsValidator {
     boolean valid(AdvisorOptions options) {
         if (options == null
                 || options.getGoal() == null
+                || options.getStrategy() == null
                 || options.getAllowedChanges() == null
                 || options.getTimeBudgetMs() < 200
                 || options.getTimeBudgetMs() > 5000
                 || options.getMaxActions() < 1
-                || options.getMaxActions() > 3
+                || options.getMaxActions() > 10
                 || !("AUTO".equals(options.getProfession())
                         || "MAGICAL".equals(options.getProfession())
                         || "PHYSICAL".equals(options.getProfession())

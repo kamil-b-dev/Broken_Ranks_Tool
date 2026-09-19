@@ -7,6 +7,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest.SlotData;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.AdvisorOptions;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.AdvisorOptions.Strategy;
 
 /** Bounded, deterministic beam over short action plans, including compensating moves. */
 final class AdvisorSearch {
@@ -16,12 +17,15 @@ final class AdvisorSearch {
     final double[] baseline;
     final double[] minima = new double[TYPES.length];
     final double target;
+    final double requestedTarget;
     final AdvisorSearchControl control;
     final Comparator<Node> ranking;
     final AdvisorBeamPolicy beamPolicy = new AdvisorBeamPolicy();
     final Set<String> seen = new HashSet<>();
     final List<Node> finalists = new ArrayList<>();
     private final AdvisorActionGenerator actions;
+    private boolean exact = true;
+    private boolean completed;
 
     record Node(
             Map<String, SlotData> slots,
@@ -55,24 +59,29 @@ final class AdvisorSearch {
                             : options.getProtectedModifiers().get(type);
             if (protection == null || protection.isEnabled()) {
                 minima[type.ordinal()] =
-                        directed(type, baseline[type.ordinal()])
+                        useful(type, baseline[type.ordinal()])
                                 - (protection == null ? 0 : protection.getLoss());
             }
         }
-        target =
+        requestedTarget =
                 options.getTargetValue() != null
                         ? options.getTargetValue()
                         : options.getTargetGain() != null
                                 ? value(baseline) + options.getTargetGain()
                                 : Double.POSITIVE_INFINITY;
+        Integer cap = options.getGoal().getMaxCap();
+        target = cap == null ? requestedTarget : Math.min(requestedTarget, Math.abs(cap));
         ranking =
                 AdvisorPlanRanking.create(
-                        target, node -> reached(node.stats()), node -> value(node.stats()));
+                        target,
+                        options.getStrategy(),
+                        node -> reached(node.stats()),
+                        node -> value(node.stats()));
     }
 
     List<Node> run(Map<String, SlotData> slots) {
         Node initial = new Node(slots, model.evaluate(slots), List.of(), Set.of(), 0, 0);
-        seen.add(signature(slots));
+        seen.add(stateSignature(initial));
         List<Node> beam = List.of(initial);
         for (int depth = 0; depth < options.getMaxActions() && running(); depth++) {
             List<Node> next = new ArrayList<>();
@@ -81,7 +90,7 @@ final class AdvisorSearch {
                 actions.generate(
                         node,
                         candidate -> {
-                            if (!running() || !seen.add(signature(candidate.slots()))) return;
+                            if (!running() || !seen.add(stateSignature(candidate))) return;
                             control.recordEvaluation();
                             Node scored =
                                     new Node(
@@ -96,13 +105,15 @@ final class AdvisorSearch {
                             next.add(scored);
                             if (deficit(scored.stats()) <= 0.1 && gain(scored.stats()) > EPSILON)
                                 finalists.add(scored);
-                            if (next.size() > 300) trimBeam(next);
+                            if (exact && next.size() > 1_500) exact = false;
+                            if (!exact && next.size() > 300) trimBeam(next);
                             if (finalists.size() > 180) trimFinalists();
                         });
             }
-            trimBeam(next);
+            if (!exact) trimBeam(next);
             beam = next;
         }
+        completed = running();
         trimFinalists();
         return List.copyOf(finalists);
     }
@@ -116,9 +127,7 @@ final class AdvisorSearch {
     }
 
     double value(double[] stats) {
-        double raw = directed(options.getGoal(), stats[options.getGoal().ordinal()]);
-        Integer cap = options.getGoal().getMaxCap();
-        return cap == null ? raw : Math.min(raw, Math.abs(cap));
+        return useful(options.getGoal(), stats[options.getGoal().ordinal()]);
     }
 
     double gain(double[] stats) {
@@ -132,12 +141,30 @@ final class AdvisorSearch {
     double deficit(double[] stats) {
         double sum = 0;
         for (var type : TYPES)
-            sum += Math.max(0, minima[type.ordinal()] - directed(type, stats[type.ordinal()]));
+            sum += Math.max(0, minima[type.ordinal()] - useful(type, stats[type.ordinal()]));
         return sum;
+    }
+
+    boolean targetClamped() {
+        return target + EPSILON < requestedTarget;
     }
 
     Comparator<Node> ranking() {
         return ranking;
+    }
+
+    Comparator<Node> minimumChangeRanking() {
+        return AdvisorPlanRanking.create(
+                target, Strategy.MINIMUM_CHANGE, node -> reached(node.stats()), node -> value(node.stats()));
+    }
+
+    Comparator<Node> bestResultRanking() {
+        return AdvisorPlanRanking.create(
+                target, Strategy.BEST_RESULT, node -> reached(node.stats()), node -> value(node.stats()));
+    }
+
+    boolean exhaustive() {
+        return exact && completed && !limited() && !control.cancelled();
     }
 
     private void trimBeam(List<Node> nodes) {
@@ -147,6 +174,12 @@ final class AdvisorSearch {
 
     private void trimFinalists() {
         beamPolicy.trimFinalists(finalists, ranking);
+    }
+
+    private String stateSignature(Node node) {
+        return signature(node.slots())
+                + "|"
+                + node.changed().stream().sorted().collect(java.util.stream.Collectors.joining(","));
     }
 
     static String slotName(String key) {

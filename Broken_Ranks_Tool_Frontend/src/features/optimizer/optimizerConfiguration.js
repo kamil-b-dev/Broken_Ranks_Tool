@@ -128,6 +128,11 @@ export const parseOptimizerConfigPayload = (payload, gameRules = {}) => {
                   )
                       ? payload.settings.advisorSearch.targetMode
                       : "MAXIMIZE",
+                  strategy: ["MINIMUM_CHANGE", "BEST_RESULT"].includes(
+                      payload.settings.advisorSearch.strategy
+                  )
+                      ? payload.settings.advisorSearch.strategy
+                      : "MINIMUM_CHANGE",
                   target:
                       Number.isFinite(Number(payload.settings.advisorSearch.target)) &&
                       Number(payload.settings.advisorSearch.target) >= 0
@@ -136,7 +141,7 @@ export const parseOptimizerConfigPayload = (payload, gameRules = {}) => {
                   maxActions: clamp(
                       Math.trunc(Number(payload.settings.advisorSearch.maxActions)) || 3,
                       1,
-                      3
+                      10
                   ),
                   timeBudgetMs: payload.settings.advisorSearch.timeBudgetMs === 5000 ? 5000 : 1500,
               }
