@@ -44,7 +44,7 @@ Cel Doradcy jest określany względem statystyk aktualnego buildu. Użytkownik m
 
 Wyszukiwanie może przejściowo rozważać stan niespełniający minimów, jeżeli kolejne działanie może go skompensować. Ostateczny plan musi jednak przejść walidację i przeliczenie wspólnym kalkulatorem.
 
-Brak zwróconego planu oznacza, że Doradca nie znalazł poprawnej poprawy w sprawdzonym zakresie i budżecie. Nie jest dowodem, że lepszy plan matematycznie nie istnieje. Limity liczby działań, kandydatów, finalistów i czasu wyszukiwania są szczegółami obecnej implementacji opisanymi w [regułach ekwipunku](reguly-ekwipunku.md), a nie regułami gry.
+Brak zwróconego planu jest dowodem niewykonalności wyłącznie przy statusie `INFEASIBLE`, po pełnym przeszukaniu i autorytatywnej weryfikacji całego badanego zakresu. W pozostałych przypadkach oznacza tylko brak znalezionej poprawy. Limity i sposób wyszukiwania opisują [reguły Doradcy](reguly-doradcy.md), a nie reguły gry.
 
 ## 3. Ograniczenia twarde
 

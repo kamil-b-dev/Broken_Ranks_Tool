@@ -98,7 +98,9 @@ Wyszukiwanie powinno być adaptacyjne:
 - `INFEASIBLE` wolno zwrócić tylko po udowodnieniu braku poprawnego planu w pełnym badanym zakresie,
 - `CANCELLED` oznacza anulowanie analizy.
 
-Przy większym limicie działań wynik najczęściej będzie heurystyczny. Samo zakończenie heurystyki nie jest dowodem optimum. Odpowiedź i UI powinny pokazywać status, wykorzystany limit, liczbę ocenionych unikalnych stanów i zakres ewentualnego dowodu.
+Samo wyczerpanie przestrzeni przez model wyszukiwania nie wystarcza do dowodu. Przy ścieżce dokładnej wszystkie wygenerowane stany końcowe muszą zostać ponownie ocenione wspólnym kalkulatorem przed upływem budżetu. Przerwana lub częściowa weryfikacja obniża status do `BEST_FOUND`.
+
+Przy większym limicie działań wynik najczęściej będzie heurystyczny. Samo zakończenie heurystyki nie jest dowodem optimum. Odpowiedź i UI pokazują status, limit działań, liczbę ocenionych unikalnych stanów, liczbę zweryfikowanych kandydatów i zakres ewentualnego dowodu.
 
 ## 7. Kalkulator i testowanie
 

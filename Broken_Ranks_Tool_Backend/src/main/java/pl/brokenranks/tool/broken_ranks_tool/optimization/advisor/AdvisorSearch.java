@@ -23,9 +23,12 @@ final class AdvisorSearch {
     final AdvisorBeamPolicy beamPolicy = new AdvisorBeamPolicy();
     final Set<String> seen = new HashSet<>();
     final List<Node> finalists = new ArrayList<>();
+    final List<Node> proofCandidates = new ArrayList<>();
     private final AdvisorActionGenerator actions;
     private boolean exact = true;
     private boolean completed;
+    private boolean searchLimited;
+    private boolean runFinished;
 
     record Node(
             Map<String, SlotData> slots,
@@ -103,19 +106,26 @@ final class AdvisorSearch {
                             // Allow slightly deficient intermediate plans: another move can
                             // compensate.
                             next.add(scored);
+                            if (exact) proofCandidates.add(scored);
                             if (deficit(scored.stats()) <= 0.1 && gain(scored.stats()) > EPSILON)
                                 finalists.add(scored);
-                            if (exact && next.size() > 1_500) exact = false;
+                            if (exact && next.size() > 1_500) {
+                                exact = false;
+                                proofCandidates.clear();
+                                trimFinalists();
+                            }
                             if (!exact && next.size() > 300) trimBeam(next);
-                            if (finalists.size() > 180) trimFinalists();
+                            if (!exact && finalists.size() > 180) trimFinalists();
                         });
             }
             if (!exact) trimBeam(next);
             beam = next;
         }
         completed = running();
-        trimFinalists();
-        return List.copyOf(finalists);
+        searchLimited = control.limited();
+        runFinished = true;
+        if (!exact) trimFinalists();
+        return List.copyOf(exact ? proofCandidates : finalists);
     }
 
     boolean running() {
@@ -123,7 +133,7 @@ final class AdvisorSearch {
     }
 
     boolean limited() {
-        return control.limited();
+        return runFinished ? searchLimited : control.limited();
     }
 
     double value(double[] stats) {

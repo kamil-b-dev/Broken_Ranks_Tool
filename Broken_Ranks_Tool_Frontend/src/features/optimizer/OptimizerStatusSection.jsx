@@ -5,6 +5,13 @@ const formatDuration = (duration) => duration?.toFixed?.(2) ?? duration;
 /** Presents progress and the latest outcome of an optimization run. */
 const OptimizerStatusSection = ({ isOptimizing, elapsedSeconds, status, lastDurationSeconds }) => {
     const duration = status?.executionTimeSeconds ?? lastDurationSeconds;
+    const advisor = status?.advisorReport;
+    const advisorStatus = {
+        OPTIMAL: "Optimum potwierdzone",
+        BEST_FOUND: "Najlepszy znaleziony wynik",
+        INFEASIBLE: "Brak planu w pełnym zakresie",
+        CANCELLED: "Analiza anulowana",
+    }[advisor?.status];
 
     return (
         <section className="optimizer-report-section optimizer-status-section">
@@ -58,6 +65,44 @@ const OptimizerStatusSection = ({ isOptimizing, elapsedSeconds, status, lastDura
                         </p>
                     )}
                     <dl className="optimizer-status-metrics">
+                        {advisorStatus && (
+                            <div>
+                                <dd>{advisorStatus}</dd>
+                                <dt>Status Doradcy</dt>
+                            </div>
+                        )}
+                        {advisor?.evaluatedStates !== undefined && (
+                            <div>
+                                <dd>{advisor.evaluatedStates}</dd>
+                                <dt>Ocenione stany</dt>
+                            </div>
+                        )}
+                        {advisor?.verifiedCandidates !== undefined && (
+                            <div>
+                                <dd>
+                                    {advisor.verifiedCandidates}/{advisor.candidateCount}
+                                </dd>
+                                <dt>Zweryfikowani kandydaci</dt>
+                            </div>
+                        )}
+                        {advisor?.maxActions !== undefined && (
+                            <div>
+                                <dd>{advisor.maxActions}</dd>
+                                <dt>Limit działań</dt>
+                            </div>
+                        )}
+                        {advisor && (
+                            <div>
+                                <dd>
+                                    {advisor.proofComplete
+                                        ? "pełny dowód"
+                                        : advisor.searchSpaceExhausted
+                                          ? "weryfikacja niepełna"
+                                          : "zakres heurystyczny"}
+                                </dd>
+                                <dt>Zakres wyniku</dt>
+                            </div>
+                        )}
                         {status.drifsPlaced !== undefined && (
                             <div>
                                 <dd>{status.drifsPlaced} drifów</dd>

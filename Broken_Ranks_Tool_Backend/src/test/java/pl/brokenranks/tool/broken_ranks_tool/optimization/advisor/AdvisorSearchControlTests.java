@@ -73,6 +73,44 @@ class AdvisorSearchControlTests {
     }
 
     @Test
+    void clampsTargetsAndProtectedBaselinesToTheUsefulCap() {
+        AdvisorOptions options = options();
+        options.setTargetValue(100.0);
+        AdvisorOptions.Protection protection = new AdvisorOptions.Protection();
+        protection.setLoss(3.0);
+        options.setProtectedModifiers(Map.of(DRIF_BONUS_TYPE.CC_PROTECTION, protection));
+        double[] baseline = stats(0);
+        baseline[DRIF_BONUS_TYPE.CC_PROTECTION.ordinal()] = 62;
+
+        AdvisorSearch search =
+                new AdvisorSearch(
+                        mock(AdvisorEquipmentModel.class),
+                        options,
+                        baseline,
+                        Long.MAX_VALUE,
+                        new AtomicBoolean());
+
+        assertTrue(search.targetClamped());
+        assertTrue(Math.abs(search.target - 60) < AdvisorSearch.EPSILON);
+        assertTrue(
+                Math.abs(search.minima[DRIF_BONUS_TYPE.CC_PROTECTION.ordinal()] - 57)
+                        < AdvisorSearch.EPSILON);
+    }
+
+    @Test
+    void acceptsActionLimitsOneThreeAndTenOnlyWithinTheDocumentedRange() {
+        AdvisorOptionsValidator validator = new AdvisorOptionsValidator();
+        for (int limit : new int[] {1, 3, 10}) {
+            AdvisorOptions options = options();
+            options.setMaxActions(limit);
+            assertTrue(validator.valid(options));
+        }
+        AdvisorOptions invalid = options();
+        invalid.setMaxActions(11);
+        assertFalse(validator.valid(invalid));
+    }
+
+    @Test
     void registryCancelsDuplicateRunAndForgetsFinishedRun() {
         AdvisorRunRegistry registry = new AdvisorRunRegistry();
         AtomicBoolean flag = registry.start("run-1");

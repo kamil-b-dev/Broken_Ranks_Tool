@@ -241,7 +241,7 @@ describe("useEquipmentOptimization", () => {
         let first;
         let second;
 
-        act(() => {
+        await act(async () => {
             first = result.current.runDrifOptimization({
                 mode: "ADVISOR",
                 advisor: { goal: "TEST" },
@@ -250,8 +250,11 @@ describe("useEquipmentOptimization", () => {
                 mode: "ADVISOR",
                 advisor: { goal: "TEST" },
             });
+            await Promise.resolve();
         });
         const newestRunId = optimizeEquipmentDrifs.mock.calls[1][0].advisor.runId;
+        const previousRunId = optimizeEquipmentDrifs.mock.calls[0][0].advisor.runId;
+        expect(cancelAdvisorOptimization).toHaveBeenCalledWith(previousRunId);
 
         await act(async () => {
             finishes[0]({ summary: { success: true } });

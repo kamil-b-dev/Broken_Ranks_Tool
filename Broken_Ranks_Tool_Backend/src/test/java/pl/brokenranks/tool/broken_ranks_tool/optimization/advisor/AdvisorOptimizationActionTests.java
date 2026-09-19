@@ -370,6 +370,7 @@ class AdvisorOptimizationActionTests extends AdvisorOptimizationTestSupport {
                 .calculateWithSources(any());
         var result = f.service.optimize(request);
         assertTrue(result.getAdvisorReport().cancelled());
+        assertEquals("CANCELLED", result.getAdvisorReport().status());
         assertEquals(request.getOriginalSlots(), result.getOptimizedSetup().getSlots());
         assertFalse(f.runs.cancel(id));
     }

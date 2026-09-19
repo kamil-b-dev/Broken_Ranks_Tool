@@ -4,6 +4,8 @@
 
 Przed zmianami dotyczącymi ekwipunku, drifów, orbów, gwiazdek, kalkulatora statystyk lub optymalizatora przeczytaj [reguły ekwipunku](docs/reguly-ekwipunku.md).
 
+Przed zmianami dotyczącymi edytora ekwipunku, API, kalkulatora, walidacji lub integracji wyniku przeczytaj również [zasady integracji ekwipunku](docs/reguly-integracji-ekwipunku.md).
+
 Przed zmianami dotyczącymi algorytmu optymalizacji, jego walidacji, celów, oceny wyniku, komunikatów lub interfejsu optymalizatora przeczytaj również [reguły optymalizatora](docs/reguly-optymalizatora.md).
 
 Przed zmianami dotyczącymi trybu Doradcy, jego działań, strategii, rankingu, ochron modów, capów, limitów, kandydatów, alternatyw, komunikatów lub sposobu wyszukiwania przeczytaj również [reguły Doradcy](docs/reguly-doradcy.md).

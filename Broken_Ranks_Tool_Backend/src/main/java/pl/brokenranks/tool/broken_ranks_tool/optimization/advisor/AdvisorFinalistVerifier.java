@@ -10,17 +10,21 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCal
 
 /** Verifies approximate candidates with the authoritative equipment calculator. */
 final class AdvisorFinalistVerifier {
-    List<Verified> verify(
+    Result verify(
             List<AdvisorSearch.Node> candidates,
             AdvisorEquipmentModel model,
             AdvisorSearch search,
             EquipmentStatsCalculatorService calculator,
             long deadline) {
+        candidates = new ArrayList<>(candidates);
         candidates.sort(search.ranking());
         List<Verified> verified = new ArrayList<>();
+        List<AdvisorSearch.Node> queue =
+                search.exhaustive() ? List.copyOf(candidates) : diversify(candidates, search);
+        int checkLimit = search.exhaustive() ? queue.size() : Math.min(18, queue.size());
         int checks = 0;
-        for (AdvisorSearch.Node candidate : diversify(candidates, search)) {
-            if (checks >= 18 || System.nanoTime() >= deadline) break;
+        for (AdvisorSearch.Node candidate : queue) {
+            if (checks >= checkLimit || System.nanoTime() >= deadline) break;
             checks++;
             CalculationResultDto calculation =
                     calculator.calculateWithSources(model.setup(candidate.slots()));
@@ -42,7 +46,12 @@ final class AdvisorFinalistVerifier {
                                                                 other.node(),
                                                                 candidate.node(),
                                                                 search)));
-        return select(verified, search);
+        return new Result(
+                select(verified, search),
+                search.exhaustive() && checks == queue.size(),
+                checks,
+                queue.size(),
+                checks < queue.size() && System.nanoTime() >= deadline);
     }
 
     private List<AdvisorSearch.Node> diversify(
@@ -123,4 +132,11 @@ final class AdvisorFinalistVerifier {
             return calculation.stats();
         }
     }
+
+    record Result(
+            List<Verified> selected,
+            boolean proofComplete,
+            int verifiedCandidates,
+            int candidateCount,
+            boolean timeLimitReached) {}
 }
