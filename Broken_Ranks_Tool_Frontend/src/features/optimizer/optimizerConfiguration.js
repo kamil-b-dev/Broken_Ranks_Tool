@@ -12,6 +12,25 @@ import {
 
 const clamp = (value, minimum, maximum) => Math.max(minimum, Math.min(maximum, value));
 
+const normalizeProtectedModifiers = (value, knownBonuses) => {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+    return Object.fromEntries(
+        Object.entries(value).flatMap(([key, rule]) => {
+            if (!knownBonuses.has(key)) return [];
+            if (
+                typeof rule !== "boolean" &&
+                (!rule || typeof rule !== "object" || Array.isArray(rule))
+            )
+                return [];
+            const enabled = typeof rule === "boolean" ? rule : rule.enabled !== false;
+            const parsedLoss =
+                typeof rule === "boolean" ? 0 : Number(String(rule.loss ?? 0).replace(",", "."));
+            const loss = Number.isFinite(parsedLoss) && parsedLoss >= 0 ? parsedLoss : 0;
+            return [[key, { enabled, loss }]];
+        })
+    );
+};
+
 /** Creates the stable, versioned optimizer configuration saved by the browser. */
 export const createOptimizerConfigPayload = (priorities, settings, exportedAt = new Date()) => ({
     format: OPTIMIZER_CONFIG_FORMAT,
@@ -152,11 +171,10 @@ export const parseOptimizerConfigPayload = (payload, gameRules = {}) => {
                   ),
               }
             : null,
-        advisorProtectedModifiers:
-            payload.settings?.advisorProtectedModifiers &&
-            typeof payload.settings.advisorProtectedModifiers === "object"
-                ? payload.settings.advisorProtectedModifiers
-                : null,
+        advisorProtectedModifiers: normalizeProtectedModifiers(
+            payload.settings?.advisorProtectedModifiers,
+            knownBonuses
+        ),
         advisorAllowedChanges:
             payload.settings?.advisorAllowedChanges &&
             typeof payload.settings.advisorAllowedChanges === "object"

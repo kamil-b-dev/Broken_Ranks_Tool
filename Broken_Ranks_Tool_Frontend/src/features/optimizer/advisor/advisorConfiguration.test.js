@@ -55,6 +55,15 @@ describe("advisor configuration", () => {
             buildAdvisorConfiguration({ advisorSearch: { targetMode: "VALUE", target } }, {}, rules)
         ).toThrow();
     });
+    it("rejects malformed protection rules without crashing on property access", () => {
+        expect(() =>
+            buildAdvisorConfiguration(
+                { advisorProtectedModifiers: { CRITICAL_CHANCE: null } },
+                {},
+                rules
+            )
+        ).toThrow("Nieprawidłowa reguła ochrony modyfikatora.");
+    });
     it("round trips the target and allowed purchase controls", () => {
         const settings = {
             mode: "ADVISOR",

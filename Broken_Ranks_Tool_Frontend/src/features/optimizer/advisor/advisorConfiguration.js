@@ -50,6 +50,9 @@ export const buildAdvisorConfiguration = (settings, stats, gameRules, characterS
     }
     const protectedModifiers = Object.fromEntries(
         Object.entries(settings.advisorProtectedModifiers || {}).map(([key, rule]) => {
+            if (!rule || typeof rule !== "object") {
+                throw new Error("Nieprawidłowa reguła ochrony modyfikatora.");
+            }
             const loss = Number(String(rule.loss ?? 0).replace(",", "."));
             if (!Number.isFinite(loss) || loss < 0)
                 throw new Error("Dopuszczalny spadek musi być nieujemną liczbą.");
