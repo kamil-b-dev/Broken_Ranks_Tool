@@ -192,8 +192,12 @@ export const getAvailablePrimaryOrbs = ({
     usedTypes,
     isLegendary,
     maximumSizeIndex,
+    secondaryOrbId,
 }) =>
     orbs.filter((orb) => {
+        const secondaryType = orbs.find(
+            (candidate) => String(candidate.id) === String(secondaryOrbId)
+        )?.bonusType;
         const orbSizeIndex = ORB_SIZE_INDEX[String(orb.size).toUpperCase()] ?? -1;
         const allowed =
             allowedCategories.includes(orb.category) ||
@@ -201,6 +205,7 @@ export const getAvailablePrimaryOrbs = ({
         return (
             allowed &&
             !usedTypes.includes(orb.bonusType) &&
+            orb.bonusType !== secondaryType &&
             orbSizeIndex >= 0 &&
             orbSizeIndex <= maximumSizeIndex
         );

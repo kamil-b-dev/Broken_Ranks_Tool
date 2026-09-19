@@ -141,6 +141,16 @@ describe("useGearSlot", () => {
         expect(result.current.selectedDrifs).toEqual([]);
     });
 
+    it("does not allow changing the primary orb to the secondary orb bonus", () => {
+        const { result } = renderSlot();
+        drop(result, { ...items[0], dragType: "items" }, "item");
+        drop(result, { ...orbs[1], dragType: "orbs" }, "orb2");
+
+        expect(result.current.availableOrbs1.map((orb) => orb.id)).not.toContain(11);
+        drop(result, { ...orbs[1], dragType: "orbs" }, "orb1");
+        expect(result.current.orbSlots.orb1.id).toBe("");
+    });
+
     it("synchronizes imported data and clears it when optimization removes a slot", () => {
         const imported = {
             weapon: {

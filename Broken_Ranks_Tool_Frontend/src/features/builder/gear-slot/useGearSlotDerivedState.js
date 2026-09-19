@@ -83,8 +83,9 @@ export const useGearSlotDerivedState = ({
                 usedTypes: globalUsedOrbs,
                 isLegendary,
                 maximumSizeIndex: maxOrbIndex,
+                secondaryOrbId: orbSlots.orb2.id,
             }),
-        [orbs, globalUsedOrbs, allowedOrbCategories, isLegendary, maxOrbIndex]
+        [orbs, globalUsedOrbs, allowedOrbCategories, isLegendary, maxOrbIndex, orbSlots.orb2.id]
     );
     const availableOrbs2 = useMemo(
         () =>
