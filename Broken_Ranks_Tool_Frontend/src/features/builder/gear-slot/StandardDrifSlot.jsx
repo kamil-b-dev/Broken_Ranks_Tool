@@ -30,7 +30,9 @@ const LockIcon = ({ locked }) =>
 /** Renders and edits one standard drif position. */
 const StandardDrifSlot = ({
     index,
+    slotKey,
     drifs,
+    elementalTypes = [],
     selectedDrifs,
     drifTypes,
     drifLevels,
@@ -60,10 +62,22 @@ const StandardDrifSlot = ({
                 : null
         )
         .filter(Boolean);
+    const hasOtherElemental = selectedDrifs.some((id, position) => {
+        if (position === index || !id) return false;
+        const drif = drifs.find((candidate) => String(candidate.id) === String(id));
+        return elementalTypes.includes(drif?.bonusType);
+    });
     const allowed = drifs.filter((drif) => {
         if (drifId && String(drif.id) === String(drifId)) return true;
         const sizeIndex = drif.size ? (SIZE_INDEX[drif.size.toUpperCase()] ?? -1) : -1;
-        return !usedTypes.includes(drif.bonusType) && sizeIndex >= 0 && sizeIndex <= maxDrifIndex;
+        const elementalBlocked =
+            elementalTypes.includes(drif.bonusType) && (slotKey !== "weapon" || hasOtherElemental);
+        return (
+            !elementalBlocked &&
+            !usedTypes.includes(drif.bonusType) &&
+            sizeIndex >= 0 &&
+            sizeIndex <= maxDrifIndex
+        );
     });
     const grouped = groupByType(allowed);
     const current = drifs.find((drif) => String(drif.id) === String(drifId));

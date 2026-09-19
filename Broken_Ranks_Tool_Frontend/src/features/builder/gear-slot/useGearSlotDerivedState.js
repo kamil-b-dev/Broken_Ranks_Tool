@@ -4,13 +4,13 @@ import {
     calculateItemCapacity,
     calculateMaximumDrifSizeIndex,
     calculateMaximumDrifSlots,
+    calculateMaximumOrbSizeIndex,
     calculateUsedDrifPower,
     collectUsedOrbTypes,
     createBuiltInDrifs,
     getAvailablePrimaryOrbs,
     getAvailableSecondaryOrbs,
     groupGearOptionsByType,
-    hasElementalDrifInOtherSlot,
 } from "./gearSlotDomain";
 
 /** Derives catalog choices, restrictions, and capacity state for an editable gear slot. */
@@ -62,42 +62,43 @@ export const useGearSlotDerivedState = ({
         () => slotOrbRules[slotKey] || [],
         [slotOrbRules, slotKey]
     );
+    const maxDrifIndex = useMemo(
+        () =>
+            calculateMaximumDrifSizeIndex({
+                hasItem: Boolean(fullSelectedItem),
+                isEpicOrSet,
+                tier,
+            }),
+        [tier, fullSelectedItem, isEpicOrSet]
+    );
+    const maxOrbIndex = useMemo(
+        () => calculateMaximumOrbSizeIndex({ hasItem: Boolean(fullSelectedItem), tier }),
+        [fullSelectedItem, tier]
+    );
     const availableOrbs1 = useMemo(
         () =>
             getAvailablePrimaryOrbs({
                 orbs,
                 allowedCategories: allowedOrbCategories,
                 usedTypes: globalUsedOrbs,
-                itemTier: tier,
                 isLegendary,
-                tierToNumber: ROMAN_TO_INT,
+                maximumSizeIndex: maxOrbIndex,
             }),
-        [orbs, globalUsedOrbs, allowedOrbCategories, tier, isLegendary]
+        [orbs, globalUsedOrbs, allowedOrbCategories, isLegendary, maxOrbIndex]
     );
     const availableOrbs2 = useMemo(
         () =>
             getAvailableSecondaryOrbs({
                 orbs,
                 usedTypes: globalUsedOrbs,
-                itemTier: tier,
                 isLegendary,
                 primaryOrbId: orbSlots.orb1.id,
-                tierToNumber: ROMAN_TO_INT,
+                maximumSizeIndex: maxOrbIndex,
             }),
-        [orbs, globalUsedOrbs, tier, isLegendary, orbSlots.orb1.id]
+        [orbs, globalUsedOrbs, isLegendary, orbSlots.orb1.id, maxOrbIndex]
     );
     const groupedOrbs1 = useMemo(() => groupGearOptionsByType(availableOrbs1), [availableOrbs1]);
     const groupedOrbs2 = useMemo(() => groupGearOptionsByType(availableOrbs2), [availableOrbs2]);
-    const hasGlobalElemental = useMemo(
-        () =>
-            hasElementalDrifInOtherSlot({
-                allSlots,
-                currentSlotKey: slotKey,
-                drifs,
-                elementalTypes,
-            }),
-        [allSlots, slotKey, drifs, elementalTypes]
-    );
     const maxDrifs = useMemo(
         () =>
             calculateMaximumDrifSlots({
@@ -107,15 +108,6 @@ export const useGearSlotDerivedState = ({
                 stars: itemStars,
             }),
         [fullSelectedItem, tier, itemStars, isEpicOrSet]
-    );
-    const maxDrifIndex = useMemo(
-        () =>
-            calculateMaximumDrifSizeIndex({
-                hasItem: Boolean(fullSelectedItem),
-                isEpicOrSet,
-                tier,
-            }),
-        [tier, fullSelectedItem, isEpicOrSet]
     );
     const itemCapacity = useMemo(
         () => calculateItemCapacity(fullSelectedItem, itemStars),
@@ -142,7 +134,6 @@ export const useGearSlotDerivedState = ({
         availableOrbs2,
         groupedOrbs1,
         groupedOrbs2,
-        hasGlobalElemental,
         maxDrifs,
         maxDrifIndex,
         itemCapacity,

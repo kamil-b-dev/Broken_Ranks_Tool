@@ -3,6 +3,7 @@ import {
     calculateItemCapacity,
     calculateMaximumDrifSizeIndex,
     calculateMaximumDrifSlots,
+    calculateMaximumOrbSizeIndex,
     calculateUsedDrifPower,
     createBuiltInDrifs,
     createGearSlotUpdate,
@@ -32,6 +33,8 @@ describe("gearSlotDomain", () => {
         expect(calculateMaximumDrifSizeIndex({ hasItem: true, isEpicOrSet: false, tier: 7 })).toBe(
             2
         );
+        expect(calculateMaximumOrbSizeIndex({ hasItem: true, tier: 10 })).toBe(3);
+        expect(calculateMaximumOrbSizeIndex({ hasItem: true, tier: 3 })).toBe(0);
         expect(calculateItemCapacity({ capacity: 20 }, 9)).toBe(24);
     });
 
@@ -87,6 +90,16 @@ describe("gearSlotDomain", () => {
             drifLevels: { 0: 12 },
             builtInLvls: [1, 1],
         });
+    });
+
+    it("uses level one when an imported drif has no explicit level", () => {
+        const state = createImportedGearSlotState(
+            { itemId: 7, drifIds: [3], drifLevels: {} },
+            [],
+            [{ id: 3, name: "Subdrif", size: "SUBDRIF" }]
+        );
+
+        expect(state.drifLevels).toEqual({ 0: 1 });
     });
 
     it("preserves imported built-in levels and publishes them after regular drifs", () => {
@@ -150,35 +163,31 @@ describe("gearSlotDomain", () => {
 
     it("filters orb choices by global uniqueness, slot rules, tier, and legendary slot", () => {
         const orbs = [
-            { id: 1, bonusType: "A", category: "DEFENSIVE", tier: "II" },
-            { id: 2, bonusType: "B", category: "OFFENSIVE", tier: "IV" },
-            { id: 3, bonusType: "C", category: "OFFENSIVE", tier: "II" },
+            { id: 1, bonusType: "A", category: "DEFENSIVE", size: "SUBORB" },
+            { id: 2, bonusType: "B", category: "OFFENSIVE", size: "MAGNIORB" },
+            { id: 3, bonusType: "C", category: "OFFENSIVE", size: "BIORB" },
         ];
         const usedTypes = collectUsedOrbTypes(
             { helmet: { orbIds: [1] }, weapon: { orbIds: [] } },
             "weapon",
             orbs
         );
-        const tierToNumber = { II: 2, IV: 4 };
-
         expect(
             getAvailablePrimaryOrbs({
                 orbs,
                 allowedCategories: ["DEFENSIVE"],
                 usedTypes,
-                itemTier: 2,
                 isLegendary: true,
-                tierToNumber,
+                maximumSizeIndex: 1,
             }).map((orb) => orb.id)
         ).toEqual([3]);
         expect(
             getAvailableSecondaryOrbs({
                 orbs,
                 usedTypes: [],
-                itemTier: 4,
                 isLegendary: true,
                 primaryOrbId: 2,
-                tierToNumber,
+                maximumSizeIndex: 2,
             }).map((orb) => orb.id)
         ).toEqual([3]);
     });

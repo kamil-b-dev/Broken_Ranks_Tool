@@ -8,9 +8,9 @@ const items = [
     { id: 3, name: "Hełm X", tier: "X", rarity: "EPIC", capacity: 0 },
 ];
 const orbs = [
-    { id: 10, name: "Atak", bonusType: "ATTACK", category: "OFFENSIVE", tier: "I" },
-    { id: 11, name: "Kryt", bonusType: "CRIT", category: "OFFENSIVE", tier: "X" },
-    { id: 12, name: "Mana", bonusType: "MANA", category: "DEFENSIVE", tier: "I" },
+    { id: 10, name: "Atak", bonusType: "ATTACK", category: "OFFENSIVE", size: "SUBORB" },
+    { id: 11, name: "Kryt", bonusType: "CRIT", category: "OFFENSIVE", size: "ARCYORB" },
+    { id: 12, name: "Mana", bonusType: "MANA", category: "DEFENSIVE", size: "SUBORB" },
 ];
 const drifs = [
     { id: 20, name: "Siła", bonusType: "STRENGTH", size: "SUBDRIF" },
@@ -137,8 +137,6 @@ describe("useGearSlot", () => {
         expect(result.current.groupedOrbs1.Atak).toBeUndefined();
         drop(result, { ...orbs[0], dragType: "orbs" }, "orb1");
         expect(result.current.orbSlots.orb1.id).toBe("");
-        drop(result, { ...drifs[1], dragType: "drifs" }, "drif-0");
-        expect(result.current.selectedDrifs).toEqual([]);
         drop(result, { ...drifs[3], size: "UNKNOWN", dragType: "drifs" }, "drif-0");
         expect(result.current.selectedDrifs).toEqual([]);
     });
@@ -172,7 +170,7 @@ describe("useGearSlot", () => {
         expect(result.current.selectedItem).toBe("1");
         expect(result.current.itemStars).toBe(7);
         expect(result.current.orbSlots.orb1).toEqual({ id: "10", level: "5", type: "Atak" });
-        expect(result.current.drifLevels).toEqual({ 0: 6, 2: 21 });
+        expect(result.current.drifLevels).toEqual({ 0: 6, 2: 1 });
 
         rerender({ allSlots: { armor: {} }, optimizationTrigger: 2 });
         expect(result.current.selectedItem).toBe("");

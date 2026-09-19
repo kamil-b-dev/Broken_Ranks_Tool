@@ -4,7 +4,11 @@ import {
     OPTIMIZER_CONFIG_VERSION,
     sortBonusesByCategory,
 } from "./optimizerDomain";
-import { DEFAULT_ADVISOR_CHANGES, DEFAULT_ADVISOR_SEARCH } from "./advisor/advisorConfiguration";
+import {
+    DEFAULT_ADVISOR_CHANGES,
+    DEFAULT_ADVISOR_SEARCH,
+    normalizeAdvisorTimeBudget,
+} from "./advisor/advisorConfiguration";
 
 const clamp = (value, minimum, maximum) => Math.max(minimum, Math.min(maximum, value));
 
@@ -143,7 +147,9 @@ export const parseOptimizerConfigPayload = (payload, gameRules = {}) => {
                       1,
                       10
                   ),
-                  timeBudgetMs: payload.settings.advisorSearch.timeBudgetMs === 5000 ? 5000 : 1500,
+                  timeBudgetMs: normalizeAdvisorTimeBudget(
+                      payload.settings.advisorSearch.timeBudgetMs
+                  ),
               }
             : null,
         advisorProtectedModifiers:
@@ -156,7 +162,7 @@ export const parseOptimizerConfigPayload = (payload, gameRules = {}) => {
             typeof payload.settings.advisorAllowedChanges === "object"
                 ? {
                       stars: payload.settings.advisorAllowedChanges.stars !== false,
-                      items: payload.settings.advisorAllowedChanges.items !== false,
+                      items: payload.settings.advisorAllowedChanges.items === true,
                       drifs: payload.settings.advisorAllowedChanges.drifs === true,
                       drifUpgrades: payload.settings.advisorAllowedChanges.drifUpgrades === true,
                   }

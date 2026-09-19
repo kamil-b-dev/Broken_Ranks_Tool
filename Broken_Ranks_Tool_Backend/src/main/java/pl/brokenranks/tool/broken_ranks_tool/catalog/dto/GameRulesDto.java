@@ -5,6 +5,7 @@ import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ORB_CATEGORY;
 
 /** Groups the game rules required by frontend equipment logic. */
@@ -29,6 +30,9 @@ public class GameRulesDto {
 
     /** Drif bonus categories keyed by bonus enum name. */
     private Map<String, String> drifBonusCategories;
+
+    /** Drif bonus types that may only occur once and only in a weapon. */
+    private List<DRIF_BONUS_TYPE> elementalTypes;
 
     /** Penalty multipliers keyed by the number of drifs with the same modifier. */
     private Map<Integer, Double> drifPenaltyMultipliers;

@@ -194,22 +194,26 @@ const AdvisorGoalsPanel = ({ stats = {}, gameRules = {}, settings, onChange }) =
                         </option>
                     ))}
                 </select>
-                <label htmlFor="advisor-speed">Dokładność analizy</label>
-                <select
+                <label htmlFor="advisor-speed">Budżet czasu analizy (sekundy)</label>
+                <input
                     id="advisor-speed"
-                    value={search.timeBudgetMs}
+                    type="number"
+                    min="0.2"
+                    max="5"
+                    step="0.1"
+                    value={search.timeBudgetMs / 1000}
                     onChange={(event) =>
                         update({
-                            advisorSearch: { ...search, timeBudgetMs: Number(event.target.value) },
+                            advisorSearch: {
+                                ...search,
+                                timeBudgetMs: Math.round(Number(event.target.value) * 1000),
+                            },
                         })
                     }
-                >
-                    <option value="1500">Szybka — budżet 1,5 s</option>
-                    <option value="5000">Rozszerzona — budżet 5 s</option>
-                </select>
+                />
                 <p>
                     Jedno działanie to przełożenie, zamiana dwóch drifów albo ulepszenie lub zakup.
-                    Limit czasu dotyczy wyszukiwania; wynik przechodzi jeszcze weryfikację.
+                    Wspólny limit obejmuje wyszukiwanie i końcową weryfikację kalkulatorem.
                 </p>
             </section>
         </div>
