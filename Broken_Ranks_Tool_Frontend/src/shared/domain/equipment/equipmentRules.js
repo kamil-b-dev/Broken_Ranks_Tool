@@ -48,3 +48,6 @@ export const getDrifMaxLevel = (size) => {
         }[size.toUpperCase()] ?? 21
     );
 };
+
+/** Returns the maximum allowed level for an orb size. */
+export const getOrbMaxLevel = (size) => (String(size).toUpperCase() === "SUBORB" ? 1 : 3);

@@ -179,8 +179,9 @@ describe("gearSlotDomain", () => {
                 usedTypes,
                 isLegendary: true,
                 maximumSizeIndex: 1,
+                secondaryOrbId: 3,
             }).map((orb) => orb.id)
-        ).toEqual([3]);
+        ).toEqual([]);
         expect(
             getAvailableSecondaryOrbs({
                 orbs,
@@ -188,6 +189,25 @@ describe("gearSlotDomain", () => {
                 isLegendary: true,
                 primaryOrbId: 2,
                 maximumSizeIndex: 2,
+            }).map((orb) => orb.id)
+        ).toEqual([3]);
+    });
+
+    it("excludes the secondary orb bonus from primary orb choices", () => {
+        const orbs = [
+            { id: 1, bonusType: "A", category: "OFFENSIVE", size: "SUBORB" },
+            { id: 2, bonusType: "A", category: "OFFENSIVE", size: "BIORB" },
+            { id: 3, bonusType: "B", category: "OFFENSIVE", size: "BIORB" },
+        ];
+
+        expect(
+            getAvailablePrimaryOrbs({
+                orbs,
+                allowedCategories: ["OFFENSIVE"],
+                usedTypes: [],
+                isLegendary: true,
+                maximumSizeIndex: 3,
+                secondaryOrbId: 2,
             }).map((orb) => orb.id)
         ).toEqual([3]);
     });

@@ -175,7 +175,7 @@ describe("parseGameBuildPayload", () => {
         expect(result.characterConfig).toMatchObject({ level: 1, spentPoints: { PŻ: 0 } });
     });
 
-    it("imports both rings, clamps orb levels and reports unmatched modifiers", () => {
+    it("imports both rings, defaults missing levels and reports unmatched modifiers", () => {
         const result = parseGameBuildPayload(
             {
                 stats,
@@ -186,11 +186,11 @@ describe("parseGameBuildPayload", () => {
                         Name: "Dar Skrzydlatej",
                         GearType: "ring",
                         Orbs: [
-                            { Name: "Orb złota", Level: 99 },
+                            { Name: "Orb złota", Level: 3 },
                             { Name: "Nieznany orb", Level: 2 },
                         ],
                         Drifs: [
-                            { Name: "Magnidrif astah", Level: 0 },
+                            { Name: "Magnidrif astah" },
                             { Name: "Subdrif nieznany", Level: 5 },
                         ],
                     },
@@ -199,7 +199,7 @@ describe("parseGameBuildPayload", () => {
             },
             {
                 ...catalog,
-                orbs: [{ id: 9, name: "Orb złota" }],
+                orbs: [{ id: 9, name: "Orb złota", size: "ARCYORB" }],
             }
         );
 
@@ -220,6 +220,40 @@ describe("parseGameBuildPayload", () => {
         });
         expect(result.lockedSlots).toEqual([]);
         expect(result.lockedDrifs).toEqual({});
+    });
+
+    it.each([
+        {
+            stone: "drif",
+            equipment: { Drifs: [{ Name: "Magnidrif astah", Level: 17 }] },
+            expected: "Nieprawidłowy poziom drifa Astah: 17.",
+        },
+        {
+            stone: "orb",
+            equipment: { Orbs: [{ Name: "Orb złota", Level: 2 }] },
+            expected: "Nieprawidłowy poziom orba Orb złota: 2.",
+        },
+    ])("rejects an out-of-range imported $stone level", ({ equipment, expected }) => {
+        expect(() =>
+            parseGameBuildPayload(
+                {
+                    stats,
+                    equipped: { 1: 1 },
+                    equipmentList: [
+                        {
+                            EqId: 1,
+                            Name: "Nienawiść Draugula",
+                            GearType: "belt",
+                            ...equipment,
+                        },
+                    ],
+                },
+                {
+                    ...catalog,
+                    orbs: [{ id: 9, name: "Orb złota", size: "SUBORB" }],
+                }
+            )
+        ).toThrow(expected);
     });
 
     it("does not guess between duplicate drif or orb catalog entries", () => {

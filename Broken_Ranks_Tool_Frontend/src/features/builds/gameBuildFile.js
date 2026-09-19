@@ -1,3 +1,5 @@
+import { getDrifMaxLevel, getOrbMaxLevel } from "../../shared/domain/equipment/equipmentRules";
+
 const GAME_SLOT_BY_GEAR_TYPE = {
     helmet: "helmet",
     armor: "armor",
@@ -126,6 +128,16 @@ const findOrb = (entry, orbs) => {
     return candidates.length === 1 ? candidates[0] : null;
 };
 
+const importedLevel = (entry, maximum, stoneLabel) => {
+    const rawLevel = entry?.Level;
+    if (rawLevel === undefined || rawLevel === null || rawLevel === "") return 1;
+    const level = Number(rawLevel);
+    if (!Number.isInteger(level) || level < 1 || level > maximum) {
+        throw new Error(`Nieprawidłowy poziom ${stoneLabel}: ${rawLevel}.`);
+    }
+    return level;
+};
+
 const parseCharacter = (stats) => {
     const characterStats = {
         Siła: Number(stats.BaseStrength) || 10,
@@ -199,7 +211,11 @@ export const parseGameBuildPayload = (payload, { items = [], orbs = [], drifs = 
             }
             const index = drifIds.length;
             drifIds.push(drif.id);
-            drifLevels[index] = Number(entry.Level) || 1;
+            drifLevels[index] = importedLevel(
+                entry,
+                getDrifMaxLevel(drif.size),
+                `drifa ${drif.name}`
+            );
             importedDrifs += 1;
         });
 
@@ -212,7 +228,7 @@ export const parseGameBuildPayload = (payload, { items = [], orbs = [], drifs = 
                 return;
             }
             orbIds.push(orb.id);
-            orbLevels.push(Math.max(1, Math.min(3, Number(entry.Level) || 1)));
+            orbLevels.push(importedLevel(entry, getOrbMaxLevel(orb.size), `orba ${orb.name}`));
             importedOrbs += 1;
         });
 
