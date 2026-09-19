@@ -10,7 +10,8 @@ export const useGearSlotDragDrop = ({
     maxDrifs,
     maxDrifIndex,
     elementalTypes,
-    hasGlobalElemental,
+    drifs = [],
+    selectedDrifs = [],
     setSelectedItem,
     setBuiltInLvls,
     setOrbSlots,
@@ -56,9 +57,14 @@ export const useGearSlotDragDrop = ({
         const sizeIndex = SIZE_INDEX[drif.size?.toUpperCase()] ?? -1;
         if (!selectedItem || maxDrifs === 0 || sizeIndex < 0 || sizeIndex > maxDrifIndex) return;
         const index = Number.parseInt(zone.split("-")[1]);
+        const hasOtherElemental = selectedDrifs.some((id, position) => {
+            if (position === index || !id) return false;
+            const selected = drifs.find((candidate) => String(candidate.id) === String(id));
+            return elementalTypes.includes(selected?.bonusType);
+        });
         if (
             elementalTypes.includes(drif.bonusType) &&
-            (slotKey !== "weapon" || hasGlobalElemental)
+            (slotKey !== "weapon" || hasOtherElemental)
         ) {
             return;
         }

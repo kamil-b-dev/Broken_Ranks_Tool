@@ -71,7 +71,8 @@ describe("AdvisorGoalsPanel", () => {
         });
 
         onChange.mockClear();
-        await user.selectOptions(screen.getByLabelText("Dokładność analizy"), "5000");
+        const budget = screen.getByLabelText("Budżet czasu analizy (sekundy)");
+        fireEvent.change(budget, { target: { value: "5" } });
         expect(onChange).toHaveBeenCalledWith({
             ...settings,
             advisorSearch: expect.objectContaining({ timeBudgetMs: 5000 }),

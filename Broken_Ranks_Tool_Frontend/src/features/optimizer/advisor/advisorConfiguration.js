@@ -19,6 +19,11 @@ export const advisorNumber = (value) =>
             .replace(",", ".")
     ) || 0;
 
+export const normalizeAdvisorTimeBudget = (value) => {
+    const parsed = Number(value);
+    return Math.max(200, Math.min(5000, Number.isFinite(parsed) ? Math.trunc(parsed) : 1500));
+};
+
 export const advisorModifiers = (stats, gameRules) =>
     Object.entries(gameRules.bonusTranslations || {})
         .filter(([key]) => gameRules.drifBasePowers?.[key] !== undefined)
@@ -64,7 +69,7 @@ export const buildAdvisorConfiguration = (settings, stats, gameRules, characterS
                 ? search.strategy
                 : "MINIMUM_CHANGE",
             maxActions: Math.max(1, Math.min(10, Number(search.maxActions) || 3)),
-            timeBudgetMs: search.timeBudgetMs === 5000 ? 5000 : 1500,
+            timeBudgetMs: normalizeAdvisorTimeBudget(search.timeBudgetMs),
             ...(search.targetMode === "VALUE" ? { targetValue: target } : {}),
             ...(search.targetMode === "GAIN" ? { targetGain: target } : {}),
         },

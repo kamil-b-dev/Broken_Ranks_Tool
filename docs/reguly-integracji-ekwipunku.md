@@ -18,9 +18,9 @@ Dokument opisuje zachowanie edytora, API, kalkulatora i wspólnych walidatorów.
 - Identyczne wejście zawsze daje identyczny wynik.
 - Kalkulator uwzględnia przedmioty, gwiazdki, orby, drify, statystyki postaci i globalną karę za powtórzenia.
 
-## Znana rozbieżność importu
+## Brakujące poziomy
 
-Dla brakującego poziomu import edytora stosuje 21, a backend przyjmuje 1. Jawny poziom spoza zakresu nie jest normalizowany i powoduje odrzucenie żądania.
+Dla brakującego poziomu drifa edytor i backend przyjmują poziom 1. Jawny poziom spoza zakresu nie jest normalizowany i powoduje odrzucenie żądania.
 
 ## Mapa implementacji
 

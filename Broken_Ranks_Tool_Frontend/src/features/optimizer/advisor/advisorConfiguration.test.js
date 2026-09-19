@@ -77,4 +77,34 @@ describe("advisor configuration", () => {
             advisorAllowedChanges: settings.advisorAllowedChanges,
         });
     });
+
+    it("preserves any supported analysis budget", () => {
+        const restored = parseOptimizerConfigPayload(
+            createOptimizerConfigPayload([], {
+                mode: "ADVISOR",
+                advisorSearch: { timeBudgetMs: 2750 },
+            }),
+            rules
+        );
+
+        expect(restored.advisorSearch.timeBudgetMs).toBe(2750);
+        expect(
+            buildAdvisorConfiguration({ advisorSearch: { timeBudgetMs: 2750 } }, {}, rules).advisor
+                .timeBudgetMs
+        ).toBe(2750);
+    });
+
+    it("does not enable item purchases when an imported changes object omits them", () => {
+        const restored = parseOptimizerConfigPayload(
+            {
+                format: "broken-ranks-tool-optimizer-config",
+                version: 1,
+                settings: { advisorAllowedChanges: { stars: true } },
+                priorities: [],
+            },
+            rules
+        );
+
+        expect(restored.advisorAllowedChanges.items).toBe(false);
+    });
 });

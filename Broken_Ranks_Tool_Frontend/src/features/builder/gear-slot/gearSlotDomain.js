@@ -1,4 +1,6 @@
 /** Returns the capacity multiplier consumed by a drif level. */
+const ORB_SIZE_INDEX = { SUBORB: 0, BIORB: 1, MAGNIORB: 2, ARCYORB: 3 };
+
 export const getEffectiveDrifMultiplier = (level) => {
     const normalizedLevel = Number.parseInt(level) || 1;
     if (normalizedLevel <= 6) return 1;
@@ -28,6 +30,14 @@ export const calculateMaximumDrifSlots = ({ hasItem, isEpicOrSet, tier, stars })
 
 export const calculateMaximumDrifSizeIndex = ({ hasItem, isEpicOrSet, tier }) => {
     if (!hasItem || isEpicOrSet) return -1;
+    if (tier >= 10) return 3;
+    if (tier >= 7) return 2;
+    if (tier >= 4) return 1;
+    return 0;
+};
+
+export const calculateMaximumOrbSizeIndex = ({ hasItem, tier }) => {
+    if (!hasItem) return -1;
     if (tier >= 10) return 3;
     if (tier >= 7) return 2;
     if (tier >= 4) return 1;
@@ -89,7 +99,7 @@ export const createImportedGearSlotState = (slot, orbs, drifs, builtInDrifCount 
         selectedDrifs[index] = String(id);
         const drif = drifs.find((candidate) => String(candidate.id) === String(id));
         if (drif) drifTypes[index] = drif.name || drif.description || drif.bonusType;
-        drifLevels[index] = slot.drifLevels?.[index] ? Number.parseInt(slot.drifLevels[index]) : 21;
+        drifLevels[index] = slot.drifLevels?.[index] ? Number.parseInt(slot.drifLevels[index]) : 1;
     });
 
     const builtInStartIndex = Math.max(0, selectedDrifs.length - builtInDrifCount);
@@ -180,35 +190,39 @@ export const getAvailablePrimaryOrbs = ({
     orbs,
     allowedCategories,
     usedTypes,
-    itemTier,
     isLegendary,
-    tierToNumber,
+    maximumSizeIndex,
 }) =>
     orbs.filter((orb) => {
-        const orbTier = tierToNumber[orb.tier] || 0;
+        const orbSizeIndex = ORB_SIZE_INDEX[String(orb.size).toUpperCase()] ?? -1;
         const allowed =
             allowedCategories.includes(orb.category) ||
             (isLegendary && orb.category === "OFFENSIVE");
-        return allowed && !usedTypes.includes(orb.bonusType) && (!itemTier || orbTier <= itemTier);
+        return (
+            allowed &&
+            !usedTypes.includes(orb.bonusType) &&
+            orbSizeIndex >= 0 &&
+            orbSizeIndex <= maximumSizeIndex
+        );
     });
 
 export const getAvailableSecondaryOrbs = ({
     orbs,
     usedTypes,
-    itemTier,
+    maximumSizeIndex,
     isLegendary,
     primaryOrbId,
-    tierToNumber,
 }) => {
     if (!isLegendary) return [];
     const primaryType = orbs.find((orb) => String(orb.id) === String(primaryOrbId))?.bonusType;
     return orbs.filter((orb) => {
-        const orbTier = tierToNumber[orb.tier] || 0;
+        const orbSizeIndex = ORB_SIZE_INDEX[String(orb.size).toUpperCase()] ?? -1;
         return (
             orb.category === "OFFENSIVE" &&
             !usedTypes.includes(orb.bonusType) &&
             orb.bonusType !== primaryType &&
-            (!itemTier || orbTier <= itemTier)
+            orbSizeIndex >= 0 &&
+            orbSizeIndex <= maximumSizeIndex
         );
     });
 };
