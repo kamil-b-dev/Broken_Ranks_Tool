@@ -1,6 +1,6 @@
 # Reguły optymalizatora drifów
 
-Dokument opisuje zamierzony zakres i semantykę optymalizatora. Reguły samego ekwipunku, drifów, orbów, gwiazdek i kalkulatora znajdują się w [regułach ekwipunku](reguly-ekwipunku.md). Przed zmianą optymalizatora należy przeczytać oba dokumenty.
+Dokument opisuje zamierzony zakres i semantykę optymalizatora. Reguły gry znajdują się w [regułach ekwipunku](reguly-ekwipunku.md), a zachowanie kalkulatora i walidacji w [zasadach integracji ekwipunku](reguly-integracji-ekwipunku.md). Przed zmianą optymalizatora należy przeczytać wszystkie powiązane dokumenty.
 
 ## 1. Zakres trybu „od zera”
 

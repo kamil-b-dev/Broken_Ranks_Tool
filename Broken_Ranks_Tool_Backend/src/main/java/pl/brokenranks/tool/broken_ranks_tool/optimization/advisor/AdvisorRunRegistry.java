@@ -11,7 +11,7 @@ public class AdvisorRunRegistry {
     synchronized AtomicBoolean start(String id) {
         AtomicBoolean flag = new AtomicBoolean();
         if (active != null) {
-            if (!java.util.Objects.equals(active.id(), id))
+            if (!active.cancelled().get() && !java.util.Objects.equals(active.id(), id))
                 throw new IllegalArgumentException("Inna analiza Doradcy już trwa.");
             active.cancelled().set(true);
         }

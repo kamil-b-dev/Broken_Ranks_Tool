@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.AdvisorReport;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationSummary.OptimizationVariant;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationSummary.StatChange;
@@ -62,12 +63,10 @@ final class AdvisorPlanResultFactory {
                 Arrays.stream(TYPES)
                         .mapToDouble(
                                 type ->
-                                        Math.max(
-                                                0,
-                                                directed(type, search.baseline[type.ordinal()])
-                                                        - directed(
-                                                                type,
-                                                                node.stats()[type.ordinal()])))
+                                        usefulLoss(
+                                                type,
+                                                search.baseline[type.ordinal()],
+                                                node.stats()[type.ordinal()]))
                         .sum();
         return new OptimizationVariant(
                 recommended,
@@ -82,6 +81,10 @@ final class AdvisorPlanResultFactory {
                 changes,
                 model.setup(node.slots()),
                 verified.calculation());
+    }
+
+    static double usefulLoss(DRIF_BONUS_TYPE type, double baseline, double current) {
+        return Math.max(0, useful(type, baseline) - useful(type, current));
     }
 
     private String planKind(AdvisorSearch.Node node) {

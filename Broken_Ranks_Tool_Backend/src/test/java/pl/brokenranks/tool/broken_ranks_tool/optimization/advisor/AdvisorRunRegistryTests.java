@@ -46,6 +46,18 @@ class AdvisorRunRegistryTests {
     }
 
     @Test
+    void replacesACancelledRunWithANewIdentifierBeforeTheOldRequestFinishes() {
+        AtomicBoolean previous = registry.start("run-1");
+        assertThat(registry.cancel("run-1")).isTrue();
+
+        AtomicBoolean replacement = registry.start("run-2");
+        registry.finish("run-1", previous);
+
+        assertThat(replacement).isFalse();
+        assertThat(registry.cancel("run-2")).isTrue();
+    }
+
+    @Test
     void toleratesMissingIdentifiersWithoutRegisteringThem() {
         AtomicBoolean cancellation = registry.start(null);
         registry.finish(null, cancellation);

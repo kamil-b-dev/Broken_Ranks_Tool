@@ -5,11 +5,22 @@ import static pl.brokenranks.tool.broken_ranks_tool.optimization.advisor.Advisor
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.LongSupplier;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.CalculationResultDto;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCalculatorService;
 
 /** Verifies approximate candidates with the authoritative equipment calculator. */
 final class AdvisorFinalistVerifier {
+    private final LongSupplier clock;
+
+    AdvisorFinalistVerifier() {
+        this(System::nanoTime);
+    }
+
+    AdvisorFinalistVerifier(LongSupplier clock) {
+        this.clock = clock;
+    }
+
     Result verify(
             List<AdvisorSearch.Node> candidates,
             AdvisorEquipmentModel model,
@@ -23,16 +34,23 @@ final class AdvisorFinalistVerifier {
                 search.exhaustive() ? List.copyOf(candidates) : diversify(candidates, search);
         int checkLimit = search.exhaustive() ? queue.size() : Math.min(18, queue.size());
         int checks = 0;
+        boolean deadlineReached = false;
         for (AdvisorSearch.Node candidate : queue) {
-            if (checks >= checkLimit || System.nanoTime() >= deadline) break;
+            if (checks >= checkLimit || search.cancelled()) break;
+            if (clock.getAsLong() >= deadline) {
+                deadlineReached = true;
+                break;
+            }
             checks++;
             CalculationResultDto calculation =
                     calculator.calculateWithSources(model.setup(candidate.slots()));
             Map<String, String> actual = calculation.stats();
             double[] stats = parsed(actual);
-            if (search.deficit(stats) > AdvisorSearch.EPSILON
-                    || search.gain(stats) <= AdvisorSearch.EPSILON) continue;
-            verified.add(new Verified(withStats(candidate, stats), calculation));
+            if (clock.getAsLong() >= deadline) deadlineReached = true;
+            if (search.deficit(stats) <= AdvisorSearch.EPSILON
+                    && search.gain(stats) > AdvisorSearch.EPSILON)
+                verified.add(new Verified(withStats(candidate, stats), calculation));
+            if (deadlineReached) break;
         }
         verified.sort((a, b) -> search.ranking().compare(a.node(), b.node()));
         List<Verified> all = List.copyOf(verified);
@@ -48,10 +66,13 @@ final class AdvisorFinalistVerifier {
                                                                 search)));
         return new Result(
                 select(verified, search),
-                search.exhaustive() && checks == queue.size(),
+                search.exhaustive()
+                        && checks == queue.size()
+                        && !deadlineReached
+                        && !search.cancelled(),
                 checks,
                 queue.size(),
-                checks < queue.size() && System.nanoTime() >= deadline);
+                deadlineReached);
     }
 
     private List<AdvisorSearch.Node> diversify(

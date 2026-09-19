@@ -77,7 +77,11 @@ final class AdvisorResponseFactory {
             boolean reached) {
         if (search.control.cancelled()) return "CANCELLED";
         if (verification.proofComplete())
-            return verification.selected().isEmpty() && !reached ? "INFEASIBLE" : "OPTIMAL";
+            return verification.selected().isEmpty()
+                            && !reached
+                            && Double.isFinite(search.requestedTarget)
+                    ? "INFEASIBLE"
+                    : "OPTIMAL";
         return "BEST_FOUND";
     }
 
@@ -157,12 +161,13 @@ final class AdvisorResponseFactory {
             message += " Osiągnięto limit wyszukiwania; wynik nie jest gwarancją optimum.";
         else if (verification.proofComplete())
             message +=
-                    selectedCount == 0 && !reached
+                    selectedCount == 0 && !reached && Double.isFinite(search.requestedTarget)
                             ? " W pełni sprawdzonym zakresie nie istnieje poprawny plan poprawy."
                             : " Przeszukano cały zakres; wynik jest optymalny.";
         else if (!(selectedCount == 0 && reached))
             message += " Wynik jest najlepszym znalezionym planem, bez gwarancji optimum.";
-        if (Double.isFinite(search.target) && !reached) message += " Nie osiągnięto zadanego celu.";
+        if (Double.isFinite(search.requestedTarget) && !reached)
+            message += " Nie osiągnięto zadanego celu.";
         if (search.targetClamped())
             message += " Cel przekraczał cap i został ograniczony do jego użytecznej wartości.";
         return message;

@@ -57,6 +57,22 @@ describe("OptimizerStatusSection", () => {
         expect(screen.getByText("pełny dowód")).toBeInTheDocument();
     });
 
+    it("presents cancelled advisor analysis as a warning", () => {
+        const { container } = render(
+            <OptimizerStatusSection
+                status={{
+                    success: true,
+                    message: "Analizę zatrzymano.",
+                    advisorReport: { status: "CANCELLED" },
+                }}
+            />
+        );
+
+        expect(screen.getByText("Analiza anulowana")).toBeInTheDocument();
+        expect(container.querySelector(".is-warning")).toBeInTheDocument();
+        expect(screen.getByText("!")).toBeInTheDocument();
+    });
+
     it("does not add placeholder copy before the first run", () => {
         const { container } = render(<OptimizerStatusSection isOptimizing={false} />);
 

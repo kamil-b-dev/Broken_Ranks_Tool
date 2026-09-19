@@ -57,6 +57,22 @@ class AdvisorOptimizationSearchTests extends AdvisorOptimizationTestSupport {
     }
 
     @Test
+    void reportsCurrentBuildAsOptimalWhenMaximizationHasNoImprovingPlan() {
+        Fixture f =
+                fixture(
+                        List.of(item(1, ITEM_CATEGORY.HELMET, "I", 10, 0)),
+                        List.of(drif(10, A, "10%")));
+        var request = request(A, Map.of("helmet", slot(1, 1, 10L)));
+        request.getAdvisor().getAllowedChanges().setStars(false);
+
+        var result = f.service.optimize(request);
+
+        assertEquals("OPTIMAL", result.getAdvisorReport().status());
+        assertTrue(result.getAdvisorReport().proofComplete());
+        assertTrue(result.getAdvisorReport().plans().isEmpty());
+    }
+
+    @Test
     void findsACompensatingTwoSwapPlan() {
         var c = DRIF_BONUS_TYPE.DAMAGE_MAGIC;
         Fixture f =
