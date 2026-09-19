@@ -136,6 +136,10 @@ final class AdvisorSearch {
         return runFinished ? searchLimited : control.limited();
     }
 
+    boolean cancelled() {
+        return control.cancelled();
+    }
+
     double value(double[] stats) {
         return useful(options.getGoal(), stats[options.getGoal().ordinal()]);
     }
@@ -156,7 +160,7 @@ final class AdvisorSearch {
     }
 
     boolean targetClamped() {
-        return target + EPSILON < requestedTarget;
+        return Double.isFinite(requestedTarget) && target + EPSILON < requestedTarget;
     }
 
     Comparator<Node> ranking() {

@@ -12,6 +12,7 @@ const OptimizerStatusSection = ({ isOptimizing, elapsedSeconds, status, lastDura
         INFEASIBLE: "Brak planu w pełnym zakresie",
         CANCELLED: "Analiza anulowana",
     }[advisor?.status];
+    const successful = status?.success && !["CANCELLED", "INFEASIBLE"].includes(advisor?.status);
 
     return (
         <section className="optimizer-report-section optimizer-status-section">
@@ -40,9 +41,9 @@ const OptimizerStatusSection = ({ isOptimizing, elapsedSeconds, status, lastDura
                     <span>Optymalizacja trwa ({elapsedSeconds} s).</span>
                 </div>
             ) : status ? (
-                <div className={status.success ? "is-success" : "is-warning"}>
+                <div className={successful ? "is-success" : "is-warning"}>
                     <p className="optimizer-status-message">
-                        <span aria-hidden="true">{status.success ? "✓" : "!"}</span>
+                        <span aria-hidden="true">{successful ? "✓" : "!"}</span>
                         {status.message}
                     </p>
                     {status.warnings?.length > 0 && (

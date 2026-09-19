@@ -111,6 +111,21 @@ class AdvisorSearchControlTests {
     }
 
     @Test
+    void reportedLossIgnoresPointsAboveCap() {
+        assertTrue(
+                Math.abs(
+                                AdvisorPlanResultFactory.usefulLoss(
+                                        DRIF_BONUS_TYPE.CRITICAL_CHANCE, 62, 60))
+                        < AdvisorSearch.EPSILON);
+        assertTrue(
+                Math.abs(
+                                AdvisorPlanResultFactory.usefulLoss(
+                                        DRIF_BONUS_TYPE.CRITICAL_CHANCE, 60, 57)
+                                        - 3)
+                        < AdvisorSearch.EPSILON);
+    }
+
+    @Test
     void registryCancelsDuplicateRunAndForgetsFinishedRun() {
         AdvisorRunRegistry registry = new AdvisorRunRegistry();
         AtomicBoolean flag = registry.start("run-1");
