@@ -95,6 +95,29 @@ describe("optimizerConfiguration", () => {
         ).toThrow(/nie zawiera bonusów/);
     });
 
+    it("normalizes imported advisor protections and removes unknown modifiers", () => {
+        const imported = parseOptimizerConfigPayload(
+            {
+                format: "broken-ranks-tool-optimizer-config",
+                version: 1,
+                settings: {
+                    advisorProtectedModifiers: {
+                        CRITICAL_CHANCE: { enabled: true, loss: "2,5" },
+                        ARMOR: null,
+                        UNKNOWN: { enabled: true, loss: 1 },
+                        UNKNOWN_LEGACY: true,
+                    },
+                },
+                priorities: [],
+            },
+            gameRules
+        );
+
+        expect(imported.advisorProtectedModifiers).toEqual({
+            CRITICAL_CHANCE: { enabled: true, loss: 2.5 },
+        });
+    });
+
     it("builds the backend contract and detects invalid percentage targets", () => {
         const priorities = [
             {
