@@ -85,7 +85,8 @@ public class AdvisorOptimizationService {
                     deadline - Math.min(300, options.getTimeBudgetMs() / 5) * 1_000_000L;
             AdvisorSearch search =
                     new AdvisorSearch(model, options, baseline, searchDeadline, cancelled);
-            if (search.reached(baseline))
+            if (search.reached(baseline)
+                    && options.getStrategy() == AdvisorOptions.Strategy.MINIMUM_CHANGE)
                 return responses.success(
                         model, search, slots, baselineCalculation, List.of(), started);
 
@@ -94,7 +95,7 @@ public class AdvisorOptimizationService {
                     finalistVerifier.verify(candidates, model, search, calculator, deadline);
             return responses.success(model, search, slots, baselineCalculation, selected, started);
         } finally {
-            runs.finish(runId);
+            runs.finish(runId, cancelled);
         }
     }
 

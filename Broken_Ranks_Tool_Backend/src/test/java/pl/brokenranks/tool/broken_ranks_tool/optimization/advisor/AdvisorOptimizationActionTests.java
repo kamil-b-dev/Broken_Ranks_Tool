@@ -223,7 +223,7 @@ class AdvisorOptimizationActionTests extends AdvisorOptimizationTestSupport {
 
         SlotData optimized = result.getOptimizedSetup().getSlots().get("helmet");
         assertEquals(List.of(10L), optimized.getDrifIds());
-        assertEquals(4, optimized.getDrifLevels().get("0"));
+        assertEquals(6, optimized.getDrifLevels().get("0"));
         assertEquals(List.of(10L), request.getOriginalSlots().get("helmet").getDrifIds());
         assertEquals(1, request.getOriginalSlots().get("helmet").getDrifLevels().get("0"));
         assertTrue(
@@ -286,6 +286,20 @@ class AdvisorOptimizationActionTests extends AdvisorOptimizationTestSupport {
         var result = f.service.optimize(request);
 
         assertEquals(2L, result.getOptimizedSetup().getSlots().get("helmet").getItemId());
+    }
+
+    @Test
+    void neverRecommendsAnItemWithLowerCapacity() {
+        ItemTemplate current = item(1, ITEM_CATEGORY.HELMET, "I", 20, 0);
+        ItemTemplate lowerCapacity = item(2, ITEM_CATEGORY.HELMET, "I", 10, 100);
+        Fixture f = fixture(List.of(current, lowerCapacity), List.of(drif(10, A, "10%")));
+        var request = request(A, Map.of("helmet", slot(1, 1, 10L)));
+        request.getAdvisor().getAllowedChanges().setItems(true);
+
+        var result = f.service.optimize(request);
+
+        assertEquals(1L, result.getOptimizedSetup().getSlots().get("helmet").getItemId());
+        assertTrue(result.getAdvisorReport().plans().isEmpty());
     }
 
     @Test

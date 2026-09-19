@@ -1,7 +1,6 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.advisor;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
@@ -11,6 +10,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.Test;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.AdvisorOptions;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.AdvisorOptions.Strategy;
 
 class AdvisorSearchControlTests {
 
@@ -56,14 +56,32 @@ class AdvisorSearchControlTests {
     }
 
     @Test
-    void registryRejectsDuplicateRunAndForgetsFinishedRun() {
+    void bestResultStrategyPrefersUsefulEffectOverCost() {
+        AdvisorOptions options = options();
+        options.setStrategy(Strategy.BEST_RESULT);
+        options.setTargetValue(10.0);
+        AdvisorSearch search =
+                new AdvisorSearch(
+                        mock(AdvisorEquipmentModel.class),
+                        options,
+                        stats(0),
+                        Long.MAX_VALUE,
+                        new AtomicBoolean());
+
+        assertTrue(search.ranking().compare(node(20, 1, 4, 1), node(10, 0, 0, 1)) < 0);
+        assertTrue(search.ranking().compare(node(61, 2, 8, 2), node(60, 1, 4, 1)) > 0);
+    }
+
+    @Test
+    void registryCancelsDuplicateRunAndForgetsFinishedRun() {
         AdvisorRunRegistry registry = new AdvisorRunRegistry();
         AtomicBoolean flag = registry.start("run-1");
 
-        assertThrows(IllegalArgumentException.class, () -> registry.start("run-1"));
-        assertTrue(registry.cancel("run-1"));
+        AtomicBoolean replacement = registry.start("run-1");
         assertTrue(flag.get());
-        registry.finish("run-1");
+        assertTrue(registry.cancel("run-1"));
+        assertTrue(replacement.get());
+        registry.finish("run-1", replacement);
         assertFalse(registry.cancel("run-1"));
     }
 

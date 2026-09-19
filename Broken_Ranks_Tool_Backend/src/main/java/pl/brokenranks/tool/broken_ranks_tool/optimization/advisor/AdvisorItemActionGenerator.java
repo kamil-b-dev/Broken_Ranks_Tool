@@ -2,6 +2,7 @@ package pl.brokenranks.tool.broken_ranks_tool.optimization.advisor;
 
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.advisor.AdvisorSearch.slotName;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.advisor.AdvisorSlotData.stars;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.advisor.AdvisorSlotData.signature;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.support.EquipmentSlotDataCopier.copySlot;
 
 import java.util.Comparator;
@@ -33,7 +34,7 @@ final class AdvisorItemActionGenerator {
             SlotData slot,
             Consumer<AdvisorSearch.Node> accept) {
         for (ItemTemplate replacement :
-                replacements.computeIfAbsent(key, ignored -> candidates(key, slot))) {
+                replacements.computeIfAbsent(key + ":" + signature(Map.of(key, slot)), ignored -> candidates(key, slot))) {
             if (!search.running()) return;
             SlotData next = copySlot(slot);
             next.setItemId(replacement.getId());
@@ -58,7 +59,7 @@ final class AdvisorItemActionGenerator {
 
     private List<ItemTemplate> candidates(String key, SlotData slot) {
         String selected = selectedProfile();
-        return model.templates.items().values().stream()
+        List<ItemTemplate> compatible = model.templates.items().values().stream()
                 .filter(
                         item ->
                                 !item.getId().equals(slot.getItemId())
@@ -69,6 +70,17 @@ final class AdvisorItemActionGenerator {
                                 item.getProfile() == ITEM_PROFILE.UNIVERSAL
                                         || item.getProfile() == ITEM_PROFILE.UNSPECIFIED
                                         || item.getProfile().name().equals(selected))
+                .filter(item -> validReplacement(key, slot, item))
+                .toList();
+        int currentCapacity = model.levels.calculateItemCapacity(model.item(slot), stars(slot));
+        int bestReplacementCapacity =
+                compatible.stream()
+                        .mapToInt(item -> model.levels.calculateItemCapacity(item, stars(slot)))
+                        .max()
+                        .orElse(currentCapacity);
+        int maximumCapacity = Math.max(currentCapacity, bestReplacementCapacity);
+        return compatible.stream()
+                .filter(item -> model.levels.calculateItemCapacity(item, stars(slot)) == maximumCapacity)
                 .sorted(
                         Comparator.comparingDouble(
                                         (ItemTemplate item) ->
@@ -83,8 +95,13 @@ final class AdvisorItemActionGenerator {
                                                                 item, stars(slot)))
                                 .reversed()
                                 .thenComparing(ItemTemplate::getId))
-                .limit(3)
                 .toList();
+    }
+
+    private boolean validReplacement(String key, SlotData slot, ItemTemplate item) {
+        SlotData replacement = copySlot(slot);
+        replacement.setItemId(item.getId());
+        return model.validSlot(key, replacement);
     }
 
     private String selectedProfile() {

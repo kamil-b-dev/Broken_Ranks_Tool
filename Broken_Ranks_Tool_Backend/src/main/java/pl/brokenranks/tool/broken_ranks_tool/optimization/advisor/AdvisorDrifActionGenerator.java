@@ -13,7 +13,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemp
 
 /** Generates moves, purchases, and upgrades involving drifs. */
 final class AdvisorDrifActionGenerator {
-    private static final int[] PURCHASE_LEVELS = {1, 6, 11, 16, 21};
+    private static final int[] SIGNIFICANT_LEVELS = {6, 11, 16, 21};
 
     private final AdvisorSearch search;
     private final AdvisorEquipmentModel model;
@@ -103,9 +103,10 @@ final class AdvisorDrifActionGenerator {
             Long current,
             Consumer<AdvisorSearch.Node> accept) {
         DrifTemplate drif = model.templates.drifs().get(current);
-        for (int nextLevel = level(slot, index) + 1;
-                nextLevel <= drif.getSize().getMaxLevel() && search.running();
-                nextLevel++) {
+        for (int nextLevel : SIGNIFICANT_LEVELS) {
+            if (nextLevel <= level(slot, index)
+                    || nextLevel > drif.getSize().getMaxLevel()
+                    || !search.running()) continue;
             nodes.emit(
                     node,
                     key,
@@ -132,7 +133,7 @@ final class AdvisorDrifActionGenerator {
             if (!search.running()) return;
             if (drif.getBonusType() != search.options.getGoal()
                     || !model.placement.isValidDrifSizeForTier(drif, model.item(slot))) continue;
-            for (int nextLevel : PURCHASE_LEVELS) {
+            for (int nextLevel : SIGNIFICANT_LEVELS) {
                 if (nextLevel > drif.getSize().getMaxLevel()) continue;
                 nodes.emit(
                         node,

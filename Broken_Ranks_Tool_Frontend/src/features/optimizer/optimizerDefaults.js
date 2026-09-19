@@ -12,5 +12,11 @@ export const DEFAULT_OPTIMIZER_SETTINGS = {
         drifs: false,
         drifUpgrades: false,
     },
-    advisorSearch: { targetMode: "MAXIMIZE", target: "", maxActions: 3, timeBudgetMs: 1500 },
+    advisorSearch: {
+        strategy: "MINIMUM_CHANGE",
+        targetMode: "MAXIMIZE",
+        target: "",
+        maxActions: 3,
+        timeBudgetMs: 1500,
+    },
 };

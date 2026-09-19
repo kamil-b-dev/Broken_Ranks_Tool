@@ -59,7 +59,13 @@ describe("advisor configuration", () => {
         const settings = {
             mode: "ADVISOR",
             advisorGoal: "DAMAGE_MAGIC",
-            advisorSearch: { targetMode: "VALUE", target: 30, timeBudgetMs: 5000, maxActions: 2 },
+            advisorSearch: {
+                strategy: "BEST_RESULT",
+                targetMode: "VALUE",
+                target: 30,
+                timeBudgetMs: 5000,
+                maxActions: 10,
+            },
             advisorAllowedChanges: { drifs: true, drifUpgrades: true },
         };
         const restored = parseOptimizerConfigPayload(

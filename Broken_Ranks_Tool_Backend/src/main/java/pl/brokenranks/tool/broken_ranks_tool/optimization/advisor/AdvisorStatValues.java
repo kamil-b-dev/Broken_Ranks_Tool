@@ -29,4 +29,9 @@ final class AdvisorStatValues {
     static double directed(DRIF_BONUS_TYPE type, double value) {
         return type.getMaxCap() != null && type.getMaxCap() < 0 ? -value : value;
     }
+
+    static double useful(DRIF_BONUS_TYPE type, double value) {
+        double result = directed(type, value);
+        return type.getMaxCap() == null ? result : Math.min(result, Math.abs(type.getMaxCap()));
+    }
 }
