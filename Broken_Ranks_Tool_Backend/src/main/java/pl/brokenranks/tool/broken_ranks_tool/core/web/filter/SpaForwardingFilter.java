@@ -6,6 +6,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -28,7 +29,7 @@ public class SpaForwardingFilter extends OncePerRequestFilter {
     private boolean isFrontendRoute(HttpServletRequest request) {
         String path = request.getRequestURI().substring(request.getContextPath().length());
         String accept = request.getHeader("Accept");
-        return "GET".equalsIgnoreCase(request.getMethod())
+        return HttpMethod.GET.matches(request.getMethod())
                 && accept != null
                 && accept.contains("text/html")
                 && !path.equals("/")

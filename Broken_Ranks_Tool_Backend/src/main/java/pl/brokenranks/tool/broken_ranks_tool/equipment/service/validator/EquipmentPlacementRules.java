@@ -3,9 +3,10 @@ package pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.EQUIPMENT_SLOT;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ITEM_TIER;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ORB_CATEGORY;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.RARITY;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.parsing.RomanNumeralParser;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRulesRegistry;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
@@ -43,7 +44,8 @@ public class EquipmentPlacementRules {
 
     public boolean isElementalDrifPositionValid(DrifTemplate drif, String slot) {
         if (drif == null || drif.getBonusType() == null) return false;
-        return !rules.isElementalDamage(drif.getBonusType()) || "weapon".equals(slot);
+        return !rules.isElementalDamage(drif.getBonusType())
+                || EQUIPMENT_SLOT.WEAPON.key().equals(slot);
     }
 
     public boolean isValidDrifSizeForTier(DrifTemplate drif, ItemTemplate item) {
@@ -63,20 +65,18 @@ public class EquipmentPlacementRules {
         if (item == null || item.getRarity() == RARITY.EPIC || item.getRarity() == RARITY.SET) {
             return 0;
         }
-        int tier =
-                item.getTier() == null
-                        ? 1
-                        : RomanNumeralParser.convertRomanToInteger(item.getTier());
+        int tier = tierLevel(item);
         int max = tier >= 10 ? 3 : tier >= 4 ? 2 : tier >= 1 ? 1 : 0;
         return (tier == 2 || tier == 3) && stars >= 7 ? max + 1 : max;
     }
 
     private int allowedStoneSize(ItemTemplate item) {
-        int tier =
-                item.getTier() == null
-                        ? 1
-                        : RomanNumeralParser.convertRomanToInteger(item.getTier());
+        int tier = tierLevel(item);
         return tier >= 10 ? 3 : tier >= 7 ? 2 : tier >= 4 ? 1 : 0;
+    }
+
+    private int tierLevel(ItemTemplate item) {
+        return item.getTier() == null ? ITEM_TIER.I.getLevel() : ITEM_TIER.levelOf(item.getTier());
     }
 
     private boolean isModifierNumber(String value) {

@@ -8,7 +8,7 @@ public record AdvisorReport(
         int evaluatedStates,
         boolean timeLimitReached,
         boolean cancelled,
-        String status,
+        AdvisorStatus status,
         boolean targetReached,
         double baselineValue,
         String goal,
@@ -19,7 +19,7 @@ public record AdvisorReport(
         int candidateCount,
         List<Plan> plans) {
     public record Plan(
-            String kind,
+            AdvisorPlanKind kind,
             List<String> actions,
             int upgrades,
             boolean targetReached,

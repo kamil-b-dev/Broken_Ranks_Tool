@@ -35,8 +35,7 @@ public class AdvisorOptions {
     @DecimalMin("0.0")
     private Double targetGain;
 
-    @Pattern(regexp = "AUTO|MAGICAL|PHYSICAL|UNIVERSAL")
-    private String profession = "AUTO";
+    @NotNull private AdvisorProfession profession = AdvisorProfession.AUTO;
 
     @Valid private Changes allowedChanges = new Changes();
 

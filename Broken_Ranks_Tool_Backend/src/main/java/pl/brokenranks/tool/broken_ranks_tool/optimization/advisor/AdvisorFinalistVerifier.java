@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.function.LongSupplier;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.CalculationResultDto;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCalculatorService;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.AdvisorPlanKind;
 
 /** Verifies approximate candidates with the authoritative equipment calculator. */
 final class AdvisorFinalistVerifier {
@@ -82,8 +83,7 @@ final class AdvisorFinalistVerifier {
         addBest(queue, candidates, search.minimumChangeRanking());
         addBest(queue, candidates, search.bestResultRanking());
         for (int round = 0; round < 8; round++)
-            for (int kind = 0; kind < 3; kind++) {
-                int group = kind;
+            for (AdvisorPlanKind group : AdvisorPlanKind.values()) {
                 candidates.stream()
                         .filter(n -> n.kind() == group)
                         .skip(round)
@@ -98,7 +98,10 @@ final class AdvisorFinalistVerifier {
             List<AdvisorSearch.Node> queue,
             List<AdvisorSearch.Node> candidates,
             java.util.Comparator<AdvisorSearch.Node> ranking) {
-        candidates.stream().min(ranking).filter(node -> !queue.contains(node)).ifPresent(queue::add);
+        candidates.stream()
+                .min(ranking)
+                .filter(node -> !queue.contains(node))
+                .ifPresent(queue::add);
     }
 
     private List<Verified> select(List<Verified> verified, AdvisorSearch search) {
@@ -107,8 +110,7 @@ final class AdvisorFinalistVerifier {
         selected.add(verified.getFirst());
         addBestVerified(selected, verified, search.minimumChangeRanking());
         addBestVerified(selected, verified, search.bestResultRanking());
-        for (int kind = 0; kind < 3; kind++) {
-            int group = kind;
+        for (AdvisorPlanKind group : AdvisorPlanKind.values()) {
             verified.stream()
                     .filter(v -> v.node().kind() == group)
                     .findFirst()

@@ -25,7 +25,7 @@ public class GlobalExceptionHandler {
                 "Zablokowano nieprawidłowe żądanie (typ: {}, requestId: {})",
                 ex.getClass().getSimpleName(),
                 MDC.get(RequestTracingFilter.REQUEST_ID));
-        return error(HttpStatus.BAD_REQUEST, "INVALID_REQUEST", ex.getMessage());
+        return error(HttpStatus.BAD_REQUEST, ApiErrorCode.INVALID_REQUEST, ex.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -35,22 +35,28 @@ public class GlobalExceptionHandler {
                         .findFirst()
                         .map(error -> error.getField() + ": " + error.getDefaultMessage())
                         .orElse("Żądanie nie spełnia wymagań API.");
-        return error(HttpStatus.BAD_REQUEST, "INVALID_REQUEST", message);
+        return error(HttpStatus.BAD_REQUEST, ApiErrorCode.INVALID_REQUEST, message);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiError> handleUnreadableMessage(HttpMessageNotReadableException ex) {
-        return error(HttpStatus.BAD_REQUEST, "MALFORMED_JSON", "Nie można odczytać żądania JSON.");
+        return error(
+                HttpStatus.BAD_REQUEST,
+                ApiErrorCode.MALFORMED_JSON,
+                "Nie można odczytać żądania JSON.");
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ApiError> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
-        return error(HttpStatus.BAD_REQUEST, "INVALID_REQUEST", "Nieprawidłowy parametr żądania.");
+        return error(
+                HttpStatus.BAD_REQUEST,
+                ApiErrorCode.INVALID_REQUEST,
+                "Nieprawidłowy parametr żądania.");
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<ApiError> handleMissingResource(NoResourceFoundException ex) {
-        return error(HttpStatus.NOT_FOUND, "NOT_FOUND", "Nie znaleziono zasobu.");
+        return error(HttpStatus.NOT_FOUND, ApiErrorCode.NOT_FOUND, "Nie znaleziono zasobu.");
     }
 
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
@@ -58,7 +64,7 @@ public class GlobalExceptionHandler {
             HttpMediaTypeNotSupportedException ex) {
         return error(
                 HttpStatus.UNSUPPORTED_MEDIA_TYPE,
-                "UNSUPPORTED_MEDIA_TYPE",
+                ApiErrorCode.UNSUPPORTED_MEDIA_TYPE,
                 "Endpoint przyjmuje żądania w formacie application/json.");
     }
 
@@ -67,7 +73,7 @@ public class GlobalExceptionHandler {
             HttpRequestMethodNotSupportedException ex) {
         return error(
                 HttpStatus.METHOD_NOT_ALLOWED,
-                "METHOD_NOT_ALLOWED",
+                ApiErrorCode.METHOD_NOT_ALLOWED,
                 "Ta metoda HTTP nie jest obsługiwana dla wskazanego zasobu.");
     }
 
@@ -81,11 +87,11 @@ public class GlobalExceptionHandler {
         log.error("Nieobsłużony błąd API", ex);
         return error(
                 HttpStatus.INTERNAL_SERVER_ERROR,
-                "INTERNAL_ERROR",
+                ApiErrorCode.INTERNAL_ERROR,
                 "Wystąpił nieoczekiwany błąd serwera.");
     }
 
-    private ResponseEntity<ApiError> error(HttpStatus status, String code, String message) {
+    private ResponseEntity<ApiError> error(HttpStatus status, ApiErrorCode code, String message) {
         return ResponseEntity.status(status)
                 .body(new ApiError(code, message, MDC.get(RequestTracingFilter.REQUEST_ID)));
     }

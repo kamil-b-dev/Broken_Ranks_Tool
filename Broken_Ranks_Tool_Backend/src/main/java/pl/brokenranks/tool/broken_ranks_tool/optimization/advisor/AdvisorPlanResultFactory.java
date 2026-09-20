@@ -34,7 +34,7 @@ final class AdvisorPlanResultFactory {
                                             type -> metrics.count(node.slots(), model, type)));
             plans.add(
                     new AdvisorReport.Plan(
-                            planKind(node),
+                            node.kind(),
                             node.actions(),
                             node.upgrades(),
                             search.reached(node.stats()),
@@ -70,7 +70,7 @@ final class AdvisorPlanResultFactory {
                         .sum();
         return new OptimizationVariant(
                 recommended,
-                planLabel(node),
+                node.kind().getLabel(),
                 search.baseline[search.options.getGoal().ordinal()],
                 node.stats()[search.options.getGoal().ordinal()],
                 search.gain(node.stats()),
@@ -85,16 +85,6 @@ final class AdvisorPlanResultFactory {
 
     static double usefulLoss(DRIF_BONUS_TYPE type, double baseline, double current) {
         return Math.max(0, useful(type, baseline) - useful(type, current));
-    }
-
-    private String planKind(AdvisorSearch.Node node) {
-        return node.kind() == 0 ? "MOVES" : node.kind() == 1 ? "ONE_UPGRADE" : "PLAN";
-    }
-
-    private String planLabel(AdvisorSearch.Node node) {
-        return node.kind() == 0
-                ? "Same przełożenia"
-                : node.kind() == 1 ? "Jedno ulepszenie lub zakup" : "Plan kilku zmian";
     }
 
     record Result(List<AdvisorReport.Plan> plans, List<OptimizationVariant> variants) {}

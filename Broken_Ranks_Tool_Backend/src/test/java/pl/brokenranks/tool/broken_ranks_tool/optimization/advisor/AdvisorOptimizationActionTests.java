@@ -248,7 +248,7 @@ class AdvisorOptimizationActionTests extends AdvisorOptimizationTestSupport {
         helmet.setDrifLevels(Map.of("0", 6));
         var request = request(A, Map.of("helmet", helmet));
         request.getAdvisor().getAllowedChanges().setItems(true);
-        request.getAdvisor().setProfession("PHYSICAL");
+        request.getAdvisor().setProfession(AdvisorProfession.PHYSICAL);
         request.getAdvisor().setTargetGain(1.0);
 
         var result = f.service.optimize(request);
@@ -370,7 +370,7 @@ class AdvisorOptimizationActionTests extends AdvisorOptimizationTestSupport {
                 .calculateWithSources(any());
         var result = f.service.optimize(request);
         assertTrue(result.getAdvisorReport().cancelled());
-        assertEquals("CANCELLED", result.getAdvisorReport().status());
+        assertEquals(AdvisorStatus.CANCELLED, result.getAdvisorReport().status());
         assertEquals(request.getOriginalSlots(), result.getOptimizedSetup().getSlots());
         assertFalse(f.runs.cancel(id));
     }

@@ -11,6 +11,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.CalculationResultDto;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest.SlotData;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.AdvisorReport;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.AdvisorStatus;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationResponse;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationSummary;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationSummary.GoalResult;
@@ -71,18 +72,16 @@ final class AdvisorResponseFactory {
         return response;
     }
 
-    private String status(
-            AdvisorSearch search,
-            AdvisorFinalistVerifier.Result verification,
-            boolean reached) {
-        if (search.control.cancelled()) return "CANCELLED";
+    private AdvisorStatus status(
+            AdvisorSearch search, AdvisorFinalistVerifier.Result verification, boolean reached) {
+        if (search.control.cancelled()) return AdvisorStatus.CANCELLED;
         if (verification.proofComplete())
             return verification.selected().isEmpty()
                             && !reached
                             && Double.isFinite(search.requestedTarget)
-                    ? "INFEASIBLE"
-                    : "OPTIMAL";
-        return "BEST_FOUND";
+                    ? AdvisorStatus.INFEASIBLE
+                    : AdvisorStatus.OPTIMAL;
+        return AdvisorStatus.BEST_FOUND;
     }
 
     OptimizationResponse failure(String message, long started) {
