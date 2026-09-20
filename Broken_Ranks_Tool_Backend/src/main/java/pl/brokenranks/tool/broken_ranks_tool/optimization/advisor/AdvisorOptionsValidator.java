@@ -13,10 +13,7 @@ final class AdvisorOptionsValidator {
                 || options.getTimeBudgetMs() > 5000
                 || options.getMaxActions() < 1
                 || options.getMaxActions() > 10
-                || !("AUTO".equals(options.getProfession())
-                        || "MAGICAL".equals(options.getProfession())
-                        || "PHYSICAL".equals(options.getProfession())
-                        || "UNIVERSAL".equals(options.getProfession()))
+                || options.getProfession() == null
                 || options.getTargetValue() != null && options.getTargetGain() != null)
             return false;
         if (invalid(options.getTargetValue()) || invalid(options.getTargetGain())) return false;

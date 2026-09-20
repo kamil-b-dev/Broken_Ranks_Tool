@@ -8,13 +8,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_SIZE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest.SlotData;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 
 /** Generates moves, purchases, and upgrades involving drifs. */
 final class AdvisorDrifActionGenerator {
-    private static final int[] SIGNIFICANT_LEVELS = {6, 11, 16, 21};
-
     private final AdvisorSearch search;
     private final AdvisorEquipmentModel model;
     private final AdvisorNodeFactory nodes;
@@ -72,7 +71,6 @@ final class AdvisorDrifActionGenerator {
                                 node,
                                 next,
                                 moveLabel(leftKey, left, leftSocket, rightKey, right, rightSocket),
-                                null,
                                 0,
                                 0));
             }
@@ -86,7 +84,7 @@ final class AdvisorDrifActionGenerator {
             Consumer<AdvisorSearch.Node> accept) {
         for (int index = 0; index < model.maxDrifs(slot) && search.running(); index++) {
             if (!model.movable(key, slot, index)
-                    || node.changed().contains("drif:" + key + ":" + index)) continue;
+                    || node.changed().contains(new AdvisorChangeKey.Drif(key, index))) continue;
             Long current = id(slot, index);
             if (current != null && search.options.getAllowedChanges().isDrifUpgrades())
                 generateUpgrades(node, key, slot, index, current, accept);
@@ -103,7 +101,7 @@ final class AdvisorDrifActionGenerator {
             Long current,
             Consumer<AdvisorSearch.Node> accept) {
         DrifTemplate drif = model.templates.drifs().get(current);
-        for (int nextLevel : SIGNIFICANT_LEVELS) {
+        for (int nextLevel : DRIF_SIZE.meaningfulLevels()) {
             if (nextLevel <= level(slot, index)
                     || nextLevel > drif.getSize().getMaxLevel()
                     || !search.running()) continue;
@@ -117,7 +115,7 @@ final class AdvisorDrifActionGenerator {
                             + location(key, index)
                             + " do poziomu "
                             + nextLevel,
-                    "drif:" + key + ":" + index,
+                    new AdvisorChangeKey.Drif(key, index),
                     nextLevel - level(slot, index),
                     accept);
         }
@@ -133,7 +131,7 @@ final class AdvisorDrifActionGenerator {
             if (!search.running()) return;
             if (drif.getBonusType() != search.options.getGoal()
                     || !model.placement.isValidDrifSizeForTier(drif, model.item(slot))) continue;
-            for (int nextLevel : SIGNIFICANT_LEVELS) {
+            for (int nextLevel : DRIF_SIZE.meaningfulLevels()) {
                 if (nextLevel > drif.getSize().getMaxLevel()) continue;
                 nodes.emit(
                         node,
@@ -143,7 +141,7 @@ final class AdvisorDrifActionGenerator {
                                 + drifLabel(drif.getId(), nextLevel)
                                 + " do "
                                 + location(key, index),
-                        "drif:" + key + ":" + index,
+                        new AdvisorChangeKey.Drif(key, index),
                         1,
                         accept);
             }

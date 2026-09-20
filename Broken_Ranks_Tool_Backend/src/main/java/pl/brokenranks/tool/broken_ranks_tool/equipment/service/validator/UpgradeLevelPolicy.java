@@ -1,6 +1,7 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator;
 
 import org.springframework.stereotype.Component;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ITEM_STAR;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.OrbTemplate;
@@ -12,7 +13,7 @@ public class UpgradeLevelPolicy {
         int base = item.getCapacity() == null ? 0 : item.getCapacity();
         if (base == 0) return 0;
         int normalized = sanitizeItemStars(stars);
-        return base + (normalized == 7 ? 1 : normalized == 8 ? 2 : normalized == 9 ? 4 : 0);
+        return base + ITEM_STAR.fromLevel(normalized).getCapacityBonus();
     }
 
     public int sanitizeDrifLevel(int level, DrifTemplate drif) {

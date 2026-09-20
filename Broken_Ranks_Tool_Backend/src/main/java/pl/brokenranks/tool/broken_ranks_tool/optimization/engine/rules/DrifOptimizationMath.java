@@ -3,6 +3,7 @@ package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules;
 import java.util.List;
 import java.util.Objects;
 import lombok.experimental.UtilityClass;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_SIZE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.DrifPowerRules;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
@@ -22,7 +23,7 @@ public class DrifOptimizationMath {
             BuildState state, SlotContext slot, DrifTemplate drif) {
         int remaining = slot.capacity() - usedPower(state.slots().get(slot.key()));
         if (remaining < drif.getBonusType().getBasePower()) return null;
-        return Math.min(6, drif.getSize().getMaxLevel());
+        return Math.min(DRIF_SIZE.SUBDRIF.getMaxLevel(), drif.getSize().getMaxLevel());
     }
 
     public static int highestLevelForPower(DrifTemplate drif, int availablePower) {
@@ -34,12 +35,8 @@ public class DrifOptimizationMath {
                                 availablePower / Math.max(1, drif.getBonusType().getBasePower())));
         int sizeMultiplier = DrifPowerRules.effectiveMultiplier(drif.getSize().getMaxLevel());
         int multiplier = Math.min(affordableMultiplier, sizeMultiplier);
-        return switch (multiplier) {
-            case 1 -> Math.min(6, drif.getSize().getMaxLevel());
-            case 2 -> Math.min(11, drif.getSize().getMaxLevel());
-            case 3 -> Math.min(16, drif.getSize().getMaxLevel());
-            default -> drif.getSize().getMaxLevel();
-        };
+        return Math.min(
+                DRIF_SIZE.levelForPowerMultiplier(multiplier), drif.getSize().getMaxLevel());
     }
 
     public static boolean fitsCapacity(List<Placement> placements, SlotContext slot) {

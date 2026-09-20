@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.ToDoubleFunction;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.AdvisorPlanKind;
 
 /** Retains bounded, cost-diverse search and finalist beams. */
 final class AdvisorBeamPolicy {
@@ -15,8 +16,7 @@ final class AdvisorBeamPolicy {
             ToDoubleFunction<AdvisorSearch.Node> deficit,
             ToDoubleFunction<AdvisorSearch.Node> gain) {
         List<AdvisorSearch.Node> selected = new ArrayList<>();
-        for (int kind = 0; kind < 3; kind++) {
-            int group = kind;
+        for (AdvisorPlanKind group : AdvisorPlanKind.values()) {
             List<AdvisorSearch.Node> matching =
                     nodes.stream().filter(node -> node.kind() == group).toList();
             matching.stream()
@@ -39,8 +39,7 @@ final class AdvisorBeamPolicy {
 
     void trimFinalists(List<AdvisorSearch.Node> finalists, Comparator<AdvisorSearch.Node> ranking) {
         List<AdvisorSearch.Node> selected = new ArrayList<>();
-        for (int kind = 0; kind < 3; kind++) {
-            int group = kind;
+        for (AdvisorPlanKind group : AdvisorPlanKind.values()) {
             finalists.stream()
                     .filter(node -> node.kind() == group)
                     .sorted(ranking)

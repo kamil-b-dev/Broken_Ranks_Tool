@@ -5,9 +5,11 @@ import static pl.brokenranks.tool.broken_ranks_tool.optimization.advisor.Advisor
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.EQUIPMENT_SLOT;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest.SlotData;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.AdvisorOptions;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.AdvisorOptions.Strategy;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.AdvisorPlanKind;
 
 /** Bounded, deterministic beam over short action plans, including compensating moves. */
 final class AdvisorSearch {
@@ -21,7 +23,7 @@ final class AdvisorSearch {
     final AdvisorSearchControl control;
     final Comparator<Node> ranking;
     final AdvisorBeamPolicy beamPolicy = new AdvisorBeamPolicy();
-    final Set<String> seen = new HashSet<>();
+    final Set<StateKey> seen = new HashSet<>();
     final List<Node> finalists = new ArrayList<>();
     final List<Node> proofCandidates = new ArrayList<>();
     private final AdvisorActionGenerator actions;
@@ -34,11 +36,11 @@ final class AdvisorSearch {
             Map<String, SlotData> slots,
             double[] stats,
             List<String> actions,
-            Set<String> changed,
+            Set<AdvisorChangeKey> changed,
             int upgrades,
             int effort) {
-        int kind() {
-            return Math.min(2, upgrades);
+        AdvisorPlanKind kind() {
+            return AdvisorPlanKind.fromUpgradeCount(upgrades);
         }
     }
 
@@ -169,12 +171,18 @@ final class AdvisorSearch {
 
     Comparator<Node> minimumChangeRanking() {
         return AdvisorPlanRanking.create(
-                target, Strategy.MINIMUM_CHANGE, node -> reached(node.stats()), node -> value(node.stats()));
+                target,
+                Strategy.MINIMUM_CHANGE,
+                node -> reached(node.stats()),
+                node -> value(node.stats()));
     }
 
     Comparator<Node> bestResultRanking() {
         return AdvisorPlanRanking.create(
-                target, Strategy.BEST_RESULT, node -> reached(node.stats()), node -> value(node.stats()));
+                target,
+                Strategy.BEST_RESULT,
+                node -> reached(node.stats()),
+                node -> value(node.stats()));
     }
 
     boolean exhaustive() {
@@ -190,27 +198,14 @@ final class AdvisorSearch {
         beamPolicy.trimFinalists(finalists, ranking);
     }
 
-    private String stateSignature(Node node) {
-        return signature(node.slots())
-                + "|"
-                + node.changed().stream().sorted().collect(java.util.stream.Collectors.joining(","));
+    private StateKey stateSignature(Node node) {
+        return new StateKey(signature(node.slots()), Set.copyOf(node.changed()));
     }
 
+    private record StateKey(String equipment, Set<AdvisorChangeKey> changed) {}
+
     static String slotName(String key) {
-        return switch (key) {
-            case "helmet" -> "hełm";
-            case "armor" -> "zbroja";
-            case "cape" -> "peleryna";
-            case "legs" -> "spodnie";
-            case "boots" -> "buty";
-            case "gloves" -> "rękawice";
-            case "belt" -> "pas";
-            case "necklace" -> "naszyjnik";
-            case "ring1" -> "pierścień 1";
-            case "ring2" -> "pierścień 2";
-            case "weapon" -> "broń";
-            case "shield" -> "druga ręka";
-            default -> key;
-        };
+        EQUIPMENT_SLOT slot = EQUIPMENT_SLOT.fromKey(key);
+        return slot != null ? slot.label() : key;
     }
 }

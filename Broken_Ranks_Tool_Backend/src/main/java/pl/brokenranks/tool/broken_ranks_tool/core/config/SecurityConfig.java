@@ -13,6 +13,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.header.writers.PermissionsPolicyHeaderWriter;
 import pl.brokenranks.tool.broken_ranks_tool.core.web.error.ApiError;
+import pl.brokenranks.tool.broken_ranks_tool.core.web.error.ApiErrorCode;
 import pl.brokenranks.tool.broken_ranks_tool.core.web.filter.RequestTracingFilter;
 
 /** Security policy for the public, same-origin SPA and API. */
@@ -87,7 +88,7 @@ public class SecurityConfig {
         objectMapper.writeValue(
                 response.getOutputStream(),
                 new ApiError(
-                        "FORBIDDEN",
+                        ApiErrorCode.FORBIDDEN,
                         "Dostęp do zasobu jest zabroniony.",
                         MDC.get(RequestTracingFilter.REQUEST_ID)));
     }

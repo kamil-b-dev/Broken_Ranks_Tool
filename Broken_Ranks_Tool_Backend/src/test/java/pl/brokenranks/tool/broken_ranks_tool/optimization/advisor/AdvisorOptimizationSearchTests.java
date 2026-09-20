@@ -30,7 +30,7 @@ class AdvisorOptimizationSearchTests extends AdvisorOptimizationTestSupport {
         request.getAdvisor().getAllowedChanges().setStars(true);
         var result = f.service.optimize(request);
         assertTrue(result.getAdvisorReport().targetReached());
-        assertEquals("OPTIMAL", result.getAdvisorReport().status());
+        assertEquals(AdvisorStatus.OPTIMAL, result.getAdvisorReport().status());
         assertTrue(result.getAdvisorReport().proofComplete());
         assertEquals(0, result.getAdvisorReport().evaluatedStates());
         assertTrue(result.getSummary().getNextVariants().isEmpty());
@@ -48,7 +48,7 @@ class AdvisorOptimizationSearchTests extends AdvisorOptimizationTestSupport {
 
         var result = f.service.optimize(request);
 
-        assertEquals("INFEASIBLE", result.getAdvisorReport().status());
+        assertEquals(AdvisorStatus.INFEASIBLE, result.getAdvisorReport().status());
         assertTrue(result.getAdvisorReport().searchSpaceExhausted());
         assertTrue(result.getAdvisorReport().proofComplete());
         assertEquals(
@@ -67,7 +67,7 @@ class AdvisorOptimizationSearchTests extends AdvisorOptimizationTestSupport {
 
         var result = f.service.optimize(request);
 
-        assertEquals("OPTIMAL", result.getAdvisorReport().status());
+        assertEquals(AdvisorStatus.OPTIMAL, result.getAdvisorReport().status());
         assertTrue(result.getAdvisorReport().proofComplete());
         assertTrue(result.getAdvisorReport().plans().isEmpty());
     }
@@ -179,7 +179,7 @@ class AdvisorOptimizationSearchTests extends AdvisorOptimizationTestSupport {
         var result = f.service.optimize(request);
         assertTrue(result.getSummary().isSuccess());
         assertTrue(result.getAdvisorReport().evaluatedStates() <= 20000);
-        assertEquals("BEST_FOUND", result.getAdvisorReport().status());
+        assertEquals(AdvisorStatus.BEST_FOUND, result.getAdvisorReport().status());
         assertFalse(result.getAdvisorReport().proofComplete());
         verify(f.calculator, atMost(19)).calculateTotalStats(any());
         verify(f.items, times(1)).findAll();

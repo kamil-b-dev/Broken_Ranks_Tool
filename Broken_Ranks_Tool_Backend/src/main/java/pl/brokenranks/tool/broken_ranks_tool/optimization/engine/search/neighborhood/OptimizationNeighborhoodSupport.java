@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import lombok.RequiredArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_SIZE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
@@ -32,7 +33,7 @@ final class OptimizationNeighborhoodSupport {
         int highest = highestLevelForPower(candidate, availablePower);
         Set<Integer> levels = new TreeSet<>(Comparator.reverseOrder());
         levels.add(highest);
-        for (int level : List.of(6, 11, 16, 21)) {
+        for (int level : DRIF_SIZE.meaningfulLevels()) {
             if (level <= highest && level <= candidate.getSize().getMaxLevel()) levels.add(level);
         }
         return new ArrayList<>(levels);
