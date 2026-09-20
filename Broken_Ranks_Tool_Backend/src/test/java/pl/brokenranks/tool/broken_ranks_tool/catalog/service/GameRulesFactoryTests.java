@@ -48,7 +48,8 @@ class GameRulesFactoryTests {
                 .containsEntry("DAMAGE_FIRE", null);
         assertThat(result.getDrifBonusCategories())
                 .containsExactly(Map.entry("DAMAGE_FIRE", "OFFENSIVE"));
-        assertThat(result.getElementalTypes()).containsExactlyElementsOf(rules.getElementalDamageTypes());
+        assertThat(result.getElementalTypes())
+                .containsExactlyElementsOf(rules.getElementalDamageTypes());
         assertThat(result.getDrifPenaltyMultipliers())
                 .containsEntry(1, 1.0)
                 .containsEntry(3, 1.0)

@@ -1,5 +1,6 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums;
 
+import java.util.Locale;
 import java.util.Optional;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +27,7 @@ public enum ITEM_TIER {
     public static Optional<ITEM_TIER> fromCode(String code) {
         if (code == null || code.isBlank()) return Optional.empty();
         try {
-            return Optional.of(valueOf(code.trim().toUpperCase()));
+            return Optional.of(valueOf(code.trim().toUpperCase(Locale.ROOT)));
         } catch (IllegalArgumentException exception) {
             return Optional.empty();
         }

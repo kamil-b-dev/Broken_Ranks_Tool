@@ -120,7 +120,7 @@ class AdvisorSearchControlTests {
         assertTrue(
                 Math.abs(
                                 AdvisorPlanResultFactory.usefulLoss(
-                                        DRIF_BONUS_TYPE.CRITICAL_CHANCE, 60, 57)
+                                                DRIF_BONUS_TYPE.CRITICAL_CHANCE, 60, 57)
                                         - 3)
                         < AdvisorSearch.EPSILON);
     }
