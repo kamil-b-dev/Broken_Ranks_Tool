@@ -9,8 +9,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCalculatorService;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.CalculationResultDto;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCalculatorService;
 
 class AdvisorFinalistVerifierTests {
     @Test

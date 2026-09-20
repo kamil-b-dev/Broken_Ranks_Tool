@@ -1,6 +1,7 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums;
 
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -24,7 +25,8 @@ public enum SPECIAL_STAT_TYPE {
             Arrays.stream(values())
                     .collect(
                             Collectors.toMap(
-                                    s -> s.getDescription().toLowerCase(), Function.identity()));
+                                    s -> s.getDescription().toLowerCase(Locale.ROOT),
+                                    Function.identity()));
 
     /**
      * Resolves a special statistic type case-insensitively from its localized description.
@@ -35,6 +37,6 @@ public enum SPECIAL_STAT_TYPE {
         if (description == null) {
             return Optional.empty();
         }
-        return Optional.ofNullable(LOOKUP_MAP.get(description.toLowerCase()));
+        return Optional.ofNullable(LOOKUP_MAP.get(description.toLowerCase(Locale.ROOT)));
     }
 }

@@ -26,7 +26,8 @@ public class AdvisorRunRegistry {
     }
 
     public synchronized boolean cancel(String id) {
-        if (id == null || active == null || !java.util.Objects.equals(active.id(), id)) return false;
+        if (id == null || active == null || !java.util.Objects.equals(active.id(), id))
+            return false;
         active.cancelled().set(true);
         return true;
     }

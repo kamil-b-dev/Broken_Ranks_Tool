@@ -15,9 +15,14 @@ afterEach(() => {
 });
 
 const gameData = {
-    items: [{ id: 1 }],
-    orbs: [{ id: 2 }],
-    drifs: [{ id: 3 }],
+    items: [{ id: 1, category: "HELMET", rarity: "RARE", tier: "X", capacity: 10 }],
+    orbs: [{ id: 2, size: "SUBORB", bonusType: "HEALTH", category: "DEFENSIVE" }],
+    drifs: [{ id: 3, size: "SUBDRIF", bonusType: "CRITICAL_CHANCE" }],
+    gameRules: {
+        slotOrbRules: { helmet: ["DEFENSIVE"] },
+        drifBasePowers: { CRITICAL_CHANCE: 4 },
+        elementalTypes: ["DAMAGE_FIRE"],
+    },
 };
 
 const createFile = (payload, size = 100) => ({
@@ -123,6 +128,43 @@ describe("parseBuildFile", () => {
         payload.build.requestData.slots.helmet[field] = value;
 
         await expect(parseBuildFile(createFile(payload), gameData)).rejects.toThrow(message);
+    });
+
+    it.each([
+        [
+            "unknown slot",
+            (payload) => (payload.build.requestData.slots.unknown = {}),
+            "nieznany slot",
+        ],
+        [
+            "mismatched item category",
+            (payload) => {
+                payload.build.requestData.slots.helmet.itemId = 4;
+            },
+            "nie pasuje",
+            { ...gameData, items: [...gameData.items, { id: 4, category: "BOOTS" }] },
+        ],
+        [
+            "invalid stars",
+            (payload) => (payload.build.requestData.slots.helmet.itemStars = 10),
+            "gwiazdek",
+        ],
+        [
+            "invalid drif level",
+            (payload) => (payload.build.requestData.slots.helmet.drifLevels = { 0: 7 }),
+            "poziomy drifów",
+        ],
+        [
+            "invalid character stat",
+            (payload) => (payload.build.requestData.characterStats.strength = 50_001),
+            "od 0 do 50000",
+        ],
+        ["orphaned lock", (payload) => (payload.build.lockedDrifs.helmet = [1]), "blokada drifa"],
+    ])("rejects %s", async (_name, mutate, message, data = gameData) => {
+        const payload = validPayload();
+        mutate(payload);
+
+        await expect(parseBuildFile(createFile(payload), data)).rejects.toThrow(message);
     });
 });
 
