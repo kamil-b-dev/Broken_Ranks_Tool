@@ -3,6 +3,7 @@ import {
     buildOptimizationConfig,
     createOptimizerConfigPayload,
     findInvalidPercentageTarget,
+    findInvalidSizeConstraint,
     parseOptimizerConfigPayload,
 } from "./optimizerConfiguration";
 
@@ -95,6 +96,29 @@ describe("optimizerConfiguration", () => {
         ).toThrow(/nie zawiera bonusów/);
     });
 
+    it("normalizes imported advisor protections and removes unknown modifiers", () => {
+        const imported = parseOptimizerConfigPayload(
+            {
+                format: "broken-ranks-tool-optimizer-config",
+                version: 1,
+                settings: {
+                    advisorProtectedModifiers: {
+                        CRITICAL_CHANCE: { enabled: true, loss: "2,5" },
+                        ARMOR: null,
+                        UNKNOWN: { enabled: true, loss: 1 },
+                        UNKNOWN_LEGACY: true,
+                    },
+                },
+                priorities: [],
+            },
+            gameRules
+        );
+
+        expect(imported.advisorProtectedModifiers).toEqual({
+            CRITICAL_CHANCE: { enabled: true, loss: 2.5 },
+        });
+    });
+
     it("builds the backend contract and detects invalid percentage targets", () => {
         const priorities = [
             {
@@ -110,13 +134,20 @@ describe("optimizerConfiguration", () => {
         ];
 
         expect(findInvalidPercentageTarget(priorities)).toBeUndefined();
-        expect(buildOptimizationConfig(priorities, { generateVariants: true })).toEqual({
+        expect(
+            buildOptimizationConfig(priorities, {
+                configurationMode: "ADVANCED",
+                generateVariants: true,
+            })
+        ).toEqual({
             mode: "BUILD_FROM_SCRATCH",
+            configurationMode: "ADVANCED",
             priorities: { CRITICAL_CHANCE: 15 },
             targetQuantities: { CRITICAL_CHANCE: { min: 0, max: 12 } },
             forceCapBonuses: [],
             forcedPercentageTargets: { CRITICAL_CHANCE: 42.5 },
             maximizeBonuses: [],
+            drifSizeQuantities: {},
             forceMaximizationByDrifBonus: false,
             generateVariants: true,
             maxVariantLossPercent: 0,
@@ -124,5 +155,70 @@ describe("optimizerConfiguration", () => {
         expect(findInvalidPercentageTarget([{ ...priorities[0], forcedPercentage: "" }])).toEqual(
             expect.objectContaining({ key: "CRITICAL_CHANCE" })
         );
+    });
+
+    it("builds a restricted simple contract and advanced size ranges", () => {
+        const priority = {
+            key: "CRITICAL_CHANCE",
+            weight: 30,
+            min: 2,
+            max: 4,
+            forceCap: true,
+            forcePercentage: true,
+            forcedPercentage: 42,
+            maximize: true,
+            sizeRanges: { SUBDRIF: { min: 2, max: 2 }, ARCYDRIF: { min: 1, max: 2 } },
+        };
+
+        expect(buildOptimizationConfig([priority], { configurationMode: "SIMPLE" })).toMatchObject({
+            configurationMode: "SIMPLE",
+            simpleProfile: "PHYSICAL_MELEE",
+            simpleAspects: {
+                DAMAGE: "IMPORTANT",
+                ACCURACY: "IMPORTANT",
+                SURVIVABILITY: "NORMAL",
+            },
+            priorities: {},
+            targetQuantities: {},
+            forceCapBonuses: [],
+            forcedPercentageTargets: {},
+            maximizeBonuses: [],
+            drifSizeQuantities: {},
+            generateVariants: false,
+        });
+        expect(
+            buildOptimizationConfig([], {
+                configurationMode: "SIMPLE",
+                simpleProfile: "MAGICAL",
+                simpleAspects: { RESOURCES: "KEY" },
+            })
+        ).toMatchObject({
+            simpleProfile: "MAGICAL",
+            simpleAspects: { RESOURCES: "KEY" },
+            priorities: {},
+        });
+        const advanced = buildOptimizationConfig([priority], { configurationMode: "ADVANCED" });
+        expect(advanced.drifSizeQuantities.CRITICAL_CHANCE).toEqual(priority.sizeRanges);
+        expect(findInvalidSizeConstraint([{ ...priority, min: 6, max: 6 }])).toBeUndefined();
+        expect(
+            findInvalidSizeConstraint([
+                { ...priority, sizeRanges: { SUBDRIF: { min: 3, max: 2 } } },
+            ])
+        ).toEqual(expect.objectContaining({ key: "CRITICAL_CHANCE" }));
+        expect(
+            findInvalidSizeConstraint([
+                {
+                    ...priority,
+                    min: 1,
+                    max: 6,
+                    sizeRanges: Object.fromEntries(
+                        ["SUBDRIF", "BIDRIF", "MAGNIDRIF", "ARCYDRIF"].map((size) => [
+                            size,
+                            { min: 0, max: 0 },
+                        ])
+                    ),
+                },
+            ])
+        ).toEqual(expect.objectContaining({ key: "CRITICAL_CHANCE", min: 1, max: 6 }));
     });
 });

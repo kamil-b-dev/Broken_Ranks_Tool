@@ -13,7 +13,6 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCal
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.*;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.input.*;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.processor.*;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.random.RandomProvider;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.impl.EquipmentStatsCalculatorTestFactory;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.*;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
@@ -34,11 +33,11 @@ record OptimizationCalculatorFixture(
         var rules = new EquipmentRulesRegistry();
         var placement = new EquipmentPlacementRules(rules);
         var levels = new UpgradeLevelPolicy();
-        var itemProcessor = new ItemStatProcessor(mock(RandomProvider.class));
+        var itemProcessor = new ItemStatProcessor();
         var calculator =
                 EquipmentStatsCalculatorTestFactory.create(
                         new EquipmentDataProvider(itemRepo, orbRepo, drifRepo),
-                        new EquipmentRequestValidator(),
+                        new EquipmentRequestValidator(rules),
                         placement,
                         levels,
                         new DrifSecurityValidator(placement, levels),
@@ -52,6 +51,7 @@ record OptimizationCalculatorFixture(
                 OptimizationServiceTestFactory.create(
                         drifRepo,
                         itemRepo,
+                        orbRepo,
                         placement,
                         levels,
                         rules,

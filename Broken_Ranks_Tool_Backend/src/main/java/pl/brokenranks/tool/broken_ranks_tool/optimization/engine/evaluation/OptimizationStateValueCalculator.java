@@ -5,6 +5,7 @@ import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.Op
 
 import java.util.Map;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_SIZE;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
 
@@ -29,12 +30,25 @@ final class OptimizationStateValueCalculator {
         return Math.max(0, globalCount(metrics, candidate) - (candidate == replaced ? 1 : 0));
     }
 
+    int sizeCount(Metrics metrics, DRIF_BONUS_TYPE type, DRIF_SIZE size) {
+        return metrics.sizeCounts().getOrDefault(type, Map.of()).getOrDefault(size, 0);
+    }
+
     boolean minimumsSatisfied(Metrics metrics, OptimizationContext context) {
         for (Map.Entry<DRIF_BONUS_TYPE, OptimizationRequest.QuantityRange> entry :
                 safeQuantities(context.request()).entrySet()) {
             int count = globalCount(metrics, entry.getKey());
             if (count < entry.getValue().getMin() || count > entry.getValue().getMax()) {
                 return false;
+            }
+        }
+        if (context.request().getDrifSizeQuantities() != null) {
+            for (var bonusEntry : context.request().getDrifSizeQuantities().entrySet()) {
+                for (var sizeEntry : bonusEntry.getValue().entrySet()) {
+                    int count = sizeCount(metrics, bonusEntry.getKey(), sizeEntry.getKey());
+                    if (count < sizeEntry.getValue().getMin()
+                            || count > sizeEntry.getValue().getMax()) return false;
+                }
             }
         }
         return true;

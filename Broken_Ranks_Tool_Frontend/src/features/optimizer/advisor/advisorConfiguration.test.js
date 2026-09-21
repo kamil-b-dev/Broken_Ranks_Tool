@@ -55,11 +55,26 @@ describe("advisor configuration", () => {
             buildAdvisorConfiguration({ advisorSearch: { targetMode: "VALUE", target } }, {}, rules)
         ).toThrow();
     });
+    it("rejects malformed protection rules without crashing on property access", () => {
+        expect(() =>
+            buildAdvisorConfiguration(
+                { advisorProtectedModifiers: { CRITICAL_CHANCE: null } },
+                {},
+                rules
+            )
+        ).toThrow("Nieprawidłowa reguła ochrony modyfikatora.");
+    });
     it("round trips the target and allowed purchase controls", () => {
         const settings = {
             mode: "ADVISOR",
             advisorGoal: "DAMAGE_MAGIC",
-            advisorSearch: { targetMode: "VALUE", target: 30, timeBudgetMs: 5000, maxActions: 2 },
+            advisorSearch: {
+                strategy: "BEST_RESULT",
+                targetMode: "VALUE",
+                target: 30,
+                timeBudgetMs: 5000,
+                maxActions: 10,
+            },
             advisorAllowedChanges: { drifs: true, drifUpgrades: true },
         };
         const restored = parseOptimizerConfigPayload(
@@ -70,5 +85,35 @@ describe("advisor configuration", () => {
             advisorSearch: settings.advisorSearch,
             advisorAllowedChanges: settings.advisorAllowedChanges,
         });
+    });
+
+    it("preserves any supported analysis budget", () => {
+        const restored = parseOptimizerConfigPayload(
+            createOptimizerConfigPayload([], {
+                mode: "ADVISOR",
+                advisorSearch: { timeBudgetMs: 2750 },
+            }),
+            rules
+        );
+
+        expect(restored.advisorSearch.timeBudgetMs).toBe(2750);
+        expect(
+            buildAdvisorConfiguration({ advisorSearch: { timeBudgetMs: 2750 } }, {}, rules).advisor
+                .timeBudgetMs
+        ).toBe(2750);
+    });
+
+    it("does not enable item purchases when an imported changes object omits them", () => {
+        const restored = parseOptimizerConfigPayload(
+            {
+                format: "broken-ranks-tool-optimizer-config",
+                version: 1,
+                settings: { advisorAllowedChanges: { stars: true } },
+                priorities: [],
+            },
+            rules
+        );
+
+        expect(restored.advisorAllowedChanges.items).toBe(false);
     });
 });

@@ -7,23 +7,40 @@ import StandardDrifSlot from "./StandardDrifSlot";
 const drifs = [
     { id: 1, name: "Krytyk", bonusType: "CRITICAL", size: "SUBDRIF" },
     { id: 2, name: "Krytyk", bonusType: "CRITICAL", size: "BIDRIF" },
+    { id: 3, name: "Ogień", bonusType: "DAMAGE_FIRE", size: "SUBDRIF" },
+    { id: 4, name: "Mróz", bonusType: "DAMAGE_FROST", size: "SUBDRIF" },
 ];
 
-const Harness = ({ locked = false, onToggleLock = vi.fn() }) => {
-    const [selectedDrifs, setSelectedDrifs] = useState([]);
+const groupByName = (options) =>
+    options.reduce((groups, option) => {
+        const next = groups;
+        next[option.name] = [...(next[option.name] || []), option];
+        return next;
+    }, {});
+
+const Harness = ({
+    locked = false,
+    onToggleLock = vi.fn(),
+    index = 0,
+    slotKey = "weapon",
+    initialSelectedDrifs = [],
+}) => {
+    const [selectedDrifs, setSelectedDrifs] = useState(initialSelectedDrifs);
     const [drifTypes, setDrifTypes] = useState({});
     const [drifLevels, setDrifLevels] = useState({});
     return (
         <StandardDrifSlot
-            index={0}
+            index={index}
+            slotKey={slotKey}
             drifs={drifs}
+            elementalTypes={["DAMAGE_FIRE", "DAMAGE_FROST"]}
             selectedDrifs={selectedDrifs}
             drifTypes={drifTypes}
             drifLevels={drifLevels}
             maxDrifIndex={1}
             bonusTranslations={{ CRITICAL: "Szansa na krytyk" }}
             drifBasePowers={{ CRITICAL: 3 }}
-            groupByType={(options) => ({ Krytyk: options })}
+            groupByType={groupByName}
             locked={locked}
             parentLocked={false}
             showLock
@@ -57,5 +74,16 @@ describe("StandardDrifSlot", () => {
     it("disables editing when the drif is locked", () => {
         render(<Harness locked />);
         expect(screen.getByLabelText("Wybierz rodzaj drifa 1")).toBeDisabled();
+    });
+
+    it("offers elemental drifs only in an otherwise elemental-free weapon", () => {
+        const { rerender } = render(<Harness slotKey="helmet" />);
+        expect(screen.queryByRole("option", { name: "Ogień" })).not.toBeInTheDocument();
+
+        rerender(<Harness key="empty-weapon" />);
+        expect(screen.getByRole("option", { name: "Ogień" })).toBeInTheDocument();
+
+        rerender(<Harness key="weapon" index={1} initialSelectedDrifs={["3", ""]} />);
+        expect(screen.queryByRole("option", { name: "Mróz" })).not.toBeInTheDocument();
     });
 });

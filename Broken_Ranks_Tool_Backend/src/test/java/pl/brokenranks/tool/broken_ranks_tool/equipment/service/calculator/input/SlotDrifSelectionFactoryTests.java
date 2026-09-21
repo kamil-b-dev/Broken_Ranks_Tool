@@ -1,6 +1,7 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.input;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -15,7 +16,7 @@ class SlotDrifSelectionFactoryTests {
     private final SlotDrifSelectionFactory factory = new SlotDrifSelectionFactory();
 
     @Test
-    void resolvesKnownDrifsAndKeepsLevelsAlignedAfterUnknownIdentifiers() {
+    void rejectsUnknownDrifIdentifiers() {
         DrifTemplate first = DrifTemplate.builder().id(1L).name("First").build();
         DrifTemplate second = DrifTemplate.builder().id(2L).name("Second").build();
         EquipmentRequest.SlotData slot = new EquipmentRequest.SlotData();
@@ -24,10 +25,7 @@ class SlotDrifSelectionFactoryTests {
         CalculationContext context =
                 new CalculationContext(Map.of(), Map.of(), Map.of(1L, first, 2L, second));
 
-        SlotDrifSelection selection = factory.create(slot, context);
-
-        assertEquals(List.of(first, second), selection.drifs());
-        assertEquals(List.of(6, 11), selection.levels());
+        assertThrows(IllegalArgumentException.class, () -> factory.create(slot, context));
     }
 
     @Test

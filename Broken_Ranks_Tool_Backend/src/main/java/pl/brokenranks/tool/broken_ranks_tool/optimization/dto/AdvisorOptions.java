@@ -10,7 +10,14 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_T
 /** Relative goals and explicitly permitted actions for an inventory-preserving search. */
 @Data
 public class AdvisorOptions {
+    public enum Strategy {
+        MINIMUM_CHANGE,
+        BEST_RESULT
+    }
+
     @NotNull private DRIF_BONUS_TYPE goal;
+
+    @NotNull private Strategy strategy = Strategy.MINIMUM_CHANGE;
 
     private UUID runId;
 
@@ -19,7 +26,7 @@ public class AdvisorOptions {
     private int timeBudgetMs = 1500;
 
     @Min(1)
-    @Max(3)
+    @Max(10)
     private int maxActions = 3;
 
     @DecimalMin("0.0")
@@ -28,8 +35,7 @@ public class AdvisorOptions {
     @DecimalMin("0.0")
     private Double targetGain;
 
-    @Pattern(regexp = "AUTO|MAGICAL|PHYSICAL|UNIVERSAL")
-    private String profession = "AUTO";
+    @NotNull private AdvisorProfession profession = AdvisorProfession.AUTO;
 
     @Valid private Changes allowedChanges = new Changes();
 

@@ -95,7 +95,8 @@ describe("App", () => {
             "aria-current",
             "page"
         );
-        expect(screen.getByText("Ustawienia budowania")).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "Ustawienia" })).toBeInTheDocument();
+        await user.click(screen.getByRole("button", { name: "Zaawansowany" }));
         const optimizerSearch = screen.getByPlaceholderText("Szukaj statystyki...");
         await user.type(optimizerSearch, "krytyk");
         expect(
@@ -103,7 +104,7 @@ describe("App", () => {
         ).not.toBeInTheDocument();
 
         await user.click(screen.getByRole("link", { name: /Kreator ekwipunku/i }));
-        expect(screen.queryByText("Ustawienia budowania")).not.toBeInTheDocument();
+        expect(screen.queryByRole("heading", { name: "Ustawienia" })).not.toBeInTheDocument();
         await user.click(screen.getByRole("button", { name: /Zapisz lokalnie/i }));
         await user.click(screen.getByRole("button", { name: /Przelicz statystyki/i }));
         expect(
@@ -202,14 +203,14 @@ describe("App", () => {
         const user = userEvent.setup();
         render(<App />);
 
-        expect(screen.getByText("Ustawienia budowania")).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "Ustawienia" })).toBeInTheDocument();
         expect(screen.queryByRole("heading", { name: "Ekwipunek" })).not.toBeInTheDocument();
 
         await user.click(screen.getByRole("link", { name: /Buildy lokalne/i }));
         expect(window.location.pathname).toBe("/buildy");
         window.history.back();
         window.dispatchEvent(new PopStateEvent("popstate"));
-        expect(await screen.findByText("Ustawienia budowania")).toBeInTheDocument();
+        expect(await screen.findByRole("heading", { name: "Ustawienia" })).toBeInTheDocument();
     });
 
     it("renders the home page at the root and opens a selected tool", async () => {

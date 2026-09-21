@@ -65,6 +65,7 @@ const equipment = {
 
 const settings = {
     mode: "BUILD_FROM_SCRATCH",
+    configurationMode: "ADVANCED",
     forceMaximizationByDrifBonus: true,
     generateVariants: true,
     maxVariantLossPercent: 125,
@@ -131,9 +132,12 @@ describe("OptimizerPanel", () => {
 
         await user.click(await screen.findByText("Szansa na krytyk"));
 
-        const quantityInputs = screen.getAllByRole("spinbutton");
-        fireEvent.change(quantityInputs[0], { target: { value: "-4" } });
-        fireEvent.change(quantityInputs[1], { target: { value: "99" } });
+        fireEvent.change(screen.getByRole("spinbutton", { name: /Minimalna liczba drifów/i }), {
+            target: { value: "-4" },
+        });
+        fireEvent.change(screen.getByRole("spinbutton", { name: /Maksymalna liczba drifów/i }), {
+            target: { value: "99" },
+        });
         await user.click(screen.getByRole("button", { name: /Wymuś konkretny procent/i }));
         await user.type(screen.getByRole("spinbutton", { name: /Wymuszony procent/i }), "42.5");
         await user.click(screen.getByRole("button", { name: /Uruchom optymalizację/i }));
@@ -141,11 +145,13 @@ describe("OptimizerPanel", () => {
         await waitFor(() => expect(equipment.runDrifOptimization).toHaveBeenCalledOnce());
         expect(equipment.runDrifOptimization).toHaveBeenCalledWith({
             mode: "BUILD_FROM_SCRATCH",
+            configurationMode: "ADVANCED",
             priorities: { CRITICAL_CHANCE: 15 },
             targetQuantities: { CRITICAL_CHANCE: { min: 0, max: 12 } },
             forceCapBonuses: [],
             forcedPercentageTargets: { CRITICAL_CHANCE: 42.5 },
             maximizeBonuses: [],
+            drifSizeQuantities: {},
             forceMaximizationByDrifBonus: true,
             generateVariants: true,
             maxVariantLossPercent: 100,
@@ -230,7 +236,14 @@ describe("OptimizerPanel", () => {
         expect(updateSettings(settings)).toEqual({
             ...settings,
             advisorProfession: "AUTO",
+            configurationMode: "ADVANCED",
             maxVariantLossPercent: 0,
+            simpleProfile: "PHYSICAL_MELEE",
+            simpleAspects: {
+                DAMAGE: "IMPORTANT",
+                ACCURACY: "IMPORTANT",
+                SURVIVABILITY: "NORMAL",
+            },
         });
     });
 

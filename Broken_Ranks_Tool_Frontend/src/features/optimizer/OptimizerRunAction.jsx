@@ -8,12 +8,14 @@ const OptimizerRunAction = ({
     onRun,
     onCancel,
     mode,
+    simple,
 }) => (
     <div className="optimizer-run-panel">
         <div className="optimizer-run-inner">
             <div className="optimizer-run-meta">
                 <span>
-                    <strong className="text-stone-300">{priorityCount}</strong> priorytetów
+                    <strong className="text-stone-300">{priorityCount}</strong>{" "}
+                    {simple ? "obszarów" : "priorytetów"}
                 </span>
                 {lastDurationSeconds !== null && (
                     <span>

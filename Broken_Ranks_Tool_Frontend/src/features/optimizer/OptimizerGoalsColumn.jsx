@@ -3,7 +3,7 @@ import OptimizerBonusColumn from "./OptimizerBonusColumn";
 import OptimizerPriorityList from "./OptimizerPriorityList";
 import OptimizerPriorityToolbar from "./OptimizerPriorityToolbar";
 import OptimizerRunAction from "./OptimizerRunAction";
-import OptimizerSettingsPanel from "./OptimizerSettingsPanel";
+import SimpleProfileGoalsPanel from "./simple-profile/SimpleProfileGoalsPanel";
 
 /** Editable goals, priorities, settings, and execution controls. */
 const OptimizerGoalsColumn = ({
@@ -56,6 +56,8 @@ const OptimizerGoalsColumn = ({
                 settings={settings}
                 onChange={onSettingsChange}
             />
+        ) : settings.configurationMode === "SIMPLE" ? (
+            <SimpleProfileGoalsPanel settings={settings} onChange={onSettingsChange} />
         ) : (
             <div className="optimizer-goals-workspace">
                 <OptimizerBonusColumn
@@ -90,13 +92,19 @@ const OptimizerGoalsColumn = ({
                         onToggle={onTogglePriority}
                         onRemove={onRemovePriority}
                         onUpdate={onUpdatePriority}
+                        configurationMode={settings.configurationMode || "ADVANCED"}
                     />
                 </div>
             </div>
         )}
-        <OptimizerSettingsPanel settings={settings} onChange={onSettingsChange} />
         <OptimizerRunAction
-            priorityCount={settings.mode === "ADVISOR" ? 1 : priorities.length}
+            priorityCount={
+                settings.mode === "ADVISOR"
+                    ? 1
+                    : settings.configurationMode === "SIMPLE"
+                      ? Object.keys(settings.simpleAspects || {}).length
+                      : priorities.length
+            }
             isOptimizing={isOptimizing}
             elapsedSeconds={elapsedSeconds}
             lastDurationSeconds={lastDurationSeconds}
@@ -104,6 +112,7 @@ const OptimizerGoalsColumn = ({
             onRun={onRun}
             onCancel={onCancel}
             mode={settings.mode}
+            simple={settings.mode !== "ADVISOR" && settings.configurationMode === "SIMPLE"}
         />
     </section>
 );

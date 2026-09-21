@@ -1,3 +1,5 @@
+import { SIMPLE_PROFILES } from "./simple-profile/simpleProfileDefinitions";
+
 const MODES = [
     ["BUILD_FROM_SCRATCH", "Od zera"],
     ["ADVISOR", "Doradca"],
@@ -63,9 +65,10 @@ const VariantsOptions = ({ settings, onChange, label }) => (
 /** Shows only settings meaningful for the currently selected workspace. */
 const OptimizerSettingsPanel = ({ settings, onChange }) => {
     const advisory = settings.mode === "ADVISOR";
+    const configurationMode = settings.configurationMode || "ADVANCED";
     return (
         <section className="optimizer-settings-strip">
-            <h3>{advisory ? "Zakres rekomendacji" : "Ustawienia budowania"}</h3>
+            <h3>Ustawienia</h3>
             <div className="optimizer-settings-options">
                 {advisory && (
                     <label className="flex items-center gap-3 text-[11px] text-stone-400">
@@ -84,6 +87,48 @@ const OptimizerSettingsPanel = ({ settings, onChange }) => {
                     </label>
                 )}
                 {!advisory && (
+                    <div className="flex flex-wrap items-center gap-3">
+                        <span className="text-[11px] text-stone-400">Poziom konfiguracji</span>
+                        <div className="flex border border-purple-900/80 bg-black p-0.5">
+                            {[
+                                ["SIMPLE", "Prosty"],
+                                ["ADVANCED", "Zaawansowany"],
+                            ].map(([value, label]) => (
+                                <button
+                                    key={value}
+                                    type="button"
+                                    aria-pressed={configurationMode === value}
+                                    onClick={() =>
+                                        onChange({ ...settings, configurationMode: value })
+                                    }
+                                    className={`px-3 py-1 text-[10px] uppercase tracking-wider ${configurationMode === value ? "bg-purple-900 text-purple-100" : "text-stone-400"}`}
+                                >
+                                    {label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+                {!advisory && configurationMode === "SIMPLE" && (
+                    <label className="flex items-center gap-3 text-[11px] text-stone-400">
+                        Profil
+                        <select
+                            aria-label="Profil prostego optymalizatora"
+                            value={settings.simpleProfile || "PHYSICAL_MELEE"}
+                            onChange={(event) =>
+                                onChange({ ...settings, simpleProfile: event.target.value })
+                            }
+                            className="border border-purple-900/80 bg-black px-2 py-1 text-stone-200"
+                        >
+                            {SIMPLE_PROFILES.map((profile) => (
+                                <option key={profile.value} value={profile.value}>
+                                    {profile.label}
+                                </option>
+                            ))}
+                        </select>
+                    </label>
+                )}
+                {!advisory && configurationMode === "ADVANCED" && (
                     <label className="flex items-center gap-3 cursor-pointer select-none">
                         <input
                             type="checkbox"
@@ -101,7 +146,7 @@ const OptimizerSettingsPanel = ({ settings, onChange }) => {
                         </span>
                     </label>
                 )}
-                {!advisory && (
+                {!advisory && configurationMode === "ADVANCED" && (
                     <VariantsOptions
                         settings={settings}
                         onChange={onChange}

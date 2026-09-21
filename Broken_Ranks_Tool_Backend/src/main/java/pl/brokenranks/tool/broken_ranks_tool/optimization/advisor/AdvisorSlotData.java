@@ -52,7 +52,12 @@ final class AdvisorSlotData {
 
     static String signature(Map<String, SlotData> slots) {
         StringBuilder key = new StringBuilder();
-        slots.forEach((name, slot) -> key.append(slotSignature(name, slot)).append('|'));
+        slots.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .forEach(
+                        entry ->
+                                key.append(slotSignature(entry.getKey(), entry.getValue()))
+                                        .append('|'));
         return key.toString();
     }
 

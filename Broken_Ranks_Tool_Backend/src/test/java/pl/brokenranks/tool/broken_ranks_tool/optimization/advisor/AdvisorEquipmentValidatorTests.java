@@ -36,6 +36,8 @@ class AdvisorEquipmentValidatorTests {
         assertFalse(f.validator.validSlot("helmet", slot(1, 1, List.of(10L, 11L), Map.of())));
         assertFalse(f.validator.validSlot("helmet", slot(1, 1, List.of(10L, 10L), Map.of())));
         assertTrue(f.validator.validSlot("helmet", slot(1, 1, List.of(10L), Map.of("0", 6))));
+        assertFalse(f.validator.validSlot("helmet", slot(1, 1, List.of(10L), Map.of("x", 1))));
+        assertFalse(f.validator.validSlot("helmet", slot(1, 1, List.of(10L), Map.of("1", 1))));
     }
 
     @Test
@@ -70,6 +72,7 @@ class AdvisorEquipmentValidatorTests {
                         "weapon", slot(1, 1, List.of(10L, 11L), Map.of("0", 16, "1", 16))));
         assertFalse(f.validator.validSlot("weapon", slot(1, 1, List.of(11L, 10L), Map.of())));
         assertFalse(f.validator.validSlot("weapon", slot(1, 1, List.of(12L, 11L), Map.of())));
+        assertFalse(f.validator.validSlot("weapon", slot(1, 1, List.of(10L), Map.of())));
         assertFalse(f.validator.validSlot("weapon", slot(1, 1, List.of(10L, 11L, 10L), Map.of())));
     }
 
@@ -104,6 +107,11 @@ class AdvisorEquipmentValidatorTests {
         assertFalse(
                 f.validator.validSlot(
                         "helmet", slotWithOrbs(1, List.of(20L, 21L, 21L), List.of(1, 1, 1))));
+        assertFalse(f.validator.validSlot("helmet", slotWithOrbs(1, List.of(20L), List.of(1, 1))));
+        assertFalse(
+                f.validator.validSlot(
+                        "helmet",
+                        slotWithOrbs(1, List.of(20L), java.util.Arrays.asList((Integer) null))));
     }
 
     @Test
@@ -129,6 +137,16 @@ class AdvisorEquipmentValidatorTests {
                         Map.of(
                                 "helmet", slotWithOrbs(1, List.of(20L), List.of(1)),
                                 "armor", slotWithOrbs(2, List.of(21L), List.of(1)))));
+    }
+
+    @Test
+    void rejectsOrbLargerThanItemTier() {
+        ItemTemplate helmet = rare(1, ITEM_CATEGORY.HELMET, "I", 20);
+        OrbTemplate tooLarge =
+                orb(20, ORB_SIZE.BIORB, ORB_CATEGORY.DEFENSIVE, ORB_BONUS_TYPE.DMG_REDUCTION_MELEE);
+        Fixture f = fixture(List.of(helmet), List.of(), List.of(tooLarge));
+
+        assertFalse(f.validator.validSlot("helmet", slotWithOrbs(1, List.of(20L), List.of(1))));
     }
 
     private static Fixture fixture(

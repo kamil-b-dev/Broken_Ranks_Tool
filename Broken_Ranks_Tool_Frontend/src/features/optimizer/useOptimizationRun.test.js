@@ -24,6 +24,18 @@ describe("useOptimizationRun", () => {
         expect(result.current.isOptimizing).toBe(false);
     });
 
+    it("keeps the selected build configuration mode in the report", async () => {
+        const { result } = renderHook(() =>
+            useOptimizationRun(vi.fn().mockResolvedValue({ success: true }), () => 1000)
+        );
+
+        await act(async () => {
+            await result.current.run({ configurationMode: "SIMPLE" });
+        });
+
+        expect(result.current.status.configurationMode).toBe("SIMPLE");
+    });
+
     it("leaves the running state after a backend failure", async () => {
         const runOptimization = vi.fn().mockRejectedValue(new Error("backend unavailable"));
         const now = vi.fn().mockReturnValue(1000);

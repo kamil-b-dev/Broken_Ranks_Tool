@@ -75,7 +75,8 @@ class OptimizationSetupMapperTests {
         var magic = drif(10, DRIF_BONUS_TYPE.DAMAGE_MAGIC);
         SlotContext helmet = slot("helmet", 20, 1, 0, false, Set.of(), magic);
         helmet.original().setDrifIds(new ArrayList<>(List.of(10L, 10L, 10L)));
-        helmet.original().setDrifLevels(new HashMap<>(Map.of("0", 6, "1", 11, "invalid", 16)));
+        helmet.original()
+                .setDrifLevels(new HashMap<>(Map.of("0", 6, "1", 11, "-1", 4, "invalid", 16)));
         OptimizationRequest request = request(DRIF_BONUS_TYPE.DAMAGE_MAGIC);
         request.setOriginalSlots(Map.of("helmet", helmet.original()));
         request.setLockedSlots(Set.of("helmet"));

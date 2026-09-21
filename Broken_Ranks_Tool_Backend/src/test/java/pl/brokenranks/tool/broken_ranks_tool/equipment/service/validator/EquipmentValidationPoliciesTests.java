@@ -17,6 +17,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ORB_CATEGORY
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ORB_SIZE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.RARITY;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRulesRegistry;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.OrbTemplate;
@@ -26,7 +27,8 @@ class EquipmentValidationPoliciesTests {
     private final EquipmentPlacementRules placementRules =
             new EquipmentPlacementRules(new EquipmentRulesRegistry());
     private final UpgradeLevelPolicy levelPolicy = new UpgradeLevelPolicy();
-    private final EquipmentRequestValidator requestValidator = new EquipmentRequestValidator();
+    private final EquipmentRequestValidator requestValidator =
+            new EquipmentRequestValidator(new EquipmentRulesRegistry());
     private final DrifSecurityValidator drifSecurityValidator =
             new DrifSecurityValidator(placementRules, levelPolicy);
     private final OrbSecurityValidator orbSecurityValidator = new OrbSecurityValidator();
@@ -70,6 +72,15 @@ class EquipmentValidationPoliciesTests {
                                 item,
                                 1,
                                 List.of(drif(DRIF_BONUS_TYPE.DAMAGE_FIRE, DRIF_SIZE.SUBDRIF)),
+                                List.of(1)));
+        assertThrows(
+                IllegalArgumentException.class,
+                () ->
+                        drifSecurityValidator.validate(
+                                "helmet",
+                                item(0, ITEM_CATEGORY.HELMET, RARITY.RARE, "XII"),
+                                1,
+                                List.of(critical),
                                 List.of(1)));
     }
 
@@ -155,9 +166,45 @@ class EquipmentValidationPoliciesTests {
     @Test
     void recognizesOnlyAllowedCharacterStats() {
         assertDoesNotThrow(() -> requestValidator.validateCharacterStats(Map.of("Siła", 10)));
+        assertDoesNotThrow(
+                () -> requestValidator.validateCharacterStats(Map.of("Siła", 0, "Moc", 50_000)));
         assertThrows(
                 IllegalArgumentException.class,
                 () -> requestValidator.validateCharacterStats(Map.of("Unknown", 10)));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> requestValidator.validateCharacterStats(Map.of("Siła", -1)));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> requestValidator.validateCharacterStats(Map.of("Siła", 50_001)));
+    }
+
+    @Test
+    void rejectsOrphanedStoneDataButAllowsCleanEmptySlots() {
+        EquipmentRequest request = new EquipmentRequest();
+        EquipmentRequest.SlotData empty = new EquipmentRequest.SlotData();
+        request.setSlots(Map.of("helmet", empty));
+        assertDoesNotThrow(() -> requestValidator.validateRequest(request));
+
+        empty.setDrifLevels(Map.of("0", 1));
+        assertThrows(
+                IllegalArgumentException.class, () -> requestValidator.validateRequest(request));
+
+        EquipmentRequest.SlotData equipped = new EquipmentRequest.SlotData();
+        equipped.setItemId(1L);
+        equipped.setOrbLevels(List.of(1));
+        request.setSlots(Map.of("helmet", equipped));
+        assertThrows(
+                IllegalArgumentException.class, () -> requestValidator.validateRequest(request));
+    }
+
+    @Test
+    void rejectsUnknownSlotNames() {
+        EquipmentRequest request = new EquipmentRequest();
+        request.setSlots(Map.of("invented", new EquipmentRequest.SlotData()));
+
+        assertThrows(
+                IllegalArgumentException.class, () -> requestValidator.validateRequest(request));
     }
 
     private ItemTemplate item(

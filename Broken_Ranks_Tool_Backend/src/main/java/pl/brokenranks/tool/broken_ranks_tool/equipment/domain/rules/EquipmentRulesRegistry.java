@@ -1,10 +1,13 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.Getter;
 import org.springframework.stereotype.Component;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.EQUIPMENT_SLOT;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ITEM_CATEGORY;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ORB_CATEGORY;
 
@@ -46,39 +49,16 @@ public class EquipmentRulesRegistry {
                                     DRIF_BONUS_TYPE.DOUBLE_ATTACK_CHANCE.name()));
 
     private final Map<String, List<ITEM_CATEGORY>> slotItemRules =
-            Map.ofEntries(
-                    Map.entry("helmet", List.of(ITEM_CATEGORY.HELMET)),
-                    Map.entry("armor", List.of(ITEM_CATEGORY.ARMOR)),
-                    Map.entry("cape", List.of(ITEM_CATEGORY.CAPE)),
-                    Map.entry("legs", List.of(ITEM_CATEGORY.LEGS)),
-                    Map.entry("boots", List.of(ITEM_CATEGORY.BOOTS)),
-                    Map.entry("gloves", List.of(ITEM_CATEGORY.GLOVES)),
-                    Map.entry("belt", List.of(ITEM_CATEGORY.BELT)),
-                    Map.entry(
-                            "weapon",
-                            List.of(
-                                    ITEM_CATEGORY.WEAPON_1H,
-                                    ITEM_CATEGORY.WEAPON_2H,
-                                    ITEM_CATEGORY.WEAPON_RANGED)),
-                    Map.entry("shield", List.of(ITEM_CATEGORY.OFF_HAND)),
-                    Map.entry("ring1", List.of(ITEM_CATEGORY.RING)),
-                    Map.entry("ring2", List.of(ITEM_CATEGORY.RING)),
-                    Map.entry("necklace", List.of(ITEM_CATEGORY.NECKLACE)));
+            Arrays.stream(EQUIPMENT_SLOT.values())
+                    .collect(
+                            Collectors.toUnmodifiableMap(
+                                    EQUIPMENT_SLOT::key, EQUIPMENT_SLOT::itemCategories));
 
     private final Map<String, List<ORB_CATEGORY>> slotOrbRules =
-            Map.ofEntries(
-                    Map.entry("weapon", List.of(ORB_CATEGORY.OFFENSIVE)),
-                    Map.entry("shield", List.of(ORB_CATEGORY.OFFENSIVE, ORB_CATEGORY.DEFENSIVE)),
-                    Map.entry("helmet", List.of(ORB_CATEGORY.DEFENSIVE)),
-                    Map.entry("armor", List.of(ORB_CATEGORY.DEFENSIVE)),
-                    Map.entry("legs", List.of(ORB_CATEGORY.DEFENSIVE)),
-                    Map.entry("boots", List.of(ORB_CATEGORY.DEFENSIVE)),
-                    Map.entry("cape", List.of(ORB_CATEGORY.OFFENSIVE)),
-                    Map.entry("belt", List.of(ORB_CATEGORY.OFFENSIVE)),
-                    Map.entry("gloves", List.of(ORB_CATEGORY.OFFENSIVE)),
-                    Map.entry("ring1", List.of(ORB_CATEGORY.UTILITY)),
-                    Map.entry("ring2", List.of(ORB_CATEGORY.UTILITY)),
-                    Map.entry("necklace", List.of(ORB_CATEGORY.UTILITY)));
+            Arrays.stream(EQUIPMENT_SLOT.values())
+                    .collect(
+                            Collectors.toUnmodifiableMap(
+                                    EQUIPMENT_SLOT::key, EQUIPMENT_SLOT::orbCategories));
 
     private final List<DRIF_BONUS_TYPE> elementalDamageTypes =
             List.of(

@@ -11,6 +11,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.CalculationResultDto;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest.SlotData;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.AdvisorReport;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.AdvisorStatus;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationResponse;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationSummary;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationSummary.GoalResult;
@@ -25,8 +26,9 @@ final class AdvisorResponseFactory {
             AdvisorSearch search,
             Map<String, SlotData> original,
             CalculationResultDto baselineCalculation,
-            List<AdvisorFinalistVerifier.Verified> selected,
+            AdvisorFinalistVerifier.Result verification,
             long started) {
+        List<AdvisorFinalistVerifier.Verified> selected = verification.selected();
         Map<String, String> before = baselineCalculation.stats();
         AdvisorPlanResultFactory.Result output =
                 planResults.create(model, search, before, selected);
@@ -43,7 +45,7 @@ final class AdvisorResponseFactory {
                         model.setup(bestSlots),
                         new OptimizationSummary(
                                 true,
-                                message(search, selected.size(), reached),
+                                message(search, verification, reached),
                                 metrics.total(bestSlots, model),
                                 metrics.power(bestSlots, model),
                                 elapsedSeconds(started),
@@ -55,13 +57,31 @@ final class AdvisorResponseFactory {
         response.setAdvisorReport(
                 new AdvisorReport(
                         search.control.evaluated(),
-                        search.limited(),
+                        search.limited() || verification.timeLimitReached(),
                         search.control.cancelled(),
+                        status(search, verification, reached),
                         reached,
                         search.baseline[search.options.getGoal().ordinal()],
                         search.options.getGoal().name(),
+                        search.options.getMaxActions(),
+                        search.exhaustive(),
+                        verification.proofComplete(),
+                        verification.verifiedCandidates(),
+                        verification.candidateCount(),
                         output.plans()));
         return response;
+    }
+
+    private AdvisorStatus status(
+            AdvisorSearch search, AdvisorFinalistVerifier.Result verification, boolean reached) {
+        if (search.control.cancelled()) return AdvisorStatus.CANCELLED;
+        if (verification.proofComplete())
+            return verification.selected().isEmpty()
+                            && !reached
+                            && Double.isFinite(search.requestedTarget)
+                    ? AdvisorStatus.INFEASIBLE
+                    : AdvisorStatus.OPTIMAL;
+        return AdvisorStatus.BEST_FOUND;
     }
 
     OptimizationResponse failure(String message, long started) {
@@ -113,12 +133,14 @@ final class AdvisorResponseFactory {
                 Double.isFinite(target) ? String.format(Locale.ROOT, "%.2f%%", target) : null,
                 true,
                 Double.isFinite(target)
-                        ? directed(type, parse(bestStats.get(type.name()))) + AdvisorSearch.EPSILON
+                        ? useful(type, parse(bestStats.get(type.name()))) + AdvisorSearch.EPSILON
                                 >= target
                         : null);
     }
 
-    private String message(AdvisorSearch search, int selectedCount, boolean reached) {
+    private String message(
+            AdvisorSearch search, AdvisorFinalistVerifier.Result verification, boolean reached) {
+        int selectedCount = verification.selected().size();
         String message;
         if (selectedCount > 0)
             message =
@@ -134,9 +156,19 @@ final class AdvisorResponseFactory {
                     "Nie znaleziono poprawy w sprawdzonym zakresie przy obecnej ochronie modów i dozwolonych zmianach.";
         if (search.control.cancelled())
             message += " Analizę zatrzymano; pokazano sprawdzone wyniki.";
-        else if (search.limited())
+        else if (search.limited() || verification.timeLimitReached())
             message += " Osiągnięto limit wyszukiwania; wynik nie jest gwarancją optimum.";
-        if (Double.isFinite(search.target) && !reached) message += " Nie osiągnięto zadanego celu.";
+        else if (verification.proofComplete())
+            message +=
+                    selectedCount == 0 && !reached && Double.isFinite(search.requestedTarget)
+                            ? " W pełni sprawdzonym zakresie nie istnieje poprawny plan poprawy."
+                            : " Przeszukano cały zakres; wynik jest optymalny.";
+        else if (!(selectedCount == 0 && reached))
+            message += " Wynik jest najlepszym znalezionym planem, bez gwarancji optimum.";
+        if (Double.isFinite(search.requestedTarget) && !reached)
+            message += " Nie osiągnięto zadanego celu.";
+        if (search.targetClamped())
+            message += " Cel przekraczał cap i został ograniczony do jego użytecznej wartości.";
         return message;
     }
 

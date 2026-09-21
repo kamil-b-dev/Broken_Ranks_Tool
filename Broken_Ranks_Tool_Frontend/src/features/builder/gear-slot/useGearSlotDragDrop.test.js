@@ -14,8 +14,12 @@ const createProps = (overrides = {}) => ({
     availableOrbs2: [],
     maxDrifs: 2,
     maxDrifIndex: 1,
-    elementalTypes: ["DAMAGE_FIRE"],
-    hasGlobalElemental: false,
+    elementalTypes: ["DAMAGE_FIRE", "DAMAGE_FROST"],
+    drifs: [
+        { id: 3, bonusType: "DAMAGE_FIRE" },
+        { id: 4, bonusType: "DAMAGE_FROST" },
+    ],
+    selectedDrifs: [4],
     setSelectedItem: vi.fn(),
     setBuiltInLvls: vi.fn(),
     setOrbSlots: vi.fn(),
@@ -38,15 +42,15 @@ describe("useGearSlotDragDrop", () => {
         expect(props.setOrbSlots).toHaveBeenCalled();
     });
 
-    it("rejects unavailable orbs and elemental drifs used in another slot", () => {
-        const props = createProps({ hasGlobalElemental: true });
+    it("rejects unavailable orbs and a second elemental drif in the weapon", () => {
+        const props = createProps();
         const { result } = renderHook(() => useGearSlotDragDrop(props));
 
         act(() => result.current.handleDrop(eventFor({ dragType: "orbs", id: 99 }), "orb1"));
         act(() =>
             result.current.handleDrop(
                 eventFor({ dragType: "drifs", id: 3, size: "BIDRIF", bonusType: "DAMAGE_FIRE" }),
-                "drif-0"
+                "drif-1"
             )
         );
 

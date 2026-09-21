@@ -107,7 +107,9 @@ const DrifSection = ({
                         <StandardDrifSlot
                             key={index}
                             index={index}
+                            slotKey={slotKey}
                             drifs={drifs}
+                            elementalTypes={hookData.elementalTypes}
                             selectedDrifs={selectedDrifs}
                             drifTypes={drifTypes}
                             drifLevels={drifLevels}

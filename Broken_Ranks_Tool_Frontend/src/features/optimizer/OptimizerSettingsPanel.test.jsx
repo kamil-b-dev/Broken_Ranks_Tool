@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import OptimizerSettingsPanel, { OptimizerModeNavigation } from "./OptimizerSettingsPanel";
 
 const settings = {
+    configurationMode: "ADVANCED",
     forceMaximizationByDrifBonus: true,
     generateVariants: true,
     maxVariantLossPercent: 5,
@@ -31,7 +32,7 @@ describe("OptimizerSettingsPanel", () => {
             />
         );
 
-        expect(screen.getByText("Ustawienia budowania")).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "Ustawienia" })).toBeInTheDocument();
         expect(screen.getByText(/Wymuś maksymalizację/)).toBeInTheDocument();
     });
 
@@ -43,9 +44,34 @@ describe("OptimizerSettingsPanel", () => {
             />
         );
 
-        expect(screen.getByText("Zakres rekomendacji")).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "Ustawienia" })).toBeInTheDocument();
         expect(screen.queryByText("Maksymalna strata:")).not.toBeInTheDocument();
         expect(screen.queryByText(/Wymuś maksymalizację/)).not.toBeInTheDocument();
+    });
+
+    it("lets the player select an active simple profile", async () => {
+        const onChange = vi.fn();
+        const user = userEvent.setup();
+        render(
+            <OptimizerSettingsPanel
+                settings={{ ...settings, mode: "BUILD_FROM_SCRATCH", configurationMode: "SIMPLE" }}
+                onChange={onChange}
+            />
+        );
+
+        await user.selectOptions(
+            screen.getByRole("combobox", { name: /Profil prostego/i }),
+            "MAGICAL"
+        );
+        expect(onChange).toHaveBeenCalledWith(
+            expect.objectContaining({ simpleProfile: "MAGICAL" })
+        );
+        expect(screen.queryByText(/Wymuś maksymalizację/)).not.toBeInTheDocument();
+        expect(screen.queryByText("Obliczaj dodatkowe warianty")).not.toBeInTheDocument();
+        await user.click(screen.getByRole("button", { name: "Zaawansowany" }));
+        expect(onChange).toHaveBeenCalledWith(
+            expect.objectContaining({ configurationMode: "ADVANCED" })
+        );
     });
 
     it("updates build settings from every control", async () => {

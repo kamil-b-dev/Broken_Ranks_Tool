@@ -20,6 +20,27 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.*;
 /** Advisor actions, upgrades, locks, and catalogue replacement scenarios. */
 class AdvisorOptimizationActionTests extends AdvisorOptimizationTestSupport {
     @Test
+    void rejectsOrphanedStonesAndInvalidLockReferences() {
+        Fixture f =
+                fixture(
+                        List.of(item(1, ITEM_CATEGORY.HELMET, "I", 4, 0)),
+                        List.of(drif(10, A, "2%")));
+
+        SlotData emptyWithDrif = slot(1, 1, 10L);
+        emptyWithDrif.setItemId(null);
+        var orphaned = f.service.optimize(request(A, Map.of("helmet", emptyWithDrif)));
+        assertFalse(orphaned.getSummary().isSuccess());
+
+        OptimizationRequest unknownSlotLock = request(A, Map.of("helmet", slot(1, 1, 10L)));
+        unknownSlotLock.setLockedSlots(Set.of("armor"));
+        assertFalse(f.service.optimize(unknownSlotLock).getSummary().isSuccess());
+
+        OptimizationRequest missingDrifLock = request(A, Map.of("helmet", slot(1, 1, 10L)));
+        missingDrifLock.setLockedDrifs(Map.of("helmet", Set.of(1)));
+        assertFalse(f.service.optimize(missingDrifLock).getSummary().isSuccess());
+    }
+
+    @Test
     void movesOwnedSmallDrifWithoutBuyingLargerCatalogTemplate() {
         Fixture f =
                 fixture(
@@ -202,7 +223,7 @@ class AdvisorOptimizationActionTests extends AdvisorOptimizationTestSupport {
 
         SlotData optimized = result.getOptimizedSetup().getSlots().get("helmet");
         assertEquals(List.of(10L), optimized.getDrifIds());
-        assertEquals(4, optimized.getDrifLevels().get("0"));
+        assertEquals(6, optimized.getDrifLevels().get("0"));
         assertEquals(List.of(10L), request.getOriginalSlots().get("helmet").getDrifIds());
         assertEquals(1, request.getOriginalSlots().get("helmet").getDrifLevels().get("0"));
         assertTrue(
@@ -227,7 +248,7 @@ class AdvisorOptimizationActionTests extends AdvisorOptimizationTestSupport {
         helmet.setDrifLevels(Map.of("0", 6));
         var request = request(A, Map.of("helmet", helmet));
         request.getAdvisor().getAllowedChanges().setItems(true);
-        request.getAdvisor().setProfession("PHYSICAL");
+        request.getAdvisor().setProfession(AdvisorProfession.PHYSICAL);
         request.getAdvisor().setTargetGain(1.0);
 
         var result = f.service.optimize(request);
@@ -265,6 +286,20 @@ class AdvisorOptimizationActionTests extends AdvisorOptimizationTestSupport {
         var result = f.service.optimize(request);
 
         assertEquals(2L, result.getOptimizedSetup().getSlots().get("helmet").getItemId());
+    }
+
+    @Test
+    void neverRecommendsAnItemWithLowerCapacity() {
+        ItemTemplate current = item(1, ITEM_CATEGORY.HELMET, "I", 20, 0);
+        ItemTemplate lowerCapacity = item(2, ITEM_CATEGORY.HELMET, "I", 10, 100);
+        Fixture f = fixture(List.of(current, lowerCapacity), List.of(drif(10, A, "10%")));
+        var request = request(A, Map.of("helmet", slot(1, 1, 10L)));
+        request.getAdvisor().getAllowedChanges().setItems(true);
+
+        var result = f.service.optimize(request);
+
+        assertEquals(1L, result.getOptimizedSetup().getSlots().get("helmet").getItemId());
+        assertTrue(result.getAdvisorReport().plans().isEmpty());
     }
 
     @Test
@@ -335,6 +370,7 @@ class AdvisorOptimizationActionTests extends AdvisorOptimizationTestSupport {
                 .calculateWithSources(any());
         var result = f.service.optimize(request);
         assertTrue(result.getAdvisorReport().cancelled());
+        assertEquals(AdvisorStatus.CANCELLED, result.getAdvisorReport().status());
         assertEquals(request.getOriginalSlots(), result.getOptimizedSetup().getSlots());
         assertFalse(f.runs.cancel(id));
     }
