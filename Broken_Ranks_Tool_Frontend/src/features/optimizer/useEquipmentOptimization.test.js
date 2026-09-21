@@ -112,6 +112,40 @@ describe("useEquipmentOptimization", () => {
         expect(result.current.optimizationTrigger).toBe(1);
     });
 
+    it("does not apply an older optimization result after a newer run finishes", async () => {
+        const finishes = [];
+        optimizeEquipmentDrifs.mockImplementation(
+            () => new Promise((resolve) => finishes.push(resolve))
+        );
+        const { result, setRequestData } = renderOptimization({ helmet: { itemId: 7 } });
+        let first;
+        let second;
+
+        await act(async () => {
+            first = result.current.runDrifOptimization({});
+            second = result.current.runDrifOptimization({});
+        });
+        await act(async () => {
+            finishes[1]({
+                optimizedSetup: { slots: { helmet: { itemId: 9 } } },
+                summary: { success: true },
+            });
+            await second;
+        });
+        await act(async () => {
+            finishes[0]({
+                optimizedSetup: { slots: { helmet: { itemId: 8 } } },
+                summary: { success: true },
+            });
+            expect((await first).applied).toBe(false);
+        });
+
+        expect(setRequestData).toHaveBeenCalledTimes(1);
+        expect(setRequestData).toHaveBeenCalledWith(
+            expect.objectContaining({ slots: { helmet: { itemId: 9 } } })
+        );
+    });
+
     it.each([undefined, {}, { slots: {} }, { slots: { helmet: null } }])(
         "keeps equipment when optimization returns no usable setup: %j",
         async (optimizedSetup) => {
@@ -241,7 +275,7 @@ describe("useEquipmentOptimization", () => {
         let first;
         let second;
 
-        act(() => {
+        await act(async () => {
             first = result.current.runDrifOptimization({
                 mode: "ADVISOR",
                 advisor: { goal: "TEST" },
@@ -250,8 +284,11 @@ describe("useEquipmentOptimization", () => {
                 mode: "ADVISOR",
                 advisor: { goal: "TEST" },
             });
+            await Promise.resolve();
         });
         const newestRunId = optimizeEquipmentDrifs.mock.calls[1][0].advisor.runId;
+        const previousRunId = optimizeEquipmentDrifs.mock.calls[0][0].advisor.runId;
+        expect(cancelAdvisorOptimization).toHaveBeenCalledWith(previousRunId);
 
         await act(async () => {
             finishes[0]({ summary: { success: true } });

@@ -9,6 +9,7 @@ const OptimizerPriorityList = ({
     onToggle,
     onRemove,
     onUpdate,
+    configurationMode,
 }) => (
     <div className="optimizer-priority-list custom-scrollbar">
         {priorities.map((bonus, index) => {
@@ -28,6 +29,7 @@ const OptimizerPriorityList = ({
                         expanded={expanded}
                         onToggle={() => onToggle(bonus.key)}
                         onRemove={() => onRemove(bonus)}
+                        simple={configurationMode === "SIMPLE"}
                     />
                     {expanded && (
                         <OptimizerPriorityForm
@@ -35,6 +37,7 @@ const OptimizerPriorityList = ({
                             potential={currentDetails.find((detail) => detail.key === bonus.key)}
                             maxCap={maxCaps?.[bonus.key]}
                             onChange={(field, value) => onUpdate(bonus.key, field, value)}
+                            simple={configurationMode === "SIMPLE"}
                         />
                     )}
                 </div>

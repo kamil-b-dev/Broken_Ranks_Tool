@@ -33,11 +33,15 @@ public class OptimizationExecutionGuard {
         this.optimizationService = optimizationService;
         this.permits = new Semaphore(properties.maxConcurrentRuns(), true);
         Gauge.builder("optimizer.active", activeRuns, AtomicInteger::get).register(meterRegistry);
-        this.rejectedRuns = meterRegistry.counter("optimizer.runs", "outcome", "rejected");
-        this.successfulRuns = meterRegistry.counter("optimizer.runs", "outcome", "success");
-        this.unsuccessfulRuns = meterRegistry.counter("optimizer.runs", "outcome", "no_solution");
-        this.failedRuns = meterRegistry.counter("optimizer.runs", "outcome", "error");
+        this.rejectedRuns = outcomeCounter(meterRegistry, OptimizationRunOutcome.REJECTED);
+        this.successfulRuns = outcomeCounter(meterRegistry, OptimizationRunOutcome.SUCCESS);
+        this.unsuccessfulRuns = outcomeCounter(meterRegistry, OptimizationRunOutcome.NO_SOLUTION);
+        this.failedRuns = outcomeCounter(meterRegistry, OptimizationRunOutcome.ERROR);
         this.duration = meterRegistry.timer("optimizer.duration");
+    }
+
+    private Counter outcomeCounter(MeterRegistry meterRegistry, OptimizationRunOutcome outcome) {
+        return meterRegistry.counter("optimizer.runs", "outcome", outcome.getMetricValue());
     }
 
     /** Runs one optimization or rejects the request when the worker is occupied. */

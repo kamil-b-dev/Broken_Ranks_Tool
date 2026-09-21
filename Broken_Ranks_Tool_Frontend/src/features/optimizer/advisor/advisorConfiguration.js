@@ -5,6 +5,7 @@ export const DEFAULT_ADVISOR_CHANGES = {
     drifUpgrades: false,
 };
 export const DEFAULT_ADVISOR_SEARCH = {
+    strategy: "MINIMUM_CHANGE",
     targetMode: "MAXIMIZE",
     target: "",
     maxActions: 3,
@@ -17,6 +18,11 @@ export const advisorNumber = (value) =>
             .replace("%", "")
             .replace(",", ".")
     ) || 0;
+
+export const normalizeAdvisorTimeBudget = (value) => {
+    const parsed = Number(value);
+    return Math.max(200, Math.min(5000, Number.isFinite(parsed) ? Math.trunc(parsed) : 1500));
+};
 
 export const advisorModifiers = (stats, gameRules) =>
     Object.entries(gameRules.bonusTranslations || {})
@@ -44,6 +50,9 @@ export const buildAdvisorConfiguration = (settings, stats, gameRules, characterS
     }
     const protectedModifiers = Object.fromEntries(
         Object.entries(settings.advisorProtectedModifiers || {}).map(([key, rule]) => {
+            if (!rule || typeof rule !== "object") {
+                throw new Error("Nieprawidłowa reguła ochrony modyfikatora.");
+            }
             const loss = Number(String(rule.loss ?? 0).replace(",", "."));
             if (!Number.isFinite(loss) || loss < 0)
                 throw new Error("Dopuszczalny spadek musi być nieujemną liczbą.");
@@ -59,8 +68,11 @@ export const buildAdvisorConfiguration = (settings, stats, gameRules, characterS
             profession: settings.advisorProfession || "AUTO",
             allowedChanges: { ...DEFAULT_ADVISOR_CHANGES, ...settings.advisorAllowedChanges },
             protectedModifiers,
-            maxActions: Math.max(1, Math.min(3, Number(search.maxActions) || 3)),
-            timeBudgetMs: search.timeBudgetMs === 5000 ? 5000 : 1500,
+            strategy: ["MINIMUM_CHANGE", "BEST_RESULT"].includes(search.strategy)
+                ? search.strategy
+                : "MINIMUM_CHANGE",
+            maxActions: Math.max(1, Math.min(10, Number(search.maxActions) || 3)),
+            timeBudgetMs: normalizeAdvisorTimeBudget(search.timeBudgetMs),
             ...(search.targetMode === "VALUE" ? { targetValue: target } : {}),
             ...(search.targetMode === "GAIN" ? { targetGain: target } : {}),
         },

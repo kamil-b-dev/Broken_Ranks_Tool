@@ -39,6 +39,7 @@ public class GameRulesFactory {
                                         drif -> drif.getBonusType().name(),
                                         drif -> drif.getCategory().name(),
                                         (first, ignored) -> first)),
+                rulesRegistry.getElementalDamageTypes(),
                 IntStream.rangeClosed(1, 12)
                         .boxed()
                         .collect(Collectors.toMap(count -> count, rulesRegistry::getDrifPenalty)));

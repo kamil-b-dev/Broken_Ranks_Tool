@@ -337,4 +337,28 @@ class CustomModsOptimizationPlacementTests extends CustomModsOptimizationTestSup
         assertEquals(magicDamage.getId(), replacement.drif().getId());
         assertEquals(11, replacement.level());
     }
+
+    @Test
+    void choosesMoreValuableTemplateInsteadOfLargestTemplateForTheSameBonus() {
+        ItemTemplate item = item(1L, 12);
+        DrifTemplate largeWeak = drif(10L, DRIF_BONUS_TYPE.DAMAGE_MAGIC, 1.0, 0.1);
+        DrifTemplate smallStrong = drif(11L, DRIF_BONUS_TYPE.DAMAGE_MAGIC, 20.0, 2.0);
+        smallStrong.setSize(
+                pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_SIZE.BIDRIF);
+        EquipmentStatsCalculatorService calculator = mock(EquipmentStatsCalculatorService.class);
+        when(calculator.calculateTotalStats(any())).thenReturn(Map.of());
+
+        OptimizationRequest request =
+                request(item.getId(), Map.of(DRIF_BONUS_TYPE.DAMAGE_MAGIC, 30));
+        request.setTargetQuantities(
+                Map.of(DRIF_BONUS_TYPE.DAMAGE_MAGIC, new OptimizationRequest.QuantityRange(1, 1)));
+
+        OptimizationResponse response =
+                service(item, List.of(largeWeak, smallStrong), calculator).optimize(request);
+
+        assertTrue(response.getSummary().isSuccess());
+        assertEquals(
+                List.of(smallStrong.getId()),
+                response.getOptimizedSetup().getSlots().get("helmet").getDrifIds());
+    }
 }

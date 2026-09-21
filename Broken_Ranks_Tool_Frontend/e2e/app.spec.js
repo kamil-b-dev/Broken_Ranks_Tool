@@ -64,12 +64,14 @@ test("loads the application artwork without broken assets", async ({ page }) => 
     await page.waitForLoadState("networkidle");
 
     const images = page.locator("img");
-    expect(await images.count()).toBeGreaterThanOrEqual(3);
-    expect(
-        await images.evaluateAll((elements) =>
-            elements.every((image) => image.complete && image.naturalWidth > 0)
+    await expect.poll(() => images.count()).toBeGreaterThanOrEqual(3);
+    await expect
+        .poll(() =>
+            images.evaluateAll((elements) =>
+                elements.every((image) => image.complete && image.naturalWidth > 0)
+            )
         )
-    ).toBe(true);
+        .toBe(true);
     expect(failedAssets).toEqual([]);
 });
 

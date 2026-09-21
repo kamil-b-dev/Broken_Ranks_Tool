@@ -3,6 +3,7 @@ package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.evaluat
 import java.util.Comparator;
 import lombok.RequiredArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_SIZE;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
@@ -26,6 +27,11 @@ public final class OptimizationStateEvaluation {
             DRIF_BONUS_TYPE replaced,
             OptimizationContext context) {
         return evaluator.globalCountExcept(state, candidate, replaced, context);
+    }
+
+    public int sizeCount(
+            BuildState state, DRIF_BONUS_TYPE type, DRIF_SIZE size, OptimizationContext context) {
+        return evaluator.sizeCount(state, type, size, context);
     }
 
     public boolean minimumsSatisfied(BuildState state, OptimizationContext context) {

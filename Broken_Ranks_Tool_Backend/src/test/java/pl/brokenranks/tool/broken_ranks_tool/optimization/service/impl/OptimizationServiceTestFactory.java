@@ -3,6 +3,7 @@ package pl.brokenranks.tool.broken_ranks_tool.optimization.service.impl;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRulesRegistry;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.DrifTemplateRepository;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.ItemTemplateRepository;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.OrbTemplateRepository;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCalculatorService;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.processor.ItemStatProcessor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentPlacementRules;
@@ -27,6 +28,7 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.pipeline
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.placement.OptimizationPlacementOperations;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.refinement.OptimizationDeterministicRefiner;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.requirement.OptimizationRequirementSatisfier;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.validation.OptimizationInputValidator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.variant.OptimizationVariantGenerator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.locking.OptimizationLockService;
 
@@ -43,9 +45,32 @@ final class OptimizationServiceTestFactory {
             ItemStatProcessor itemStatProcessor,
             OptimizationLockService lockService,
             EquipmentStatsCalculatorService calculatorService) {
+        return create(
+                drifRepository,
+                itemRepository,
+                org.mockito.Mockito.mock(OrbTemplateRepository.class),
+                placementRules,
+                levelPolicy,
+                rules,
+                itemStatProcessor,
+                lockService,
+                calculatorService);
+    }
+
+    static CustomModsOptimizationServiceImpl create(
+            DrifTemplateRepository drifRepository,
+            ItemTemplateRepository itemRepository,
+            OrbTemplateRepository orbRepository,
+            EquipmentPlacementRules placementRules,
+            UpgradeLevelPolicy levelPolicy,
+            EquipmentRulesRegistry rules,
+            ItemStatProcessor itemStatProcessor,
+            OptimizationLockService lockService,
+            EquipmentStatsCalculatorService calculatorService) {
         OptimizationStateEvaluator evaluator = new OptimizationStateEvaluator(rules);
         OptimizationResultAssembler assembler =
-                OptimizationResultFactory.create(lockService, calculatorService, evaluator);
+                OptimizationResultFactory.create(
+                        lockService, calculatorService, evaluator, placementRules);
         OptimizationLargeNeighborhoodSearch neighborhoodSearch =
                 OptimizationNeighborhoodFactory.create(rules, evaluator, assembler);
         OptimizationPlacementOperations placements =
@@ -58,6 +83,7 @@ final class OptimizationServiceTestFactory {
                 new OptimizationInitialStateFactory(levelPolicy);
         return new CustomModsOptimizationServiceImpl(
                 new OptimizationProperties(55_000, 20_000, 25_000, 1),
+                new OptimizationInputValidator(placementRules, rules, orbRepository),
                 new OptimizationContextFactory(
                         drifRepository,
                         itemRepository,

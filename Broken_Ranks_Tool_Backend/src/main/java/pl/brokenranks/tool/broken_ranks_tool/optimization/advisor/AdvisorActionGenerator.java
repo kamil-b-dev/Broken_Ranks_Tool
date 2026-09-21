@@ -33,12 +33,12 @@ final class AdvisorActionGenerator {
             if (!search.running()) return;
             if (model.locked(key)) continue;
             SlotData slot = node.slots().get(key);
-            if (allowed.isStars() && !node.changed().contains("stars:" + key))
+            if (allowed.isStars() && !node.changed().contains(new AdvisorChangeKey.Stars(key)))
                 generateStarChanges(node, key, slot, accept);
             if (model.special(slot)) continue;
             if (allowed.isDrifs() || allowed.isDrifUpgrades())
                 drifs.generateChanges(node, key, slot, accept);
-            if (allowed.isItems() && !node.changed().contains("item:" + key))
+            if (allowed.isItems() && !node.changed().contains(new AdvisorChangeKey.Item(key)))
                 items.generateChanges(node, key, slot, accept);
         }
     }
@@ -56,7 +56,7 @@ final class AdvisorActionGenerator {
                     key,
                     next,
                     starLabel(key, slot, star),
-                    "stars:" + key,
+                    new AdvisorChangeKey.Stars(key),
                     star - stars(slot),
                     accept);
         }

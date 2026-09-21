@@ -41,14 +41,16 @@ public class MapToStringConverter implements AttributeConverter<Map<String, Doub
         Map<String, Double> map = new HashMap<>();
         String[] entries = dbData.split(DELIMITER_ENTRY);
         for (String entry : entries) {
-            String[] kv = entry.split(DELIMITER_KEY_VALUE);
-            if (kv.length == 2) {
-                String cleanValue = kv[1].replace("%", "").replace(",", ".").trim();
-                try {
-                    map.put(kv[0], Double.parseDouble(cleanValue));
-                } catch (NumberFormatException ignored) {
-                    // Ignoruje błędnie sformatowane wpisy
-                }
+            String[] kv = entry.split(DELIMITER_KEY_VALUE, 2);
+            if (kv.length != 2 || kv[0].isBlank()) {
+                throw new IllegalArgumentException("Niepoprawny wpis mapy statystyk: " + entry);
+            }
+            String cleanValue = kv[1].replace("%", "").replace(",", ".").trim();
+            try {
+                map.put(kv[0], Double.parseDouble(cleanValue));
+            } catch (NumberFormatException exception) {
+                throw new IllegalArgumentException(
+                        "Niepoprawna wartość mapy statystyk dla klucza: " + kv[0], exception);
             }
         }
         return map;

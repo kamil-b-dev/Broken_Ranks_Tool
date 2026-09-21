@@ -33,7 +33,14 @@ class InitialDataControllerTests {
     void returnsFrontendStartupContract() throws Exception {
         GameRulesDto gameRules =
                 new GameRulesDto(
-                        Map.of(), Map.of(), Map.of(), Map.of(), Map.of(), Map.of(), Map.of(1, 1.0));
+                        Map.of(),
+                        Map.of(),
+                        Map.of(),
+                        Map.of(),
+                        Map.of(),
+                        Map.of(),
+                        List.of(),
+                        Map.of(1, 1.0));
         DictionariesDto dictionaries =
                 new DictionariesDto(Map.of("HELMET", "Hełm"), Map.of(), Map.of());
         when(initialDataService.getInitialData())
@@ -47,6 +54,7 @@ class InitialDataControllerTests {
                 .andExpect(jsonPath("$.items").isArray())
                 .andExpect(jsonPath("$.orbs").isArray())
                 .andExpect(jsonPath("$.drifs").isArray())
+                .andExpect(jsonPath("$.gameRules.elementalTypes").isArray())
                 .andExpect(jsonPath("$.gameRules.drifPenaltyMultipliers.1").value(1.0))
                 .andExpect(jsonPath("$.dictionaries.itemCategories.HELMET").value("Hełm"));
 

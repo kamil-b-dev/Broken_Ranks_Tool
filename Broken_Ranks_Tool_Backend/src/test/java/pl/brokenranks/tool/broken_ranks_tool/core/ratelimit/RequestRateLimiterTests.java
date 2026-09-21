@@ -18,10 +18,13 @@ class RequestRateLimiterTests {
         MutableClock clock = new MutableClock(Instant.parse("2026-09-12T10:00:00Z"));
         RequestRateLimiter limiter = new RequestRateLimiter(clock);
 
-        assertThat(limiter.acquire("optimizer", "client-a", LIMIT).allowed()).isTrue();
-        assertThat(limiter.acquire("optimizer", "client-a", LIMIT).allowed()).isTrue();
+        assertThat(limiter.acquire(RateLimitPolicy.OPTIMIZER, "client-a", LIMIT).allowed())
+                .isTrue();
+        assertThat(limiter.acquire(RateLimitPolicy.OPTIMIZER, "client-a", LIMIT).allowed())
+                .isTrue();
 
-        RequestRateLimiter.Decision rejected = limiter.acquire("optimizer", "client-a", LIMIT);
+        RequestRateLimiter.Decision rejected =
+                limiter.acquire(RateLimitPolicy.OPTIMIZER, "client-a", LIMIT);
         assertThat(rejected.allowed()).isFalse();
         assertThat(rejected.retryAfterSeconds()).isEqualTo(60);
     }
@@ -31,11 +34,15 @@ class RequestRateLimiterTests {
         RequestRateLimiter limiter =
                 new RequestRateLimiter(new MutableClock(Instant.parse("2026-09-12T10:00:15Z")));
 
-        assertThat(limiter.acquire("optimizer", "client-a", LIMIT).allowed()).isTrue();
-        assertThat(limiter.acquire("optimizer", "client-b", LIMIT).allowed()).isTrue();
-        assertThat(limiter.acquire("optimizer", "client-c", LIMIT).allowed()).isTrue();
+        assertThat(limiter.acquire(RateLimitPolicy.OPTIMIZER, "client-a", LIMIT).allowed())
+                .isTrue();
+        assertThat(limiter.acquire(RateLimitPolicy.OPTIMIZER, "client-b", LIMIT).allowed())
+                .isTrue();
+        assertThat(limiter.acquire(RateLimitPolicy.OPTIMIZER, "client-c", LIMIT).allowed())
+                .isTrue();
 
-        RequestRateLimiter.Decision rejected = limiter.acquire("optimizer", "client-d", LIMIT);
+        RequestRateLimiter.Decision rejected =
+                limiter.acquire(RateLimitPolicy.OPTIMIZER, "client-d", LIMIT);
         assertThat(rejected.allowed()).isFalse();
         assertThat(rejected.retryAfterSeconds()).isEqualTo(45);
     }
@@ -44,12 +51,13 @@ class RequestRateLimiterTests {
     void startsWithFreshAllowancesInTheNextWindow() {
         MutableClock clock = new MutableClock(Instant.parse("2026-09-12T10:00:59Z"));
         RequestRateLimiter limiter = new RequestRateLimiter(clock);
-        limiter.acquire("optimizer", "client-a", LIMIT);
-        limiter.acquire("optimizer", "client-a", LIMIT);
+        limiter.acquire(RateLimitPolicy.OPTIMIZER, "client-a", LIMIT);
+        limiter.acquire(RateLimitPolicy.OPTIMIZER, "client-a", LIMIT);
 
         clock.advanceSeconds(1);
 
-        assertThat(limiter.acquire("optimizer", "client-a", LIMIT).allowed()).isTrue();
+        assertThat(limiter.acquire(RateLimitPolicy.OPTIMIZER, "client-a", LIMIT).allowed())
+                .isTrue();
     }
 
     @Test
@@ -57,10 +65,11 @@ class RequestRateLimiterTests {
         RequestRateLimiter limiter =
                 new RequestRateLimiter(new MutableClock(Instant.parse("2026-09-12T10:00:00Z")));
 
-        limiter.acquire("optimizer", "client-a", LIMIT);
-        limiter.acquire("optimizer", "client-a", LIMIT);
+        limiter.acquire(RateLimitPolicy.OPTIMIZER, "client-a", LIMIT);
+        limiter.acquire(RateLimitPolicy.OPTIMIZER, "client-a", LIMIT);
 
-        assertThat(limiter.acquire("calculator", "client-a", LIMIT).allowed()).isTrue();
+        assertThat(limiter.acquire(RateLimitPolicy.CALCULATOR, "client-a", LIMIT).allowed())
+                .isTrue();
     }
 
     @Test
@@ -69,10 +78,14 @@ class RequestRateLimiterTests {
                 new RequestRateLimiter(new MutableClock(Instant.parse("2026-09-12T10:00:00Z")));
         AbuseProtectionProperties.Limit onePerClient = new AbuseProtectionProperties.Limit(1, 2);
 
-        assertThat(limiter.acquire("optimizer", "client-a", onePerClient).allowed()).isTrue();
-        assertThat(limiter.acquire("optimizer", "client-a", onePerClient).allowed()).isFalse();
-        assertThat(limiter.acquire("optimizer", "client-b", onePerClient).allowed()).isTrue();
-        assertThat(limiter.acquire("optimizer", "client-c", onePerClient).allowed()).isFalse();
+        assertThat(limiter.acquire(RateLimitPolicy.OPTIMIZER, "client-a", onePerClient).allowed())
+                .isTrue();
+        assertThat(limiter.acquire(RateLimitPolicy.OPTIMIZER, "client-a", onePerClient).allowed())
+                .isFalse();
+        assertThat(limiter.acquire(RateLimitPolicy.OPTIMIZER, "client-b", onePerClient).allowed())
+                .isTrue();
+        assertThat(limiter.acquire(RateLimitPolicy.OPTIMIZER, "client-c", onePerClient).allowed())
+                .isFalse();
     }
 
     private static final class MutableClock extends Clock {

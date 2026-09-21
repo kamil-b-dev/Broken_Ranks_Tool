@@ -1,7 +1,6 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -22,6 +21,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCalculatorService;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentPlacementRules;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
@@ -30,7 +30,7 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.locking.OptimizationLo
 class OptimizationResultAssemblerTests {
 
     @Test
-    void fallsBackToSearchValueWhenCalculatorFails() {
+    void propagatesCalculatorFailureInsteadOfPresentingAnUnverifiedValue() {
         EquipmentRulesRegistry rules = new EquipmentRulesRegistry();
         OptimizationStateEvaluator evaluator = new OptimizationStateEvaluator(rules);
         EquipmentStatsCalculatorService calculator = mock(EquipmentStatsCalculatorService.class);
@@ -38,7 +38,10 @@ class OptimizationResultAssemblerTests {
                 .thenThrow(new IllegalStateException("calculator unavailable"));
         OptimizationResultAssembler assembler =
                 OptimizationResultFactory.create(
-                        new OptimizationLockService(), calculator, evaluator);
+                        new OptimizationLockService(),
+                        calculator,
+                        evaluator,
+                        new EquipmentPlacementRules(rules));
         DrifTemplate magic =
                 DrifTemplate.builder()
                         .id(1L)
@@ -102,9 +105,8 @@ class OptimizationResultAssemblerTests {
         BuildState state = new BuildState();
         state.slots().put("helmet", new ArrayList<>(List.of(new Placement(magic, 6, false))));
 
-        double expected = evaluator.calculatedValue(state, DRIF_BONUS_TYPE.DAMAGE_MAGIC, context);
-
-        assertEquals(expected, assembler.actualValue(state, DRIF_BONUS_TYPE.DAMAGE_MAGIC, context));
-        assertTrue(assembler.forcedCapWarnings(state, context).isEmpty());
+        assertThrows(
+                IllegalStateException.class,
+                () -> assembler.actualValue(state, DRIF_BONUS_TYPE.DAMAGE_MAGIC, context));
     }
 }

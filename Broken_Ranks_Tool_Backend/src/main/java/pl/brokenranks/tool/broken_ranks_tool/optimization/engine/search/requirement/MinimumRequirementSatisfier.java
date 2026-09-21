@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_SIZE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
@@ -22,6 +23,7 @@ final class MinimumRequirementSatisfier {
     private final OptimizationRequirementSupport support;
 
     boolean satisfy(BuildState state, OptimizationContext context) {
+        if (!satisfySizeMinimums(state, context)) return false;
         while (true) {
             DRIF_BONUS_TYPE type = mostConstrainedMissingType(state, context);
             if (type == null) return evaluation.minimumsSatisfied(state, context);
@@ -30,6 +32,23 @@ final class MinimumRequirementSatisfier {
             placements.putNextFree(
                     state, best.slot(), new Placement(best.drif(), best.level(), false));
         }
+    }
+
+    private boolean satisfySizeMinimums(BuildState state, OptimizationContext context) {
+        if (context.request().getDrifSizeQuantities() == null) return true;
+        for (var bonusEntry : context.request().getDrifSizeQuantities().entrySet()) {
+            for (var sizeEntry : bonusEntry.getValue().entrySet()) {
+                while (evaluation.sizeCount(state, bonusEntry.getKey(), sizeEntry.getKey(), context)
+                        < sizeEntry.getValue().getMin()) {
+                    RequiredPlacementChoice best =
+                            bestPlacement(state, bonusEntry.getKey(), sizeEntry.getKey(), context);
+                    if (best == null) return false;
+                    placements.putNextFree(
+                            state, best.slot(), new Placement(best.drif(), best.level(), false));
+                }
+            }
+        }
+        return true;
     }
 
     private DRIF_BONUS_TYPE mostConstrainedMissingType(
@@ -52,12 +71,21 @@ final class MinimumRequirementSatisfier {
 
     private RequiredPlacementChoice bestPlacement(
             BuildState state, DRIF_BONUS_TYPE type, OptimizationContext context) {
+        return bestPlacement(state, type, null, context);
+    }
+
+    private RequiredPlacementChoice bestPlacement(
+            BuildState state,
+            DRIF_BONUS_TYPE type,
+            DRIF_SIZE requiredSize,
+            OptimizationContext context) {
         RequiredPlacementChoice best = null;
         for (SlotContext slot : context.slots()) {
             if (!support.canAdd(state, slot, context)) continue;
             List<Placement> placements = state.slots().get(slot.key());
             for (DrifTemplate candidate : slot.candidates()) {
-                if (!allowed(state, placements, candidate, type, context)) continue;
+                if ((requiredSize != null && candidate.getSize() != requiredSize)
+                        || !allowed(state, placements, candidate, type, context)) continue;
                 Integer level = lowestTierFittingLevel(state, slot, candidate);
                 if (level == null) continue;
                 BuildState trial = state.copy();
@@ -80,6 +108,10 @@ final class MinimumRequirementSatisfier {
                 && !this.placements.containsBonus(placements, type)
                 && evaluation.globalCount(state, type, context)
                         < maxQuantity(type, context.request())
+                && evaluation.sizeCount(state, type, candidate.getSize(), context)
+                        < pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules
+                                .OptimizationDrifSizeConstraints.maximum(
+                                type, candidate.getSize(), context.request())
                 && !this.placements.containsAnotherElemental(state, candidate, null);
     }
 

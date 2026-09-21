@@ -17,6 +17,7 @@ describe("OptimizerStatusSection", () => {
                     applied: true,
                     message: "Znaleziono częściowy wynik.",
                     warnings: ["Nie osiągnięto celu."],
+                    configurationMode: "ADVANCED",
                     drifsPlaced: 8,
                     totalPowerUsed: 302,
                     executionTimeSeconds: 1.236,
@@ -30,6 +31,49 @@ describe("OptimizerStatusSection", () => {
         expect(screen.getByText("8 drifów")).toBeInTheDocument();
         expect(screen.getByText("Wykorzystana pojemność")).toBeInTheDocument();
         expect(screen.getByText("1.24 s")).toBeInTheDocument();
+        expect(screen.getByText("Zaawansowany")).toBeInTheDocument();
+        expect(screen.getByText("Podtryb")).toBeInTheDocument();
+    });
+
+    it("shows advisor quality, limits, and proof scope", () => {
+        render(
+            <OptimizerStatusSection
+                status={{
+                    success: true,
+                    message: "Gotowe.",
+                    advisorReport: {
+                        status: "OPTIMAL",
+                        evaluatedStates: 42,
+                        verifiedCandidates: 12,
+                        candidateCount: 12,
+                        maxActions: 3,
+                        searchSpaceExhausted: true,
+                        proofComplete: true,
+                    },
+                }}
+            />
+        );
+
+        expect(screen.getByText("Optimum potwierdzone")).toBeInTheDocument();
+        expect(screen.getByText("42")).toBeInTheDocument();
+        expect(screen.getByText("12/12")).toBeInTheDocument();
+        expect(screen.getByText("pełny dowód")).toBeInTheDocument();
+    });
+
+    it("presents cancelled advisor analysis as a warning", () => {
+        const { container } = render(
+            <OptimizerStatusSection
+                status={{
+                    success: true,
+                    message: "Analizę zatrzymano.",
+                    advisorReport: { status: "CANCELLED" },
+                }}
+            />
+        );
+
+        expect(screen.getByText("Analiza anulowana")).toBeInTheDocument();
+        expect(container.querySelector(".is-warning")).toBeInTheDocument();
+        expect(screen.getByText("!")).toBeInTheDocument();
     });
 
     it("does not add placeholder copy before the first run", () => {

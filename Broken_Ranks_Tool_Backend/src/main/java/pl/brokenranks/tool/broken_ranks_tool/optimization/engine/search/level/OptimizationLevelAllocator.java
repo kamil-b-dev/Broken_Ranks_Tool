@@ -9,6 +9,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationDrifSizeConstraints;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.evaluation.OptimizationStateEvaluation;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.placement.OptimizationPlacementOperations;
 
@@ -24,7 +25,7 @@ public final class OptimizationLevelAllocator {
     public BuildState maximizeDrifSizes(BuildState state, OptimizationContext context) {
         for (SlotContext slot : context.slots()) {
             if (!slot.optimizable() || placementOperations.isSlotLocked(slot, context)) continue;
-            maximizeSlotDrifSizes(state, slot);
+            maximizeSlotDrifSizes(state, slot, context);
         }
         return state;
     }
@@ -60,14 +61,15 @@ public final class OptimizationLevelAllocator {
         }
     }
 
-    private void maximizeSlotDrifSizes(BuildState state, SlotContext slot) {
+    private void maximizeSlotDrifSizes(
+            BuildState state, SlotContext slot, OptimizationContext context) {
         List<Placement> placements = state.slots().get(slot.key());
         int placementLimit = Math.min(placements.size(), slot.maxDrifs());
         for (int index = 0; index < placementLimit; index++) {
             Placement current = placements.get(index);
             if (!isAdjustable(current, slot, index)) continue;
 
-            DrifTemplate largest = largestCandidateFor(current, slot);
+            DrifTemplate largest = largestCandidateFor(state, current, slot, context);
             int level = Math.min(current.level(), largest.getSize().getMaxLevel());
             state.setPlacement(slot.key(), index, new Placement(largest, level, false));
         }
@@ -93,14 +95,33 @@ public final class OptimizationLevelAllocator {
         return placement != null && !placement.locked() && !slot.lockedIndices().contains(index);
     }
 
-    private DrifTemplate largestCandidateFor(Placement current, SlotContext slot) {
+    private DrifTemplate largestCandidateFor(
+            BuildState state, Placement current, SlotContext slot, OptimizationContext context) {
         return slot.candidates().stream()
                 .filter(candidate -> candidate.getBonusType() == current.drif().getBonusType())
+                .filter(candidate -> sizeChangeAllowed(state, current.drif(), candidate, context))
                 .max(
                         Comparator.comparingInt(
                                         (DrifTemplate candidate) ->
                                                 candidate.getSize().getMaxLevel())
                                 .thenComparing(DrifTemplate::getId, Comparator.reverseOrder()))
                 .orElse(current.drif());
+    }
+
+    private boolean sizeChangeAllowed(
+            BuildState state,
+            DrifTemplate current,
+            DrifTemplate candidate,
+            OptimizationContext context) {
+        if (candidate.getSize() == current.getSize()) return true;
+        var type = current.getBonusType();
+        int currentCount = stateEvaluation.sizeCount(state, type, current.getSize(), context);
+        int candidateCount = stateEvaluation.sizeCount(state, type, candidate.getSize(), context);
+        return currentCount
+                        > OptimizationDrifSizeConstraints.minimum(
+                                type, current.getSize(), context.request())
+                && candidateCount
+                        < OptimizationDrifSizeConstraints.maximum(
+                                type, candidate.getSize(), context.request());
     }
 }

@@ -6,6 +6,7 @@ import java.util.Set;
 import lombok.experimental.UtilityClass;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ITEM_CATEGORY;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ITEM_PROFILE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.STAT_TYPE;
 
 /** Applies the canonical item-profile rules to item attributes. */
 @UtilityClass
@@ -19,8 +20,12 @@ public class ItemProfileClassifier {
         if (WEAPON_CATEGORIES.contains(category)) return ITEM_PROFILE.UNSPECIFIED;
 
         var safeStats = stats == null ? Map.<String, Double>of() : stats;
-        boolean physical = safeStats.containsKey("Siła") || safeStats.containsKey("Zręczność");
-        boolean magical = safeStats.containsKey("Moc") || safeStats.containsKey("Wiedza");
+        boolean physical =
+                safeStats.containsKey(STAT_TYPE.STRENGTH.getDescription())
+                        || safeStats.containsKey(STAT_TYPE.DEXTERITY.getDescription());
+        boolean magical =
+                safeStats.containsKey(STAT_TYPE.POWER.getDescription())
+                        || safeStats.containsKey(STAT_TYPE.KNOWLEDGE.getDescription());
 
         if (physical && !magical) return ITEM_PROFILE.PHYSICAL;
         if (magical && !physical) return ITEM_PROFILE.MAGICAL;

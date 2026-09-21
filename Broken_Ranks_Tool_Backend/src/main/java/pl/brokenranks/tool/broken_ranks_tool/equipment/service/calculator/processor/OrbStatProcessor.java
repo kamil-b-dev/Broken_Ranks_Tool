@@ -1,6 +1,5 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.processor;
 
-import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -33,11 +32,24 @@ public class OrbStatProcessor {
             return;
         }
 
-        List<OrbTemplate> orbsToProcess = new ArrayList<>();
-        for (Long orbId : slot.getOrbIds()) {
-            if (orbId != null && state.getContext().orbs().containsKey(orbId)) {
-                orbsToProcess.add(state.getContext().orbs().get(orbId));
+        List<OrbTemplate> orbsToProcess = new java.util.ArrayList<>();
+        List<Integer> sourceIndexes = new java.util.ArrayList<>();
+        boolean emptyPosition = false;
+        for (int index = 0; index < slot.getOrbIds().size(); index++) {
+            Long orbId = slot.getOrbIds().get(index);
+            if (orbId == null) {
+                emptyPosition = true;
+                continue;
             }
+            if (emptyPosition) {
+                throw new IllegalArgumentException("Orby nie mogą zawierać pustej pozycji.");
+            }
+            OrbTemplate orb = state.getContext().orbs().get(orbId);
+            if (orb == null) {
+                throw new IllegalArgumentException("Nie znaleziono orba o ID " + orbId + ".");
+            }
+            orbsToProcess.add(orb);
+            sourceIndexes.add(index);
         }
 
         securityValidator.validate(item, orbsToProcess);
@@ -47,18 +59,27 @@ public class OrbStatProcessor {
             boolean isSecondOrb = i > 0;
 
             if (!placementRules.isValidOrb(orb, slotKey, item, isSecondOrb)) {
-                continue;
+                throw new IllegalArgumentException("Orb nie pasuje do slotu lub pozycji.");
+            }
+            if (!placementRules.isValidOrbSizeForTier(orb, item)) {
+                throw new IllegalArgumentException("Rozmiar orba przekracza tier przedmiotu.");
             }
 
             if (state.getUsedOrbs().contains(orb.getBonusType())) {
-                continue;
+                throw new IllegalArgumentException("Typ bonusu orba powtarza się w zestawie.");
             }
 
-            int requestedLvl =
-                    (slot.getOrbLevels() != null && i < slot.getOrbLevels().size())
-                            ? slot.getOrbLevels().get(i)
+            int sourceIndex = sourceIndexes.get(i);
+            Integer requestedLvl =
+                    slot.getOrbLevels() != null && sourceIndex < slot.getOrbLevels().size()
+                            ? slot.getOrbLevels().get(sourceIndex)
                             : 1;
-            int finalLvl = levelPolicy.sanitizeOrbLevel(requestedLvl, orb);
+            if (requestedLvl == null
+                    || requestedLvl < 1
+                    || requestedLvl > orb.getSize().getMaxLevel()) {
+                throw new IllegalArgumentException("Poziom orba jest poza dozwolonym zakresem.");
+            }
+            int finalLvl = requestedLvl;
 
             String statValue =
                     switch (finalLvl) {
@@ -74,6 +95,9 @@ public class OrbStatProcessor {
                                 orb.getBonusType().name(), statValue, 1.0 + starMod.getOrbMod());
                 state.getUsedOrbs().add(orb.getBonusType());
             }
+        }
+        if (slot.getOrbLevels() != null && slot.getOrbLevels().size() > slot.getOrbIds().size()) {
+            throw new IllegalArgumentException("Podano poziom dla nieistniejącego orba.");
         }
     }
 }

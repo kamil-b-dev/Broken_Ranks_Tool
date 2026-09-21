@@ -14,7 +14,6 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCal
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.*;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.input.*;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.processor.*;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.random.RandomProvider;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.impl.EquipmentStatsCalculatorTestFactory;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.*;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.*;
@@ -84,7 +83,7 @@ abstract class AdvisorOptimizationTestSupport {
         EquipmentRulesRegistry rules = new EquipmentRulesRegistry();
         EquipmentPlacementRules placement = new EquipmentPlacementRules(rules);
         UpgradeLevelPolicy levels = new UpgradeLevelPolicy();
-        ItemStatProcessor itemProcessor = new ItemStatProcessor(mock(RandomProvider.class));
+        ItemStatProcessor itemProcessor = new ItemStatProcessor();
         OrbStatProcessor orbProcessor =
                 new OrbStatProcessor(placement, levels, new OrbSecurityValidator());
         DrifValueCalculator values = new DrifValueCalculator();
@@ -92,7 +91,7 @@ abstract class AdvisorOptimizationTestSupport {
                 spy(
                         EquipmentStatsCalculatorTestFactory.create(
                                 new EquipmentDataProvider(itemRepo, orbRepo, drifRepo),
-                                new EquipmentRequestValidator(),
+                                new EquipmentRequestValidator(rules),
                                 placement,
                                 levels,
                                 new DrifSecurityValidator(placement, levels),

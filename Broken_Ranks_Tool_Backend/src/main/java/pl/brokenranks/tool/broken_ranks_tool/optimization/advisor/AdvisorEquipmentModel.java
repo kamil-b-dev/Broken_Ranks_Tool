@@ -5,7 +5,6 @@ import static pl.brokenranks.tool.broken_ranks_tool.optimization.advisor.Advisor
 
 import java.util.*;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.*;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.parsing.RomanNumeralParser;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.*;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest.SlotData;
@@ -130,11 +129,7 @@ final class AdvisorEquipmentModel {
     }
 
     int maxDrifs(SlotData slot) {
-        if (special(slot)) return 0;
-        int tier =
-                RomanNumeralParser.convertRomanToInteger(
-                        Objects.toString(item(slot).getTier(), "I"));
-        return tier >= 10 ? 3 : tier >= 4 || ((tier == 2 || tier == 3) && stars(slot) >= 7) ? 2 : 1;
+        return placement.maxDrifs(item(slot), stars(slot));
     }
 
     boolean locked(String key) {

@@ -79,7 +79,7 @@ class GlobalExceptionHandlerTests {
         ApiException busy =
                 new ApiException(
                         HttpStatus.TOO_MANY_REQUESTS,
-                        "OPTIMIZER_BUSY",
+                        ApiErrorCode.OPTIMIZER_BUSY,
                         "Optymalizator jest zajęty.");
         assertError(
                 handler.handleApiException(busy),
@@ -137,6 +137,7 @@ class GlobalExceptionHandlerTests {
             String message,
             String requestId) {
         assertThat(response.getStatusCode()).isEqualTo(status);
-        assertThat(response.getBody()).isEqualTo(new ApiError(code, message, requestId));
+        assertThat(response.getBody())
+                .isEqualTo(new ApiError(ApiErrorCode.valueOf(code), message, requestId));
     }
 }

@@ -1,6 +1,7 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction;
 
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.DrifOptimizationMath.*;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationDrifSizeConstraints.maximum;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationRequestConstraints.maxQuantity;
 
 import java.util.ArrayList;
@@ -12,6 +13,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_SIZE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context.OptimizationInitialStateFactory;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
@@ -112,6 +114,9 @@ public final class OptimizationBeamSearch {
         return !placementOperations.containsBonus(placements, candidate.getBonusType())
                 && stateEvaluation.globalCount(state, candidate.getBonusType(), context)
                         < maxQuantity(candidate.getBonusType(), context.request())
+                && stateEvaluation.sizeCount(
+                                state, candidate.getBonusType(), candidate.getSize(), context)
+                        < maximum(candidate.getBonusType(), candidate.getSize(), context.request())
                 && !placementOperations.containsAnotherElemental(state, candidate, null);
     }
 
@@ -123,7 +128,7 @@ public final class OptimizationBeamSearch {
 
         Set<Integer> levels = new TreeSet<>(Comparator.reverseOrder());
         levels.add(highest);
-        for (int level : List.of(6, 11, 16, 21)) {
+        for (int level : DRIF_SIZE.meaningfulLevels()) {
             if (level <= highest && level <= candidate.getSize().getMaxLevel()) levels.add(level);
         }
         return new ArrayList<>(levels);
@@ -146,9 +151,35 @@ public final class OptimizationBeamSearch {
     }
 
     private String globalCountSignature(BuildState state, OptimizationContext context) {
-        return context.request().getPriorities().keySet().stream()
-                .sorted(Comparator.comparing(Enum::name))
-                .map(type -> type.name() + "=" + stateEvaluation.globalCount(state, type, context))
-                .collect(Collectors.joining("|"));
+        String totals =
+                context.request().getPriorities().keySet().stream()
+                        .sorted(Comparator.comparing(Enum::name))
+                        .map(
+                                type ->
+                                        type.name()
+                                                + "="
+                                                + stateEvaluation.globalCount(state, type, context))
+                        .collect(Collectors.joining("|"));
+        if (context.request().getDrifSizeQuantities() == null) return totals;
+        String sizes =
+                context.request().getDrifSizeQuantities().entrySet().stream()
+                        .sorted(Map.Entry.comparingByKey(Comparator.comparing(Enum::name)))
+                        .flatMap(
+                                entry ->
+                                        entry.getValue().keySet().stream()
+                                                .sorted(Comparator.comparing(Enum::name))
+                                                .map(
+                                                        size ->
+                                                                entry.getKey().name()
+                                                                        + ":"
+                                                                        + size.name()
+                                                                        + "="
+                                                                        + stateEvaluation.sizeCount(
+                                                                                state,
+                                                                                entry.getKey(),
+                                                                                size,
+                                                                                context)))
+                        .collect(Collectors.joining("|"));
+        return totals + "|" + sizes;
     }
 }

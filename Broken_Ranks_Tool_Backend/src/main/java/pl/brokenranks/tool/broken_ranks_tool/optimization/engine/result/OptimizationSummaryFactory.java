@@ -70,8 +70,8 @@ final class OptimizationSummaryFactory {
 
     private String resultMessage(List<String> warnings) {
         return warnings.isEmpty()
-                ? "Optymalizacja zakończona."
-                : "Nie udało się osiągnąć docelowego capa dla co najmniej jednego modyfikatora.";
+                ? "Znaleziono najlepszy sprawdzony poprawny układ; heurystyka nie dowodzi globalnego optimum."
+                : "Zwrócono najlepszy sprawdzony poprawny układ, ale nie osiągnięto co najmniej jednego celu miękkiego; heurystyka nie dowodzi globalnego optimum.";
     }
 
     private int totalDrifCount(Metrics metrics) {

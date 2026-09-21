@@ -44,8 +44,10 @@ public class OptimizationEngineConfig {
     OptimizationResultAssembler optimizationResultAssembler(
             OptimizationLockService lockService,
             EquipmentStatsCalculatorService calculatorService,
-            OptimizationStateEvaluator stateEvaluator) {
-        return OptimizationResultFactory.create(lockService, calculatorService, stateEvaluator);
+            OptimizationStateEvaluator stateEvaluator,
+            EquipmentPlacementRules placementRules) {
+        return OptimizationResultFactory.create(
+                lockService, calculatorService, stateEvaluator, placementRules);
     }
 
     @Bean

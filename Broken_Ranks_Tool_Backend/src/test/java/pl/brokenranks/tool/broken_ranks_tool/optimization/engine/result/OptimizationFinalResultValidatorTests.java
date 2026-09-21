@@ -8,15 +8,18 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_SIZE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRulesRegistry;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentPlacementRules;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
 
 class OptimizationFinalResultValidatorTests {
+    private final EquipmentRulesRegistry rules = new EquipmentRulesRegistry();
     private final OptimizationFinalResultValidator validator =
             new OptimizationFinalResultValidator(
-                    new OptimizationStateEvaluator(new EquipmentRulesRegistry()));
+                    new OptimizationStateEvaluator(rules), new EquipmentPlacementRules(rules));
     private final DRIF_BONUS_TYPE type = DRIF_BONUS_TYPE.CRITICAL_CHANCE;
 
     @ParameterizedTest
@@ -89,6 +92,22 @@ class OptimizationFinalResultValidatorTests {
         request.setTargetQuantities(Map.of(type, new OptimizationRequest.QuantityRange(1, 1)));
         BuildState state = new BuildState();
         put(state, "weapon", new Placement(drif, 6, true));
+        assertNull(
+                validator.validate(
+                        state, context(request, slot("weapon", 0, 0, 0, true, Set.of(), drif))));
+    }
+
+    @Test
+    void builtInsDoNotCountTowardOrdinarySizeLimits() {
+        var drif = drif(1, type);
+        var request = request(type);
+        request.setDrifSizeQuantities(
+                Map.of(
+                        type,
+                        Map.of(DRIF_SIZE.SUBDRIF, new OptimizationRequest.QuantityRange(0, 0))));
+        BuildState state = new BuildState();
+        put(state, "weapon", new Placement(drif, 6, true));
+
         assertNull(
                 validator.validate(
                         state, context(request, slot("weapon", 0, 0, 0, true, Set.of(), drif))));

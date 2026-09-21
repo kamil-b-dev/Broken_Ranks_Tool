@@ -9,26 +9,12 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.RARITY;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.CalculationState;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.input.EquipmentDataProvider.CalculationContext;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.random.RandomProvider;
 
 class ItemStatProcessorTests {
 
-    private final RandomProvider firstKeyProvider =
-            new RandomProvider() {
-                @Override
-                public int nextInt(int bound) {
-                    return 0;
-                }
-
-                @Override
-                public double nextDouble() {
-                    return 0.0;
-                }
-            };
-
     @Test
     void includesStarAndDatabaseDrifModifiers() {
-        ItemStatProcessor processor = new ItemStatProcessor(firstKeyProvider);
+        ItemStatProcessor processor = new ItemStatProcessor();
         ItemTemplate item = item(Map.of("Bonus drify", 20.0));
 
         assertEquals(0.28, processor.calculateFinalDrifMod(item, 8), 0.000001);
@@ -36,7 +22,7 @@ class ItemStatProcessorTests {
 
     @Test
     void keepsSpecialStatsFlatAndAppliesStarBonusToBaseAndResistanceStats() {
-        ItemStatProcessor processor = new ItemStatProcessor(firstKeyProvider);
+        ItemStatProcessor processor = new ItemStatProcessor();
         ItemTemplate item =
                 item(
                         Map.of(

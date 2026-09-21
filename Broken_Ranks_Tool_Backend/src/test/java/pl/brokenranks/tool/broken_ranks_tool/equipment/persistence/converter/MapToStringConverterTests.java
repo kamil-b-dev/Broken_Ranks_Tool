@@ -1,6 +1,7 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.converter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -29,10 +30,19 @@ class MapToStringConverterTests {
     }
 
     @Test
-    void ignoresMalformedEntriesWithoutDroppingValidOnes() {
-        assertEquals(
-                Map.of("Valid", 3.0),
-                converter.convertToEntityAttribute(
-                        "Valid:3;missingDelimiter;Invalid:not-a-number"));
+    void rejectsMalformedEntriesInsteadOfSilentlyDroppingStats() {
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> converter.convertToEntityAttribute("Valid:3;missingDelimiter"));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> converter.convertToEntityAttribute("Invalid:not-a-number"));
+    }
+
+    @Test
+    void splitsOnlyOnTheFirstKeyValueDelimiter() {
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> converter.convertToEntityAttribute("Damage:physical:12"));
     }
 }

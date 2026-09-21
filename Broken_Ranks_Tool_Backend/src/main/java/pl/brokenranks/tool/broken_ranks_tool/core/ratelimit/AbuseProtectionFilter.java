@@ -13,11 +13,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import pl.brokenranks.tool.broken_ranks_tool.core.web.error.ApiError;
+import pl.brokenranks.tool.broken_ranks_tool.core.web.error.ApiErrorCode;
 import pl.brokenranks.tool.broken_ranks_tool.core.web.filter.RequestTracingFilter;
 
 /** Rejects oversized or excessively frequent requests before request bodies are parsed. */
@@ -53,8 +55,8 @@ public class AbuseProtectionFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        if ("GET".equals(request.getMethod())) return !path.startsWith(API_PATH_PREFIX);
-        if (!"POST".equals(request.getMethod())) return true;
+        if (HttpMethod.GET.matches(request.getMethod())) return !path.startsWith(API_PATH_PREFIX);
+        if (!HttpMethod.POST.matches(request.getMethod())) return true;
         return !OPTIMIZER_PATH.equals(path)
                 && !CALCULATOR_PATH.equals(path)
                 && !isCancellationPath(path);
@@ -64,30 +66,30 @@ public class AbuseProtectionFilter extends OncePerRequestFilter {
     protected void doFilterInternal(
             HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        boolean publicDataRequest = "GET".equals(request.getMethod());
+        boolean publicDataRequest = HttpMethod.GET.matches(request.getMethod());
         long contentLength = request.getContentLengthLong();
         if (!publicDataRequest && contentLength > properties.maxRequestBytes()) {
             writeError(
                     response,
                     HttpServletResponse.SC_REQUEST_ENTITY_TOO_LARGE,
-                    "REQUEST_TOO_LARGE",
+                    ApiErrorCode.REQUEST_TOO_LARGE,
                     "Żądanie przekracza dozwolony rozmiar.");
             return;
         }
 
-        String policy;
+        RateLimitPolicy policy;
         AbuseProtectionProperties.Limit limit;
         if (publicDataRequest) {
-            policy = "public-data";
+            policy = RateLimitPolicy.PUBLIC_DATA;
             limit = properties.publicData();
         } else if (OPTIMIZER_PATH.equals(request.getRequestURI())) {
-            policy = "optimizer";
+            policy = RateLimitPolicy.OPTIMIZER;
             limit = properties.optimizer();
         } else if (CALCULATOR_PATH.equals(request.getRequestURI())) {
-            policy = "calculator";
+            policy = RateLimitPolicy.CALCULATOR;
             limit = properties.calculator();
         } else {
-            policy = "control";
+            policy = RateLimitPolicy.CONTROL;
             limit = properties.control();
         }
 
@@ -98,7 +100,7 @@ public class AbuseProtectionFilter extends OncePerRequestFilter {
             writeError(
                     response,
                     HttpStatus.TOO_MANY_REQUESTS.value(),
-                    "RATE_LIMITED",
+                    ApiErrorCode.RATE_LIMITED,
                     "Przekroczono limit żądań. Spróbuj ponownie później.");
             return;
         }
@@ -113,7 +115,7 @@ public class AbuseProtectionFilter extends OncePerRequestFilter {
             writeError(
                     response,
                     HttpServletResponse.SC_REQUEST_ENTITY_TOO_LARGE,
-                    "REQUEST_TOO_LARGE",
+                    ApiErrorCode.REQUEST_TOO_LARGE,
                     "Żądanie przekracza dozwolony rozmiar.");
             return;
         }
@@ -151,7 +153,8 @@ public class AbuseProtectionFilter extends OncePerRequestFilter {
         }
     }
 
-    private void writeError(HttpServletResponse response, int status, String code, String message)
+    private void writeError(
+            HttpServletResponse response, int status, ApiErrorCode code, String message)
             throws IOException {
         response.setStatus(status);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);

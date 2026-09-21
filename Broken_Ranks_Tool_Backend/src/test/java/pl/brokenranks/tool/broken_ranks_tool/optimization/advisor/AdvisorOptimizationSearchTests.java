@@ -30,8 +30,46 @@ class AdvisorOptimizationSearchTests extends AdvisorOptimizationTestSupport {
         request.getAdvisor().getAllowedChanges().setStars(true);
         var result = f.service.optimize(request);
         assertTrue(result.getAdvisorReport().targetReached());
+        assertEquals(AdvisorStatus.OPTIMAL, result.getAdvisorReport().status());
+        assertTrue(result.getAdvisorReport().proofComplete());
         assertEquals(0, result.getAdvisorReport().evaluatedStates());
         assertTrue(result.getSummary().getNextVariants().isEmpty());
+    }
+
+    @Test
+    void provesInfeasibilityOnlyAfterCheckingTheWholeSmallRange() {
+        Fixture f =
+                fixture(
+                        List.of(item(1, ITEM_CATEGORY.HELMET, "I", 10, 0)),
+                        List.of(drif(10, A, "10%")));
+        var request = request(A, Map.of("helmet", slot(1, 1, 10L)));
+        request.getAdvisor().setTargetValue(20.0);
+        request.getAdvisor().getAllowedChanges().setStars(false);
+
+        var result = f.service.optimize(request);
+
+        assertEquals(AdvisorStatus.INFEASIBLE, result.getAdvisorReport().status());
+        assertTrue(result.getAdvisorReport().searchSpaceExhausted());
+        assertTrue(result.getAdvisorReport().proofComplete());
+        assertEquals(
+                result.getAdvisorReport().candidateCount(),
+                result.getAdvisorReport().verifiedCandidates());
+    }
+
+    @Test
+    void reportsCurrentBuildAsOptimalWhenMaximizationHasNoImprovingPlan() {
+        Fixture f =
+                fixture(
+                        List.of(item(1, ITEM_CATEGORY.HELMET, "I", 10, 0)),
+                        List.of(drif(10, A, "10%")));
+        var request = request(A, Map.of("helmet", slot(1, 1, 10L)));
+        request.getAdvisor().getAllowedChanges().setStars(false);
+
+        var result = f.service.optimize(request);
+
+        assertEquals(AdvisorStatus.OPTIMAL, result.getAdvisorReport().status());
+        assertTrue(result.getAdvisorReport().proofComplete());
+        assertTrue(result.getAdvisorReport().plans().isEmpty());
     }
 
     @Test
@@ -141,6 +179,8 @@ class AdvisorOptimizationSearchTests extends AdvisorOptimizationTestSupport {
         var result = f.service.optimize(request);
         assertTrue(result.getSummary().isSuccess());
         assertTrue(result.getAdvisorReport().evaluatedStates() <= 20000);
+        assertEquals(AdvisorStatus.BEST_FOUND, result.getAdvisorReport().status());
+        assertFalse(result.getAdvisorReport().proofComplete());
         verify(f.calculator, atMost(19)).calculateTotalStats(any());
         verify(f.items, times(1)).findAll();
         System.out.printf(

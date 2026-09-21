@@ -61,6 +61,24 @@ const AdvisorGoalsPanel = ({ stats = {}, gameRules = {}, settings, onChange }) =
             </section>
 
             <section className="advisor-goal-card">
+                <label htmlFor="advisor-strategy">Strategia planu</label>
+                <select
+                    id="advisor-strategy"
+                    value={search.strategy}
+                    onChange={(event) =>
+                        update({ advisorSearch: { ...search, strategy: event.target.value } })
+                    }
+                >
+                    <option value="MINIMUM_CHANGE">Najmniejsza ingerencja</option>
+                    <option value="BEST_RESULT">Najlepszy wynik</option>
+                </select>
+                <p>
+                    Najmniejsza ingerencja szuka najtańszego planu osiągającego cel. Najlepszy wynik
+                    może zaproponować droższy plan, jeśli daje użyteczną poprawę do capa.
+                </p>
+            </section>
+
+            <section className="advisor-goal-card">
                 <div className="advisor-goal-card-heading">
                     <strong>Chronione modyfikatory</strong>
                     <span>minimum względem obecnej wartości</span>
@@ -170,26 +188,32 @@ const AdvisorGoalsPanel = ({ stats = {}, gameRules = {}, settings, onChange }) =
                         })
                     }
                 >
-                    <option value="1">1 działanie</option>
-                    <option value="2">2 działania</option>
-                    <option value="3">3 działania</option>
+                    {Array.from({ length: 10 }, (_, index) => index + 1).map((count) => (
+                        <option key={count} value={count}>
+                            {count} {count === 1 ? "działanie" : "działań"}
+                        </option>
+                    ))}
                 </select>
-                <label htmlFor="advisor-speed">Dokładność analizy</label>
-                <select
+                <label htmlFor="advisor-speed">Budżet czasu analizy (sekundy)</label>
+                <input
                     id="advisor-speed"
-                    value={search.timeBudgetMs}
+                    type="number"
+                    min="0.2"
+                    max="5"
+                    step="0.1"
+                    value={search.timeBudgetMs / 1000}
                     onChange={(event) =>
                         update({
-                            advisorSearch: { ...search, timeBudgetMs: Number(event.target.value) },
+                            advisorSearch: {
+                                ...search,
+                                timeBudgetMs: Math.round(Number(event.target.value) * 1000),
+                            },
                         })
                     }
-                >
-                    <option value="1500">Szybka — budżet 1,5 s</option>
-                    <option value="5000">Rozszerzona — budżet 5 s</option>
-                </select>
+                />
                 <p>
                     Jedno działanie to przełożenie, zamiana dwóch drifów albo ulepszenie lub zakup.
-                    Limit czasu dotyczy wyszukiwania; wynik przechodzi jeszcze weryfikację.
+                    Wspólny limit obejmuje wyszukiwanie i końcową weryfikację kalkulatorem.
                 </p>
             </section>
         </div>

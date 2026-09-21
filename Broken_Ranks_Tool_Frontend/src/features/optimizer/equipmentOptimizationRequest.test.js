@@ -19,10 +19,12 @@ describe("createEquipmentOptimizationRequest", () => {
 
         expect(request).toEqual({
             mode: "BUILD_FROM_SCRATCH",
+            configurationMode: "ADVANCED",
             originalSlots: slots,
             characterStats: { Siła: 100 },
             priorities: { CRITICAL_CHANCE: 20 },
             targetQuantities: {},
+            drifSizeQuantities: {},
             forceCapBonuses: [],
             forcedPercentageTargets: {},
             maximizeBonuses: [],
@@ -31,6 +33,26 @@ describe("createEquipmentOptimizationRequest", () => {
             maxVariantLossPercent: 12.5,
             lockedSlots: ["helmet"],
             lockedDrifs: { helmet: [0] },
+        });
+    });
+
+    it("forwards simple profile choices without advanced priorities", () => {
+        const request = createEquipmentOptimizationRequest({
+            slots: { armor: { itemId: 4 } },
+            configuration: {
+                configurationMode: "SIMPLE",
+                simpleProfile: "MAGICAL",
+                simpleAspects: { DAMAGE: "IMPORTANT", RESOURCES: "KEY" },
+            },
+            lockedSlots: [],
+            lockedDrifs: {},
+        });
+
+        expect(request).toMatchObject({
+            configurationMode: "SIMPLE",
+            priorities: {},
+            simpleProfile: "MAGICAL",
+            simpleAspects: { DAMAGE: "IMPORTANT", RESOURCES: "KEY" },
         });
     });
 });

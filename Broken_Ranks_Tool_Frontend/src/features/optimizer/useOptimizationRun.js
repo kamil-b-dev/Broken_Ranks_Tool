@@ -31,7 +31,12 @@ export const useOptimizationRun = (runOptimization, now = currentTime) => {
         try {
             const result = await runOptimization(configuration);
             if (runVersion !== runVersionRef.current) return result;
-            setStatus(result);
+            setStatus({
+                ...result,
+                ...(configuration.configurationMode
+                    ? { configurationMode: configuration.configurationMode }
+                    : {}),
+            });
             setActiveVariantIndex(0);
             return result;
         } finally {

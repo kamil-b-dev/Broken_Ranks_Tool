@@ -1,6 +1,7 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.advisor;
 
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.advisor.AdvisorSearch.slotName;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.advisor.AdvisorSlotData.signature;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.advisor.AdvisorSlotData.stars;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.support.EquipmentSlotDataCopier.copySlot;
 
@@ -11,15 +12,18 @@ import java.util.Map;
 import java.util.function.Consumer;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ITEM_PROFILE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.RARITY;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.SPECIAL_STAT_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.STAT_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest.SlotData;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.AdvisorProfession;
 
 /** Selects and emits bounded item replacement actions for the advisor. */
 final class AdvisorItemActionGenerator {
     private final AdvisorSearch search;
     private final AdvisorEquipmentModel model;
     private final AdvisorNodeFactory nodes;
-    private final Map<String, List<ItemTemplate>> replacements = new HashMap<>();
+    private final Map<ReplacementCacheKey, List<ItemTemplate>> replacements = new HashMap<>();
 
     AdvisorItemActionGenerator(AdvisorSearch search, AdvisorNodeFactory nodes) {
         this.search = search;
@@ -33,7 +37,9 @@ final class AdvisorItemActionGenerator {
             SlotData slot,
             Consumer<AdvisorSearch.Node> accept) {
         for (ItemTemplate replacement :
-                replacements.computeIfAbsent(key, ignored -> candidates(key, slot))) {
+                replacements.computeIfAbsent(
+                        new ReplacementCacheKey(key, signature(Map.of(key, slot))),
+                        ignored -> candidates(key, slot))) {
             if (!search.running()) return;
             SlotData next = copySlot(slot);
             next.setItemId(replacement.getId());
@@ -50,25 +56,39 @@ final class AdvisorItemActionGenerator {
                             + " ("
                             + stars(slot)
                             + "★)",
-                    "item:" + key,
+                    new AdvisorChangeKey.Item(key),
                     1,
                     accept);
         }
     }
 
     private List<ItemTemplate> candidates(String key, SlotData slot) {
-        String selected = selectedProfile();
-        return model.templates.items().values().stream()
+        AdvisorProfession selected = selectedProfile();
+        List<ItemTemplate> compatible =
+                model.templates.items().values().stream()
+                        .filter(
+                                item ->
+                                        !item.getId().equals(slot.getItemId())
+                                                && model.placement.isValidItem(item, key))
+                        .filter(
+                                item ->
+                                        item.getRarity() != RARITY.EPIC
+                                                && item.getRarity() != RARITY.SET)
+                        .filter(item -> selected.accepts(item.getProfile()))
+                        .filter(item -> validReplacement(key, slot, item))
+                        .toList();
+        int currentCapacity = model.levels.calculateItemCapacity(model.item(slot), stars(slot));
+        int bestReplacementCapacity =
+                compatible.stream()
+                        .mapToInt(item -> model.levels.calculateItemCapacity(item, stars(slot)))
+                        .max()
+                        .orElse(currentCapacity);
+        int maximumCapacity = Math.max(currentCapacity, bestReplacementCapacity);
+        return compatible.stream()
                 .filter(
                         item ->
-                                !item.getId().equals(slot.getItemId())
-                                        && model.placement.isValidItem(item, key))
-                .filter(item -> item.getRarity() != RARITY.EPIC && item.getRarity() != RARITY.SET)
-                .filter(
-                        item ->
-                                item.getProfile() == ITEM_PROFILE.UNIVERSAL
-                                        || item.getProfile() == ITEM_PROFILE.UNSPECIFIED
-                                        || item.getProfile().name().equals(selected))
+                                model.levels.calculateItemCapacity(item, stars(slot))
+                                        == maximumCapacity)
                 .sorted(
                         Comparator.comparingDouble(
                                         (ItemTemplate item) ->
@@ -76,19 +96,27 @@ final class AdvisorItemActionGenerator {
                                                                         ? 0
                                                                         : item.getStats()
                                                                                 .getOrDefault(
-                                                                                        "Bonus drify",
+                                                                                        SPECIAL_STAT_TYPE
+                                                                                                .DRIF_BONUS
+                                                                                                .getDescription(),
                                                                                         0.0))
                                                                 * 10
                                                         + model.levels.calculateItemCapacity(
                                                                 item, stars(slot)))
                                 .reversed()
                                 .thenComparing(ItemTemplate::getId))
-                .limit(3)
                 .toList();
     }
 
-    private String selectedProfile() {
-        if (!"AUTO".equals(search.options.getProfession())) return search.options.getProfession();
+    private boolean validReplacement(String key, SlotData slot, ItemTemplate item) {
+        SlotData replacement = copySlot(slot);
+        replacement.setItemId(item.getId());
+        return model.validSlot(key, replacement);
+    }
+
+    private AdvisorProfession selectedProfile() {
+        if (search.options.getProfession() != AdvisorProfession.AUTO)
+            return search.options.getProfession();
         double magical = 0;
         double physical = 0;
         for (SlotData equipped : model.request.getOriginalSlots().values()) {
@@ -97,17 +125,27 @@ final class AdvisorItemActionGenerator {
             if (item.getProfile() == ITEM_PROFILE.MAGICAL) magical += 2;
             if (item.getProfile() == ITEM_PROFILE.PHYSICAL) physical += 2;
             magical +=
-                    item.getStats().getOrDefault("Moc", 0.0)
-                            + item.getStats().getOrDefault("Wiedza", 0.0);
+                    item.getStats().getOrDefault(STAT_TYPE.POWER.getDescription(), 0.0)
+                            + item.getStats()
+                                    .getOrDefault(STAT_TYPE.KNOWLEDGE.getDescription(), 0.0);
             physical +=
-                    item.getStats().getOrDefault("Siła", 0.0)
-                            + item.getStats().getOrDefault("Zręczność", 0.0);
+                    item.getStats().getOrDefault(STAT_TYPE.STRENGTH.getDescription(), 0.0)
+                            + item.getStats()
+                                    .getOrDefault(STAT_TYPE.DEXTERITY.getDescription(), 0.0);
         }
         var character = model.request.getCharacterStats();
         if (character != null) {
-            magical += character.getOrDefault("Moc", 0) + character.getOrDefault("Wiedza", 0);
-            physical += character.getOrDefault("Siła", 0) + character.getOrDefault("Zręczność", 0);
+            magical +=
+                    character.getOrDefault(STAT_TYPE.POWER.getDescription(), 0)
+                            + character.getOrDefault(STAT_TYPE.KNOWLEDGE.getDescription(), 0);
+            physical +=
+                    character.getOrDefault(STAT_TYPE.STRENGTH.getDescription(), 0)
+                            + character.getOrDefault(STAT_TYPE.DEXTERITY.getDescription(), 0);
         }
-        return magical == physical ? "UNIVERSAL" : magical > physical ? "MAGICAL" : "PHYSICAL";
+        return magical == physical
+                ? AdvisorProfession.UNIVERSAL
+                : magical > physical ? AdvisorProfession.MAGICAL : AdvisorProfession.PHYSICAL;
     }
+
+    private record ReplacementCacheKey(String slot, String equipmentSignature) {}
 }

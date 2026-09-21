@@ -20,6 +20,7 @@ export const useEquipmentOptimization = ({
     const slots = requestData?.slots;
     const [optimizationTrigger, setOptimizationTrigger] = useState(0);
     const activeAdvisor = useRef(null);
+    const optimizerRunVersion = useRef(0);
     const markEquipmentChanged = useCallback(
         () => setOptimizationTrigger((previous) => previous + 1),
         []
@@ -48,6 +49,7 @@ export const useEquipmentOptimization = ({
 
     const runDrifOptimization = useCallback(
         async (configuration) => {
+            const runVersion = ++optimizerRunVersion.current;
             if (!slots || Object.values(slots).every((slot) => !slot?.itemId)) {
                 return {
                     success: false,
@@ -65,9 +67,17 @@ export const useEquipmentOptimization = ({
                 lockedDrifs,
             });
             if (advisory && request.advisor) {
+                const previousAdvisorRunId = activeAdvisor.current;
                 advisorRunId = crypto.randomUUID();
                 request.advisor = { ...request.advisor, runId: advisorRunId };
                 activeAdvisor.current = advisorRunId;
+                if (previousAdvisorRunId) {
+                    try {
+                        await cancelAdvisorOptimization(previousAdvisorRunId);
+                    } catch (error) {
+                        console.warn("Nie udało się zatrzymać poprzedniej analizy Doradcy:", error);
+                    }
+                }
             }
             try {
                 const { optimizedSetup, summary, advisorReport, calculationResult } =
@@ -107,7 +117,9 @@ export const useEquipmentOptimization = ({
                 return {
                     ...summary,
                     applied:
-                        hasEquipment && applyOptimizationSetup(optimizedSetup, calculationResult),
+                        runVersion === optimizerRunVersion.current &&
+                        hasEquipment &&
+                        applyOptimizationSetup(optimizedSetup, calculationResult),
                 };
             } catch (error) {
                 console.error("Błąd optymalizacji drifów:", error);

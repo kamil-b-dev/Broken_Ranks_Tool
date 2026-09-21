@@ -93,7 +93,7 @@ describe("useOptimizerConfigFiles", () => {
             advisorProfession: "PHYSICAL",
             advisorGoal: "DAMAGE",
             advisorSearch: { targetMode: "GAIN", target: 15, maxActions: 2, timeBudgetMs: 5000 },
-            advisorProtectedModifiers: { CRITICAL_CHANCE: true },
+            advisorProtectedModifiers: { CRITICAL_CHANCE: { enabled: true, loss: 0 } },
             advisorAllowedChanges: expect.objectContaining({ items: true, drifs: false }),
         });
         expect(onNotice).toHaveBeenCalledWith({

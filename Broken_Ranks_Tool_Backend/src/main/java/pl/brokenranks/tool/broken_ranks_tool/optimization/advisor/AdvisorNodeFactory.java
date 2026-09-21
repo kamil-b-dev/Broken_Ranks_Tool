@@ -24,7 +24,7 @@ final class AdvisorNodeFactory {
             String key,
             SlotData slot,
             String label,
-            String change,
+            AdvisorChangeKey change,
             int effort,
             Consumer<AdvisorSearch.Node> accept) {
         if (!search.running()) return;
@@ -37,12 +37,12 @@ final class AdvisorNodeFactory {
             AdvisorSearch.Node parent,
             Map<String, SlotData> slots,
             String label,
-            String change,
+            AdvisorChangeKey change,
             int upgrades,
             int effort) {
         List<String> actions = new ArrayList<>(parent.actions());
         actions.add(label);
-        Set<String> changed = new HashSet<>(parent.changed());
+        Set<AdvisorChangeKey> changed = new HashSet<>(parent.changed());
         if (change != null) changed.add(change);
         return new AdvisorSearch.Node(
                 slots,
@@ -51,5 +51,14 @@ final class AdvisorNodeFactory {
                 changed,
                 parent.upgrades() + upgrades,
                 parent.effort() + effort);
+    }
+
+    AdvisorSearch.Node child(
+            AdvisorSearch.Node parent,
+            Map<String, SlotData> slots,
+            String label,
+            int upgrades,
+            int effort) {
+        return child(parent, slots, label, null, upgrades, effort);
     }
 }
