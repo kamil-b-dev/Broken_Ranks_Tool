@@ -30,6 +30,7 @@ Przy każdej zmianie — zarówno dodawaniu nowych funkcji i plików, jak i refa
 Dobieraj zakres weryfikacji proporcjonalnie do ryzyka i obszaru zmiany. Nie uruchamiaj automatycznie pełnego zestawu testów po każdej poprawce.
 
 - Po każdej zmianie plików frontendu sformatuj zmienione pliki za pomocą Prettiera. Przed zakończeniem pracy uruchom `npm run format:check` i usuń wszystkie zgłoszone różnice formatowania.
+- Po każdej zmianie plików Java uruchom `./mvnw spotless:apply` przed testami. Przed zakończeniem pracy uruchom `./mvnw spotless:check` albo pełne `./mvnw clean verify` i potwierdź jego rzeczywisty kod wyjścia; samo wygenerowanie raportów testów lub JaCoCo nie oznacza, że faza `verify` zakończyła się powodzeniem.
 
 - Zmiany wyłącznie dokumentacyjne: bez testów.
 - Drobne zmiany wizualne, CSS i assety: lint dotyczący zmienionych plików, odpowiedni test komponentu tylko wtedy, gdy istnieje lub wnosi wartość, oraz krótka kontrola wizualna. Build uruchamiaj, gdy zmiana dotyczy importów, assetów albo konfiguracji bundlera.
