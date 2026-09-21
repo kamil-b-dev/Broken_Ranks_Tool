@@ -12,6 +12,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_SIZE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 
 /** Request DTO for drif optimization, priorities, limits, locks, and caps. */
@@ -20,6 +21,9 @@ public class OptimizationRequest {
 
     /** Optimization workflow selected by the user. */
     @NotNull private OptimizationMode mode = OptimizationMode.BUILD_FROM_SCRATCH;
+
+    /** UI complexity selected for build-from-scratch. Defaults to legacy advanced semantics. */
+    @NotNull private BuildConfigurationMode configurationMode = BuildConfigurationMode.ADVANCED;
 
     @Valid private AdvisorOptions advisor;
 
@@ -41,6 +45,12 @@ public class OptimizationRequest {
     @Valid
     @Size(max = 32)
     private Map<DRIF_BONUS_TYPE, QuantityRange> targetQuantities;
+
+    /** Optional hard quantity ranges for each bonus and drif size in advanced mode. */
+    @Valid
+    @Size(max = 32)
+    private Map<DRIF_BONUS_TYPE, @Size(max = 4) Map<DRIF_SIZE, @Valid QuantityRange>>
+            drifSizeQuantities;
 
     /** Slot keys excluded from optimization and copied unchanged. */
     @Size(max = 12)

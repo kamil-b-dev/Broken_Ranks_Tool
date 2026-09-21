@@ -2,7 +2,6 @@ package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -10,7 +9,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.RARITY;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
@@ -21,6 +19,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.Upgrade
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.SlotContext;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.DrifOptimizationMath;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationDrifSizeConstraints;
 
 /** Converts request slots and templates into search-ready slot contexts. */
 @RequiredArgsConstructor
@@ -104,12 +103,17 @@ final class OptimizationSlotContextFactory {
                 .filter(drif -> placementRules.isValidDrifSizeForTier(drif, item))
                 .filter(drif -> placementRules.isElementalDrifPositionValid(drif, slot))
                 .filter(drif -> request.getPriorities().containsKey(drif.getBonusType()))
+                .filter(
+                        drif ->
+                                OptimizationDrifSizeConstraints.maximum(
+                                                drif.getBonusType(), drif.getSize(), request)
+                                        > 0)
                 .collect(
                         Collectors.toMap(
-                                DrifTemplate::getBonusType,
+                                drif -> drif.getBonusType().name() + ":" + drif.getSize().name(),
                                 Function.identity(),
                                 (left, right) -> preferMoreValuable(left, right, capacity),
-                                () -> new EnumMap<>(DRIF_BONUS_TYPE.class)))
+                                java.util.LinkedHashMap::new))
                 .values()
                 .stream()
                 .collect(Collectors.toCollection(ArrayList::new));

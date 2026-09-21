@@ -14,6 +14,100 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.*;
 
 class OptimizationCalculatorIntegrationTests {
     @Test
+    void partialSizeConstraintStillAllowsLargerUnrestrictedDrifs() {
+        var type = DRIF_BONUS_TYPE.CRITICAL_CHANCE;
+        var sub = drif(10, type, DRIF_SIZE.SUBDRIF, "2%", "1%");
+        var arcy = drif(11, type, DRIF_SIZE.ARCYDRIF, "2%", "1%");
+        var fixture =
+                create(
+                        List.of(
+                                item(1, ITEM_CATEGORY.HELMET, "XII", 20),
+                                item(2, ITEM_CATEGORY.ARMOR, "XII", 20)),
+                        List.of(sub, arcy),
+                        List.of());
+        var request = request(Map.of("helmet", slot(1), "armor", slot(2)), Map.of(type, 15));
+        request.setTargetQuantities(Map.of(type, new OptimizationRequest.QuantityRange(2, 2)));
+        request.setDrifSizeQuantities(
+                Map.of(
+                        type,
+                        Map.of(DRIF_SIZE.SUBDRIF, new OptimizationRequest.QuantityRange(1, 1))));
+
+        var response = fixture.service().optimize(request);
+
+        assertTrue(response.getSummary().isSuccess());
+        var ids =
+                response.getOptimizedSetup().getSlots().values().stream()
+                        .flatMap(slot -> slot.getDrifIds().stream())
+                        .toList();
+        assertEquals(1, ids.stream().filter(sub.getId()::equals).count());
+        assertEquals(1, ids.stream().filter(arcy.getId()::equals).count());
+    }
+
+    @Test
+    void honorsExactPerSizeQuantitiesInAdvancedBuildFromScratch() {
+        var type = DRIF_BONUS_TYPE.CRITICAL_CHANCE;
+        var drifs =
+                List.of(
+                        drif(10, type, DRIF_SIZE.SUBDRIF, "2%", "1%"),
+                        drif(11, type, DRIF_SIZE.BIDRIF, "2%", "1%"),
+                        drif(12, type, DRIF_SIZE.MAGNIDRIF, "2%", "1%"),
+                        drif(13, type, DRIF_SIZE.ARCYDRIF, "2%", "1%"));
+        var fixture =
+                create(
+                        List.of(
+                                item(1, ITEM_CATEGORY.HELMET, "XII", 20),
+                                item(2, ITEM_CATEGORY.ARMOR, "XII", 20),
+                                item(3, ITEM_CATEGORY.BOOTS, "XII", 20),
+                                item(4, ITEM_CATEGORY.CAPE, "XII", 20)),
+                        drifs,
+                        List.of());
+        var request =
+                request(
+                        Map.of(
+                                "helmet", slot(1),
+                                "armor", slot(2),
+                                "boots", slot(3),
+                                "cape", slot(4)),
+                        Map.of(type, 15));
+        request.setConfigurationMode(BuildConfigurationMode.ADVANCED);
+        request.setTargetQuantities(Map.of(type, new OptimizationRequest.QuantityRange(4, 4)));
+        request.setDrifSizeQuantities(
+                Map.of(
+                        type,
+                        Map.of(
+                                DRIF_SIZE.SUBDRIF,
+                                new OptimizationRequest.QuantityRange(1, 1),
+                                DRIF_SIZE.BIDRIF,
+                                new OptimizationRequest.QuantityRange(1, 1),
+                                DRIF_SIZE.MAGNIDRIF,
+                                new OptimizationRequest.QuantityRange(1, 1),
+                                DRIF_SIZE.ARCYDRIF,
+                                new OptimizationRequest.QuantityRange(1, 1))));
+
+        var response = fixture.service().optimize(request);
+
+        assertTrue(
+                response.getSummary().isSuccess(), response.getSummary().getWarnings().toString());
+        var sizes =
+                response.getOptimizedSetup().getSlots().values().stream()
+                        .flatMap(slot -> slot.getDrifIds().stream())
+                        .map(
+                                id ->
+                                        drifs.stream()
+                                                .filter(drif -> drif.getId().equals(id))
+                                                .findFirst()
+                                                .orElseThrow())
+                        .map(DrifTemplate::getSize)
+                        .collect(
+                                java.util.stream.Collectors.groupingBy(
+                                        size -> size, java.util.stream.Collectors.counting()));
+        assertEquals(1L, sizes.get(DRIF_SIZE.SUBDRIF));
+        assertEquals(1L, sizes.get(DRIF_SIZE.BIDRIF));
+        assertEquals(1L, sizes.get(DRIF_SIZE.MAGNIDRIF));
+        assertEquals(1L, sizes.get(DRIF_SIZE.ARCYDRIF));
+    }
+
+    @Test
     void identicalEquipmentAlwaysProducesIdenticalStarBonusDistribution() {
         var item = item(1, ITEM_CATEGORY.HELMET, "I", 4);
         item.setStats(Map.of("Siła", 10.0, "Moc", 10.0, "Wiedza", 10.0));

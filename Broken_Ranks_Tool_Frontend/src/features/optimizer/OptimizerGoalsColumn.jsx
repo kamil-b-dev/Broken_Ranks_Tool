@@ -3,7 +3,6 @@ import OptimizerBonusColumn from "./OptimizerBonusColumn";
 import OptimizerPriorityList from "./OptimizerPriorityList";
 import OptimizerPriorityToolbar from "./OptimizerPriorityToolbar";
 import OptimizerRunAction from "./OptimizerRunAction";
-import OptimizerSettingsPanel from "./OptimizerSettingsPanel";
 
 /** Editable goals, priorities, settings, and execution controls. */
 const OptimizerGoalsColumn = ({
@@ -90,11 +89,11 @@ const OptimizerGoalsColumn = ({
                         onToggle={onTogglePriority}
                         onRemove={onRemovePriority}
                         onUpdate={onUpdatePriority}
+                        configurationMode={settings.configurationMode || "ADVANCED"}
                     />
                 </div>
             </div>
         )}
-        <OptimizerSettingsPanel settings={settings} onChange={onSettingsChange} />
         <OptimizerRunAction
             priorityCount={settings.mode === "ADVISOR" ? 1 : priorities.length}
             isOptimizing={isOptimizing}

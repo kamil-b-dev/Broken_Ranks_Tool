@@ -19,10 +19,12 @@ describe("createEquipmentOptimizationRequest", () => {
 
         expect(request).toEqual({
             mode: "BUILD_FROM_SCRATCH",
+            configurationMode: "ADVANCED",
             originalSlots: slots,
             characterStats: { Siła: 100 },
             priorities: { CRITICAL_CHANCE: 20 },
             targetQuantities: {},
+            drifSizeQuantities: {},
             forceCapBonuses: [],
             forcedPercentageTargets: {},
             maximizeBonuses: [],

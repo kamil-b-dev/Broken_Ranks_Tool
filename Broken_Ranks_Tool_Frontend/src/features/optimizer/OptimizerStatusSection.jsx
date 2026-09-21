@@ -66,6 +66,16 @@ const OptimizerStatusSection = ({ isOptimizing, elapsedSeconds, status, lastDura
                         </p>
                     )}
                     <dl className="optimizer-status-metrics">
+                        {!advisor && status.configurationMode && (
+                            <div>
+                                <dd>
+                                    {status.configurationMode === "SIMPLE"
+                                        ? "Prosty"
+                                        : "Zaawansowany"}
+                                </dd>
+                                <dt>Podtryb</dt>
+                            </div>
+                        )}
                         {advisorStatus && (
                             <div>
                                 <dd>{advisorStatus}</dd>

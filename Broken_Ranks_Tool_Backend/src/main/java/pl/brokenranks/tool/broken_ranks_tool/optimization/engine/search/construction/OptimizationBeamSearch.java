@@ -1,6 +1,7 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.construction;
 
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.DrifOptimizationMath.*;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationDrifSizeConstraints.maximum;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationRequestConstraints.maxQuantity;
 
 import java.util.ArrayList;
@@ -113,6 +114,9 @@ public final class OptimizationBeamSearch {
         return !placementOperations.containsBonus(placements, candidate.getBonusType())
                 && stateEvaluation.globalCount(state, candidate.getBonusType(), context)
                         < maxQuantity(candidate.getBonusType(), context.request())
+                && stateEvaluation.sizeCount(
+                                state, candidate.getBonusType(), candidate.getSize(), context)
+                        < maximum(candidate.getBonusType(), candidate.getSize(), context.request())
                 && !placementOperations.containsAnotherElemental(state, candidate, null);
     }
 
@@ -147,9 +151,35 @@ public final class OptimizationBeamSearch {
     }
 
     private String globalCountSignature(BuildState state, OptimizationContext context) {
-        return context.request().getPriorities().keySet().stream()
-                .sorted(Comparator.comparing(Enum::name))
-                .map(type -> type.name() + "=" + stateEvaluation.globalCount(state, type, context))
-                .collect(Collectors.joining("|"));
+        String totals =
+                context.request().getPriorities().keySet().stream()
+                        .sorted(Comparator.comparing(Enum::name))
+                        .map(
+                                type ->
+                                        type.name()
+                                                + "="
+                                                + stateEvaluation.globalCount(state, type, context))
+                        .collect(Collectors.joining("|"));
+        if (context.request().getDrifSizeQuantities() == null) return totals;
+        String sizes =
+                context.request().getDrifSizeQuantities().entrySet().stream()
+                        .sorted(Map.Entry.comparingByKey(Comparator.comparing(Enum::name)))
+                        .flatMap(
+                                entry ->
+                                        entry.getValue().keySet().stream()
+                                                .sorted(Comparator.comparing(Enum::name))
+                                                .map(
+                                                        size ->
+                                                                entry.getKey().name()
+                                                                        + ":"
+                                                                        + size.name()
+                                                                        + "="
+                                                                        + stateEvaluation.sizeCount(
+                                                                                state,
+                                                                                entry.getKey(),
+                                                                                size,
+                                                                                context)))
+                        .collect(Collectors.joining("|"));
+        return totals + "|" + sizes;
     }
 }

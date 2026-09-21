@@ -17,6 +17,7 @@ describe("OptimizerStatusSection", () => {
                     applied: true,
                     message: "Znaleziono częściowy wynik.",
                     warnings: ["Nie osiągnięto celu."],
+                    configurationMode: "ADVANCED",
                     drifsPlaced: 8,
                     totalPowerUsed: 302,
                     executionTimeSeconds: 1.236,
@@ -30,6 +31,8 @@ describe("OptimizerStatusSection", () => {
         expect(screen.getByText("8 drifów")).toBeInTheDocument();
         expect(screen.getByText("Wykorzystana pojemność")).toBeInTheDocument();
         expect(screen.getByText("1.24 s")).toBeInTheDocument();
+        expect(screen.getByText("Zaawansowany")).toBeInTheDocument();
+        expect(screen.getByText("Podtryb")).toBeInTheDocument();
     });
 
     it("shows advisor quality, limits, and proof scope", () => {

@@ -17,6 +17,17 @@ Te dane są kontekstem obliczeń. Nie należy rozszerzać zakresu trybu tylko dl
 
 Epickie i setowe sloty zachowują wbudowane typy drifów. Ich poziomy mogą być podnoszone przez obecną ścieżkę algorytmu, ale ich typów nie wolno zastępować zwykłymi drifami.
 
+### Podtryb prosty i zaawansowany
+
+Tryb „od zera” ma dwa poziomy konfiguracji korzystające z tego samego endpointu i algorytmu:
+
+- `SIMPLE` pozwala wybrać mody oraz opcjonalnie dążenie do capa. Wszystkie wybrane mody otrzymują jednakową wagę, a algorytm sam dobiera liczbę, rozmiary, poziomy i rozmieszczenie drifów. Nie stosuje własnych procentów, maksymalizacji, limitów rozmiarów ani wariantów. Profile prostego trybu są na razie wyłącznie nieaktywnym placeholderem interfejsu i nie wpływają na wynik.
+- `ADVANCED` udostępnia wagi, łączne zakresy ilości, capy, konkretne procenty, maksymalizację, warianty oraz zakresy ilości dla poszczególnych rozmiarów drifów.
+
+Brak pola poziomu konfiguracji w starszym żądaniu oznacza `ADVANCED`, aby zachować dotychczasową semantykę API. Nowy interfejs domyślnie uruchamia `SIMPLE`. Przełączenie podtrybu nie usuwa ustawień drugiego podtrybu; ustawienia nieaktywnego podtrybu nie mogą wpływać na wyszukiwanie.
+
+W trybie zaawansowanym użytkownik może dla każdego wybranego moda pozostawić rozmiar bez ograniczeń albo podać osobny zakres `min–max` dla `SUBDRIF`, `BIDRIF`, `MAGNIDRIF` i `ARCYDRIF`. Zakresy są ograniczeniami twardymi i dotyczą wyłącznie zwykłych drifów dobieranych przez tryb „od zera”. Wartość `0–0` zabrania danego rozmiaru, a jednakowe minimum i maksimum wymusza dokładną liczbę. Suma minimów rozmiarów nie może przekraczać łącznego maksimum moda, a suma maksimów nie może być niższa od jego łącznego minimum. Nadal obowiązują tier, gniazda, pojemność i pozostałe reguły domenowe.
+
 ## 2. Tryb Doradcy
 
 Tryb `ADVISOR` analizuje aktualny build i proponuje krótkie plany jego ulepszenia. W przeciwieństwie do trybu „od zera” zaczyna od drifów posiadanych przez użytkownika i nie buduje dowolnego nowego układu z całego katalogu.

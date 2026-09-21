@@ -37,6 +37,18 @@ final class OptimizationStateQualityCalculator {
             hardViolations += Math.max(0, entry.getValue().getMin() - count);
             hardViolations += Math.max(0, count - entry.getValue().getMax());
         }
+        if (context.request().getDrifSizeQuantities() != null) {
+            for (var bonusEntry : context.request().getDrifSizeQuantities().entrySet()) {
+                for (var sizeEntry : bonusEntry.getValue().entrySet()) {
+                    int count =
+                            metrics.sizeCounts()
+                                    .getOrDefault(bonusEntry.getKey(), Map.of())
+                                    .getOrDefault(sizeEntry.getKey(), 0);
+                    hardViolations += Math.max(0, sizeEntry.getValue().getMin() - count);
+                    hardViolations += Math.max(0, count - sizeEntry.getValue().getMax());
+                }
+            }
+        }
         for (Map.Entry<DRIF_BONUS_TYPE, Integer> entry :
                 context.request().getPriorities().entrySet()) {
             DRIF_BONUS_TYPE type = entry.getKey();

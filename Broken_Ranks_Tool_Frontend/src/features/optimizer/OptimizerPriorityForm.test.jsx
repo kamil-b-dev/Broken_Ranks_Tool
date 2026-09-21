@@ -12,6 +12,7 @@ const bonus = {
     forcePercentage: false,
     forcedPercentage: 12.5,
     maximize: false,
+    sizeRanges: {},
 };
 
 describe("OptimizerPriorityForm", () => {
@@ -59,5 +60,27 @@ describe("OptimizerPriorityForm", () => {
 
         expect(screen.getByText("3,25%–8,5%")).toBeInTheDocument();
         expect(screen.getByText("Brak limitu")).toBeInTheDocument();
+    });
+
+    it("shows only the cap control in simple mode", () => {
+        render(<OptimizerPriorityForm bonus={bonus} maxCap={42} onChange={vi.fn()} simple />);
+
+        expect(screen.getByLabelText("Dąż do capa dla Szansa na krytyk")).toBeInTheDocument();
+        expect(screen.queryByRole("slider")).not.toBeInTheDocument();
+        expect(screen.queryByText("Limit Ilości:")).not.toBeInTheDocument();
+        expect(screen.queryByText("Maksymalizuj mod:")).not.toBeInTheDocument();
+    });
+
+    it("edits optional per-size ranges in advanced mode", async () => {
+        const user = userEvent.setup();
+        const onChange = vi.fn();
+        render(<OptimizerPriorityForm bonus={bonus} maxCap={42} onChange={onChange} />);
+
+        await user.click(screen.getByText("Rozmiary drifów"));
+        await user.click(screen.getByLabelText("Ogranicz SUBDRIF dla Szansa na krytyk"));
+
+        expect(onChange).toHaveBeenCalledWith("sizeRanges", {
+            SUBDRIF: { min: 0, max: 12 },
+        });
     });
 });

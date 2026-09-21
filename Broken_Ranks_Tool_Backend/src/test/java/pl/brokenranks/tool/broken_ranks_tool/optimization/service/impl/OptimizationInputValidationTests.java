@@ -260,6 +260,59 @@ class OptimizationInputValidationTests extends CustomModsOptimizationTestSupport
     }
 
     @Test
+    void rejectsCombinedSizeMinimumsThatExceedAllFreeSockets() {
+        ItemTemplate helmet = item(1L, 12, ITEM_CATEGORY.HELMET);
+        helmet.setTier("IV");
+        ItemTemplate armor = item(2L, 12, ITEM_CATEGORY.ARMOR);
+        armor.setTier("I");
+        DrifTemplate critical = drif(10L, DRIF_BONUS_TYPE.CRITICAL_CHANCE, 2.0, 1.0);
+        DrifTemplate magic = drif(11L, DRIF_BONUS_TYPE.DAMAGE_MAGIC, 2.0, 1.0);
+        critical.setSize(
+                pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_SIZE.SUBDRIF);
+        magic.setSize(
+                pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_SIZE.SUBDRIF);
+        OptimizationRequest request =
+                request(
+                        helmet.getId(),
+                        Map.of(
+                                DRIF_BONUS_TYPE.CRITICAL_CHANCE,
+                                20,
+                                DRIF_BONUS_TYPE.DAMAGE_MAGIC,
+                                20));
+        request.setOriginalSlots(
+                Map.of("helmet", slot(helmet.getId()), "armor", slot(armor.getId())));
+        request.setDrifSizeQuantities(
+                Map.of(
+                        DRIF_BONUS_TYPE.CRITICAL_CHANCE,
+                        Map.of(
+                                pl.brokenranks
+                                        .tool
+                                        .broken_ranks_tool
+                                        .equipment
+                                        .domain
+                                        .enums
+                                        .DRIF_SIZE
+                                        .SUBDRIF,
+                                new OptimizationRequest.QuantityRange(2, 2)),
+                        DRIF_BONUS_TYPE.DAMAGE_MAGIC,
+                        Map.of(
+                                pl.brokenranks
+                                        .tool
+                                        .broken_ranks_tool
+                                        .equipment
+                                        .domain
+                                        .enums
+                                        .DRIF_SIZE
+                                        .SUBDRIF,
+                                new OptimizationRequest.QuantityRange(2, 2))));
+
+        assertRejected(
+                service(List.of(helmet, armor), List.of(critical, magic), calculator())
+                        .optimize(request),
+                "łącznie więcej gniazd");
+    }
+
+    @Test
     void rejectsMalformedLockedDrifCatalogValues() {
         ItemTemplate item = item(1L, 12);
         DrifTemplate drif = drif(10L, DRIF_BONUS_TYPE.CRITICAL_CHANCE, 2.0, 1.0);

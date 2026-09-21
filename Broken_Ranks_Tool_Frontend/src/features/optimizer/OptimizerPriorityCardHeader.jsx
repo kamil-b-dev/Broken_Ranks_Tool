@@ -1,7 +1,7 @@
 import CategoryIcon from "../../shared/ui/CategoryIcon";
 
 /** Summarizes one priority and exposes its expand and remove actions. */
-const OptimizerPriorityCardHeader = ({ index, bonus, expanded, onToggle, onRemove }) => (
+const OptimizerPriorityCardHeader = ({ index, bonus, expanded, onToggle, onRemove, simple }) => (
     <div className="optimizer-priority-card-header">
         <span className="optimizer-priority-rank">{index + 1}</span>
         <span className="optimizer-priority-handle" aria-hidden="true">
@@ -30,10 +30,12 @@ const OptimizerPriorityCardHeader = ({ index, bonus, expanded, onToggle, onRemov
             <span className="optimizer-priority-name">{bonus.value}</span>
             {!expanded && (
                 <span className="optimizer-priority-compact-meta">
-                    waga {bonus.weight} · {bonus.min}–{bonus.max}
+                    {simple
+                        ? "automatyczny dobór"
+                        : `waga ${bonus.weight} · ${bonus.min}–${bonus.max}`}
                     {bonus.forceCap ? " · cel: cap" : ""}
-                    {bonus.forcePercentage ? ` · ${bonus.forcedPercentage}%` : ""}
-                    {bonus.maximize ? " · max" : ""}
+                    {!simple && bonus.forcePercentage ? ` · ${bonus.forcedPercentage}%` : ""}
+                    {!simple && bonus.maximize ? " · max" : ""}
                 </span>
             )}
             <svg

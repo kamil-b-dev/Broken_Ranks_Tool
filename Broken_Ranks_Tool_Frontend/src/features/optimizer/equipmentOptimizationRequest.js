@@ -7,10 +7,12 @@ export const createEquipmentOptimizationRequest = ({
     lockedDrifs,
 }) => ({
     mode: configuration.mode || "BUILD_FROM_SCRATCH",
+    configurationMode: configuration.configurationMode || "ADVANCED",
     originalSlots: slots,
     characterStats: characterStats || {},
     priorities: configuration.priorities || {},
     targetQuantities: configuration.targetQuantities || {},
+    drifSizeQuantities: configuration.drifSizeQuantities || {},
     forceCapBonuses: configuration.forceCapBonuses || [],
     forcedPercentageTargets: configuration.forcedPercentageTargets || {},
     maximizeBonuses: configuration.maximizeBonuses || [],

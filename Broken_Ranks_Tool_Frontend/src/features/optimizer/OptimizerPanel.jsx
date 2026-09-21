@@ -6,11 +6,12 @@ import {
     buildOptimizationConfig,
     createOptimizerConfigPayload,
     findInvalidPercentageTarget,
+    findInvalidSizeConstraint,
     mergeOptimizerSettings,
     parseOptimizerConfigPayload,
 } from "./optimizerConfiguration";
 import OptimizerMobileNavigation from "./OptimizerMobileNavigation";
-import { OptimizerModeNavigation } from "./OptimizerSettingsPanel";
+import OptimizerSettingsPanel, { OptimizerModeNavigation } from "./OptimizerSettingsPanel";
 import OptimizerLocksColumn from "./OptimizerLocksColumn";
 import OptimizerGoalsColumn from "./OptimizerGoalsColumn";
 import OptimizerReportColumn from "./OptimizerReportColumn";
@@ -162,11 +163,24 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
             return;
         }
         if (optimizerSettings.mode !== "ADVISOR" && prioritizedBonuses.length === 0) return;
-        const invalidPercentageTarget = findInvalidPercentageTarget(prioritizedBonuses);
+        const advanced = optimizerSettings.configurationMode === "ADVANCED";
+        const invalidPercentageTarget = advanced
+            ? findInvalidPercentageTarget(prioritizedBonuses)
+            : null;
         if (invalidPercentageTarget) {
             setNotice({
                 type: "error",
                 message: `Podaj poprawny, nieujemny procent dla: ${invalidPercentageTarget.value}.`,
+            });
+            return;
+        }
+        const invalidSizeConstraint = advanced
+            ? findInvalidSizeConstraint(prioritizedBonuses)
+            : null;
+        if (invalidSizeConstraint) {
+            setNotice({
+                type: "error",
+                message: `Zakresy rozmiarów są nieprawidłowe lub sprzeczne z łącznym limitem dla: ${invalidSizeConstraint.value}.`,
             });
             return;
         }
@@ -206,6 +220,10 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
     return (
         <div className="optimizer-console">
             <OptimizerModeNavigation
+                settings={optimizerSettings}
+                onChange={onOptimizerSettingsChange}
+            />
+            <OptimizerSettingsPanel
                 settings={optimizerSettings}
                 onChange={onOptimizerSettingsChange}
             />
