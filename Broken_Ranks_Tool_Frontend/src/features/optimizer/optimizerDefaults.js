@@ -1,5 +1,6 @@
 export const DEFAULT_OPTIMIZER_SETTINGS = {
     mode: "BUILD_FROM_SCRATCH",
+    configurationMode: "SIMPLE",
     forceMaximizationByDrifBonus: false,
     generateVariants: false,
     maxVariantLossPercent: 5,

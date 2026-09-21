@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_SIZE;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.BuildConfigurationMode;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationRequestConstraints;
 
@@ -57,6 +59,81 @@ class OptimizationRequestValidatorTests {
                         new OptimizationRequest.QuantityRange(0, 12)));
 
         assertNull(OptimizationRequestValidator.validateSettings(request));
+    }
+
+    @Test
+    void validatesAdvancedSizeRangesAgainstTotalQuantity() {
+        OptimizationRequest request = new OptimizationRequest();
+        request.setPriorities(Map.of(DRIF_BONUS_TYPE.CRITICAL_CHANCE, 15));
+        request.setTargetQuantities(
+                Map.of(
+                        DRIF_BONUS_TYPE.CRITICAL_CHANCE,
+                        new OptimizationRequest.QuantityRange(2, 3)));
+        request.setDrifSizeQuantities(
+                Map.of(
+                        DRIF_BONUS_TYPE.CRITICAL_CHANCE,
+                        Map.of(DRIF_SIZE.SUBDRIF, new OptimizationRequest.QuantityRange(1, 2))));
+
+        assertNull(OptimizationRequestValidator.validateSettings(request));
+        request.setDrifSizeQuantities(
+                Map.of(
+                        DRIF_BONUS_TYPE.CRITICAL_CHANCE,
+                        Map.of(DRIF_SIZE.SUBDRIF, new OptimizationRequest.QuantityRange(4, 4))));
+        assertNotNull(OptimizationRequestValidator.validateSettings(request));
+    }
+
+    @Test
+    void simpleModeRejectsAdvancedControls() {
+        OptimizationRequest request = new OptimizationRequest();
+        request.setConfigurationMode(BuildConfigurationMode.SIMPLE);
+        request.setPriorities(Map.of(DRIF_BONUS_TYPE.CRITICAL_CHANCE, 15));
+        request.setTargetQuantities(
+                Map.of(
+                        DRIF_BONUS_TYPE.CRITICAL_CHANCE,
+                        new OptimizationRequest.QuantityRange(0, 12)));
+        request.setDrifSizeQuantities(Map.of());
+        assertNull(OptimizationRequestValidator.validateSettings(request));
+
+        request.setMaximizeBonuses(Set.of(DRIF_BONUS_TYPE.CRITICAL_CHANCE));
+        assertNotNull(OptimizationRequestValidator.validateSettings(request));
+    }
+
+    @Test
+    void simpleModeRejectsNonAutomaticWeightsAndQuantities() {
+        OptimizationRequest request = new OptimizationRequest();
+        request.setConfigurationMode(BuildConfigurationMode.SIMPLE);
+        request.setPriorities(Map.of(DRIF_BONUS_TYPE.CRITICAL_CHANCE, 14));
+        request.setTargetQuantities(
+                Map.of(
+                        DRIF_BONUS_TYPE.CRITICAL_CHANCE,
+                        new OptimizationRequest.QuantityRange(0, 12)));
+        assertNotNull(OptimizationRequestValidator.validateSettings(request));
+
+        request.setPriorities(Map.of(DRIF_BONUS_TYPE.CRITICAL_CHANCE, 15));
+        request.setTargetQuantities(
+                Map.of(
+                        DRIF_BONUS_TYPE.CRITICAL_CHANCE,
+                        new OptimizationRequest.QuantityRange(1, 12)));
+        assertNotNull(OptimizationRequestValidator.validateSettings(request));
+    }
+
+    @Test
+    void rejectsMalformedPerSizeRanges() {
+        for (OptimizationRequest.QuantityRange range :
+                new OptimizationRequest.QuantityRange[] {
+                    null,
+                    new OptimizationRequest.QuantityRange(-1, 1),
+                    new OptimizationRequest.QuantityRange(0, 13),
+                    new OptimizationRequest.QuantityRange(2, 1)
+                }) {
+            OptimizationRequest request = new OptimizationRequest();
+            request.setPriorities(Map.of(DRIF_BONUS_TYPE.CRITICAL_CHANCE, 15));
+            Map<DRIF_SIZE, OptimizationRequest.QuantityRange> sizes = new HashMap<>();
+            sizes.put(DRIF_SIZE.SUBDRIF, range);
+            request.setDrifSizeQuantities(Map.of(DRIF_BONUS_TYPE.CRITICAL_CHANCE, sizes));
+
+            assertNotNull(OptimizationRequestValidator.validateSettings(request));
+        }
     }
 
     @Test

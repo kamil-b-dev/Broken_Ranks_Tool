@@ -10,6 +10,7 @@ const createPriority = (bonus) => ({
     forcePercentage: false,
     forcedPercentage: "",
     maximize: false,
+    sizeRanges: {},
 });
 
 /** Owns available modifiers, configured priorities, filtering, ordering, and card expansion. */

@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import OptimizerSettingsPanel, { OptimizerModeNavigation } from "./OptimizerSettingsPanel";
 
 const settings = {
+    configurationMode: "ADVANCED",
     forceMaximizationByDrifBonus: true,
     generateVariants: true,
     maxVariantLossPercent: 5,
@@ -31,7 +32,7 @@ describe("OptimizerSettingsPanel", () => {
             />
         );
 
-        expect(screen.getByText("Ustawienia budowania")).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "Ustawienia" })).toBeInTheDocument();
         expect(screen.getByText(/Wymuś maksymalizację/)).toBeInTheDocument();
     });
 
@@ -43,9 +44,28 @@ describe("OptimizerSettingsPanel", () => {
             />
         );
 
-        expect(screen.getByText("Zakres rekomendacji")).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "Ustawienia" })).toBeInTheDocument();
         expect(screen.queryByText("Maksymalna strata:")).not.toBeInTheDocument();
         expect(screen.queryByText(/Wymuś maksymalizację/)).not.toBeInTheDocument();
+    });
+
+    it("keeps simple mode focused on caps and shows profiles as a placeholder", async () => {
+        const onChange = vi.fn();
+        const user = userEvent.setup();
+        render(
+            <OptimizerSettingsPanel
+                settings={{ ...settings, mode: "BUILD_FROM_SCRATCH", configurationMode: "SIMPLE" }}
+                onChange={onChange}
+            />
+        );
+
+        expect(screen.getByRole("combobox", { name: /Profil prostego/i })).toBeDisabled();
+        expect(screen.queryByText(/Wymuś maksymalizację/)).not.toBeInTheDocument();
+        expect(screen.queryByText("Obliczaj dodatkowe warianty")).not.toBeInTheDocument();
+        await user.click(screen.getByRole("button", { name: "Zaawansowany" }));
+        expect(onChange).toHaveBeenCalledWith(
+            expect.objectContaining({ configurationMode: "ADVANCED" })
+        );
     });
 
     it("updates build settings from every control", async () => {

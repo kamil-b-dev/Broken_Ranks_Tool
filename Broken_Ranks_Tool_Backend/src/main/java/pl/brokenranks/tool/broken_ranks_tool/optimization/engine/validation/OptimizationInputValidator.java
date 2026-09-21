@@ -141,13 +141,20 @@ public final class OptimizationInputValidator {
     }
 
     private String validateFeasibility(OptimizationContext context) {
-        if (context.request().getTargetQuantities() == null) return null;
-        int totalMissingMinimums = 0;
+        if (context.request().getTargetQuantities() == null
+                && context.request().getDrifSizeQuantities() == null) return null;
+        Map<DRIF_BONUS_TYPE, Integer> missingMinimumsByType =
+                new java.util.EnumMap<>(DRIF_BONUS_TYPE.class);
+        Map<DRIF_BONUS_TYPE, Integer> missingSizeMinimumsByType =
+                new java.util.EnumMap<>(DRIF_BONUS_TYPE.class);
         int totalFreeSockets = 0;
         for (SlotContext slot : context.slots()) {
             totalFreeSockets += availableSockets(slot, context);
         }
-        for (var entry : context.request().getTargetQuantities().entrySet()) {
+        for (var entry :
+                context.request().getTargetQuantities() == null
+                        ? Map.<DRIF_BONUS_TYPE, OptimizationRequest.QuantityRange>of().entrySet()
+                        : context.request().getTargetQuantities().entrySet()) {
             int fixedCount = 0;
             int upperBound = 0;
             for (SlotContext slot : context.slots()) {
@@ -168,8 +175,52 @@ public final class OptimizationInputValidator {
                         + entry.getKey().getDescription()
                         + " jest fizycznie nieosiągalne na przekazanym ekwipunku.";
             }
-            totalMissingMinimums += Math.max(0, entry.getValue().getMin() - fixedCount);
+            missingMinimumsByType.put(
+                    entry.getKey(), Math.max(0, entry.getValue().getMin() - fixedCount));
         }
+        if (context.request().getDrifSizeQuantities() != null) {
+            for (var bonusEntry : context.request().getDrifSizeQuantities().entrySet()) {
+                for (var sizeEntry : bonusEntry.getValue().entrySet()) {
+                    int fixed = 0;
+                    int upperBound = 0;
+                    for (SlotContext slot : context.slots()) {
+                        int fixedInSlot =
+                                fixedCount(slot, bonusEntry.getKey(), sizeEntry.getKey(), context);
+                        fixed += fixedInSlot;
+                        upperBound += fixedInSlot;
+                        if (fixedInSlot == 0
+                                && canAdd(slot, bonusEntry.getKey(), sizeEntry.getKey(), context))
+                            upperBound++;
+                    }
+                    if (fixed > sizeEntry.getValue().getMax()) {
+                        return "Zablokowane drify przekraczają maksimum rozmiaru "
+                                + sizeEntry.getKey()
+                                + " dla "
+                                + bonusEntry.getKey().getDescription()
+                                + ".";
+                    }
+                    if (sizeEntry.getValue().getMin() > upperBound) {
+                        return "Minimum rozmiaru "
+                                + sizeEntry.getKey()
+                                + " dla "
+                                + bonusEntry.getKey().getDescription()
+                                + " jest fizycznie nieosiągalne.";
+                    }
+                    missingSizeMinimumsByType.merge(
+                            bonusEntry.getKey(),
+                            Math.max(0, sizeEntry.getValue().getMin() - fixed),
+                            Integer::sum);
+                }
+            }
+        }
+        int totalMissingMinimums =
+                context.request().getPriorities().keySet().stream()
+                        .mapToInt(
+                                type ->
+                                        Math.max(
+                                                missingMinimumsByType.getOrDefault(type, 0),
+                                                missingSizeMinimumsByType.getOrDefault(type, 0)))
+                        .sum();
         if (totalMissingMinimums > totalFreeSockets) {
             return "Ustawione minima wymagają łącznie więcej gniazd, niż pozostaje dostępnych.";
         }
@@ -177,6 +228,15 @@ public final class OptimizationInputValidator {
     }
 
     private int fixedCount(SlotContext slot, DRIF_BONUS_TYPE type, OptimizationContext context) {
+        return fixedCount(slot, type, null, context);
+    }
+
+    private int fixedCount(
+            SlotContext slot,
+            DRIF_BONUS_TYPE type,
+            pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_SIZE size,
+            OptimizationContext context) {
+        if (size != null && slot.special()) return 0;
         List<Long> ids =
                 slot.original().getDrifIds() != null ? slot.original().getDrifIds() : List.of();
         Set<Integer> fixed = preservedIndexes(slot.key(), slot.original(), slot, context.request());
@@ -184,7 +244,9 @@ public final class OptimizationInputValidator {
         for (Integer index : fixed) {
             if (index == null || index < 0 || index >= ids.size()) continue;
             DrifTemplate drif = context.drifs().get(ids.get(index));
-            if (drif != null && drif.getBonusType() == type) count++;
+            if (drif != null
+                    && drif.getBonusType() == type
+                    && (size == null || drif.getSize() == size)) count++;
         }
         return count;
     }
@@ -200,10 +262,19 @@ public final class OptimizationInputValidator {
     }
 
     private boolean canAdd(SlotContext slot, DRIF_BONUS_TYPE type, OptimizationContext context) {
+        return canAdd(slot, type, null, context);
+    }
+
+    private boolean canAdd(
+            SlotContext slot,
+            DRIF_BONUS_TYPE type,
+            pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_SIZE size,
+            OptimizationContext context) {
         if (availableSockets(slot, context) == 0) return false;
         DrifTemplate candidate =
                 slot.candidates().stream()
                         .filter(drif -> drif.getBonusType() == type)
+                        .filter(drif -> size == null || drif.getSize() == size)
                         .findFirst()
                         .orElse(null);
         if (candidate == null) return false;

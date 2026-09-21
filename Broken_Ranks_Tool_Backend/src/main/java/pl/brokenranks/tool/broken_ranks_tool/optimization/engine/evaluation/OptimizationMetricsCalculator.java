@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_SIZE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRulesRegistry;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
@@ -43,6 +44,12 @@ final class OptimizationMetricsCalculator {
                     drifValue(placement.drif(), placement.level(), context)
                             * (1.0 + slot.drifBonus());
             accumulator.searchCounts.merge(type, 1, Integer::sum);
+            if (!slot.special()) {
+                accumulator
+                        .sizeCounts
+                        .computeIfAbsent(type, ignored -> new LinkedHashMap<>())
+                        .merge(placement.drif().getSize(), 1, Integer::sum);
+            }
             accumulator.searchRawValues.merge(type, value, Double::sum);
             if (!unique.add(type)) continue;
             if (!slot.special()) {
@@ -71,6 +78,8 @@ final class OptimizationMetricsCalculator {
         private final Map<DRIF_BONUS_TYPE, Integer> counts = new LinkedHashMap<>();
         private final Map<DRIF_BONUS_TYPE, Double> rawValues = new LinkedHashMap<>();
         private final Map<DRIF_BONUS_TYPE, Integer> searchCounts = new LinkedHashMap<>();
+        private final Map<DRIF_BONUS_TYPE, Map<DRIF_SIZE, Integer>> sizeCounts =
+                new LinkedHashMap<>();
         private final Map<DRIF_BONUS_TYPE, Double> searchRawValues = new LinkedHashMap<>();
         private int totalPower;
         private int overflowPower;
@@ -84,6 +93,7 @@ final class OptimizationMetricsCalculator {
             return new Metrics(
                     counts,
                     searchCounts,
+                    sizeCounts,
                     searchValues,
                     totalPower,
                     overflowPower,

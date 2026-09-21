@@ -11,6 +11,20 @@ import {
 } from "./advisor/advisorConfiguration";
 
 const clamp = (value, minimum, maximum) => Math.max(minimum, Math.min(maximum, value));
+const DRIF_SIZES = ["SUBDRIF", "BIDRIF", "MAGNIDRIF", "ARCYDRIF"];
+
+const normalizeSizeRanges = (value) => {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+    return Object.fromEntries(
+        DRIF_SIZES.flatMap((size) => {
+            const range = value[size];
+            if (!range || typeof range !== "object") return [];
+            const min = clamp(Math.trunc(Number(range.min)) || 0, 0, 12);
+            const max = clamp(Math.trunc(Number(range.max)) || 0, min, 12);
+            return [[size, { min, max }]];
+        })
+    );
+};
 
 const normalizeProtectedModifiers = (value, knownBonuses) => {
     if (!value || typeof value !== "object" || Array.isArray(value)) return null;
@@ -38,6 +52,7 @@ export const createOptimizerConfigPayload = (priorities, settings, exportedAt = 
     exportedAt: exportedAt.toISOString(),
     settings: {
         mode: settings?.mode || "BUILD_FROM_SCRATCH",
+        configurationMode: settings?.configurationMode || "SIMPLE",
         advisorProfession: settings?.advisorProfession || "AUTO",
         advisorGoal: settings?.advisorGoal || "",
         advisorProtectedModifiers: settings?.advisorProtectedModifiers || {},
@@ -48,7 +63,17 @@ export const createOptimizerConfigPayload = (priorities, settings, exportedAt = 
         maxVariantLossPercent: clamp(Number(settings?.maxVariantLossPercent) || 0, 0, 100),
     },
     priorities: priorities.map(
-        ({ key, weight, min, max, forceCap, forcePercentage, forcedPercentage, maximize }) => ({
+        ({
+            key,
+            weight,
+            min,
+            max,
+            forceCap,
+            forcePercentage,
+            forcedPercentage,
+            maximize,
+            sizeRanges,
+        }) => ({
             key,
             weight: Number(weight),
             min: Number(min),
@@ -57,6 +82,7 @@ export const createOptimizerConfigPayload = (priorities, settings, exportedAt = 
             forcePercentage: Boolean(forcePercentage),
             forcedPercentage: forcePercentage ? Number(forcedPercentage) : null,
             maximize: Boolean(maximize),
+            sizeRanges: normalizeSizeRanges(sizeRanges),
         })
     ),
 });
@@ -108,6 +134,7 @@ export const parseOptimizerConfigPayload = (payload, gameRules = {}) => {
                 forcePercentage,
                 forcedPercentage: forcePercentage ? parsedForcedPercentage : "",
                 maximize: !forcePercentage && Boolean(entry.maximize ?? entry.critical),
+                sizeRanges: normalizeSizeRanges(entry.sizeRanges),
             },
         ];
     });
@@ -129,6 +156,9 @@ export const parseOptimizerConfigPayload = (payload, gameRules = {}) => {
             ? clamp(Math.trunc(importedMaxLoss), 0, 100)
             : null,
         mode: knownModes.has(payload.settings?.mode) ? payload.settings.mode : null,
+        configurationMode: ["SIMPLE", "ADVANCED"].includes(payload.settings?.configurationMode)
+            ? payload.settings.configurationMode
+            : "ADVANCED",
         advisorProfession: ["AUTO", "MAGICAL", "PHYSICAL"].includes(
             payload.settings?.advisorProfession
         )
@@ -208,6 +238,7 @@ export const mergeOptimizerSettings = (previous, imported) => ({
         : {}),
     ...(imported.generateVariants !== null ? { generateVariants: imported.generateVariants } : {}),
     ...(imported.mode !== null ? { mode: imported.mode } : {}),
+    ...(imported.configurationMode ? { configurationMode: imported.configurationMode } : {}),
 });
 
 export const findInvalidPercentageTarget = (priorities) =>
@@ -219,34 +250,74 @@ export const findInvalidPercentageTarget = (priorities) =>
                 Number(bonus.forcedPercentage) < 0)
     );
 
+export const findInvalidSizeConstraint = (priorities) =>
+    priorities.find((bonus) => {
+        const configuredRanges = Object.values(bonus.sizeRanges || {});
+        const malformed = configuredRanges.some((range) => {
+            if (!range || typeof range !== "object") return true;
+            const min = Number(range.min);
+            const max = Number(range.max);
+            return (
+                range.min === "" ||
+                range.max === "" ||
+                !Number.isFinite(min) ||
+                !Number.isFinite(max) ||
+                min < 0 ||
+                max > 12 ||
+                min > max
+            );
+        });
+        if (malformed) return true;
+        const ranges = Object.values(normalizeSizeRanges(bonus.sizeRanges));
+        if (ranges.length === 0) return false;
+        const totalMin = Number(bonus.min);
+        const totalMax = Number(bonus.max);
+        const sizeMin = ranges.reduce((sum, range) => sum + range.min, 0);
+        const unrestrictedSizes = DRIF_SIZES.length - ranges.length;
+        const sizeMax = ranges.reduce((sum, range) => sum + range.max, 0) + unrestrictedSizes * 12;
+        return sizeMin > totalMax || sizeMax < totalMin;
+    });
+
 /** Converts editable priority values into the backend optimization contract. */
 export const buildOptimizationConfig = (priorities, settings = {}) => {
+    const simple = (settings.configurationMode || "SIMPLE") === "SIMPLE";
     const config = {
         mode: settings.mode || "BUILD_FROM_SCRATCH",
+        configurationMode: simple ? "SIMPLE" : "ADVANCED",
         priorities: {},
         targetQuantities: {},
         forceCapBonuses: [],
         forcedPercentageTargets: {},
         maximizeBonuses: [],
-        forceMaximizationByDrifBonus: Boolean(settings.forceMaximizationByDrifBonus),
-        generateVariants: Boolean(settings.generateVariants),
+        drifSizeQuantities: {},
+        forceMaximizationByDrifBonus: !simple && Boolean(settings.forceMaximizationByDrifBonus),
+        generateVariants: !simple && Boolean(settings.generateVariants),
         maxVariantLossPercent: clamp(Number(settings.maxVariantLossPercent) || 0, 0, 100),
     };
 
     priorities.forEach((bonus) => {
-        config.priorities[bonus.key] = Number.parseInt(bonus.weight, 10);
+        config.priorities[bonus.key] = simple ? 15 : Number.parseInt(bonus.weight, 10);
         const parsedMin = Number.parseInt(bonus.min, 10);
         const parsedMax = Number.parseInt(bonus.max, 10);
         const min = clamp(Number.isNaN(parsedMin) ? 0 : parsedMin, 0, 12);
         const max = clamp(Number.isNaN(parsedMax) ? 12 : parsedMax, min, 12);
-        config.targetQuantities[bonus.key] = { min, max };
+        config.targetQuantities[bonus.key] = simple ? { min: 0, max: 12 } : { min, max };
 
         if (bonus.forceCap) config.forceCapBonuses.push(bonus.key);
         const forcedPercentage = Number(bonus.forcedPercentage);
-        if (bonus.forcePercentage && Number.isFinite(forcedPercentage) && forcedPercentage >= 0) {
+        if (
+            !simple &&
+            bonus.forcePercentage &&
+            Number.isFinite(forcedPercentage) &&
+            forcedPercentage >= 0
+        ) {
             config.forcedPercentageTargets[bonus.key] = forcedPercentage;
         }
-        if (bonus.maximize && !bonus.forcePercentage) config.maximizeBonuses.push(bonus.key);
+        if (!simple && bonus.maximize && !bonus.forcePercentage)
+            config.maximizeBonuses.push(bonus.key);
+        if (!simple && Object.keys(bonus.sizeRanges || {}).length > 0) {
+            config.drifSizeQuantities[bonus.key] = normalizeSizeRanges(bonus.sizeRanges);
+        }
     });
 
     return config;

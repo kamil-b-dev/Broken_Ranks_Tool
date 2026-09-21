@@ -11,6 +11,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_T
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentPlacementRules;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationDrifSizeConstraints;
 
 /** Validates hard quantity, slot, capacity, and uniqueness constraints. */
 @RequiredArgsConstructor
@@ -22,6 +23,9 @@ final class OptimizationFinalResultValidator {
     String validate(BuildState state, OptimizationContext context) {
         if (!stateEvaluator.minimumsSatisfied(state, context)) {
             return "Końcowy wynik nie spełnia limitów ilościowych.";
+        }
+        if (!OptimizationDrifSizeConstraints.satisfied(state, context)) {
+            return "Końcowy wynik nie spełnia limitów rozmiarów drifów.";
         }
         for (SlotContext slot : context.slots()) {
             String slotError = validateSlot(state, slot, context);
