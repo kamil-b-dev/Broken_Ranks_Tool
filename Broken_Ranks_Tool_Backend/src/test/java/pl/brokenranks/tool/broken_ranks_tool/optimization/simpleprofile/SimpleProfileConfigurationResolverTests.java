@@ -41,8 +41,7 @@ class SimpleProfileConfigurationResolverTests {
     @Test
     void mapsMagicalResourcesToManaAndImportanceChangesWeight() {
         var normal = simple(SimpleBuildProfile.MAGICAL);
-        normal.setSimpleAspects(
-                Map.of(SimpleBuildAspect.RESOURCES, SimpleAspectImportance.NORMAL));
+        normal.setSimpleAspects(Map.of(SimpleBuildAspect.RESOURCES, SimpleAspectImportance.NORMAL));
         var key = simple(SimpleBuildProfile.MAGICAL);
         key.setSimpleAspects(Map.of(SimpleBuildAspect.RESOURCES, SimpleAspectImportance.KEY));
 

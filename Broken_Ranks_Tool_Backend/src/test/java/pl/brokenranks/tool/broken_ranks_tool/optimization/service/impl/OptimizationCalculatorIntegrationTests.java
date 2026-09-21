@@ -46,7 +46,8 @@ class OptimizationCalculatorIntegrationTests {
 
         var response = fixture.service().optimize(request);
 
-        assertTrue(response.getSummary().isSuccess(), response.getSummary().getWarnings().toString());
+        assertTrue(
+                response.getSummary().isSuccess(), response.getSummary().getWarnings().toString());
         var ids =
                 response.getOptimizedSetup().getSlots().values().stream()
                         .flatMap(slot -> slot.getDrifIds().stream())

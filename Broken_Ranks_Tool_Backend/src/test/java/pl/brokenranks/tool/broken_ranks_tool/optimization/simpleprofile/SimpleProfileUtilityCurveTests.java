@@ -9,8 +9,7 @@ class SimpleProfileUtilityCurveTests {
     @Test
     void rewardsEarlyProgressMoreThanStackingPastUsefulTarget() {
         double earlyGain =
-                SimpleProfileUtilityCurve.utility(5, 10)
-                        - SimpleProfileUtilityCurve.utility(0, 10);
+                SimpleProfileUtilityCurve.utility(5, 10) - SimpleProfileUtilityCurve.utility(0, 10);
         double lateGain =
                 SimpleProfileUtilityCurve.utility(15, 10)
                         - SimpleProfileUtilityCurve.utility(10, 10);

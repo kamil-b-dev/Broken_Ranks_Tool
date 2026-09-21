@@ -50,9 +50,11 @@ public final class SimpleProfileConfigurationResolver {
 
     private static Map<DRIF_BONUS_TYPE, OptimizationRequest.QuantityRange> defaultQuantities(
             Map<DRIF_BONUS_TYPE, Integer> priorities) {
-        Map<DRIF_BONUS_TYPE, OptimizationRequest.QuantityRange> result = new EnumMap<>(DRIF_BONUS_TYPE.class);
-        priorities.keySet().forEach(
-                type -> result.put(type, new OptimizationRequest.QuantityRange(0, 12)));
+        Map<DRIF_BONUS_TYPE, OptimizationRequest.QuantityRange> result =
+                new EnumMap<>(DRIF_BONUS_TYPE.class);
+        priorities
+                .keySet()
+                .forEach(type -> result.put(type, new OptimizationRequest.QuantityRange(0, 12)));
         return result;
     }
 
