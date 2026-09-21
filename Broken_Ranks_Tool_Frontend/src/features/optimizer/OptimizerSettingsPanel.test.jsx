@@ -49,7 +49,7 @@ describe("OptimizerSettingsPanel", () => {
         expect(screen.queryByText(/Wymuś maksymalizację/)).not.toBeInTheDocument();
     });
 
-    it("keeps simple mode focused on caps and shows profiles as a placeholder", async () => {
+    it("lets the player select an active simple profile", async () => {
         const onChange = vi.fn();
         const user = userEvent.setup();
         render(
@@ -59,7 +59,13 @@ describe("OptimizerSettingsPanel", () => {
             />
         );
 
-        expect(screen.getByRole("combobox", { name: /Profil prostego/i })).toBeDisabled();
+        await user.selectOptions(
+            screen.getByRole("combobox", { name: /Profil prostego/i }),
+            "MAGICAL"
+        );
+        expect(onChange).toHaveBeenCalledWith(
+            expect.objectContaining({ simpleProfile: "MAGICAL" })
+        );
         expect(screen.queryByText(/Wymuś maksymalizację/)).not.toBeInTheDocument();
         expect(screen.queryByText("Obliczaj dodatkowe warianty")).not.toBeInTheDocument();
         await user.click(screen.getByRole("button", { name: "Zaawansowany" }));

@@ -13,6 +13,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRul
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.simpleprofile.SimpleProfileUtilityCurve;
 
 /** Calculates structured quality measures and maximization scales for states. */
 @RequiredArgsConstructor
@@ -66,7 +67,18 @@ final class OptimizationStateQualityCalculator {
                 forcedCapDeficit += Math.max(0.0, target - value) * priority;
                 forcedCapExcess += Math.max(0.0, value - target) * priority;
                 weightedUtility += Math.min(value, target) * priority;
-            } else weightedUtility += value * priority;
+            } else {
+                Double usefulTarget =
+                        context.request().getSimpleUtilityTargets() == null
+                                ? null
+                                : context.request().getSimpleUtilityTargets().get(type);
+                weightedUtility +=
+                        usefulTarget != null
+                                ? SimpleProfileUtilityCurve.utility(
+                                                cappedValue(type, value), usefulTarget)
+                                        * priority
+                                : value * priority;
+            }
         }
         if (!hasMaximizedTypes) minimumMaximizedProgress = 0.0;
         evaluation.quality =
@@ -81,6 +93,11 @@ final class OptimizationStateQualityCalculator {
                         metrics.capacityUtilization(),
                         metrics.totalPower());
         return evaluation.quality;
+    }
+
+    private double cappedValue(DRIF_BONUS_TYPE type, double value) {
+        Integer cap = type.getMaxCap();
+        return cap == null ? Math.max(0.0, value) : Math.min(Math.max(0.0, value), Math.abs(cap));
     }
 
     double maximizationScale(DRIF_BONUS_TYPE type, OptimizationContext context) {

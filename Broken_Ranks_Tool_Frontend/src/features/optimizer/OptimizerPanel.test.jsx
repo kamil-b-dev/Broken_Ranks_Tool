@@ -238,6 +238,12 @@ describe("OptimizerPanel", () => {
             advisorProfession: "AUTO",
             configurationMode: "ADVANCED",
             maxVariantLossPercent: 0,
+            simpleProfile: "PHYSICAL_MELEE",
+            simpleAspects: {
+                DAMAGE: "IMPORTANT",
+                ACCURACY: "IMPORTANT",
+                SURVIVABILITY: "NORMAL",
+            },
         });
     });
 

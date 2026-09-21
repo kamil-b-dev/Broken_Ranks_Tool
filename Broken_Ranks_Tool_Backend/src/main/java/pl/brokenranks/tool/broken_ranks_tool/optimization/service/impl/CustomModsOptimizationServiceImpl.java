@@ -21,6 +21,7 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.validation.Opti
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.variant.GeneratedOptimizationVariant;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.variant.OptimizationVariantGenerator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.service.ModsOptimizationService;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.simpleprofile.SimpleProfileConfigurationResolver;
 
 /** Coordinates optimizer input, search execution, and API response assembly. */
 @Service
@@ -44,6 +45,11 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
     @Override
     public OptimizationResponse optimize(OptimizationRequest request) {
         long startTime = System.nanoTime();
+        String profileError =
+                request == null ? null : SimpleProfileConfigurationResolver.resolve(request);
+        if (profileError != null) {
+            return failedResponse(profileError, elapsedSeconds(startTime));
+        }
         String requestError = OptimizationRequestValidator.validate(request);
         if (requestError != null) {
             return failedResponse(requestError, elapsedSeconds(startTime));

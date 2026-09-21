@@ -96,6 +96,7 @@ describe("App", () => {
             "page"
         );
         expect(screen.getByRole("heading", { name: "Ustawienia" })).toBeInTheDocument();
+        await user.click(screen.getByRole("button", { name: "Zaawansowany" }));
         const optimizerSearch = screen.getByPlaceholderText("Szukaj statystyki...");
         await user.type(optimizerSearch, "krytyk");
         expect(

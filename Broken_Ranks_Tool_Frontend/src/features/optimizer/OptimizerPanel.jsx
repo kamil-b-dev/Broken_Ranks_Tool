@@ -162,7 +162,15 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
             }
             return;
         }
-        if (optimizerSettings.mode !== "ADVISOR" && prioritizedBonuses.length === 0) return;
+        const simple = optimizerSettings.configurationMode === "SIMPLE";
+        if (simple && Object.keys(optimizerSettings.simpleAspects || {}).length === 0) {
+            setNotice({
+                type: "error",
+                message: "Wybierz przynajmniej jeden obszar ważny dla buildu.",
+            });
+            return;
+        }
+        if (!simple && prioritizedBonuses.length === 0) return;
         const advanced = optimizerSettings.configurationMode === "ADVANCED";
         const invalidPercentageTarget = advanced
             ? findInvalidPercentageTarget(prioritizedBonuses)
@@ -230,9 +238,14 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
             <AppNotice notice={notice} onDismiss={() => setNotice(null)} />
             <OptimizerMobileNavigation
                 activeColumn={activeMobileColumn}
-                priorityCount={prioritizedBonuses.length}
+                priorityCount={
+                    optimizerSettings.configurationMode === "SIMPLE"
+                        ? Object.keys(optimizerSettings.simpleAspects || {}).length
+                        : prioritizedBonuses.length
+                }
                 onChange={setActiveMobileColumn}
                 mode={optimizerSettings.mode}
+                configurationMode={optimizerSettings.configurationMode}
             />
             <div className="optimizer-main-grid">
                 <OptimizerLocksColumn

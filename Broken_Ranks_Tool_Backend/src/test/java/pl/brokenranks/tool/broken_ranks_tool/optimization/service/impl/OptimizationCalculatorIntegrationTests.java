@@ -11,8 +11,51 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.*;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.*;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.*;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.simpleprofile.*;
 
 class OptimizationCalculatorIntegrationTests {
+    @Test
+    void simpleProfileDiversifiesLimitedSocketsInsteadOfChasingOneDistantGoal() {
+        var damage = drif(10, DRIF_BONUS_TYPE.DAMAGE_PHYSICAL, DRIF_SIZE.SUBDRIF, "5%", "1%");
+        var reduction = drif(11, DRIF_BONUS_TYPE.DAMAGE_REDUCTION, DRIF_SIZE.SUBDRIF, "5%", "1%");
+        var fixture =
+                create(
+                        List.of(
+                                item(1, ITEM_CATEGORY.HELMET, "I", 4),
+                                item(2, ITEM_CATEGORY.ARMOR, "I", 4),
+                                item(3, ITEM_CATEGORY.BOOTS, "I", 4),
+                                item(4, ITEM_CATEGORY.CAPE, "I", 4)),
+                        List.of(damage, reduction),
+                        List.of());
+        var request =
+                request(
+                        Map.of(
+                                "helmet", slot(1),
+                                "armor", slot(2),
+                                "boots", slot(3),
+                                "cape", slot(4)),
+                        Map.of());
+        request.setConfigurationMode(BuildConfigurationMode.SIMPLE);
+        request.setSimpleProfile(SimpleBuildProfile.PHYSICAL_MELEE);
+        request.setSimpleAspects(
+                Map.of(
+                        SimpleBuildAspect.DAMAGE,
+                        SimpleAspectImportance.IMPORTANT,
+                        SimpleBuildAspect.SURVIVABILITY,
+                        SimpleAspectImportance.IMPORTANT));
+
+        var response = fixture.service().optimize(request);
+
+        assertTrue(response.getSummary().isSuccess(), response.getSummary().getWarnings().toString());
+        var ids =
+                response.getOptimizedSetup().getSlots().values().stream()
+                        .flatMap(slot -> slot.getDrifIds().stream())
+                        .filter(Objects::nonNull)
+                        .toList();
+        assertTrue(ids.contains(damage.getId()));
+        assertTrue(ids.contains(reduction.getId()));
+    }
+
     @Test
     void partialSizeConstraintStillAllowsLargerUnrestrictedDrifs() {
         var type = DRIF_BONUS_TYPE.CRITICAL_CHANCE;

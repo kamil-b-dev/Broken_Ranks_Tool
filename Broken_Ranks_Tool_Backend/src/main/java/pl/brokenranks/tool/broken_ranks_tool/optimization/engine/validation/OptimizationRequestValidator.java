@@ -66,7 +66,8 @@ public final class OptimizationRequestValidator {
                         && !request.getDrifSizeQuantities().isEmpty()) {
             return "Tryb prosty nie obsługuje ustawień zaawansowanych.";
         }
-        if (request.getPriorities().values().stream().anyMatch(weight -> weight != 15)) {
+        if (request.getSimpleProfile() == null
+                && request.getPriorities().values().stream().anyMatch(weight -> weight != 15)) {
             return "Tryb prosty używa jednakowej, automatycznej wagi modyfikatorów.";
         }
         if (request.getTargetQuantities() != null
