@@ -1,6 +1,12 @@
 export const DEFAULT_OPTIMIZER_SETTINGS = {
     mode: "BUILD_FROM_SCRATCH",
     configurationMode: "SIMPLE",
+    simpleProfile: "PHYSICAL_MELEE",
+    simpleAspects: {
+        DAMAGE: "IMPORTANT",
+        ACCURACY: "IMPORTANT",
+        SURVIVABILITY: "NORMAL",
+    },
     forceMaximizationByDrifBonus: false,
     generateVariants: false,
     maxVariantLossPercent: 5,

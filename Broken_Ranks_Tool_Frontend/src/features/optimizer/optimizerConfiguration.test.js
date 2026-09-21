@@ -172,13 +172,30 @@ describe("optimizerConfiguration", () => {
 
         expect(buildOptimizationConfig([priority], { configurationMode: "SIMPLE" })).toMatchObject({
             configurationMode: "SIMPLE",
-            priorities: { CRITICAL_CHANCE: 15 },
-            targetQuantities: { CRITICAL_CHANCE: { min: 0, max: 12 } },
-            forceCapBonuses: ["CRITICAL_CHANCE"],
+            simpleProfile: "PHYSICAL_MELEE",
+            simpleAspects: {
+                DAMAGE: "IMPORTANT",
+                ACCURACY: "IMPORTANT",
+                SURVIVABILITY: "NORMAL",
+            },
+            priorities: {},
+            targetQuantities: {},
+            forceCapBonuses: [],
             forcedPercentageTargets: {},
             maximizeBonuses: [],
             drifSizeQuantities: {},
             generateVariants: false,
+        });
+        expect(
+            buildOptimizationConfig([], {
+                configurationMode: "SIMPLE",
+                simpleProfile: "MAGICAL",
+                simpleAspects: { RESOURCES: "KEY" },
+            })
+        ).toMatchObject({
+            simpleProfile: "MAGICAL",
+            simpleAspects: { RESOURCES: "KEY" },
+            priorities: {},
         });
         const advanced = buildOptimizationConfig([priority], { configurationMode: "ADVANCED" });
         expect(advanced.drifSizeQuantities.CRITICAL_CHANCE).toEqual(priority.sizeRanges);

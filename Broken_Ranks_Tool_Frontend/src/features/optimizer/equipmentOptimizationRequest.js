@@ -19,6 +19,12 @@ export const createEquipmentOptimizationRequest = ({
     forceMaximizationByDrifBonus: Boolean(configuration.forceMaximizationByDrifBonus),
     generateVariants: Boolean(configuration.generateVariants),
     maxVariantLossPercent: Number(configuration.maxVariantLossPercent),
+    ...(configuration.configurationMode === "SIMPLE"
+        ? {
+              simpleProfile: configuration.simpleProfile,
+              simpleAspects: configuration.simpleAspects || {},
+          }
+        : {}),
     lockedSlots,
     lockedDrifs,
     ...(configuration.mode === "ADVISOR"

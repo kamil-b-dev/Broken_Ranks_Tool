@@ -1,5 +1,6 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -14,6 +15,9 @@ import lombok.NoArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_SIZE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.simpleprofile.SimpleAspectImportance;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.simpleprofile.SimpleBuildAspect;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.simpleprofile.SimpleBuildProfile;
 
 /** Request DTO for drif optimization, priorities, limits, locks, and caps. */
 @Data
@@ -24,6 +28,16 @@ public class OptimizationRequest {
 
     /** UI complexity selected for build-from-scratch. Defaults to legacy advanced semantics. */
     @NotNull private BuildConfigurationMode configurationMode = BuildConfigurationMode.ADVANCED;
+
+    /** Combat style used by the profile-driven simple mode. */
+    private SimpleBuildProfile simpleProfile;
+
+    /** Player-selected building blocks and their coarse importance. */
+    @Size(max = 6)
+    private Map<SimpleBuildAspect, @NotNull SimpleAspectImportance> simpleAspects;
+
+    /** Internal saturation points produced by the simple profile resolver. */
+    @JsonIgnore private Map<DRIF_BONUS_TYPE, Double> simpleUtilityTargets;
 
     @Valid private AdvisorOptions advisor;
 
@@ -37,7 +51,6 @@ public class OptimizationRequest {
     private Map<String, EquipmentRequest.SlotData> originalSlots;
 
     /** Priority weights keyed by the bonus type selected by the user. */
-    @NotEmpty
     @Size(max = 32)
     private Map<DRIF_BONUS_TYPE, @NotNull @Min(1) @Max(30) Integer> priorities;
 

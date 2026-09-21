@@ -21,10 +21,12 @@ Epickie i setowe sloty zachowują wbudowane typy drifów. Ich poziomy mogą być
 
 Tryb „od zera” ma dwa poziomy konfiguracji korzystające z tego samego endpointu i algorytmu:
 
-- `SIMPLE` pozwala wybrać mody oraz opcjonalnie dążenie do capa. Wszystkie wybrane mody otrzymują jednakową wagę, a algorytm sam dobiera liczbę, rozmiary, poziomy i rozmieszczenie drifów. Nie stosuje własnych procentów, maksymalizacji, limitów rozmiarów ani wariantów. Profile prostego trybu są na razie wyłącznie nieaktywnym placeholderem interfejsu i nie wpływają na wynik.
+- `SIMPLE` pozwala wybrać profil (`MAGICAL`, `PHYSICAL_MELEE` albo `PHYSICAL_RANGED`), ważne obszary buildu oraz ich ważność. Dostępne obszary to obrażenia, celność, przeżywalność, zasoby, odporności i użyteczność. Backend rozwija ten wybór na zestaw modów właściwych dla profilu; użytkownik nie przekłada modów ręcznie. Algorytm sam dobiera liczbę, rozmiary, poziomy i rozmieszczenie drifów. Nie stosuje własnych procentów, maksymalizacji, limitów rozmiarów ani wariantów.
 - `ADVANCED` udostępnia wagi, łączne zakresy ilości, capy, konkretne procenty, maksymalizację, warianty oraz zakresy ilości dla poszczególnych rozmiarów drifów.
 
 Brak pola poziomu konfiguracji w starszym żądaniu oznacza `ADVANCED`, aby zachować dotychczasową semantykę API. Nowy interfejs domyślnie uruchamia `SIMPLE`. Przełączenie podtrybu nie usuwa ustawień drugiego podtrybu; ustawienia nieaktywnego podtrybu nie mogą wpływać na wyszukiwanie.
+
+Reguły rozwijania prostego profilu są wydzielone w pakiecie `optimization.simpleprofile`. Ocena normalizuje różne rodzaje statystyk względem ich użytecznych celów i stosuje malejącą użyteczność. Dzięki temu mała liczba gniazd jest dzielona między wybrane potrzeby buildu, zamiast bezwarunkowo przeznaczać wszystkie drify na próbę osiągnięcia jednego odległego capa. Przekroczenie celu może dawać niewielką dodatkową wartość, ale każdy kolejny punkt jest mniej cenny. Bezwzględny cap moda pozostaje granicą użyteczności i punkty ponad capem nie poprawiają oceny.
 
 W trybie zaawansowanym użytkownik może dla każdego wybranego moda pozostawić rozmiar bez ograniczeń albo podać osobny zakres `min–max` dla `SUBDRIF`, `BIDRIF`, `MAGNIDRIF` i `ARCYDRIF`. Zakresy są ograniczeniami twardymi i dotyczą wyłącznie zwykłych drifów dobieranych przez tryb „od zera”. Wartość `0–0` zabrania danego rozmiaru, a jednakowe minimum i maksimum wymusza dokładną liczbę. Suma minimów rozmiarów nie może przekraczać łącznego maksimum moda, a suma maksimów nie może być niższa od jego łącznego minimum. Nadal obowiązują tier, gniazda, pojemność i pozostałe reguły domenowe.
 

@@ -9,9 +9,31 @@ import {
     DEFAULT_ADVISOR_SEARCH,
     normalizeAdvisorTimeBudget,
 } from "./advisor/advisorConfiguration";
+import {
+    DEFAULT_SIMPLE_ASPECTS,
+    SIMPLE_ASPECTS,
+    SIMPLE_IMPORTANCE,
+    SIMPLE_PROFILES,
+} from "./simple-profile/simpleProfileDefinitions";
 
 const clamp = (value, minimum, maximum) => Math.max(minimum, Math.min(maximum, value));
 const DRIF_SIZES = ["SUBDRIF", "BIDRIF", "MAGNIDRIF", "ARCYDRIF"];
+const SIMPLE_PROFILE_VALUES = new Set(SIMPLE_PROFILES.map(({ value }) => value));
+const SIMPLE_ASPECT_VALUES = new Set(SIMPLE_ASPECTS.map(({ key }) => key));
+const SIMPLE_IMPORTANCE_VALUES = new Set(SIMPLE_IMPORTANCE.map(({ value }) => value));
+
+const normalizeSimpleAspects = (value) => {
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+        return { ...DEFAULT_SIMPLE_ASPECTS };
+    }
+    const normalized = Object.fromEntries(
+        Object.entries(value).filter(
+            ([aspect, importance]) =>
+                SIMPLE_ASPECT_VALUES.has(aspect) && SIMPLE_IMPORTANCE_VALUES.has(importance)
+        )
+    );
+    return Object.keys(normalized).length > 0 ? normalized : { ...DEFAULT_SIMPLE_ASPECTS };
+};
 
 const normalizeSizeRanges = (value) => {
     if (!value || typeof value !== "object" || Array.isArray(value)) return {};
@@ -53,6 +75,10 @@ export const createOptimizerConfigPayload = (priorities, settings, exportedAt = 
     settings: {
         mode: settings?.mode || "BUILD_FROM_SCRATCH",
         configurationMode: settings?.configurationMode || "SIMPLE",
+        simpleProfile: SIMPLE_PROFILE_VALUES.has(settings?.simpleProfile)
+            ? settings.simpleProfile
+            : "PHYSICAL_MELEE",
+        simpleAspects: normalizeSimpleAspects(settings?.simpleAspects),
         advisorProfession: settings?.advisorProfession || "AUTO",
         advisorGoal: settings?.advisorGoal || "",
         advisorProtectedModifiers: settings?.advisorProtectedModifiers || {},
@@ -159,6 +185,10 @@ export const parseOptimizerConfigPayload = (payload, gameRules = {}) => {
         configurationMode: ["SIMPLE", "ADVANCED"].includes(payload.settings?.configurationMode)
             ? payload.settings.configurationMode
             : "ADVANCED",
+        simpleProfile: SIMPLE_PROFILE_VALUES.has(payload.settings?.simpleProfile)
+            ? payload.settings.simpleProfile
+            : "PHYSICAL_MELEE",
+        simpleAspects: normalizeSimpleAspects(payload.settings?.simpleAspects),
         advisorProfession: ["AUTO", "MAGICAL", "PHYSICAL"].includes(
             payload.settings?.advisorProfession
         )
@@ -239,6 +269,8 @@ export const mergeOptimizerSettings = (previous, imported) => ({
     ...(imported.generateVariants !== null ? { generateVariants: imported.generateVariants } : {}),
     ...(imported.mode !== null ? { mode: imported.mode } : {}),
     ...(imported.configurationMode ? { configurationMode: imported.configurationMode } : {}),
+    ...(imported.simpleProfile ? { simpleProfile: imported.simpleProfile } : {}),
+    ...(imported.simpleAspects ? { simpleAspects: imported.simpleAspects } : {}),
 });
 
 export const findInvalidPercentageTarget = (priorities) =>
@@ -293,15 +325,25 @@ export const buildOptimizationConfig = (priorities, settings = {}) => {
         forceMaximizationByDrifBonus: !simple && Boolean(settings.forceMaximizationByDrifBonus),
         generateVariants: !simple && Boolean(settings.generateVariants),
         maxVariantLossPercent: clamp(Number(settings.maxVariantLossPercent) || 0, 0, 100),
+        ...(simple
+            ? {
+                  simpleProfile: SIMPLE_PROFILE_VALUES.has(settings.simpleProfile)
+                      ? settings.simpleProfile
+                      : "PHYSICAL_MELEE",
+                  simpleAspects: normalizeSimpleAspects(settings.simpleAspects),
+              }
+            : {}),
     };
 
+    if (simple) return config;
+
     priorities.forEach((bonus) => {
-        config.priorities[bonus.key] = simple ? 15 : Number.parseInt(bonus.weight, 10);
+        config.priorities[bonus.key] = Number.parseInt(bonus.weight, 10);
         const parsedMin = Number.parseInt(bonus.min, 10);
         const parsedMax = Number.parseInt(bonus.max, 10);
         const min = clamp(Number.isNaN(parsedMin) ? 0 : parsedMin, 0, 12);
         const max = clamp(Number.isNaN(parsedMax) ? 12 : parsedMax, min, 12);
-        config.targetQuantities[bonus.key] = simple ? { min: 0, max: 12 } : { min, max };
+        config.targetQuantities[bonus.key] = { min, max };
 
         if (bonus.forceCap) config.forceCapBonuses.push(bonus.key);
         const forcedPercentage = Number(bonus.forcedPercentage);
