@@ -41,8 +41,8 @@ describe("createEquipmentOptimizationRequest", () => {
             slots: { armor: { itemId: 4 } },
             configuration: {
                 configurationMode: "SIMPLE",
-                simpleProfile: "MAGICAL",
-                simpleAspects: { DAMAGE: "IMPORTANT", RESOURCES: "KEY" },
+                simpleProfile: "VOODOO",
+                simpleOptions: { damageDrifs: 7, accuracyDrifs: 7 },
             },
             lockedSlots: [],
             lockedDrifs: {},
@@ -51,8 +51,9 @@ describe("createEquipmentOptimizationRequest", () => {
         expect(request).toMatchObject({
             configurationMode: "SIMPLE",
             priorities: {},
-            simpleProfile: "MAGICAL",
-            simpleAspects: { DAMAGE: "IMPORTANT", RESOURCES: "KEY" },
+            simpleProfile: "VOODOO",
+            simpleOptions: { damageDrifs: 7, accuracyDrifs: 7 },
+            simpleAspects: {},
         });
     });
 });

@@ -57,6 +57,9 @@ public final class OptimizationRequestValidator {
 
     private static String validateSimpleMode(OptimizationRequest request) {
         if (request.getConfigurationMode() != BuildConfigurationMode.SIMPLE) return null;
+        // A named profile is resolved server-side and may legitimately produce internal
+        // maximization targets and profession-specific soft quantity ceilings.
+        if (request.getSimpleProfile() != null) return null;
         if (request.isForceMaximizationByDrifBonus()
                 || request.isGenerateVariants()
                 || request.getForcedPercentageTargets() != null

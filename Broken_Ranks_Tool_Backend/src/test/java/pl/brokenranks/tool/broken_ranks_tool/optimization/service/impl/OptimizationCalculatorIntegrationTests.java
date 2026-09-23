@@ -15,6 +15,28 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.simpleprofile.*;
 
 class OptimizationCalculatorIntegrationTests {
     @Test
+    void professionProfileReturnsWeakBuildAndReportsUnmetPreferredQuantities() {
+        var damage = drif(10, DRIF_BONUS_TYPE.DAMAGE_PHYSICAL, DRIF_SIZE.SUBDRIF, "5%", "1%");
+        var fixture =
+                create(List.of(item(1, ITEM_CATEGORY.HELMET, "I", 4)), List.of(damage), List.of());
+        var request = request(Map.of("helmet", slot(1)), Map.of());
+        request.setConfigurationMode(BuildConfigurationMode.SIMPLE);
+        request.setSimpleProfile(SimpleBuildProfile.BARBARIAN);
+        var options = new SimpleProfileOptions();
+        options.setDamageDrifs(3);
+        options.setAccuracyDrifs(2);
+        options.setElement(SimpleElement.FIRE);
+        request.setSimpleOptions(options);
+
+        var response = fixture.service().optimize(request);
+
+        assertFalse(response.getOptimizedSetup().getSlots().isEmpty());
+        assertTrue(
+                response.getSummary().getWarnings().stream()
+                        .anyMatch(warning -> warning.contains("Preferowana liczba drifów")));
+    }
+
+    @Test
     void simpleProfileDiversifiesLimitedSocketsInsteadOfChasingOneDistantGoal() {
         var damage = drif(10, DRIF_BONUS_TYPE.DAMAGE_PHYSICAL, DRIF_SIZE.SUBDRIF, "5%", "1%");
         var reduction = drif(11, DRIF_BONUS_TYPE.DAMAGE_REDUCTION, DRIF_SIZE.SUBDRIF, "5%", "1%");

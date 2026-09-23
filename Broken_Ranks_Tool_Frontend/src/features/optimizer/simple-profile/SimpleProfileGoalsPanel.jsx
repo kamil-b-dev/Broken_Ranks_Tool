@@ -1,78 +1,138 @@
-import { SIMPLE_ASPECTS, SIMPLE_IMPORTANCE } from "./simpleProfileDefinitions";
+import { SIMPLE_ELEMENTS, SIMPLE_STYLES } from "./simpleProfileDefinitions";
 
-/** Lets a simple-mode player compose a build from understandable goals. */
+const QuantityField = ({ label, value, onChange }) => (
+    <label className="flex items-center justify-between gap-4 border border-purple-950/80 bg-black/25 p-3 text-xs text-stone-300">
+        <span>{label}</span>
+        <input
+            type="number"
+            min="1"
+            max="12"
+            value={value}
+            onChange={(event) => onChange(Math.max(1, Math.min(12, Number(event.target.value))))}
+            className="w-16 border border-purple-900/80 bg-black px-2 py-1 text-center text-stone-100"
+        />
+    </label>
+);
+
+const Toggle = ({ label, checked, onChange }) => (
+    <label className="flex cursor-pointer items-center gap-2 border border-stone-800 bg-black/25 p-3 text-xs text-stone-300">
+        <input
+            type="checkbox"
+            checked={checked}
+            onChange={(event) => onChange(event.target.checked)}
+            className="h-4 w-4 accent-purple-700"
+        />
+        {label}
+    </label>
+);
+
+/** Exposes only the few decisions not predetermined by the selected profession. */
 const SimpleProfileGoalsPanel = ({ settings, onChange }) => {
-    const selected = settings.simpleAspects || {};
-    const updateAspect = (key, value) => {
-        const next = { ...selected };
-        if (value) next[key] = value;
-        else delete next[key];
-        onChange({ ...settings, simpleAspects: next });
-    };
+    const profile = settings.simpleProfile || "BARBARIAN";
+    const options = settings.simpleOptions || {};
+    const update = (key, value) =>
+        onChange({ ...settings, simpleOptions: { ...options, [key]: value } });
+    const styled = ["KNIGHT", "DRUID"].includes(profile);
+    const elemental = ["BARBARIAN", "SHEED"].includes(profile);
+    const archerLike = ["ARCHER", "SHEED", "VOODOO"].includes(profile);
 
     return (
         <div className="min-h-0 flex-1 overflow-y-auto p-3 custom-scrollbar">
             <div className="mb-3 border border-purple-950/80 bg-black/30 p-3">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-purple-200">
-                    Co liczy się w buildzie?
+                    Konfiguracja profilu profesji
                 </h4>
                 <p className="mt-1 text-[11px] leading-relaxed text-stone-400">
-                    Algorytm rozdzieli dostępne gniazda między zaznaczone obszary. Wcześniejsze
-                    punkty statystyki są warte więcej, więc słabszy ekwipunek nie będzie na siłę
-                    dążył do nieosiągalnego capa.
+                    Profil dodaje wspólny rdzeń i charakterystyczne mody profesji. Podane liczby są
+                    miękkimi limitami — słabszy ekwipunek otrzyma najlepszy wykonalny układ.
                 </p>
             </div>
+
+            {styled && (
+                <label className="mb-3 flex items-center justify-between border border-purple-950/80 bg-black/25 p-3 text-xs text-stone-300">
+                    Styl buildu
+                    <select
+                        aria-label="Styl buildu"
+                        value={options.style || "OFFENSIVE"}
+                        onChange={(event) =>
+                            onChange({
+                                ...settings,
+                                simpleOptions: {
+                                    ...options,
+                                    style: event.target.value,
+                                    passiveDamageReduction: event.target.value === "DEFENSIVE",
+                                },
+                            })
+                        }
+                        className="border border-purple-900/80 bg-black px-2 py-1 text-stone-100"
+                    >
+                        {SIMPLE_STYLES.map((style) => (
+                            <option key={style.value} value={style.value}>
+                                {style.label}
+                            </option>
+                        ))}
+                    </select>
+                </label>
+            )}
+
             <div className="grid gap-2 md:grid-cols-2">
-                {SIMPLE_ASPECTS.map((aspect) => {
-                    const importance = selected[aspect.key];
-                    return (
-                        <article
-                            key={aspect.key}
-                            className={`border p-3 ${importance ? "border-purple-700/80 bg-purple-950/20" : "border-stone-800 bg-black/25"}`}
-                        >
-                            <label className="flex cursor-pointer items-start gap-2">
-                                <input
-                                    type="checkbox"
-                                    checked={Boolean(importance)}
-                                    onChange={(event) =>
-                                        updateAspect(
-                                            aspect.key,
-                                            event.target.checked ? "IMPORTANT" : null
-                                        )
-                                    }
-                                    className="mt-0.5 h-4 w-4 accent-purple-700"
-                                />
-                                <span>
-                                    <strong className="block text-xs uppercase tracking-wide text-stone-200">
-                                        {aspect.label}
-                                    </strong>
-                                    <span className="mt-1 block text-[10px] leading-relaxed text-stone-500">
-                                        {aspect.description}
-                                    </span>
-                                </span>
-                            </label>
-                            {importance && (
-                                <label className="mt-3 flex items-center justify-between gap-3 border-t border-stone-800 pt-2 text-[10px] uppercase tracking-wider text-stone-400">
-                                    Znaczenie
-                                    <select
-                                        value={importance}
-                                        onChange={(event) =>
-                                            updateAspect(aspect.key, event.target.value)
-                                        }
-                                        aria-label={`Znaczenie: ${aspect.label}`}
-                                        className="border border-purple-900/80 bg-black px-2 py-1 text-stone-200"
-                                    >
-                                        {SIMPLE_IMPORTANCE.map((option) => (
-                                            <option key={option.value} value={option.value}>
-                                                {option.label}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </label>
-                            )}
-                        </article>
-                    );
-                })}
+                <QuantityField
+                    label="Drify obrażeń"
+                    value={options.damageDrifs || 7}
+                    onChange={(value) => update("damageDrifs", value)}
+                />
+                <QuantityField
+                    label="Drify celności"
+                    value={options.accuracyDrifs || 6}
+                    onChange={(value) => update("accuracyDrifs", value)}
+                />
+            </div>
+
+            {elemental && (
+                <label className="mt-2 flex items-center justify-between border border-purple-950/80 bg-black/25 p-3 text-xs text-stone-300">
+                    Drif żywiołowy w broni
+                    <select
+                        aria-label="Żywioł broni"
+                        value={options.element || (profile === "SHEED" ? "NONE" : "FIRE")}
+                        onChange={(event) => update("element", event.target.value)}
+                        className="border border-purple-900/80 bg-black px-2 py-1 text-stone-100"
+                    >
+                        {SIMPLE_ELEMENTS.filter(
+                            (element) => profile === "SHEED" || element.value !== "NONE"
+                        ).map((element) => (
+                            <option key={element.value} value={element.value}>
+                                {element.label}
+                            </option>
+                        ))}
+                    </select>
+                </label>
+            )}
+
+            <div className="mt-3 grid gap-2 md:grid-cols-2">
+                <Toggle
+                    label="Redukcja obrażeń biernych"
+                    checked={Boolean(options.passiveDamageReduction)}
+                    onChange={(value) => update("passiveDamageReduction", value)}
+                />
+                <Toggle
+                    label="Redukcja obrażeń procentowych"
+                    checked={Boolean(options.percentageDamageReduction)}
+                    onChange={(value) => update("percentageDamageReduction", value)}
+                />
+                {archerLike && (
+                    <>
+                        <Toggle
+                            label="Holm — szansa redukcji obrażeń"
+                            checked={Boolean(options.damageReductionChance)}
+                            onChange={(value) => update("damageReductionChance", value)}
+                        />
+                        <Toggle
+                            label="Farid — szansa uniku"
+                            checked={Boolean(options.dodgeChance)}
+                            onChange={(value) => update("dodgeChance", value)}
+                        />
+                    </>
+                )}
             </div>
         </div>
     );

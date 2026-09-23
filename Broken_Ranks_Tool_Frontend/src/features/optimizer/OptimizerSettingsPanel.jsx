@@ -1,4 +1,4 @@
-import { SIMPLE_PROFILES } from "./simple-profile/simpleProfileDefinitions";
+import { defaultSimpleOptions, SIMPLE_PROFILES } from "./simple-profile/simpleProfileDefinitions";
 
 const MODES = [
     ["BUILD_FROM_SCRATCH", "Od zera"],
@@ -114,9 +114,13 @@ const OptimizerSettingsPanel = ({ settings, onChange }) => {
                         Profil
                         <select
                             aria-label="Profil prostego optymalizatora"
-                            value={settings.simpleProfile || "PHYSICAL_MELEE"}
+                            value={settings.simpleProfile || "BARBARIAN"}
                             onChange={(event) =>
-                                onChange({ ...settings, simpleProfile: event.target.value })
+                                onChange({
+                                    ...settings,
+                                    simpleProfile: event.target.value,
+                                    simpleOptions: defaultSimpleOptions(event.target.value),
+                                })
                             }
                             className="border border-purple-900/80 bg-black px-2 py-1 text-stone-200"
                         >

@@ -65,7 +65,28 @@ final class OptimizationSummaryFactory {
             }
             addUnmetTargetWarning(warnings, actual.get(type.name()), type, target, context);
         }
+        addSimpleQuantityWarnings(warnings, stateEvaluator.metrics(state, context), context);
         return warnings;
+    }
+
+    private void addSimpleQuantityWarnings(
+            List<String> warnings, Metrics metrics, OptimizationContext context) {
+        Map<DRIF_BONUS_TYPE, Integer> preferred = context.request().getSimplePreferredQuantities();
+        if (preferred == null) return;
+        preferred.forEach(
+                (type, expected) -> {
+                    int placed = metrics.counts().getOrDefault(type, 0);
+                    if (placed < expected) {
+                        warnings.add(
+                                "Preferowana liczba drifów dla "
+                                        + type.getDescription()
+                                        + ": "
+                                        + expected
+                                        + ", umieszczono: "
+                                        + placed
+                                        + ".");
+                    }
+                });
     }
 
     private String resultMessage(List<String> warnings) {
