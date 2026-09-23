@@ -163,13 +163,6 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
             return;
         }
         const simple = optimizerSettings.configurationMode === "SIMPLE";
-        if (simple && Object.keys(optimizerSettings.simpleAspects || {}).length === 0) {
-            setNotice({
-                type: "error",
-                message: "Wybierz przynajmniej jeden obszar ważny dla buildu.",
-            });
-            return;
-        }
         if (!simple && prioritizedBonuses.length === 0) return;
         const advanced = optimizerSettings.configurationMode === "ADVANCED";
         const invalidPercentageTarget = advanced
@@ -239,9 +232,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
             <OptimizerMobileNavigation
                 activeColumn={activeMobileColumn}
                 priorityCount={
-                    optimizerSettings.configurationMode === "SIMPLE"
-                        ? Object.keys(optimizerSettings.simpleAspects || {}).length
-                        : prioritizedBonuses.length
+                    optimizerSettings.configurationMode === "SIMPLE" ? 1 : prioritizedBonuses.length
                 }
                 onChange={setActiveMobileColumn}
                 mode={optimizerSettings.mode}

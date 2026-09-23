@@ -11,14 +11,14 @@ import {
 } from "./advisor/advisorConfiguration";
 import {
     DEFAULT_SIMPLE_ASPECTS,
+    normalizeSimpleOptions,
+    normalizeSimpleProfile,
     SIMPLE_ASPECTS,
     SIMPLE_IMPORTANCE,
-    SIMPLE_PROFILES,
 } from "./simple-profile/simpleProfileDefinitions";
 
 const clamp = (value, minimum, maximum) => Math.max(minimum, Math.min(maximum, value));
 const DRIF_SIZES = ["SUBDRIF", "BIDRIF", "MAGNIDRIF", "ARCYDRIF"];
-const SIMPLE_PROFILE_VALUES = new Set(SIMPLE_PROFILES.map(({ value }) => value));
 const SIMPLE_ASPECT_VALUES = new Set(SIMPLE_ASPECTS.map(({ key }) => key));
 const SIMPLE_IMPORTANCE_VALUES = new Set(SIMPLE_IMPORTANCE.map(({ value }) => value));
 
@@ -75,9 +75,11 @@ export const createOptimizerConfigPayload = (priorities, settings, exportedAt = 
     settings: {
         mode: settings?.mode || "BUILD_FROM_SCRATCH",
         configurationMode: settings?.configurationMode || "SIMPLE",
-        simpleProfile: SIMPLE_PROFILE_VALUES.has(settings?.simpleProfile)
-            ? settings.simpleProfile
-            : "PHYSICAL_MELEE",
+        simpleProfile: normalizeSimpleProfile(settings?.simpleProfile),
+        simpleOptions: normalizeSimpleOptions(
+            settings?.simpleOptions,
+            normalizeSimpleProfile(settings?.simpleProfile)
+        ),
         simpleAspects: normalizeSimpleAspects(settings?.simpleAspects),
         advisorProfession: settings?.advisorProfession || "AUTO",
         advisorGoal: settings?.advisorGoal || "",
@@ -185,9 +187,11 @@ export const parseOptimizerConfigPayload = (payload, gameRules = {}) => {
         configurationMode: ["SIMPLE", "ADVANCED"].includes(payload.settings?.configurationMode)
             ? payload.settings.configurationMode
             : "ADVANCED",
-        simpleProfile: SIMPLE_PROFILE_VALUES.has(payload.settings?.simpleProfile)
-            ? payload.settings.simpleProfile
-            : "PHYSICAL_MELEE",
+        simpleProfile: normalizeSimpleProfile(payload.settings?.simpleProfile),
+        simpleOptions: normalizeSimpleOptions(
+            payload.settings?.simpleOptions,
+            normalizeSimpleProfile(payload.settings?.simpleProfile)
+        ),
         simpleAspects: normalizeSimpleAspects(payload.settings?.simpleAspects),
         advisorProfession: ["AUTO", "MAGICAL", "PHYSICAL"].includes(
             payload.settings?.advisorProfession
@@ -270,6 +274,7 @@ export const mergeOptimizerSettings = (previous, imported) => ({
     ...(imported.mode !== null ? { mode: imported.mode } : {}),
     ...(imported.configurationMode ? { configurationMode: imported.configurationMode } : {}),
     ...(imported.simpleProfile ? { simpleProfile: imported.simpleProfile } : {}),
+    ...(imported.simpleOptions ? { simpleOptions: imported.simpleOptions } : {}),
     ...(imported.simpleAspects ? { simpleAspects: imported.simpleAspects } : {}),
 });
 
@@ -327,9 +332,11 @@ export const buildOptimizationConfig = (priorities, settings = {}) => {
         maxVariantLossPercent: clamp(Number(settings.maxVariantLossPercent) || 0, 0, 100),
         ...(simple
             ? {
-                  simpleProfile: SIMPLE_PROFILE_VALUES.has(settings.simpleProfile)
-                      ? settings.simpleProfile
-                      : "PHYSICAL_MELEE",
+                  simpleProfile: normalizeSimpleProfile(settings.simpleProfile),
+                  simpleOptions: normalizeSimpleOptions(
+                      settings.simpleOptions,
+                      normalizeSimpleProfile(settings.simpleProfile)
+                  ),
                   simpleAspects: normalizeSimpleAspects(settings.simpleAspects),
               }
             : {}),

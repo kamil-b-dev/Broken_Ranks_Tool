@@ -61,10 +61,13 @@ describe("OptimizerSettingsPanel", () => {
 
         await user.selectOptions(
             screen.getByRole("combobox", { name: /Profil prostego/i }),
-            "MAGICAL"
+            "FIRE_MAGE"
         );
         expect(onChange).toHaveBeenCalledWith(
-            expect.objectContaining({ simpleProfile: "MAGICAL" })
+            expect.objectContaining({
+                simpleProfile: "FIRE_MAGE",
+                simpleOptions: expect.objectContaining({ damageDrifs: 7, accuracyDrifs: 6 }),
+            })
         );
         expect(screen.queryByText(/Wymuś maksymalizację/)).not.toBeInTheDocument();
         expect(screen.queryByText("Obliczaj dodatkowe warianty")).not.toBeInTheDocument();
