@@ -10,6 +10,8 @@ Przed zmianami dotyczącymi algorytmu optymalizacji, jego walidacji, celów, oce
 
 Przed zmianami dotyczącymi trybu Doradcy, jego działań, strategii, rankingu, ochron modów, capów, limitów, kandydatów, alternatyw, komunikatów lub sposobu wyszukiwania przeczytaj również [reguły Doradcy](docs/reguly-doradcy.md).
 
+Przed rozpoczęciem prac nad kreatorem ścieżki rozwoju ekwipunku, planowaniem kolejnych przedmiotów, przenoszeniem lub ulepszaniem drifów pomiędzy etapami oraz prezentacją grafu rozwoju przeczytaj [reguły kreatora ścieżki rozwoju](docs/reguly-kreatora-sciezki-rozwoju.md). Funkcjonalność jest obecnie wyłącznie zaplanowana i nie należy łączyć jej z trybem prostym optymalizatora.
+
 - Rozróżniaj reguły domenowe, ograniczenia wybranego trybu i szczegóły obecnego algorytmu. Luki walidacji nie oznaczają dozwolonych konfiguracji.
 - Zachowuj spójność reguł między edytorem, backendowym kalkulatorem i optymalizatorem. Przy zmianie reguły aktualizuj również dokument domenowy.
 - Nie rozszerzaj trybu „od zera” na dobór przedmiotów, orbów lub gwiazdek. Ten tryb optymalizuje wyłącznie rozmieszczenie i poziomy drifów na przekazanym ekwipunku.
