@@ -27,6 +27,13 @@ Przy każdej zmianie — zarówno dodawaniu nowych funkcji i plików, jak i refa
 - Przed utworzeniem nowego pakietu sprawdź istniejącą strukturę i nazewnictwo. Nie twórz pakietu dla pojedynczej drobnej klasy, jeśli nie wyznacza ona rzeczywistej granicy odpowiedzialności.
 - Po przeniesieniu plików sprawdź importy, widoczność klas, konfigurację skanowania frameworka oraz uruchom testy obszaru objętego zmianą.
 
+## Teksty interfejsu i komunikaty
+
+- Opisy na frontendzie i komunikaty backendu mają przekazywać konkretną informację potrzebną użytkownikowi do podjęcia decyzji albo zrozumienia wyniku.
+- Nie dodawaj tekstów wyłącznie po to, aby wypełnić panel lub opisać oczywiste etykiety. Zbędne podpisy i akapity pogarszają czytelność interfejsu.
+- Dłuższe objaśnienie umieszczaj tylko wtedy, gdy zapobiega realnemu nieporozumieniu. Szczegóły pomocnicze, które nie muszą być stale widoczne, powinny docelowo trafić do tooltipa lub dokumentacji.
+- Dla nowych elementów interfejsu domyślnie stosuj czytelny krój bezszeryfowy używany w panelu Doradcy (`Inter`, następnie systemowe fonty bezszeryfowe). Kroje dekoracyjne i szeryfowe stosuj wyłącznie świadomie w elementach pełniących funkcję ozdobną, a nie w formularzach, etykietach, danych i tekstach wymagających szybkiego odczytu.
+
 ## Weryfikacja zmian
 
 Dobieraj zakres weryfikacji proporcjonalnie do ryzyka i obszaru zmiany. Nie uruchamiaj automatycznie pełnego zestawu testów po każdej poprawce.
