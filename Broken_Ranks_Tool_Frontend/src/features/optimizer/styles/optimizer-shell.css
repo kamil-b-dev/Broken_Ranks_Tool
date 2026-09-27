@@ -11,7 +11,33 @@
 }
 
 .optimizer-theme {
+    --optimizer-ui-font:
+        Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     gap: 0.75rem !important;
+    font-family: var(--optimizer-ui-font);
+}
+
+.optimizer-theme
+    :where(
+        button,
+        input,
+        select,
+        textarea,
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        p,
+        span,
+        small,
+        strong,
+        label,
+        dt,
+        dd
+    ) {
+    font-family: var(--optimizer-ui-font) !important;
 }
 
 .optimizer-overview {
@@ -379,24 +405,4 @@
     font-size: 0.65rem;
     font-style: italic;
     text-align: center;
-}
-
-.optimizer-lock-summary {
-    display: flex;
-    flex: 0 0 auto;
-    align-items: center;
-    justify-content: center;
-    gap: 0.3rem;
-    padding: 0.85rem 0.6rem;
-    border-top: 1px solid rgba(128, 86, 42, 0.72);
-    color: #a67f48;
-    font-family: Georgia, Cambria, "Times New Roman", serif;
-    font-size: 0.61rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    background: rgba(2, 3, 3, 0.82);
-}
-
-.optimizer-lock-summary strong {
-    color: #e0b66a;
 }

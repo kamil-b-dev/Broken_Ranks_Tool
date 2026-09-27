@@ -111,6 +111,21 @@ class AdvisorSearchControlTests {
     }
 
     @Test
+    void acceptsOnlyDocumentedAnalysisBudgets() {
+        AdvisorOptionsValidator validator = new AdvisorOptionsValidator();
+        for (int budget : new int[] {3000, 6000}) {
+            AdvisorOptions options = options();
+            options.setTimeBudgetMs(budget);
+            assertTrue(validator.valid(options));
+        }
+        for (int budget : new int[] {200, 2999, 4000, 6001}) {
+            AdvisorOptions options = options();
+            options.setTimeBudgetMs(budget);
+            assertFalse(validator.valid(options));
+        }
+    }
+
+    @Test
     void reportedLossIgnoresPointsAboveCap() {
         assertTrue(
                 Math.abs(

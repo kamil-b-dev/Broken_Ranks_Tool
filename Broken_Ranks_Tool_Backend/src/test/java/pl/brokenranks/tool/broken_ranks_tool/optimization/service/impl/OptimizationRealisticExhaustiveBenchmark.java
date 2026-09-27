@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -32,6 +33,7 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationReques
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationResponse;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.DrifOptimizationMath;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.locking.OptimizationLockService;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.reference.ExactOptimizationSolver;
 
 /**
  * Exact comparison on a multi-slot build. The class name intentionally excludes it
@@ -69,15 +71,23 @@ class OptimizationRealisticExhaustiveBenchmark {
         ExactProfile heuristic = profileOf(response.getOptimizedSetup(), scenario);
 
         long exactStarted = System.nanoTime();
-        ExactSearch exactSearch = new ExactSearch(scenario);
-        ExactProfile exact = exactSearch.findBest();
+        List<Integer> validMasks = validMasks(scenario.powers);
+        List<List<Integer>> dimensions =
+                SLOT_DEFINITIONS.stream().map(ignored -> validMasks).toList();
+        BenchmarkEvaluation evaluation = new BenchmarkEvaluation(scenario);
+        var solver =
+                new ExactOptimizationSolver<Integer>(
+                        new ExactOptimizationSolver.Limits(Duration.ofMinutes(1), 200_000_000));
+        var exactResult = solver.solveIncrementally(dimensions, evaluation);
+        assertEquals(ExactOptimizationSolver.Status.OPTIMAL, exactResult.status());
+        ExactProfile exact = evaluation.best;
         double exactMs = elapsedMillis(exactStarted);
 
         System.out.printf(
                 java.util.Locale.ROOT,
                 "OPTIMIZER_EXACT configurations=%d heuristic_ms=%.2f exact_ms=%.2f "
                         + "heuristic_utility=%.6f exact_utility=%.6f%n",
-                exactSearch.examined,
+                exactResult.examinedStates(),
                 heuristicMs,
                 exactMs,
                 heuristic.weightedUtility,
@@ -262,41 +272,62 @@ class OptimizationRealisticExhaustiveBenchmark {
         return (System.nanoTime() - started) / 1_000_000.0;
     }
 
-    private final class ExactSearch {
+    private List<Integer> validMasks(int[] powers) {
+        List<Integer> result = new ArrayList<>();
+        for (int mask = 0; mask < (1 << TYPES.size()); mask++) {
+            if (Integer.bitCount(mask) > 3) continue;
+            int power = 0;
+            for (int type = 0; type < TYPES.size(); type++) {
+                if ((mask & (1 << type)) != 0) power += powers[type];
+            }
+            if (power <= CAPACITY_PER_SLOT) result.add(mask);
+        }
+        return result;
+    }
+
+    private final class BenchmarkEvaluation
+            implements ExactOptimizationSolver.IncrementalEvaluation<Integer> {
         private final Scenario scenario;
-        private final List<Integer> validMasks;
         private final int[] counts = new int[TYPES.size()];
         private final double[] rawValues = new double[TYPES.size()];
         private int totalPower;
-        private long examined;
         private ExactProfile best;
 
-        private ExactSearch(Scenario scenario) {
+        private BenchmarkEvaluation(Scenario scenario) {
             this.scenario = scenario;
-            this.validMasks = validMasks(scenario.powers);
         }
 
-        private ExactProfile findBest() {
-            search(0);
-            return best;
+        @Override
+        public void select(int dimension, Integer mask) {
+            apply(mask, dimension, 1);
         }
 
-        private void search(int slotIndex) {
-            if (slotIndex == SLOT_DEFINITIONS.size()) {
-                examined++;
-                for (int type = 0; type < TYPES.size(); type++) {
-                    if (counts[type] < scenario.minimums[type]
-                            || counts[type] > scenario.maximums[type]) return;
-                }
-                ExactProfile candidate = quality(counts, rawValues, totalPower, scenario);
-                if (best == null || compare(candidate, best) > 0) best = candidate;
-                return;
+        @Override
+        public void unselect(int dimension, Integer mask) {
+            apply(mask, dimension, -1);
+        }
+
+        @Override
+        public boolean feasible() {
+            for (int type = 0; type < TYPES.size(); type++) {
+                if (counts[type] < scenario.minimums[type]
+                        || counts[type] > scenario.maximums[type]) return false;
             }
-            for (int mask : validMasks) {
-                apply(mask, slotIndex, 1);
-                search(slotIndex + 1);
-                apply(mask, slotIndex, -1);
-            }
+            return true;
+        }
+
+        @Override
+        public boolean betterThanRecordedBest() {
+            return best == null || compare(current(), best) > 0;
+        }
+
+        @Override
+        public void recordBest() {
+            best = current();
+        }
+
+        private ExactProfile current() {
+            return quality(counts, rawValues, totalPower, scenario);
         }
 
         private void apply(int mask, int slotIndex, int direction) {
@@ -307,19 +338,6 @@ class OptimizationRealisticExhaustiveBenchmark {
                         direction * scenario.values[type] * (1.0 + scenario.drifBonuses[slotIndex]);
                 totalPower += direction * scenario.powers[type];
             }
-        }
-
-        private List<Integer> validMasks(int[] powers) {
-            List<Integer> result = new ArrayList<>();
-            for (int mask = 0; mask < (1 << TYPES.size()); mask++) {
-                if (Integer.bitCount(mask) > 3) continue;
-                int power = 0;
-                for (int type = 0; type < TYPES.size(); type++) {
-                    if ((mask & (1 << type)) != 0) power += powers[type];
-                }
-                if (power <= CAPACITY_PER_SLOT) result.add(mask);
-            }
-            return result;
         }
     }
 

@@ -22,6 +22,7 @@ export const createEquipmentOptimizationRequest = ({
     ...(configuration.configurationMode === "SIMPLE"
         ? {
               simpleProfile: configuration.simpleProfile,
+              simpleOptions: configuration.simpleOptions || {},
               simpleAspects: configuration.simpleAspects || {},
           }
         : {}),

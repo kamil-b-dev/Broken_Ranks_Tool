@@ -50,10 +50,6 @@ const OptimizerLocksColumn = ({
     const [expandedSlot, setExpandedSlot] = useState(
         () => equippedSlots.find(({ item }) => item)?.slot.key || null
     );
-    const lockedDrifCount = Object.values(lockedDrifs || {}).reduce(
-        (total, indexes) => total + (indexes?.length || 0),
-        0
-    );
     const visibleSlots = equippedSlots.filter(
         ({ slot }) => filter === "all" || lockedSlots?.includes(slot.key)
     );
@@ -182,11 +178,6 @@ const OptimizerLocksColumn = ({
                     <p className="optimizer-lock-empty">Nie zablokowano jeszcze żadnego slotu.</p>
                 )}
             </div>
-            <footer className="optimizer-lock-summary">
-                Zablokowane: <strong>{lockedSlots?.length || 0}</strong> sloty
-                <span>·</span>
-                <strong>{lockedDrifCount}</strong> drifów
-            </footer>
         </section>
     );
 };

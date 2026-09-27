@@ -172,12 +172,9 @@ describe("optimizerConfiguration", () => {
 
         expect(buildOptimizationConfig([priority], { configurationMode: "SIMPLE" })).toMatchObject({
             configurationMode: "SIMPLE",
-            simpleProfile: "PHYSICAL_MELEE",
-            simpleAspects: {
-                DAMAGE: "IMPORTANT",
-                ACCURACY: "IMPORTANT",
-                SURVIVABILITY: "NORMAL",
-            },
+            simpleProfile: "BARBARIAN",
+            simpleOptions: { damageDrifs: 7, accuracyDrifs: 6, element: "FIRE" },
+            simpleAspects: {},
             priorities: {},
             targetQuantities: {},
             forceCapBonuses: [],
@@ -189,14 +186,25 @@ describe("optimizerConfiguration", () => {
         expect(
             buildOptimizationConfig([], {
                 configurationMode: "SIMPLE",
-                simpleProfile: "MAGICAL",
-                simpleAspects: { RESOURCES: "KEY" },
+                simpleProfile: "DRUID",
+                simpleOptions: { damageDrifs: 10, accuracyDrifs: 9, style: "DEFENSIVE" },
             })
         ).toMatchObject({
-            simpleProfile: "MAGICAL",
-            simpleAspects: { RESOURCES: "KEY" },
+            simpleProfile: "DRUID",
+            simpleOptions: expect.objectContaining({
+                damageDrifs: 10,
+                accuracyDrifs: 9,
+                style: "DEFENSIVE",
+            }),
             priorities: {},
         });
+        expect(
+            buildOptimizationConfig([], {
+                configurationMode: "SIMPLE",
+                simpleProfile: "MAGICAL",
+                simpleAspects: { ACCURACY: "IMPORTANT" },
+            }).simpleProfile
+        ).toBe("VOODOO");
         const advanced = buildOptimizationConfig([priority], { configurationMode: "ADVANCED" });
         expect(advanced.drifSizeQuantities.CRITICAL_CHANCE).toEqual(priority.sizeRanges);
         expect(findInvalidSizeConstraint([{ ...priority, min: 6, max: 6 }])).toBeUndefined();

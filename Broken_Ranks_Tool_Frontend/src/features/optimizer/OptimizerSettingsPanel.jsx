@@ -1,5 +1,3 @@
-import { SIMPLE_PROFILES } from "./simple-profile/simpleProfileDefinitions";
-
 const MODES = [
     ["BUILD_FROM_SCRATCH", "Od zera"],
     ["ADVISOR", "Doradca"],
@@ -108,25 +106,6 @@ const OptimizerSettingsPanel = ({ settings, onChange }) => {
                             ))}
                         </div>
                     </div>
-                )}
-                {!advisory && configurationMode === "SIMPLE" && (
-                    <label className="flex items-center gap-3 text-[11px] text-stone-400">
-                        Profil
-                        <select
-                            aria-label="Profil prostego optymalizatora"
-                            value={settings.simpleProfile || "PHYSICAL_MELEE"}
-                            onChange={(event) =>
-                                onChange({ ...settings, simpleProfile: event.target.value })
-                            }
-                            className="border border-purple-900/80 bg-black px-2 py-1 text-stone-200"
-                        >
-                            {SIMPLE_PROFILES.map((profile) => (
-                                <option key={profile.value} value={profile.value}>
-                                    {profile.label}
-                                </option>
-                            ))}
-                        </select>
-                    </label>
                 )}
                 {!advisory && configurationMode === "ADVANCED" && (
                     <label className="flex items-center gap-3 cursor-pointer select-none">

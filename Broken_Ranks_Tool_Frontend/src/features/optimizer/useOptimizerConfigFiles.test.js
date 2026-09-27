@@ -25,7 +25,7 @@ const validPayload = {
         maxVariantLossPercent: 25,
         advisorProfession: "PHYSICAL",
         advisorGoal: "DAMAGE",
-        advisorSearch: { targetMode: "GAIN", target: 15, maxActions: 2, timeBudgetMs: 5000 },
+        advisorSearch: { targetMode: "GAIN", target: 15, maxActions: 2, timeBudgetMs: 6000 },
         advisorProtectedModifiers: { CRITICAL_CHANCE: true },
         advisorAllowedChanges: { items: true, drifs: false, orbs: false },
     },
@@ -92,7 +92,7 @@ describe("useOptimizerConfigFiles", () => {
             maxVariantLossPercent: 25,
             advisorProfession: "PHYSICAL",
             advisorGoal: "DAMAGE",
-            advisorSearch: { targetMode: "GAIN", target: 15, maxActions: 2, timeBudgetMs: 5000 },
+            advisorSearch: { targetMode: "GAIN", target: 15, maxActions: 2, timeBudgetMs: 6000 },
             advisorProtectedModifiers: { CRITICAL_CHANCE: { enabled: true, loss: 0 } },
             advisorAllowedChanges: expect.objectContaining({ items: true, drifs: false }),
         });

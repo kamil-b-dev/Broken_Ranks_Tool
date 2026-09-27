@@ -9,8 +9,7 @@ final class AdvisorOptionsValidator {
                 || options.getGoal() == null
                 || options.getStrategy() == null
                 || options.getAllowedChanges() == null
-                || options.getTimeBudgetMs() < 200
-                || options.getTimeBudgetMs() > 5000
+                || !AdvisorOptions.isSupportedTimeBudget(options.getTimeBudgetMs())
                 || options.getMaxActions() < 1
                 || options.getMaxActions() > 10
                 || options.getProfession() == null

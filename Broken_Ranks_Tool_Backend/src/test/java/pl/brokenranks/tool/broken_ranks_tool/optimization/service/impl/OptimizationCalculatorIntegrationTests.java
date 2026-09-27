@@ -15,6 +15,98 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.simpleprofile.*;
 
 class OptimizationCalculatorIntegrationTests {
     @Test
+    void simpleProfileIsOnlyAnAdvancedConfigurationOverlay() {
+        var damage = drif(10, DRIF_BONUS_TYPE.DAMAGE_PHYSICAL, DRIF_SIZE.SUBDRIF, "5%", "1%");
+        var reduction = drif(11, DRIF_BONUS_TYPE.DAMAGE_REDUCTION, DRIF_SIZE.SUBDRIF, "5%", "1%");
+        var fixture =
+                create(
+                        List.of(
+                                item(1, ITEM_CATEGORY.HELMET, "I", 4),
+                                item(2, ITEM_CATEGORY.ARMOR, "I", 4),
+                                item(3, ITEM_CATEGORY.BOOTS, "I", 4)),
+                        List.of(damage, reduction),
+                        List.of());
+        Map<String, EquipmentRequest.SlotData> slots =
+                Map.of("helmet", slot(1), "armor", slot(2), "boots", slot(3));
+        var simple = request(slots, Map.of());
+        simple.setConfigurationMode(BuildConfigurationMode.SIMPLE);
+        simple.setSimpleProfile(SimpleBuildProfile.BARBARIAN);
+        var options = new SimpleProfileOptions();
+        options.setDamageDrifs(2);
+        options.setAccuracyDrifs(2);
+        options.setElement(SimpleElement.FIRE);
+        simple.setSimpleOptions(options);
+
+        var advanced = request(slots, Map.of());
+        advanced.setConfigurationMode(BuildConfigurationMode.SIMPLE);
+        advanced.setSimpleProfile(SimpleBuildProfile.BARBARIAN);
+        advanced.setSimpleOptions(options);
+        assertNull(SimpleProfileConfigurationResolver.resolve(advanced));
+        advanced.setConfigurationMode(BuildConfigurationMode.ADVANCED);
+        advanced.setSimpleProfile(null);
+        advanced.setSimpleOptions(null);
+
+        var simpleResponse = fixture.service().optimize(simple);
+        var advancedResponse = fixture.service().optimize(advanced);
+
+        assertEquals(advancedResponse.getOptimizedSetup(), simpleResponse.getOptimizedSetup());
+        assertEquals(
+                advancedResponse.getCalculationResult(), simpleResponse.getCalculationResult());
+    }
+
+    @Test
+    void cappedModifierExcessLosesToAnotherUsefulModifier() {
+        var reduction = drif(10, DRIF_BONUS_TYPE.DAMAGE_REDUCTION, DRIF_SIZE.SUBDRIF, "25%", "0%");
+        var damage = drif(11, DRIF_BONUS_TYPE.DAMAGE_MAGIC, DRIF_SIZE.SUBDRIF, "10%", "0%");
+        var fixture =
+                create(
+                        List.of(
+                                item(1, ITEM_CATEGORY.HELMET, "I", 4),
+                                item(2, ITEM_CATEGORY.ARMOR, "I", 4),
+                                item(3, ITEM_CATEGORY.BOOTS, "I", 4)),
+                        List.of(reduction, damage),
+                        List.of());
+        var request =
+                request(
+                        Map.of("helmet", slot(1), "armor", slot(2), "boots", slot(3)),
+                        Map.of(
+                                DRIF_BONUS_TYPE.DAMAGE_REDUCTION,
+                                30,
+                                DRIF_BONUS_TYPE.DAMAGE_MAGIC,
+                                29));
+        request.setMaximizeBonuses(
+                Set.of(DRIF_BONUS_TYPE.DAMAGE_REDUCTION, DRIF_BONUS_TYPE.DAMAGE_MAGIC));
+
+        var response = fixture.service().optimize(request);
+
+        assertTrue(response.getSummary().isSuccess());
+        assertTrue(number(response.getCalculationResult().stats(), "DAMAGE_REDUCTION") <= 50.0);
+        assertTrue(number(response.getCalculationResult().stats(), "DAMAGE_MAGIC") > 0.0);
+    }
+
+    @Test
+    void professionProfileReturnsWeakBuildAndReportsUnmetPreferredQuantities() {
+        var damage = drif(10, DRIF_BONUS_TYPE.DAMAGE_PHYSICAL, DRIF_SIZE.SUBDRIF, "5%", "1%");
+        var fixture =
+                create(List.of(item(1, ITEM_CATEGORY.HELMET, "I", 4)), List.of(damage), List.of());
+        var request = request(Map.of("helmet", slot(1)), Map.of());
+        request.setConfigurationMode(BuildConfigurationMode.SIMPLE);
+        request.setSimpleProfile(SimpleBuildProfile.BARBARIAN);
+        var options = new SimpleProfileOptions();
+        options.setDamageDrifs(3);
+        options.setAccuracyDrifs(2);
+        options.setElement(SimpleElement.FIRE);
+        request.setSimpleOptions(options);
+
+        var response = fixture.service().optimize(request);
+
+        assertFalse(response.getOptimizedSetup().getSlots().isEmpty());
+        assertTrue(
+                response.getSummary().getWarnings().stream()
+                        .anyMatch(warning -> warning.contains("Preferowana liczba drifów")));
+    }
+
+    @Test
     void simpleProfileDiversifiesLimitedSocketsInsteadOfChasingOneDistantGoal() {
         var damage = drif(10, DRIF_BONUS_TYPE.DAMAGE_PHYSICAL, DRIF_SIZE.SUBDRIF, "5%", "1%");
         var reduction = drif(11, DRIF_BONUS_TYPE.DAMAGE_REDUCTION, DRIF_SIZE.SUBDRIF, "5%", "1%");

@@ -9,6 +9,11 @@ final class OptimizationQualityComparator {
         if (comparison != 0) return comparison;
         comparison = Double.compare(right.forcedCapDeficit(), left.forcedCapDeficit());
         if (comparison != 0) return comparison;
+        comparison =
+                Double.compare(left.minimumMaximizedProgress(), right.minimumMaximizedProgress());
+        if (comparison != 0) return comparison;
+        comparison = Double.compare(left.maximizedUtility(), right.maximizedUtility());
+        if (comparison != 0) return comparison;
         comparison = Double.compare(left.weightedUtility(), right.weightedUtility());
         if (comparison != 0) return comparison;
         comparison = Double.compare(right.penaltyLoss(), left.penaltyLoss());

@@ -102,7 +102,7 @@ const OptimizerGoalsColumn = ({
                 settings.mode === "ADVISOR"
                     ? 1
                     : settings.configurationMode === "SIMPLE"
-                      ? Object.keys(settings.simpleAspects || {}).length
+                      ? 1
                       : priorities.length
             }
             isOptimizing={isOptimizing}
