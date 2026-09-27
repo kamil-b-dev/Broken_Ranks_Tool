@@ -40,9 +40,6 @@ public class OptimizationRequest {
     @Size(max = 6)
     private Map<SimpleBuildAspect, @NotNull SimpleAspectImportance> simpleAspects;
 
-    /** Internal saturation points produced by the simple profile resolver. */
-    @JsonIgnore private Map<DRIF_BONUS_TYPE, Double> simpleUtilityTargets;
-
     /** Internal soft quantity preferences reported without invalidating a simple-mode result. */
     @JsonIgnore private Map<DRIF_BONUS_TYPE, Integer> simplePreferredQuantities;
 

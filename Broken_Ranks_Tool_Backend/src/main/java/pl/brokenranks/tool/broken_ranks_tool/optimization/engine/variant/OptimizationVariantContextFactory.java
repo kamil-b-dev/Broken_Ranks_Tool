@@ -68,7 +68,6 @@ final class OptimizationVariantContextFactory {
         copy.setConfigurationMode(source.getConfigurationMode());
         copy.setSimpleProfile(source.getSimpleProfile());
         copy.setSimpleAspects(source.getSimpleAspects());
-        copy.setSimpleUtilityTargets(source.getSimpleUtilityTargets());
         copy.setAdvisor(source.getAdvisor());
         copy.setCharacterStats(
                 source.getCharacterStats() != null

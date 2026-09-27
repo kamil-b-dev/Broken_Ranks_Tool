@@ -97,6 +97,8 @@ class SimpleProfileConfigurationResolverTests {
         assertTrue(request.getPriorities().containsKey(DRIF_BONUS_TYPE.PASIVE_DAMAGE_REDUCTION));
         assertTrue(
                 request.getPriorities().containsKey(DRIF_BONUS_TYPE.PERCENTAGE_DAMAGE_REDUCTION));
+        assertExact(request, DRIF_BONUS_TYPE.PASIVE_DAMAGE_REDUCTION, 1);
+        assertExact(request, DRIF_BONUS_TYPE.PERCENTAGE_DAMAGE_REDUCTION, 1);
         assertTrue(request.getMaximizeBonuses().contains(DRIF_BONUS_TYPE.DAMAGE_REDUCTION_CHANCE));
         assertTrue(request.getMaximizeBonuses().contains(DRIF_BONUS_TYPE.DODGE_CHANCE));
     }
@@ -120,6 +122,7 @@ class SimpleProfileConfigurationResolverTests {
         assertNull(SimpleProfileConfigurationResolver.resolve(request));
         assertTrue(request.getPriorities().containsKey(DRIF_BONUS_TYPE.HIT_CHANCE_RANGED));
         assertFalse(request.getPriorities().containsKey(DRIF_BONUS_TYPE.HIT_CHANCE_MENTAL));
+        assertFalse(request.getMaximizeBonuses().isEmpty());
     }
 
     private static OptimizationRequest resolved(
@@ -140,6 +143,17 @@ class SimpleProfileConfigurationResolverTests {
     private static void assertMaximum(
             OptimizationRequest request, DRIF_BONUS_TYPE type, int maximum) {
         assertEquals(maximum, request.getTargetQuantities().get(type).getMax());
+    }
+
+    private static void assertMinimum(
+            OptimizationRequest request, DRIF_BONUS_TYPE type, int minimum) {
+        assertEquals(minimum, request.getTargetQuantities().get(type).getMin());
+    }
+
+    private static void assertExact(
+            OptimizationRequest request, DRIF_BONUS_TYPE type, int quantity) {
+        assertMinimum(request, type, quantity);
+        assertMaximum(request, type, quantity);
     }
 
     private static OptimizationRequest simple(SimpleBuildProfile profile) {

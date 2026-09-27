@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -31,9 +32,12 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.Upgrade
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationResponse;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context.OptimizationContextFactory;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context.OptimizationInitialStateFactory;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.locking.OptimizationLockService;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.reference.CpSatBuildOptimizationSolver;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.reference.ExactOptimizationSolver;
 
 /** Compares the production heuristic with an exact oracle on small search spaces. */
 class OptimizationExhaustiveSearchTests {
@@ -42,15 +46,35 @@ class OptimizationExhaustiveSearchTests {
     void matchesExhaustiveOptimumAcrossSmallPriorityAndQuantityProfiles() {
         for (ScenarioDefinition definition :
                 List.of(
-                        new ScenarioDefinition(30, 10, 0, 3, 0, 3),
-                        new ScenarioDefinition(10, 30, 0, 3, 0, 3),
-                        new ScenarioDefinition(30, 20, 1, 2, 1, 2),
-                        new ScenarioDefinition(20, 20, 1, 1, 0, 2))) {
+                        new ScenarioDefinition(30, 10, 0, 3, 0, 3, false),
+                        new ScenarioDefinition(10, 30, 0, 3, 0, 3, false),
+                        new ScenarioDefinition(30, 20, 1, 2, 1, 2, false),
+                        new ScenarioDefinition(20, 20, 1, 1, 0, 2, false),
+                        new ScenarioDefinition(30, 30, 0, 3, 0, 3, true))) {
             Scenario scenario = scenario(definition);
 
             OptimizationResponse response = scenario.service.optimize(scenario.request);
             BuildState heuristic = toState(response.getOptimizedSetup(), scenario.context);
             BuildState exact = exhaustiveBest(scenario.context, scenario.evaluator);
+            var cpSat =
+                    new CpSatBuildOptimizationSolver(
+                                    scenario.rules, scenario.initialStates, scenario.evaluator)
+                            .solve(scenario.context, Duration.ofSeconds(5), heuristic);
+
+            assertEquals(CpSatBuildOptimizationSolver.Status.OPTIMAL, cpSat.status());
+            assertEquals(
+                    scenario.evaluator.score(exact, scenario.context),
+                    scenario.evaluator.score(cpSat.best(), scenario.context),
+                    0.0001,
+                    () ->
+                            "CP-SAT i pełne przeszukanie mają różną jakość: "
+                                    + definition
+                                    + ", exact="
+                                    + exact.signature()
+                                    + ", cp="
+                                    + cpSat.best().signature()
+                                    + ", objectives="
+                                    + cpSat.objectiveValues());
 
             assertFalse(
                     scenario.evaluator.isBetterState(exact, heuristic, scenario.context),
@@ -71,41 +95,51 @@ class OptimizationExhaustiveSearchTests {
 
     private BuildState exhaustiveBest(
             OptimizationContext context, OptimizationStateEvaluator evaluator) {
-        List<BuildState> states = new ArrayList<>();
-        enumerate(context, 0, new BuildState(), states);
-        return states.stream()
-                .filter(state -> evaluator.minimumsSatisfied(state, context))
-                .min(evaluator.stateComparator(context))
-                .orElseThrow();
+        List<List<SlotChoice>> dimensions =
+                context.slots().stream()
+                        .map(
+                                slot -> {
+                                    List<SlotChoice> choices = new ArrayList<>();
+                                    choices.add(new SlotChoice(slot.key(), null));
+                                    slot.candidates()
+                                            .forEach(
+                                                    candidate ->
+                                                            choices.add(
+                                                                    new SlotChoice(
+                                                                            slot.key(),
+                                                                            new Placement(
+                                                                                    candidate,
+                                                                                    candidate
+                                                                                            .getSize()
+                                                                                            .getMaxLevel(),
+                                                                                    false))));
+                                    return choices;
+                                })
+                        .toList();
+        var solver =
+                new ExactOptimizationSolver<SlotChoice>(
+                        new ExactOptimizationSolver.Limits(Duration.ofSeconds(2), 10_000));
+        var result =
+                solver.solve(
+                        dimensions,
+                        choices -> evaluator.minimumsSatisfied(toState(choices), context),
+                        (left, right) ->
+                                evaluator
+                                        .stateComparator(context)
+                                        .compare(toState(left), toState(right)));
+        assertEquals(ExactOptimizationSolver.Status.OPTIMAL, result.status());
+        return toState(result.best());
     }
 
-    private void enumerate(
-            OptimizationContext context,
-            int slotIndex,
-            BuildState partial,
-            List<BuildState> states) {
-        if (slotIndex == context.slots().size()) {
-            states.add(partial.copy());
-            return;
-        }
-        SlotContext slot = context.slots().get(slotIndex);
-        List<Placement> empty = new ArrayList<>();
-        empty.add(null);
-        partial.slots().put(slot.key(), empty);
-        enumerate(context, slotIndex + 1, partial, states);
-        for (DrifTemplate candidate : slot.candidates()) {
-            partial.slots()
-                    .put(
-                            slot.key(),
-                            new ArrayList<>(
-                                    List.of(
-                                            new Placement(
-                                                    candidate,
-                                                    candidate.getSize().getMaxLevel(),
-                                                    false))));
-            enumerate(context, slotIndex + 1, partial, states);
-        }
-        partial.slots().remove(slot.key());
+    private BuildState toState(List<SlotChoice> choices) {
+        BuildState state = new BuildState();
+        choices.forEach(
+                choice -> {
+                    List<Placement> placements = new ArrayList<>();
+                    placements.add(choice.placement());
+                    state.slots().put(choice.slotKey(), placements);
+                });
+        return state;
     }
 
     private BuildState toState(EquipmentRequest setup, OptimizationContext context) {
@@ -175,7 +209,10 @@ class OptimizationExhaustiveSearchTests {
         request.setLockedSlots(Set.of());
         request.setLockedDrifs(Map.of());
         request.setForceCapBonuses(Set.of());
-        request.setMaximizeBonuses(Set.of());
+        request.setMaximizeBonuses(
+                definition.maximizeBoth
+                        ? Set.of(DRIF_BONUS_TYPE.DAMAGE_MAGIC, DRIF_BONUS_TYPE.DEFENSE_MENTAL)
+                        : Set.of());
 
         DrifTemplateRepository drifRepository = mock(DrifTemplateRepository.class);
         ItemTemplateRepository itemRepository = mock(ItemTemplateRepository.class);
@@ -206,7 +243,13 @@ class OptimizationExhaustiveSearchTests {
                         itemStatProcessor,
                         new OptimizationLockService(),
                         calculator);
-        return new Scenario(service, request, context, new OptimizationStateEvaluator(rules));
+        return new Scenario(
+                service,
+                request,
+                context,
+                new OptimizationStateEvaluator(rules),
+                rules,
+                new OptimizationInitialStateFactory(levelPolicy));
     }
 
     private DrifTemplate drif(Long id, DRIF_BONUS_TYPE type, String base, String increment) {
@@ -233,7 +276,9 @@ class OptimizationExhaustiveSearchTests {
             CustomModsOptimizationServiceImpl service,
             OptimizationRequest request,
             OptimizationContext context,
-            OptimizationStateEvaluator evaluator) {}
+            OptimizationStateEvaluator evaluator,
+            EquipmentRulesRegistry rules,
+            OptimizationInitialStateFactory initialStates) {}
 
     private record ScenarioDefinition(
             int magicPriority,
@@ -241,5 +286,8 @@ class OptimizationExhaustiveSearchTests {
             int magicMin,
             int magicMax,
             int defenseMin,
-            int defenseMax) {}
+            int defenseMax,
+            boolean maximizeBoth) {}
+
+    private record SlotChoice(String slotKey, Placement placement) {}
 }
