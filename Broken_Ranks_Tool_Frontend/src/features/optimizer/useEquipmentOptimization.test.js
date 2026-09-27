@@ -220,7 +220,7 @@ describe("useEquipmentOptimization", () => {
             response = await result.current.runDrifOptimization({
                 mode: "ADVISOR",
                 priorities: { TEST: 30 },
-                advisor: { goal: "TEST", timeBudgetMs: 1500 },
+                advisor: { goal: "TEST", timeBudgetMs: 3000 },
             });
         });
         expect(optimizeEquipmentDrifs).toHaveBeenCalledTimes(1);
