@@ -68,13 +68,26 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Build production image
         run: docker build --tag broken-ranks-tool:security .
-      - name: Scan image with Trivy
+      - name: Report container findings
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: broken-ranks-tool:security
           version: v0.74.0
           cache: true
           token-setup-trivy: ${{ github.token }}
+          scanners: vuln
+          format: table
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "0"
+      - name: Enforce container vulnerability policy
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: broken-ranks-tool:security
+          version: v0.74.0
+          cache: true
+          skip-setup-trivy: true
+          scanners: vuln
           format: sarif
           output: trivy-results.sarif
           severity: CRITICAL,HIGH
