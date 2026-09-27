@@ -49,7 +49,7 @@ describe("OptimizerSettingsPanel", () => {
         expect(screen.queryByText(/Wymuś maksymalizację/)).not.toBeInTheDocument();
     });
 
-    it("lets the player select an active simple profile", async () => {
+    it("keeps profession selection out of the global settings strip", async () => {
         const onChange = vi.fn();
         const user = userEvent.setup();
         render(
@@ -59,13 +59,9 @@ describe("OptimizerSettingsPanel", () => {
             />
         );
 
-        await user.selectOptions(
-            screen.getByRole("combobox", { name: /Profil prostego/i }),
-            "MAGICAL"
-        );
-        expect(onChange).toHaveBeenCalledWith(
-            expect.objectContaining({ simpleProfile: "MAGICAL" })
-        );
+        expect(
+            screen.queryByRole("combobox", { name: /Profil prostego/i })
+        ).not.toBeInTheDocument();
         expect(screen.queryByText(/Wymuś maksymalizację/)).not.toBeInTheDocument();
         expect(screen.queryByText("Obliczaj dodatkowe warianty")).not.toBeInTheDocument();
         await user.click(screen.getByRole("button", { name: "Zaawansowany" }));

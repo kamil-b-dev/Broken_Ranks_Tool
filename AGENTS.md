@@ -10,6 +10,8 @@ Przed zmianami dotyczącymi algorytmu optymalizacji, jego walidacji, celów, oce
 
 Przed zmianami dotyczącymi trybu Doradcy, jego działań, strategii, rankingu, ochron modów, capów, limitów, kandydatów, alternatyw, komunikatów lub sposobu wyszukiwania przeczytaj również [reguły Doradcy](docs/reguly-doradcy.md).
 
+Przed rozpoczęciem prac nad kreatorem ścieżki rozwoju ekwipunku, planowaniem kolejnych przedmiotów, przenoszeniem lub ulepszaniem drifów pomiędzy etapami oraz prezentacją grafu rozwoju przeczytaj [reguły kreatora ścieżki rozwoju](docs/reguly-kreatora-sciezki-rozwoju.md). Funkcjonalność jest obecnie wyłącznie zaplanowana i nie należy łączyć jej z trybem prostym optymalizatora.
+
 - Rozróżniaj reguły domenowe, ograniczenia wybranego trybu i szczegóły obecnego algorytmu. Luki walidacji nie oznaczają dozwolonych konfiguracji.
 - Zachowuj spójność reguł między edytorem, backendowym kalkulatorem i optymalizatorem. Przy zmianie reguły aktualizuj również dokument domenowy.
 - Nie rozszerzaj trybu „od zera” na dobór przedmiotów, orbów lub gwiazdek. Ten tryb optymalizuje wyłącznie rozmieszczenie i poziomy drifów na przekazanym ekwipunku.
@@ -24,6 +26,13 @@ Przy każdej zmianie — zarówno dodawaniu nowych funkcji i plików, jak i refa
 - We frontendzie grupuj komponenty, hooki i funkcje domenowe według funkcji aplikacji. Elementy specyficzne dla wydzielonego przepływu umieszczaj w jego własnym katalogu zamiast rozszerzać ogólny katalog bez wyraźnej granicy.
 - Przed utworzeniem nowego pakietu sprawdź istniejącą strukturę i nazewnictwo. Nie twórz pakietu dla pojedynczej drobnej klasy, jeśli nie wyznacza ona rzeczywistej granicy odpowiedzialności.
 - Po przeniesieniu plików sprawdź importy, widoczność klas, konfigurację skanowania frameworka oraz uruchom testy obszaru objętego zmianą.
+
+## Teksty interfejsu i komunikaty
+
+- Opisy na frontendzie i komunikaty backendu mają przekazywać konkretną informację potrzebną użytkownikowi do podjęcia decyzji albo zrozumienia wyniku.
+- Nie dodawaj tekstów wyłącznie po to, aby wypełnić panel lub opisać oczywiste etykiety. Zbędne podpisy i akapity pogarszają czytelność interfejsu.
+- Dłuższe objaśnienie umieszczaj tylko wtedy, gdy zapobiega realnemu nieporozumieniu. Szczegóły pomocnicze, które nie muszą być stale widoczne, powinny docelowo trafić do tooltipa lub dokumentacji.
+- Dla nowych elementów interfejsu domyślnie stosuj czytelny krój bezszeryfowy używany w panelu Doradcy (`Inter`, następnie systemowe fonty bezszeryfowe). Kroje dekoracyjne i szeryfowe stosuj wyłącznie świadomie w elementach pełniących funkcję ozdobną, a nie w formularzach, etykietach, danych i tekstach wymagających szybkiego odczytu.
 
 ## Weryfikacja zmian
 

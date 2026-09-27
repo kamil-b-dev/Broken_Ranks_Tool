@@ -238,12 +238,13 @@ describe("OptimizerPanel", () => {
             advisorProfession: "AUTO",
             configurationMode: "ADVANCED",
             maxVariantLossPercent: 0,
-            simpleProfile: "PHYSICAL_MELEE",
-            simpleAspects: {
-                DAMAGE: "IMPORTANT",
-                ACCURACY: "IMPORTANT",
-                SURVIVABILITY: "NORMAL",
-            },
+            simpleProfile: "BARBARIAN",
+            simpleOptions: expect.objectContaining({
+                damageDrifs: 7,
+                accuracyDrifs: 6,
+                element: "FIRE",
+            }),
+            simpleAspects: {},
         });
     });
 

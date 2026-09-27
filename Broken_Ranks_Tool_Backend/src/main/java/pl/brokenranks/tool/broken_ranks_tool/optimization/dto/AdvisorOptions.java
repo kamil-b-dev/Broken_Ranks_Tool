@@ -10,6 +10,9 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_T
 /** Relative goals and explicitly permitted actions for an inventory-preserving search. */
 @Data
 public class AdvisorOptions {
+    public static final int SHORT_TIME_BUDGET_MS = 3000;
+    public static final int LONG_TIME_BUDGET_MS = 6000;
+
     public enum Strategy {
         MINIMUM_CHANGE,
         BEST_RESULT
@@ -21,9 +24,13 @@ public class AdvisorOptions {
 
     private UUID runId;
 
-    @Min(200)
-    @Max(5000)
-    private int timeBudgetMs = 1500;
+    @Min(SHORT_TIME_BUDGET_MS)
+    @Max(LONG_TIME_BUDGET_MS)
+    private int timeBudgetMs = SHORT_TIME_BUDGET_MS;
+
+    public static boolean isSupportedTimeBudget(int value) {
+        return value == SHORT_TIME_BUDGET_MS || value == LONG_TIME_BUDGET_MS;
+    }
 
     @Min(1)
     @Max(10)

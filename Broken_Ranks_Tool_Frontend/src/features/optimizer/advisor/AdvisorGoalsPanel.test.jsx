@@ -4,10 +4,36 @@ import { describe, expect, it, vi } from "vitest";
 import AdvisorGoalsPanel from "./AdvisorGoalsPanel";
 
 const gameRules = {
-    bonusTranslations: { A: "Mod A", B: "Redukcja many" },
-    drifBasePowers: { A: 4, B: 2 },
+    bonusTranslations: {
+        A: "Mod A",
+        B: "Redukcja many",
+        C: "Obrona",
+        D: "Obrażenia",
+    },
+    drifBasePowers: { A: 4, B: 2, C: 3, D: 4 },
+    drifBonusCategories: {
+        A: "OFFENSIVE",
+        B: "UTILITY",
+        C: "DEFENSIVE",
+        D: "OFFENSIVE",
+    },
 };
 describe("AdvisorGoalsPanel", () => {
+    it("groups protected modifiers by drif category", () => {
+        render(
+            <AdvisorGoalsPanel
+                stats={{ A: "5%", B: "-10%", C: "20%", D: "30%" }}
+                gameRules={gameRules}
+                settings={{ advisorGoal: "D" }}
+                onChange={vi.fn()}
+            />
+        );
+
+        expect(screen.getByRole("heading", { name: /Ofensywne/i })).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: /Defensywne/i })).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: /Użytkowe/i })).toBeInTheDocument();
+    });
+
     it("offers a zero-valued goal and separate permission for buying drifs", async () => {
         const onChange = vi.fn();
         render(
@@ -71,11 +97,11 @@ describe("AdvisorGoalsPanel", () => {
         });
 
         onChange.mockClear();
-        const budget = screen.getByLabelText("Budżet czasu analizy (sekundy)");
-        fireEvent.change(budget, { target: { value: "5" } });
+        const budget = screen.getByLabelText("Budżet czasu analizy");
+        await user.selectOptions(budget, "6000");
         expect(onChange).toHaveBeenCalledWith({
             ...settings,
-            advisorSearch: expect.objectContaining({ timeBudgetMs: 5000 }),
+            advisorSearch: expect.objectContaining({ timeBudgetMs: 6000 }),
         });
     });
 

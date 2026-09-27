@@ -18,6 +18,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.simpleprofile.SimpleAspectImportance;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.simpleprofile.SimpleBuildAspect;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.simpleprofile.SimpleBuildProfile;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.simpleprofile.SimpleProfileOptions;
 
 /** Request DTO for drif optimization, priorities, limits, locks, and caps. */
 @Data
@@ -32,12 +33,15 @@ public class OptimizationRequest {
     /** Combat style used by the profile-driven simple mode. */
     private SimpleBuildProfile simpleProfile;
 
+    /** Profession-specific controls exposed by the simple optimizer. */
+    @Valid private SimpleProfileOptions simpleOptions;
+
     /** Player-selected building blocks and their coarse importance. */
     @Size(max = 6)
     private Map<SimpleBuildAspect, @NotNull SimpleAspectImportance> simpleAspects;
 
-    /** Internal saturation points produced by the simple profile resolver. */
-    @JsonIgnore private Map<DRIF_BONUS_TYPE, Double> simpleUtilityTargets;
+    /** Internal soft quantity preferences reported without invalidating a simple-mode result. */
+    @JsonIgnore private Map<DRIF_BONUS_TYPE, Integer> simplePreferredQuantities;
 
     @Valid private AdvisorOptions advisor;
 

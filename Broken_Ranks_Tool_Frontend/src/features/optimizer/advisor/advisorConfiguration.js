@@ -9,8 +9,10 @@ export const DEFAULT_ADVISOR_SEARCH = {
     targetMode: "MAXIMIZE",
     target: "",
     maxActions: 3,
-    timeBudgetMs: 1500,
+    timeBudgetMs: 3000,
 };
+
+export const ADVISOR_TIME_BUDGETS = [3000, 6000];
 
 export const advisorNumber = (value) =>
     Number.parseFloat(
@@ -21,13 +23,21 @@ export const advisorNumber = (value) =>
 
 export const normalizeAdvisorTimeBudget = (value) => {
     const parsed = Number(value);
-    return Math.max(200, Math.min(5000, Number.isFinite(parsed) ? Math.trunc(parsed) : 1500));
+    if (!Number.isFinite(parsed)) return DEFAULT_ADVISOR_SEARCH.timeBudgetMs;
+    return ADVISOR_TIME_BUDGETS.reduce((closest, candidate) =>
+        Math.abs(candidate - parsed) < Math.abs(closest - parsed) ? candidate : closest
+    );
 };
 
 export const advisorModifiers = (stats, gameRules) =>
     Object.entries(gameRules.bonusTranslations || {})
         .filter(([key]) => gameRules.drifBasePowers?.[key] !== undefined)
-        .map(([key, label]) => ({ key, label, value: advisorNumber(stats?.[key]) }))
+        .map(([key, label]) => ({
+            key,
+            label,
+            value: advisorNumber(stats?.[key]),
+            category: resolveDrifCategoryKey(key, gameRules.drifBonusCategories) || "UTILITY",
+        }))
         .sort((a, b) => a.label.localeCompare(b.label, "pl"));
 
 export const selectedAdvisorGoal = (modifiers, requested) =>
@@ -78,3 +88,4 @@ export const buildAdvisorConfiguration = (settings, stats, gameRules, characterS
         },
     };
 };
+import { resolveDrifCategoryKey } from "../../../shared/domain/equipment/drifCategories";
