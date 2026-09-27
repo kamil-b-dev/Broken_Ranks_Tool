@@ -1,4 +1,9 @@
-import { SIMPLE_ELEMENTS, SIMPLE_STYLES } from "./simpleProfileDefinitions";
+import {
+    defaultSimpleOptions,
+    SIMPLE_ELEMENTS,
+    SIMPLE_PROFILES,
+    SIMPLE_STYLES,
+} from "./simpleProfileDefinitions";
 
 const QuantityField = ({ label, value, onChange }) => (
     <label className="flex items-center justify-between gap-4 border border-purple-950/80 bg-black/25 p-3 text-xs text-stone-300">
@@ -38,14 +43,31 @@ const SimpleProfileGoalsPanel = ({ settings, onChange }) => {
 
     return (
         <div className="min-h-0 flex-1 overflow-y-auto p-3 custom-scrollbar">
-            <div className="mb-3 border border-purple-950/80 bg-black/30 p-3">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-3 border border-purple-950/80 bg-black/30 p-3">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-purple-200">
                     Konfiguracja profilu profesji
                 </h4>
-                <p className="mt-1 text-[11px] leading-relaxed text-stone-400">
-                    Profil dodaje wspólny rdzeń i charakterystyczne mody profesji. Podane liczby są
-                    miękkimi limitami — słabszy ekwipunek otrzyma najlepszy wykonalny układ.
-                </p>
+                <label className="flex items-center gap-3 text-xs text-stone-300">
+                    Profil profesji
+                    <select
+                        aria-label="Profil prostego optymalizatora"
+                        value={profile}
+                        onChange={(event) =>
+                            onChange({
+                                ...settings,
+                                simpleProfile: event.target.value,
+                                simpleOptions: defaultSimpleOptions(event.target.value),
+                            })
+                        }
+                        className="min-w-44 border border-purple-900/80 bg-black px-2 py-1 text-stone-100"
+                    >
+                        {SIMPLE_PROFILES.map((option) => (
+                            <option key={option.value} value={option.value}>
+                                {option.label}
+                            </option>
+                        ))}
+                    </select>
+                </label>
             </div>
 
             {styled && (

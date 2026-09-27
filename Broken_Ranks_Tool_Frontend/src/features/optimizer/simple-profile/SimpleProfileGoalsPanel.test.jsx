@@ -4,6 +4,29 @@ import { describe, expect, it, vi } from "vitest";
 import SimpleProfileGoalsPanel from "./SimpleProfileGoalsPanel";
 
 describe("SimpleProfileGoalsPanel", () => {
+    it("selects the profession in the profile configuration box", async () => {
+        const user = userEvent.setup();
+        const onChange = vi.fn();
+        render(
+            <SimpleProfileGoalsPanel
+                settings={{ simpleProfile: "BARBARIAN", simpleOptions: {} }}
+                onChange={onChange}
+            />
+        );
+
+        await user.selectOptions(
+            screen.getByRole("combobox", { name: /Profil prostego/i }),
+            "FIRE_MAGE"
+        );
+
+        expect(onChange).toHaveBeenCalledWith(
+            expect.objectContaining({
+                simpleProfile: "FIRE_MAGE",
+                simpleOptions: expect.objectContaining({ damageDrifs: 7, accuracyDrifs: 6 }),
+            })
+        );
+    });
+
     it("updates profession quantities and optional defenses", async () => {
         const user = userEvent.setup();
         const onChange = vi.fn();
