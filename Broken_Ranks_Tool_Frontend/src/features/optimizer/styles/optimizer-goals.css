@@ -28,8 +28,9 @@
     border: 1px solid rgba(114, 76, 37, 0.72);
     background: rgba(2, 3, 3, 0.7);
     color: #a9a19a;
-    font-family: Georgia, Cambria, "Times New Roman", serif;
-    font-size: 0.64rem;
+    font-family: var(--optimizer-ui-font);
+    font-size: 0.75rem;
+    line-height: 1.4;
 }
 
 .advisor-goal-card > label,
@@ -45,6 +46,24 @@
     border: 1px solid rgba(128, 86, 42, 0.85);
     background: #050505;
     color: #ddd0bd;
+}
+.advisor-search-limits {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: 0.75rem;
+}
+.advisor-search-field {
+    display: grid;
+    gap: 0.25rem;
+    min-width: 0;
+}
+.advisor-search-field > span {
+    color: #d0a45d;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+}
+.advisor-search-field select {
+    margin: 0;
 }
 .advisor-goal-card p {
     margin-top: 0.45rem;
@@ -68,6 +87,43 @@
     gap: 0.75rem;
     padding: 0.5rem 0;
     border-bottom: 1px solid rgba(74, 53, 34, 0.45);
+}
+.advisor-modifier-group + .advisor-modifier-group {
+    margin-top: 0.8rem;
+}
+.advisor-modifier-group {
+    overflow: hidden;
+    border: 1px solid rgba(92, 68, 53, 0.55);
+    background: rgba(0, 0, 0, 0.22);
+}
+.advisor-modifier-group h5 {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0;
+    padding: 0.45rem 0.55rem;
+    border-bottom: 1px solid rgba(92, 68, 53, 0.55);
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+.advisor-modifier-group h5 img {
+    width: 1rem;
+    height: 1rem;
+}
+.advisor-modifier-group[data-category="offensive"] h5 {
+    color: #ef7777;
+}
+.advisor-modifier-group[data-category="defensive"] h5 {
+    color: #75cbea;
+}
+.advisor-modifier-group[data-category="utility"] h5 {
+    color: #69d4a0;
+}
+.advisor-modifier-group .advisor-modifier-row {
+    padding-right: 0.55rem;
+    padding-left: 0.55rem;
 }
 .advisor-modifier-row > label:first-child,
 .advisor-change-options label {
@@ -103,9 +159,24 @@
     margin-top: 0.65rem;
 }
 .advisor-goal-card input[type="checkbox"] {
-    width: 0.9rem;
-    height: 0.9rem;
-    accent-color: #9558a5;
+    width: 1rem;
+    height: 1rem;
+    flex: 0 0 1rem;
+    appearance: none;
+    border: 1px solid #70407d;
+    background: #050505;
+    cursor: pointer;
+}
+.advisor-goal-card input[type="checkbox"]:checked {
+    border-color: #c083d2;
+    background-color: #71317f;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23fff4dc' d='M6.4 11.5 2.8 7.9l1.4-1.4 2.2 2.2 5.4-5.4 1.4 1.4z'/%3E%3C/svg%3E");
+    background-position: center;
+    background-size: 0.9rem;
+}
+.advisor-goal-card input[type="checkbox"]:focus-visible {
+    outline: 2px solid #d0a45d;
+    outline-offset: 2px;
 }
 
 .optimizer-bonus-column,

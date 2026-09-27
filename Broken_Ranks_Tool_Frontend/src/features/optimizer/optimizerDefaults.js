@@ -23,6 +23,6 @@ export const DEFAULT_OPTIMIZER_SETTINGS = {
         targetMode: "MAXIMIZE",
         target: "",
         maxActions: 3,
-        timeBudgetMs: 1500,
+        timeBudgetMs: 3000,
     },
 };

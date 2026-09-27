@@ -16,12 +16,18 @@ const rules = {
         DAMAGE_MAGIC: "Obrażenia",
     },
     drifBasePowers: { CRITICAL_CHANCE: 4, MANA_USAGE_REDUCTION: 2, DAMAGE_MAGIC: 3 },
+    drifBonusCategories: {
+        CRITICAL_CHANCE: "OFFENSIVE",
+        MANA_USAGE_REDUCTION: "UTILITY",
+        DAMAGE_MAGIC: "OFFENSIVE",
+    },
 };
 
 describe("advisor configuration", () => {
     it("allows absent modifiers and preserves the sign of reductions", () => {
         const mods = advisorModifiers({ MANA_USAGE_REDUCTION: "-12,5%" }, rules);
         expect(mods.find(({ key }) => key === "DAMAGE_MAGIC").value).toBe(0);
+        expect(mods.find(({ key }) => key === "DAMAGE_MAGIC").category).toBe("OFFENSIVE");
         expect(mods.find(({ key }) => key === "MANA_USAGE_REDUCTION").value).toBe(-12.5);
         expect(selectedAdvisorGoal(mods, "DAMAGE_MAGIC")).toBe("DAMAGE_MAGIC");
         expect(selectedAdvisorGoal(mods, "INVALID")).toBe("MANA_USAGE_REDUCTION");
@@ -72,7 +78,7 @@ describe("advisor configuration", () => {
                 strategy: "BEST_RESULT",
                 targetMode: "VALUE",
                 target: 30,
-                timeBudgetMs: 5000,
+                timeBudgetMs: 6000,
                 maxActions: 10,
             },
             advisorAllowedChanges: { drifs: true, drifUpgrades: true },
@@ -87,7 +93,7 @@ describe("advisor configuration", () => {
         });
     });
 
-    it("preserves any supported analysis budget", () => {
+    it("normalizes imported analysis budgets to a supported option", () => {
         const restored = parseOptimizerConfigPayload(
             createOptimizerConfigPayload([], {
                 mode: "ADVISOR",
@@ -96,11 +102,11 @@ describe("advisor configuration", () => {
             rules
         );
 
-        expect(restored.advisorSearch.timeBudgetMs).toBe(2750);
+        expect(restored.advisorSearch.timeBudgetMs).toBe(3000);
         expect(
             buildAdvisorConfiguration({ advisorSearch: { timeBudgetMs: 2750 } }, {}, rules).advisor
                 .timeBudgetMs
-        ).toBe(2750);
+        ).toBe(3000);
     });
 
     it("does not enable item purchases when an imported changes object omits them", () => {
