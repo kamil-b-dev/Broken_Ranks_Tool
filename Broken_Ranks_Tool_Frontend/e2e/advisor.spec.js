@@ -168,7 +168,7 @@ test("analyzes the current build once, displays a plan and applies it explicitly
     expect(requests[0].advisor).toMatchObject({
         goal: "CRITICAL_CHANCE",
         allowedChanges: { drifs: false },
-        timeBudgetMs: 1500,
+        timeBudgetMs: 3000,
     });
     await expect(page.getByRole("button", { name: /Same przełożenia/ })).toContainText("1,5 p.p.");
     await page.screenshot({ path: "../tmp/advisor-desktop.png", fullPage: true });
