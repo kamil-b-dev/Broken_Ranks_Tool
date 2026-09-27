@@ -13,7 +13,7 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationReques
 /** Expands simple profession choices into deterministic internal optimization goals. */
 public final class SimpleProfileConfigurationResolver {
 
-    private record Preference(DRIF_BONUS_TYPE type, int weight, double usefulTarget) {}
+    private record Preference(DRIF_BONUS_TYPE type, int weight) {}
 
     private SimpleProfileConfigurationResolver() {}
 
@@ -38,7 +38,6 @@ public final class SimpleProfileConfigurationResolver {
         configureProfession(profile, request.getSimpleProfile(), style, options);
         request.setPriorities(profile.priorities);
         request.setTargetQuantities(profile.quantities);
-        request.setSimpleUtilityTargets(profile.usefulTargets);
         request.setSimplePreferredQuantities(profile.preferredQuantities);
         request.setForceCapBonuses(profile.forcedCaps);
         request.setForcedPercentageTargets(profile.forcedTargets);
@@ -93,21 +92,21 @@ public final class SimpleProfileConfigurationResolver {
                 if (defensive) {
                     profile.forceTarget(DRIF_BONUS_TYPE.PASIVE_DAMAGE_REDUCTION, 28, 60);
                 } else {
-                    profile.useful(DRIF_BONUS_TYPE.PASIVE_DAMAGE_REDUCTION, 18, 24);
+                    profile.exact(DRIF_BONUS_TYPE.PASIVE_DAMAGE_REDUCTION, 18, 1);
                 }
             }
             if (defensive) {
                 profile.forceTarget(DRIF_BONUS_TYPE.DAMAGE_REDUCTION_CHANCE, 27, 45);
             } else {
-                profile.useful(DRIF_BONUS_TYPE.DAMAGE_REDUCTION_CHANCE, 17, 20);
+                profile.maximize(DRIF_BONUS_TYPE.DAMAGE_REDUCTION_CHANCE, 17, 12);
             }
         }
 
         if (enabled(options.getPercentageDamageReduction(), false)) {
-            profile.useful(DRIF_BONUS_TYPE.PERCENTAGE_DAMAGE_REDUCTION, 20, 20);
+            profile.exact(DRIF_BONUS_TYPE.PERCENTAGE_DAMAGE_REDUCTION, 20, 1);
         }
         if (!knightOrDruid && enabled(options.getPassiveDamageReduction(), false)) {
-            profile.useful(DRIF_BONUS_TYPE.PASIVE_DAMAGE_REDUCTION, 20, 24);
+            profile.exact(DRIF_BONUS_TYPE.PASIVE_DAMAGE_REDUCTION, 20, 1);
         }
         if (!knightOrDruid && enabled(options.getDamageReductionChance(), false)) {
             profile.maximize(DRIF_BONUS_TYPE.DAMAGE_REDUCTION_CHANCE, 19, 12);
@@ -195,7 +194,6 @@ public final class SimpleProfileConfigurationResolver {
             return "Wybierz przynajmniej jeden obszar ważny dla prostego profilu.";
         }
         Map<DRIF_BONUS_TYPE, Integer> priorities = new LinkedHashMap<>();
-        Map<DRIF_BONUS_TYPE, Double> targets = new EnumMap<>(DRIF_BONUS_TYPE.class);
         for (var entry : request.getSimpleAspects().entrySet()) {
             if (entry.getKey() == null || entry.getValue() == null) {
                 return "Prosty profil zawiera nieprawidłowy obszar lub ważność.";
@@ -204,7 +202,6 @@ public final class SimpleProfileConfigurationResolver {
                     legacyPreferences(request.getSimpleProfile(), entry.getKey())) {
                 priorities.merge(
                         preference.type(), entry.getValue().weight(preference.weight()), Math::max);
-                targets.merge(preference.type(), preference.usefulTarget(), Math::max);
             }
         }
         request.setPriorities(priorities);
@@ -212,11 +209,10 @@ public final class SimpleProfileConfigurationResolver {
                 new EnumMap<>(DRIF_BONUS_TYPE.class);
         priorities.keySet().forEach(type -> quantities.put(type, range(12)));
         request.setTargetQuantities(quantities);
-        request.setSimpleUtilityTargets(targets);
         request.setSimplePreferredQuantities(Map.of());
         request.setForceCapBonuses(Set.of());
         request.setForcedPercentageTargets(Map.of());
-        request.setMaximizeBonuses(Set.of());
+        request.setMaximizeBonuses(new LinkedHashSet<>(priorities.keySet()));
         request.setDrifSizeQuantities(Map.of());
         request.setForceMaximizationByDrifBonus(false);
         request.setGenerateVariants(false);
@@ -236,10 +232,9 @@ public final class SimpleProfileConfigurationResolver {
                                     magical
                                             ? DRIF_BONUS_TYPE.DAMAGE_MAGIC
                                             : DRIF_BONUS_TYPE.DAMAGE_PHYSICAL,
-                                    30,
-                                    25),
-                            new Preference(DRIF_BONUS_TYPE.CRITICAL_CHANCE, 22, 20),
-                            new Preference(DRIF_BONUS_TYPE.DOUBLE_ATTACK_CHANCE, 18, 18));
+                                    30),
+                            new Preference(DRIF_BONUS_TYPE.CRITICAL_CHANCE, 22),
+                            new Preference(DRIF_BONUS_TYPE.DOUBLE_ATTACK_CHANCE, 18));
             case ACCURACY -> {
                 DRIF_BONUS_TYPE hit =
                         switch (profile) {
@@ -251,39 +246,38 @@ public final class SimpleProfileConfigurationResolver {
                 if (profile == SimpleBuildProfile.MAGICAL
                         || profile == SimpleBuildProfile.MAGICAL_MENTAL) {
                     yield List.of(
-                            new Preference(hit, 30, 25),
-                            new Preference(DRIF_BONUS_TYPE.DOUBLE_HIT_ROLL_CHANCE, 18, 18),
-                            new Preference(DRIF_BONUS_TYPE.MENTAL_DEFENSE_REDUCTION, 17, 15));
+                            new Preference(hit, 30),
+                            new Preference(DRIF_BONUS_TYPE.DOUBLE_HIT_ROLL_CHANCE, 18),
+                            new Preference(DRIF_BONUS_TYPE.MENTAL_DEFENSE_REDUCTION, 17));
                 }
                 yield List.of(
-                        new Preference(hit, 30, 25),
-                        new Preference(DRIF_BONUS_TYPE.DOUBLE_HIT_ROLL_CHANCE, 18, 18));
+                        new Preference(hit, 30),
+                        new Preference(DRIF_BONUS_TYPE.DOUBLE_HIT_ROLL_CHANCE, 18));
             }
             case SURVIVABILITY ->
                     List.of(
-                            new Preference(DRIF_BONUS_TYPE.DAMAGE_REDUCTION, 28, 10),
-                            new Preference(DRIF_BONUS_TYPE.DODGE_CHANCE, 20, 12),
-                            new Preference(DRIF_BONUS_TYPE.DOUBLE_DEFENSE_ROLL_CHANCE, 17, 20),
-                            new Preference(DRIF_BONUS_TYPE.CRITICAL_DAMAGE_REDUCTION, 14, 15));
+                            new Preference(DRIF_BONUS_TYPE.DAMAGE_REDUCTION, 28),
+                            new Preference(DRIF_BONUS_TYPE.DODGE_CHANCE, 20),
+                            new Preference(DRIF_BONUS_TYPE.DOUBLE_DEFENSE_ROLL_CHANCE, 17),
+                            new Preference(DRIF_BONUS_TYPE.CRITICAL_DAMAGE_REDUCTION, 14));
             case RESOURCES ->
                     magical
                             ? List.of(
-                                    new Preference(DRIF_BONUS_TYPE.MANA_USAGE_REDUCTION, 25, 15),
-                                    new Preference(DRIF_BONUS_TYPE.MANA_REGEN, 20, 20),
-                                    new Preference(DRIF_BONUS_TYPE.MANA_STEAL, 15, 10))
+                                    new Preference(DRIF_BONUS_TYPE.MANA_USAGE_REDUCTION, 25),
+                                    new Preference(DRIF_BONUS_TYPE.MANA_REGEN, 20),
+                                    new Preference(DRIF_BONUS_TYPE.MANA_STEAL, 15))
                             : List.of(
-                                    new Preference(DRIF_BONUS_TYPE.STAMINA_USAGE_REDUCTION, 25, 15),
-                                    new Preference(DRIF_BONUS_TYPE.STAMINA_REGEN, 20, 20));
+                                    new Preference(DRIF_BONUS_TYPE.STAMINA_USAGE_REDUCTION, 25),
+                                    new Preference(DRIF_BONUS_TYPE.STAMINA_REGEN, 20));
             case RESISTANCE ->
                     List.of(
-                            new Preference(DRIF_BONUS_TYPE.CC_PROTECTION, 22, 18),
-                            new Preference(DRIF_BONUS_TYPE.PERCENTAGE_DAMAGE_REDUCTION, 18, 15),
-                            new Preference(DRIF_BONUS_TYPE.PASIVE_DAMAGE_REDUCTION, 16, 18));
+                            new Preference(DRIF_BONUS_TYPE.CC_PROTECTION, 22),
+                            new Preference(DRIF_BONUS_TYPE.PERCENTAGE_DAMAGE_REDUCTION, 18),
+                            new Preference(DRIF_BONUS_TYPE.PASIVE_DAMAGE_REDUCTION, 16));
             case UTILITY ->
                     List.of(
-                            new Preference(DRIF_BONUS_TYPE.DISPELL_CHANCE, 22, 12),
-                            new Preference(
-                                    DRIF_BONUS_TYPE.CRITICAL_DAMAGE_CHANCE_REDUCTION, 16, 15));
+                            new Preference(DRIF_BONUS_TYPE.DISPELL_CHANCE, 22),
+                            new Preference(DRIF_BONUS_TYPE.CRITICAL_DAMAGE_CHANCE_REDUCTION, 16));
         };
     }
 
@@ -294,8 +288,6 @@ public final class SimpleProfileConfigurationResolver {
     private static final class ProfileBuilder {
         private final Map<DRIF_BONUS_TYPE, Integer> priorities = new LinkedHashMap<>();
         private final Map<DRIF_BONUS_TYPE, OptimizationRequest.QuantityRange> quantities =
-                new EnumMap<>(DRIF_BONUS_TYPE.class);
-        private final Map<DRIF_BONUS_TYPE, Double> usefulTargets =
                 new EnumMap<>(DRIF_BONUS_TYPE.class);
         private final Map<DRIF_BONUS_TYPE, Integer> preferredQuantities =
                 new EnumMap<>(DRIF_BONUS_TYPE.class);
@@ -309,6 +301,11 @@ public final class SimpleProfileConfigurationResolver {
             maximized.add(type);
         }
 
+        private void exact(DRIF_BONUS_TYPE type, int weight, int quantity) {
+            priorities.merge(type, weight, Math::max);
+            quantities.put(type, new OptimizationRequest.QuantityRange(quantity, quantity));
+        }
+
         private void forceTarget(DRIF_BONUS_TYPE type, int weight, double target) {
             forceTarget(type, weight, target, 12);
         }
@@ -317,11 +314,6 @@ public final class SimpleProfileConfigurationResolver {
             add(type, weight, maximum);
             maximized.remove(type);
             forcedTargets.put(type, target);
-        }
-
-        private void useful(DRIF_BONUS_TYPE type, int weight, double target) {
-            add(type, weight, 12);
-            usefulTargets.put(type, target);
         }
 
         private void add(DRIF_BONUS_TYPE type, int weight, int maximum) {

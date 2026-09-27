@@ -13,7 +13,6 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRul
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.simpleprofile.SimpleProfileUtilityCurve;
 
 /** Calculates structured quality measures and maximization scales for states. */
 @RequiredArgsConstructor
@@ -68,16 +67,11 @@ final class OptimizationStateQualityCalculator {
                 forcedCapExcess += Math.max(0.0, value - target) * priority;
                 weightedUtility += Math.min(value, target) * priority;
             } else {
-                Double usefulTarget =
-                        context.request().getSimpleUtilityTargets() == null
-                                ? null
-                                : context.request().getSimpleUtilityTargets().get(type);
-                weightedUtility +=
-                        usefulTarget != null
-                                ? SimpleProfileUtilityCurve.utility(
-                                                cappedValue(type, value), usefulTarget)
-                                        * priority
-                                : value * priority;
+                weightedUtility += cappedValue(type, value) * priority;
+                Integer cap = type.getMaxCap();
+                if (cap != null) {
+                    forcedCapExcess += Math.max(0.0, value - Math.abs(cap)) * priority;
+                }
             }
         }
         if (!hasMaximizedTypes) minimumMaximizedProgress = 0.0;
