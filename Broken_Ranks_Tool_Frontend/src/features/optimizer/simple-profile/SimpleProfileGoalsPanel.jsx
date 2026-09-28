@@ -6,7 +6,7 @@ import {
 } from "./simpleProfileDefinitions";
 
 const QuantityField = ({ label, value, onChange }) => (
-    <label className="flex items-center justify-between gap-4 border border-purple-950/80 bg-black/25 p-3 text-xs text-stone-300">
+    <label className="simple-profile-field flex items-center justify-between gap-4 border border-purple-950/80 bg-black/25 p-3 text-xs text-stone-300">
         <span>{label}</span>
         <input
             type="number"
@@ -20,7 +20,7 @@ const QuantityField = ({ label, value, onChange }) => (
 );
 
 const Toggle = ({ label, checked, onChange }) => (
-    <label className="flex cursor-pointer items-center gap-2 border border-stone-800 bg-black/25 p-3 text-xs text-stone-300">
+    <label className="simple-profile-toggle flex cursor-pointer items-center gap-2 border border-stone-800 bg-black/25 p-3 text-xs text-stone-300">
         <input
             type="checkbox"
             checked={checked}
@@ -42,8 +42,8 @@ const SimpleProfileGoalsPanel = ({ settings, onChange }) => {
     const archerLike = ["ARCHER", "SHEED", "VOODOO"].includes(profile);
 
     return (
-        <div className="min-h-0 flex-1 overflow-y-auto p-3 custom-scrollbar">
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-3 border border-purple-950/80 bg-black/30 p-3">
+        <div className="simple-profile-panel min-h-0 flex-1 overflow-y-auto p-3 custom-scrollbar">
+            <div className="simple-profile-header mb-3 flex flex-wrap items-center justify-between gap-3 border border-purple-950/80 bg-black/30 p-3">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-purple-200">
                     Konfiguracja profilu profesji
                 </h4>
@@ -71,7 +71,7 @@ const SimpleProfileGoalsPanel = ({ settings, onChange }) => {
             </div>
 
             {styled && (
-                <label className="mb-3 flex items-center justify-between border border-purple-950/80 bg-black/25 p-3 text-xs text-stone-300">
+                <label className="simple-profile-field mb-3 flex items-center justify-between border border-purple-950/80 bg-black/25 p-3 text-xs text-stone-300">
                     Styl buildu
                     <select
                         aria-label="Styl buildu"
@@ -111,7 +111,7 @@ const SimpleProfileGoalsPanel = ({ settings, onChange }) => {
             </div>
 
             {elemental && (
-                <label className="mt-2 flex items-center justify-between border border-purple-950/80 bg-black/25 p-3 text-xs text-stone-300">
+                <label className="simple-profile-field mt-2 flex items-center justify-between border border-purple-950/80 bg-black/25 p-3 text-xs text-stone-300">
                     Drif żywiołowy w broni
                     <select
                         aria-label="Żywioł broni"
