@@ -33,8 +33,13 @@ class SecurityConfigTests {
     void permitsPublicGetRequestsAndAddsSecurityHeaders() throws Exception {
         mockMvc.perform(get("/api/initial-data"))
                 .andExpect(status().isOk())
-                .andExpect(header().exists("Content-Security-Policy"))
+                .andExpect(
+                        header().string(
+                                        "Content-Security-Policy",
+                                        org.hamcrest.Matchers.containsString(
+                                                "style-src-elem 'self'; style-src-attr 'unsafe-inline'")))
                 .andExpect(header().string("X-Frame-Options", "DENY"))
+                .andExpect(header().exists("Strict-Transport-Security"))
                 .andExpect(header().string("Cache-Control", "max-age=3600, public"));
     }
 
@@ -60,11 +65,24 @@ class SecurityConfigTests {
 
     @Test
     void permitsTheDeclaredAdvisorCancellationEndpoint() throws Exception {
-        when(advisorRunRegistry.cancel("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")).thenReturn(true);
+        when(advisorRunRegistry.cancel(
+                        "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                        "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"))
+                .thenReturn(true);
 
-        mockMvc.perform(post("/api/optimizer/advisor/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa/cancel"))
+        mockMvc.perform(
+                        post("/api/optimizer/advisor/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa/cancel")
+                                .header(
+                                        "X-Advisor-Cancellation-Token",
+                                        "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.cancelled").value(true));
+    }
+
+    @Test
+    void refusesAdvisorCancellationWithoutItsIndependentToken() throws Exception {
+        mockMvc.perform(post("/api/optimizer/advisor/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa/cancel"))
+                .andExpect(status().isBadRequest());
     }
 
     @Test

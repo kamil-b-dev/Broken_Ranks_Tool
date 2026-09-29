@@ -10,10 +10,14 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.advisor.AdvisorRunRegi
 @RequestMapping("/api/optimizer/advisor")
 @RequiredArgsConstructor
 public class AdvisorCancellationController {
+    static final String CANCELLATION_TOKEN_HEADER = "X-Advisor-Cancellation-Token";
+
     private final AdvisorRunRegistry runs;
 
     @PostMapping("/{runId}/cancel")
-    public Map<String, Boolean> cancel(@PathVariable UUID runId) {
-        return Map.of("cancelled", runs.cancel(runId.toString()));
+    public Map<String, Boolean> cancel(
+            @PathVariable UUID runId,
+            @RequestHeader(CANCELLATION_TOKEN_HEADER) UUID cancellationToken) {
+        return Map.of("cancelled", runs.cancel(runId.toString(), cancellationToken.toString()));
     }
 }

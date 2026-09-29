@@ -69,7 +69,7 @@ Użytkownik może ustawić limit od 1 do 10 działań; wartość domyślna to 3.
 
 Istotne docelowe poziomy drifów to 6, 11, 16 i 21, z ograniczeniem wynikającym z rozmiaru drifa. Przy ulepszaniu pomija się progi nie wyższe od aktualnego poziomu. Poziom 1 nie jest kandydatem zakupu, ponieważ przy tym samym zużyciu pojemności co poziom 6 daje słabszy efekt.
 
-Użytkownik wybiera jeden z dwóch budżetów analizy: 3 albo 6 sekund. Backend odrzuca wartości pośrednie i większe, niezależnie od danych przesłanych przez klienta. Limit czasu i limit ocenionych stanów mają chronić aplikację przy dużej przestrzeni oraz większym ruchu. Maksymalnie jedna analiza Doradcy powinna być aktywna na instancję aplikacji; kolejne uruchomienie tego samego użytkownika anuluje jego poprzednią analizę.
+Użytkownik wybiera jeden z dwóch budżetów analizy: 3 albo 6 sekund. Backend odrzuca wartości pośrednie i większe, niezależnie od danych przesłanych przez klienta. Limit czasu i limit ocenionych stanów mają chronić aplikację przy dużej przestrzeni oraz większym ruchu. Maksymalnie jedna analiza Doradcy powinna być aktywna na instancję aplikacji; kolejne uruchomienie tego samego użytkownika anuluje jego poprzednią analizę. Anulowanie wymaga niezależnie wygenerowanego identyfikatora uruchomienia i sekretu anulowania; znajomość samego identyfikatora nie wystarcza do przerwania analizy.
 
 ## 5. Przedmioty zastępcze
 

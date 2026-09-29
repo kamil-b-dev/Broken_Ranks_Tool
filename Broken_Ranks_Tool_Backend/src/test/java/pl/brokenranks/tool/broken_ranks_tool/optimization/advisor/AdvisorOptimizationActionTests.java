@@ -360,10 +360,12 @@ class AdvisorOptimizationActionTests extends AdvisorOptimizationTestSupport {
                         List.of(drif(10, A, "10%")));
         var request = request(A, Map.of("helmet", slot(1, 1, 10L)));
         String id = UUID.randomUUID().toString();
+        String token = UUID.randomUUID().toString();
         request.getAdvisor().setRunId(UUID.fromString(id));
+        request.getAdvisor().setCancellationToken(UUID.fromString(token));
         doAnswer(
                         invocation -> {
-                            assertTrue(f.runs.cancel(id));
+                            assertTrue(f.runs.cancel(id, token));
                             return invocation.callRealMethod();
                         })
                 .when(f.calculator)
@@ -372,6 +374,6 @@ class AdvisorOptimizationActionTests extends AdvisorOptimizationTestSupport {
         assertTrue(result.getAdvisorReport().cancelled());
         assertEquals(AdvisorStatus.CANCELLED, result.getAdvisorReport().status());
         assertEquals(request.getOriginalSlots(), result.getOptimizedSetup().getSlots());
-        assertFalse(f.runs.cancel(id));
+        assertFalse(f.runs.cancel(id, token));
     }
 }

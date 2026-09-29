@@ -8,14 +8,18 @@ import org.springframework.stereotype.Component;
 public class AdvisorRunRegistry {
     private ActiveRun active;
 
-    synchronized AtomicBoolean start(String id) {
+    synchronized AtomicBoolean start(String id, String cancellationToken) {
         AtomicBoolean flag = new AtomicBoolean();
         if (active != null) {
-            if (!active.cancelled().get() && !java.util.Objects.equals(active.id(), id))
+            boolean sameOwner =
+                    java.util.Objects.equals(active.id(), id)
+                            && java.util.Objects.equals(
+                                    active.cancellationToken(), cancellationToken);
+            if (!active.cancelled().get() && !sameOwner)
                 throw new IllegalArgumentException("Inna analiza Doradcy już trwa.");
             active.cancelled().set(true);
         }
-        active = new ActiveRun(id, flag);
+        active = new ActiveRun(id, cancellationToken, flag);
         return flag;
     }
 
@@ -25,12 +29,16 @@ public class AdvisorRunRegistry {
                 && active.cancelled() == flag) active = null;
     }
 
-    public synchronized boolean cancel(String id) {
-        if (id == null || active == null || !java.util.Objects.equals(active.id(), id))
+    public synchronized boolean cancel(String id, String cancellationToken) {
+        if (id == null
+                || cancellationToken == null
+                || active == null
+                || !java.util.Objects.equals(active.id(), id)
+                || !java.util.Objects.equals(active.cancellationToken(), cancellationToken))
             return false;
         active.cancelled().set(true);
         return true;
     }
 
-    private record ActiveRun(String id, AtomicBoolean cancelled) {}
+    private record ActiveRun(String id, String cancellationToken, AtomicBoolean cancelled) {}
 }

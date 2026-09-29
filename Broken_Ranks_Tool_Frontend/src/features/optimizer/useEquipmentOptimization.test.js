@@ -227,6 +227,7 @@ describe("useEquipmentOptimization", () => {
         expect(optimizeEquipmentDrifs.mock.calls[0][0].advisor).toMatchObject({
             goal: "TEST",
             runId: expect.any(String),
+            cancellationToken: expect.any(String),
         });
         expect(response.nextVariants[0]).toMatchObject({
             advisorGain: 1.5,
@@ -253,10 +254,11 @@ describe("useEquipmentOptimization", () => {
             });
         });
         const runId = optimizeEquipmentDrifs.mock.calls[0][0].advisor.runId;
+        const cancellationToken = optimizeEquipmentDrifs.mock.calls[0][0].advisor.cancellationToken;
         await act(async () => {
             await result.current.cancelDrifOptimization();
         });
-        expect(cancelAdvisorOptimization).toHaveBeenCalledWith(runId);
+        expect(cancelAdvisorOptimization).toHaveBeenCalledWith({ runId, cancellationToken });
         await act(async () => {
             finish({
                 summary: { success: true, nextVariants: [] },
@@ -288,18 +290,67 @@ describe("useEquipmentOptimization", () => {
         });
         const newestRunId = optimizeEquipmentDrifs.mock.calls[1][0].advisor.runId;
         const previousRunId = optimizeEquipmentDrifs.mock.calls[0][0].advisor.runId;
-        expect(cancelAdvisorOptimization).toHaveBeenCalledWith(previousRunId);
+        const newestCancellationToken =
+            optimizeEquipmentDrifs.mock.calls[1][0].advisor.cancellationToken;
+        const previousCancellationToken =
+            optimizeEquipmentDrifs.mock.calls[0][0].advisor.cancellationToken;
+        expect(cancelAdvisorOptimization).toHaveBeenCalledWith({
+            runId: previousRunId,
+            cancellationToken: previousCancellationToken,
+        });
 
         await act(async () => {
             finishes[0]({ summary: { success: true } });
             await first;
         });
         await act(async () => result.current.cancelDrifOptimization());
-        expect(cancelAdvisorOptimization).toHaveBeenCalledWith(newestRunId);
+        expect(cancelAdvisorOptimization).toHaveBeenCalledWith({
+            runId: newestRunId,
+            cancellationToken: newestCancellationToken,
+        });
 
         await act(async () => {
             finishes[1]({ summary: { success: true } });
             await second;
         });
+    });
+
+    it("does not start a pending replacement after the user cancels it", async () => {
+        let finishPreviousCancellation;
+        cancelAdvisorOptimization.mockImplementationOnce(
+            () =>
+                new Promise((resolve) => {
+                    finishPreviousCancellation = resolve;
+                })
+        );
+        optimizeEquipmentDrifs.mockImplementation(() => new Promise(() => {}));
+        const { result } = renderOptimization({ helmet: { itemId: 7 } });
+
+        await act(async () => {
+            void result.current.runDrifOptimization({
+                mode: "ADVISOR",
+                advisor: { goal: "TEST" },
+            });
+        });
+        let replacement;
+        await act(async () => {
+            replacement = result.current.runDrifOptimization({
+                mode: "ADVISOR",
+                advisor: { goal: "TEST" },
+            });
+            await Promise.resolve();
+        });
+
+        await act(async () => {
+            await result.current.cancelDrifOptimization();
+            finishPreviousCancellation({ cancelled: true });
+        });
+
+        await expect(replacement).resolves.toEqual({
+            success: false,
+            message: "Analiza Doradcy została anulowana.",
+            applied: false,
+        });
+        expect(optimizeEquipmentDrifs).toHaveBeenCalledTimes(1);
     });
 });

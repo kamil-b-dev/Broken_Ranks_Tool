@@ -8,61 +8,81 @@ import org.junit.jupiter.api.Test;
 
 class AdvisorRunRegistryTests {
 
+    private static final String TOKEN = "cancel-token";
+
     private final AdvisorRunRegistry registry = new AdvisorRunRegistry();
 
     @Test
     void marksAnActiveRunAsCancelled() {
-        AtomicBoolean cancellation = registry.start("run-1");
+        AtomicBoolean cancellation = registry.start("run-1", TOKEN);
 
-        assertThat(registry.cancel("run-1")).isTrue();
+        assertThat(registry.cancel("run-1", TOKEN)).isTrue();
         assertThat(cancellation).isTrue();
     }
 
     @Test
     void removesFinishedRunsAndRejectsUnknownIdentifiers() {
-        registry.start("run-1");
-        registry.finish("run-1", registry.start("run-1"));
+        registry.start("run-1", TOKEN);
+        registry.finish("run-1", registry.start("run-1", TOKEN));
 
-        assertThat(registry.cancel("run-1")).isFalse();
-        assertThat(registry.cancel("missing")).isFalse();
+        assertThat(registry.cancel("run-1", TOKEN)).isFalse();
+        assertThat(registry.cancel("missing", TOKEN)).isFalse();
     }
 
     @Test
     void cancelsPreviousRunWithTheSameIdentifier() {
-        AtomicBoolean previous = registry.start("run-1");
+        AtomicBoolean previous = registry.start("run-1", TOKEN);
 
-        registry.start("run-1");
+        registry.start("run-1", TOKEN);
 
         assertThat(previous).isTrue();
     }
 
     @Test
     void preventsConcurrentRunsWithDifferentIdentifiers() {
-        registry.start("run-1");
+        registry.start("run-1", TOKEN);
 
-        assertThatThrownBy(() -> registry.start("run-2"))
+        assertThatThrownBy(() -> registry.start("run-2", TOKEN))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Inna analiza Doradcy już trwa.");
     }
 
     @Test
-    void replacesACancelledRunWithANewIdentifierBeforeTheOldRequestFinishes() {
-        AtomicBoolean previous = registry.start("run-1");
-        assertThat(registry.cancel("run-1")).isTrue();
+    void preventsAReusedIdentifierFromReplacingARunWithoutItsSecret() {
+        AtomicBoolean active = registry.start("run-1", TOKEN);
 
-        AtomicBoolean replacement = registry.start("run-2");
+        assertThatThrownBy(() -> registry.start("run-1", "wrong-token"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Inna analiza Doradcy już trwa.");
+        assertThat(active).isFalse();
+    }
+
+    @Test
+    void replacesACancelledRunWithANewIdentifierBeforeTheOldRequestFinishes() {
+        AtomicBoolean previous = registry.start("run-1", TOKEN);
+        assertThat(registry.cancel("run-1", TOKEN)).isTrue();
+
+        AtomicBoolean replacement = registry.start("run-2", TOKEN);
         registry.finish("run-1", previous);
 
         assertThat(replacement).isFalse();
-        assertThat(registry.cancel("run-2")).isTrue();
+        assertThat(registry.cancel("run-2", TOKEN)).isTrue();
     }
 
     @Test
     void toleratesMissingIdentifiersWithoutRegisteringThem() {
-        AtomicBoolean cancellation = registry.start(null);
+        AtomicBoolean cancellation = registry.start(null, null);
         registry.finish(null, cancellation);
 
         assertThat(cancellation).isFalse();
-        assertThat(registry.cancel(null)).isFalse();
+        assertThat(registry.cancel(null, null)).isFalse();
+    }
+
+    @Test
+    void refusesCancellationWithASecretFromAnotherRun() {
+        AtomicBoolean cancellation = registry.start("run-1", TOKEN);
+
+        assertThat(registry.cancel("run-1", "wrong-token")).isFalse();
+        assertThat(cancellation).isFalse();
     }
 }

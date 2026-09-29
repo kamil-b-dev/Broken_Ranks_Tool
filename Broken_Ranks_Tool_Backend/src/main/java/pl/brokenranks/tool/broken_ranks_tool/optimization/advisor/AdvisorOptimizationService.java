@@ -56,7 +56,11 @@ public class AdvisorOptimizationService {
         if (!optionsValidator.valid(options))
             return responses.failure("Nieprawidłowy cel lub zakres analizy Doradcy.", started);
         String runId = options.getRunId() == null ? null : options.getRunId().toString();
-        var cancelled = runs.start(runId);
+        String cancellationToken =
+                options.getCancellationToken() == null
+                        ? null
+                        : options.getCancellationToken().toString();
+        var cancelled = runs.start(runId, cancellationToken);
         try {
             AdvisorEquipmentModel model = createModel(request, loadTemplates());
             Map<String, SlotData> slots = copySlots(request.getOriginalSlots());
