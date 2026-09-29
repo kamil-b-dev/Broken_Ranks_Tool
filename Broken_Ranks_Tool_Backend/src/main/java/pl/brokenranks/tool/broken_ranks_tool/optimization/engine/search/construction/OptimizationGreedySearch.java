@@ -90,7 +90,7 @@ public final class OptimizationGreedySearch {
             Map<DRIF_BONUS_TYPE, Integer> globalCounts,
             OptimizationContext context) {
         DRIF_BONUS_TYPE type = candidate.getBonusType();
-        Double target = targetFor(type, context.request());
+        Double target = usefulTargetFor(type, context.request());
         return (target == null
                         || stateEvaluation.calculatedValue(state, type, context)
                                 < target - TARGET_TOLERANCE)

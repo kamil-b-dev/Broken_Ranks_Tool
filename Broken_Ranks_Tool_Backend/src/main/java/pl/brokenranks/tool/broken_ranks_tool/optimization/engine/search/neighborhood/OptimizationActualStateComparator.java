@@ -61,7 +61,7 @@ final class OptimizationActualStateComparator {
             if (isMaximized(type, context.request())) {
                 hasMaximizedTypes = true;
                 double scale = stateEvaluator.maximizationScale(type, context);
-                double progress = scale > 0.0 ? Math.max(0.0, value) / scale : 0.0;
+                double progress = maximizationProgress(type, value, scale, context.request());
                 minimumMaximizedProgress = Math.min(minimumMaximizedProgress, progress);
                 maximizedProgress += progress * priority;
             } else if (target != null) {
@@ -78,14 +78,7 @@ final class OptimizationActualStateComparator {
 
     private double actualUtilityValue(
             BuildState state, DRIF_BONUS_TYPE type, OptimizationContext context) {
-        double value = resultAssembler.actualValue(state, type, context);
-        if (!isForcedTarget(type, context.request())
-                && !isMaximized(type, context.request())
-                && type.getMaxCap() != null
-                && type.getMaxCap() < 0) {
-            return -value;
-        }
-        return value;
+        return resultAssembler.actualValue(state, type, context);
     }
 
     private int compareHigherIsBetter(double candidate, double current) {
