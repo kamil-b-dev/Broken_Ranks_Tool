@@ -6,6 +6,11 @@ import {
     getDrifMaxLevel,
     getOrbMaxLevel,
 } from "../../shared/domain/equipment/equipmentRules";
+import {
+    normalizeCharacterConfig,
+    totalPointsForLevel,
+    trimSpentPoints,
+} from "../builder/character/characterDevelopmentDomain";
 
 export const BUILD_FILE_FORMAT = "broken-ranks-tool-build";
 export const BUILD_FILE_VERSION = 1;
@@ -32,6 +37,31 @@ const itemFitsSlot = (item, slotDefinition) => {
     if (!item.category) return true;
     const allowed = Array.isArray(slotDefinition.cat) ? slotDefinition.cat : [slotDefinition.cat];
     return allowed.includes(String(item.category).toUpperCase());
+};
+
+const validateBuiltInDrifs = (item, drifIds, drifsById, gameRules, slotKey) => {
+    const baseItemName = item?.name?.replace(/\s+[IVX]+$/, "").trim() || "";
+    const expectedTypes = gameRules.epicBuiltInDrifs?.[baseItemName] || [];
+    const importedDrifs = drifIds.filter(Boolean).map((id) => drifsById.get(String(id)));
+    const matches =
+        importedDrifs.length === expectedTypes.length &&
+        importedDrifs.every(
+            (drif, index) =>
+                String(drif?.size).toUpperCase() === "MAGNIDRIF" &&
+                drif?.bonusType === expectedTypes[index]
+        );
+    if (!matches) {
+        throw new Error(`Wbudowane drify nie pasują do przedmiotu w slocie ${slotKey}.`);
+    }
+};
+
+const normalizeImportedCharacterConfig = (config) => {
+    if (!isObject(config)) return null;
+    const normalized = normalizeCharacterConfig(config);
+    return {
+        ...normalized,
+        spentPoints: trimSpentPoints(normalized.spentPoints, totalPointsForLevel(normalized.level)),
+    };
 };
 
 const requireIntegerInRange = (value, minimum, maximum, message) => {
@@ -228,7 +258,9 @@ export const parseBuildPayload = (
                 throw new Error(`Orb w slocie ${slotKey} jest zbyt duży.`);
             }
         });
-        if (!["EPIC", "SET"].includes(rarity)) {
+        if (["EPIC", "SET"].includes(rarity)) {
+            validateBuiltInDrifs(item, drifIds, drifsById, gameRules, slotKey);
+        } else {
             const populatedDrifs = drifIds.filter(Boolean);
             if (populatedDrifs.length > maximumDrifSlots(tier, stars)) {
                 throw new Error(`Za dużo drifów w slocie ${slotKey}.`);
@@ -305,7 +337,7 @@ export const parseBuildPayload = (
             slots: importedRequest.slots,
             characterStats: importedRequest.characterStats || {},
         }),
-        characterConfig: build.characterConfig || null,
+        characterConfig: normalizeImportedCharacterConfig(build.characterConfig),
         lockedSlots: [...lockedSlots],
         lockedDrifs: cloneJson(lockedDrifs),
     };
