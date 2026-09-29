@@ -82,8 +82,15 @@ test("analyzes the current build once, displays a plan and applies it explicitly
         route.fulfill({ json: { stats: { CRITICAL_CHANCE: "12%", MANA_USAGE_REDUCTION: "-10%" } } })
     );
     const requests = [];
-    await page.route("**/api/optimizer/drifs", (route) => {
+    let holdNextRun = false;
+    let releaseHeldRun;
+    await page.route("**/api/optimizer/drifs", async (route) => {
         requests.push(route.request().postDataJSON());
+        if (holdNextRun) {
+            await new Promise((resolve) => {
+                releaseHeldRun = resolve;
+            });
+        }
         return route.fulfill({
             json: {
                 optimizedSetup: { slots: suggested },
@@ -170,6 +177,13 @@ test("analyzes the current build once, displays a plan and applies it explicitly
         allowedChanges: { drifs: false },
         timeBudgetMs: 3000,
     });
+    expect(requests[0].advisor.runId).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu
+    );
+    expect(requests[0].advisor.cancellationToken).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu
+    );
+    expect(requests[0].advisor.cancellationToken).not.toBe(requests[0].advisor.runId);
     await expect(page.getByRole("button", { name: /Same przełożenia/ })).toContainText("1,5 p.p.");
     await page.screenshot({ path: "../tmp/advisor-desktop.png", fullPage: true });
 
@@ -186,4 +200,22 @@ test("analyzes the current build once, displays a plan and applies it explicitly
     await expect.poll(() => requests.length).toBe(2);
     expect(requests[1].originalSlots.boots.drifIds.filter(Boolean).map(Number)).toEqual([10]);
     expect(requests[1].originalSlots.helmet.drifIds.filter(Boolean)).toEqual([]);
+
+    let cancellation;
+    await page.route("**/api/optimizer/advisor/*/cancel", (route) => {
+        cancellation = {
+            url: route.request().url(),
+            token: route.request().headers()["x-advisor-cancellation-token"],
+        };
+        return route.fulfill({ json: { cancelled: true } });
+    });
+    holdNextRun = true;
+    await page.getByRole("button", { name: /Analizuj ponownie/i }).click();
+    await expect.poll(() => requests.length).toBe(3);
+    await page.getByRole("button", { name: /Zatrzymaj i pokaż znalezione plany/i }).click();
+    await expect.poll(() => cancellation).toBeTruthy();
+    expect(cancellation.url).toContain(`/advisor/${requests[2].advisor.runId}/cancel`);
+    expect(cancellation.token).toBe(requests[2].advisor.cancellationToken);
+    releaseHeldRun();
+    await expect(page.getByRole("button", { name: /Analizuj ponownie/i })).toBeEnabled();
 });

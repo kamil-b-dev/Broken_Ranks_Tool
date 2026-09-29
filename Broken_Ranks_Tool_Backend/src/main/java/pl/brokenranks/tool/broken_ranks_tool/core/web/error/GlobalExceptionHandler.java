@@ -8,6 +8,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -52,6 +53,14 @@ public class GlobalExceptionHandler {
                 HttpStatus.BAD_REQUEST,
                 ApiErrorCode.INVALID_REQUEST,
                 "Nieprawidłowy parametr żądania.");
+    }
+
+    @ExceptionHandler(MissingRequestHeaderException.class)
+    public ResponseEntity<ApiError> handleMissingRequestHeader(MissingRequestHeaderException ex) {
+        return error(
+                HttpStatus.BAD_REQUEST,
+                ApiErrorCode.INVALID_REQUEST,
+                "Brakuje wymaganego nagłówka żądania.");
     }
 
     @ExceptionHandler(NoResourceFoundException.class)

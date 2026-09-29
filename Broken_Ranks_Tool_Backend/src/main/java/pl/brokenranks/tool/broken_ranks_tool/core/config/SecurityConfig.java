@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.header.writers.PermissionsPolicyHeaderWriter;
+import org.springframework.security.web.util.matcher.AnyRequestMatcher;
 import pl.brokenranks.tool.broken_ranks_tool.core.web.error.ApiError;
 import pl.brokenranks.tool.broken_ranks_tool.core.web.error.ApiErrorCode;
 import pl.brokenranks.tool.broken_ranks_tool.core.web.filter.RequestTracingFilter;
@@ -21,7 +22,8 @@ import pl.brokenranks.tool.broken_ranks_tool.core.web.filter.RequestTracingFilte
 public class SecurityConfig {
 
     private static final String CONTENT_SECURITY_POLICY =
-            "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; "
+            "default-src 'self'; img-src 'self' data:; style-src 'self'; "
+                    + "style-src-elem 'self'; style-src-attr 'unsafe-inline'; "
                     + "script-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; "
                     + "frame-ancestors 'none'";
 
@@ -76,7 +78,9 @@ public class SecurityConfig {
                                             "camera=(), microphone=(), geolocation=()"));
                             headers.frameOptions(frame -> frame.deny());
                             headers.httpStrictTransportSecurity(
-                                    hsts -> hsts.includeSubDomains(true));
+                                    hsts ->
+                                            hsts.includeSubDomains(true)
+                                                    .requestMatcher(AnyRequestMatcher.INSTANCE));
                         })
                 .build();
     }

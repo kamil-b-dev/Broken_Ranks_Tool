@@ -19,7 +19,11 @@ export const optimizeEquipmentDrifs = async (optimizationRequest) => {
 };
 
 /** Stops the search; its original request still returns already verified recommendations. */
-export const cancelAdvisorOptimization = async (runId) => {
-    const response = await apiClient.post(`/optimizer/advisor/${encodeURIComponent(runId)}/cancel`);
+export const cancelAdvisorOptimization = async ({ runId, cancellationToken }) => {
+    const response = await apiClient.post(
+        `/optimizer/advisor/${encodeURIComponent(runId)}/cancel`,
+        null,
+        { headers: { "X-Advisor-Cancellation-Token": cancellationToken } }
+    );
     return response.data;
 };

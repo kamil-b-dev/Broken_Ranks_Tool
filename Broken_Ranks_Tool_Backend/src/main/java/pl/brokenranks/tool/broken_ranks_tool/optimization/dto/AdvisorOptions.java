@@ -24,6 +24,9 @@ public class AdvisorOptions {
 
     private UUID runId;
 
+    /** Independent bearer secret required by the cancellation endpoint. */
+    private UUID cancellationToken;
+
     @Min(SHORT_TIME_BUDGET_MS)
     @Max(LONG_TIME_BUDGET_MS)
     private int timeBudgetMs = SHORT_TIME_BUDGET_MS;
