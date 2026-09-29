@@ -1,5 +1,6 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.maximization;
 
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationRequestConstraints.maximizationProgress;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationRequestConstraints.targetFor;
 
 import java.util.List;
@@ -46,10 +47,11 @@ public final class OptimizationMaximizationStateComparator {
         for (DRIF_BONUS_TYPE type : maximizedTypes) {
             double scale = stateEvaluator.maximizationScale(type, context);
             double progress =
-                    scale > 0.0
-                            ? Math.max(0.0, resultAssembler.actualValue(state, type, context))
-                                    / scale
-                            : 0.0;
+                    maximizationProgress(
+                            type,
+                            resultAssembler.actualValue(state, type, context),
+                            scale,
+                            context.request());
             minimumProgress = Math.min(minimumProgress, progress);
             weightedProgress +=
                     progress * Math.max(1, stateEvaluation.priorityOf(type, context.request()));

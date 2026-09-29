@@ -235,7 +235,7 @@ class CustomModsOptimizationPlacementTests extends CustomModsOptimizationTestSup
     void maximizesSelectedModOnItemWithHighestDrifBonusBeforeHigherRawGainSlots() {
         ItemTemplate helmet = item(1L, 4, ITEM_CATEGORY.HELMET);
         ItemTemplate armor = item(2L, 16, ITEM_CATEGORY.ARMOR);
-        DrifTemplate criticalChance = drif(10L, DRIF_BONUS_TYPE.CRITICAL_CHANCE, 2.0, 4.0);
+        DrifTemplate criticalChance = drif(10L, DRIF_BONUS_TYPE.CRITICAL_CHANCE, 2.0, 2.0);
         EquipmentStatsCalculatorService calculator = mock(EquipmentStatsCalculatorService.class);
         when(calculator.calculateTotalStats(any())).thenReturn(Map.of());
 

@@ -57,7 +57,7 @@ final class OptimizationStateQualityCalculator {
             if (isMaximized(type, context.request())) {
                 hasMaximizedTypes = true;
                 double scale = maximizationScale(type, context);
-                double progress = scale > 0.0 ? Math.max(0.0, value) / scale : 0.0;
+                double progress = maximizationProgress(type, value, scale, context.request());
                 minimumMaximizedProgress = Math.min(minimumMaximizedProgress, progress);
                 maximizedUtility += progress * priority;
             }
