@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { calculateEquipmentStats } from "../../shared/api/equipmentApi";
 
 const emptySources = () => ({ drifCategories: {}, orbBonusTypes: [] });
@@ -10,14 +10,17 @@ export const useEquipmentStats = (requestData) => {
     const [calculatedRequestFingerprint, setCalculatedRequestFingerprint] = useState(null);
     const [isCalculatingStats, setIsCalculatingStats] = useState(false);
     const [calculationNotice, setCalculationNotice] = useState(null);
+    const calculationVersion = useRef(0);
     const requestFingerprint = useMemo(() => JSON.stringify(requestData), [requestData]);
     const statsAreCurrent = Boolean(stats) && calculatedRequestFingerprint === requestFingerprint;
 
     const calculateStats = useCallback(async () => {
+        const version = ++calculationVersion.current;
         setIsCalculatingStats(true);
         setCalculationNotice(null);
         try {
             const response = await calculateEquipmentStats(requestData);
+            if (version !== calculationVersion.current) return;
             setStats(response.stats || response);
             setCalculatedRequestFingerprint(requestFingerprint);
             setStatSources({
@@ -25,6 +28,7 @@ export const useEquipmentStats = (requestData) => {
                 orbBonusTypes: response.orbBonusTypes || [],
             });
         } catch (error) {
+            if (version !== calculationVersion.current) return;
             if (error.response?.data?.message) {
                 setCalculationNotice({
                     type: "error",
@@ -38,11 +42,12 @@ export const useEquipmentStats = (requestData) => {
             }
             console.error("Błąd podczas obliczania mocy:", error);
         } finally {
-            setIsCalculatingStats(false);
+            if (version === calculationVersion.current) setIsCalculatingStats(false);
         }
     }, [requestData, requestFingerprint]);
 
     const resetStats = useCallback(() => {
+        calculationVersion.current += 1;
         setStats(null);
         setStatSources(emptySources());
         setCalculatedRequestFingerprint(null);

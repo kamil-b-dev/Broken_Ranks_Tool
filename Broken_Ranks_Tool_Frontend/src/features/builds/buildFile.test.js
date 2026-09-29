@@ -15,13 +15,22 @@ afterEach(() => {
 });
 
 const gameData = {
-    items: [{ id: 1, category: "HELMET", rarity: "RARE", tier: "X", capacity: 10 }],
+    items: [
+        { id: 1, category: "HELMET", rarity: "RARE", tier: "X", capacity: 10 },
+        { id: 5, name: "Allenor X", category: "HELMET", rarity: "EPIC", tier: "X" },
+    ],
     orbs: [{ id: 2, size: "SUBORB", bonusType: "HEALTH", category: "DEFENSIVE" }],
-    drifs: [{ id: 3, size: "SUBDRIF", bonusType: "CRITICAL_CHANCE" }],
+    drifs: [
+        { id: 3, size: "SUBDRIF", bonusType: "CRITICAL_CHANCE" },
+        { id: 6, size: "MAGNIDRIF", bonusType: "DAMAGE_PHYSICAL" },
+        { id: 7, size: "MAGNIDRIF", bonusType: "CRITICAL_CHANCE" },
+        { id: 8, size: "MAGNIDRIF", bonusType: "DAMAGE_MAGIC" },
+    ],
     gameRules: {
         slotOrbRules: { helmet: ["DEFENSIVE"] },
         drifBasePowers: { CRITICAL_CHANCE: 4 },
         elementalTypes: ["DAMAGE_FIRE"],
+        epicBuiltInDrifs: { Allenor: ["DAMAGE_PHYSICAL", "CRITICAL_CHANCE"] },
     },
 };
 
@@ -100,7 +109,7 @@ describe("parseBuildFile", () => {
 
         expect(result).toEqual({
             requestData: payload.build.requestData,
-            characterConfig: { level: 140 },
+            characterConfig: expect.objectContaining({ level: 140 }),
             lockedSlots: ["helmet"],
             lockedDrifs: { helmet: [0] },
         });
@@ -174,5 +183,40 @@ describe("parseBuildPayload", () => {
             requestData: validPayload().build.requestData,
             lockedSlots: ["helmet"],
         });
+    });
+
+    it("accepts only the exact built-in drifs defined for an epic item", () => {
+        const payload = validPayload();
+        payload.build.requestData.slots.helmet = {
+            itemId: 5,
+            drifIds: [6, 7],
+            drifLevels: { 0: 16, 1: 16 },
+        };
+        payload.build.lockedDrifs = {};
+
+        expect(parseBuildPayload(payload, gameData).requestData.slots.helmet.drifIds).toEqual([
+            6, 7,
+        ]);
+
+        payload.build.requestData.slots.helmet.drifIds = [8, 7];
+        expect(() => parseBuildPayload(payload, gameData)).toThrow("Wbudowane drify");
+
+        payload.build.requestData.slots.helmet.drifIds = [7, 6];
+        expect(() => parseBuildPayload(payload, gameData)).toThrow("Wbudowane drify");
+    });
+
+    it("trims imported character points to the allowance for its level", () => {
+        const payload = validPayload();
+        payload.build.characterConfig = {
+            level: 2,
+            spentPoints: { Siła: 10, Zręczność: 10 },
+        };
+
+        const result = parseBuildPayload(payload, gameData);
+
+        expect(result.characterConfig.level).toBe(2);
+        expect(
+            Object.values(result.characterConfig.spentPoints).reduce((sum, value) => sum + value, 0)
+        ).toBe(4);
     });
 });
