@@ -7,6 +7,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.CalculationResultDto;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.OrbTemplate;
 
 /** Defines the statistics calculation contract independently from the API layer. */
 public interface EquipmentStatsCalculatorService {
@@ -26,6 +27,14 @@ public interface EquipmentStatsCalculatorService {
      * @throws IllegalArgumentException If the request violates equipment rules.
      */
     CalculationResultDto calculateWithSources(EquipmentRequest request);
+
+    /** Prepares authoritative calculations and source metadata using a request-local catalog. */
+    default Function<EquipmentRequest, CalculationResultDto> prepareCalculationWithSources(
+            Map<Long, ItemTemplate> items,
+            Map<Long, OrbTemplate> orbs,
+            Map<Long, DrifTemplate> drifs) {
+        return this::calculateWithSources;
+    }
 
     /** Prepares repeated calculations on fixed equipment with an already loaded drif catalog. */
     default Function<EquipmentRequest, Map<String, String>> prepareCalculation(

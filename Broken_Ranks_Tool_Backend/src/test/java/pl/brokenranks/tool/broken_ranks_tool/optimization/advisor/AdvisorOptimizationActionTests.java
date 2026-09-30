@@ -74,7 +74,7 @@ class AdvisorOptimizationActionTests extends AdvisorOptimizationTestSupport {
                         .actions()
                         .getFirst()
                         .contains("Przenieś"));
-        verify(f.items, times(1)).findAll();
+        verify(f.items, times(1)).findAllById(List.of(1L, 2L));
         verify(f.calculator, atMost(19)).calculateTotalStats(any());
     }
 
@@ -369,7 +369,7 @@ class AdvisorOptimizationActionTests extends AdvisorOptimizationTestSupport {
                             return invocation.callRealMethod();
                         })
                 .when(f.calculator)
-                .calculateWithSources(any());
+                .prepareCalculationWithSources(any(), any(), any());
         var result = f.service.optimize(request);
         assertTrue(result.getAdvisorReport().cancelled());
         assertEquals(AdvisorStatus.CANCELLED, result.getAdvisorReport().status());

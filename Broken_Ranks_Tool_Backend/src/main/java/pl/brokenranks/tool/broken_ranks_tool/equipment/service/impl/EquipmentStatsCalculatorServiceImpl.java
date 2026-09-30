@@ -11,6 +11,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.CalculationResultDto;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.OrbTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCalculatorService;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.CalculationMetadataFactory;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.CalculationMetadataFactory.CalculationMetadata;
@@ -60,12 +61,18 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
             Map<Long, ItemTemplate> items,
             Map<Long, DrifTemplate> drifs,
             Collection<EquipmentRequest.SlotData> slots) {
+        var prepared = prepareCalculationWithSources(items, dataProvider.loadOrbs(slots), drifs);
+        return request -> prepared.apply(request).stats();
+    }
+
+    @Override
+    public Function<EquipmentRequest, CalculationResultDto> prepareCalculationWithSources(
+            Map<Long, ItemTemplate> items,
+            Map<Long, OrbTemplate> orbs,
+            Map<Long, DrifTemplate> drifs) {
         CalculationContext context =
-                new CalculationContext(
-                        Map.copyOf(items),
-                        Map.copyOf(dataProvider.loadOrbs(slots)),
-                        Map.copyOf(drifs));
-        return request -> calculateWithSources(request, context).stats();
+                new CalculationContext(Map.copyOf(items), Map.copyOf(orbs), Map.copyOf(drifs));
+        return request -> calculateWithSources(request, context);
     }
 
     private CalculationResultDto calculateWithSources(
@@ -91,7 +98,7 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
 
         processSlots(request, ctx, state);
 
-        CalculationMetadata metadata = metadataFactory.create(ctx);
+        CalculationMetadata metadata = metadataFactory.create(ctx, request.getSlots().values());
         return new CalculationResultDto(
                 state.getAccumulator().getFormattedResults(),
                 metadata.drifCategories(),

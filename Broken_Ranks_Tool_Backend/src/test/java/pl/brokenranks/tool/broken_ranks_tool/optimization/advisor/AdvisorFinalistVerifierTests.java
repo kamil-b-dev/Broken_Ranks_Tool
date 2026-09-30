@@ -27,7 +27,7 @@ class AdvisorFinalistVerifierTests {
                                 List.of(candidate),
                                 mock(AdvisorEquipmentModel.class),
                                 search,
-                                mock(EquipmentStatsCalculatorService.class),
+                                mock(EquipmentStatsCalculatorService.class)::calculateWithSources,
                                 System.nanoTime() - 1);
 
         assertFalse(result.proofComplete());
@@ -52,7 +52,7 @@ class AdvisorFinalistVerifierTests {
                         List.of(candidate()),
                         mock(AdvisorEquipmentModel.class),
                         search,
-                        calculator,
+                        calculator::calculateWithSources,
                         1);
 
         assertFalse(result.proofComplete());
@@ -72,7 +72,7 @@ class AdvisorFinalistVerifierTests {
                                 List.of(candidate()),
                                 mock(AdvisorEquipmentModel.class),
                                 search,
-                                calculator,
+                                calculator::calculateWithSources,
                                 1);
 
         assertFalse(result.proofComplete());
