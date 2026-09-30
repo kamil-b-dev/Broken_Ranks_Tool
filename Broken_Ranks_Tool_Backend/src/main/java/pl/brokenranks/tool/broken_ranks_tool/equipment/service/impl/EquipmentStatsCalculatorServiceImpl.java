@@ -1,12 +1,15 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.service.impl;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.CalculationResultDto;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCalculatorService;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.CalculationMetadataFactory;
@@ -49,6 +52,24 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
 
     @Override
     public CalculationResultDto calculateWithSources(EquipmentRequest request) {
+        return calculateWithSources(request, null);
+    }
+
+    @Override
+    public Function<EquipmentRequest, Map<String, String>> prepareCalculation(
+            Map<Long, ItemTemplate> items,
+            Map<Long, DrifTemplate> drifs,
+            Collection<EquipmentRequest.SlotData> slots) {
+        CalculationContext context =
+                new CalculationContext(
+                        Map.copyOf(items),
+                        Map.copyOf(dataProvider.loadOrbs(slots)),
+                        Map.copyOf(drifs));
+        return request -> calculateWithSources(request, context).stats();
+    }
+
+    private CalculationResultDto calculateWithSources(
+            EquipmentRequest request, CalculationContext preparedContext) {
         requestValidator.validateRequest(request);
         if (request.getSlots() == null || request.getSlots().isEmpty()) {
             return new CalculationResultDto(
@@ -57,7 +78,10 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
 
         requestValidator.validateCharacterStats(request.getCharacterStats());
 
-        CalculationContext ctx = dataProvider.buildContext(request.getSlots().values());
+        CalculationContext ctx =
+                preparedContext != null
+                        ? preparedContext
+                        : dataProvider.buildContext(request.getSlots().values());
         CalculationState state = new CalculationState(ctx);
 
         initializeDefaultStats(state);
