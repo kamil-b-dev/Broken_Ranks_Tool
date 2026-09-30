@@ -6,6 +6,8 @@ import { EquipmentProvider } from "./EquipmentProvider";
 import { useEquipment } from "../shared/state/EquipmentContext";
 import { server } from "../test/server";
 import { readEquipmentDraft, writeEquipmentDraft } from "./storage/workingDraftStorage";
+import legacyEpicBuild from "../test/fixtures/builds/legacy-epic-build.json";
+import legacyEpicCatalog from "../test/fixtures/builds/legacy-epic-catalog.json";
 
 const ContextProbe = () => {
     const { data, gameRules, loading, initialDataError } = useEquipment();
@@ -25,6 +27,64 @@ const ActionProbe = ({ exposeRef }) => {
 
 describe("EquipmentProvider", () => {
     beforeEach(() => localStorage.clear());
+
+    it.each(["file", "library"])(
+        "loads the legacy epic build from the %s with catalogue rules",
+        async (source) => {
+            server.use(http.get("*/api/initial-data", () => HttpResponse.json(legacyEpicCatalog)));
+            const exposeRef = { current: null };
+            render(
+                <EquipmentProvider>
+                    <ActionProbe exposeRef={exposeRef} />
+                </EquipmentProvider>
+            );
+            await waitFor(() => expect(exposeRef.current.loading).toBe(false));
+
+            await act(async () => {
+                if (source === "file") {
+                    await exposeRef.current.loadBuildFromFile({
+                        size: 10000,
+                        text: async () => JSON.stringify(legacyEpicBuild),
+                    });
+                } else {
+                    exposeRef.current.loadBuildSnapshot({ payload: legacyEpicBuild });
+                }
+            });
+
+            expect(exposeRef.current.requestData).toEqual(legacyEpicBuild.build.requestData);
+            expect(exposeRef.current.characterConfig).toMatchObject(
+                legacyEpicBuild.build.characterConfig
+            );
+            expect(exposeRef.current.lockedDrifs).toEqual({ ring1: [0] });
+        }
+    );
+
+    it.each(["built-in drifs", "capacity"])(
+        "rejects invalid %s in imported builds without applying them",
+        async (violation) => {
+            server.use(http.get("*/api/initial-data", () => HttpResponse.json(legacyEpicCatalog)));
+            const exposeRef = { current: null };
+            render(
+                <EquipmentProvider>
+                    <ActionProbe exposeRef={exposeRef} />
+                </EquipmentProvider>
+            );
+            await waitFor(() => expect(exposeRef.current.loading).toBe(false));
+            const invalidBuild = JSON.parse(JSON.stringify(legacyEpicBuild));
+            if (violation === "built-in drifs") {
+                invalidBuild.build.requestData.slots.weapon.drifIds = [91, 83];
+            } else {
+                invalidBuild.build.requestData.slots.boots.drifLevels[1] = 21;
+            }
+            await expect(
+                exposeRef.current.loadBuildFromFile({
+                    size: 10000,
+                    text: async () => JSON.stringify(invalidBuild),
+                })
+            ).rejects.toThrow(violation === "built-in drifs" ? "Wbudowane drify" : "pojemność");
+            expect(exposeRef.current.requestData.slots).toEqual({});
+        }
+    );
 
     it("restores the equipment workspace and keeps later changes in browser storage", async () => {
         server.use(
