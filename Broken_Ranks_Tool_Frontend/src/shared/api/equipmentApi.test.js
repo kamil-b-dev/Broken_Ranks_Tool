@@ -28,7 +28,9 @@ describe("equipmentApi", () => {
         await expect(optimizeEquipmentDrifs({ priorities: {} })).resolves.toEqual({
             summary: { success: true },
         });
-        await expect(cancelAdvisorOptimization("run id/1")).resolves.toEqual({
+        await expect(
+            cancelAdvisorOptimization({ runId: "run id/1", cancellationToken: "secret" })
+        ).resolves.toEqual({
             cancelled: true,
         });
 
@@ -37,6 +39,11 @@ describe("equipmentApi", () => {
         expect(apiClient.post).toHaveBeenNthCalledWith(2, "/optimizer/drifs", {
             priorities: {},
         });
-        expect(apiClient.post).toHaveBeenNthCalledWith(3, "/optimizer/advisor/run%20id%2F1/cancel");
+        expect(apiClient.post).toHaveBeenNthCalledWith(
+            3,
+            "/optimizer/advisor/run%20id%2F1/cancel",
+            null,
+            { headers: { "X-Advisor-Cancellation-Token": "secret" } }
+        );
     });
 });

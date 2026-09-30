@@ -126,6 +126,20 @@ class AdvisorSearchControlTests {
     }
 
     @Test
+    void requiresRunIdentifierAndCancellationTokenTogether() {
+        AdvisorOptionsValidator validator = new AdvisorOptionsValidator();
+        AdvisorOptions options = options();
+        options.setRunId(java.util.UUID.randomUUID());
+        assertFalse(validator.valid(options));
+
+        options.setCancellationToken(java.util.UUID.randomUUID());
+        assertTrue(validator.valid(options));
+
+        options.setRunId(null);
+        assertFalse(validator.valid(options));
+    }
+
+    @Test
     void reportedLossIgnoresPointsAboveCap() {
         assertTrue(
                 Math.abs(
@@ -143,14 +157,14 @@ class AdvisorSearchControlTests {
     @Test
     void registryCancelsDuplicateRunAndForgetsFinishedRun() {
         AdvisorRunRegistry registry = new AdvisorRunRegistry();
-        AtomicBoolean flag = registry.start("run-1");
+        AtomicBoolean flag = registry.start("run-1", "token");
 
-        AtomicBoolean replacement = registry.start("run-1");
+        AtomicBoolean replacement = registry.start("run-1", "token");
         assertTrue(flag.get());
-        assertTrue(registry.cancel("run-1"));
+        assertTrue(registry.cancel("run-1", "token"));
         assertTrue(replacement.get());
         registry.finish("run-1", replacement);
-        assertFalse(registry.cancel("run-1"));
+        assertFalse(registry.cancel("run-1", "token"));
     }
 
     private AdvisorSearch search(long deadline, AtomicBoolean cancelled) {

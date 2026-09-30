@@ -5,7 +5,7 @@
     gap: 0.5rem;
     padding: 0.85rem 0 0.35rem;
     color: #b88a4b;
-    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-family: var(--display-font);
     font-size: 0.72rem;
     letter-spacing: 0.15em;
     text-transform: uppercase;
@@ -174,7 +174,7 @@
     width: 5rem;
     overflow: hidden;
     color: currentcolor;
-    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-family: var(--ui-font);
     font-size: 0.46rem;
     font-weight: 700;
     letter-spacing: 0.08em;
@@ -597,7 +597,7 @@
 
 .equipment-slot-overview-label {
     color: #c59855;
-    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-family: var(--ui-font);
     font-size: 0.62rem;
     font-weight: 700;
     letter-spacing: 0.16em;
@@ -620,7 +620,7 @@
     gap: 0.45rem;
     overflow: hidden;
     color: #ddd3c5;
-    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-family: var(--ui-font);
     font-size: 0.78rem;
     font-weight: 700;
     text-overflow: ellipsis;
@@ -684,7 +684,7 @@
     place-items: center;
     border: 1px solid currentcolor;
     border-radius: 50%;
-    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-family: var(--ui-font);
     font-size: 0.5rem;
     font-style: normal;
     font-weight: 700;
@@ -711,7 +711,7 @@
 .equipment-slot-overview-empty {
     margin: auto 0;
     color: #625c57;
-    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-family: var(--ui-font);
     font-size: 0.68rem;
     font-style: italic;
 }

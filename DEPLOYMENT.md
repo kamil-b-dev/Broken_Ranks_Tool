@@ -74,10 +74,10 @@ Treat a startup failure caused by a write attempt as a defect instead of making 
 writable; the JVM can still use the container's temporary directory.
 
 Public calculation endpoints are protected by per-client and whole-instance, one-minute request
-limits. The production defaults allow 3 optimizer requests per client and 12 globally, and 120
-calculator requests per client and 600 globally. Advisor cancellation is limited to 30 requests
-per client and 300 globally. Public API reads are limited to 300 requests per client and 3000
-globally. Requests larger than 256 KiB are rejected before JSON parsing, including requests
+limits. The checked-in Railway configuration initially uses the global allowance as the client
+allowance: 12 optimizer requests, 600 calculator requests, 300 control requests, and 3000 public
+API reads per minute. This keeps the process-wide boundary effective while forwarded client
+addresses remain disabled. Requests larger than 256 KiB are rejected before JSON parsing, including requests
 streamed without a `Content-Length` header. Tune these values with
 `OPTIMIZER_CLIENT_REQUESTS_PER_MINUTE`,
 `OPTIMIZER_GLOBAL_REQUESTS_PER_MINUTE`, `CALCULATOR_CLIENT_REQUESTS_PER_MINUTE`,
@@ -90,11 +90,16 @@ The limiter is intentionally process-local. Keep the declared Railway service at
 not enable horizontal scaling until these counters are moved to a shared store or equivalent limits
 are enforced at the edge; otherwise every replica would grant a separate allowance.
 
-The production profile trusts forwarded client addresses only when the direct proxy address
-matches private, loopback, link-local, or carrier-grade NAT proxy ranges. Tomcat expects this
-allowlist as a Java regular expression, not CIDR notation. Keep the service reachable through
-Railway's public proxy; if the hosting topology changes, override `TRUSTED_PROXY_REGEX` with an
-exact proxy-address regular expression instead of trusting arbitrary forwarded headers.
+The production profile trusts forwarded client addresses only from loopback by default. Therefore
+Railway requests are initially grouped under the direct proxy address and cannot evade limits by
+forging `X-Forwarded-For`. After observing and confirming Railway's direct proxy addresses, set
+`TRUSTED_PROXY_REGEX` to an exact anchored Java regular expression for those addresses and reduce
+the client allowances if desired. Never configure whole private, link-local, or carrier-grade NAT
+ranges. Keep the service reachable only through Railway's public proxy.
+
+Advisor cancellation requires both its random run identifier and a separate random cancellation
+token sent in `X-Advisor-Cancellation-Token`. Treat both values as short-lived secrets and never
+write request bodies or this header to logs.
 
 Successful public catalogue responses use `Cache-Control: public, max-age=3600`. Vite's
 content-hashed files under `/assets/` use a one-year public immutable cache, while HTML, write and

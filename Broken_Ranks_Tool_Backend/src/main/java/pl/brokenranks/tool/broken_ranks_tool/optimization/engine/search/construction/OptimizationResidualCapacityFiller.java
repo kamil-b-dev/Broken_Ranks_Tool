@@ -55,7 +55,7 @@ public final class OptimizationResidualCapacityFiller {
             OptimizationContext context) {
         DRIF_BONUS_TYPE type = candidate.getBonusType();
         List<Placement> placements = state.slots().get(slot.key());
-        Double target = targetFor(type, context.request());
+        Double target = usefulTargetFor(type, context.request());
         if (target != null
                 && stateEvaluation.calculatedValue(state, type, context)
                         >= target - TARGET_TOLERANCE) return null;

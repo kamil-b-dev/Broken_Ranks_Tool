@@ -117,20 +117,26 @@ describe("App", () => {
         expect(window.location.pathname).toBe("/optymalizator");
     }, 20000);
 
-    it("loads a selected build and reports success and failure without blocking alerts", async () => {
-        const { container, rerender } = render(<App />);
+    it("reports a successful build import", async () => {
+        const { container } = render(<App />);
         const input = container.querySelector('input[type="file"]');
         const file = new File(["{}"], "build.json", { type: "application/json" });
 
         fireEvent.change(input, { target: { files: [file] } });
+        await vi.waitFor(() => expect(equipment.loadBuildFromFile).toHaveBeenCalledWith(file));
         await vi.waitFor(() =>
             expect(screen.getByRole("status")).toHaveTextContent(
                 "Wczytano build z pliku build.json"
             )
         );
+    });
 
+    it("reports a failed build import without a blocking alert", async () => {
         equipment.loadBuildFromFile.mockRejectedValueOnce(new Error("uszkodzony plik"));
-        rerender(<App />);
+        const { container } = render(<App />);
+        const input = container.querySelector('input[type="file"]');
+        const file = new File(["{}"], "build.json", { type: "application/json" });
+
         fireEvent.change(input, { target: { files: [file] } });
         await vi.waitFor(() =>
             expect(screen.getByRole("alert")).toHaveTextContent(

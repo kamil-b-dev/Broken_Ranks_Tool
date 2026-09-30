@@ -11,8 +11,7 @@
 }
 
 .optimizer-theme {
-    --optimizer-ui-font:
-        Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --optimizer-ui-font: var(--ui-font);
     gap: 0.75rem !important;
     font-family: var(--optimizer-ui-font);
 }
@@ -89,7 +88,7 @@
     padding: 0.55rem 1rem;
     border: 1px solid rgba(145, 98, 45, 0.74);
     color: #cba05b;
-    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-family: var(--ui-font);
     font-size: 0.66rem;
     letter-spacing: 0.11em;
     text-transform: uppercase;
@@ -158,7 +157,7 @@
 
 .optimizer-column-heading h3 {
     color: #dfb66a;
-    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-family: var(--display-font) !important;
     font-size: 0.85rem;
     font-weight: 700;
     letter-spacing: 0.12em;
@@ -167,7 +166,7 @@
 
 .optimizer-column-heading p {
     color: #776f69;
-    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-family: var(--ui-font);
     font-size: 0.62rem;
     line-height: 1.35;
 }
@@ -198,7 +197,7 @@
     padding: 0.52rem 0.4rem;
     border-right: 1px solid rgba(94, 62, 31, 0.64);
     color: #77716d;
-    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-family: var(--ui-font);
     font-size: 0.58rem;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -279,7 +278,7 @@
 
 .optimizer-lock-label {
     color: #bd914f;
-    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-family: var(--ui-font);
     font-size: 0.55rem;
     font-weight: 700;
     letter-spacing: 0.12em;
@@ -289,7 +288,7 @@
 .optimizer-lock-copy strong {
     overflow: hidden;
     color: #c6c0b8;
-    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-family: var(--ui-font);
     font-size: 0.68rem;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -331,10 +330,10 @@
     justify-content: space-between;
     gap: 0.4rem;
     padding: 0.22rem 0.35rem;
-    border: 1px solid rgba(84, 43, 101, 0.72);
-    color: #b895cb;
+    border: 1px solid rgba(143, 20, 40, 0.78);
+    color: #e2a0a8;
     font-size: 0.58rem;
-    background: rgba(21, 7, 27, 0.7);
+    background: rgba(55, 7, 16, 0.7);
 }
 
 .optimizer-lock-drif[data-category="defensive"] {
@@ -391,7 +390,7 @@
 }
 
 .optimizer-level-lock input {
-    accent-color: #9d68d2;
+    accent-color: #cf3e50;
 }
 
 .optimizer-lock-drif-locked button {
@@ -401,7 +400,7 @@
 .optimizer-lock-empty {
     padding: 1rem;
     color: #6b625b;
-    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-family: var(--ui-font);
     font-size: 0.65rem;
     font-style: italic;
     text-align: center;

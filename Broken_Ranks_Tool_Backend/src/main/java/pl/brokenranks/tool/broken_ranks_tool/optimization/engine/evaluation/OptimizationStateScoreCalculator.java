@@ -26,7 +26,14 @@ final class OptimizationStateScoreCalculator {
                 double progress = Math.min(directedValue / target, 1.0);
                 result += progress * weight * 1000.0;
                 if (directedValue < target) result -= (target - directedValue) * weight * 25.0;
-            } else result += directedValue * weight * 100.0;
+            } else {
+                Double maximizationTarget = usefulTargetFor(type, context.request());
+                double usefulValue =
+                        maximizationTarget != null
+                                ? Math.min(directedValue, maximizationTarget)
+                                : directedValue;
+                result += usefulValue * weight * 100.0;
+            }
         }
         for (Map.Entry<DRIF_BONUS_TYPE, OptimizationRequest.QuantityRange> entry :
                 context.sortedQuantities()) {

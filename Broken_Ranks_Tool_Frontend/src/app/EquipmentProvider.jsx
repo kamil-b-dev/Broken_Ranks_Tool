@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
+import { parseBuildPayload } from "../features/builds/buildFile";
 import { useEquipmentBuildTransfer } from "../features/builds/useEquipmentBuildTransfer";
 import { useEquipmentLocks } from "../features/equipment/useEquipmentLocks";
 import { useEquipmentCatalog } from "../features/equipment/useEquipmentCatalog";
@@ -26,9 +27,8 @@ export const EquipmentProvider = ({ children }) => {
         initialDataError,
     } = useEquipmentCatalog();
 
-    const [requestData, setRequestData] = useState(
-        () => initialDraft?.requestData || { slots: {}, characterStats: {} }
-    );
+    const [requestData, setRequestData] = useState({ slots: {}, characterStats: {} });
+    const [draftRestored, setDraftRestored] = useState(!initialDraft);
     const {
         stats,
         statSources,
@@ -40,7 +40,7 @@ export const EquipmentProvider = ({ children }) => {
     } = useEquipmentStats(requestData);
 
     const { lockedSlots, lockedDrifs, toggleSlotLock, toggleDrifLock, replaceLocks } =
-        useEquipmentLocks(initialDraft?.lockedSlots, initialDraft?.lockedDrifs);
+        useEquipmentLocks();
     const {
         optimizationTrigger,
         markEquipmentChanged,
@@ -54,16 +54,48 @@ export const EquipmentProvider = ({ children }) => {
         lockedSlots,
         lockedDrifs,
     });
-    const [characterConfig, setCharacterConfig] = useState(initialDraft?.characterConfig || null);
+    const [characterConfig, setCharacterConfig] = useState(null);
 
     useEffect(() => {
+        if (draftRestored || !initialDraft || loading || initialDataError) return;
+        try {
+            const imported = parseBuildPayload(
+                {
+                    format: "broken-ranks-tool-build",
+                    version: 1,
+                    build: initialDraft,
+                },
+                { ...data, gameRules }
+            );
+            setRequestData(imported.requestData);
+            setCharacterConfig(imported.characterConfig);
+            replaceLocks(imported.lockedSlots, imported.lockedDrifs);
+            markEquipmentChanged();
+        } catch {
+            // Discard drafts that no longer satisfy the current catalogue and domain rules.
+        } finally {
+            setDraftRestored(true);
+        }
+    }, [
+        data,
+        draftRestored,
+        gameRules,
+        initialDataError,
+        initialDraft,
+        loading,
+        markEquipmentChanged,
+        replaceLocks,
+    ]);
+
+    useEffect(() => {
+        if (!draftRestored) return;
         writeEquipmentDraft({
             requestData,
             characterConfig,
             lockedSlots,
             lockedDrifs,
         });
-    }, [characterConfig, lockedDrifs, lockedSlots, requestData]);
+    }, [characterConfig, draftRestored, lockedDrifs, lockedSlots, requestData]);
 
     /**
      * Updates the equipment data for a single slot.

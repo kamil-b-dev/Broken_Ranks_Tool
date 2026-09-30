@@ -80,6 +80,7 @@ const SizeConstraints = ({ bonus, onChange }) => {
 
 const OptimizerPriorityForm = ({ bonus, potential, maxCap, onChange, simple = false }) => {
     const hasCap = maxCap !== null && maxCap !== undefined;
+    const weightProgress = Math.min(100, Math.max(0, ((Number(bonus.weight) - 1) / 29) * 100));
     const toggleClass = (active, color = "purple") =>
         `optimizer-priority-toggle ${active ? "optimizer-priority-toggle-active" : ""} ${color === "amber" ? "optimizer-priority-toggle-amber" : ""}`;
 
@@ -114,6 +115,7 @@ const OptimizerPriorityForm = ({ bonus, potential, maxCap, onChange, simple = fa
                             max="30"
                             value={bonus.weight}
                             onChange={(event) => onChange("weight", event.target.value)}
+                            style={{ "--optimizer-range-progress": `${weightProgress}%` }}
                             className="w-full h-1 bg-stone-950 border border-stone-800 rounded-sm appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-purple-900 [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:border-purple-400 [&::-webkit-slider-thumb]:rounded-sm [&::-webkit-slider-thumb]:shadow-[0_0_5px_rgba(168,85,247,0.7)] hover:[&::-webkit-slider-thumb]:bg-purple-700 hover:[&::-webkit-slider-thumb]:border-purple-300 transition-all [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-purple-900 [&::-moz-range-thumb]:border [&::-moz-range-thumb]:border-purple-400 [&::-moz-range-thumb]:rounded-sm [&::-moz-range-thumb]:shadow-[0_0_5px_rgba(168,85,247,0.7)] hover:[&::-moz-range-thumb]:bg-purple-700 hover:[&::-moz-range-thumb]:border-purple-300"
                         />
                     </div>

@@ -14,8 +14,9 @@ on:
       - "package.json"
       - "package-lock.json"
       - "Dockerfile"
+      - ".railway/**"
   push:
-    branches: [master]
+    branches: [dev, master]
     paths:
       - ".github/workflows/security.yml"
       - "Broken_Ranks_Tool_Backend/pom.xml"
@@ -24,6 +25,7 @@ on:
       - "package.json"
       - "package-lock.json"
       - "Dockerfile"
+      - ".railway/**"
 
 permissions:
   contents: read
@@ -50,6 +52,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Enforce the single-replica rate-limit topology
+        run: node .github/scripts/check-single-railway-replica.mjs
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: "22"
@@ -96,7 +100,7 @@ jobs:
           exit-code: "1"
       - name: Upload container findings
         if: always() && hashFiles('trivy-results.sarif') != ''
-        uses: github/codeql-action/upload-sarif@c20e34f438d671fc35777cc9820dd7adf8252874 # v3
+        uses: github/codeql-action/upload-sarif@88585263c0627ee42c0e1c5143a112c8d6f4aa18 # v4.38.2
         with:
           sarif_file: trivy-results.sarif
 

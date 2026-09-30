@@ -24,7 +24,10 @@
     padding: 0.62rem;
     border: 1px solid rgba(103, 71, 40, 0.74) !important;
     border-radius: 0 !important;
-    background: rgba(2, 3, 3, 0.66) !important;
+    background:
+        linear-gradient(105deg, rgba(22, 16, 13, 0.76), rgba(3, 4, 4, 0.92)),
+        url("../../../assets/smoked-parchment-texture.webp") center / 24rem !important;
+    background-blend-mode: normal, soft-light;
     box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.5) !important;
 }
 
@@ -32,7 +35,7 @@
 .optimizer-full-report > summary {
     margin-bottom: 0.5rem;
     color: #cfa45e !important;
-    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-family: var(--display-font) !important;
     font-size: 0.62rem !important;
     font-weight: 700;
     letter-spacing: 0.1em !important;
@@ -44,7 +47,7 @@
     align-items: center;
     gap: 0.5rem;
     color: #87c963;
-    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-family: var(--ui-font);
     font-size: 0.68rem;
     font-weight: 700;
     letter-spacing: 0.06em;
@@ -101,7 +104,7 @@
 
 .optimizer-status-metrics dd {
     color: #d6c4b1;
-    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-family: var(--ui-font);
     font-size: 0.82rem;
     font-weight: 700;
     text-align: center;
@@ -124,7 +127,7 @@
     justify-content: center;
     gap: 0.55rem;
     color: #9c79c0;
-    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-family: var(--ui-font);
     font-size: 0.64rem;
     text-align: center;
 }
@@ -207,7 +210,7 @@
 
 .optimizer-report-empty {
     color: #6d655f;
-    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-family: var(--ui-font);
     font-size: 0.6rem;
     font-style: italic;
     line-height: 1.45;

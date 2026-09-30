@@ -22,7 +22,7 @@ export const OptimizerModeNavigation = ({ settings, onChange }) => (
 
 const VariantsOptions = ({ settings, onChange, label }) => (
     <>
-        <label className="flex items-center gap-3 cursor-pointer select-none">
+        <label className="optimizer-settings-choice flex items-center gap-3 cursor-pointer select-none">
             <input
                 type="checkbox"
                 checked={settings.generateVariants}
@@ -86,8 +86,7 @@ const OptimizerSettingsPanel = ({ settings, onChange }) => {
                 )}
                 {!advisory && (
                     <div className="flex flex-wrap items-center gap-3">
-                        <span className="text-[11px] text-stone-400">Poziom konfiguracji</span>
-                        <div className="flex border border-purple-900/80 bg-black p-0.5">
+                        <div className="optimizer-settings-mode flex border border-purple-900/80 bg-black p-0.5">
                             {[
                                 ["SIMPLE", "Prosty"],
                                 ["ADVANCED", "Zaawansowany"],
@@ -108,7 +107,7 @@ const OptimizerSettingsPanel = ({ settings, onChange }) => {
                     </div>
                 )}
                 {!advisory && configurationMode === "ADVANCED" && (
-                    <label className="flex items-center gap-3 cursor-pointer select-none">
+                    <label className="optimizer-settings-choice flex items-center gap-3 cursor-pointer select-none">
                         <input
                             type="checkbox"
                             checked={settings.forceMaximizationByDrifBonus}

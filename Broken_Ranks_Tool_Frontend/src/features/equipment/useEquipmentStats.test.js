@@ -66,4 +66,58 @@ describe("useEquipmentStats", () => {
         act(() => result.current.restoreStats({ Atak: 170 }, {}, changedRequest));
         expect(result.current.stats).toEqual({ Atak: 170 });
     });
+
+    it("keeps the newest result when overlapping calculations finish out of order", async () => {
+        const finishes = [];
+        calculateEquipmentStats.mockImplementation(
+            () => new Promise((resolve) => finishes.push(resolve))
+        );
+        const { result } = renderHook(() => useEquipmentStats({ slots: {} }));
+        let first;
+        let second;
+
+        act(() => {
+            first = result.current.calculateStats();
+            second = result.current.calculateStats();
+        });
+        await act(async () => {
+            finishes[1]({ stats: { Atak: 200 } });
+            await second;
+        });
+        expect(result.current.stats).toEqual({ Atak: 200 });
+        expect(result.current.isCalculatingStats).toBe(false);
+
+        await act(async () => {
+            finishes[0]({ stats: { Atak: 100 } });
+            await first;
+        });
+        expect(result.current.stats).toEqual({ Atak: 200 });
+    });
+
+    it("ignores a stale failure after a newer calculation succeeds", async () => {
+        vi.spyOn(console, "error").mockImplementation(() => {});
+        const finishes = [];
+        calculateEquipmentStats.mockImplementation(
+            () => new Promise((resolve, reject) => finishes.push({ resolve, reject }))
+        );
+        const { result } = renderHook(() => useEquipmentStats({ slots: {} }));
+        let first;
+        let second;
+
+        act(() => {
+            first = result.current.calculateStats();
+            second = result.current.calculateStats();
+        });
+        await act(async () => {
+            finishes[1].resolve({ stats: { Atak: 200 } });
+            await second;
+        });
+        await act(async () => {
+            finishes[0].reject(new Error("stary błąd"));
+            await first;
+        });
+
+        expect(result.current.stats).toEqual({ Atak: 200 });
+        expect(result.current.calculationNotice).toBeNull();
+    });
 });

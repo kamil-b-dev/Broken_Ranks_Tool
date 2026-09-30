@@ -10,13 +10,15 @@ export default defineRailway(() => {
             JAVA_TOOL_OPTIONS:
                 "-Xms128m -Xmx640m -XX:MaxMetaspaceSize=128m -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError",
             OPTIMIZER_MAX_CONCURRENT_RUNS: "1",
-            OPTIMIZER_CLIENT_REQUESTS_PER_MINUTE: "3",
+            // Forwarded addresses are ignored until TRUSTED_PROXY_REGEX is set to exact proxy IPs.
+            // Equal client/global values keep the process-wide protection effective meanwhile.
+            OPTIMIZER_CLIENT_REQUESTS_PER_MINUTE: "12",
             OPTIMIZER_GLOBAL_REQUESTS_PER_MINUTE: "12",
-            CALCULATOR_CLIENT_REQUESTS_PER_MINUTE: "120",
+            CALCULATOR_CLIENT_REQUESTS_PER_MINUTE: "600",
             CALCULATOR_GLOBAL_REQUESTS_PER_MINUTE: "600",
-            CONTROL_CLIENT_REQUESTS_PER_MINUTE: "30",
+            CONTROL_CLIENT_REQUESTS_PER_MINUTE: "300",
             CONTROL_GLOBAL_REQUESTS_PER_MINUTE: "300",
-            PUBLIC_DATA_CLIENT_REQUESTS_PER_MINUTE: "300",
+            PUBLIC_DATA_CLIENT_REQUESTS_PER_MINUTE: "3000",
             PUBLIC_DATA_GLOBAL_REQUESTS_PER_MINUTE: "3000",
             ABUSE_PROTECTION_MAX_REQUEST_BYTES: "262144",
         },
