@@ -4,6 +4,7 @@ import static pl.brokenranks.tool.broken_ranks_tool.optimization.advisor.Advisor
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.support.EquipmentSlotDataCopier.copySlots;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -62,7 +63,6 @@ public class AdvisorOptimizationService {
                         : options.getCancellationToken().toString();
         var cancelled = runs.start(runId, cancellationToken);
         try {
-            AdvisorEquipmentModel model = createModel(request, loadTemplates());
             Map<String, SlotData> slots = copySlots(request.getOriginalSlots());
             if (!validSlotAndLockReferences(request, slots)) {
                 return responses.failure(
@@ -74,13 +74,21 @@ public class AdvisorOptimizationService {
                             entry ->
                                     entry.getValue() == null
                                             || entry.getValue().getItemId() == null);
-            if (slots.isEmpty() || !model.valid(slots))
+            if (slots.isEmpty())
+                return responses.failure(
+                        "Wybierz przynajmniej jeden przedmiot do analizy.", started);
+            CalculationContext templates =
+                    loadTemplates(slots.values(), options.getAllowedChanges());
+            AdvisorEquipmentModel model = createModel(request, templates);
+            if (!model.valid(slots))
                 return responses.failure(
                         "Popraw obecny build: sprawdź tier, poziomy, gniazda, pojemność i unikalność kamieni.",
                         started);
 
-            CalculationResultDto baselineCalculation =
-                    calculator.calculateWithSources(model.setup(slots));
+            var preparedCalculator =
+                    calculator.prepareCalculationWithSources(
+                            templates.items(), templates.orbs(), templates.drifs());
+            CalculationResultDto baselineCalculation = preparedCalculator.apply(model.setup(slots));
             Map<String, String> before = baselineCalculation.stats();
             double[] baseline = parsed(before);
             long deadline = started + options.getTimeBudgetMs() * 1_000_000L;
@@ -101,7 +109,8 @@ public class AdvisorOptimizationService {
 
             List<AdvisorSearch.Node> candidates = new ArrayList<>(search.run(slots));
             AdvisorFinalistVerifier.Result verification =
-                    finalistVerifier.verify(candidates, model, search, calculator, deadline);
+                    finalistVerifier.verify(
+                            candidates, model, search, preparedCalculator, deadline);
             return responses.success(
                     model, search, slots, baselineCalculation, verification, started);
         } finally {
@@ -153,11 +162,39 @@ public class AdvisorOptimizationService {
         return hasDrif || hasOrb;
     }
 
-    private CalculationContext loadTemplates() {
+    private CalculationContext loadTemplates(
+            Collection<SlotData> slots, AdvisorOptions.Changes changes) {
+        List<Long> itemIds = collectIds(slots, slot -> List.of(slot.getItemId()));
+        List<Long> orbIds = collectIds(slots, SlotData::getOrbIds);
+        List<Long> drifIds = collectIds(slots, SlotData::getDrifIds);
         return new CalculationContext(
-                index(itemRepository.findAll(), ItemTemplate::getId),
-                index(orbRepository.findAll(), OrbTemplate::getId),
-                index(drifRepository.findAll(), DrifTemplate::getId));
+                index(
+                        changes.isItems()
+                                ? itemRepository.findAll()
+                                : itemRepository.findAllById(itemIds),
+                        ItemTemplate::getId),
+                index(
+                        orbIds.isEmpty() ? List.of() : orbRepository.findAllById(orbIds),
+                        OrbTemplate::getId),
+                index(
+                        changes.isDrifs()
+                                ? drifRepository.findAll()
+                                : drifIds.isEmpty()
+                                        ? List.of()
+                                        : drifRepository.findAllById(drifIds),
+                        DrifTemplate::getId));
+    }
+
+    private List<Long> collectIds(
+            Collection<SlotData> slots, Function<SlotData, List<Long>> extractor) {
+        return slots.stream()
+                .map(extractor)
+                .filter(java.util.Objects::nonNull)
+                .flatMap(Collection::stream)
+                .filter(java.util.Objects::nonNull)
+                .distinct()
+                .sorted()
+                .toList();
     }
 
     private <T> Map<Long, T> index(List<T> templates, Function<T, Long> id) {

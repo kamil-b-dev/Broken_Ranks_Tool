@@ -106,6 +106,8 @@ Przy większym limicie działań wynik najczęściej będzie heurystyczny. Samo 
 
 Ocena końcowa korzysta ze wspólnego, deterministycznego kalkulatora ekwipunku. Identyczne dane wejściowe muszą dawać identyczny wynik. Każdy prezentowany plan musi zostać nim przeliczony i ponownie sprawdzony pod kątem ochron.
 
+Szablony są przygotowywane raz na analizę i współdzielone przez model oraz pełny kalkulator buildu bazowego i finalistów. Przy wyłączonej wymianie przedmiotów pobierane są tylko wyposażone przedmioty. Orby są pobierane wyłącznie dla obecnego buildu, ponieważ Doradca ich nie wymienia. Bez zakupu nowych drifów wystarczają szablony posiadanych kamieni, również przy ulepszaniu ich poziomów. Włączenie wymiany przedmiotów lub zakupu drifów rozszerza odpowiedni katalog kandydatów. Żaden finalista nie wykonuje kolejnych odczytów szablonów z bazy.
+
 Zmiany Doradcy wymagają testów obejmujących co najmniej:
 
 - obie strategie i ich kolejność rozstrzygania,

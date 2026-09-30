@@ -94,8 +94,10 @@ class EquipmentPreparedCalculationTests {
         request = new EquipmentRequest();
         request.setSlots(slots);
         request.setCharacterStats(Map.of("Siła", 10));
-        when(itemsRepository.findAllById(any())).thenReturn(new ArrayList<>(items.values()));
-        when(drifsRepository.findAllById(any())).thenReturn(new ArrayList<>(drifs.values()));
+        when(itemsRepository.findAllById(any()))
+                .thenAnswer(ignored -> new ArrayList<>(items.values()));
+        when(drifsRepository.findAllById(any()))
+                .thenAnswer(ignored -> new ArrayList<>(drifs.values()));
         when(orbsRepository.findAllById(any())).thenReturn(List.of(orb));
     }
 
@@ -125,6 +127,53 @@ class EquipmentPreparedCalculationTests {
         helmet.setDrifLevels(Map.of("0", 6, "1", 6));
         helmet.setDrifIds(List.of(1L, 1L));
         assertThrows(IllegalArgumentException.class, () -> prepared.apply(request));
+    }
+
+    @Test
+    void preparedSourceCalculationsMatchFreshCalculationsAcrossItemChangesAndIgnoreUnusedSources() {
+        var orbs =
+                new LinkedHashMap<>(
+                        new EquipmentDataProvider(itemsRepository, orbsRepository, drifsRepository)
+                                .loadOrbs(request.getSlots().values()));
+        var unusedOrb =
+                OrbTemplate.builder().id(99L).bonusType(ORB_BONUS_TYPE.DMG_REDUCTION_BOSS).build();
+        orbs.put(99L, unusedOrb);
+        drifs.values().forEach(drif -> drif.setCategory(DRIF_CATEGORY.OFFENSIVE));
+        var unusedDrif = drif(99L, DRIF_BONUS_TYPE.CRITICAL_CHANCE, "2%");
+        unusedDrif.setCategory(DRIF_CATEGORY.DEFENSIVE);
+        drifs.put(99L, unusedDrif);
+        var helmet = request.getSlots().get("helmet");
+        var replacement =
+                ItemTemplate.builder()
+                        .id(99L)
+                        .name("Replacement")
+                        .category(ITEM_CATEGORY.HELMET)
+                        .tier("XII")
+                        .rarity(RARITY.RARE)
+                        .capacity(100)
+                        .stats(Map.of("Siła", 80.0))
+                        .build();
+        items.put(99L, replacement);
+        var prepared = calculator.prepareCalculationWithSources(items, orbs, drifs);
+        clearInvocations(itemsRepository, drifsRepository, orbsRepository);
+        for (long itemId : List.of(1L, 99L)) {
+            helmet.setItemId(itemId);
+            for (int stars : List.of(1, 7, 9)) {
+                helmet.setItemStars(stars);
+                var actual = prepared.apply(request);
+                verifyNoInteractions(itemsRepository, drifsRepository, orbsRepository);
+                assertEquals(calculator.calculateWithSources(request), actual);
+                assertFalse(
+                        actual.drifCategories()
+                                .containsKey(DRIF_BONUS_TYPE.CRITICAL_CHANCE.name()));
+                assertFalse(
+                        actual.orbBonusTypes().contains(ORB_BONUS_TYPE.DMG_REDUCTION_BOSS.name()));
+                clearInvocations(itemsRepository, drifsRepository, orbsRepository);
+            }
+        }
+        helmet.setDrifLevels(Map.of("0", 22));
+        assertThrows(IllegalArgumentException.class, () -> prepared.apply(request));
+        verifyNoInteractions(itemsRepository, drifsRepository, orbsRepository);
     }
 
     private DrifTemplate drif(long id, DRIF_BONUS_TYPE type, String base) {

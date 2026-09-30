@@ -17,7 +17,8 @@ Dokument opisuje zachowanie edytora, API, kalkulatora i wspólnych walidatorów.
 - Punkty są rozdzielane możliwie równo w stabilnej kolejności nazw.
 - Identyczne wejście zawsze daje identyczny wynik.
 - Kalkulator uwzględnia przedmioty, gwiazdki, orby, drify, statystyki postaci i globalną karę za powtórzenia.
-- Podczas wyszukiwania optymalizator korzysta ze wspólnego kalkulatora z szablonami przedmiotów, orbów i katalogiem drifów przygotowanymi raz na dane uruchomienie. Kolejni kandydaci oraz warianty tego samego buildu nie pobierają ponownie szablonów z bazy; zachowują pełną walidację i zasady naliczania statystyk. Dane przygotowanego kalkulatora nie są współdzielone pomiędzy niezależnymi uruchomieniami. Wynik końcowy jest ponownie przeliczany zwykłą ścieżką kalkulatora.
+- Podczas wyszukiwania tryb „od zera” korzysta ze wspólnego kalkulatora z szablonami przedmiotów, orbów i katalogiem drifów przygotowanymi raz na dane uruchomienie. Kolejni kandydaci oraz warianty tego samego buildu nie pobierają ponownie szablonów z bazy; zachowują pełną walidację i zasady naliczania statystyk. Dane przygotowanego kalkulatora nie są współdzielone pomiędzy niezależnymi uruchomieniami. Wynik końcowy jest ponownie przeliczany zwykłą ścieżką kalkulatora.
+- Doradca pobiera szablony raz na analizę. Pełny kalkulator przelicza build bazowy i finalistów na tych samych szablonach, z pełną walidacją i metadanymi obejmującymi tylko kamienie użyte w danym setupie. Kolejne analizy ponownie odczytują katalog; nie korzystają ze wspólnego cache szablonów. Zamrożenie danych dotyczy wyłącznie czasu jednego uruchomienia.
 
 ## Brakujące poziomy
 
