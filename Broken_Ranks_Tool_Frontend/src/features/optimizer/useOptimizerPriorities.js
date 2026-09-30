@@ -68,13 +68,13 @@ export const useOptimizerPriorities = (gameRules) => {
             previous.map((bonus) => {
                 if (bonus.key !== key) return bonus;
                 if (field === "forceCap" && value) {
-                    return { ...bonus, forceCap: true, forcePercentage: false };
+                    return { ...bonus, forceCap: true, forcePercentage: false, maximize: false };
                 }
                 if (field === "forcePercentage" && value) {
                     return { ...bonus, forcePercentage: true, forceCap: false, maximize: false };
                 }
                 if (field === "maximize" && value) {
-                    return { ...bonus, maximize: true, forcePercentage: false };
+                    return { ...bonus, maximize: true, forcePercentage: false, forceCap: false };
                 }
                 return { ...bonus, [field]: value };
             })
