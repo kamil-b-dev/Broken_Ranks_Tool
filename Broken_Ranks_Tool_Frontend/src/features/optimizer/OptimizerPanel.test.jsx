@@ -286,6 +286,74 @@ describe("OptimizerPanel", () => {
         expect(equipment.applyOptimizationSetup).toHaveBeenCalledWith(setup, calculationResult);
     });
 
+    it.each(["build", "character", "slot lock", "drif lock", "applied build", "selected variant"])(
+        "checks advanced variant freshness after changing %s",
+        async (change) => {
+            const user = userEvent.setup();
+            const original = { slots: { helmet: { itemId: 7 } }, characterStats: { Siła: 100 } };
+            const setup = { slots: { helmet: { itemId: 10 } } };
+            const optimized = { helmet: { itemId: 9 } };
+            const initialEquipment = { ...equipment, requestData: original };
+            equipment.runDrifOptimization.mockResolvedValue({
+                ...optimizationResult,
+                baselineSignature: advisorBuildSignature(original.slots),
+                appliedSignature: advisorBuildSignature(optimized),
+                baselineConstraintsSignature: JSON.stringify({
+                    characterStats: original.characterStats,
+                    lockedSlots: [],
+                    lockedDrifs: {},
+                }),
+                nextVariants: [
+                    {
+                        bonusName: "Alternatywa krytyczna",
+                        finalValue: 40,
+                        variantValue: 45,
+                        gain: 5,
+                        totalLoss: 1,
+                        changeCount: 1,
+                        changes: [],
+                        statChanges: [],
+                        setup,
+                    },
+                ],
+            });
+            useEquipment.mockReturnValue(initialEquipment);
+            const view = renderPanel();
+            await user.click(await screen.findByText("Szansa na krytyk"));
+            await user.click(screen.getByRole("button", { name: /Uruchom optymalizację/i }));
+            await user.click(await screen.findByRole("button", { name: /Alternatywa krytyczna/i }));
+            useEquipment.mockReturnValue({
+                ...initialEquipment,
+                ...(change === "build"
+                    ? { requestData: { ...original, slots: { helmet: { itemId: 12 } } } }
+                    : {}),
+                ...(change === "character"
+                    ? { requestData: { ...original, characterStats: { Siła: 200 } } }
+                    : {}),
+                ...(change === "slot lock" ? { lockedSlots: ["helmet"] } : {}),
+                ...(change === "drif lock" ? { lockedDrifs: { helmet: [0] } } : {}),
+                ...(change === "applied build"
+                    ? { requestData: { ...original, slots: optimized } }
+                    : {}),
+                ...(change === "selected variant"
+                    ? { requestData: { ...original, slots: setup.slots } }
+                    : {}),
+            });
+            view.rerender(
+                <OptimizerPanel optimizerSettings={settings} onOptimizerSettingsChange={vi.fn()} />
+            );
+            await user.click(screen.getByRole("button", { name: /Zastosuj wybrany wariant/i }));
+            if (["applied build", "selected variant"].includes(change)) {
+                expect(equipment.applyOptimizationSetup).toHaveBeenCalledWith(setup, undefined);
+            } else {
+                expect(equipment.applyOptimizationSetup).not.toHaveBeenCalled();
+                expect(screen.getByRole("alert")).toHaveTextContent(
+                    "Build lub blokady zmieniły się od obliczeń."
+                );
+            }
+        }
+    );
+
     it("switches to advisor mode through the visible mode selector", async () => {
         const user = userEvent.setup();
         const onSettingsChange = vi.fn();

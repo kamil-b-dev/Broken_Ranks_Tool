@@ -89,11 +89,7 @@ public final class SimpleProfileConfigurationResolver {
                 profession == SimpleBuildProfile.KNIGHT || profession == SimpleBuildProfile.DRUID;
         if (knightOrDruid) {
             if (enabled(options.getPassiveDamageReduction(), defensive)) {
-                if (defensive) {
-                    profile.forceTarget(DRIF_BONUS_TYPE.PASIVE_DAMAGE_REDUCTION, 28, 60);
-                } else {
-                    profile.exact(DRIF_BONUS_TYPE.PASIVE_DAMAGE_REDUCTION, 18, 1);
-                }
+                profile.exact(DRIF_BONUS_TYPE.PASIVE_DAMAGE_REDUCTION, defensive ? 28 : 18, 1);
             }
             if (defensive) {
                 profile.forceTarget(DRIF_BONUS_TYPE.DAMAGE_REDUCTION_CHANCE, 27, 45);

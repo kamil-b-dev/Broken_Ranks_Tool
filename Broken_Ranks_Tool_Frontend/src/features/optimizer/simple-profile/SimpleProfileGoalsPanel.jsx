@@ -1,5 +1,7 @@
 import {
     defaultSimpleOptions,
+    changeSimpleStyle,
+    normalizeSimpleOptions,
     SIMPLE_ELEMENTS,
     SIMPLE_PROFILES,
     SIMPLE_STYLES,
@@ -34,7 +36,7 @@ const Toggle = ({ label, checked, onChange }) => (
 /** Exposes only the few decisions not predetermined by the selected profession. */
 const SimpleProfileGoalsPanel = ({ settings, onChange }) => {
     const profile = settings.simpleProfile || "BARBARIAN";
-    const options = settings.simpleOptions || {};
+    const options = normalizeSimpleOptions(settings.simpleOptions, profile);
     const update = (key, value) =>
         onChange({ ...settings, simpleOptions: { ...options, [key]: value } });
     const styled = ["KNIGHT", "DRUID"].includes(profile);
@@ -79,11 +81,11 @@ const SimpleProfileGoalsPanel = ({ settings, onChange }) => {
                         onChange={(event) =>
                             onChange({
                                 ...settings,
-                                simpleOptions: {
-                                    ...options,
-                                    style: event.target.value,
-                                    passiveDamageReduction: event.target.value === "DEFENSIVE",
-                                },
+                                simpleOptions: changeSimpleStyle(
+                                    options,
+                                    profile,
+                                    event.target.value
+                                ),
                             })
                         }
                         className="border border-purple-900/80 bg-black px-2 py-1 text-stone-100"

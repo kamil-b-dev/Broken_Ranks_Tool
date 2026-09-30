@@ -125,7 +125,9 @@ describe("useEquipmentOptimization", () => {
                 lockedDrifs: { helmet: [0] },
             })
         );
-        expect(response).toEqual({ success: true, applied: true });
+        expect(response).toMatchObject({ success: true, applied: true });
+        expect(response.baselineSignature).toBeDefined();
+        expect(response.appliedSignature).toBeDefined();
         const nextRequestData = {
             slots: optimizedSetup.slots,
             characterStats: { Moc: 135 },
@@ -158,7 +160,7 @@ describe("useEquipmentOptimization", () => {
             response = await result.current.runDrifOptimization({});
         });
 
-        expect(response).toEqual({ ...summary, applied: true });
+        expect(response).toMatchObject({ ...summary, applied: true });
         expect(setRequestData).toHaveBeenCalledWith({
             slots: optimizedSetup.slots,
             characterStats: { Moc: 135 },

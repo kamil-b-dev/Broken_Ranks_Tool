@@ -8,6 +8,7 @@ import { server } from "../test/server";
 import { readEquipmentDraft, writeEquipmentDraft } from "./storage/workingDraftStorage";
 import legacyEpicBuild from "../test/fixtures/builds/legacy-epic-build.json";
 import legacyEpicCatalog from "../test/fixtures/builds/legacy-epic-catalog.json";
+import { advisorBuildSignature } from "../features/optimizer/advisor/advisorBuildSignature";
 
 const ContextProbe = () => {
     const { data, gameRules, loading, initialDataError } = useEquipment();
@@ -345,7 +346,18 @@ describe("EquipmentProvider", () => {
             lockedSlots: ["helmet"],
             lockedDrifs: { helmet: [0] },
         });
-        expect(result).toEqual({ success: true, message: "Gotowe", applied: true });
+        expect(result).toEqual({
+            success: true,
+            message: "Gotowe",
+            applied: true,
+            baselineSignature: advisorBuildSignature(receivedRequest.originalSlots),
+            appliedSignature: advisorBuildSignature(optimizedSlots),
+            baselineConstraintsSignature: JSON.stringify({
+                characterStats: receivedRequest.characterStats,
+                lockedSlots: receivedRequest.lockedSlots,
+                lockedDrifs: receivedRequest.lockedDrifs,
+            }),
+        });
         expect(exposeRef.current.requestData.slots).toEqual(optimizedSlots);
         expect(exposeRef.current.optimizationTrigger).toBe(1);
     });
