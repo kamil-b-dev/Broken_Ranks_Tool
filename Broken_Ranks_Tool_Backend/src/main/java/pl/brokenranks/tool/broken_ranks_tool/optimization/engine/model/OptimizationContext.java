@@ -23,4 +23,41 @@ public record OptimizationContext(
         Map<DRIF_BONUS_TYPE, Double> maximizationScaleCache,
         Map<String, Map<String, String>> calculatorCache,
         Map<String, StateEvaluation> evaluationCache,
-        Map<DrifLevelKey, Double> drifValueCache) {}
+        Map<DrifLevelKey, Double> drifValueCache,
+        OptimizationCalculatorSession calculatorSession) {
+
+    public OptimizationContext(
+            OptimizationRequest request,
+            Map<Long, ItemTemplate> items,
+            Map<Long, DrifTemplate> drifs,
+            List<SlotContext> slots,
+            Map<Double, List<SlotContext>> slotsByDrifBonus,
+            List<Map.Entry<DRIF_BONUS_TYPE, Integer>> sortedPriorities,
+            List<Map.Entry<DRIF_BONUS_TYPE, OptimizationRequest.QuantityRange>> sortedQuantities,
+            SearchBudget beamSearchBudget,
+            SearchBudget maximizationSearchBudget,
+            SearchBudget refinementSearchBudget,
+            Map<DRIF_BONUS_TYPE, Double> calculatorBaseline,
+            Map<DRIF_BONUS_TYPE, Double> maximizationScaleCache,
+            Map<String, Map<String, String>> calculatorCache,
+            Map<String, StateEvaluation> evaluationCache,
+            Map<DrifLevelKey, Double> drifValueCache) {
+        this(
+                request,
+                items,
+                drifs,
+                slots,
+                slotsByDrifBonus,
+                sortedPriorities,
+                sortedQuantities,
+                beamSearchBudget,
+                maximizationSearchBudget,
+                refinementSearchBudget,
+                calculatorBaseline,
+                maximizationScaleCache,
+                calculatorCache,
+                evaluationCache,
+                drifValueCache,
+                new OptimizationCalculatorSession());
+    }
+}

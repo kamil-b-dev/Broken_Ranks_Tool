@@ -42,7 +42,8 @@ final class OptimizationVariantContextFactory {
                 new EnumMap<>(DRIF_BONUS_TYPE.class),
                 source.calculatorCache(),
                 new HashMap<>(),
-                source.drifValueCache());
+                source.drifValueCache(),
+                source.calculatorSession());
     }
 
     private void releaseSlotPrelocks(BuildState state, SlotContext slot, Set<String> lockedSlots) {
