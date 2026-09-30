@@ -157,12 +157,20 @@ export const useEquipmentOptimization = ({
                 const hasEquipment = Object.values(optimizedSetup?.slots || {}).some(
                     (slot) => slot?.itemId != null
                 );
+                const applied =
+                    runVersion === optimizerRunVersion.current &&
+                    hasEquipment &&
+                    applyOptimizationSetup(optimizedSetup, calculationResult);
                 return {
                     ...summary,
-                    applied:
-                        runVersion === optimizerRunVersion.current &&
-                        hasEquipment &&
-                        applyOptimizationSetup(optimizedSetup, calculationResult),
+                    baselineSignature: advisorBuildSignature(slots),
+                    baselineConstraintsSignature: JSON.stringify({
+                        characterStats: request.characterStats || {},
+                        lockedSlots,
+                        lockedDrifs,
+                    }),
+                    appliedSignature: applied ? advisorBuildSignature(optimizedSetup.slots) : null,
+                    applied,
                 };
             } catch (error) {
                 console.error("Błąd optymalizacji drifów:", error);

@@ -44,9 +44,10 @@ class SimpleProfileConfigurationResolverTests {
 
         assertMaximum(request, DRIF_BONUS_TYPE.DAMAGE_PHYSICAL, 4);
         assertMaximum(request, DRIF_BONUS_TYPE.HIT_CHANCE_MELEE, 4);
-        assertEquals(
-                60.0,
-                request.getForcedPercentageTargets().get(DRIF_BONUS_TYPE.PASIVE_DAMAGE_REDUCTION));
+        assertExact(request, DRIF_BONUS_TYPE.PASIVE_DAMAGE_REDUCTION, 1);
+        assertFalse(
+                request.getForcedPercentageTargets()
+                        .containsKey(DRIF_BONUS_TYPE.PASIVE_DAMAGE_REDUCTION));
         assertEquals(
                 45.0,
                 request.getForcedPercentageTargets().get(DRIF_BONUS_TYPE.DAMAGE_REDUCTION_CHANCE));
@@ -111,6 +112,28 @@ class SimpleProfileConfigurationResolverTests {
         request.setSimpleOptions(options);
 
         assertNotNull(SimpleProfileConfigurationResolver.resolve(request));
+    }
+
+    @Test
+    void passiveReductionAlwaysUsesOneDrifAndCanBeDisabledInBothStyles() {
+        for (var profession :
+                new SimpleBuildProfile[] {SimpleBuildProfile.KNIGHT, SimpleBuildProfile.DRUID}) {
+            for (var style : SimpleBuildStyle.values()) {
+                var options = new SimpleProfileOptions();
+                options.setStyle(style);
+                options.setPassiveDamageReduction(true);
+                var enabled = resolved(profession, options);
+                assertExact(enabled, DRIF_BONUS_TYPE.PASIVE_DAMAGE_REDUCTION, 1);
+                assertFalse(
+                        enabled.getForcedPercentageTargets()
+                                .containsKey(DRIF_BONUS_TYPE.PASIVE_DAMAGE_REDUCTION));
+                options.setPassiveDamageReduction(false);
+                assertFalse(
+                        resolved(profession, options)
+                                .getPriorities()
+                                .containsKey(DRIF_BONUS_TYPE.PASIVE_DAMAGE_REDUCTION));
+            }
+        }
     }
 
     @Test
