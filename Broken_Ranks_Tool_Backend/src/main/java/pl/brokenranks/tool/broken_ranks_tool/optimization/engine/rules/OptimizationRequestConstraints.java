@@ -63,14 +63,27 @@ public class OptimizationRequestConstraints {
         return null;
     }
 
+    /** Returns the first value after which a configured modifier has no additional utility. */
+    public static Double usefulTargetFor(DRIF_BONUS_TYPE type, OptimizationRequest request) {
+        Double requestedTarget = targetFor(type, request);
+        if (requestedTarget != null) return requestedTarget;
+        return type.getMaxCap() != null ? (double) Math.abs(type.getMaxCap()) : null;
+    }
+
+    /**
+     * Measures progress towards a maximization objective without rewarding values above a natural
+     * game cap. Uncapped modifiers keep their full relative progress.
+     */
+    public static double maximizationProgress(
+            DRIF_BONUS_TYPE type, double value, double scale, OptimizationRequest request) {
+        if (scale <= 0.0) return 0.0;
+        double progress = Math.max(0.0, value) / scale;
+        return maximizationTargetFor(type, request) != null ? Math.min(progress, 1.0) : progress;
+    }
+
     public static double directedValue(
             DRIF_BONUS_TYPE type, double value, OptimizationRequest request) {
-        if ((isForcedTarget(type, request) || isMaximized(type, request))
-                && type.getMaxCap() != null
-                && type.getMaxCap() < 0) {
-            return -value;
-        }
-        return value;
+        return type.getMaxCap() != null && type.getMaxCap() < 0 ? -value : value;
     }
 
     public static int clampQuantity(int value) {

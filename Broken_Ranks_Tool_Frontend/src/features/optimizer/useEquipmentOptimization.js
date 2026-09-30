@@ -9,6 +9,11 @@ const failureMessage = (error) =>
     error.response?.data?.error ||
     (error.code === "ECONNABORTED" ? "Przekroczono limit czasu optymalizacji." : error.message);
 
+const cancellationCredentials = ({ runId, cancellationToken }) => ({
+    runId,
+    cancellationToken,
+});
+
 /** Owns a single optimizer request and explicit application of advisor recommendations. */
 export const useEquipmentOptimization = ({
     requestData,
@@ -44,7 +49,10 @@ export const useEquipmentOptimization = ({
     );
 
     const cancelDrifOptimization = useCallback(async () => {
-        if (activeAdvisor.current) await cancelAdvisorOptimization(activeAdvisor.current);
+        const advisorRun = activeAdvisor.current;
+        if (!advisorRun) return;
+        advisorRun.cancellationRequested = true;
+        await cancelAdvisorOptimization(cancellationCredentials(advisorRun));
     }, []);
 
     const runDrifOptimization = useCallback(
@@ -58,7 +66,7 @@ export const useEquipmentOptimization = ({
                 };
             }
             const advisory = configuration.mode === "ADVISOR";
-            let advisorRunId = null;
+            let advisorRun = null;
             const request = createEquipmentOptimizationRequest({
                 slots,
                 characterStats: requestData?.characterStats,
@@ -67,19 +75,37 @@ export const useEquipmentOptimization = ({
                 lockedDrifs,
             });
             if (advisory && request.advisor) {
-                const previousAdvisorRunId = activeAdvisor.current;
-                advisorRunId = crypto.randomUUID();
-                request.advisor = { ...request.advisor, runId: advisorRunId };
-                activeAdvisor.current = advisorRunId;
-                if (previousAdvisorRunId) {
+                const previousAdvisorRun = activeAdvisor.current;
+                advisorRun = {
+                    runId: crypto.randomUUID(),
+                    cancellationToken: crypto.randomUUID(),
+                    cancellationRequested: false,
+                };
+                request.advisor = {
+                    ...request.advisor,
+                    runId: advisorRun.runId,
+                    cancellationToken: advisorRun.cancellationToken,
+                };
+                activeAdvisor.current = advisorRun;
+                if (previousAdvisorRun) {
+                    previousAdvisorRun.cancellationRequested = true;
                     try {
-                        await cancelAdvisorOptimization(previousAdvisorRunId);
+                        await cancelAdvisorOptimization(
+                            cancellationCredentials(previousAdvisorRun)
+                        );
                     } catch (error) {
                         console.warn("Nie udało się zatrzymać poprzedniej analizy Doradcy:", error);
                     }
                 }
             }
             try {
+                if (advisorRun?.cancellationRequested) {
+                    return {
+                        success: false,
+                        message: "Analiza Doradcy została anulowana.",
+                        applied: false,
+                    };
+                }
                 const { optimizedSetup, summary, advisorReport, calculationResult } =
                     await optimizeEquipmentDrifs(request);
                 if (advisory) {
@@ -125,7 +151,7 @@ export const useEquipmentOptimization = ({
                 console.error("Błąd optymalizacji drifów:", error);
                 return { success: false, message: failureMessage(error), applied: false };
             } finally {
-                if (activeAdvisor.current === advisorRunId) activeAdvisor.current = null;
+                if (activeAdvisor.current === advisorRun) activeAdvisor.current = null;
             }
         },
         [slots, requestData?.characterStats, lockedSlots, lockedDrifs, applyOptimizationSetup]

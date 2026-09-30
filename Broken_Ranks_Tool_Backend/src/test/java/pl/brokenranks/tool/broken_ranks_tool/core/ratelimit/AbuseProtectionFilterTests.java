@@ -216,14 +216,26 @@ class AbuseProtectionFilterTests {
         String path = "/api/optimizer/advisor/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa/cancel";
 
         for (int request = 0; request < 2; request++) {
-            mockMvc.perform(post(path)).andExpect(status().isOk());
+            mockMvc.perform(
+                            post(path)
+                                    .header(
+                                            "X-Advisor-Cancellation-Token",
+                                            "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"))
+                    .andExpect(status().isOk());
         }
 
-        mockMvc.perform(post(path))
+        mockMvc.perform(
+                        post(path)
+                                .header(
+                                        "X-Advisor-Cancellation-Token",
+                                        "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"))
                 .andExpect(status().isTooManyRequests())
                 .andExpect(jsonPath("$.code").value("RATE_LIMITED"));
 
-        verify(advisorRunRegistry, times(2)).cancel("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+        verify(advisorRunRegistry, times(2))
+                .cancel(
+                        "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                        "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
     }
 
     @Test

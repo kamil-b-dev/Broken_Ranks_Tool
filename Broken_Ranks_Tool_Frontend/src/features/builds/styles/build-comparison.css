@@ -32,7 +32,7 @@
     overflow: hidden;
     margin-top: 0.2rem;
     color: #d8ccbd;
-    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-family: var(--ui-font);
     font-size: 1.08rem;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -76,7 +76,7 @@
 .build-comparison-difference-strip strong {
     margin-right: 0.2rem;
     color: #c59450;
-    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-family: var(--ui-font);
     font-size: 1.08rem;
 }
 
@@ -98,7 +98,7 @@
     border: 1px solid transparent;
     border-bottom: 0;
     color: #776f67;
-    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-family: var(--ui-font);
     font-size: 0.87rem;
     font-weight: 700;
     letter-spacing: 0.08em;
@@ -183,7 +183,7 @@
     display: flex;
     align-items: center;
     color: #a47a49;
-    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-family: var(--ui-font);
     font-size: 0.84rem;
     font-weight: 700;
     letter-spacing: 0.07em;
@@ -253,7 +253,7 @@
 .build-drif-analysis-heading strong,
 .build-drif-result-heading strong {
     color: #c99b5d;
-    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-family: var(--ui-font);
     font-size: 0.915rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -378,7 +378,7 @@
 .build-drif-profile-row > div > strong {
     grid-row: 1 / span 2;
     color: #d0c1b1;
-    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-family: var(--display-font);
     font-size: 1.5rem;
 }
 

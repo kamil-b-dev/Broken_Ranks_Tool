@@ -108,6 +108,40 @@ class OptimizationResidualCapacityFillerTests {
         assertNull(state.slots().get("helmet").get(0));
     }
 
+    @Test
+    void doesNotFillFreePositionAfterNaturalCapIsReached() {
+        DRIF_BONUS_TYPE type = DRIF_BONUS_TYPE.CRITICAL_CHANCE;
+        DrifTemplate drif =
+                DrifTemplate.builder().id(1L).bonusType(type).size(DRIF_SIZE.SUBDRIF).build();
+        SlotContext slot =
+                new SlotContext(
+                        "helmet",
+                        new EquipmentRequest.SlotData(),
+                        ItemTemplate.builder()
+                                .id(2L)
+                                .category(ITEM_CATEGORY.HELMET)
+                                .capacity(10)
+                                .build(),
+                        10,
+                        1,
+                        1.0,
+                        List.of(drif),
+                        Set.of(),
+                        false);
+        OptimizationContext context = context(slot, drif, type, Set.of());
+        BuildState state = new BuildState();
+        state.slots().put(slot.key(), new ArrayList<>(Collections.singletonList(null)));
+        OptimizationStateEvaluation evaluation = mock(OptimizationStateEvaluation.class);
+        when(evaluation.calculatedValue(state, type, context)).thenReturn(60.0);
+        EquipmentRulesRegistry rules = new EquipmentRulesRegistry();
+        OptimizationPlacementOperations placements =
+                new OptimizationPlacementOperations(new EquipmentPlacementRules(rules), rules);
+
+        new OptimizationResidualCapacityFiller(placements, evaluation).fill(state, context);
+
+        assertNull(state.slots().get("helmet").get(0));
+    }
+
     private OptimizationContext context(
             SlotContext slot, DrifTemplate drif, DRIF_BONUS_TYPE type, Set<String> lockedSlots) {
         OptimizationRequest request = new OptimizationRequest();

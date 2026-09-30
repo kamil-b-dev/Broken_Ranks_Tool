@@ -36,7 +36,7 @@ jobs:
           java-version: "21"
           cache: maven
           cache-dependency-path: Broken_Ranks_Tool_Backend/pom.xml
-      - uses: github/codeql-action/init@c20e34f438d671fc35777cc9820dd7adf8252874 # v3
+      - uses: github/codeql-action/init@88585263c0627ee42c0e1c5143a112c8d6f4aa18 # v4.38.2
         with:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix.build-mode }}
@@ -44,4 +44,4 @@ jobs:
         if: matrix.language == 'java-kotlin'
         working-directory: Broken_Ranks_Tool_Backend
         run: ./mvnw --batch-mode --no-transfer-progress clean compile
-      - uses: github/codeql-action/analyze@c20e34f438d671fc35777cc9820dd7adf8252874 # v3
+      - uses: github/codeql-action/analyze@88585263c0627ee42c0e1c5143a112c8d6f4aa18 # v4.38.2

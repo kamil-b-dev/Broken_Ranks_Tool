@@ -70,7 +70,7 @@
         url("../../../assets/hammered-black-iron-texture.webp") center / 15rem;
     background-blend-mode: normal, soft-light;
     color: #9b958d;
-    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-family: var(--ui-font);
     font-size: 0.66rem;
     font-weight: 700;
     letter-spacing: 0.1em;
@@ -82,7 +82,7 @@
     border: 0;
     background: transparent;
     color: #e5b75f;
-    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-family: var(--ui-font);
     font-size: 1.15rem;
     font-weight: 700;
     text-align: center;
@@ -208,7 +208,7 @@
 .character-points-summary span,
 .character-points-summary small {
     color: #807a73;
-    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-family: var(--ui-font);
     font-size: 0.58rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -217,7 +217,7 @@
 .character-stat-control strong,
 .character-points-summary strong {
     color: #ddd6ca;
-    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-family: var(--ui-font);
     font-size: 1rem;
 }
 

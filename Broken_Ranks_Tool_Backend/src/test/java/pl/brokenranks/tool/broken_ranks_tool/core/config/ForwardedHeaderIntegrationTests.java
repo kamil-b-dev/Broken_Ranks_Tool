@@ -42,15 +42,16 @@ class ForwardedHeaderIntegrationTests {
     }
 
     @Test
-    void limitsTheDefaultProxyTrustToPrivateAndCarrierGradeNatNetworks() {
+    void defaultProxyTrustIsRestrictedToLoopbackAddresses() {
         Pattern trustedProxies = Pattern.compile(trustedProxyRegex);
 
-        assertThat(trustedProxies.matcher("10.12.34.56").matches()).isTrue();
-        assertThat(trustedProxies.matcher("172.31.255.255").matches()).isTrue();
-        assertThat(trustedProxies.matcher("100.64.0.1").matches()).isTrue();
-        assertThat(trustedProxies.matcher("100.127.255.254").matches()).isTrue();
-        assertThat(trustedProxies.matcher("fd12:3456:789a::1").matches()).isTrue();
+        assertThat(trustedProxies.matcher("127.0.0.1").matches()).isTrue();
+        assertThat(trustedProxies.matcher("::1").matches()).isTrue();
 
+        assertThat(trustedProxies.matcher("10.12.34.56").matches()).isFalse();
+        assertThat(trustedProxies.matcher("172.31.255.255").matches()).isFalse();
+        assertThat(trustedProxies.matcher("100.64.0.1").matches()).isFalse();
+        assertThat(trustedProxies.matcher("fd12:3456:789a::1").matches()).isFalse();
         assertThat(trustedProxies.matcher("100.63.255.255").matches()).isFalse();
         assertThat(trustedProxies.matcher("100.128.0.1").matches()).isFalse();
         assertThat(trustedProxies.matcher("203.0.113.10").matches()).isFalse();

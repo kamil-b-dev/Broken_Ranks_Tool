@@ -22,7 +22,7 @@
 
 .selected-slot-editor-heading h3 {
     color: #d9a45d;
-    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-family: var(--display-font);
     font-size: 1rem;
     font-weight: 700;
     letter-spacing: 0.14em;
@@ -206,7 +206,7 @@
 .database-item-copy small {
     overflow: hidden;
     color: #766a5d;
-    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-family: var(--ui-font);
     font-size: 0.52rem;
     letter-spacing: 0.09em;
     text-overflow: ellipsis;
@@ -319,7 +319,7 @@
     background-position: center;
     background-size: auto, 14rem;
     color: #a78a60;
-    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-family: var(--ui-font);
     font-size: 0.62rem;
     font-weight: 700;
     letter-spacing: 0.08em;
@@ -378,7 +378,7 @@
 
 .stats-empty-state strong {
     color: #b28b51;
-    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-family: var(--ui-font);
     font-size: 0.75rem;
     letter-spacing: 0.13em;
     text-transform: uppercase;
@@ -387,7 +387,7 @@
 .stats-empty-state p {
     max-width: 16rem;
     margin: 0.45rem 0 0;
-    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-family: var(--ui-font);
     font-size: 0.7rem;
     line-height: 1.5;
 }
@@ -416,7 +416,7 @@
 .gear-item-preview strong {
     overflow: hidden;
     color: #d7ad68;
-    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-family: var(--ui-font);
     font-size: 0.8rem;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -424,7 +424,7 @@
 
 .gear-item-preview small {
     color: #756d64;
-    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-family: var(--ui-font);
     font-size: 0.58rem;
 }
 
@@ -480,7 +480,7 @@
     justify-content: center;
     gap: 0.35rem;
     color: #6f685f;
-    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-family: var(--ui-font);
     font-size: 0.58rem;
     letter-spacing: 0.08em;
     text-align: center;

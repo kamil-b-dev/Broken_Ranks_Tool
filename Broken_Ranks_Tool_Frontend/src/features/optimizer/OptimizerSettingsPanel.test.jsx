@@ -33,6 +33,7 @@ describe("OptimizerSettingsPanel", () => {
         );
 
         expect(screen.getByRole("heading", { name: "Ustawienia" })).toBeInTheDocument();
+        expect(screen.queryByText("Poziom konfiguracji")).not.toBeInTheDocument();
         expect(screen.getByText(/Wymuś maksymalizację/)).toBeInTheDocument();
     });
 

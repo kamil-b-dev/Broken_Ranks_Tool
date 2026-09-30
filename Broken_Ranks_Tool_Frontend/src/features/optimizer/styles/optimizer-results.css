@@ -113,13 +113,19 @@
     border: 1px solid rgba(77, 61, 47, 0.72);
     color: #a9a198;
     text-align: left;
-    background: rgba(0, 0, 0, 0.38);
+    background:
+        linear-gradient(105deg, rgba(19, 14, 11, 0.74), rgba(2, 3, 3, 0.92)),
+        url("../../../assets/panel-aged-leather-texture.webp") center / 20rem;
+    background-blend-mode: normal, soft-light;
 }
 
 .optimizer-variant-card:hover,
 .optimizer-variant-card.is-active {
-    border-color: rgba(153, 94, 174, 0.9);
-    background: rgba(43, 17, 52, 0.58);
+    border-color: rgba(207, 62, 80, 0.9);
+    background:
+        linear-gradient(105deg, rgba(74, 11, 23, 0.72), rgba(12, 4, 6, 0.94)),
+        url("../../../assets/panel-oxblood-texture.webp") center / 20rem;
+    background-blend-mode: normal, soft-light;
 }
 
 .optimizer-variant-radio {
@@ -131,8 +137,8 @@
 }
 
 .optimizer-variant-card.is-active .optimizer-variant-radio {
-    border-color: #c899d7;
-    background: #a966bd;
+    border-color: #e4ba70;
+    background: #cf3e50;
 }
 
 .optimizer-variant-copy,
@@ -171,19 +177,19 @@
     width: 100%;
     margin-top: 0.55rem;
     padding: 0.65rem;
-    border: 1px solid rgba(147, 90, 168, 0.9);
-    color: #d6b8df;
-    font-family: Georgia, Cambria, "Times New Roman", serif;
+    border: 1px solid rgba(197, 48, 62, 0.96);
+    color: #ebd3bc;
+    font-family: var(--ui-font);
     font-size: 0.62rem;
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    background: linear-gradient(180deg, rgba(57, 24, 67, 0.86), rgba(13, 6, 16, 0.96));
+    background: linear-gradient(180deg, rgba(93, 10, 20, 0.9), rgba(26, 4, 8, 0.98));
 }
 
 .optimizer-apply-variant:hover {
-    border-color: rgba(193, 127, 214, 0.96);
-    color: #f0d7f6;
+    border-color: rgba(237, 78, 88, 1);
+    color: #fff0dc;
 }
 
 .optimizer-change-list {
@@ -301,8 +307,21 @@
 }
 
 .optimizer-theme .custom-scrollbar::-webkit-scrollbar-thumb {
-    border-color: rgba(27, 15, 31, 0.92);
-    background: linear-gradient(#684276, #2d1b35);
+    border-color: #991b1b;
+    background:
+        linear-gradient(rgba(62, 4, 13, 0.44), rgba(5, 2, 3, 0.72)),
+        url("../../../assets/crimson-lacquer-texture.webp") center / 18rem;
+    background-blend-mode: normal, soft-light;
+    box-shadow: 0 0 8px rgba(153, 27, 27, 0.42);
+}
+
+.optimizer-theme .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    border-color: #dc2626;
+    background:
+        linear-gradient(rgba(86, 6, 18, 0.3), rgba(5, 2, 3, 0.58)),
+        url("../../../assets/crimson-lacquer-texture.webp") center / 18rem;
+    background-blend-mode: normal, soft-light;
+    box-shadow: 0 0 10px rgba(220, 38, 38, 0.5);
 }
 
 @media (max-width: 1350px) {

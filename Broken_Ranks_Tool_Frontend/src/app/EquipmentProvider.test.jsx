@@ -27,9 +27,39 @@ describe("EquipmentProvider", () => {
     beforeEach(() => localStorage.clear());
 
     it("restores the equipment workspace and keeps later changes in browser storage", async () => {
+        server.use(
+            http.get("*/api/initial-data", () =>
+                HttpResponse.json({
+                    items: [
+                        {
+                            id: 7,
+                            category: "HELMET",
+                            rarity: "RARE",
+                            tier: "X",
+                            capacity: 10,
+                        },
+                    ],
+                    orbs: [],
+                    drifs: [{ id: 3, size: "SUBDRIF", bonusType: "CRITICAL_CHANCE" }],
+                    gameRules: {
+                        drifBasePowers: { CRITICAL_CHANCE: 4 },
+                        slotOrbRules: {},
+                        elementalTypes: [],
+                    },
+                    dictionaries: {},
+                })
+            )
+        );
         writeEquipmentDraft({
             requestData: {
-                slots: { helmet: { itemId: 7, itemStars: 4 } },
+                slots: {
+                    helmet: {
+                        itemId: 7,
+                        itemStars: 4,
+                        drifIds: [3],
+                        drifLevels: { 0: 6 },
+                    },
+                },
                 characterStats: { strength: 120 },
             },
             characterConfig: { level: 140 },
@@ -46,15 +76,56 @@ describe("EquipmentProvider", () => {
         await waitFor(() => expect(exposeRef.current.loading).toBe(false));
 
         expect(exposeRef.current.requestData).toEqual({
-            slots: { helmet: { itemId: 7, itemStars: 4 } },
+            slots: {
+                helmet: {
+                    itemId: 7,
+                    itemStars: 4,
+                    drifIds: [3],
+                    drifLevels: { 0: 6 },
+                },
+            },
             characterStats: { strength: 120 },
         });
-        expect(exposeRef.current.characterConfig).toEqual({ level: 140 });
+        expect(exposeRef.current.characterConfig).toMatchObject({ level: 140 });
         expect(exposeRef.current.lockedSlots).toEqual(["helmet"]);
         expect(exposeRef.current.lockedDrifs).toEqual({ helmet: [0] });
 
         act(() => exposeRef.current.toggleSlotLock("helmet"));
         await waitFor(() => expect(readEquipmentDraft().lockedSlots).toEqual([]));
+    });
+
+    it("rejects a draft that references resources outside the loaded catalogue", async () => {
+        server.use(
+            http.get("*/api/initial-data", () =>
+                HttpResponse.json({
+                    items: [],
+                    orbs: [],
+                    drifs: [],
+                    gameRules: {},
+                    dictionaries: {},
+                })
+            )
+        );
+        writeEquipmentDraft({
+            requestData: {
+                slots: { helmet: { itemId: 999 } },
+                characterStats: {},
+            },
+            lockedSlots: ["helmet"],
+            lockedDrifs: {},
+        });
+        const exposeRef = { current: null };
+
+        render(
+            <EquipmentProvider>
+                <ActionProbe exposeRef={exposeRef} />
+            </EquipmentProvider>
+        );
+
+        await waitFor(() => expect(exposeRef.current.loading).toBe(false));
+        await waitFor(() => expect(exposeRef.current.requestData.slots).toEqual({}));
+        expect(exposeRef.current.lockedSlots).toEqual([]);
+        await waitFor(() => expect(readEquipmentDraft().requestData.slots).toEqual({}));
     });
 
     it("loads initial game data from the backend", async () => {

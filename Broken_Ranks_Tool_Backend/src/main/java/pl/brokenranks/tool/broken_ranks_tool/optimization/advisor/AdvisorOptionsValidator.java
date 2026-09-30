@@ -13,6 +13,7 @@ final class AdvisorOptionsValidator {
                 || options.getMaxActions() < 1
                 || options.getMaxActions() > 10
                 || options.getProfession() == null
+                || (options.getRunId() == null) != (options.getCancellationToken() == null)
                 || options.getTargetValue() != null && options.getTargetGain() != null)
             return false;
         if (invalid(options.getTargetValue()) || invalid(options.getTargetGain())) return false;
