@@ -9,6 +9,7 @@ const eventFor = (data) => ({
 
 const createProps = (overrides = {}) => ({
     selectedItem: "7",
+    items: [{ id: 9 }],
     slotKey: "weapon",
     availableOrbs1: [{ id: 2 }],
     availableOrbs2: [],
@@ -56,5 +57,48 @@ describe("useGearSlotDragDrop", () => {
 
         expect(props.setOrbSlots).not.toHaveBeenCalled();
         expect(props.setSelectedDrifs).not.toHaveBeenCalled();
+    });
+    it("rejects items outside the slot's filtered catalog", () => {
+        const props = createProps();
+        const { result } = renderHook(() => useGearSlotDragDrop(props));
+        act(() => result.current.handleDrop(eventFor({ dragType: "items", id: 99 }), "item"));
+        expect(props.setSelectedItem).not.toHaveBeenCalled();
+    });
+
+    it("rejects duplicate ordinary bonus types and positions outside active sockets", () => {
+        const props = createProps({
+            drifs: [
+                { id: 3, bonusType: "CRITICAL_CHANCE" },
+                { id: 4, bonusType: "CRITICAL_CHANCE" },
+            ],
+            selectedDrifs: [4],
+        });
+        const { result } = renderHook(() => useGearSlotDragDrop(props));
+        for (const zone of ["drif-1", "drif-2", "drif--1", "drif-1x"]) {
+            act(() =>
+                result.current.handleDrop(
+                    eventFor({
+                        dragType: "drifs",
+                        id: 3,
+                        size: "BIDRIF",
+                        bonusType: "CRITICAL_CHANCE",
+                    }),
+                    zone
+                )
+            );
+        }
+        expect(props.setSelectedDrifs).not.toHaveBeenCalled();
+        act(() =>
+            result.current.handleDrop(
+                eventFor({
+                    dragType: "drifs",
+                    id: 3,
+                    size: "BIDRIF",
+                    bonusType: "CRITICAL_CHANCE",
+                }),
+                "drif-0"
+            )
+        );
+        expect(props.setSelectedDrifs).toHaveBeenCalledOnce();
     });
 });

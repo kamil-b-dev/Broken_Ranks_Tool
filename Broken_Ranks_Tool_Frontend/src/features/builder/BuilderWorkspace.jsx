@@ -50,6 +50,7 @@ const BuilderWorkspace = ({
                 compact
                 onStatsChange={onCharacterStatsUpdate}
                 externalConfig={characterConfig}
+                externalStats={requestData.characterStats}
                 syncTrigger={optimizationTrigger}
             />
             <div className="builder-workspace-grid">
