@@ -121,7 +121,7 @@ describe("EquipmentProvider", () => {
                         drifLevels: { 0: 6 },
                     },
                 },
-                characterStats: { strength: 120 },
+                characterStats: { Siła: 120 },
             },
             characterConfig: { level: 140 },
             lockedSlots: ["helmet"],
@@ -145,7 +145,7 @@ describe("EquipmentProvider", () => {
                     drifLevels: { 0: 6 },
                 },
             },
-            characterStats: { strength: 120 },
+            characterStats: { Siła: 120 },
         });
         expect(exposeRef.current.characterConfig).toMatchObject({ level: 140 });
         expect(exposeRef.current.lockedSlots).toEqual(["helmet"]);
@@ -393,13 +393,13 @@ describe("EquipmentProvider", () => {
 
         act(() => {
             exposeRef.current.handleCharacterStatsUpdate(
-                { strength: 120 },
+                { Siła: 120 },
                 { level: 140, className: "Barbarzyńca" }
             );
         });
         await act(async () => exposeRef.current.calculateStats());
 
-        expect(receivedRequest).toEqual({ slots: {}, characterStats: { strength: 120 } });
+        expect(receivedRequest).toEqual({ slots: {}, characterStats: { Siła: 120 } });
         expect(exposeRef.current.stats).toEqual({ hp: 1234 });
         expect(exposeRef.current.statSources).toEqual({
             drifCategories: { DEFENSIVE: ["ARMOR"] },

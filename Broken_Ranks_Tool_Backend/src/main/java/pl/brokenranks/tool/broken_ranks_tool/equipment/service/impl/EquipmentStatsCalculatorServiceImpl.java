@@ -7,6 +7,7 @@ import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.STAT_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.CalculationResultDto;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
@@ -78,12 +79,11 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
     private CalculationResultDto calculateWithSources(
             EquipmentRequest request, CalculationContext preparedContext) {
         requestValidator.validateRequest(request);
+        requestValidator.validateCharacterStats(request.getCharacterStats());
         if (request.getSlots() == null || request.getSlots().isEmpty()) {
             return new CalculationResultDto(
                     Collections.emptyMap(), Collections.emptyMap(), Collections.emptySet());
         }
-
-        requestValidator.validateCharacterStats(request.getCharacterStats());
 
         CalculationContext ctx =
                 preparedContext != null
@@ -114,7 +114,14 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
     private void applyCharacterStats(CalculationState state, Map<String, Integer> characterStats) {
         if (characterStats != null) {
             characterStats.forEach(
-                    (stat, val) -> state.getAccumulator().addFlatValue(stat, val.doubleValue()));
+                    (stat, val) ->
+                            state.getAccumulator()
+                                    .addFlatValue(
+                                            STAT_TYPE
+                                                    .fromDescription(stat)
+                                                    .orElseThrow()
+                                                    .getDescription(),
+                                            val.doubleValue()));
         }
     }
 
@@ -159,8 +166,8 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
 
     private void validateDrifPositions(
             String slotKey, EquipmentRequest.SlotData slotData, ItemTemplate item, int starLevel) {
-        if (slotData.getDrifIds() == null
-                || item.getRarity()
+        if (slotData.getDrifIds() == null) return;
+        if (item.getRarity()
                         == pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.RARITY.EPIC
                 || item.getRarity()
                         == pl.brokenranks
@@ -171,6 +178,10 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
                                 .enums
                                 .RARITY
                                 .SET) {
+            if (slotData.getDrifIds().stream().anyMatch(java.util.Objects::isNull)) {
+                throw new IllegalArgumentException(
+                        "Konfiguracja wbudowanych drifów nie może zawierać pustych pozycji.");
+            }
             return;
         }
         int maxDrifs = placementRules.maxDrifs(item, starLevel);

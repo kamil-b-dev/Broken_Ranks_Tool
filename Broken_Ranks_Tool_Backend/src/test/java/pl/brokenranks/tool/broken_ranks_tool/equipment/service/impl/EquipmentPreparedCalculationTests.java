@@ -186,4 +186,30 @@ class EquipmentPreparedCalculationTests {
                 .increment(type == DRIF_BONUS_TYPE.STAMINA_USAGE_REDUCTION ? "-0.5%" : "0.5%")
                 .build();
     }
+
+    @Test
+    void normalizesAcceptedCharacterStatisticNamesBeforeCombiningEquipmentBonuses() {
+        var canonical = calculator.calculateWithSources(request);
+        request.setCharacterStats(Map.of("siła", 10));
+        assertEquals(canonical, calculator.calculateWithSources(request));
+    }
+
+    @Test
+    void validatesCharacterStatsAlsoForAnEmptyEquipmentRequest() {
+        request.setSlots(Map.of());
+        request.setCharacterStats(Map.of("strength", 10));
+        assertThrows(
+                IllegalArgumentException.class, () -> calculator.calculateWithSources(request));
+    }
+
+    @Test
+    void rejectsGapsInBuiltInDrifPositions() {
+        var helmet = request.getSlots().get("helmet");
+        items.get(helmet.getItemId()).setName("Allenor X");
+        items.get(helmet.getItemId()).setRarity(RARITY.EPIC);
+        helmet.setDrifIds(Arrays.asList(null, 1L, 2L));
+        helmet.setDrifLevels(Map.of("1", 6, "2", 6));
+        assertThrows(
+                IllegalArgumentException.class, () -> calculator.calculateWithSources(request));
+    }
 }

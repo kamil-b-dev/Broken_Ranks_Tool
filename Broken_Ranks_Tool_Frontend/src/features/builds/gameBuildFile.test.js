@@ -287,4 +287,11 @@ describe("parseGameBuildPayload", () => {
 
         expect(result.importSummary).toMatchObject({ skippedDrifs: 1, skippedOrbs: 1 });
     });
+    it("preserves explicit zero base stats instead of replacing them with defaults", () => {
+        const result = parseGameBuildPayload(
+            { stats: { BaseStrength: 0, BaseHealth: 0 }, equipped: {}, equipmentList: [] },
+            catalog
+        );
+        expect(result.requestData.characterStats).toMatchObject({ Siła: 0, PŻ: 0, Mana: 200 });
+    });
 });
