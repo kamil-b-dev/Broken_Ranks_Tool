@@ -232,4 +232,26 @@ describe("gearSlotDomain", () => {
             })
         ).toBe(false);
     });
+    it("does not publish levels for removed stones or stones in an empty item slot", () => {
+        const state = {
+            selectedItem: "7",
+            itemStars: 1,
+            orbSlots: { orb1: { id: "2", level: "1" }, orb2: {} },
+            isLegendary: false,
+            selectedDrifs: ["", 3],
+            drifLevels: { 0: 1, 1: 6 },
+            maxDrifs: 2,
+            builtInDrifs: [],
+            builtInLvls: [],
+        };
+        expect(createGearSlotUpdate(state).drifLevels).toEqual({ 1: 6 });
+        expect(createGearSlotUpdate({ ...state, selectedItem: "" })).toEqual({
+            itemId: null,
+            itemStars: 1,
+            orbIds: [],
+            orbLevels: [],
+            drifIds: [],
+            drifLevels: {},
+        });
+    });
 });

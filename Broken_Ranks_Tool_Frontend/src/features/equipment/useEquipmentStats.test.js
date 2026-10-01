@@ -120,4 +120,80 @@ describe("useEquipmentStats", () => {
         expect(result.current.stats).toEqual({ Atak: 200 });
         expect(result.current.calculationNotice).toBeNull();
     });
+    it.each(["restore", "reset"])(
+        "invalidates a pending calculation on %s and clears progress",
+        async (operation) => {
+            let finish;
+            calculateEquipmentStats.mockImplementation(
+                () =>
+                    new Promise((resolve) => {
+                        finish = resolve;
+                    })
+            );
+            const request = { slots: {} };
+            const { result } = renderHook(() => useEquipmentStats(request));
+            let pending;
+            act(() => {
+                pending = result.current.calculateStats();
+            });
+            expect(result.current.isCalculatingStats).toBe(true);
+            act(() =>
+                operation === "restore"
+                    ? result.current.restoreStats({ Atak: 200 }, {}, request)
+                    : result.current.resetStats()
+            );
+            expect(result.current.isCalculatingStats).toBe(false);
+            await act(async () => {
+                finish({ stats: { Atak: 100 } });
+                await pending;
+            });
+            expect(result.current.stats).toEqual(operation === "restore" ? { Atak: 200 } : null);
+        }
+    );
+
+    it("ignores pending failures after restoring a snapshot", async () => {
+        let fail;
+        calculateEquipmentStats.mockImplementation(
+            () =>
+                new Promise((_, reject) => {
+                    fail = reject;
+                })
+        );
+        const request = { slots: {} };
+        const { result } = renderHook(() => useEquipmentStats(request));
+        let pending;
+        act(() => {
+            pending = result.current.calculateStats();
+        });
+        act(() => result.current.restoreStats({ Atak: 200 }, {}, request));
+        await act(async () => {
+            fail(new Error("stary błąd"));
+            await pending;
+        });
+        expect(result.current.calculationNotice).toBeNull();
+        expect(result.current.stats).toEqual({ Atak: 200 });
+    });
+    it("invalidates pending errors when the input build changes", async () => {
+        let fail;
+        calculateEquipmentStats.mockImplementation(
+            () =>
+                new Promise((_, reject) => {
+                    fail = reject;
+                })
+        );
+        const { result, rerender } = renderHook(({ request }) => useEquipmentStats(request), {
+            initialProps: { request: { slots: {} } },
+        });
+        let pending;
+        act(() => {
+            pending = result.current.calculateStats();
+        });
+        rerender({ request: { slots: { helmet: { itemId: 7 } } } });
+        expect(result.current.isCalculatingStats).toBe(false);
+        await act(async () => {
+            fail(new Error("stary build"));
+            await pending;
+        });
+        expect(result.current.calculationNotice).toBeNull();
+    });
 });
