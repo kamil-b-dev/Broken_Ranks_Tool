@@ -37,6 +37,7 @@ class AdvisorEquipmentValidatorTests {
         assertFalse(f.validator.validSlot("helmet", slot(1, 1, List.of(10L, 10L), Map.of())));
         assertTrue(f.validator.validSlot("helmet", slot(1, 1, List.of(10L), Map.of("0", 6))));
         assertFalse(f.validator.validSlot("helmet", slot(1, 1, List.of(10L), Map.of("x", 1))));
+        assertFalse(f.validator.validSlot("helmet", slot(1, 1, List.of(10L), Map.of("00", 1))));
         assertFalse(f.validator.validSlot("helmet", slot(1, 1, List.of(10L), Map.of("1", 1))));
     }
 
@@ -73,6 +74,10 @@ class AdvisorEquipmentValidatorTests {
         assertFalse(f.validator.validSlot("weapon", slot(1, 1, List.of(11L, 10L), Map.of())));
         assertFalse(f.validator.validSlot("weapon", slot(1, 1, List.of(12L, 11L), Map.of())));
         assertFalse(f.validator.validSlot("weapon", slot(1, 1, List.of(10L), Map.of())));
+        assertFalse(
+                f.validator.validSlot("weapon", slot(1, 1, Arrays.asList(null, null), Map.of())));
+        assertFalse(
+                f.validator.validSlot("weapon", slot(1, 1, Arrays.asList(null, 11L), Map.of())));
         assertFalse(f.validator.validSlot("weapon", slot(1, 1, List.of(10L, 11L, 10L), Map.of())));
     }
 
@@ -108,6 +113,9 @@ class AdvisorEquipmentValidatorTests {
                 f.validator.validSlot(
                         "helmet", slotWithOrbs(1, List.of(20L, 21L, 21L), List.of(1, 1, 1))));
         assertFalse(f.validator.validSlot("helmet", slotWithOrbs(1, List.of(20L), List.of(1, 1))));
+        assertFalse(
+                f.validator.validSlot(
+                        "helmet", slotWithOrbs(1, Arrays.asList((Long) null), List.of(1))));
         assertFalse(
                 f.validator.validSlot(
                         "helmet",

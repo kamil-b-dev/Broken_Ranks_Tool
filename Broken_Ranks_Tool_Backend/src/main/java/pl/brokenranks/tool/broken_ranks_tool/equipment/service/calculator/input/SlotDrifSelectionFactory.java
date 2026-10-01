@@ -15,6 +15,7 @@ public class SlotDrifSelectionFactory {
             EquipmentRequest.SlotData slotData, CalculationContext context) {
         List<DrifTemplate> drifs = new ArrayList<>();
         List<Integer> levels = new ArrayList<>();
+        validateLevelKeys(slotData);
         if (slotData.getDrifIds() == null) {
             return new SlotDrifSelection(drifs, levels);
         }
@@ -28,7 +29,6 @@ public class SlotDrifSelectionFactory {
             drifs.add(context.drifs().get(drifId));
             levels.add(requestedLevel(slotData, index));
         }
-        validateLevelKeys(slotData);
         return new SlotDrifSelection(drifs, levels);
     }
 
@@ -38,7 +38,10 @@ public class SlotDrifSelectionFactory {
         for (String key : slotData.getDrifLevels().keySet()) {
             try {
                 int index = Integer.parseInt(key);
-                if (index >= 0 && index < count) continue;
+                if (String.valueOf(index).equals(key)
+                        && index >= 0
+                        && index < count
+                        && slotData.getDrifIds().get(index) != null) continue;
             } catch (NumberFormatException ignored) {
                 // Report malformed indices below.
             }

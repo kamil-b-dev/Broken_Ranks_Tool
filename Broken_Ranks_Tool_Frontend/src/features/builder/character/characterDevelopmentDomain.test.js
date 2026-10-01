@@ -31,4 +31,16 @@ describe("characterDevelopmentDomain", () => {
             })
         ).toMatchObject({ Siła: 12, PŻ: 220 });
     });
+    it("bounds malformed allocations before trimming so imported numbers cannot hang the editor", () => {
+        const normalized = normalizeCharacterConfig({
+            level: 2,
+            spentPoints: { Siła: 1e300, Moc: Infinity, Mana: 2.5, Wiedza: "NaN" },
+        });
+        expect(normalized.spentPoints).toMatchObject({ Siła: 556, Moc: 0, Mana: 2, Wiedza: 0 });
+        const trimmed = trimSpentPoints(normalized.spentPoints, 4);
+        expect(Object.values(trimmed).every((value) => Number.isInteger(value) && value >= 0)).toBe(
+            true
+        );
+        expect(Object.values(trimmed).reduce((sum, value) => sum + value, 0)).toBe(4);
+    });
 });

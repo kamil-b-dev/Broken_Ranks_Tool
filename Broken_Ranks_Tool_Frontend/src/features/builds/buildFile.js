@@ -1,3 +1,4 @@
+import { STAT_CONFIG } from "../builder/character/characterConstants";
 import { parseGameBuildPayload } from "./gameBuildFile";
 import { SLOTS } from "../../shared/domain/equipment/equipmentSlots";
 import {
@@ -22,6 +23,9 @@ const cloneJson = (value) => JSON.parse(JSON.stringify(value));
 
 const SLOT_BY_KEY = new Map(SLOTS.map((slot) => [slot.key, slot]));
 const CHARACTER_STAT_MAX = 50_000;
+const CHARACTER_STAT_NAMES = new Set(
+    [...Object.keys(STAT_CONFIG), "Obrażenia"].map((name) => name.toLowerCase())
+);
 const ORB_SIZE_INDEX = { SUBORB: 0, BIORB: 1, MAGNIORB: 2, ARCYORB: 3 };
 
 const maximumSizeIndex = (tier) => (tier >= 10 ? 3 : tier >= 7 ? 2 : tier >= 4 ? 1 : 0);
@@ -44,6 +48,7 @@ const validateBuiltInDrifs = (item, drifIds, drifsById, gameRules, slotKey) => {
     const expectedTypes = gameRules.epicBuiltInDrifs?.[baseItemName] || [];
     const importedDrifs = drifIds.filter(Boolean).map((id) => drifsById.get(String(id)));
     const matches =
+        drifIds.length === expectedTypes.length &&
         importedDrifs.length === expectedTypes.length &&
         importedDrifs.every(
             (drif, index) =>
@@ -73,7 +78,13 @@ const validateLevels = (levels, ids, resourcesById, maximumLevel, message) => {
     if (!isObject(levels) && !Array.isArray(levels)) throw new Error(message);
     Object.entries(levels).forEach(([indexKey, level]) => {
         const index = Number(indexKey);
-        if (!Number.isInteger(index) || index < 0 || index >= ids.length || !ids[index]) {
+        if (
+            !Number.isInteger(index) ||
+            String(index) !== indexKey ||
+            index < 0 ||
+            index >= ids.length ||
+            !ids[index]
+        ) {
             throw new Error(message);
         }
         const resource = resourcesById.get(String(ids[index]));
@@ -84,6 +95,9 @@ const validateLevels = (levels, ids, resourcesById, maximumLevel, message) => {
 const validateCharacterStats = (stats) => {
     if (stats == null) return;
     if (!isObject(stats)) throw new Error("Build zawiera niepoprawne statystyki postaci.");
+    if (Object.keys(stats).some((key) => !CHARACTER_STAT_NAMES.has(key.toLowerCase()))) {
+        throw new Error("Build zawiera nieznaną statystykę postaci.");
+    }
     Object.values(stats).forEach((value) =>
         requireIntegerInRange(
             value,
@@ -98,9 +112,29 @@ const validateKnownIds = (ids, knownIds, message) => {
     if (ids == null) return;
     if (!Array.isArray(ids)) throw new Error(message);
 
-    ids.filter(Boolean).forEach((id) => {
+    ids.filter((id) => id != null && id !== "").forEach((id) => {
         if (!knownIds.has(String(id))) throw new Error(message);
     });
+};
+
+// Legacy files may store drif levels in arrays and orb levels in index maps.
+// Publish the container shapes expected by EquipmentRequest after validation.
+const normalizeSlotLevels = (slot) => {
+    const normalized = { ...slot };
+    if (slot.drifLevels != null) {
+        normalized.drifLevels = Object.fromEntries(
+            Object.entries(slot.drifLevels).map(([index, level]) => [index, Number(level)])
+        );
+    }
+    if (slot.orbLevels != null) {
+        const count = Array.isArray(slot.orbLevels)
+            ? slot.orbLevels.length
+            : Math.max(-1, ...Object.keys(slot.orbLevels).map(Number)) + 1;
+        normalized.orbLevels = Array.from({ length: count }, (_, index) =>
+            Number(slot.orbLevels[index] ?? 1)
+        );
+    }
+    return normalized;
 };
 
 /**
@@ -141,7 +175,6 @@ export const downloadBuildPayload = (payload, date = new Date()) => {
  * @throws {Error} If the file is invalid or references unknown templates.
  */
 export const parseBuildFile = async (file, data = {}) => {
-    const { items = [], orbs = [], drifs = [] } = data;
     if (!file) throw new Error("Nie wybrano pliku buildu.");
     if (file.size > MAX_BUILD_FILE_SIZE) throw new Error("Plik buildu jest zbyt duży.");
 
@@ -156,7 +189,11 @@ export const parseBuildFile = async (file, data = {}) => {
         return parseBuildPayload(payload, data);
     }
     if (payload?.stats && payload?.equipped && payload?.equipmentList) {
-        return parseGameBuildPayload(payload, { items, orbs, drifs });
+        const imported = parseGameBuildPayload(payload, data);
+        return {
+            ...parseBuildPayload(createBuildPayload(imported), data),
+            importSummary: imported.importSummary,
+        };
     }
     return parseBuildPayload(payload, data);
 };
@@ -219,6 +256,7 @@ export const parseBuildPayload = (
         );
         const orbIds = slot.orbIds || [];
         const drifIds = slot.drifIds || [];
+        if (drifIds.length > 8) throw new Error(`Za dużo pozycji drifów w slocie ${slotKey}.`);
         const stars = slot.itemStars ?? 1;
         const tier = ROMAN_TO_INT[String(item?.tier).toUpperCase()] || 0;
         const rarity = String(item?.rarity).toUpperCase();
@@ -262,7 +300,11 @@ export const parseBuildPayload = (
             validateBuiltInDrifs(item, drifIds, drifsById, gameRules, slotKey);
         } else {
             const populatedDrifs = drifIds.filter(Boolean);
-            if (populatedDrifs.length > maximumDrifSlots(tier, stars)) {
+            const maximum = maximumDrifSlots(tier, stars);
+            if (
+                populatedDrifs.length > maximum ||
+                drifIds.some((id, index) => id && index >= maximum)
+            ) {
                 throw new Error(`Za dużo drifów w slocie ${slotKey}.`);
             }
             populatedDrifs.forEach((id) => {
@@ -334,7 +376,12 @@ export const parseBuildPayload = (
 
     return {
         requestData: cloneJson({
-            slots: importedRequest.slots,
+            slots: Object.fromEntries(
+                Object.entries(importedRequest.slots).map(([key, slot]) => [
+                    key,
+                    normalizeSlotLevels(slot),
+                ])
+            ),
             characterStats: importedRequest.characterStats || {},
         }),
         characterConfig: normalizeImportedCharacterConfig(build.characterConfig),

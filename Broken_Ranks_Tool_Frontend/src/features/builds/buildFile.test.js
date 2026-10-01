@@ -49,7 +49,7 @@ const validPayload = () => ({
             slots: {
                 helmet: { itemId: 1, orbIds: [2], drifIds: [3] },
             },
-            characterStats: { strength: 10 },
+            characterStats: { Siła: 10 },
         },
         characterConfig: { level: 140 },
         lockedSlots: ["helmet"],
@@ -165,7 +165,7 @@ describe("parseBuildFile", () => {
         ],
         [
             "invalid character stat",
-            (payload) => (payload.build.requestData.characterStats.strength = 50_001),
+            (payload) => (payload.build.requestData.characterStats.Siła = 50_001),
             "od 0 do 50000",
         ],
         ["orphaned lock", (payload) => (payload.build.lockedDrifs.helmet = [1]), "blokada drifa"],
@@ -218,5 +218,97 @@ describe("parseBuildPayload", () => {
         expect(
             Object.values(result.characterConfig.spentPoints).reduce((sum, value) => sum + value, 0)
         ).toBe(4);
+    });
+    it.each([
+        [
+            "unknown character stat",
+            (payload) => {
+                payload.build.requestData.characterStats = { strength: 10 };
+            },
+            "nieznaną statystykę",
+        ],
+        [
+            "invalid drif position",
+            (payload) => {
+                payload.build.requestData.slots.helmet.drifIds = [null, 3];
+            },
+            "drifów",
+        ],
+        [
+            "noncanonical index",
+            (payload) => {
+                payload.build.requestData.slots.helmet.drifLevels = { "00": 2 };
+            },
+            "poziomy drifów",
+        ],
+        [
+            "zero identifier",
+            (payload) => {
+                payload.build.requestData.slots.helmet.drifIds = [0];
+            },
+            "nieznane drify",
+        ],
+    ])("rejects %s before submitting to the calculator", (_name, mutate, message) => {
+        const payload = validPayload();
+        mutate(payload);
+        const data = { ...gameData, items: gameData.items.map((item) => ({ ...item, tier: "I" })) };
+        expect(() => parseBuildPayload(payload, data)).toThrow(message);
+    });
+
+    it("runs game exports through the same equipment validation as native builds", async () => {
+        const payload = {
+            stats: {},
+            equipped: { 1: 7 },
+            equipmentList: [
+                {
+                    EqId: 7,
+                    Name: "Hełm",
+                    GearType: "helmet",
+                    Rank: 1,
+                    Type: "rar",
+                    Drifs: [
+                        { Name: "Subdrif kryt", Level: 1 },
+                        { Name: "Subdrif kryt", Level: 1 },
+                    ],
+                },
+            ],
+        };
+        const data = {
+            ...gameData,
+            items: [
+                {
+                    id: 1,
+                    name: "Hełm",
+                    category: "HELMET",
+                    tier: "I",
+                    rarity: "RARE",
+                    capacity: 20,
+                },
+            ],
+            drifs: [{ id: 3, name: "Kryt", bonusType: "CRITICAL_CHANCE", size: "SUBDRIF" }],
+        };
+        await expect(parseBuildFile(createFile(payload), data)).rejects.toThrow("drifów");
+        payload.equipmentList[0].Drifs.pop();
+        const imported = await parseBuildFile(createFile(payload), data);
+        expect(imported.requestData.slots.helmet.drifIds).toEqual([3]);
+        expect(imported.importSummary.importedDrifs).toBe(1);
+    });
+    it("normalizes legacy level containers to the API's map and array shapes", () => {
+        const payload = validPayload();
+        payload.build.requestData.slots.helmet.drifLevels = [2];
+        payload.build.requestData.slots.helmet.orbLevels = { 0: "1" };
+        expect(parseBuildPayload(payload, gameData).requestData.slots.helmet).toMatchObject({
+            drifLevels: { 0: 2 },
+            orbLevels: [1],
+        });
+    });
+
+    it("rejects gaps in built-in positions and more positions than the API permits", () => {
+        const payload = validPayload();
+        payload.build.lockedDrifs = {};
+        payload.build.requestData.slots.helmet = { itemId: 5, drifIds: [null, 6, 7] };
+        expect(() => parseBuildPayload(payload, gameData)).toThrow("Wbudowane drify");
+        payload.build.requestData.slots.helmet = { itemId: 1, drifIds: Array(9).fill(null) };
+        expect(() => parseBuildPayload(payload, gameData)).toThrow("pozycji drifów");
     });
 });

@@ -247,4 +247,30 @@ class EquipmentValidationPoliciesTests {
                 .size(ORB_SIZE.BIORB)
                 .build();
     }
+
+    @Test
+    void requiresBuiltInDrifsEvenWhenTheSubmittedListIsEmpty() {
+        ItemTemplate epic = item(0, ITEM_CATEGORY.HELMET, RARITY.EPIC, "X");
+        epic.setName("Allenor X");
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> drifSecurityValidator.validate("helmet", epic, 1, List.of(), List.of()));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> drifSecurityValidator.validate("helmet", epic, 1, null, List.of()));
+        assertDoesNotThrow(
+                () -> drifSecurityValidator.validate("helmet", item(4), 1, List.of(), List.of()));
+    }
+
+    @Test
+    void rejectsOrbLevelsInUnoccupiedPositions() {
+        var slot = new EquipmentRequest.SlotData();
+        slot.setItemId(1L);
+        slot.setOrbIds(java.util.Arrays.asList((Long) null));
+        slot.setOrbLevels(List.of(1));
+        var request = new EquipmentRequest();
+        request.setSlots(Map.of("helmet", slot));
+        assertThrows(
+                IllegalArgumentException.class, () -> requestValidator.validateRequest(request));
+    }
 }

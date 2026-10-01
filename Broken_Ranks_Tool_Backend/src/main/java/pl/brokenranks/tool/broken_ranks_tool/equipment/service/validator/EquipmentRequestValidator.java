@@ -40,7 +40,6 @@ public class EquipmentRequestValidator {
         boolean hasOrbs =
                 slot.getOrbIds() != null
                         && slot.getOrbIds().stream().anyMatch(java.util.Objects::nonNull);
-        boolean hasOrbPositions = slot.getOrbIds() != null && !slot.getOrbIds().isEmpty();
         boolean hasDrifLevels = slot.getDrifLevels() != null && !slot.getDrifLevels().isEmpty();
         boolean hasOrbLevels = slot.getOrbLevels() != null && !slot.getOrbLevels().isEmpty();
         if (slot.getItemId() == null && (hasDrifs || hasOrbs || hasDrifLevels || hasOrbLevels)) {
@@ -51,9 +50,15 @@ public class EquipmentRequestValidator {
             throw new IllegalArgumentException(
                     "Slot " + key + " zawiera poziomy bez przypisanych drifów.");
         }
-        if (!hasOrbPositions && hasOrbLevels) {
-            throw new IllegalArgumentException(
-                    "Slot " + key + " zawiera poziomy bez przypisanych orbów.");
+        if (hasOrbLevels) {
+            for (int index = 0; index < slot.getOrbLevels().size(); index++) {
+                if (slot.getOrbIds() == null
+                        || index >= slot.getOrbIds().size()
+                        || slot.getOrbIds().get(index) == null) {
+                    throw new IllegalArgumentException(
+                            "Slot " + key + " zawiera poziomy bez przypisanych orbów.");
+                }
+            }
         }
     }
 

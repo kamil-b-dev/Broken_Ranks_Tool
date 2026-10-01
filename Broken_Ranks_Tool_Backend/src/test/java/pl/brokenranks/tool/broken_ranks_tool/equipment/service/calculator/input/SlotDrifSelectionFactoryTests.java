@@ -42,4 +42,20 @@ class SlotDrifSelectionFactoryTests {
         assertTrue(empty.drifs().isEmpty());
         assertTrue(empty.levels().isEmpty());
     }
+
+    @Test
+    void rejectsLevelsForEmptyPositionsAndNoncanonicalKeys() {
+        var slot = new EquipmentRequest.SlotData();
+        slot.setDrifIds(java.util.Arrays.asList(1L, null));
+        var context =
+                new CalculationContext(
+                        Map.of(), Map.of(), Map.of(1L, DrifTemplate.builder().id(1L).build()));
+        for (String key : List.of("1", "00", "+0", "0.0")) {
+            slot.setDrifLevels(Map.of(key, 2));
+            assertThrows(IllegalArgumentException.class, () -> factory.create(slot, context));
+        }
+        slot.setDrifIds(null);
+        slot.setDrifLevels(Map.of("0", 2));
+        assertThrows(IllegalArgumentException.class, () -> factory.create(slot, context));
+    }
 }

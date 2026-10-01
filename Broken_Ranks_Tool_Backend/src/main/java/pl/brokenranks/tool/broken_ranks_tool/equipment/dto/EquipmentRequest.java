@@ -26,7 +26,7 @@ public class EquipmentRequest {
     public static class SlotData {
         private Long itemId;
 
-        @Min(0)
+        @Min(1)
         @Max(9)
         private Integer itemStars;
 
