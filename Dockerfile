@@ -15,7 +15,10 @@ RUN mvn -B -DskipTests package
 
 FROM eclipse-temurin:21-jre-jammy@sha256:e9aaf73145bbd1f9f6ec7f6867dd75a44f34b1a6c32a813504bf4129be2d09d7 AS runtime
 WORKDIR /app
-RUN groupadd --system app && useradd --system --gid app --home-dir /app app \
+RUN apt-get update \
+    && apt-get install --only-upgrade --no-install-recommends -y libssl3 openssl \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd --system app && useradd --system --gid app --home-dir /app app \
     && mkdir -p /app/data
 COPY --from=backend-build --chown=root:root /workspace/backend/target/Broken_Ranks_Tool_Backend-*.jar /app/application.jar
 COPY --chown=root:root Broken_Ranks_Tool_Backend/database/catalog/broken_ranks.db /app/data/broken_ranks.db
