@@ -36,6 +36,8 @@ Przy każdej zmianie — zarówno dodawaniu nowych funkcji i plików, jak i refa
 
 ## Weryfikacja zmian
 
+- Przed każdym commitem uruchom `npm audit --audit-level=high` w katalogu głównym repozytorium oraz w `Broken_Ranks_Tool_Frontend` i sprawdź rzeczywisty kod wyjścia obu poleceń. Usuń podatności high/critical przed utworzeniem commita. Błąd połączenia z rejestrem nie oznacza poprawnego audytu; zgłoś brak możliwości weryfikacji. Nie stosuj automatycznie `npm audit fix --force` bez sprawdzenia i dostosowania zmian niezgodnych wstecznie.
+
 Dobieraj zakres weryfikacji proporcjonalnie do ryzyka i obszaru zmiany. Nie uruchamiaj automatycznie pełnego zestawu testów po każdej poprawce.
 
 - Po każdej zmianie plików frontendu sformatuj zmienione pliki za pomocą Prettiera. Przed zakończeniem pracy uruchom `npm run format:check` i usuń wszystkie zgłoszone różnice formatowania.

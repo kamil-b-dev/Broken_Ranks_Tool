@@ -14,7 +14,7 @@ const BuiltInDrifSlots = ({ drifs, levels, onLevelsChange }) =>
                 className="drif-selector-category-icon"
             />
             <div
-                className="flex-[4] min-w-0 bg-transparent text-yellow-300 font-serif p-1 text-[10px] border-b border-yellow-900/50 text-center truncate pointer-events-none font-bold uppercase"
+                className="flex-4 min-w-0 bg-transparent text-yellow-300 font-serif p-1 text-[10px] border-b border-yellow-900/50 text-center truncate pointer-events-none font-bold uppercase"
                 title={drif.displayName}
             >
                 {drif.displayName}
@@ -27,7 +27,7 @@ const BuiltInDrifSlots = ({ drifs, levels, onLevelsChange }) =>
                     next[index] = Number.parseInt(event.target.value);
                     onLevelsChange(next);
                 }}
-                className={`flex-[2] min-w-0 bg-transparent font-serif p-1 text-xs border-b outline-none text-center cursor-pointer bg-stone-950 ${drif.id ? "text-yellow-300 border-yellow-900/50 hover:border-yellow-500" : "text-rose-600 border-rose-900"}`}
+                className={`flex-2 min-w-0 bg-transparent font-serif p-1 text-xs border-b outline-hidden text-center cursor-pointer bg-stone-950 ${drif.id ? "text-yellow-300 border-yellow-900/50 hover:border-yellow-500" : "text-rose-600 border-rose-900"}`}
                 disabled={!drif.id}
             >
                 {Array.from({ length: 16 }, (_, levelIndex) => levelIndex + 1).map((level) => (

@@ -80,11 +80,11 @@ const ItemDatabaseTooltip = ({ tooltip, bonusTranslations, drifBasePowers }) => 
     return (
         <div
             style={{ top: tooltip.y, left: tooltip.x }}
-            className="fixed z-50 bg-gradient-to-b from-stone-900 to-black border border-stone-700 p-4 shadow-[0_0_20px_rgba(0,0,0,1)] pointer-events-none w-64"
+            className="fixed z-50 bg-linear-to-b from-stone-900 to-black border border-stone-700 p-4 shadow-[0_0_20px_rgba(0,0,0,1)] pointer-events-none w-64"
         >
             <div className="flex justify-between items-start border-b-2 border-double border-rose-900/50 pb-2 mb-2">
                 <h4
-                    className={`text-base font-serif tracking-wide ${type === "items" ? getRarityColor(item.rarity) : `font-bold bg-clip-text text-transparent bg-gradient-to-r ${type === "orbs" ? "from-red-400 to-rose-600" : "from-orange-400 to-amber-600"}`}`}
+                    className={`text-base font-serif tracking-wide ${type === "items" ? getRarityColor(item.rarity) : `font-bold bg-clip-text text-transparent bg-linear-to-r ${type === "orbs" ? "from-red-400 to-rose-600" : "from-orange-400 to-amber-600"}`}`}
                 >
                     {type === "items" ? (
                         item.name

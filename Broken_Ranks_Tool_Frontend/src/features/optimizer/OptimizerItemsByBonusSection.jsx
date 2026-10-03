@@ -13,7 +13,7 @@ const OptimizerItemsByBonusSection = ({ itemsByBonus }) => {
     );
 
     return (
-        <section className="bg-black/40 border border-stone-800 rounded-sm p-3">
+        <section className="bg-black/40 border border-stone-800 rounded-xs p-3">
             <h5 className="text-[10px] text-stone-400 uppercase tracking-widest font-semibold mb-3">
                 Bonus do drifów na przedmiotach
             </h5>
