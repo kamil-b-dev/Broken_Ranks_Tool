@@ -11,17 +11,23 @@ export const calculateCharacterStats = (spentPoints) =>
             config.base + spentPoints[name] * config.ratio,
         ])
     );
+const normalizePoints = (value) => {
+    const numeric = Number(value);
+    return Number.isFinite(numeric)
+        ? Math.min(totalPointsForLevel(140), Math.max(0, Math.trunc(numeric)))
+        : 0;
+};
 export const normalizeCharacterConfig = (config) => ({
     level: clampLevel(config?.level),
     spentPoints: Object.fromEntries(
-        Object.keys(STAT_CONFIG).map((name) => [
-            name,
-            Math.max(0, Number(config?.spentPoints?.[name]) || 0),
-        ])
+        Object.keys(STAT_CONFIG).map((name) => [name, normalizePoints(config?.spentPoints?.[name])])
     ),
 });
 export const trimSpentPoints = (spentPoints, maximum) => {
-    const updated = { ...spentPoints };
+    const updated = Object.fromEntries(
+        Object.entries(spentPoints).map(([name, value]) => [name, normalizePoints(value)])
+    );
+    maximum = normalizePoints(maximum);
     let excess = spentPointCount(updated) - maximum;
     const names = Object.keys(updated);
     while (excess > 0)

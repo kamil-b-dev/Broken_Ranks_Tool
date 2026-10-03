@@ -161,7 +161,10 @@ export const parseOptimizerConfigPayload = (payload, gameRules = {}) => {
                 forceCap: Boolean(entry.forceCap),
                 forcePercentage,
                 forcedPercentage: forcePercentage ? parsedForcedPercentage : "",
-                maximize: !forcePercentage && Boolean(entry.maximize ?? entry.critical),
+                maximize:
+                    !entry.forceCap &&
+                    !forcePercentage &&
+                    Boolean(entry.maximize ?? entry.critical),
                 sizeRanges: normalizeSizeRanges(entry.sizeRanges),
             },
         ];
@@ -356,13 +359,14 @@ export const buildOptimizationConfig = (priorities, settings = {}) => {
         const forcedPercentage = Number(bonus.forcedPercentage);
         if (
             !simple &&
+            !bonus.forceCap &&
             bonus.forcePercentage &&
             Number.isFinite(forcedPercentage) &&
             forcedPercentage >= 0
         ) {
             config.forcedPercentageTargets[bonus.key] = forcedPercentage;
         }
-        if (!simple && bonus.maximize && !bonus.forcePercentage)
+        if (!simple && bonus.maximize && !bonus.forcePercentage && !bonus.forceCap)
             config.maximizeBonuses.push(bonus.key);
         if (!simple && Object.keys(bonus.sizeRanges || {}).length > 0) {
             config.drifSizeQuantities[bonus.key] = normalizeSizeRanges(bonus.sizeRanges);

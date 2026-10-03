@@ -5,7 +5,7 @@ export const getRarityColor = (rarity) => {
         LEGENDARY: "from-orange-400 to-orange-600",
         RARE: "from-blue-400 to-blue-600",
     };
-    return `bg-clip-text text-transparent bg-gradient-to-r ${gradients[rarity?.toUpperCase()] || "from-stone-400 to-stone-500"} font-bold`;
+    return `bg-clip-text text-transparent bg-linear-to-r ${gradients[rarity?.toUpperCase()] || "from-stone-400 to-stone-500"} font-bold`;
 };
 
 /** Maps catalog categories to the matching equipment icon in the shared sprite. */

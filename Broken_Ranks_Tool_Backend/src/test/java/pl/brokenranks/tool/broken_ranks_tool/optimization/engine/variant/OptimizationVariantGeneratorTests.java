@@ -1,6 +1,8 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.variant;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -32,6 +34,17 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.neighbor
 import pl.brokenranks.tool.broken_ranks_tool.optimization.locking.OptimizationLockService;
 
 class OptimizationVariantGeneratorTests {
+
+    @Test
+    void focusedVariantsReuseCalculatorSessionOnlyWithinTheirSearch() {
+        Fixture first = fixture(10);
+        Fixture second = fixture(10);
+        var focused =
+                new OptimizationVariantContextFactory()
+                        .focusedContext(first.context, DRIF_BONUS_TYPE.DAMAGE_MAGIC);
+        assertSame(first.context.calculatorSession(), focused.calculatorSession());
+        assertNotSame(first.context.calculatorSession(), second.context.calculatorSession());
+    }
 
     @Test
     void selectsImprovementWithinConfiguredLossAndRejectsLargerLoss() {

@@ -97,7 +97,7 @@ const OptimizerPriorityForm = ({ bonus, potential, maxCap, onChange, simple = fa
                     </span>
                 </div>
             )}
-            <div className="optimizer-priority-options flex flex-col gap-2 bg-black/30 p-2 rounded-sm border border-stone-800/50">
+            <div className="optimizer-priority-options flex flex-col gap-2 bg-black/30 p-2 rounded-xs border border-stone-800/50">
                 {!simple && (
                     <div className="optimizer-priority-option optimizer-priority-weight flex flex-col gap-1">
                         <div className="flex justify-between items-end">
@@ -116,7 +116,7 @@ const OptimizerPriorityForm = ({ bonus, potential, maxCap, onChange, simple = fa
                             value={bonus.weight}
                             onChange={(event) => onChange("weight", event.target.value)}
                             style={{ "--optimizer-range-progress": `${weightProgress}%` }}
-                            className="w-full h-1 bg-stone-950 border border-stone-800 rounded-sm appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-purple-900 [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:border-purple-400 [&::-webkit-slider-thumb]:rounded-sm [&::-webkit-slider-thumb]:shadow-[0_0_5px_rgba(168,85,247,0.7)] hover:[&::-webkit-slider-thumb]:bg-purple-700 hover:[&::-webkit-slider-thumb]:border-purple-300 transition-all [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-purple-900 [&::-moz-range-thumb]:border [&::-moz-range-thumb]:border-purple-400 [&::-moz-range-thumb]:rounded-sm [&::-moz-range-thumb]:shadow-[0_0_5px_rgba(168,85,247,0.7)] hover:[&::-moz-range-thumb]:bg-purple-700 hover:[&::-moz-range-thumb]:border-purple-300"
+                            className="w-full h-1 bg-stone-950 border border-stone-800 rounded-xs appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-purple-900 [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:border-purple-400 [&::-webkit-slider-thumb]:rounded-xs [&::-webkit-slider-thumb]:shadow-[0_0_5px_rgba(168,85,247,0.7)] hover:[&::-webkit-slider-thumb]:bg-purple-700 hover:[&::-webkit-slider-thumb]:border-purple-300 transition-all [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-purple-900 [&::-moz-range-thumb]:border [&::-moz-range-thumb]:border-purple-400 [&::-moz-range-thumb]:rounded-xs [&::-moz-range-thumb]:shadow-[0_0_5px_rgba(168,85,247,0.7)] hover:[&::-moz-range-thumb]:bg-purple-700 hover:[&::-moz-range-thumb]:border-purple-300"
                         />
                     </div>
                 )}
@@ -129,7 +129,7 @@ const OptimizerPriorityForm = ({ bonus, potential, maxCap, onChange, simple = fa
                             {["min", "max"].map((field, index) => (
                                 <React.Fragment key={field}>
                                     {index > 0 && <span className="text-stone-700">-</span>}
-                                    <div className="flex items-center gap-1.5 bg-stone-950 border border-stone-700 rounded-sm px-1.5 py-0.5 focus-within:border-purple-600 transition-colors">
+                                    <div className="flex items-center gap-1.5 bg-stone-950 border border-stone-700 rounded-xs px-1.5 py-0.5 focus-within:border-purple-600 transition-colors">
                                         <span className="text-[9px] text-stone-500">
                                             {field.toUpperCase()}
                                         </span>
@@ -142,7 +142,7 @@ const OptimizerPriorityForm = ({ bonus, potential, maxCap, onChange, simple = fa
                                                 onChange(field, event.target.value)
                                             }
                                             aria-label={`${field === "min" ? "Minimalna" : "Maksymalna"} liczba drifów dla ${bonus.value}`}
-                                            className="w-7 bg-transparent text-stone-200 text-xs outline-none text-center font-bold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                            className="w-7 bg-transparent text-stone-200 text-xs outline-hidden text-center font-bold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                         />
                                     </div>
                                 </React.Fragment>
@@ -179,7 +179,7 @@ const OptimizerPriorityForm = ({ bonus, potential, maxCap, onChange, simple = fa
                         </span>
                         <div className="flex items-center gap-2">
                             <div
-                                className={`flex items-center gap-1 bg-stone-950 border rounded-sm px-1.5 py-0.5 transition-colors ${bonus.forcePercentage ? "border-purple-600" : "border-stone-700"}`}
+                                className={`flex items-center gap-1 bg-stone-950 border rounded-xs px-1.5 py-0.5 transition-colors ${bonus.forcePercentage ? "border-purple-600" : "border-stone-700"}`}
                             >
                                 <input
                                     type="number"
@@ -191,7 +191,7 @@ const OptimizerPriorityForm = ({ bonus, potential, maxCap, onChange, simple = fa
                                         onChange("forcedPercentage", event.target.value)
                                     }
                                     aria-label={`Wymuszony procent dla ${bonus.value}`}
-                                    className="w-14 bg-transparent text-stone-200 text-xs outline-none text-center font-bold disabled:text-stone-600 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                    className="w-14 bg-transparent text-stone-200 text-xs outline-hidden text-center font-bold disabled:text-stone-600 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                 />
                                 <span className="text-[10px] text-stone-500">%</span>
                             </div>

@@ -1,7 +1,7 @@
 const TAB_LABELS = { items: "Przedmioty", orbs: "Orby", drifs: "Drify" };
 
 const selectClass =
-    "flex-1 min-w-0 bg-black/60 text-stone-400 font-serif p-2 text-xs border border-stone-800 focus:border-rose-900 outline-none cursor-pointer shadow-[inset_0_0_10px_rgba(0,0,0,1)]";
+    "flex-1 min-w-0 bg-black/60 text-stone-400 font-serif p-2 text-xs border border-stone-800 focus:border-rose-900 outline-hidden cursor-pointer shadow-[inset_0_0_10px_rgba(0,0,0,1)]";
 
 const ItemDatabaseControls = ({
     activeTab,
@@ -60,7 +60,7 @@ const ItemDatabaseControls = ({
                 placeholder={`Wyszukaj ${activeTab === "items" ? "(np. Morana)" : activeTab === "orbs" ? "orba" : "drifa"}...`}
                 value={filters.search}
                 onChange={(event) => onFilterChange("search", event.target.value)}
-                className="w-full bg-black/60 text-stone-300 font-serif p-2 text-sm border border-stone-800 focus:border-rose-900 outline-none transition-colors shadow-[inset_0_0_10px_rgba(0,0,0,1)]"
+                className="w-full bg-black/60 text-stone-300 font-serif p-2 text-sm border border-stone-800 focus:border-rose-900 outline-hidden transition-colors shadow-[inset_0_0_10px_rgba(0,0,0,1)]"
             />
             <div className="flex gap-2">
                 {activeTab === "items" && (

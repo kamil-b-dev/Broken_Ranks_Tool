@@ -28,7 +28,8 @@ public class DrifSecurityValidator {
             int stars,
             List<DrifTemplate> drifs,
             List<Integer> requestedLevels) {
-        if (item == null || drifs == null || drifs.isEmpty()) return;
+        if (item == null) return;
+        if (drifs == null) drifs = List.of();
         Set<DRIF_BONUS_TYPE> unique = new HashSet<>();
         int usedPower = 0;
         int elemental = 0;

@@ -46,7 +46,11 @@ final class AdvisorEquipmentValidator {
                 rules.EPIC_BUILTIN_DRIFS.getOrDefault(
                         Objects.toString(item.getName(), "").replaceFirst("\\s+[IVX]+$", ""),
                         List.of());
-        if (model.special(slot) && size(slot) != builtins.size()) return false;
+        if (model.special(slot)
+                && (size(slot) != builtins.size()
+                        || slot.getDrifIds() != null
+                                && slot.getDrifIds().stream().anyMatch(Objects::isNull)))
+            return false;
         if (!validDrifLevelKeys(slot)) return false;
         for (int i = 0; i < size(slot); i++) {
             if (id(slot, i) == null) continue;
@@ -82,6 +86,7 @@ final class AdvisorEquipmentValidator {
         boolean gap = false;
         for (int i = 0; i < orbIds.size(); i++) {
             if (orbIds.get(i) == null) {
+                if (slot.getOrbLevels() != null && i < slot.getOrbLevels().size()) return false;
                 gap = true;
                 continue;
             }
@@ -106,7 +111,8 @@ final class AdvisorEquipmentValidator {
         for (var entry : slot.getDrifLevels().entrySet()) {
             try {
                 int index = Integer.parseInt(entry.getKey());
-                if (index >= 0
+                if (String.valueOf(index).equals(entry.getKey())
+                        && index >= 0
                         && index < size(slot)
                         && id(slot, index) != null
                         && entry.getValue() != null) continue;

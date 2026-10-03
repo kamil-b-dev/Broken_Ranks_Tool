@@ -2,8 +2,92 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import SimpleProfileGoalsPanel from "./SimpleProfileGoalsPanel";
+import { defaultSimpleOptions, normalizeSimpleOptions } from "./simpleProfileDefinitions";
 
 describe("SimpleProfileGoalsPanel", () => {
+    it.each(["KNIGHT", "DRUID"])(
+        "uses defensive defaults for %s in imports and the form",
+        (profile) => {
+            const options = normalizeSimpleOptions({ style: "DEFENSIVE" }, profile);
+            expect(options).toMatchObject({
+                damageDrifs: 4,
+                accuracyDrifs: 4,
+                passiveDamageReduction: true,
+            });
+            expect(
+                normalizeSimpleOptions(
+                    { style: "DEFENSIVE", passiveDamageReduction: false, damageDrifs: 10 },
+                    profile
+                )
+            ).toMatchObject({ damageDrifs: 10, accuracyDrifs: 4, passiveDamageReduction: false });
+            render(
+                <SimpleProfileGoalsPanel
+                    settings={{ simpleProfile: profile, simpleOptions: { style: "DEFENSIVE" } }}
+                    onChange={vi.fn()}
+                />
+            );
+            expect(screen.getByRole("spinbutton", { name: /Drify obrażeń/i })).toHaveValue(4);
+            expect(screen.getByRole("spinbutton", { name: /Drify celności/i })).toHaveValue(4);
+            expect(
+                screen.getByRole("checkbox", { name: /Redukcja obrażeń biernych/i })
+            ).toBeChecked();
+        }
+    );
+
+    it.each(["KNIGHT", "DRUID"])(
+        "updates defaults on a style change for %s and preserves custom quantities",
+        (profile) => {
+            const onChange = vi.fn();
+            const { rerender } = render(
+                <SimpleProfileGoalsPanel
+                    settings={{
+                        simpleProfile: profile,
+                        simpleOptions: defaultSimpleOptions(profile),
+                    }}
+                    onChange={onChange}
+                />
+            );
+            fireEvent.change(screen.getByRole("combobox", { name: "Styl buildu" }), {
+                target: { value: "DEFENSIVE" },
+            });
+            expect(onChange.mock.lastCall[0].simpleOptions).toMatchObject({
+                style: "DEFENSIVE",
+                damageDrifs: 4,
+                accuracyDrifs: 4,
+            });
+            rerender(
+                <SimpleProfileGoalsPanel settings={onChange.mock.lastCall[0]} onChange={onChange} />
+            );
+            fireEvent.change(screen.getByRole("combobox", { name: "Styl buildu" }), {
+                target: { value: "OFFENSIVE" },
+            });
+            expect(onChange.mock.lastCall[0].simpleOptions).toMatchObject({
+                damageDrifs: 6,
+                accuracyDrifs: 5,
+            });
+            rerender(
+                <SimpleProfileGoalsPanel
+                    settings={{
+                        simpleProfile: profile,
+                        simpleOptions: {
+                            ...defaultSimpleOptions(profile),
+                            damageDrifs: 10,
+                            accuracyDrifs: 9,
+                        },
+                    }}
+                    onChange={onChange}
+                />
+            );
+            fireEvent.change(screen.getByRole("combobox", { name: "Styl buildu" }), {
+                target: { value: "DEFENSIVE" },
+            });
+            expect(onChange.mock.lastCall[0].simpleOptions).toMatchObject({
+                damageDrifs: 10,
+                accuracyDrifs: 9,
+            });
+        }
+    );
+
     it("selects the profession in the profile configuration box", async () => {
         const user = userEvent.setup();
         const onChange = vi.fn();

@@ -5,9 +5,10 @@ import static pl.brokenranks.tool.broken_ranks_tool.optimization.advisor.Advisor
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.LongSupplier;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.CalculationResultDto;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCalculatorService;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.AdvisorPlanKind;
 
 /** Verifies approximate candidates with the authoritative equipment calculator. */
@@ -26,7 +27,7 @@ final class AdvisorFinalistVerifier {
             List<AdvisorSearch.Node> candidates,
             AdvisorEquipmentModel model,
             AdvisorSearch search,
-            EquipmentStatsCalculatorService calculator,
+            Function<EquipmentRequest, CalculationResultDto> calculator,
             long deadline) {
         candidates = new ArrayList<>(candidates);
         candidates.sort(search.ranking());
@@ -37,14 +38,14 @@ final class AdvisorFinalistVerifier {
         int checks = 0;
         boolean deadlineReached = false;
         for (AdvisorSearch.Node candidate : queue) {
-            if (checks >= checkLimit || search.cancelled()) break;
+            // Cancellation stops search, but already found plans still need verification.
+            if (checks >= checkLimit || (search.cancelled() && checks >= 6)) break;
             if (clock.getAsLong() >= deadline) {
                 deadlineReached = true;
                 break;
             }
             checks++;
-            CalculationResultDto calculation =
-                    calculator.calculateWithSources(model.setup(candidate.slots()));
+            CalculationResultDto calculation = calculator.apply(model.setup(candidate.slots()));
             Map<String, String> actual = calculation.stats();
             double[] stats = parsed(actual);
             if (clock.getAsLong() >= deadline) deadlineReached = true;

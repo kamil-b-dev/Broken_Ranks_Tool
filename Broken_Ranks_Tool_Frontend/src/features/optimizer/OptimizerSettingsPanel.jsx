@@ -53,7 +53,7 @@ const VariantsOptions = ({ settings, onChange, label }) => (
                     })
                 }
                 aria-label="Maksymalna dopuszczalna strata wariantu w procentach"
-                className="w-16 border border-purple-900/80 bg-black px-2 py-1 text-center text-xs text-stone-200 outline-none focus:border-purple-500 disabled:cursor-not-allowed"
+                className="w-16 border border-purple-900/80 bg-black px-2 py-1 text-center text-xs text-stone-200 outline-hidden focus:border-purple-500 disabled:cursor-not-allowed"
             />
             <span className="text-[11px] text-stone-400">%</span>
         </label>

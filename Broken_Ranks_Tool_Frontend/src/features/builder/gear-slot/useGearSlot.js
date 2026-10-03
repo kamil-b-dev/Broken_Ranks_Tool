@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useGearSlotDerivedState } from "./useGearSlotDerivedState";
 import { useGearSlotDragDrop } from "./useGearSlotDragDrop";
 import { useGearSlotPublisher, useGearSlotState } from "./useGearSlotState";
@@ -49,6 +50,27 @@ export const useGearSlot = ({
         drifLevels: slotState.drifLevels,
     });
 
+    const { selectedDrifs, setSelectedDrifs, setDrifTypes, setDrifLevels } = slotState;
+    const { maxDrifs, isEpicOrSet, fullSelectedItem } = derivedState;
+    useEffect(() => {
+        if (!fullSelectedItem || isEpicOrSet || selectedDrifs.length <= maxDrifs) return;
+        setSelectedDrifs(selectedDrifs.slice(0, maxDrifs));
+        const activePositions = (values) =>
+            Object.fromEntries(
+                Object.entries(values).filter(([index]) => Number(index) < maxDrifs)
+            );
+        setDrifTypes(activePositions);
+        setDrifLevels(activePositions);
+    }, [
+        fullSelectedItem,
+        isEpicOrSet,
+        maxDrifs,
+        selectedDrifs,
+        setSelectedDrifs,
+        setDrifTypes,
+        setDrifLevels,
+    ]);
+
     useGearSlotPublisher({
         slotKey,
         onUpdate,
@@ -64,6 +86,7 @@ export const useGearSlot = ({
     });
 
     const dragState = useGearSlotDragDrop({
+        items,
         selectedItem: slotState.selectedItem,
         slotKey,
         availableOrbs1: derivedState.availableOrbs1,

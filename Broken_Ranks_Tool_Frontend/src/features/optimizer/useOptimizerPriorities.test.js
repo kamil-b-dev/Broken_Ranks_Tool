@@ -48,6 +48,19 @@ describe("useOptimizerPriorities", () => {
             forcePercentage: false,
             maximize: true,
         });
+
+        act(() => result.current.updateBonus(key, "forceCap", true));
+        expect(result.current.prioritizedBonuses[0]).toMatchObject({
+            forceCap: true,
+            forcePercentage: false,
+            maximize: false,
+        });
+        act(() => result.current.updateBonus(key, "maximize", true));
+        expect(result.current.prioritizedBonuses[0]).toMatchObject({
+            forceCap: false,
+            forcePercentage: false,
+            maximize: true,
+        });
     });
 
     it("filters available bonuses and restores an imported configuration", () => {

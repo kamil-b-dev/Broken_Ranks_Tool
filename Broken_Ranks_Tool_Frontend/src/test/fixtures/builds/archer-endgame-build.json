@@ -1,0 +1,157 @@
+{
+    "format": "broken-ranks-tool-build",
+    "version": 1,
+    "build": {
+        "requestData": {
+            "slots": {
+                "armor": {
+                    "itemId": 2,
+                    "itemStars": 9,
+                    "orbIds": [],
+                    "orbLevels": [],
+                    "drifIds": [92, 116, 104],
+                    "drifLevels": {
+                        "0": 21,
+                        "1": 21,
+                        "2": 21
+                    }
+                },
+                "belt": {
+                    "itemId": 6,
+                    "itemStars": 9,
+                    "orbIds": [],
+                    "orbLevels": [],
+                    "drifIds": [116, 120, 76],
+                    "drifLevels": {
+                        "0": 21,
+                        "1": 21,
+                        "2": 21
+                    }
+                },
+                "boots": {
+                    "itemId": 19,
+                    "itemStars": 9,
+                    "orbIds": [],
+                    "orbLevels": [],
+                    "drifIds": [120, 104, 80],
+                    "drifLevels": {
+                        "0": 21,
+                        "1": 11,
+                        "2": 21
+                    }
+                },
+                "cape": {
+                    "itemId": 7,
+                    "itemStars": 9,
+                    "orbIds": [],
+                    "orbLevels": [],
+                    "drifIds": [92, 104, 80],
+                    "drifLevels": {
+                        "0": 21,
+                        "1": 11,
+                        "2": 21
+                    }
+                },
+                "gloves": {
+                    "itemId": 5,
+                    "itemStars": 9,
+                    "orbIds": [],
+                    "orbLevels": [],
+                    "drifIds": [116, 120, 76],
+                    "drifLevels": {
+                        "0": 21,
+                        "1": 21,
+                        "2": 21
+                    }
+                },
+                "helmet": {
+                    "itemId": 13,
+                    "itemStars": 9,
+                    "orbIds": [],
+                    "orbLevels": [],
+                    "drifIds": [92, null, 116],
+                    "drifLevels": {
+                        "0": 21,
+                        "2": 21
+                    }
+                },
+                "legs": {
+                    "itemId": 12,
+                    "itemStars": 9,
+                    "orbIds": [],
+                    "orbLevels": [],
+                    "drifIds": [104, 80, 92],
+                    "drifLevels": {
+                        "0": 11,
+                        "1": 21,
+                        "2": 21
+                    }
+                },
+                "necklace": {
+                    "itemId": 11,
+                    "itemStars": 9,
+                    "orbIds": [],
+                    "orbLevels": [],
+                    "drifIds": [116, 120, 104],
+                    "drifLevels": {
+                        "0": 21,
+                        "1": 21,
+                        "2": 21
+                    }
+                },
+                "ring1": {
+                    "itemId": 160,
+                    "itemStars": 9,
+                    "orbIds": [],
+                    "orbLevels": [],
+                    "drifIds": [116, 120, 76],
+                    "drifLevels": {
+                        "0": 21,
+                        "1": 21,
+                        "2": 21
+                    }
+                },
+                "ring2": {
+                    "itemId": 160,
+                    "itemStars": 9,
+                    "orbIds": [],
+                    "orbLevels": [],
+                    "drifIds": [116, 120, 80],
+                    "drifLevels": {
+                        "0": 21,
+                        "1": 21,
+                        "2": 21
+                    }
+                },
+                "shield": {
+                    "itemId": 27,
+                    "itemStars": 9,
+                    "orbIds": [],
+                    "orbLevels": [],
+                    "drifIds": [120, 80, 104],
+                    "drifLevels": {
+                        "0": 21,
+                        "1": 11,
+                        "2": 21
+                    }
+                },
+                "weapon": {
+                    "itemId": 181,
+                    "itemStars": 9,
+                    "orbIds": [],
+                    "orbLevels": [],
+                    "drifIds": [116, 120, 76],
+                    "drifLevels": {
+                        "0": 21,
+                        "1": 21,
+                        "2": 21
+                    }
+                }
+            },
+            "characterStats": {}
+        },
+        "characterConfig": null,
+        "lockedSlots": [],
+        "lockedDrifs": {}
+    }
+}

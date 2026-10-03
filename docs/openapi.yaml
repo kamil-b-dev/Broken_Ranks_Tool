@@ -198,7 +198,7 @@ components:
       type: object
       properties:
         itemId: { type: [integer, "null"], format: int64 }
-        itemStars: { type: [integer, "null"], minimum: 0, maximum: 9 }
+        itemStars: { type: [integer, "null"], minimum: 1, maximum: 9 }
         orbIds:
           type: [array, "null"]
           maxItems: 2
@@ -225,7 +225,7 @@ components:
         characterStats:
           type: [object, "null"]
           maxProperties: 32
-          additionalProperties: { type: integer }
+          additionalProperties: { type: integer, minimum: 0, maximum: 50000 }
     CalculationResult:
       type: object
       required: [stats, drifCategories, orbBonusTypes]
@@ -277,7 +277,7 @@ components:
         characterStats:
           type: [object, "null"]
           maxProperties: 32
-          additionalProperties: { type: integer }
+          additionalProperties: { type: integer, minimum: 0, maximum: 50000 }
         originalSlots:
           type: object
           minProperties: 1
@@ -285,7 +285,7 @@ components:
           additionalProperties: { $ref: "#/components/schemas/SlotData" }
         priorities:
           type: object
-          minProperties: 1
+          description: At least one priority is required in advanced mode; named simple profiles resolve priorities server-side.
           maxProperties: 32
           additionalProperties: { type: integer, minimum: 1, maximum: 30 }
         targetQuantities:

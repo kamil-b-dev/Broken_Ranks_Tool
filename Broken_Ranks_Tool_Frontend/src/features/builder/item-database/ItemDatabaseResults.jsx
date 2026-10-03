@@ -50,7 +50,7 @@ const VariantRow = ({ variants, type, bonusTranslations, onDragStart, onHover, o
             >
                 {baseItem.name && (
                     <span
-                        className={`font-serif font-bold bg-clip-text text-transparent bg-gradient-to-r ${type === "orbs" ? "from-red-400 to-rose-600" : "from-orange-400 to-amber-600"}`}
+                        className={`font-serif font-bold bg-clip-text text-transparent bg-linear-to-r ${type === "orbs" ? "from-red-400 to-rose-600" : "from-orange-400 to-amber-600"}`}
                     >
                         {baseItem.name}
                     </span>

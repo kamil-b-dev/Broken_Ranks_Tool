@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
     calculateCharacterStats,
     clampLevel,
@@ -10,21 +10,41 @@ import {
 } from "./characterDevelopmentDomain";
 
 /** Owns character point allocation and synchronization with imported builds. */
-export const useCharacterDevelopment = ({ onStatsChange, externalConfig, syncTrigger }) => {
-    const [level, setLevel] = useState(1);
-    const [spentPoints, setSpentPoints] = useState(emptySpentPoints);
+export const useCharacterDevelopment = ({
+    onStatsChange,
+    externalConfig,
+    externalStats,
+    syncTrigger,
+}) => {
+    const [level, setLevel] = useState(() => normalizeCharacterConfig(externalConfig).level);
+    const [spentPoints, setSpentPoints] = useState(() => {
+        const imported = normalizeCharacterConfig(externalConfig);
+        return trimSpentPoints(imported.spentPoints, totalPointsForLevel(imported.level));
+    });
+    const [publishChanges, setPublishChanges] = useState(
+        !externalConfig && Object.keys(externalStats || {}).length === 0
+    );
+    const previousSyncTrigger = useRef(syncTrigger);
     const totalPoints = totalPointsForLevel(level);
     const pointsLeft = totalPoints - spentPointCount(spentPoints);
 
-    useEffect(
-        () => onStatsChange(calculateCharacterStats(spentPoints), { level, spentPoints }),
-        [spentPoints, level, onStatsChange]
-    );
     useEffect(() => {
-        if (!externalConfig) return;
+        if (publishChanges) {
+            onStatsChange(calculateCharacterStats(spentPoints), { level, spentPoints });
+        }
+    }, [spentPoints, level, onStatsChange, publishChanges]);
+    useLayoutEffect(() => {
+        if (Object.is(previousSyncTrigger.current, syncTrigger)) return;
+        previousSyncTrigger.current = syncTrigger;
+        setPublishChanges(false);
+        if (!externalConfig) {
+            setLevel(1);
+            setSpentPoints(emptySpentPoints());
+            return;
+        }
         const imported = normalizeCharacterConfig(externalConfig);
         setLevel(imported.level);
-        setSpentPoints(imported.spentPoints);
+        setSpentPoints(trimSpentPoints(imported.spentPoints, totalPointsForLevel(imported.level)));
         // Import synchronization is intentionally driven only by syncTrigger.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [syncTrigger]);
@@ -32,9 +52,11 @@ export const useCharacterDevelopment = ({ onStatsChange, externalConfig, syncTri
     const changePoints = (name, amount) => {
         if ((amount > 0 && pointsLeft < amount) || (amount < 0 && spentPoints[name] + amount < 0))
             return;
+        setPublishChanges(true);
         setSpentPoints((current) => ({ ...current, [name]: current[name] + amount }));
     };
     const changeLevel = (value) => {
+        setPublishChanges(true);
         const nextLevel = clampLevel(value);
         setLevel(nextLevel);
         setSpentPoints((current) => trimSpentPoints(current, totalPointsForLevel(nextLevel)));
@@ -43,11 +65,17 @@ export const useCharacterDevelopment = ({ onStatsChange, externalConfig, syncTri
     return {
         level,
         spentPoints,
-        finalStats: calculateCharacterStats(spentPoints),
+        finalStats:
+            !externalConfig && !publishChanges
+                ? { ...calculateCharacterStats(spentPoints), ...externalStats }
+                : calculateCharacterStats(spentPoints),
         totalPoints,
         pointsLeft,
         changePoints,
         changeLevel,
-        resetPoints: () => setSpentPoints(emptySpentPoints()),
+        resetPoints: () => {
+            setPublishChanges(true);
+            setSpentPoints(emptySpentPoints());
+        },
     };
 };

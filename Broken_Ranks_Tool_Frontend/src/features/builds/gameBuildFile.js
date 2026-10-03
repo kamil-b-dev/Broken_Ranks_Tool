@@ -140,13 +140,13 @@ const importedLevel = (entry, maximum, stoneLabel) => {
 
 const parseCharacter = (stats) => {
     const characterStats = {
-        Siła: Number(stats.BaseStrength) || 10,
-        Zręczność: Number(stats.BaseDexterity) || 10,
-        Moc: Number(stats.BasePower) || 10,
-        Wiedza: Number(stats.BaseKnowledge) || 10,
-        PŻ: Number(stats.BaseHealth) || 200,
-        Mana: Number(stats.BaseMana) || 200,
-        Kondycja: Number(stats.BaseStamina) || 200,
+        Siła: Number(stats.BaseStrength ?? 10),
+        Zręczność: Number(stats.BaseDexterity ?? 10),
+        Moc: Number(stats.BasePower ?? 10),
+        Wiedza: Number(stats.BaseKnowledge ?? 10),
+        PŻ: Number(stats.BaseHealth ?? 200),
+        Mana: Number(stats.BaseMana ?? 200),
+        Kondycja: Number(stats.BaseStamina ?? 200),
     };
     return {
         characterStats,

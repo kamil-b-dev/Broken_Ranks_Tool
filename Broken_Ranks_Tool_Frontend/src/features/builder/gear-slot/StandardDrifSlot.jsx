@@ -115,7 +115,7 @@ const StandardDrifSlot = ({
                     });
                     setDrifLevels((previous) => ({ ...previous, [index]: "" }));
                 }}
-                className={`flex-[3] min-w-0 bg-transparent text-amber-600 font-serif p-1 text-xs border-b outline-none text-center ${selectClass}`}
+                className={`flex-3 min-w-0 bg-transparent text-amber-600 font-serif p-1 text-xs border-b outline-hidden text-center ${selectClass}`}
             >
                 <option value="" className="bg-stone-950 text-stone-500">
                     Rodzaj
@@ -138,7 +138,7 @@ const StandardDrifSlot = ({
                     });
                     setDrifLevels((previous) => ({ ...previous, [index]: 1 }));
                 }}
-                className={`flex-[3] min-w-0 bg-transparent text-stone-300 font-serif p-1 text-xs border-b outline-none text-center disabled:opacity-30 ${selectClass}`}
+                className={`flex-3 min-w-0 bg-transparent text-stone-300 font-serif p-1 text-xs border-b outline-hidden text-center disabled:opacity-30 ${selectClass}`}
             >
                 <option value="" className="bg-stone-950 text-stone-500">
                     Wielkość
@@ -173,7 +173,7 @@ const StandardDrifSlot = ({
                         [index]: Number.parseInt(event.target.value),
                     }))
                 }
-                className={`flex-[2] min-w-0 bg-transparent text-stone-300 font-serif p-1 text-xs border-b outline-none text-center disabled:opacity-30 ${selectClass}`}
+                className={`flex-2 min-w-0 bg-transparent text-stone-300 font-serif p-1 text-xs border-b outline-hidden text-center disabled:opacity-30 ${selectClass}`}
             >
                 <option value="" className="bg-stone-950 text-stone-500">
                     lvl

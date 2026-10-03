@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { calculateEquipmentStats } from "../../shared/api/equipmentApi";
 
 const emptySources = () => ({ drifCategories: {}, orbBonusTypes: [] });
@@ -13,6 +13,12 @@ export const useEquipmentStats = (requestData) => {
     const calculationVersion = useRef(0);
     const requestFingerprint = useMemo(() => JSON.stringify(requestData), [requestData]);
     const statsAreCurrent = Boolean(stats) && calculatedRequestFingerprint === requestFingerprint;
+
+    useLayoutEffect(() => {
+        calculationVersion.current += 1;
+        setIsCalculatingStats(false);
+        setCalculationNotice(null);
+    }, [requestFingerprint]);
 
     const calculateStats = useCallback(async () => {
         const version = ++calculationVersion.current;
@@ -48,6 +54,8 @@ export const useEquipmentStats = (requestData) => {
 
     const resetStats = useCallback(() => {
         calculationVersion.current += 1;
+        setIsCalculatingStats(false);
+        setCalculationNotice(null);
         setStats(null);
         setStatSources(emptySources());
         setCalculatedRequestFingerprint(null);
@@ -55,6 +63,9 @@ export const useEquipmentStats = (requestData) => {
     const dismissCalculationNotice = useCallback(() => setCalculationNotice(null), []);
 
     const restoreStats = useCallback((nextStats, nextSources = {}, nextRequestData = null) => {
+        calculationVersion.current += 1;
+        setIsCalculatingStats(false);
+        setCalculationNotice(null);
         setStats(nextStats || null);
         setCalculatedRequestFingerprint(
             nextStats && nextRequestData ? JSON.stringify(nextRequestData) : null

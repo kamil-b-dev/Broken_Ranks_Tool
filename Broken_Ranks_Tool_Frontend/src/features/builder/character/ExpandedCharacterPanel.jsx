@@ -1,7 +1,7 @@
 import { STAT_CONFIG } from "./characterConstants";
 
 const ExpandedCharacterPanel = ({ development }) => (
-    <div className="bg-gradient-to-b from-stone-900 to-black p-6 border-2 border-stone-800 shadow-[0_0_30px_rgba(0,0,0,0.9)] flex flex-col shrink-0 h-full w-full">
+    <div className="bg-linear-to-b from-stone-900 to-black p-6 border-2 border-stone-800 shadow-[0_0_30px_rgba(0,0,0,0.9)] flex flex-col shrink-0 h-full w-full">
         <div className="flex justify-between items-end border-b-4 border-double border-red-900/70 pb-3 mb-4">
             <h3 className="text-xl font-serif font-bold text-stone-300 uppercase tracking-widest drop-shadow-[0_2px_5px_rgba(0,0,0,1)]">
                 Rozwój Bohatera
@@ -16,12 +16,12 @@ const ExpandedCharacterPanel = ({ development }) => (
                     max="140"
                     value={development.level}
                     onChange={(event) => development.changeLevel(event.target.value)}
-                    className="bg-transparent text-amber-600 font-bold font-serif w-12 text-center outline-none"
+                    className="bg-transparent text-amber-600 font-bold font-serif w-12 text-center outline-hidden"
                 />
             </div>
         </div>
         <div className="mb-6 p-3 bg-stone-950 border border-stone-800 shadow-[inset_0_0_20px_rgba(0,0,0,0.8)] flex justify-between items-center relative overflow-hidden">
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-900/5 to-transparent pointer-events-none" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--tw-gradient-stops))] from-amber-900/5 to-transparent pointer-events-none" />
             <span className="text-stone-400 text-xs font-serif uppercase tracking-widest relative z-10">
                 Dostępne punkty:
             </span>
@@ -56,7 +56,7 @@ const ExpandedCharacterPanel = ({ development }) => (
                                 type="button"
                                 onClick={() => development.changePoints(name, -1)}
                                 aria-label={`Odejmij punkt: ${name}`}
-                                className="w-8 h-8 flex items-center justify-center bg-gradient-to-b from-stone-800 to-stone-900 border border-stone-700 hover:from-red-900 hover:to-black hover:border-red-800 text-stone-300 font-serif font-bold transition-all disabled:opacity-30"
+                                className="w-8 h-8 flex items-center justify-center bg-linear-to-b from-stone-800 to-stone-900 border border-stone-700 hover:from-red-900 hover:to-black hover:border-red-800 text-stone-300 font-serif font-bold transition-all disabled:opacity-30"
                                 disabled={development.spentPoints[name] <= 0}
                             >
                                 -
@@ -65,7 +65,7 @@ const ExpandedCharacterPanel = ({ development }) => (
                                 type="button"
                                 onClick={() => development.changePoints(name, 1)}
                                 aria-label={`Dodaj punkt: ${name}`}
-                                className="w-8 h-8 flex items-center justify-center bg-gradient-to-b from-stone-800 to-stone-900 border border-stone-700 hover:from-amber-800 hover:to-black hover:border-amber-700 text-stone-300 font-serif font-bold transition-all disabled:opacity-30"
+                                className="w-8 h-8 flex items-center justify-center bg-linear-to-b from-stone-800 to-stone-900 border border-stone-700 hover:from-amber-800 hover:to-black hover:border-amber-700 text-stone-300 font-serif font-bold transition-all disabled:opacity-30"
                                 disabled={development.pointsLeft <= 0}
                             >
                                 +

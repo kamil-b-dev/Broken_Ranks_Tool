@@ -42,7 +42,15 @@ final class OptimizationCalculatorAdapter {
         Map<String, String> cached = context.calculatorCache().get(key);
         if (cached != null) return cached;
         Map<String, String> calculated =
-                calculatorService.calculateTotalStats(setupMapper.toSetup(state, context));
+                context.calculatorSession()
+                        .calculate(
+                                setupMapper.toSetup(state, context),
+                                () ->
+                                        calculatorService.prepareCalculation(
+                                                context.items(),
+                                                context.drifs(),
+                                                context.request().getOriginalSlots().values()),
+                                calculatorService::calculateTotalStats);
         context.calculatorCache().put(key, calculated);
         return calculated;
     }
