@@ -14,6 +14,32 @@ const gameRules = {
 };
 
 describe("optimizerConfiguration", () => {
+    it("normalizes conflicting imported targets and sends only the cap target", () => {
+        const imported = parseOptimizerConfigPayload(
+            {
+                format: "broken-ranks-tool-optimizer-config",
+                version: 1,
+                priorities: [{ key: "CRITICAL_CHANCE", forceCap: true, maximize: true }],
+            },
+            gameRules
+        );
+        expect(imported.priorities[0]).toMatchObject({ forceCap: true, maximize: false });
+        const config = buildOptimizationConfig(
+            [
+                {
+                    ...imported.priorities[0],
+                    maximize: true,
+                    forcePercentage: true,
+                    forcedPercentage: 42,
+                },
+            ],
+            { configurationMode: "ADVANCED" }
+        );
+        expect(config.forceCapBonuses).toEqual(["CRITICAL_CHANCE"]);
+        expect(config.maximizeBonuses).toEqual([]);
+        expect(config.forcedPercentageTargets).toEqual({});
+    });
+
     it("creates a versioned and normalized export payload", () => {
         const payload = createOptimizerConfigPayload(
             [

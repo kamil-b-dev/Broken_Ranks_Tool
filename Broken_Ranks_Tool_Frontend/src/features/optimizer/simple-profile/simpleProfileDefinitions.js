@@ -30,13 +30,35 @@ const PROFILE_DEFAULTS = {
     VOODOO: { damageDrifs: 7, accuracyDrifs: 7 },
 };
 
-export const defaultSimpleOptions = (profile = "BARBARIAN") => ({
+export const defaultSimpleOptions = (profile = "BARBARIAN", style = "OFFENSIVE") => ({
     passiveDamageReduction: false,
     percentageDamageReduction: false,
     damageReductionChance: false,
     dodgeChance: false,
     ...(PROFILE_DEFAULTS[profile] || PROFILE_DEFAULTS.BARBARIAN),
+    ...(["KNIGHT", "DRUID"].includes(profile) && style === "DEFENSIVE"
+        ? { style, damageDrifs: 4, accuracyDrifs: 4, passiveDamageReduction: true }
+        : {}),
 });
+
+export const changeSimpleStyle = (options, profile, style) => {
+    const previousDefaults = defaultSimpleOptions(profile, options.style);
+    const nextDefaults = defaultSimpleOptions(profile, style);
+    return {
+        ...options,
+        style: nextDefaults.style,
+        damageDrifs:
+            options.damageDrifs == null || options.damageDrifs === previousDefaults.damageDrifs
+                ? nextDefaults.damageDrifs
+                : options.damageDrifs,
+        accuracyDrifs:
+            options.accuracyDrifs == null ||
+            options.accuracyDrifs === previousDefaults.accuracyDrifs
+                ? nextDefaults.accuracyDrifs
+                : options.accuracyDrifs,
+        passiveDamageReduction: nextDefaults.passiveDamageReduction,
+    };
+};
 
 export const normalizeSimpleProfile = (value) => {
     const migrations = {
@@ -51,9 +73,10 @@ export const normalizeSimpleProfile = (value) => {
 };
 
 export const normalizeSimpleOptions = (value, profile) => {
-    const defaults = defaultSimpleOptions(profile);
+    const defaults = defaultSimpleOptions(profile, value?.style);
     if (!value || typeof value !== "object" || Array.isArray(value)) return defaults;
     const number = (candidate, fallback) => {
+        if (candidate == null || candidate === "") return fallback;
         const parsed = Math.trunc(Number(candidate));
         return Number.isFinite(parsed) ? Math.max(1, Math.min(12, parsed)) : fallback;
     };
@@ -75,7 +98,10 @@ export const normalizeSimpleOptions = (value, profile) => {
         accuracyDrifs: number(value.accuracyDrifs, defaults.accuracyDrifs),
         ...(style ? { style } : {}),
         ...(element ? { element } : {}),
-        passiveDamageReduction: Boolean(value.passiveDamageReduction),
+        passiveDamageReduction:
+            value.passiveDamageReduction == null
+                ? defaults.passiveDamageReduction
+                : Boolean(value.passiveDamageReduction),
         percentageDamageReduction: Boolean(value.percentageDamageReduction),
         damageReductionChance: Boolean(value.damageReductionChance),
         dodgeChance: Boolean(value.dodgeChance),

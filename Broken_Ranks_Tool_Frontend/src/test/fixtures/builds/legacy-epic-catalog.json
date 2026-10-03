@@ -1,0 +1,207 @@
+{
+    "items": [
+        {
+            "id": 2,
+            "name": "Zalla",
+            "category": "ARMOR",
+            "tier": "XII",
+            "rarity": "RARE",
+            "capacity": 32
+        },
+        {
+            "id": 5,
+            "name": "Voglery",
+            "category": "GLOVES",
+            "tier": "XII",
+            "rarity": "RARE",
+            "capacity": 32
+        },
+        {
+            "id": 6,
+            "name": "Wyrok Hellara",
+            "category": "BELT",
+            "tier": "XII",
+            "rarity": "RARE",
+            "capacity": 32
+        },
+        {
+            "id": 7,
+            "name": "Cień Tarula",
+            "category": "CAPE",
+            "tier": "XI",
+            "rarity": "RARE",
+            "capacity": 28
+        },
+        {
+            "id": 11,
+            "name": "Ortasis",
+            "category": "NECKLACE",
+            "tier": "XI",
+            "rarity": "RARE",
+            "capacity": 28
+        },
+        {
+            "id": 12,
+            "name": "Temary",
+            "category": "LEGS",
+            "tier": "XI",
+            "rarity": "RARE",
+            "capacity": 28
+        },
+        {
+            "id": 13,
+            "name": "Miłość Morany",
+            "category": "HELMET",
+            "tier": "X",
+            "rarity": "RARE",
+            "capacity": 24
+        },
+        {
+            "id": 19,
+            "name": "Envile",
+            "category": "BOOTS",
+            "tier": "X",
+            "rarity": "RARE",
+            "capacity": 24
+        },
+        {
+            "id": 21,
+            "name": "Przysięga Draugula",
+            "category": "RING",
+            "tier": "X",
+            "rarity": "RARE",
+            "capacity": 24
+        },
+        {
+            "id": 27,
+            "name": "Ariarchy",
+            "category": "OFF_HAND",
+            "tier": "X",
+            "rarity": "RARE",
+            "capacity": 24
+        },
+        {
+            "id": 160,
+            "name": "Dar Skrzydlatej",
+            "category": "RING",
+            "tier": "XII",
+            "rarity": "RARE",
+            "capacity": 32
+        },
+        {
+            "id": 174,
+            "name": "Żmij",
+            "category": "WEAPON_2H",
+            "tier": "IX",
+            "rarity": "EPIC",
+            "capacity": null
+        }
+    ],
+    "orbs": [],
+    "drifs": [
+        {
+            "id": 28,
+            "size": "ARCYDRIF",
+            "bonusType": "MANA_USAGE_REDUCTION"
+        },
+        {
+            "id": 36,
+            "size": "ARCYDRIF",
+            "bonusType": "CRITICAL_DAMAGE_CHANCE_REDUCTION"
+        },
+        {
+            "id": 52,
+            "size": "ARCYDRIF",
+            "bonusType": "DAMAGE_REDUCTION"
+        },
+        {
+            "id": 56,
+            "size": "ARCYDRIF",
+            "bonusType": "CRITICAL_DAMAGE_REDUCTION"
+        },
+        {
+            "id": 68,
+            "size": "ARCYDRIF",
+            "bonusType": "PASIVE_DAMAGE_REDUCTION"
+        },
+        {
+            "id": 72,
+            "size": "ARCYDRIF",
+            "bonusType": "PERCENTAGE_DAMAGE_REDUCTION"
+        },
+        {
+            "id": 76,
+            "size": "ARCYDRIF",
+            "bonusType": "DAMAGE_MAGIC"
+        },
+        {
+            "id": 83,
+            "size": "MAGNIDRIF",
+            "bonusType": "CRITICAL_CHANCE"
+        },
+        {
+            "id": 84,
+            "size": "ARCYDRIF",
+            "bonusType": "CRITICAL_CHANCE"
+        },
+        {
+            "id": 91,
+            "size": "MAGNIDRIF",
+            "bonusType": "DOUBLE_ATTACK_CHANCE"
+        },
+        {
+            "id": 92,
+            "size": "ARCYDRIF",
+            "bonusType": "DOUBLE_ATTACK_CHANCE"
+        },
+        {
+            "id": 104,
+            "size": "ARCYDRIF",
+            "bonusType": "DOUBLE_HIT_ROLL_CHANCE"
+        },
+        {
+            "id": 108,
+            "size": "ARCYDRIF",
+            "bonusType": "HIT_CHANCE_RANGED"
+        }
+    ],
+    "gameRules": {
+        "epicBuiltInDrifs": {
+            "Żmij": ["CRITICAL_CHANCE", "DOUBLE_ATTACK_CHANCE"]
+        },
+        "drifBasePowers": {
+            "CC_PROTECTION": 1,
+            "CRITICAL_DAMAGE_CHANCE_REDUCTION": 2,
+            "CRITICAL_DAMAGE_REDUCTION": 1,
+            "DAMAGE_REDUCTION": 4,
+            "DAMAGE_REDUCTION_CHANCE": 3,
+            "DEFENSE_MELEE": 1,
+            "DEFENSE_MENTAL": 1,
+            "DEFENSE_RANGE": 1,
+            "DODGE_CHANCE": 4,
+            "DOUBLE_DEFENSE_ROLL_CHANCE": 2,
+            "PASIVE_DAMAGE_REDUCTION": 3,
+            "PERCENTAGE_DAMAGE_REDUCTION": 1,
+            "CRITICAL_CHANCE": 4,
+            "DAMAGE_ENERGY": 3,
+            "DAMAGE_FIRE": 3,
+            "DAMAGE_FROST": 3,
+            "DAMAGE_MAGIC": 3,
+            "DAMAGE_PHYSICAL": 3,
+            "DOUBLE_ATTACK_CHANCE": 4,
+            "DOUBLE_HIT_ROLL_CHANCE": 2,
+            "HIT_CHANCE_MELEE": 3,
+            "HIT_CHANCE_MENTAL": 3,
+            "HIT_CHANCE_RANGED": 3,
+            "MENTAL_DEFENSE_REDUCTION": 2,
+            "DISPELL_CHANCE": 2,
+            "MANA_REGEN": 1,
+            "MANA_STEAL": 3,
+            "MANA_USAGE_REDUCTION": 2,
+            "STAMINA_REGEN": 1,
+            "STAMINA_USAGE_REDUCTION": 2
+        },
+        "elementalTypes": ["DAMAGE_ENERGY", "DAMAGE_FIRE", "DAMAGE_FROST"]
+    },
+    "dictionaries": {}
+}

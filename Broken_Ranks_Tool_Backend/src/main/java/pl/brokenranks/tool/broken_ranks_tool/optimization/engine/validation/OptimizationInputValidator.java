@@ -309,6 +309,9 @@ public final class OptimizationInputValidator {
         for (int index = 0; index < ids.size(); index++) {
             Long id = ids.get(index);
             if (id == null) {
+                if (data.getOrbLevels() != null && index < data.getOrbLevels().size()) {
+                    return "Slot " + key + ": podano poziom dla nieistniejącego orba.";
+                }
                 gap = true;
                 continue;
             }
@@ -468,7 +471,7 @@ public final class OptimizationInputValidator {
         for (String levelKey : data.getDrifLevels().keySet()) {
             try {
                 int index = Integer.parseInt(levelKey);
-                if (preserved.contains(index)) continue;
+                if (String.valueOf(index).equals(levelKey) && preserved.contains(index)) continue;
             } catch (NumberFormatException ignored) {
                 // Report malformed keys below when the slot configuration is preserved.
             }

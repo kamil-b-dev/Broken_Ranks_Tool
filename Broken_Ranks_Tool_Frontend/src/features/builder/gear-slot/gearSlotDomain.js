@@ -149,12 +149,17 @@ export const createGearSlotUpdate = ({
     builtInDrifs,
     builtInLvls,
 }) => {
+    if (!selectedItem) {
+        return { itemId: null, itemStars, orbIds: [], orbLevels: [], drifIds: [], drifLevels: {} };
+    }
     const drifIds = [];
     const publishedDrifLevels = {};
 
     for (let index = 0; index < maxDrifs; index += 1) {
         drifIds.push(selectedDrifs[index] || "");
-        if (drifLevels[index]) publishedDrifLevels[index] = drifLevels[index];
+        if (selectedDrifs[index] && drifLevels[index]) {
+            publishedDrifLevels[index] = drifLevels[index];
+        }
     }
 
     builtInDrifs.forEach((drif, index) => {

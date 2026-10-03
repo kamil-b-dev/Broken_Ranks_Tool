@@ -4,6 +4,7 @@ import { SIZE_INDEX } from "../../../shared/domain/equipment/equipmentRules";
 /** Owns drag state and applies validated item, orb, and drif drops to a gear slot. */
 export const useGearSlotDragDrop = ({
     selectedItem,
+    items = [],
     slotKey,
     availableOrbs1,
     availableOrbs2,
@@ -28,6 +29,7 @@ export const useGearSlotDragDrop = ({
     const handleDragLeave = () => setDragOverZone(null);
 
     const applyItem = (item) => {
+        if (!items.some((candidate) => String(candidate.id) === String(item.id))) return;
         setSelectedItem(String(item.id));
         setBuiltInLvls([1, 1]);
         setOrbSlots({
@@ -56,8 +58,15 @@ export const useGearSlotDragDrop = ({
     const applyDrif = (drif, zone) => {
         const sizeIndex = SIZE_INDEX[drif.size?.toUpperCase()] ?? -1;
         if (!selectedItem || maxDrifs === 0 || sizeIndex < 0 || sizeIndex > maxDrifIndex) return;
-        const index = Number.parseInt(zone.split("-")[1]);
-        const hasOtherElemental = selectedDrifs.some((id, position) => {
+        const index = Number(zone.slice("drif-".length));
+        if (!Number.isInteger(index) || index < 0 || index >= maxDrifs) return;
+        const hasDuplicateType = selectedDrifs.slice(0, maxDrifs).some((id, position) => {
+            if (position === index || !id) return false;
+            const selected = drifs.find((candidate) => String(candidate.id) === String(id));
+            return selected?.bonusType === drif.bonusType;
+        });
+        if (hasDuplicateType) return;
+        const hasOtherElemental = selectedDrifs.slice(0, maxDrifs).some((id, position) => {
             if (position === index || !id) return false;
             const selected = drifs.find((candidate) => String(candidate.id) === String(id));
             return elementalTypes.includes(selected?.bonusType);

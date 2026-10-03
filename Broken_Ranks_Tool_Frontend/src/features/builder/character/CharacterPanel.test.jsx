@@ -105,4 +105,44 @@ describe("CharacterPanel", () => {
         expect(screen.getAllByText("10").length).toBeGreaterThan(0);
         expect(subtractTen).toBeDisabled();
     });
+    it("does not overwrite existing character stats on mount or import synchronization", () => {
+        const onStatsChange = vi.fn();
+        const { rerender } = render(
+            <CharacterPanel
+                onStatsChange={onStatsChange}
+                externalStats={{ Siła: 120 }}
+                syncTrigger={1}
+            />
+        );
+        expect(onStatsChange).not.toHaveBeenCalled();
+        rerender(
+            <CharacterPanel
+                onStatsChange={onStatsChange}
+                externalStats={{ Siła: 20 }}
+                externalConfig={{ level: 10, spentPoints: { Siła: 10 } }}
+                syncTrigger={2}
+            />
+        );
+        expect(screen.getByRole("spinbutton")).toHaveValue(10);
+        expect(screen.getByText("+10 pkt")).toBeInTheDocument();
+        expect(onStatsChange).not.toHaveBeenCalled();
+        fireEvent.change(screen.getByRole("spinbutton"), { target: { value: "11" } });
+        expect(onStatsChange).toHaveBeenLastCalledWith(
+            expect.objectContaining({ Siła: 20 }),
+            expect.objectContaining({ level: 11 })
+        );
+    });
+
+    it("starts from saved allocation without publishing a temporary level-one build", () => {
+        const onStatsChange = vi.fn();
+        render(
+            <CharacterPanel
+                onStatsChange={onStatsChange}
+                externalConfig={{ level: 20, spentPoints: { Siła: 12 } }}
+            />
+        );
+        expect(screen.getByRole("spinbutton")).toHaveValue(20);
+        expect(screen.getByText("+12 pkt")).toBeInTheDocument();
+        expect(onStatsChange).not.toHaveBeenCalled();
+    });
 });

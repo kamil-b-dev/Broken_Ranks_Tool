@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import java.util.*;
+import java.util.function.Function;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.*;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.*;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest.SlotData;
@@ -75,9 +76,11 @@ abstract class AdvisorOptimizationTestSupport {
         DrifTemplateRepository drifRepo = mock(DrifTemplateRepository.class);
         OrbTemplateRepository orbRepo = mock(OrbTemplateRepository.class);
         when(itemRepo.findAll()).thenReturn(items);
-        when(itemRepo.findAllById(any())).thenReturn(items);
+        when(itemRepo.findAllById(any()))
+                .thenAnswer(call -> selected(items, ItemTemplate::getId, call.getArgument(0)));
         when(drifRepo.findAll()).thenReturn(drifs);
-        when(drifRepo.findAllById(any())).thenReturn(drifs);
+        when(drifRepo.findAllById(any()))
+                .thenAnswer(call -> selected(drifs, DrifTemplate::getId, call.getArgument(0)));
         when(orbRepo.findAll()).thenReturn(List.of());
         when(orbRepo.findAllById(any())).thenReturn(List.of());
         EquipmentRulesRegistry rules = new EquipmentRulesRegistry();
@@ -116,23 +119,37 @@ abstract class AdvisorOptimizationTestSupport {
                         calculator,
                         runs),
                 itemRepo,
+                drifRepo,
+                orbRepo,
                 calculator,
                 runs);
+    }
+
+    private static <T> List<T> selected(List<T> catalog, Function<T, Long> id, Iterable<Long> ids) {
+        Set<Long> requested = new HashSet<>();
+        ids.forEach(requested::add);
+        return catalog.stream().filter(template -> requested.contains(id.apply(template))).toList();
     }
 
     protected static final class Fixture {
         final AdvisorOptimizationService service;
         final ItemTemplateRepository items;
+        final DrifTemplateRepository drifs;
+        final OrbTemplateRepository orbs;
         final EquipmentStatsCalculatorService calculator;
         final AdvisorRunRegistry runs;
 
         Fixture(
                 AdvisorOptimizationService service,
                 ItemTemplateRepository items,
+                DrifTemplateRepository drifs,
+                OrbTemplateRepository orbs,
                 EquipmentStatsCalculatorService calculator,
                 AdvisorRunRegistry runs) {
             this.service = service;
             this.items = items;
+            this.drifs = drifs;
+            this.orbs = orbs;
             this.calculator = calculator;
             this.runs = runs;
         }

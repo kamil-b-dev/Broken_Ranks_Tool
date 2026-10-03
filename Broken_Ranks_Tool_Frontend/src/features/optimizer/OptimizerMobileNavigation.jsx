@@ -23,7 +23,7 @@ const OptimizerMobileNavigation = (props) => {
                     type="button"
                     onClick={() => onChange(key)}
                     aria-current={activeColumn === key ? "page" : undefined}
-                    className={`px-2 py-2 border rounded-sm text-[9px] sm:text-[10px] uppercase tracking-wide transition-colors ${
+                    className={`px-2 py-2 border rounded-xs text-[9px] sm:text-[10px] uppercase tracking-wide transition-colors ${
                         activeColumn === key
                             ? "border-purple-500 bg-purple-950/50 text-purple-200"
                             : "border-stone-800 bg-black/30 text-stone-500"

@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { cancelAdvisorOptimization, optimizeEquipmentDrifs } from "../../shared/api/equipmentApi";
 import { createEquipmentOptimizationRequest } from "./equipmentOptimizationRequest";
 import { advisorBuildSignature } from "./advisor/advisorBuildSignature";
@@ -14,6 +14,9 @@ const cancellationCredentials = ({ runId, cancellationToken }) => ({
     cancellationToken,
 });
 
+const inputSignature = (requestData, lockedSlots, lockedDrifs) =>
+    JSON.stringify({ requestData, lockedSlots, lockedDrifs });
+
 /** Owns a single optimizer request and explicit application of advisor recommendations. */
 export const useEquipmentOptimization = ({
     requestData,
@@ -26,6 +29,10 @@ export const useEquipmentOptimization = ({
     const [optimizationTrigger, setOptimizationTrigger] = useState(0);
     const activeAdvisor = useRef(null);
     const optimizerRunVersion = useRef(0);
+    const currentInputSignature = useRef(null);
+    useLayoutEffect(() => {
+        currentInputSignature.current = inputSignature(requestData, lockedSlots, lockedDrifs);
+    }, [requestData, lockedSlots, lockedDrifs]);
     const markEquipmentChanged = useCallback(
         () => setOptimizationTrigger((previous) => previous + 1),
         []
@@ -58,6 +65,7 @@ export const useEquipmentOptimization = ({
     const runDrifOptimization = useCallback(
         async (configuration) => {
             const runVersion = ++optimizerRunVersion.current;
+            const baselineInputSignature = inputSignature(requestData, lockedSlots, lockedDrifs);
             if (!slots || Object.values(slots).every((slot) => !slot?.itemId)) {
                 return {
                     success: false,
@@ -108,6 +116,15 @@ export const useEquipmentOptimization = ({
                 }
                 const { optimizedSetup, summary, advisorReport, calculationResult } =
                     await optimizeEquipmentDrifs(request);
+                if (baselineInputSignature !== currentInputSignature.current) {
+                    return {
+                        success: false,
+                        applied: false,
+                        nextVariants: [],
+                        message:
+                            "Build lub blokady zmieniły się podczas obliczeń. Uruchom optymalizację ponownie.",
+                    };
+                }
                 if (advisory) {
                     return {
                         ...summary,
@@ -116,7 +133,7 @@ export const useEquipmentOptimization = ({
                                   advisorReport,
                                   baselineSignature: advisorBuildSignature(slots),
                                   baselineConstraintsSignature: JSON.stringify({
-                                      characterStats: configuration.characterStats || {},
+                                      characterStats: request.characterStats || {},
                                       lockedSlots,
                                       lockedDrifs,
                                   }),
@@ -140,12 +157,20 @@ export const useEquipmentOptimization = ({
                 const hasEquipment = Object.values(optimizedSetup?.slots || {}).some(
                     (slot) => slot?.itemId != null
                 );
+                const applied =
+                    runVersion === optimizerRunVersion.current &&
+                    hasEquipment &&
+                    applyOptimizationSetup(optimizedSetup, calculationResult);
                 return {
                     ...summary,
-                    applied:
-                        runVersion === optimizerRunVersion.current &&
-                        hasEquipment &&
-                        applyOptimizationSetup(optimizedSetup, calculationResult),
+                    baselineSignature: advisorBuildSignature(slots),
+                    baselineConstraintsSignature: JSON.stringify({
+                        characterStats: request.characterStats || {},
+                        lockedSlots,
+                        lockedDrifs,
+                    }),
+                    appliedSignature: applied ? advisorBuildSignature(optimizedSetup.slots) : null,
+                    applied,
                 };
             } catch (error) {
                 console.error("Błąd optymalizacji drifów:", error);
@@ -154,7 +179,7 @@ export const useEquipmentOptimization = ({
                 if (activeAdvisor.current === advisorRun) activeAdvisor.current = null;
             }
         },
-        [slots, requestData?.characterStats, lockedSlots, lockedDrifs, applyOptimizationSetup]
+        [slots, requestData, lockedSlots, lockedDrifs, applyOptimizationSetup]
     );
 
     return {

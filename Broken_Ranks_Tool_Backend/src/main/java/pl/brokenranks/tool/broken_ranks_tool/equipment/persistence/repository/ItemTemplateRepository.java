@@ -13,6 +13,10 @@ public interface ItemTemplateRepository extends JpaRepository<ItemTemplate, Long
     @EntityGraph(attributePaths = "allowedClasses")
     List<ItemTemplate> findAll();
 
+    @Override
+    @EntityGraph(attributePaths = "allowedClasses")
+    List<ItemTemplate> findAllById(Iterable<Long> ids);
+
     @EntityGraph(attributePaths = "allowedClasses")
     List<ItemTemplate> findByCategory(ITEM_CATEGORY category);
 }

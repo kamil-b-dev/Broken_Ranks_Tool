@@ -117,12 +117,12 @@ export const useGearSlotDerivedState = ({
     const currentPowerUsed = useMemo(
         () =>
             calculateUsedDrifPower({
-                selectedDrifs,
+                selectedDrifs: selectedDrifs.slice(0, maxDrifs),
                 drifs,
                 basePowers: drifBasePowers,
                 levels: drifLevels,
             }),
-        [selectedDrifs, drifs, drifBasePowers, drifLevels]
+        [selectedDrifs, drifs, drifBasePowers, drifLevels, maxDrifs]
     );
 
     return {

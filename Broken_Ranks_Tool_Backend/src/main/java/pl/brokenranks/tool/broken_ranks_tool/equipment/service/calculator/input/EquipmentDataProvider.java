@@ -35,7 +35,6 @@ public class EquipmentDataProvider {
                 collectIds(
                         slots,
                         slot -> slot.getItemId() == null ? List.of() : List.of(slot.getItemId()));
-        List<Long> orbIds = collectIds(slots, SlotData::getOrbIds);
         List<Long> drifIds = collectIds(slots, SlotData::getDrifIds);
 
         return new CalculationContext(
@@ -45,18 +44,23 @@ public class EquipmentDataProvider {
                                         ItemTemplate::getId,
                                         Function.identity(),
                                         (first, ignored) -> first)),
-                orbRepository.findAllById(orbIds).stream()
-                        .collect(
-                                Collectors.toMap(
-                                        OrbTemplate::getId,
-                                        Function.identity(),
-                                        (first, ignored) -> first)),
+                loadOrbs(slots),
                 drifRepository.findAllById(drifIds).stream()
                         .collect(
                                 Collectors.toMap(
                                         DrifTemplate::getId,
                                         Function.identity(),
                                         (first, ignored) -> first)));
+    }
+
+    /** Loads the fixed orb selection once for a repeated equipment calculation. */
+    public Map<Long, OrbTemplate> loadOrbs(Collection<SlotData> slots) {
+        return orbRepository.findAllById(collectIds(slots, SlotData::getOrbIds)).stream()
+                .collect(
+                        Collectors.toMap(
+                                OrbTemplate::getId,
+                                Function.identity(),
+                                (first, ignored) -> first));
     }
 
     private List<Long> collectIds(

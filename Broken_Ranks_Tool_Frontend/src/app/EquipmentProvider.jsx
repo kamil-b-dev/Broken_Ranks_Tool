@@ -128,9 +128,10 @@ export const EquipmentProvider = ({ children }) => {
         if (newConfig) setCharacterConfig(newConfig);
     }, []);
 
+    const buildImportData = useMemo(() => ({ ...data, gameRules }), [data, gameRules]);
     const { saveBuildToFile, loadBuildFromFile, createBuildSnapshot, loadBuildSnapshot } =
         useEquipmentBuildTransfer({
-            data,
+            data: buildImportData,
             requestData,
             characterConfig,
             lockedSlots,

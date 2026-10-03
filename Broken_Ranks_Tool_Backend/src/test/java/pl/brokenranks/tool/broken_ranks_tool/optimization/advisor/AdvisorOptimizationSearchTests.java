@@ -182,7 +182,7 @@ class AdvisorOptimizationSearchTests extends AdvisorOptimizationTestSupport {
         assertEquals(AdvisorStatus.BEST_FOUND, result.getAdvisorReport().status());
         assertFalse(result.getAdvisorReport().proofComplete());
         verify(f.calculator, atMost(19)).calculateTotalStats(any());
-        verify(f.items, times(1)).findAll();
+        verify(f.items, times(1)).findAllById(any());
         System.out.printf(
                 Locale.ROOT,
                 "Advisor full-build benchmark: %.3f s, %d states, %d verified plans%n",

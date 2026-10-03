@@ -71,6 +71,8 @@ Istotne docelowe poziomy drifów to 6, 11, 16 i 21, z ograniczeniem wynikającym
 
 Użytkownik wybiera jeden z dwóch budżetów analizy: 3 albo 6 sekund. Backend odrzuca wartości pośrednie i większe, niezależnie od danych przesłanych przez klienta. Limit czasu i limit ocenionych stanów mają chronić aplikację przy dużej przestrzeni oraz większym ruchu. Maksymalnie jedna analiza Doradcy powinna być aktywna na instancję aplikacji; kolejne uruchomienie tego samego użytkownika anuluje jego poprzednią analizę. Anulowanie wymaga niezależnie wygenerowanego identyfikatora uruchomienia i sekretu anulowania; znajomość samego identyfikatora nie wystarcza do przerwania analizy.
 
+Przycisk „Zatrzymaj i pokaż znalezione plany” przerywa wyszukiwanie, ale zachowuje znalezionych kandydatów. W pozostałym budżecie czasu kalkulator weryfikuje najwyżej 6 kandydatów i zwraca poprawne plany ze statusem `CANCELLED`, bez dowodu optimum. Anulowanie nie wydłuża pierwotnego limitu czasu; lista może być pusta, jeżeli nie znaleziono poprawy albo zabrakło czasu na jej weryfikację.
+
 ## 5. Przedmioty zastępcze
 
 Kandydat musi pasować do slotu i profilu oraz zachowywać poprawność pozostawionych kamieni. Dla uproszczenia zgodnego z danymi gry przyjmuje się, że przedmiot o większej pojemności nie może być gorszy od przedmiotu o mniejszej pojemności. Dlatego:
@@ -105,6 +107,8 @@ Przy większym limicie działań wynik najczęściej będzie heurystyczny. Samo 
 ## 7. Kalkulator i testowanie
 
 Ocena końcowa korzysta ze wspólnego, deterministycznego kalkulatora ekwipunku. Identyczne dane wejściowe muszą dawać identyczny wynik. Każdy prezentowany plan musi zostać nim przeliczony i ponownie sprawdzony pod kątem ochron.
+
+Szablony są przygotowywane raz na analizę i współdzielone przez model oraz pełny kalkulator buildu bazowego i finalistów. Przy wyłączonej wymianie przedmiotów pobierane są tylko wyposażone przedmioty. Orby są pobierane wyłącznie dla obecnego buildu, ponieważ Doradca ich nie wymienia. Bez zakupu nowych drifów wystarczają szablony posiadanych kamieni, również przy ulepszaniu ich poziomów. Włączenie wymiany przedmiotów lub zakupu drifów rozszerza odpowiedni katalog kandydatów. Żaden finalista nie wykonuje kolejnych odczytów szablonów z bazy.
 
 Zmiany Doradcy wymagają testów obejmujących co najmniej:
 

@@ -191,7 +191,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
 
     /** Applies the explicitly selected result variant to the shared equipment build. */
     const handleApplyVariant = (variant, variantIndex) => {
-        if (optimizerSettings.mode === "ADVISOR" && optimizationStatus?.baselineSignature) {
+        if (optimizationStatus?.baselineSignature) {
             const current = advisorBuildSignature(requestData.slots);
             const constraints = JSON.stringify({
                 characterStats: requestData.characterStats || {},
@@ -202,13 +202,17 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                 (optimizationStatus.baselineConstraintsSignature &&
                     constraints !== optimizationStatus.baselineConstraintsSignature) ||
                 (current !== optimizationStatus.baselineSignature &&
+                    current !== optimizationStatus.appliedSignature &&
                     !optimizationStatus.nextVariants?.some(
                         (v) => advisorBuildSignature(v.setup?.slots) === current
                     ))
             ) {
                 setNotice({
                     type: "error",
-                    message: "Build zmienił się od analizy. Uruchom Doradcę ponownie.",
+                    message:
+                        optimizerSettings.mode === "ADVISOR"
+                            ? "Build zmienił się od analizy. Uruchom Doradcę ponownie."
+                            : "Build lub blokady zmieniły się od obliczeń. Uruchom optymalizację ponownie.",
                 });
                 return;
             }

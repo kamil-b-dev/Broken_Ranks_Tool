@@ -57,7 +57,7 @@ const GearSlot = (props) => {
             </div>
         );
 
-    const slotClasses = `gear-slot-editor ${expanded ? "gear-slot-editor-expanded" : "w-64"} flex flex-col items-center gap-3 p-4 bg-gradient-to-b from-stone-900/95 to-black transition-all duration-200 border-2 relative overflow-hidden shadow-[inset_0_0_20px_rgba(0,0,0,0.9),0_0_15px_rgba(0,0,0,0.8)] hover:border-rose-700
+    const slotClasses = `gear-slot-editor ${expanded ? "gear-slot-editor-expanded" : "w-64"} flex flex-col items-center gap-3 p-4 bg-linear-to-b from-stone-900/95 to-black transition-all duration-200 border-2 relative overflow-hidden shadow-[inset_0_0_20px_rgba(0,0,0,0.9),0_0_15px_rgba(0,0,0,0.8)] hover:border-rose-700
         ${isOverCapacity ? "border-red-600 shadow-[inset_0_0_40px_rgba(153,27,27,0.4),0_0_20px_rgba(153,27,27,0.6)]" : "border-rose-900/80"}
         ${isSlotLocked ? "opacity-90 grayscale-[0.3]" : ""}`;
 
@@ -72,7 +72,7 @@ const GearSlot = (props) => {
                     <button
                         onClick={() => toggleSlotLock(slotKey)}
                         type="button"
-                        className={`transition-colors p-1 rounded-sm ${isSlotLocked ? "text-red-500 hover:text-red-400 bg-red-950/40 border border-red-900/50" : "text-stone-600 hover:text-stone-300"}`}
+                        className={`transition-colors p-1 rounded-xs ${isSlotLocked ? "text-red-500 hover:text-red-400 bg-red-950/40 border border-red-900/50" : "text-stone-600 hover:text-stone-300"}`}
                         title={isSlotLocked ? "Odblokuj slot" : "Zablokuj slot w optymalizatorze"}
                     >
                         {isSlotLocked ? (

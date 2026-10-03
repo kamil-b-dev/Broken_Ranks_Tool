@@ -237,4 +237,34 @@ describe("useGearSlot", () => {
             )
         );
     });
+    it("counts only active ordinary sockets after lowering stars", () => {
+        const { result, onUpdate } = renderSlot();
+        drop(result, { ...items[1], dragType: "items" }, "item");
+        act(() => result.current.setItemStars(7));
+        drop(result, { ...drifs[0], dragType: "drifs" }, "drif-0");
+        drop(result, { ...drifs[1], dragType: "drifs" }, "drif-1");
+        expect(result.current.currentPowerUsed).toBe(5);
+        act(() => result.current.setItemStars(6));
+        expect(result.current.currentPowerUsed).toBe(2);
+        expect(result.current.isOverCapacity).toBe(false);
+        act(() => result.current.setItemStars(7));
+        expect(result.current.selectedDrifs).toEqual(["20"]);
+        expect(result.current.currentPowerUsed).toBe(2);
+        act(() => result.current.setItemStars(6));
+        expect(onUpdate).toHaveBeenLastCalledWith(
+            "weapon",
+            expect.objectContaining({ drifIds: ["20"], drifLevels: { 0: 1 } })
+        );
+    });
+
+    it("does not charge imported built-in drifs against ordinary capacity", () => {
+        const { result } = renderSlot({
+            allSlots: { weapon: { itemId: 3, drifIds: [22], drifLevels: { 0: 16 } } },
+            optimizationTrigger: 1,
+            gameRules: { ...gameRules, drifBasePowers: { CRIT: 4 } },
+        });
+        expect(result.current.currentPowerUsed).toBe(0);
+        expect(result.current.isOverCapacity).toBe(false);
+        expect(result.current.builtInLvls[0]).toBe(16);
+    });
 });

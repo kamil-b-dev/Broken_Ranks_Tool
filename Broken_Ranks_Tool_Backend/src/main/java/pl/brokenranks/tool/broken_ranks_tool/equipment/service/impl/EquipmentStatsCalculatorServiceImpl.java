@@ -1,13 +1,18 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.service.impl;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.STAT_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.CalculationResultDto;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.OrbTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCalculatorService;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.CalculationMetadataFactory;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.CalculationMetadataFactory.CalculationMetadata;
@@ -49,15 +54,41 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
 
     @Override
     public CalculationResultDto calculateWithSources(EquipmentRequest request) {
+        return calculateWithSources(request, null);
+    }
+
+    @Override
+    public Function<EquipmentRequest, Map<String, String>> prepareCalculation(
+            Map<Long, ItemTemplate> items,
+            Map<Long, DrifTemplate> drifs,
+            Collection<EquipmentRequest.SlotData> slots) {
+        var prepared = prepareCalculationWithSources(items, dataProvider.loadOrbs(slots), drifs);
+        return request -> prepared.apply(request).stats();
+    }
+
+    @Override
+    public Function<EquipmentRequest, CalculationResultDto> prepareCalculationWithSources(
+            Map<Long, ItemTemplate> items,
+            Map<Long, OrbTemplate> orbs,
+            Map<Long, DrifTemplate> drifs) {
+        CalculationContext context =
+                new CalculationContext(Map.copyOf(items), Map.copyOf(orbs), Map.copyOf(drifs));
+        return request -> calculateWithSources(request, context);
+    }
+
+    private CalculationResultDto calculateWithSources(
+            EquipmentRequest request, CalculationContext preparedContext) {
         requestValidator.validateRequest(request);
+        requestValidator.validateCharacterStats(request.getCharacterStats());
         if (request.getSlots() == null || request.getSlots().isEmpty()) {
             return new CalculationResultDto(
                     Collections.emptyMap(), Collections.emptyMap(), Collections.emptySet());
         }
 
-        requestValidator.validateCharacterStats(request.getCharacterStats());
-
-        CalculationContext ctx = dataProvider.buildContext(request.getSlots().values());
+        CalculationContext ctx =
+                preparedContext != null
+                        ? preparedContext
+                        : dataProvider.buildContext(request.getSlots().values());
         CalculationState state = new CalculationState(ctx);
 
         initializeDefaultStats(state);
@@ -67,7 +98,7 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
 
         processSlots(request, ctx, state);
 
-        CalculationMetadata metadata = metadataFactory.create(ctx);
+        CalculationMetadata metadata = metadataFactory.create(ctx, request.getSlots().values());
         return new CalculationResultDto(
                 state.getAccumulator().getFormattedResults(),
                 metadata.drifCategories(),
@@ -83,7 +114,14 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
     private void applyCharacterStats(CalculationState state, Map<String, Integer> characterStats) {
         if (characterStats != null) {
             characterStats.forEach(
-                    (stat, val) -> state.getAccumulator().addFlatValue(stat, val.doubleValue()));
+                    (stat, val) ->
+                            state.getAccumulator()
+                                    .addFlatValue(
+                                            STAT_TYPE
+                                                    .fromDescription(stat)
+                                                    .orElseThrow()
+                                                    .getDescription(),
+                                            val.doubleValue()));
         }
     }
 
@@ -128,8 +166,8 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
 
     private void validateDrifPositions(
             String slotKey, EquipmentRequest.SlotData slotData, ItemTemplate item, int starLevel) {
-        if (slotData.getDrifIds() == null
-                || item.getRarity()
+        if (slotData.getDrifIds() == null) return;
+        if (item.getRarity()
                         == pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.RARITY.EPIC
                 || item.getRarity()
                         == pl.brokenranks
@@ -140,6 +178,10 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
                                 .enums
                                 .RARITY
                                 .SET) {
+            if (slotData.getDrifIds().stream().anyMatch(java.util.Objects::isNull)) {
+                throw new IllegalArgumentException(
+                        "Konfiguracja wbudowanych drifów nie może zawierać pustych pozycji.");
+            }
             return;
         }
         int maxDrifs = placementRules.maxDrifs(item, starLevel);

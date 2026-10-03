@@ -87,7 +87,7 @@ const DrifSection = ({
             {fullSelectedItem && itemCapacity > 0 && (
                 <div className="w-full bg-black border border-rose-900/70 shadow-inner h-1 mb-2">
                     <div
-                        className={`h-full transition-all duration-300 ${isOverCapacity ? "bg-gradient-to-r from-rose-900 to-red-600" : isAtMaxCapacity ? "bg-gradient-to-r from-amber-700 to-amber-500" : "bg-gradient-to-r from-stone-700 to-stone-400"}`}
+                        className={`h-full transition-all duration-300 ${isOverCapacity ? "bg-linear-to-r from-rose-900 to-red-600" : isAtMaxCapacity ? "bg-linear-to-r from-amber-700 to-amber-500" : "bg-linear-to-r from-stone-700 to-stone-400"}`}
                         style={{ width: `${Math.min(capacityPercentage, 100)}%` }}
                     ></div>
                 </div>

@@ -30,6 +30,60 @@ const renderOptimization = (slots = {}) => {
 };
 
 describe("useEquipmentOptimization", () => {
+    it.each(["equipment", "character stats", "slot locks", "drif locks"])(
+        "discards a result after changing %s during optimization",
+        async (changed) => {
+            let finish;
+            optimizeEquipmentDrifs.mockImplementation(
+                () =>
+                    new Promise((resolve) => {
+                        finish = resolve;
+                    })
+            );
+            const setRequestData = vi.fn();
+            const restoreStats = vi.fn();
+            const props = {
+                requestData: { slots: { helmet: { itemId: 7 } }, characterStats: { Moc: 135 } },
+                setRequestData,
+                restoreStats,
+                lockedSlots: [],
+                lockedDrifs: {},
+            };
+            const { result, rerender } = renderHook((inputs) => useEquipmentOptimization(inputs), {
+                initialProps: props,
+            });
+            let pending;
+            await act(async () => {
+                pending = result.current.runDrifOptimization({});
+            });
+            const next = {
+                ...props,
+                ...(changed === "equipment"
+                    ? { requestData: { ...props.requestData, slots: { helmet: { itemId: 10 } } } }
+                    : {}),
+                ...(changed === "character stats"
+                    ? { requestData: { ...props.requestData, characterStats: { Moc: 200 } } }
+                    : {}),
+                ...(changed === "slot locks" ? { lockedSlots: ["helmet"] } : {}),
+                ...(changed === "drif locks" ? { lockedDrifs: { helmet: [0] } } : {}),
+            };
+            rerender(next);
+            await act(async () => {
+                finish({
+                    optimizedSetup: { slots: { helmet: { itemId: 9 } } },
+                    summary: { success: true, nextVariants: [{ setup: { slots: {} } }] },
+                });
+                expect(await pending).toMatchObject({
+                    success: false,
+                    applied: false,
+                    nextVariants: [],
+                });
+            });
+            expect(setRequestData).not.toHaveBeenCalled();
+            expect(restoreStats).not.toHaveBeenCalled();
+        }
+    );
+
     it("rejects optimization without an equipped item", async () => {
         const { result } = renderOptimization({ helmet: { itemId: null } });
 
@@ -71,7 +125,9 @@ describe("useEquipmentOptimization", () => {
                 lockedDrifs: { helmet: [0] },
             })
         );
-        expect(response).toEqual({ success: true, applied: true });
+        expect(response).toMatchObject({ success: true, applied: true });
+        expect(response.baselineSignature).toBeDefined();
+        expect(response.appliedSignature).toBeDefined();
         const nextRequestData = {
             slots: optimizedSetup.slots,
             characterStats: { Moc: 135 },
@@ -104,7 +160,7 @@ describe("useEquipmentOptimization", () => {
             response = await result.current.runDrifOptimization({});
         });
 
-        expect(response).toEqual({ ...summary, applied: true });
+        expect(response).toMatchObject({ ...summary, applied: true });
         expect(setRequestData).toHaveBeenCalledWith({
             slots: optimizedSetup.slots,
             characterStats: { Moc: 135 },
@@ -233,6 +289,9 @@ describe("useEquipmentOptimization", () => {
             advisorGain: 1.5,
             advisorActions: ["Przenieś drif"],
             advisorKind: "MOVES",
+        });
+        expect(JSON.parse(response.baselineConstraintsSignature).characterStats).toEqual({
+            Moc: 135,
         });
         expect(setRequestData).not.toHaveBeenCalled();
     });
