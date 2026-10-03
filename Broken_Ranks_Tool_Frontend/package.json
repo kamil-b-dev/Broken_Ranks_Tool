@@ -14,6 +14,7 @@
         "test": "vitest run",
         "test:coverage": "vitest run --coverage && node scripts/check-coverage-floor.mjs",
         "test:e2e": "playwright test",
+        "test:integration": "playwright test --config playwright.integration.config.js",
         "preview": "vite preview",
         "docs": "jsdoc -c jsdoc.json"
     },

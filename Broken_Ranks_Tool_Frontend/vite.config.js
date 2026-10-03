@@ -1,13 +1,14 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { configDefaults } from "vitest/config";
+import { env } from "node:process";
 
 // https://vite.dev/config/
 export default defineConfig({
     plugins: [react()],
     server: {
         proxy: {
-            "/api": "http://localhost:8080",
+            "/api": env.API_PROXY_TARGET || "http://localhost:8080",
         },
     },
     test: {
