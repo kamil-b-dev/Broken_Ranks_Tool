@@ -15,9 +15,14 @@ describe("EquipmentSlotOverview", () => {
                     itemId: 7,
                     itemStars: 5,
                     orbIds: [10, 11],
+                    orbLevels: [3, 1],
                     drifIds: [20, null, 21],
                     drifLevels: [8, null, 12],
                 }}
+                orbs={[
+                    { id: 10, name: "Orb testowy", size: "ARCYORB", category: "OFFENSIVE" },
+                    { id: 11, bonusType: "HEALTH", size: "SUBORB", category: "DEFENSIVE" },
+                ]}
                 drifs={[
                     {
                         id: 20,
@@ -28,12 +33,14 @@ describe("EquipmentSlotOverview", () => {
                     },
                     { id: 21, name: "Redukcja obrażeń", size: "BIDRIF", category: "DEFENSIVE" },
                 ]}
-                bonusTranslations={{ CRITICAL: "Szansa na krytyk" }}
+                bonusTranslations={{ CRITICAL: "Szansa na krytyk", HEALTH: "Zdrowie" }}
                 active
                 onSelect={onSelect}
             />
         );
 
+        expect(screen.getByTitle("Orb testowy · ARCYORB · poz. 3")).toBeInTheDocument();
+        expect(screen.getByTitle("Zdrowie · SUBORB · poz. 1")).toBeInTheDocument();
         expect(screen.getByText("Gorthdar")).toBeInTheDocument();
         expect(screen.getByText("Tier XII")).toBeInTheDocument();
         expect(screen.getByLabelText("5 z 9 gwiazdek")).toHaveTextContent("★★★★★");
@@ -57,6 +64,7 @@ describe("EquipmentSlotOverview", () => {
             />
         );
 
+        expect(screen.queryByLabelText("Umieszczone orby")).not.toBeInTheDocument();
         expect(screen.getByText("Wybierz przedmiot")).toBeInTheDocument();
         expect(screen.queryByText(/Tier/)).not.toBeInTheDocument();
     });

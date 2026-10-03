@@ -41,6 +41,7 @@ const BuilderEquipmentWorkbench = ({
                                 slotData={requestData.slots?.[slot.key]}
                                 item={model.itemForSlot(slot)}
                                 drifs={data.drifs}
+                                orbs={data.orbs}
                                 bonusTranslations={gameRules.bonusTranslations}
                                 active={active}
                                 onSelect={() => model.selectSlot(slot)}

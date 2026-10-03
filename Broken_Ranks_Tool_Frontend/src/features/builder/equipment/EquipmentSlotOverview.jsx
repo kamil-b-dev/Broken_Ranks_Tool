@@ -41,6 +41,7 @@ const EquipmentSlotOverview = ({
     slotData,
     item,
     drifs = [],
+    orbs = [],
     bonusTranslations = {},
     variant = "card",
     className = "",
@@ -55,6 +56,22 @@ const EquipmentSlotOverview = ({
         acceptedItemIds.some((id) => String(id) === String(draggedResource.id));
     const [dropTarget, setDropTarget] = useState(false);
     const stars = item ? Math.max(1, Math.min(9, Number(slotData?.itemStars) || 1)) : 0;
+    const configuredOrbs = (slotData?.orbIds || []).flatMap((id, index) => {
+        if (!id) return [];
+        const orb = orbs.find((candidate) => String(candidate.id) === String(id));
+        if (!orb) return [];
+        return [
+            {
+                ...orb,
+                displayName:
+                    orb.name ||
+                    orb.description ||
+                    bonusTranslations[orb.bonusType] ||
+                    orb.bonusType,
+                level: slotData?.orbLevels?.[index] || 1,
+            },
+        ];
+    });
     const configuredDrifs = getConfiguredDrifs(slotData, drifs, bonusTranslations);
     const handleDragOver = (event) => {
         if (draggedResource && !eligible) return;
@@ -101,7 +118,30 @@ const EquipmentSlotOverview = ({
                         <span className="equipment-slot-overview-item">{item.name}</span>
                         <span className="equipment-slot-overview-meta">
                             <span aria-label={`${stars} z 9 gwiazdek`}>{"★".repeat(stars)}</span>
-
+                            {configuredOrbs.length ? (
+                                <span
+                                    className="equipment-slot-orb-list"
+                                    aria-label="Umieszczone orby"
+                                >
+                                    {configuredOrbs.map((orb, index) => (
+                                        <span
+                                            key={`${orb.id}-${index}`}
+                                            className="equipment-slot-orb"
+                                            title={`${orb.displayName} · ${orb.size || "orb"} · poz. ${orb.level}`}
+                                            aria-label={`${orb.displayName}, ${orb.size || "orb"}, poziom ${orb.level}`}
+                                        >
+                                            <CategoryIcon
+                                                kind="orb"
+                                                category={orb.category}
+                                                className="equipment-slot-orb-icon"
+                                                fallback={<span aria-hidden="true">◇</span>}
+                                            />
+                                            <span>{orb.displayName}</span>
+                                            <small>{orb.level}</small>
+                                        </span>
+                                    ))}
+                                </span>
+                            ) : null}
                         </span>
                         {configuredDrifs.length ? (
                             <span

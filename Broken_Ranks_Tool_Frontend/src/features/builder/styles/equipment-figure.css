@@ -725,3 +725,39 @@
     outline-color: #fde68a !important;
 }
 
+.equipment-slot-orb-list {
+    display: flex;
+    min-width: 0;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.25rem;
+}
+.equipment-slot-orb {
+    display: inline-flex;
+    align-items: center;
+    min-width: 0;
+    gap: 0.2rem;
+    padding: 0.1rem 0.3rem;
+    border: 1px solid #66502d;
+    background: rgb(34 26 13 / 65%);
+    color: #d8c49d;
+    font-family: var(--ui-font);
+    font-size: 0.58rem;
+}
+.equipment-slot-orb > span {
+    max-width: 6rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.equipment-slot-orb-icon {
+    width: 1.1rem;
+    height: 1.1rem;
+    flex: 0 0 auto;
+    object-fit: contain;
+}
+.equipment-slot-orb small {
+    color: #d6a858;
+    font-size: inherit;
+}
+
