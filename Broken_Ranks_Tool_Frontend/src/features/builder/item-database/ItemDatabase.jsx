@@ -1,3 +1,4 @@
+import { setDraggedResource } from "../useDraggedResource";
 import { useMemo, useState } from "react";
 import { useItemDatabaseFilters } from "./useItemDatabaseFilters";
 import ItemDatabaseControls from "./ItemDatabaseControls";
@@ -34,14 +35,21 @@ const ItemDatabase = ({
             }),
         [groupedData, activeTab, filters, bonusTranslations, drifBasePowers]
     );
-    const handleDragStart = (event, item, type) =>
-        event.dataTransfer.setData("application/json", JSON.stringify({ ...item, dragType: type }));
+    const handleDragStart = (event, item, type) => {
+        const resource = { ...item, dragType: type };
+        event.dataTransfer.setData("application/json", JSON.stringify(resource));
+        setDraggedResource(resource);
+        hideTooltip();
+    };
     const showTooltip = (event, item, type) =>
         setTooltip({ show: true, x: event.clientX + 15, y: event.clientY + 15, item, type });
     const hideTooltip = () => setTooltip({ show: false, x: 0, y: 0, item: null, type: "item" });
 
     return (
-        <div className="item-database-theme bg-linear-to-b from-stone-900 to-black p-6 border-2 border-stone-800 shadow-[0_0_30px_rgba(0,0,0,0.9)] flex h-full min-h-0 flex-col relative">
+        <div
+            onDragEnd={() => setDraggedResource(null)}
+            className="item-database-theme bg-linear-to-b from-stone-900 to-black p-6 border-2 border-stone-800 shadow-[0_0_30px_rgba(0,0,0,0.9)] flex h-full min-h-0 flex-col relative"
+        >
             <ItemDatabaseControls
                 activeTab={activeTab}
                 filters={filters}

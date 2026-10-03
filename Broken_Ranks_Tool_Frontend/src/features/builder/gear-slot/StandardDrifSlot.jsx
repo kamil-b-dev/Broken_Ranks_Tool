@@ -44,6 +44,7 @@ const StandardDrifSlot = ({
     parentLocked,
     showLock,
     overCapacity,
+    dropEligible = false,
     dragActive,
     onDragOver,
     onDragLeave,
@@ -92,7 +93,7 @@ const StandardDrifSlot = ({
 
     return (
         <div
-            className={`flex gap-1 w-full items-center p-1.5 bg-black/60 border transition-colors shadow-[inset_0_0_15px_rgba(0,0,0,0.8)] ${borderClass}`}
+            className={`${dropEligible && !locked ? "equipment-drop-eligible" : ""} flex gap-1 w-full items-center p-1.5 bg-black/60 border transition-colors shadow-[inset_0_0_15px_rgba(0,0,0,0.8)] ${borderClass}`}
             onDragOver={locked ? undefined : onDragOver}
             onDragLeave={locked ? undefined : onDragLeave}
             onDrop={locked ? undefined : onDrop}

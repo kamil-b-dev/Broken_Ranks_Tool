@@ -19,6 +19,7 @@ import CategoryIcon from "../../../shared/ui/CategoryIcon";
  */
 const OrbSection = ({
     slotKey,
+    dropEligible = false,
     selectedItem,
     dragOverZone,
     handleDragOver,
@@ -38,7 +39,7 @@ const OrbSection = ({
 
     return (
         <div
-            className={`orb-selector-row flex gap-1 w-full items-center mb-1 p-1.5 bg-black/60 border transition-colors shadow-[inset_0_0_15px_rgba(0,0,0,0.8)] ${dragOverZone === slotKey ? "border-amber-700/50 bg-amber-950/20" : "border-rose-900/70"}`}
+            className={`${dropEligible ? "equipment-drop-eligible" : ""} orb-selector-row flex gap-1 w-full items-center mb-1 p-1.5 bg-black/60 border transition-colors shadow-[inset_0_0_15px_rgba(0,0,0,0.8)] ${dragOverZone === slotKey ? "border-amber-700/50 bg-amber-950/20" : "border-rose-900/70"}`}
             onDragOver={(e) => handleDragOver(e, slotKey)}
             onDragLeave={handleDragLeave}
             onDrop={(e) => handleDrop(e, slotKey)}

@@ -86,6 +86,9 @@ export const useGearSlot = ({
     });
 
     const dragState = useGearSlotDragDrop({
+        itemCapacity: derivedState.itemCapacity,
+        drifBasePowers: gameRules?.drifBasePowers,
+        drifLevels: slotState.drifLevels,
         items,
         selectedItem: slotState.selectedItem,
         slotKey,

@@ -41,7 +41,7 @@ const ItemSection = ({
 
     return (
         <div
-            className={`w-full flex flex-col gap-1.5 p-2 bg-black/60 border transition-colors shadow-[inset_0_0_10px_rgba(0,0,0,1)] ${dragOverZone === "item" ? "border-amber-700/50 bg-amber-900/10" : "border-rose-900/70"}`}
+            className={`${hookData.isDropEligible?.("item") ? "equipment-drop-eligible" : ""} w-full flex flex-col gap-1.5 p-2 bg-black/60 border transition-colors shadow-[inset_0_0_10px_rgba(0,0,0,1)] ${dragOverZone === "item" ? "border-amber-700/50 bg-amber-900/10" : "border-rose-900/70"}`}
             onDragOver={(e) => handleDragOver(e, "item")}
             onDragLeave={handleDragLeave}
             onDrop={(e) => handleDrop(e, "item")}

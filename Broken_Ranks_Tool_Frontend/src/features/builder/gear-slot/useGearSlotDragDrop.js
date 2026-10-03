@@ -1,8 +1,13 @@
+import { useDraggedResource, setDraggedResource } from "../useDraggedResource";
+import { calculateUsedDrifPower } from "./gearSlotDomain";
 import { useState } from "react";
 import { SIZE_INDEX } from "../../../shared/domain/equipment/equipmentRules";
 
 /** Owns drag state and applies validated item, orb, and drif drops to a gear slot. */
 export const useGearSlotDragDrop = ({
+    itemCapacity = Infinity,
+    drifBasePowers = {},
+    drifLevels = {},
     selectedItem,
     items = [],
     slotKey,
@@ -20,9 +25,15 @@ export const useGearSlotDragDrop = ({
     setDrifTypes,
     setDrifLevels,
 }) => {
+    const draggedResource = useDraggedResource();
     const [dragOverZone, setDragOverZone] = useState(null);
 
     const handleDragOver = (event, zone) => {
+        if (draggedResource && !canDrop(draggedResource, zone)) {
+            if (event.dataTransfer) event.dataTransfer.dropEffect = "none";
+            setDragOverZone(null);
+            return;
+        }
         event.preventDefault();
         setDragOverZone(zone);
     };
@@ -55,17 +66,18 @@ export const useGearSlotDragDrop = ({
         }));
     };
 
-    const applyDrif = (drif, zone) => {
+    const canDropDrif = (drif, zone, checkCapacity = true) => {
         const sizeIndex = SIZE_INDEX[drif.size?.toUpperCase()] ?? -1;
-        if (!selectedItem || maxDrifs === 0 || sizeIndex < 0 || sizeIndex > maxDrifIndex) return;
+        if (!selectedItem || maxDrifs === 0 || sizeIndex < 0 || sizeIndex > maxDrifIndex)
+            return false;
         const index = Number(zone.slice("drif-".length));
-        if (!Number.isInteger(index) || index < 0 || index >= maxDrifs) return;
+        if (!Number.isInteger(index) || index < 0 || index >= maxDrifs) return false;
         const hasDuplicateType = selectedDrifs.slice(0, maxDrifs).some((id, position) => {
             if (position === index || !id) return false;
             const selected = drifs.find((candidate) => String(candidate.id) === String(id));
             return selected?.bonusType === drif.bonusType;
         });
-        if (hasDuplicateType) return;
+        if (hasDuplicateType) return false;
         const hasOtherElemental = selectedDrifs.slice(0, maxDrifs).some((id, position) => {
             if (position === index || !id) return false;
             const selected = drifs.find((candidate) => String(candidate.id) === String(id));
@@ -75,8 +87,38 @@ export const useGearSlotDragDrop = ({
             elementalTypes.includes(drif.bonusType) &&
             (slotKey !== "weapon" || hasOtherElemental)
         ) {
-            return;
+            return false;
         }
+        if (!checkCapacity) return true;
+        const next = selectedDrifs.slice(0, maxDrifs);
+        next[index] = String(drif.id);
+        return (
+            calculateUsedDrifPower({
+                selectedDrifs: next,
+                drifs: [
+                    ...drifs.filter((candidate) => String(candidate.id) !== String(drif.id)),
+                    drif,
+                ],
+                basePowers: drifBasePowers,
+                levels: { ...drifLevels, [index]: 1 },
+            }) <= itemCapacity
+        );
+    };
+    const canDrop = (data, zone) => {
+        if (!data) return false;
+        if (data.dragType === "items" && zone === "item")
+            return items.some((item) => String(item.id) === String(data.id));
+        if (data.dragType === "orbs" && ["orb1", "orb2"].includes(zone)) {
+            const available = zone === "orb1" ? availableOrbs1 : availableOrbs2;
+            return (
+                Boolean(selectedItem) && available.some((orb) => String(orb.id) === String(data.id))
+            );
+        }
+        return data.dragType === "drifs" && zone.startsWith("drif-") && canDropDrif(data, zone);
+    };
+    const applyDrif = (drif, zone) => {
+        if (!canDropDrif(drif, zone, false)) return;
+        const index = Number(zone.slice("drif-".length));
         setDrifTypes((previous) => ({
             ...previous,
             [index]: drif.name || drif.bonusType,
@@ -92,6 +134,7 @@ export const useGearSlotDragDrop = ({
     const handleDrop = (event, zone) => {
         event.preventDefault();
         setDragOverZone(null);
+        setDraggedResource(null);
         try {
             const data = JSON.parse(event.dataTransfer.getData("application/json"));
             if (data.dragType === "items" && zone === "item") applyItem(data);
@@ -105,5 +148,11 @@ export const useGearSlotDragDrop = ({
         }
     };
 
-    return { dragOverZone, handleDragOver, handleDragLeave, handleDrop };
+    return {
+        dragOverZone,
+        handleDragOver,
+        handleDragLeave,
+        handleDrop,
+        isDropEligible: (zone) => canDrop(draggedResource, zone),
+    };
 };

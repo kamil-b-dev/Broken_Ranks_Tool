@@ -1,3 +1,4 @@
+import { useDraggedResource, setDraggedResource } from "../useDraggedResource";
 import { useState } from "react";
 import CategoryIcon from "../../../shared/ui/CategoryIcon";
 import { DRIF_SIZE_LABELS } from "../../../shared/domain/equipment/drifCategories";
@@ -48,10 +49,15 @@ const EquipmentSlotOverview = ({
     acceptedItemIds = [],
     onItemDrop,
 }) => {
+    const draggedResource = useDraggedResource();
+    const eligible =
+        draggedResource?.dragType === "items" &&
+        acceptedItemIds.some((id) => String(id) === String(draggedResource.id));
     const [dropTarget, setDropTarget] = useState(false);
     const stars = item ? Math.max(1, Math.min(9, Number(slotData?.itemStars) || 1)) : 0;
     const configuredDrifs = getConfiguredDrifs(slotData, drifs, bonusTranslations);
     const handleDragOver = (event) => {
+        if (draggedResource && !eligible) return;
         event.preventDefault();
         event.dataTransfer.dropEffect = "copy";
         setDropTarget(true);
@@ -59,6 +65,7 @@ const EquipmentSlotOverview = ({
     const handleDrop = (event) => {
         event.preventDefault();
         setDropTarget(false);
+        setDraggedResource(null);
         try {
             const droppedItem = JSON.parse(event.dataTransfer.getData("application/json"));
             const accepted = acceptedItemIds.some((id) => String(id) === String(droppedItem.id));
@@ -78,7 +85,7 @@ const EquipmentSlotOverview = ({
             onDragLeave={() => setDropTarget(false)}
             onDrop={handleDrop}
             aria-pressed={active}
-            className={`equipment-slot-overview equipment-slot-overview-${variant} ${className} ${active ? "equipment-slot-overview-active" : ""} ${dropTarget ? "equipment-slot-overview-drop-target" : ""}`}
+            className={`${eligible ? "equipment-drop-eligible" : ""} equipment-slot-overview equipment-slot-overview-${variant} ${className} ${active ? "equipment-slot-overview-active" : ""} ${dropTarget ? "equipment-slot-overview-drop-target" : ""}`}
         >
             <span
                 className={`equipment-slot-icon${slotKey ? ` equipment-slot-icon-${slotKey}` : ""}`}
@@ -94,6 +101,7 @@ const EquipmentSlotOverview = ({
                         <span className="equipment-slot-overview-item">{item.name}</span>
                         <span className="equipment-slot-overview-meta">
                             <span aria-label={`${stars} z 9 gwiazdek`}>{"★".repeat(stars)}</span>
+
                         </span>
                         {configuredDrifs.length ? (
                             <span

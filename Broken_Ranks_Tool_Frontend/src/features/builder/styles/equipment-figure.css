@@ -715,3 +715,13 @@
     font-size: 0.68rem;
     font-style: italic;
 }
+
+.equipment-drop-eligible {
+    outline: 2px solid #fbbf24 !important;
+    outline-offset: 2px;
+    box-shadow: 0 0 16px rgb(251 191 36 / 35%) !important;
+}
+.equipment-drop-eligible:hover {
+    outline-color: #fde68a !important;
+}
+
