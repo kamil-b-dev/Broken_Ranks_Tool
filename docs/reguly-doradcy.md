@@ -71,6 +71,8 @@ Istotne docelowe poziomy drifów to 6, 11, 16 i 21, z ograniczeniem wynikającym
 
 Użytkownik wybiera jeden z dwóch budżetów analizy: 3 albo 6 sekund. Backend odrzuca wartości pośrednie i większe, niezależnie od danych przesłanych przez klienta. Limit czasu i limit ocenionych stanów mają chronić aplikację przy dużej przestrzeni oraz większym ruchu. Maksymalnie jedna analiza Doradcy powinna być aktywna na instancję aplikacji; kolejne uruchomienie tego samego użytkownika anuluje jego poprzednią analizę. Anulowanie wymaga niezależnie wygenerowanego identyfikatora uruchomienia i sekretu anulowania; znajomość samego identyfikatora nie wystarcza do przerwania analizy.
 
+Przycisk „Zatrzymaj i pokaż znalezione plany” przerywa wyszukiwanie, ale zachowuje znalezionych kandydatów. W pozostałym budżecie czasu kalkulator weryfikuje najwyżej 6 kandydatów i zwraca poprawne plany ze statusem `CANCELLED`, bez dowodu optimum. Anulowanie nie wydłuża pierwotnego limitu czasu; lista może być pusta, jeżeli nie znaleziono poprawy albo zabrakło czasu na jej weryfikację.
+
 ## 5. Przedmioty zastępcze
 
 Kandydat musi pasować do slotu i profilu oraz zachowywać poprawność pozostawionych kamieni. Dla uproszczenia zgodnego z danymi gry przyjmuje się, że przedmiot o większej pojemności nie może być gorszy od przedmiotu o mniejszej pojemności. Dlatego:

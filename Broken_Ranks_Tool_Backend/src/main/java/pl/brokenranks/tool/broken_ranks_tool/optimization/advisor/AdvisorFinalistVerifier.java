@@ -38,7 +38,8 @@ final class AdvisorFinalistVerifier {
         int checks = 0;
         boolean deadlineReached = false;
         for (AdvisorSearch.Node candidate : queue) {
-            if (checks >= checkLimit || search.cancelled()) break;
+            // Cancellation stops search, but already found plans still need verification.
+            if (checks >= checkLimit || (search.cancelled() && checks >= 6)) break;
             if (clock.getAsLong() >= deadline) {
                 deadlineReached = true;
                 break;
