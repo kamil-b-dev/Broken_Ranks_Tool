@@ -54,7 +54,7 @@ const OrbSection = ({
                 aria-label="Wybierz rodzaj orba"
                 onChange={(e) => setOrbState({ type: e.target.value, id: "", level: "" })}
                 disabled={!selectedItem}
-                className="flex-[3] min-w-0 bg-transparent text-rose-700 font-serif p-1 text-xs border-b border-rose-900/70 focus:border-rose-500 outline-none text-center cursor-pointer disabled:opacity-30"
+                className="flex-3 min-w-0 bg-transparent text-rose-700 font-serif p-1 text-xs border-b border-rose-900/70 focus:border-rose-500 outline-hidden text-center cursor-pointer disabled:opacity-30"
             >
                 <option value="" className="bg-stone-950 text-stone-500">
                     Rodzaj
@@ -80,7 +80,7 @@ const OrbSection = ({
                     }));
                 }}
                 disabled={!orbState.type}
-                className="flex-[3] min-w-0 bg-transparent text-stone-300 font-serif p-1 text-xs border-b border-rose-900/70 focus:border-rose-500 outline-none text-center disabled:opacity-30 cursor-pointer"
+                className="flex-3 min-w-0 bg-transparent text-stone-300 font-serif p-1 text-xs border-b border-rose-900/70 focus:border-rose-500 outline-hidden text-center disabled:opacity-30 cursor-pointer"
             >
                 <option value="" className="bg-stone-950 text-stone-500">
                     Wielkość
@@ -98,7 +98,7 @@ const OrbSection = ({
                 aria-label="Wybierz poziom orba"
                 onChange={(e) => setOrbState((prev) => ({ ...prev, level: e.target.value }))}
                 disabled={!orbState.id || isSubOrb}
-                className="flex-[2] min-w-0 bg-transparent text-stone-300 font-serif p-1 text-xs border-b border-rose-900/70 focus:border-rose-500 outline-none text-center disabled:opacity-30 cursor-pointer"
+                className="flex-2 min-w-0 bg-transparent text-stone-300 font-serif p-1 text-xs border-b border-rose-900/70 focus:border-rose-500 outline-hidden text-center disabled:opacity-30 cursor-pointer"
             >
                 <option value="" className="bg-stone-950 text-stone-500">
                     lvl

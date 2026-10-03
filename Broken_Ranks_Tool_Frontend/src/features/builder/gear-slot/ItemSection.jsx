@@ -79,7 +79,7 @@ const ItemSection = ({
                     setDrifTypes({});
                     setDrifLevels({});
                 }}
-                className={`w-full bg-black/80 text-xs font-serif border border-rose-900/70 focus:border-rose-500 p-1.5 outline-none text-center cursor-pointer shadow-inner ${fullSelectedItem ? getRarityColor(fullSelectedItem.rarity) : "text-stone-300"}`}
+                className={`w-full bg-black/80 text-xs font-serif border border-rose-900/70 focus:border-rose-500 p-1.5 outline-hidden text-center cursor-pointer shadow-inner ${fullSelectedItem ? getRarityColor(fullSelectedItem.rarity) : "text-stone-300"}`}
             >
                 <option value="" className="text-stone-600">
                     -- {label} --
