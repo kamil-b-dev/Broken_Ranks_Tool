@@ -78,7 +78,14 @@ const SizeConstraints = ({ bonus, onChange }) => {
     );
 };
 
-const OptimizerPriorityForm = ({ bonus, potential, maxCap, onChange, simple = false }) => {
+const OptimizerPriorityForm = ({
+    bonus,
+    potential,
+    maxCap,
+    onChange,
+    simple = false,
+    weightLabel,
+}) => {
     const hasCap = maxCap !== null && maxCap !== undefined;
     const weightProgress = Math.min(100, Math.max(0, ((Number(bonus.weight) - 1) / 29) * 100));
     const toggleClass = (active, color = "purple") =>
@@ -111,6 +118,7 @@ const OptimizerPriorityForm = ({ bonus, potential, maxCap, onChange, simple = fa
                         </div>
                         <input
                             type="range"
+                            aria-label={weightLabel}
                             min="1"
                             max="30"
                             value={bonus.weight}

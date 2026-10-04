@@ -1,3 +1,4 @@
+import { maximizeStoneLevels } from "./maximizeStoneLevels";
 import { useState } from "react";
 import { useBuilderWorkspace } from "./useBuilderWorkspace";
 import CharacterPanel from "./character/CharacterPanel";
@@ -25,6 +26,18 @@ const BuilderWorkspace = ({
     onCalculateStats,
 }) => {
     const model = useBuilderWorkspace({ items: data.items, slots: requestData.slots });
+    const [levelWarnings, setLevelWarnings] = useState([]);
+    const maximizeLevels = (kind) => {
+        const { updates, warnings } = maximizeStoneLevels({
+            slots: requestData.slots,
+            ...data,
+            gameRules: gameRules || {},
+            kind,
+        });
+        Object.entries(updates).forEach(([key, slot]) => onSlotUpdate(key, slot));
+        setLevelWarnings(warnings);
+        setSlotDropRevision((revision) => revision + 1);
+    };
     const [slotDropRevision, setSlotDropRevision] = useState(0);
     const handleOverviewItemDrop = (slot, item) => {
         onSlotUpdate(slot.key, {
@@ -71,6 +84,8 @@ const BuilderWorkspace = ({
                     requestData={requestData}
                     gameRules={gameRules}
                     onOverviewItemDrop={handleOverviewItemDrop}
+                    onMaximizeLevels={maximizeLevels}
+                    levelWarnings={levelWarnings}
                 >
                     <StatsPanel
                         compact

@@ -7,6 +7,8 @@ const BuilderEquipmentWorkbench = ({
     requestData,
     gameRules,
     onOverviewItemDrop,
+    onMaximizeLevels,
+    levelWarnings = [],
     children,
 }) => {
     return (
@@ -16,6 +18,22 @@ const BuilderEquipmentWorkbench = ({
                     <h2>Ekwipunek</h2>
                 </div>
             </div>
+            <div className="equipment-level-actions">
+                <button type="button" onClick={() => onMaximizeLevels("orbs")}>
+                    max lvl orby
+                </button>
+                <button type="button" onClick={() => onMaximizeLevels("drifs")}>
+                    max lvl drify
+                </button>
+            </div>
+            {levelWarnings.length > 0 && (
+                <div className="equipment-level-warning" role="status">
+                    <span>Za mało pojemności:</span>
+                    {levelWarnings.map((warning, index) => (
+                        <div key={index}>{warning}</div>
+                    ))}
+                </div>
+            )}
             <span className="equipment-ornament-divider" aria-hidden="true" />
             <div className="equipment-figure-heading" aria-live="polite">
                 <strong>
@@ -41,6 +59,7 @@ const BuilderEquipmentWorkbench = ({
                                 slotData={requestData.slots?.[slot.key]}
                                 item={model.itemForSlot(slot)}
                                 drifs={data.drifs}
+                                orbs={data.orbs}
                                 bonusTranslations={gameRules.bonusTranslations}
                                 active={active}
                                 onSelect={() => model.selectSlot(slot)}

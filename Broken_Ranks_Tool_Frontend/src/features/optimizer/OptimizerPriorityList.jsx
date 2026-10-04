@@ -10,6 +10,7 @@ const OptimizerPriorityList = ({
     onRemove,
     onUpdate,
     configurationMode,
+    labelControls = false,
 }) => (
     <div className="optimizer-priority-list custom-scrollbar">
         {priorities.map((bonus, index) => {
@@ -38,6 +39,9 @@ const OptimizerPriorityList = ({
                             maxCap={maxCaps?.[bonus.key]}
                             onChange={(field, value) => onUpdate(bonus.key, field, value)}
                             simple={configurationMode === "SIMPLE"}
+                            weightLabel={
+                                labelControls ? `Waga priorytetu dla ${bonus.value}` : undefined
+                            }
                         />
                     )}
                 </div>

@@ -26,6 +26,7 @@ export const useGearSlot = ({
     gameRules,
     onUpdate,
     optimizationTrigger,
+    initializeFromSnapshot = false,
 }) => {
     const slotState = useGearSlotState({
         slotKey,
@@ -35,6 +36,7 @@ export const useGearSlot = ({
         allSlots,
         epicBuiltInDrifs: gameRules?.epicBuiltInDrifs,
         optimizationTrigger,
+        initializeFromSnapshot,
     });
     const derivedState = useGearSlotDerivedState({
         slotKey,
@@ -86,6 +88,9 @@ export const useGearSlot = ({
     });
 
     const dragState = useGearSlotDragDrop({
+        itemCapacity: derivedState.itemCapacity,
+        drifBasePowers: gameRules?.drifBasePowers,
+        drifLevels: slotState.drifLevels,
         items,
         selectedItem: slotState.selectedItem,
         slotKey,

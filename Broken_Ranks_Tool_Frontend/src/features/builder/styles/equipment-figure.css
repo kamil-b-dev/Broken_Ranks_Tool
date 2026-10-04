@@ -715,3 +715,78 @@
     font-size: 0.68rem;
     font-style: italic;
 }
+
+.equipment-drop-eligible {
+    outline: 2px solid #fbbf24 !important;
+    outline-offset: 2px;
+    box-shadow: 0 0 16px rgb(251 191 36 / 35%) !important;
+}
+.equipment-drop-eligible:hover {
+    outline-color: #fde68a !important;
+}
+
+.equipment-slot-orb-list {
+    display: flex;
+    min-width: 0;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.25rem;
+}
+.equipment-slot-orb {
+    display: inline-flex;
+    align-items: center;
+    min-width: 0;
+    gap: 0.2rem;
+    padding: 0.1rem 0.3rem;
+    border: 1px solid #66502d;
+    background: rgb(34 26 13 / 65%);
+    color: #d8c49d;
+    font-family: var(--ui-font);
+    font-size: 0.58rem;
+}
+.equipment-slot-orb > span {
+    max-width: 6rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.equipment-slot-orb-icon {
+    width: 1.1rem;
+    height: 1.1rem;
+    flex: 0 0 auto;
+    object-fit: contain;
+}
+.equipment-slot-orb small {
+    color: #d6a858;
+    font-size: inherit;
+}
+
+.equipment-level-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-block: 0.5rem;
+    font-family: var(--ui-font);
+}
+.equipment-level-actions button {
+    padding: 0.4rem 0.7rem;
+    border: 1px solid #795b30;
+    background: #201a11;
+    color: #e0c18b;
+    font-size: 0.75rem;
+    cursor: pointer;
+}
+.equipment-level-actions button:hover {
+    border-color: #d4a254;
+    background: #322619;
+}
+.equipment-level-actions button:focus-visible {
+    outline: 2px solid #fbbf24;
+    outline-offset: 2px;
+}
+.equipment-level-warning {
+    margin-block: 0.5rem;
+    color: #e4bc78;
+    font-family: var(--ui-font);
+    font-size: 0.75rem;
+}

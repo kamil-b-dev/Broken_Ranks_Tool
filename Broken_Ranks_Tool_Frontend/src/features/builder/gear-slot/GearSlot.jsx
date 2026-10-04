@@ -122,6 +122,7 @@ const GearSlot = (props) => {
                 </span>
                 <OrbSection
                     slotKey="orb1"
+                    dropEligible={hookData.isDropEligible?.("orb1")}
                     selectedItem={selectedItem}
                     dragOverZone={dragOverZone}
                     handleDragOver={handleDragOver}
@@ -140,6 +141,7 @@ const GearSlot = (props) => {
                 {isLegendary && (
                     <OrbSection
                         slotKey="orb2"
+                        dropEligible={hookData.isDropEligible?.("orb2")}
                         selectedItem={selectedItem}
                         dragOverZone={dragOverZone}
                         handleDragOver={handleDragOver}

@@ -1,0 +1,571 @@
+/* Overrides belong only to the mobile presentation, including reused controls. */
+.mobile-app .mobile-optimizer {
+    --optimizer-ui-font: var(--ui-font);
+    min-width: 0;
+}
+.mobile-app
+    .mobile-optimizer
+    :is(label, span, small, strong, b, p, li, dt, dd, summary, button, h3, h4, h5) {
+    font-family: var(--ui-font) !important;
+    font-size: 0.875rem;
+    letter-spacing: normal !important;
+    text-transform: none;
+    line-height: 1.5;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+.mobile-app .mobile-optimizer :is(h3, h4, h5) {
+    font-size: 1rem !important;
+    color: var(--mobile-gold) !important;
+}
+.mobile-app .mobile-optimizer :is(input:not([type="checkbox"]), select) {
+    min-width: 0;
+    max-width: 100%;
+    font-size: 1rem;
+    border-color: #71604d;
+    color: #f0e9df;
+}
+.mobile-app .mobile-optimizer :is(input, select):focus-visible {
+    outline: 2px solid var(--mobile-gold);
+    outline-offset: 2px;
+}
+.mobile-app .mobile-optimizer input[type="checkbox"] {
+    min-height: 24px;
+    min-width: 24px;
+    width: 24px;
+    height: 24px;
+    flex: 0 0 24px;
+    accent-color: #bc8541;
+}
+.mobile-app .mobile-optimizer label:has(input[type="checkbox"]) {
+    min-height: 44px;
+    align-items: center;
+}
+.mobile-app .mobile-optimizer-sections {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.4rem;
+    margin-block: 1rem;
+}
+.mobile-app .mobile-optimizer-sections.is-advisor {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.mobile-app .mobile-optimizer-sections button {
+    padding: 0.6rem;
+    border: 1px solid var(--mobile-border);
+    border-radius: 0.5rem;
+    color: var(--mobile-muted);
+}
+.mobile-app .mobile-optimizer-sections button[aria-current] {
+    color: #ffe5b5;
+    background: #433020;
+    border-color: #ae804a;
+}
+.mobile-app .mobile-optimizer-actions {
+    display: grid;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+    padding-block: 0.5rem;
+    background: #151211;
+}
+.mobile-app .mobile-optimizer-actions > button:not(.mobile-primary) {
+    border: 1px solid var(--mobile-border);
+    border-radius: 0.5rem;
+    padding: 0.65rem;
+    color: var(--mobile-gold);
+}
+.mobile-app .mobile-optimizer-actions [role="status"] {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    color: var(--mobile-muted);
+}
+.mobile-app .mobile-optimizer-actions [role="status"] button {
+    color: var(--mobile-gold);
+}
+.mobile-app
+    .mobile-optimizer
+    :is(
+        .simple-profile-panel,
+        .advisor-goals-panel,
+        .optimizer-lock-column,
+        .optimizer-lock-list,
+        .optimizer-priority-list
+    ) {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none;
+    overflow: visible;
+    padding: 0;
+    background: none;
+}
+.mobile-app .mobile-optimizer :is(.simple-profile-header, .simple-profile-field) {
+    display: grid;
+    gap: 0.75rem;
+}
+.mobile-app .mobile-optimizer .simple-profile-header label {
+    display: grid;
+    width: 100%;
+    gap: 0.5rem;
+}
+.mobile-app .mobile-optimizer .simple-profile-header select {
+    width: 100%;
+    min-width: 0;
+}
+.mobile-app
+    .mobile-optimizer
+    :is(
+        .simple-profile-field,
+        .simple-profile-toggle,
+        .simple-profile-header,
+        .advisor-goal-card,
+        .optimizer-priority-card,
+        .optimizer-lock-card
+    ) {
+    border-radius: 0.6rem;
+    border-color: var(--mobile-border);
+}
+.mobile-app .mobile-optimizer .simple-profile-toggle {
+    display: flex;
+    gap: 0.75rem;
+}
+.mobile-app .mobile-optimizer .advisor-modifier-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.25rem;
+    padding-block: 0.75rem;
+}
+.mobile-app .mobile-optimizer .advisor-modifier-row > label:first-child {
+    gap: 0.65rem;
+}
+.mobile-app
+    .mobile-optimizer
+    :is(
+        .advisor-loss-control,
+        .advisor-search-field > span,
+        .advisor-change-options label,
+        .advisor-goal-card > label
+    ) {
+    color: var(--mobile-muted);
+}
+.mobile-app .mobile-optimizer .advisor-loss-control {
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+.mobile-app .mobile-optimizer .advisor-change-options {
+    display: grid;
+    gap: 0.5rem;
+}
+.mobile-app .mobile-optimizer .advisor-search-limits {
+    grid-template-columns: minmax(0, 1fr);
+}
+.mobile-app .mobile-add-goal {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ae804a;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    color: var(--mobile-gold);
+}
+.mobile-app .mobile-optimizer .optimizer-priority-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+}
+.mobile-app .mobile-optimizer .optimizer-priority-toolbar > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.mobile-app .mobile-optimizer :is(.optimizer-toolbar-button, .optimizer-toolbar-clear) {
+    padding: 0.5rem 0.65rem;
+    color: var(--mobile-muted);
+}
+.mobile-app .mobile-optimizer .optimizer-priority-card {
+    margin-bottom: 0.75rem;
+}
+.mobile-app .mobile-optimizer .optimizer-priority-card-header {
+    grid-template-columns: 1.5rem minmax(0, 1fr) 44px;
+    gap: 0.5rem;
+    padding: 0.75rem;
+}
+.mobile-app .mobile-optimizer .optimizer-priority-handle {
+    display: none;
+}
+.mobile-app .mobile-optimizer .optimizer-priority-summary {
+    display: grid;
+    grid-template-columns: 1.65rem minmax(0, 1fr) 0.75rem;
+}
+.mobile-app .mobile-optimizer .optimizer-priority-compact-meta {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    margin-left: 0;
+    color: var(--mobile-muted);
+}
+.mobile-app .mobile-optimizer .optimizer-priority-name {
+    white-space: normal;
+}
+.mobile-app .mobile-optimizer :is(.optimizer-priority-toggle, .optimizer-priority-remove) {
+    min-width: 44px;
+    min-height: 44px;
+    flex-shrink: 0;
+}
+.mobile-app .mobile-optimizer .optimizer-priority-options {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.5rem !important;
+    padding: 0.5rem !important;
+}
+.mobile-app .mobile-optimizer .optimizer-priority-option {
+    flex-wrap: wrap;
+    row-gap: 0.5rem;
+}
+.mobile-app .mobile-optimizer .optimizer-priority-option > span {
+    color: var(--mobile-muted);
+    font-size: 0.875rem !important;
+}
+.mobile-app .mobile-optimizer .optimizer-priority-potential > div {
+    font-size: 0.875rem;
+    text-transform: none;
+    letter-spacing: normal;
+}
+.mobile-app .mobile-optimizer .optimizer-priority-weight input[type="range"] {
+    height: 44px;
+    padding: 0;
+    border: 0;
+    background: transparent !important;
+}
+.mobile-app .mobile-optimizer input[type="range"]::-webkit-slider-runnable-track {
+    height: 4px;
+    background: #71604d;
+}
+.mobile-app .mobile-optimizer input[type="range"]::-webkit-slider-thumb {
+    width: 24px;
+    height: 24px;
+    margin-top: -10px;
+    border: 2px solid #e6bc79;
+    border-radius: 50%;
+    background: #6e4a21;
+    box-shadow: none;
+}
+.mobile-app .mobile-optimizer input[type="range"]::-moz-range-track {
+    height: 4px;
+    background: #71604d;
+}
+.mobile-app .mobile-optimizer input[type="range"]::-moz-range-progress {
+    height: 4px;
+    background: #e6bc79;
+}
+.mobile-app .mobile-optimizer input[type="range"]::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    border: 2px solid #e6bc79;
+    border-radius: 50%;
+    background: #6e4a21;
+    box-shadow: none;
+}
+.mobile-app .mobile-optimizer .optimizer-priority-quantity > div {
+    width: 100%;
+    justify-content: space-between;
+}
+.mobile-app .mobile-optimizer .optimizer-priority-quantity input {
+    min-width: 44px;
+}
+.mobile-app .mobile-optimizer .optimizer-priority-quantity span {
+    color: var(--mobile-muted);
+}
+.mobile-app .mobile-optimizer .optimizer-priority-sizes summary {
+    min-height: 44px;
+    padding-block: 0.65rem;
+}
+.mobile-app .mobile-optimizer .optimizer-priority-sizes > div > div {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    padding-block: 0.5rem;
+}
+.mobile-app .mobile-optimizer .optimizer-priority-sizes input[type="number"] {
+    width: 4rem;
+}
+.mobile-app .mobile-optimizer-options {
+    margin-block: 1rem;
+}
+.mobile-app .mobile-optimizer-options summary {
+    min-height: 44px;
+    color: var(--mobile-gold);
+}
+.mobile-app .mobile-optimizer-options > label:has([type="checkbox"]) {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+}
+.mobile-app .mobile-optimizer .optimizer-lock-card-main {
+    grid-template-columns: minmax(0, 1fr) 44px;
+}
+.mobile-app .mobile-optimizer .optimizer-lock-card-toggle {
+    grid-template-columns: 2.35rem minmax(0, 1fr);
+    padding: 0.75rem;
+}
+.mobile-app .mobile-optimizer .optimizer-lock-card-toggle > small {
+    grid-column: 2;
+}
+.mobile-app .mobile-optimizer .optimizer-lock-copy strong {
+    white-space: normal;
+}
+.mobile-app .mobile-optimizer .optimizer-lock-drif {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 44px;
+}
+.mobile-app
+    .mobile-optimizer
+    :is(.optimizer-change-item > small, .optimizer-change-placement > span) {
+    color: var(--mobile-muted);
+}
+.mobile-app .mobile-optimizer .optimizer-lock-drif button {
+    min-width: 44px;
+    min-height: 44px;
+}
+.mobile-app .mobile-optimizer .optimizer-lock-drif-copy {
+    min-width: 0;
+    white-space: normal;
+}
+.mobile-app .mobile-optimizer-report {
+    display: grid;
+    gap: 1rem;
+}
+.mobile-app .mobile-optimizer-report .optimizer-report-section {
+    padding: 0.8rem;
+    border: 1px solid var(--mobile-border);
+    border-radius: 0.6rem;
+    background: var(--mobile-surface);
+}
+.mobile-app .mobile-optimizer-report .optimizer-report-section:empty {
+    display: none;
+}
+.mobile-app
+    .mobile-optimizer-report
+    :is(
+        .optimizer-status-applied,
+        .optimizer-status-metrics dt,
+        .optimizer-goal-row small,
+        .optimizer-variant-copy small,
+        .optimizer-variant-score small
+    ) {
+    color: var(--mobile-muted);
+}
+.mobile-app .mobile-optimizer .optimizer-status-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+}
+.mobile-app .mobile-optimizer .optimizer-goal-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    padding: 0.75rem;
+}
+.mobile-app .mobile-optimizer .optimizer-goal-name {
+    grid-column: 1 / -1;
+}
+.mobile-app .mobile-optimizer .optimizer-goal-target {
+    display: flex !important;
+}
+.mobile-app .mobile-optimizer-report fieldset {
+    min-width: 0;
+}
+.mobile-app .mobile-optimizer .optimizer-goal-status {
+    justify-content: flex-start;
+    gap: 0.5rem;
+}
+.mobile-app .mobile-optimizer .optimizer-goal-status > span {
+    position: static;
+    width: auto;
+    height: auto;
+    clip: auto;
+    overflow: visible;
+}
+.mobile-app .mobile-optimizer .optimizer-variant-card {
+    grid-template-columns: 1rem minmax(0, 1fr);
+    padding: 0.75rem;
+}
+.mobile-app .mobile-optimizer .optimizer-variant-score {
+    grid-column: 2;
+    align-items: flex-start;
+    text-align: left;
+}
+.mobile-app
+    .mobile-optimizer
+    :is(
+        .optimizer-variant-copy strong,
+        .optimizer-variant-score strong,
+        .optimizer-goal-row strong,
+        .optimizer-goal-row > div > span
+    ) {
+    font-size: 0.875rem;
+    white-space: normal;
+    overflow: visible;
+}
+.mobile-app .mobile-optimizer .optimizer-change-row {
+    grid-template-columns: 2rem minmax(0, 1fr);
+    gap: 0.5rem;
+    padding-block: 0.75rem;
+}
+.mobile-app .mobile-optimizer .optimizer-change-placement {
+    grid-column: 1 / -1;
+    flex-wrap: wrap;
+}
+.mobile-app .mobile-bonus-picker {
+    position: fixed;
+    inset: 0;
+    width: min(100%, 40rem);
+    max-width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    margin: auto;
+    padding: calc(1rem + env(safe-area-inset-top, 0px)) 1rem
+        calc(1rem + env(safe-area-inset-bottom, 0px));
+    border: 1px solid var(--mobile-border);
+    background: #181614;
+    color: #f0e9df;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+.mobile-app .mobile-bonus-picker::backdrop {
+    background: #000b;
+}
+.mobile-app .mobile-bonus-picker header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+.mobile-app .mobile-bonus-picker header button {
+    min-width: 44px;
+}
+.mobile-app .mobile-bonus-results {
+    display: grid;
+    gap: 0.5rem;
+}
+.mobile-app .mobile-bonus-results button {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.8rem;
+    text-align: left;
+    border: 1px solid var(--mobile-border);
+    border-radius: 0.5rem;
+    background: #25211d;
+}
+
+/* Match the mobile builder: metal cards, leather fields and crimson selection. */
+.mobile-app .mobile-optimizer h1[tabindex="-1"]:focus {
+    outline: none;
+}
+.mobile-app .mobile-optimizer-sections {
+    gap: 0.25rem;
+    padding: 0.25rem;
+    border: 1px solid rgba(133, 77, 39, 0.72);
+    border-radius: 0.25rem;
+    background: var(--mobile-material-picker);
+    background-blend-mode: normal, soft-light;
+}
+.mobile-app .mobile-optimizer-sections button {
+    border-color: transparent;
+    border-radius: 0.2rem;
+}
+.mobile-app .mobile-optimizer-actions {
+    background: none;
+}
+.mobile-app
+    .mobile-optimizer
+    :is(
+        .simple-profile-header,
+        .simple-profile-field,
+        .simple-profile-toggle,
+        .advisor-goal-card,
+        .optimizer-priority-card,
+        .optimizer-lock-card,
+        .optimizer-report-section,
+        .mobile-card
+    ) {
+    border: 1px solid var(--mobile-border);
+    border-radius: 0.25rem;
+    background: var(--mobile-material-panel);
+    background-blend-mode: normal, soft-light;
+    box-shadow:
+        0 18px 40px rgba(0, 0, 0, 0.42),
+        inset 0 1px rgba(255, 224, 169, 0.07);
+}
+.mobile-app
+    .mobile-optimizer
+    :is(
+        .simple-profile-field,
+        .simple-profile-toggle,
+        .optimizer-lock-card,
+        .optimizer-goal-row,
+        .optimizer-variant-card
+    ) {
+    border-color: rgba(116, 78, 42, 0.78);
+    border-radius: 0.2rem;
+    background: var(--mobile-material-inset);
+    background-blend-mode: normal, soft-light;
+    box-shadow:
+        inset 0 1px rgba(255, 225, 175, 0.045),
+        inset 0 0 16px rgba(0, 0, 0, 0.58);
+}
+.mobile-app .mobile-optimizer :is(.optimizer-priority-option, .optimizer-change-row) {
+    background: var(--mobile-material-inset);
+    background-blend-mode: normal, soft-light;
+}
+.mobile-app .mobile-optimizer :is(input:not([type="checkbox"]):not([type="range"]), select),
+.mobile-app .mobile-bonus-picker :is(input, select) {
+    border-color: rgba(124, 88, 47, 0.78);
+    border-radius: 0.2rem;
+    background: var(--mobile-material-control);
+    background-blend-mode: normal, soft-light;
+}
+.mobile-app
+    .mobile-optimizer
+    :is(
+        .optimizer-toolbar-button,
+        .optimizer-toolbar-clear,
+        .mobile-add-goal,
+        .optimizer-priority-toggle
+    ),
+.mobile-app .mobile-optimizer-actions > button:not(.mobile-primary) {
+    border: 1px solid rgba(124, 88, 47, 0.78);
+    border-radius: 0.2rem;
+    background: var(--mobile-material-control);
+    background-blend-mode: normal, soft-light;
+}
+.mobile-app
+    .mobile-optimizer
+    :is(.mobile-primary, .optimizer-apply-variant, .optimizer-variant-card.is-active),
+.mobile-app .mobile-optimizer-sections button[aria-current],
+.mobile-app .mobile-optimizer .optimizer-priority-toggle[aria-pressed="true"] {
+    border-color: rgba(166, 116, 55, 0.9);
+    border-radius: 0.2rem;
+    color: #efc77e;
+    background: var(--mobile-material-active) !important;
+    background-blend-mode: normal, soft-light;
+    box-shadow: inset 0 1px rgba(255, 210, 135, 0.12);
+}
+.mobile-app .mobile-optimizer .optimizer-priority-toggle[aria-pressed="true"] {
+    border-color: #e4ba70 !important;
+}
+.mobile-app .mobile-optimizer .optimizer-priority-percentage > div > div {
+    border-color: rgba(124, 88, 47, 0.78);
+}
+.mobile-app .mobile-optimizer .optimizer-priority-weight > div > span:nth-child(2) {
+    color: var(--mobile-gold);
+}
+.mobile-app .mobile-optimizer :is(.optimizer-priority-card-expanded, .optimizer-lock-card-locked) {
+    border-color: #c38237;
+}
+.mobile-app .mobile-bonus-picker {
+    border-color: var(--mobile-border);
+    background: var(--mobile-material-picker);
+    background-blend-mode: normal, soft-light;
+}
+.mobile-app .mobile-bonus-results button {
+    border-color: rgba(127, 91, 49, 0.62);
+    border-radius: 0.2rem;
+    background: var(--mobile-material-result);
+    background-blend-mode: normal, soft-light;
+}

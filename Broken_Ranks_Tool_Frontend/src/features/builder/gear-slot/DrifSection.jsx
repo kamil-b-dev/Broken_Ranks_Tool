@@ -121,6 +121,7 @@ const DrifSection = ({
                             parentLocked={isParentSlotLocked}
                             showLock={showOptimizationLocks}
                             overCapacity={isOverCapacity}
+                            dropEligible={hookData.isDropEligible?.(`drif-${index}`)}
                             dragActive={dragOverZone === `drif-${index}`}
                             onDragOver={(event) => handleDragOver(event, `drif-${index}`)}
                             onDragLeave={handleDragLeave}

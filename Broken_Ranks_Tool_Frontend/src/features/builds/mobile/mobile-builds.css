@@ -1,0 +1,188 @@
+/* Presentation overrides apply only inside the mobile app. */
+.mobile-app .build-library-theme {
+    min-width: 0;
+    font-family: var(--ui-font);
+    color: #f0e9df;
+}
+.mobile-app .build-library-theme :is(h2, h3, strong, small, span, label, button, time) {
+    font-family: var(--ui-font);
+    letter-spacing: normal;
+    text-transform: none;
+    line-height: 1.5;
+}
+.mobile-app
+    .build-library-theme
+    :is(.build-library-heading, .build-library-list-panel, .build-comparison-panel) {
+    min-width: 0;
+    min-height: 0;
+    max-height: none;
+    padding: 1rem;
+    border: 1px solid var(--mobile-border);
+    border-radius: 0.25rem;
+    background: var(--mobile-material-panel);
+    background-blend-mode: normal, soft-light;
+    box-shadow:
+        0 18px 40px rgba(0, 0, 0, 0.42),
+        inset 0 1px rgba(255, 224, 169, 0.07);
+}
+.mobile-app .build-library-theme .build-library-heading {
+    gap: 1rem;
+}
+.mobile-app .build-library-theme .build-library-heading h2 {
+    font-size: 1.75rem;
+    font-weight: 650;
+}
+.mobile-app .build-library-theme .build-library-panel-heading h3 {
+    color: var(--mobile-gold);
+    font-size: 1.125rem;
+}
+.mobile-app .build-library-theme .build-library-layout {
+    height: auto;
+    grid-template-columns: minmax(0, 1fr);
+}
+.mobile-app .build-library-theme .build-library-list {
+    overflow: visible;
+    padding-right: 0;
+}
+.mobile-app .build-library-theme .build-library-save-form > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.5rem;
+}
+.mobile-app .build-library-theme .build-library-save-form > label {
+    color: var(--mobile-muted);
+    font-size: 0.875rem;
+}
+.mobile-app .build-library-theme .build-library-save-form :is(input, select) {
+    min-width: 0;
+    width: 100%;
+    padding: 0.6rem;
+    border: 1px solid rgba(124, 88, 47, 0.78);
+    border-radius: 0.2rem;
+    color: #f0e9df;
+    font-size: 1rem;
+    background: var(--mobile-material-control);
+    background-blend-mode: normal, soft-light;
+}
+.mobile-app
+    .build-library-theme
+    :is(.saved-build-card, .build-comparison-hero, .build-comparison-difference-strip) {
+    border-color: rgba(116, 78, 42, 0.78);
+    border-radius: 0.2rem;
+    background: var(--mobile-material-inset);
+    background-blend-mode: normal, soft-light;
+    box-shadow:
+        inset 0 1px rgba(255, 225, 175, 0.045),
+        inset 0 0 16px rgba(0, 0, 0, 0.58);
+}
+.mobile-app .build-library-theme .saved-build-card {
+    padding: 0.8rem;
+    grid-template-columns: 2.2rem minmax(0, 1fr);
+    gap: 0.65rem;
+}
+.mobile-app .build-library-theme .saved-build-card.is-selected {
+    border-color: #c38237;
+    box-shadow:
+        inset 3px 0 #c38237,
+        inset 0 1px rgba(255, 225, 175, 0.045);
+}
+.mobile-app .build-library-theme .saved-build-compare {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--mobile-muted);
+    font-size: 0.875rem;
+}
+.mobile-app .build-library-theme .saved-build-copy strong {
+    overflow-wrap: anywhere;
+    white-space: normal;
+    font-size: 1rem;
+}
+.mobile-app
+    .build-library-theme
+    :is(.saved-build-copy small, .saved-build-copy span, .build-comparison-hero small) {
+    color: var(--mobile-muted);
+    font-size: 0.875rem;
+}
+.mobile-app .build-library-theme .saved-build-actions {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+}
+.mobile-app
+    .build-library-theme
+    :is(
+        .saved-build-actions button,
+        .build-library-panel-heading button,
+        .build-comparison-toolbar button
+    ) {
+    padding: 0.5rem;
+    border: 1px solid rgba(124, 88, 47, 0.78);
+    border-radius: 0.2rem;
+    color: var(--mobile-muted);
+    font-size: 0.875rem;
+    background: var(--mobile-material-control);
+    background-blend-mode: normal, soft-light;
+}
+.mobile-app .build-library-theme .saved-build-actions .is-danger {
+    margin-left: 0;
+    color: #efa6a6;
+}
+.mobile-app
+    .build-library-theme
+    :is(
+        .build-library-save-form button,
+        .saved-build-actions .is-primary,
+        .build-comparison-toolbar button[aria-selected="true"]
+    ) {
+    border: 1px solid rgba(166, 116, 55, 0.9);
+    border-radius: 0.2rem;
+    color: #efc77e;
+    font-size: 0.875rem;
+    background: var(--mobile-material-active);
+    background-blend-mode: normal, soft-light;
+    box-shadow: inset 0 1px rgba(255, 210, 135, 0.12);
+}
+.mobile-app .build-library-theme :is(.build-library-empty, .build-comparison-empty) {
+    min-height: 8rem;
+    padding: 1.5rem 1rem;
+    border: 1px solid rgba(116, 78, 42, 0.78);
+    border-radius: 0.2rem;
+    background: var(--mobile-material-inset);
+    background-blend-mode: normal, soft-light;
+}
+.mobile-app .build-library-theme :is(.build-library-empty, .build-comparison-empty) strong {
+    font-size: 1rem;
+    color: var(--mobile-muted);
+}
+.mobile-app .build-library-theme .build-comparison-toolbar {
+    gap: 0.75rem;
+    padding-block: 0.5rem;
+    background: var(--mobile-material-picker);
+    background-blend-mode: normal, soft-light;
+}
+.mobile-app .build-library-theme .build-comparison-toolbar > div {
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+.mobile-app .build-library-theme .build-comparison-toolbar > label {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    color: var(--mobile-muted);
+    font-size: 0.875rem;
+}
+.mobile-app
+    .build-library-theme
+    :is(
+        .build-comparison-stat-section > header,
+        .build-drif-analysis-heading,
+        .build-drif-result-heading
+    ) {
+    background: var(--mobile-material-result);
+    background-blend-mode: normal, soft-light;
+}
+.mobile-app .build-library-theme :is(input, select):focus-visible {
+    outline: 2px solid var(--mobile-gold);
+    outline-offset: 3px;
+}
