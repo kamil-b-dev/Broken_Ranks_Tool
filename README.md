@@ -10,8 +10,6 @@ wersjonowany, tylko-do-odczytu katalog SQLite.
   builder, optymalizator, biblioteka buildów i wspólna domena ekwipunku.
 - `Broken_Ranks_Tool_Backend/` — API z modułami katalogu, kalkulatora ekwipunku,
   optymalizacji i wspólnej infrastruktury HTTP.
-- `docs/reguly-ekwipunku.md` — źródło reguł domenowych obowiązujących wszystkie
-  warstwy aplikacji.
 - `docs/openapi.yaml` — wersjonowany kontrakt publicznego API.
 - `Dockerfile`, `.railway/` i `DEPLOYMENT.md` — produkcyjny obraz oraz konfiguracja
   Railway.

@@ -26,6 +26,11 @@ AGENTS.md
 .codex/
 .agents/
 
+# Local agent module rules and mobile planning notes
+/docs/reguly-*.md
+/docs/plan-frontendu-mobilnego.md
+/docs/checklista-mobilnego-kreatora.md
+
 # Local environment and secrets
 node_modules/
 .env
