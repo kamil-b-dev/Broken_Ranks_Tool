@@ -19,15 +19,29 @@ export const useGearSlotState = ({
     allSlots,
     epicBuiltInDrifs,
     optimizationTrigger,
+    initializeFromSnapshot = false,
 }) => {
-    const [selectedItem, setSelectedItem] = useState("");
-    const [itemStars, setItemStars] = useState(1);
+    // Mobile mounts one editor at a time: its first publication must contain the
+    // saved slot, never the empty defaults. Desktop keeps its existing lifecycle.
+    const [initial] = useState(() => {
+        if (!initializeFromSnapshot) return null;
+        const slot = allSlots?.[slotKey];
+        const item = items.find((candidate) => String(candidate.id) === String(slot?.itemId));
+        return createImportedGearSlotState(
+            slot,
+            orbs,
+            drifs,
+            getBuiltInDrifBonusTypes(item, epicBuiltInDrifs).length
+        );
+    });
+    const [selectedItem, setSelectedItem] = useState(initial?.selectedItem ?? "");
+    const [itemStars, setItemStars] = useState(initial?.itemStars ?? 1);
     const [hoverStars, setHoverStars] = useState(0);
-    const [orbSlots, setOrbSlots] = useState(createEmptyOrbSlots);
-    const [selectedDrifs, setSelectedDrifs] = useState([]);
-    const [drifTypes, setDrifTypes] = useState({});
-    const [drifLevels, setDrifLevels] = useState({});
-    const [builtInLvls, setBuiltInLvls] = useState([1, 1]);
+    const [orbSlots, setOrbSlots] = useState(() => initial?.orbSlots ?? createEmptyOrbSlots());
+    const [selectedDrifs, setSelectedDrifs] = useState(initial?.selectedDrifs ?? []);
+    const [drifTypes, setDrifTypes] = useState(initial?.drifTypes ?? {});
+    const [drifLevels, setDrifLevels] = useState(initial?.drifLevels ?? {});
+    const [builtInLvls, setBuiltInLvls] = useState(initial?.builtInLvls ?? [1, 1]);
 
     useEffect(() => {
         const externalData = allSlots[slotKey];

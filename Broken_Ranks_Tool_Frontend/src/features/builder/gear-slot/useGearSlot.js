@@ -26,6 +26,7 @@ export const useGearSlot = ({
     gameRules,
     onUpdate,
     optimizationTrigger,
+    initializeFromSnapshot = false,
 }) => {
     const slotState = useGearSlotState({
         slotKey,
@@ -35,6 +36,7 @@ export const useGearSlot = ({
         allSlots,
         epicBuiltInDrifs: gameRules?.epicBuiltInDrifs,
         optimizationTrigger,
+        initializeFromSnapshot,
     });
     const derivedState = useGearSlotDerivedState({
         slotKey,

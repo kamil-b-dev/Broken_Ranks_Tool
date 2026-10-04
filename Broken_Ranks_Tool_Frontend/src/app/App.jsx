@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
+import { getPresentation } from "./mobile/presentation";
 import AppHeader from "./components/AppHeader";
 import AppNotice from "../shared/ui/AppNotice";
 import WorkspaceState from "./components/WorkspaceState";
@@ -13,7 +14,9 @@ import { useAppRoute } from "./useAppRoute";
 import HomeWorkspace from "./components/HomeWorkspace";
 
 /** Root application composition and workspace navigation. */
-function App() {
+const MobileApp = lazy(() => import("./mobile/MobileApp"));
+
+function DesktopApp() {
     const { activeView: mainView, navigate } = useAppRoute();
     const [optimizerSettings, setOptimizerSettings] = useState(DEFAULT_OPTIMIZER_SETTINGS);
     const equipment = useEquipment();
@@ -98,4 +101,14 @@ function App() {
     );
 }
 
-export default App;
+/** Choose one presentation once; resizing and rotation never remount the build. */
+export default function App() {
+    const [presentation] = useState(getPresentation);
+    return presentation === "mobile" ? (
+        <Suspense fallback={<WorkspaceState loading />}>
+            <MobileApp />
+        </Suspense>
+    ) : (
+        <DesktopApp />
+    );
+}

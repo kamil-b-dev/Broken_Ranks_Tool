@@ -26,7 +26,7 @@ const evaluateGoal = (goal, current, activeVariant, maxCap) => {
     };
 };
 
-const GoalCard = ({ goal, current, activeVariant, maxCap }) => {
+const GoalCard = ({ goal, current, activeVariant, maxCap, showTargetLabel }) => {
     const result = evaluateGoal(goal, current, activeVariant, maxCap);
 
     return (
@@ -46,6 +46,7 @@ const GoalCard = ({ goal, current, activeVariant, maxCap }) => {
                 <small>Liczba drifów</small>
             </div>
             <div className="optimizer-goal-target">
+                {showTargetLabel && <small>Cel</small>}
                 <span>{goal.targetLabel || "Maksimum"}</span>
                 <small>
                     {current?.penaltyPercent > 0
@@ -65,7 +66,13 @@ const GoalCard = ({ goal, current, activeVariant, maxCap }) => {
 };
 
 /** Evaluates and presents how well the optimized build fulfills configured priorities. */
-const OptimizerGoalsSection = ({ goals, currentDetails, activeVariant, maxCaps }) => (
+const OptimizerGoalsSection = ({
+    goals,
+    currentDetails,
+    activeVariant,
+    maxCaps,
+    showTargetLabel = false,
+}) => (
     <section className="optimizer-report-section optimizer-goals-section">
         <h5>Realizacja celów</h5>
         {goals?.length ? (
@@ -77,6 +84,7 @@ const OptimizerGoalsSection = ({ goals, currentDetails, activeVariant, maxCaps }
                         current={currentDetails.find((detail) => detail.key === goal.statKey)}
                         activeVariant={activeVariant}
                         maxCap={maxCaps?.[goal.statKey]}
+                        showTargetLabel={showTargetLabel}
                     />
                 ))}
             </div>

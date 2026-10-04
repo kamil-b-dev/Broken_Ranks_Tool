@@ -1,0 +1,329 @@
+/* Every selector is scoped to the mobile presentation. Desktop is untouched. */
+.mobile-app {
+    --mobile-border: #494038;
+    --mobile-muted: #b6aca0;
+    --mobile-surface: #191716;
+    --mobile-gold: #e6bc79;
+    font-family: var(--ui-font);
+    color: #f0e9df;
+    min-height: 100dvh;
+    padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px)
+        calc(5rem + env(safe-area-inset-bottom, 0px)) env(safe-area-inset-left, 0px);
+    background: radial-gradient(ellipse at top left, #36241d55, transparent 40rem), #111010;
+}
+.mobile-app .mobile-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--mobile-border);
+}
+.mobile-app .mobile-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+    font-size: 0.9rem;
+}
+.mobile-app .mobile-brand img {
+    width: 2.5rem;
+    height: 2.5rem;
+}
+.mobile-app .mobile-brand strong {
+    color: var(--mobile-gold);
+}
+.mobile-app .mobile-build-actions {
+    position: relative;
+}
+.mobile-app .mobile-build-actions summary {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    min-height: 44px;
+}
+.mobile-app .mobile-build-actions > div {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    z-index: 20;
+    width: 15rem;
+    padding: 0.5rem;
+    background: #23201d;
+    border: 1px solid var(--mobile-border);
+    box-shadow: 0 10px 30px #0008;
+    border-radius: 0.75rem;
+}
+.mobile-app .mobile-build-actions button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 0.65rem;
+}
+.mobile-app .mobile-content {
+    padding: 1.25rem 0.75rem;
+    max-width: 60rem;
+    margin-inline: auto;
+}
+.mobile-app:has(.mobile-home) {
+    background:
+        linear-gradient(90deg, rgba(2, 2, 2, 0.97) 0%, rgba(3, 3, 3, 0.82) 31%, transparent 68%),
+        radial-gradient(circle at 72% 42%, transparent 0%, rgba(0, 0, 0, 0.2) 48%, #020202 100%),
+        url("../../assets/home-hero-abstract.webp") 62% center / cover no-repeat;
+}
+.mobile-app:has(.mobile-home) .mobile-content {
+    max-width: none;
+    padding: 0;
+}
+.mobile-app:has(.mobile-home) .mobile-header {
+    background: transparent;
+    border-bottom-color: rgba(184, 119, 62, 0.24);
+}
+.mobile-app .mobile-navigation {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 15;
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr) minmax(0, 1.6fr) minmax(0, 0.9fr);
+    border-top: 1px solid rgba(166, 116, 55, 0.78);
+    background:
+        linear-gradient(rgba(18, 16, 15, 0.96), rgba(4, 4, 5, 0.98)),
+        url("../../assets/dark-forged-metal-texture.webp") center / 28rem;
+    background-blend-mode: normal, soft-light;
+    box-shadow:
+        0 -10px 28px rgba(0, 0, 0, 0.38),
+        inset 0 1px rgba(255, 224, 169, 0.05);
+    padding: 0.3rem env(safe-area-inset-right, 0px) calc(0.3rem + env(safe-area-inset-bottom, 0px))
+        env(safe-area-inset-left, 0px);
+}
+.mobile-app .mobile-navigation a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 3.5rem;
+    font-size: 0.875rem;
+    letter-spacing: -0.02em;
+    color: var(--mobile-muted);
+}
+.mobile-app .mobile-navigation a > span {
+    display: grid;
+    width: 1.35rem;
+    height: 1.35rem;
+    place-items: center;
+    line-height: 1.2;
+}
+.mobile-app .mobile-navigation a > span img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    pointer-events: none;
+    user-select: none;
+}
+.mobile-app .mobile-navigation a[aria-current] {
+    color: var(--mobile-gold);
+    border: 1px solid rgba(194, 132, 55, 0.42);
+    border-radius: 0.2rem;
+    background:
+        linear-gradient(180deg, rgba(86, 52, 19, 0.46), rgba(21, 12, 6, 0.7)),
+        url("../../assets/brushed-bronze-texture.webp") center / 11rem;
+    background-blend-mode: normal, multiply;
+    box-shadow: inset 0 1px rgba(255, 224, 153, 0.08);
+}
+.mobile-app .mobile-navigation a[aria-current] img {
+    filter: drop-shadow(0 0 0.28rem rgba(216, 162, 83, 0.35));
+}
+.mobile-app .mobile-eyebrow {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--mobile-gold);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+.mobile-app .mobile-home {
+    display: flex;
+    min-height: calc(100svh - 10rem);
+    flex-direction: column;
+    justify-content: center;
+    padding: 2rem 1.35rem;
+}
+.mobile-app .mobile-home h1 {
+    max-width: 12ch;
+    margin: 0;
+    color: #f0e9df;
+    font-family: var(--display-font);
+    font-size: clamp(2.5rem, 12vw, 4.4rem);
+    font-weight: 500;
+    letter-spacing: -0.035em;
+    line-height: 0.95;
+}
+.mobile-app .mobile-primary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.85rem 1rem;
+    border: 1px solid #ba8a46;
+    border-radius: 0.5rem;
+    background: linear-gradient(120deg, #765024, #4c321d);
+    color: #fff4dc;
+    font-weight: 600;
+}
+.mobile-app :is(button, input, select) {
+    min-height: 44px;
+    font-family: var(--ui-font);
+}
+.mobile-app :is(button, a, summary):focus-visible {
+    outline: 2px solid var(--mobile-gold);
+    outline-offset: 3px;
+}
+.mobile-app button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+.mobile-app .mobile-card {
+    padding: 1rem;
+    background: var(--mobile-surface);
+    border: 1px solid var(--mobile-border);
+    border-radius: 0.75rem;
+}
+.mobile-app .mobile-card h2 {
+    font-size: 1.125rem;
+    font-weight: 650;
+    margin-bottom: 0.75rem;
+}
+.mobile-app .mobile-muted {
+    color: var(--mobile-muted);
+    font-size: 0.875rem;
+    margin-block: 0.75rem;
+}
+.mobile-app .mobile-field {
+    display: grid;
+    gap: 0.5rem;
+    margin-block: 1rem;
+    font-size: 0.875rem;
+    color: var(--mobile-muted);
+}
+.mobile-app .mobile-field :is(input, select) {
+    width: 100%;
+    min-width: 0;
+    padding: 0.6rem;
+    border: 1px solid #71604d;
+    border-radius: 0.4rem;
+    background: #100f0e;
+    color: #f0e9df;
+    font-size: 1rem;
+}
+.mobile-app .mobile-back {
+    color: var(--mobile-gold);
+    text-align: left;
+    padding-block: 0.65rem;
+}
+.mobile-app .mobile-error {
+    color: #ffc6c0;
+    margin-block: 0.75rem;
+}
+/* Keep the edited field reachable while the software keyboard is open. */
+@media (max-height: 500px) {
+    .mobile-app:has(input:focus, select:focus) .mobile-navigation {
+        position: static;
+    }
+}
+
+/* The optimizer and library inherit the mobile builder's material palette. */
+.mobile-app:has(.mobile-optimizer, .build-library-theme) {
+    --mobile-border: rgba(166, 116, 55, 0.78);
+    --mobile-muted: #b6aca0;
+    --mobile-surface: #090909;
+    --mobile-gold: #e4ba70;
+    --mobile-material-panel:
+        linear-gradient(155deg, rgba(25, 24, 24, 0.98), rgba(7, 8, 8, 0.99) 62%),
+        url("../../assets/dark-forged-metal-texture.webp") center / 28rem;
+    --mobile-material-inset:
+        linear-gradient(105deg, rgba(34, 26, 20, 0.82), rgba(5, 7, 7, 0.94) 58%),
+        url("../../assets/panel-blackened-steel-texture.webp") center / 18rem;
+    --mobile-material-control:
+        linear-gradient(rgba(2, 2, 2, 0.58), rgba(2, 2, 2, 0.76)),
+        url("../../assets/panel-aged-leather-texture.webp") center / 15rem;
+    --mobile-material-active:
+        linear-gradient(rgba(77, 8, 15, 0.38), rgba(8, 3, 4, 0.74)),
+        url("../../assets/crimson-lacquer-texture.webp") center / 18rem;
+    --mobile-material-picker:
+        linear-gradient(rgba(3, 5, 5, 0.87), rgba(3, 5, 5, 0.94)),
+        url("../../assets/panel-blackened-steel-texture.webp") center / 34rem;
+    --mobile-material-result:
+        linear-gradient(90deg, rgba(8, 5, 4, 0.69), rgba(1, 2, 2, 0.84)),
+        url("../../assets/smoked-parchment-texture.webp") center / 14rem;
+    background:
+        linear-gradient(rgba(7, 7, 7, 0.48), rgba(4, 5, 5, 0.7)),
+        url("../../assets/builder-page-backdrop-texture.webp") center top / 68rem 68rem repeat;
+    background-blend-mode: normal, luminosity;
+}
+
+/* Native inputs retain keyboard, label and screen-reader behavior. */
+.mobile-app :is(.mobile-optimizer, .build-library-theme) input[type="checkbox"] {
+    appearance: none;
+    display: inline-grid;
+    place-content: center;
+    flex: 0 0 24px;
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    min-height: 24px;
+    padding: 0;
+    margin: 0;
+    border: 1px solid #b48a53;
+    border-radius: 0.2rem;
+    background: var(--mobile-material-control);
+    background-blend-mode: normal, soft-light;
+    box-shadow: inset 0 1px rgba(255, 224, 169, 0.07);
+    vertical-align: middle;
+    cursor: pointer;
+}
+.mobile-app :is(.mobile-optimizer, .build-library-theme) input[type="checkbox"]::before {
+    content: "";
+    width: 14px;
+    height: 14px;
+    background: #ffdfa1;
+    clip-path: polygon(0 45%, 17% 30%, 40% 55%, 84% 5%, 100% 20%, 42% 91%);
+    transform: scale(0);
+    box-shadow: none;
+    transition: none;
+}
+.mobile-app :is(.mobile-optimizer, .build-library-theme) input[type="checkbox"]:checked {
+    border-color: #e4ba70;
+    background: var(--mobile-material-active);
+    background-blend-mode: normal, soft-light;
+    box-shadow: inset 0 1px rgba(255, 210, 135, 0.12);
+}
+.mobile-app :is(.mobile-optimizer, .build-library-theme) input[type="checkbox"]:checked::before {
+    transform: scale(1);
+}
+.mobile-app :is(.mobile-optimizer, .build-library-theme) input[type="checkbox"]:focus-visible {
+    outline: 2px solid #ffdfa1;
+    outline-offset: 3px;
+}
+.mobile-app :is(.mobile-optimizer, .build-library-theme) input[type="checkbox"]:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+.mobile-app :is(.mobile-optimizer, .build-library-theme) label:has(input[type="checkbox"]) {
+    min-height: 44px;
+    cursor: pointer;
+}
+@media (forced-colors: active) {
+    .mobile-app :is(.mobile-optimizer, .build-library-theme) input[type="checkbox"] {
+        appearance: auto;
+        background: none;
+    }
+    .mobile-app :is(.mobile-optimizer, .build-library-theme) input[type="checkbox"]::before {
+        content: none;
+    }
+}

@@ -56,6 +56,50 @@ const renderSlot = (overrides = {}) => {
 describe("useGearSlot", () => {
     beforeEach(() => vi.spyOn(console, "error").mockImplementation(() => {}));
 
+    it("never publishes empty defaults when mounting a saved mobile slot", () => {
+        const saved = {
+            itemId: 1,
+            itemStars: 9,
+            orbIds: [10, 11],
+            orbLevels: [1, 3],
+            drifIds: [20],
+            drifLevels: { 0: 6 },
+        };
+        const { onUpdate, unmount } = renderSlot({
+            initializeFromSnapshot: true,
+            allSlots: { weapon: saved },
+        });
+        expect(onUpdate).toHaveBeenCalled();
+        for (const [, published] of onUpdate.mock.calls) {
+            expect(published).toMatchObject({
+                itemId: "1",
+                itemStars: 9,
+                orbIds: ["10", "11"],
+                orbLevels: [1, 3],
+                drifLevels: { 0: 6 },
+            });
+            expect(published.drifIds[0]).toBe("20");
+        }
+        unmount();
+        const remounted = renderSlot({ initializeFromSnapshot: true, allSlots: { weapon: saved } });
+        expect(remounted.onUpdate.mock.calls[0][1].itemId).toBe("1");
+    });
+
+    it("initializes mobile built-in drif levels before the first publication", () => {
+        const { onUpdate } = renderSlot({
+            initializeFromSnapshot: true,
+            allSlots: { weapon: { itemId: 3, itemStars: 7, drifIds: [22], drifLevels: { 0: 13 } } },
+        });
+        for (const [, published] of onUpdate.mock.calls) {
+            expect(published).toMatchObject({
+                itemId: "3",
+                itemStars: 7,
+                drifIds: [22],
+                drifLevels: { 0: 13 },
+            });
+        }
+    });
+
     it("starts empty and exposes safe grouping and drag state", () => {
         const { result } = renderSlot();
         expect(result.current.fullSelectedItem).toBeUndefined();
