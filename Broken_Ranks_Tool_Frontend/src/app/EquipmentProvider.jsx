@@ -5,7 +5,13 @@ import { useEquipmentLocks } from "../features/equipment/useEquipmentLocks";
 import { useEquipmentCatalog } from "../features/equipment/useEquipmentCatalog";
 import { useEquipmentStats } from "../features/equipment/useEquipmentStats";
 import { useEquipmentOptimization } from "../features/optimizer/useEquipmentOptimization";
-import { EquipmentContext } from "../shared/state/EquipmentContext";
+import {
+    EquipmentContext,
+    EquipmentCatalogContext,
+    EquipmentSetupContext,
+    EquipmentLocksContext,
+    EquipmentCalculationContext,
+} from "../shared/state/EquipmentContext";
 import { readEquipmentDraft, writeEquipmentDraft } from "./storage/workingDraftStorage";
 
 /**
@@ -212,5 +218,68 @@ export const EquipmentProvider = ({ children }) => {
         ]
     );
 
-    return <EquipmentContext.Provider value={value}>{children}</EquipmentContext.Provider>;
+    const catalogValue = useMemo(
+        () => ({
+            data,
+            categoryNames,
+            orbCategories,
+            drifCategories,
+            gameRules,
+            loading,
+            initialDataError,
+        }),
+        [data, categoryNames, orbCategories, drifCategories, gameRules, loading, initialDataError]
+    );
+    const setupValue = useMemo(
+        () => ({
+            requestData,
+            characterConfig,
+            optimizationTrigger,
+            handleSlotUpdate,
+            handleCharacterStatsUpdate,
+        }),
+        [
+            requestData,
+            characterConfig,
+            optimizationTrigger,
+            handleSlotUpdate,
+            handleCharacterStatsUpdate,
+        ]
+    );
+    const locksValue = useMemo(
+        () => ({ lockedSlots, lockedDrifs, toggleSlotLock, toggleDrifLock }),
+        [lockedSlots, lockedDrifs, toggleSlotLock, toggleDrifLock]
+    );
+    const calculationValue = useMemo(
+        () => ({
+            stats,
+            statSources,
+            isCalculatingStats,
+            calculationNotice,
+            dismissCalculationNotice,
+            calculateStats,
+        }),
+        [
+            stats,
+            statSources,
+            isCalculatingStats,
+            calculationNotice,
+            dismissCalculationNotice,
+            calculateStats,
+        ]
+    );
+
+    return (
+        <EquipmentCatalogContext.Provider value={catalogValue}>
+            <EquipmentSetupContext.Provider value={setupValue}>
+                <EquipmentLocksContext.Provider value={locksValue}>
+                    <EquipmentCalculationContext.Provider value={calculationValue}>
+                        <EquipmentContext.Provider value={value}>
+                            {children}
+                        </EquipmentContext.Provider>
+                    </EquipmentCalculationContext.Provider>
+                </EquipmentLocksContext.Provider>
+            </EquipmentSetupContext.Provider>
+        </EquipmentCatalogContext.Provider>
+    );
 };

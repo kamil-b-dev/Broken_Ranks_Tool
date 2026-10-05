@@ -1,5 +1,5 @@
 import React from "react";
-import { useEquipment } from "../../../shared/state/EquipmentContext";
+import { useEquipmentLocksState } from "../../../shared/state/EquipmentContext";
 import BuiltInDrifSlots from "./BuiltInDrifSlots";
 import StandardDrifSlot from "./StandardDrifSlot";
 
@@ -53,7 +53,7 @@ const DrifSection = ({
         groupByType,
     } = hookData;
 
-    const { lockedDrifs, toggleDrifLock, lockedSlots } = useEquipment();
+    const { lockedDrifs, toggleDrifLock, lockedSlots } = useEquipmentLocksState();
 
     const isParentSlotLocked = lockedSlots?.includes(slotKey) || false;
 

@@ -1,9 +1,9 @@
-import { useEquipment } from "../../../shared/state/EquipmentContext";
+import { useEquipmentSetup } from "../../../shared/state/EquipmentContext";
 import { useCharacterDevelopment } from "../character/useCharacterDevelopment";
 import { STAT_CONFIG } from "../character/characterConstants";
 
 export default function MobileCharacterPanel() {
-    const equipment = useEquipment();
+    const equipment = useEquipmentSetup();
     const model = useCharacterDevelopment({
         onStatsChange: equipment.handleCharacterStatsUpdate,
         externalConfig: equipment.characterConfig,

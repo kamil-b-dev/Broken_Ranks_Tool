@@ -14,6 +14,7 @@ vi.mock("../../api/equipmentApi", () => ({
 
 vi.mock("../../shared/state/EquipmentContext", () => ({
     useEquipment: vi.fn(),
+    useEquipmentLocksState: () => useEquipment(),
 }));
 
 const optimizationResult = {

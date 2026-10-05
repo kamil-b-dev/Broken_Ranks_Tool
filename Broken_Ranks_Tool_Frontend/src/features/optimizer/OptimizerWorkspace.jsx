@@ -1,6 +1,6 @@
 import OptimizerPanel from "./OptimizerPanel";
 import OptimizerOverviewBar from "./OptimizerOverviewBar";
-import { useEquipment } from "../../shared/state/EquipmentContext";
+import { useEquipmentSetup, useEquipmentLocksState } from "../../shared/state/EquipmentContext";
 
 /**
  * Presents drif optimization independently from manual build editing.
@@ -9,7 +9,8 @@ import { useEquipment } from "../../shared/state/EquipmentContext";
  * @returns {JSX.Element} Drif optimizer workspace.
  */
 const OptimizerWorkspace = ({ active = true, settings, onSettingsChange, onBackToBuilder }) => {
-    const { requestData, lockedSlots, lockedDrifs } = useEquipment();
+    const { requestData } = useEquipmentSetup();
+    const { lockedSlots, lockedDrifs } = useEquipmentLocksState();
 
     return (
         <main

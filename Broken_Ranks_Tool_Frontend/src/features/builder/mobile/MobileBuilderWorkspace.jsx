@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { useEquipment } from "../../../shared/state/EquipmentContext";
+import {
+    useEquipmentCatalogState,
+    useEquipmentSetup,
+} from "../../../shared/state/EquipmentContext";
 import { SLOTS } from "../../../shared/domain/equipment/equipmentSlots";
 import { useBuilderWorkspace } from "../useBuilderWorkspace";
 import { maximizeStoneLevels } from "../maximizeStoneLevels";
@@ -10,7 +13,7 @@ import MobileStatsPanel from "./MobileStatsPanel";
 import "./mobile-builder.css";
 
 export default function MobileBuilderWorkspace() {
-    const equipment = useEquipment();
+    const equipment = { ...useEquipmentCatalogState(), ...useEquipmentSetup() };
     const { data, requestData, gameRules, handleSlotUpdate } = equipment;
     const model = useBuilderWorkspace({ items: data.items, slots: requestData.slots });
     const route = useMobileBuilderRoute();

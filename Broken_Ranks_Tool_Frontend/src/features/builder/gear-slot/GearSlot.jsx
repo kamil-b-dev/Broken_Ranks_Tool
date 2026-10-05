@@ -1,6 +1,6 @@
 import React from "react";
 import { useGearSlot } from "./useGearSlot.js";
-import { useEquipment } from "../../../shared/state/EquipmentContext";
+import { useEquipmentLocksState } from "../../../shared/state/EquipmentContext";
 import ItemSection from "./ItemSection.jsx";
 import OrbSection from "./OrbSection.jsx";
 import DrifSection from "./DrifSection.jsx";
@@ -46,7 +46,7 @@ const GearSlot = (props) => {
         groupedOrbs2,
     } = hookData;
 
-    const { lockedSlots, toggleSlotLock } = useEquipment();
+    const { lockedSlots, toggleSlotLock } = useEquipmentLocksState();
 
     const isSlotLocked = lockedSlots?.includes(slotKey) || false;
 

@@ -1,11 +1,15 @@
-import { useEquipment } from "../../../shared/state/EquipmentContext";
+import {
+    useEquipmentCatalogState,
+    useEquipmentSetup,
+} from "../../../shared/state/EquipmentContext";
 import { useGearSlot } from "../gear-slot/useGearSlot";
 import DrifSection from "../gear-slot/DrifSection";
 import OrbSection from "../gear-slot/OrbSection";
 import MobileItemPicker from "./MobileItemPicker";
 
 export default function MobileGearSlot({ slot, items, pickingItem, onPickItem, onClosePicker }) {
-    const { data, requestData, gameRules, handleSlotUpdate, optimizationTrigger } = useEquipment();
+    const { data, gameRules } = useEquipmentCatalogState();
+    const { requestData, handleSlotUpdate, optimizationTrigger } = useEquipmentSetup();
     const model = useGearSlot({
         slotKey: slot.key,
         items,

@@ -8,6 +8,10 @@ import { downloadBuildPayload } from "../features/builds/buildFile";
 vi.mock("../shared/state/EquipmentContext", async (importOriginal) => ({
     ...(await importOriginal()),
     useEquipment: vi.fn(),
+    useEquipmentCatalogState: () => useEquipment(),
+    useEquipmentSetup: () => useEquipment(),
+    useEquipmentLocksState: () => useEquipment(),
+    useEquipmentCalculation: () => useEquipment(),
 }));
 
 vi.mock("../features/builds/buildFile", async (importOriginal) => ({
