@@ -36,6 +36,7 @@ export const EquipmentProvider = ({ children }) => {
         calculationNotice,
         dismissCalculationNotice,
         calculateStats,
+        calculateStatsFor,
         restoreStats,
     } = useEquipmentStats(requestData);
 
@@ -142,6 +143,7 @@ export const EquipmentProvider = ({ children }) => {
             setCharacterConfig,
             replaceLocks,
             restoreStats,
+            calculateStatsFor,
             markEquipmentChanged,
         });
 

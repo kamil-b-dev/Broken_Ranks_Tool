@@ -8,6 +8,33 @@ vi.mock("../../shared/api/equipmentApi", () => ({ calculateEquipmentStats: vi.fn
 afterEach(() => vi.restoreAllMocks());
 
 describe("useEquipmentStats", () => {
+    it("keeps an imported calculation through state installation and rejects it after another edit", async () => {
+        let finish;
+        calculateEquipmentStats.mockImplementation(
+            () =>
+                new Promise((resolve) => {
+                    finish = resolve;
+                })
+        );
+        const original = { slots: {} };
+        const imported = { slots: { helmet: { itemId: 7 } } };
+        const { result, rerender } = renderHook(({ request }) => useEquipmentStats(request), {
+            initialProps: { request: original },
+        });
+        let pending;
+        act(() => {
+            pending = result.current.calculateStatsFor(imported);
+        });
+        rerender({ request: imported });
+        expect(result.current.isCalculatingStats).toBe(true);
+        rerender({ request: original });
+        await act(async () => {
+            finish({ stats: { Atak: 999 } });
+            await pending;
+        });
+        expect(result.current.stats).toBeNull();
+        expect(result.current.isCalculatingStats).toBe(false);
+    });
     it("stores calculated stats and their display sources", async () => {
         const requestData = { slots: { helmet: { itemId: 1 } } };
         calculateEquipmentStats.mockResolvedValue({

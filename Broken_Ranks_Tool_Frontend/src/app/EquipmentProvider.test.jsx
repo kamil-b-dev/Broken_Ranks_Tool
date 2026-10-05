@@ -412,7 +412,7 @@ describe("EquipmentProvider", () => {
         expect(exposeRef.current.isCalculatingStats).toBe(false);
     });
 
-    it("captures and restores a local build snapshot with calculated statistics", async () => {
+    it("recalculates a saved snapshot against current rules instead of restoring saved statistics", async () => {
         server.use(
             http.get("*/api/initial-data", () =>
                 HttpResponse.json({
@@ -447,6 +447,11 @@ describe("EquipmentProvider", () => {
         });
         await act(async () => exposeRef.current.calculateStats());
         const snapshot = exposeRef.current.createBuildSnapshot();
+        server.use(
+            http.post("*/api/calculator/calculate", () =>
+                HttpResponse.json({ stats: { Atak: 211 } })
+            )
+        );
 
         act(() => {
             exposeRef.current.handleSlotUpdate("helmet", {
@@ -461,7 +466,8 @@ describe("EquipmentProvider", () => {
         });
 
         expect(exposeRef.current.requestData.slots.helmet.itemId).toBe(1);
-        expect(exposeRef.current.stats).toEqual({ Atak: 155 });
+        expect(exposeRef.current.stats).toBeNull();
+        await waitFor(() => expect(exposeRef.current.stats).toEqual({ Atak: 211 }));
     });
 
     it("returns backend optimization errors and reports calculator failures", async () => {

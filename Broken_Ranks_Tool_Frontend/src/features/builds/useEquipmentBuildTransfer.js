@@ -19,6 +19,7 @@ export const useEquipmentBuildTransfer = ({
     setCharacterConfig,
     replaceLocks,
     restoreStats,
+    calculateStatsFor,
     markEquipmentChanged,
 }) => {
     const createBuildSnapshot = useCallback(
@@ -36,14 +37,23 @@ export const useEquipmentBuildTransfer = ({
     );
 
     const applyImportedBuild = useCallback(
-        (importedBuild, savedStats = null, savedStatSources = {}) => {
+        (importedBuild) => {
             setRequestData(importedBuild.requestData);
             setCharacterConfig(importedBuild.characterConfig);
             replaceLocks(importedBuild.lockedSlots, importedBuild.lockedDrifs);
-            restoreStats(savedStats, savedStatSources, importedBuild.requestData);
+            // Persisted statistics describe the catalogue at save time, not the current rules.
+            restoreStats(null);
             markEquipmentChanged();
+            void calculateStatsFor(importedBuild.requestData);
         },
-        [markEquipmentChanged, replaceLocks, restoreStats, setCharacterConfig, setRequestData]
+        [
+            calculateStatsFor,
+            markEquipmentChanged,
+            replaceLocks,
+            restoreStats,
+            setCharacterConfig,
+            setRequestData,
+        ]
     );
 
     const saveBuildToFile = useCallback(() => {
@@ -54,7 +64,7 @@ export const useEquipmentBuildTransfer = ({
     const loadBuildSnapshot = useCallback(
         (snapshot) => {
             const importedBuild = parseBuildPayload(snapshot?.payload, data);
-            applyImportedBuild(importedBuild, snapshot?.stats, snapshot?.statSources);
+            applyImportedBuild(importedBuild);
         },
         [applyImportedBuild, data]
     );
