@@ -6,6 +6,7 @@ import lombok.experimental.SuperBuilder;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_CATEGORY;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_SIZE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.ModifierNumbers;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.BaseNamedEntity;
 
 /** Defines a reusable drif template. */
@@ -31,4 +32,10 @@ public class DrifTemplate extends BaseNamedEntity {
     private String increment;
     private String rankRange;
     private int price;
+
+    @PostLoad
+    void validateNumericValues() {
+        ModifierNumbers.parse(baseValue, "drif id=" + getId() + ".baseValue");
+        ModifierNumbers.parse(increment, "drif id=" + getId() + ".increment");
+    }
 }

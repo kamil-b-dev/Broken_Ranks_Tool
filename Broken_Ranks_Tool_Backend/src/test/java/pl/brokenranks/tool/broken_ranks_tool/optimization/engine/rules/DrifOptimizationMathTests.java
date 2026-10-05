@@ -83,14 +83,25 @@ class DrifOptimizationMathTests {
 
     @ParameterizedTest
     @CsvSource(
-            value = {"NULL|1%", "2%|NULL", "invalid|1%", "2%|invalid"},
+            value = {
+                "NULL|1%",
+                "2%|NULL",
+                "invalid|1%",
+                "2%|invalid",
+                "NaN|1%",
+                "2%|Infinity",
+                "1e309|1%"
+            },
             delimiter = '|',
             nullValues = "NULL")
-    void missingOrMalformedValuesDoNotBreakSearch(String base, String increment) {
+    void rejectsMalformedCatalogValuesWithTheTemplateId(String base, String increment) {
         DrifTemplate drif = drif(DRIF_SIZE.SUBDRIF);
         drif.setBaseValue(base);
         drif.setIncrement(increment);
-        assertEquals(0, calculateDrifValue(drif, 6));
+        assertTrue(
+                assertThrows(IllegalArgumentException.class, () -> calculateDrifValue(drif, 6))
+                        .getMessage()
+                        .contains("id=1"));
     }
 
     private DrifTemplate drif(DRIF_SIZE size) {
