@@ -141,21 +141,20 @@ class FireMageBalancedEndgameOracleBenchmark {
                         StandardCharsets.UTF_8);
             }
             recursiveProof(
-                    solver,
-                    context,
-                    hint,
-                    provenPrefix,
-                    proofIndex,
-                    proofIncumbent,
-                    fixture.objectivePlan(),
-                    recursiveProofAxes(),
+                    new ProofSearch(
+                            new ProofTask(
+                                    solver,
+                                    context,
+                                    hint,
+                                    provenPrefix,
+                                    proofIndex,
+                                    proofIncumbent,
+                                    fixture.objectivePlan()),
+                            recursiveProofAxes(),
+                            manifest,
+                            provenPartitions),
                     0,
-                    fixedCounts,
-                    Map.of(),
-                    Map.of(),
-                    fixedTotalCount,
-                    manifest,
-                    provenPartitions);
+                    new ProofPartition(fixedCounts, Map.of(), Map.of(), fixedTotalCount));
             return;
         }
         if (!totalCountPartitions.isEmpty()) {
@@ -257,7 +256,7 @@ class FireMageBalancedEndgameOracleBenchmark {
         System.out.println("FIRE_MAGE_BALANCED_ORACLE build_json=" + exported);
     }
 
-    private void recursiveProof(
+    private record ProofTask(
             CpSatBuildOptimizationSolver solver,
             pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationContext
                     context,
@@ -265,16 +264,35 @@ class FireMageBalancedEndgameOracleBenchmark {
             List<Long> provenPrefix,
             int proofIndex,
             long incumbent,
-            CpSatBuildOptimizationSolver.ObjectivePlan objectivePlan,
-            List<String> axes,
-            int depth,
-            Map<DRIF_BONUS_TYPE, Integer> fixedCounts,
-            Map<CpSatBuildOptimizationSolver.SizeCount, Integer> fixedSizeCounts,
-            Map<CpSatBuildOptimizationSolver.SlotCount, Integer> fixedSlotCounts,
-            Integer fixedTotalCount,
-            Path manifest,
-            Set<String> provenPartitions)
+            CpSatBuildOptimizationSolver.ObjectivePlan objectivePlan) {}
+
+    /** Session owns the accumulated proof cache; each recursive partition owns its count maps. */
+    private record ProofSearch(
+            ProofTask task, List<String> axes, Path manifest, Set<String> provenPartitions) {}
+
+    private record ProofPartition(
+            Map<DRIF_BONUS_TYPE, Integer> counts,
+            Map<CpSatBuildOptimizationSolver.SizeCount, Integer> sizeCounts,
+            Map<CpSatBuildOptimizationSolver.SlotCount, Integer> slotCounts,
+            Integer totalCount) {}
+
+    private void recursiveProof(ProofSearch search, int depth, ProofPartition partition)
             throws Exception {
+        var solver = search.task().solver();
+        var context = search.task().context();
+        var hint = search.task().hint();
+        var provenPrefix = search.task().provenPrefix();
+        int proofIndex = search.task().proofIndex();
+        long incumbent = search.task().incumbent();
+        var objectivePlan = search.task().objectivePlan();
+        var axes = search.axes();
+        var manifest = search.manifest();
+        var provenPartitions = search.provenPartitions();
+        var fixedCounts = partition.counts();
+        var fixedSizeCounts = partition.sizeCounts();
+        var fixedSlotCounts = partition.slotCounts();
+        var fixedTotalCount = partition.totalCount();
+
         String partitionKey =
                 proofPartitionKey(fixedTotalCount, fixedCounts, fixedSizeCounts, fixedSlotCounts);
         if (provenPartitions.contains(partitionKey)) return;
@@ -379,21 +397,9 @@ class FireMageBalancedEndgameOracleBenchmark {
                 childCounts.put(DRIF_BONUS_TYPE.valueOf(axis), value);
             }
             recursiveProof(
-                    solver,
-                    context,
-                    hint,
-                    provenPrefix,
-                    proofIndex,
-                    incumbent,
-                    objectivePlan,
-                    axes,
+                    search,
                     depth + 1,
-                    childCounts,
-                    childSizeCounts,
-                    childSlotCounts,
-                    childTotal,
-                    manifest,
-                    provenPartitions);
+                    new ProofPartition(childCounts, childSizeCounts, childSlotCounts, childTotal));
         }
     }
 

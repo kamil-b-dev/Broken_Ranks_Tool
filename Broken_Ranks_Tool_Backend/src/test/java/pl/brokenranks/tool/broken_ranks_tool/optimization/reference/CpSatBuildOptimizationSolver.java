@@ -132,17 +132,14 @@ public final class CpSatBuildOptimizationSolver {
             List<Long> provenObjectivePrefix) {
         return solve(
                 context,
-                limit,
-                hint,
-                provenObjectivePrefix,
-                Map.of(),
-                Integer.MAX_VALUE,
-                null,
-                null,
-                objectivePlan,
-                null,
-                Map.of(),
-                Map.of());
+                new SolveOptions(
+                        limit,
+                        hint,
+                        provenObjectivePrefix,
+                        new CountConstraints(Map.of(), Map.of(), Map.of(), null),
+                        Integer.MAX_VALUE,
+                        new ProofTarget(null, null),
+                        objectivePlan));
     }
 
     public Result solve(
@@ -171,17 +168,14 @@ public final class CpSatBuildOptimizationSolver {
             int objectiveLimit) {
         return solve(
                 context,
-                limit,
-                hint,
-                provenObjectivePrefix,
-                fixedCounts,
-                objectiveLimit,
-                null,
-                null,
-                null,
-                null,
-                Map.of(),
-                Map.of());
+                new SolveOptions(
+                        limit,
+                        hint,
+                        provenObjectivePrefix,
+                        new CountConstraints(fixedCounts, Map.of(), Map.of(), null),
+                        objectiveLimit,
+                        new ProofTarget(null, null),
+                        null));
     }
 
     public Result proveNoBetter(
@@ -193,17 +187,14 @@ public final class CpSatBuildOptimizationSolver {
             long incumbent) {
         return solve(
                 context,
-                limit,
-                hint,
-                provenObjectivePrefix,
-                Map.of(),
-                7,
-                objectiveIndex,
-                incumbent,
-                null,
-                null,
-                Map.of(),
-                Map.of());
+                new SolveOptions(
+                        limit,
+                        hint,
+                        provenObjectivePrefix,
+                        new CountConstraints(Map.of(), Map.of(), Map.of(), null),
+                        7,
+                        new ProofTarget(objectiveIndex, incumbent),
+                        null));
     }
 
     public Result proveNoBetter(
@@ -216,17 +207,14 @@ public final class CpSatBuildOptimizationSolver {
             ObjectivePlan objectivePlan) {
         return solve(
                 context,
-                limit,
-                hint,
-                provenObjectivePrefix,
-                Map.of(),
-                Integer.MAX_VALUE,
-                objectiveIndex,
-                incumbent,
-                objectivePlan,
-                null,
-                Map.of(),
-                Map.of());
+                new SolveOptions(
+                        limit,
+                        hint,
+                        provenObjectivePrefix,
+                        new CountConstraints(Map.of(), Map.of(), Map.of(), null),
+                        Integer.MAX_VALUE,
+                        new ProofTarget(objectiveIndex, incumbent),
+                        objectivePlan));
     }
 
     /**
@@ -373,17 +361,14 @@ public final class CpSatBuildOptimizationSolver {
             ObjectivePlan objectivePlan) {
         return solve(
                 context,
-                limit,
-                hint,
-                provenObjectivePrefix,
-                fixedCounts,
-                Integer.MAX_VALUE,
-                objectiveIndex,
-                incumbent,
-                objectivePlan,
-                fixedTotalCount,
-                Map.of(),
-                Map.of());
+                new SolveOptions(
+                        limit,
+                        hint,
+                        provenObjectivePrefix,
+                        new CountConstraints(fixedCounts, Map.of(), Map.of(), fixedTotalCount),
+                        Integer.MAX_VALUE,
+                        new ProofTarget(objectiveIndex, incumbent),
+                        objectivePlan));
     }
 
     public Result proveNoBetter(
@@ -400,35 +385,47 @@ public final class CpSatBuildOptimizationSolver {
             ObjectivePlan objectivePlan) {
         return solve(
                 context,
-                limit,
-                hint,
-                provenObjectivePrefix,
-                fixedCounts,
-                Integer.MAX_VALUE,
-                objectiveIndex,
-                incumbent,
-                objectivePlan,
-                fixedTotalCount,
-                fixedSizeCounts,
-                fixedSlotCounts);
+                new SolveOptions(
+                        limit,
+                        hint,
+                        provenObjectivePrefix,
+                        new CountConstraints(
+                                fixedCounts, fixedSizeCounts, fixedSlotCounts, fixedTotalCount),
+                        Integer.MAX_VALUE,
+                        new ProofTarget(objectiveIndex, incumbent),
+                        objectivePlan));
     }
 
-    private Result solve(
-            OptimizationContext context,
+    private record CountConstraints(
+            Map<DRIF_BONUS_TYPE, Integer> bonuses,
+            Map<SizeCount, Integer> sizes,
+            Map<SlotCount, Integer> slots,
+            Integer total) {}
+
+    private record ProofTarget(Integer objectiveIndex, Long incumbent) {}
+
+    private record SolveOptions(
             Duration limit,
             BuildState hint,
-            List<Long> provenObjectivePrefix,
-            Map<DRIF_BONUS_TYPE, Integer> fixedCounts,
+            List<Long> provenPrefix,
+            CountConstraints counts,
             int objectiveLimit,
-            Integer proofObjectiveIndex,
-            Long proofIncumbent,
-            ObjectivePlan objectivePlan,
-            Integer fixedTotalCount,
-            Map<SizeCount, Integer> fixedSizeCounts,
-            Map<SlotCount, Integer> fixedSlotCounts) {
-        Loader.loadNativeLibraries();
-        long started = System.nanoTime();
-        long deadline = started + limit.toNanos();
+            ProofTarget proof,
+            ObjectivePlan plan) {}
+
+    private record PreparedModel(
+            CpModel model, BuildState fixed, List<Choice> choices, List<Objective> objectives) {}
+
+    private PreparedModel prepareModel(OptimizationContext context, SolveOptions options) {
+        BuildState hint = options.hint();
+        List<Long> provenObjectivePrefix = options.provenPrefix();
+        Map<DRIF_BONUS_TYPE, Integer> fixedCounts = options.counts().bonuses();
+        Map<SizeCount, Integer> fixedSizeCounts = options.counts().sizes();
+        Map<SlotCount, Integer> fixedSlotCounts = options.counts().slots();
+        Integer fixedTotalCount = options.counts().total();
+        int objectiveLimit = options.objectiveLimit();
+        Integer proofObjectiveIndex = options.proof().objectiveIndex();
+        ObjectivePlan objectivePlan = options.plan();
         CpModel model = new CpModel();
         BuildState fixed = initialStates.create(context);
         Map<DRIF_BONUS_TYPE, Integer> resolvedFixedCounts =
@@ -471,6 +468,26 @@ public final class CpSatBuildOptimizationSolver {
         if (!validationError.isBlank()) {
             throw new IllegalStateException("Invalid CP-SAT model: " + validationError);
         }
+
+        return new PreparedModel(model, fixed, choices, objectives);
+    }
+
+    private Result solve(OptimizationContext context, SolveOptions options) {
+        Duration limit = options.limit();
+        BuildState hint = options.hint();
+        List<Long> provenObjectivePrefix = options.provenPrefix();
+        int objectiveLimit = options.objectiveLimit();
+        Integer proofObjectiveIndex = options.proof().objectiveIndex();
+        Long proofIncumbent = options.proof().incumbent();
+
+        Loader.loadNativeLibraries();
+        long started = System.nanoTime();
+        long deadline = started + limit.toNanos();
+        PreparedModel prepared = prepareModel(context, options);
+        CpModel model = prepared.model();
+        BuildState fixed = prepared.fixed();
+        List<Choice> choices = prepared.choices();
+        List<Objective> objectives = prepared.objectives();
 
         CpSolver solver = new CpSolver();
         List<Long> objectiveValues = new ArrayList<>(provenObjectivePrefix);
