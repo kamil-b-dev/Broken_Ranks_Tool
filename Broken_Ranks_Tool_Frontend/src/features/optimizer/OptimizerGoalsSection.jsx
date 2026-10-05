@@ -1,4 +1,3 @@
-import React from "react";
 import { numericStatValue } from "./optimizerDomain";
 
 const evaluateGoal = (goal, current, activeVariant, maxCap) => {

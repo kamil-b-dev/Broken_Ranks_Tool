@@ -13,7 +13,6 @@ import {
     getAvailableSecondaryOrbs,
     getEffectiveDrifMultiplier,
     groupGearOptionsByType,
-    hasElementalDrifInOtherSlot,
 } from "./gearSlotDomain";
 
 describe("gearSlotDomain", () => {
@@ -212,26 +211,6 @@ describe("gearSlotDomain", () => {
         ).toEqual([3]);
     });
 
-    it("detects elemental drifs only outside the current slot", () => {
-        const input = {
-            drifs: [{ id: 4, bonusType: "DAMAGE_FIRE" }],
-            elementalTypes: ["DAMAGE_FIRE"],
-        };
-        expect(
-            hasElementalDrifInOtherSlot({
-                ...input,
-                allSlots: { helmet: { drifIds: [4] }, weapon: { drifIds: [] } },
-                currentSlotKey: "weapon",
-            })
-        ).toBe(true);
-        expect(
-            hasElementalDrifInOtherSlot({
-                ...input,
-                allSlots: { weapon: { drifIds: [4] } },
-                currentSlotKey: "weapon",
-            })
-        ).toBe(false);
-    });
     it("does not publish levels for removed stones or stones in an empty item slot", () => {
         const state = {
             selectedItem: "7",

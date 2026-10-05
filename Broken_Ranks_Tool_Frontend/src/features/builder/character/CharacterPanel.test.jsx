@@ -4,6 +4,19 @@ import { describe, expect, it, vi } from "vitest";
 import CharacterPanel from "./CharacterPanel";
 
 describe("CharacterPanel", () => {
+    it("preserves empty imported character stats when the editor is reopened", () => {
+        const onStatsChange = vi.fn();
+        const panel = render(<CharacterPanel onStatsChange={onStatsChange} externalStats={{}} />);
+        expect(onStatsChange).not.toHaveBeenCalled();
+        panel.unmount();
+        render(<CharacterPanel onStatsChange={onStatsChange} externalStats={{}} syncTrigger={2} />);
+        expect(onStatsChange).not.toHaveBeenCalled();
+        fireEvent.change(screen.getByRole("spinbutton"), { target: { value: "2" } });
+        expect(onStatsChange).toHaveBeenLastCalledWith(
+            expect.objectContaining({ Siła: 10, PŻ: 200 }),
+            expect.objectContaining({ level: 2 })
+        );
+    });
     it("allocates and resets points after changing the level", async () => {
         const user = userEvent.setup();
         const onStatsChange = vi.fn();

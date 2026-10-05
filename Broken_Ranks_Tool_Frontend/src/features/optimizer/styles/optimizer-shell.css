@@ -389,21 +389,6 @@
     color: #75687b;
 }
 
-.optimizer-level-lock {
-    display: inline-flex;
-    flex: 0 0 auto;
-    cursor: pointer;
-    align-items: center;
-    gap: 0.25rem;
-    color: #9c8ca4;
-    font-size: 0.52rem;
-    white-space: nowrap;
-}
-
-.optimizer-level-lock input {
-    accent-color: #cf3e50;
-}
-
 .optimizer-lock-drif-locked button {
     color: #d5a45b;
 }

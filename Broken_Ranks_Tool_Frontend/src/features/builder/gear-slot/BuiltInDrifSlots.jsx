@@ -1,4 +1,3 @@
-import React from "react";
 import CategoryIcon from "../../../shared/ui/CategoryIcon";
 
 /** Renders fixed drif types provided by epic and set items with editable levels. */

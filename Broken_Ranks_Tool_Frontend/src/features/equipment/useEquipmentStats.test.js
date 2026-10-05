@@ -62,7 +62,7 @@ describe("useEquipmentStats", () => {
             .mockRejectedValueOnce({ response: { data: { message: "Niepoprawny build" } } });
         const { result } = renderHook(() => useEquipmentStats({ slots: {} }));
         await act(async () => result.current.calculateStats());
-        act(() => result.current.resetStats());
+        act(() => result.current.restoreStats(null));
         expect(result.current.stats).toBeNull();
 
         await act(async () => result.current.calculateStats());
@@ -147,7 +147,7 @@ describe("useEquipmentStats", () => {
         expect(result.current.stats).toEqual({ Atak: 200 });
         expect(result.current.calculationNotice).toBeNull();
     });
-    it.each(["restore", "reset"])(
+    it.each(["restore", "clear"])(
         "invalidates a pending calculation on %s and clears progress",
         async (operation) => {
             let finish;
@@ -167,7 +167,7 @@ describe("useEquipmentStats", () => {
             act(() =>
                 operation === "restore"
                     ? result.current.restoreStats({ Atak: 200 }, {}, request)
-                    : result.current.resetStats()
+                    : result.current.restoreStats(null)
             );
             expect(result.current.isCalculatingStats).toBe(false);
             await act(async () => {

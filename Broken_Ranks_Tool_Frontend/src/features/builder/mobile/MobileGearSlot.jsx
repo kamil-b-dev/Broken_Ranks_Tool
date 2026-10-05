@@ -19,7 +19,6 @@ export default function MobileGearSlot({ slot, items, pickingItem, onPickItem, o
         gameRules,
         onUpdate: handleSlotUpdate,
         optimizationTrigger,
-        initializeFromSnapshot: true,
     });
     const selectItem = (item) => {
         model.setSelectedItem(item ? String(item.id) : "");

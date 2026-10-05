@@ -1,4 +1,3 @@
-import React from "react";
 import { SLOTS } from "../../shared/domain/equipment/equipmentSlots";
 
 const formatBonus = (bonus) =>

@@ -56,6 +56,51 @@ const renderSlot = (overrides = {}) => {
 describe("useGearSlot", () => {
     beforeEach(() => vi.spyOn(console, "error").mockImplementation(() => {}));
 
+    it("publishes only the new draft on import and clears an entirely empty imported build", () => {
+        const onUpdate = vi.fn();
+        const base = { slotKey: "weapon", items, orbs, drifs, gameRules, onUpdate };
+        const { result, rerender } = renderHook((props) => useGearSlot({ ...base, ...props }), {
+            initialProps: { allSlots: {}, optimizationTrigger: 0 },
+        });
+        act(() => result.current.setSelectedItem("1"));
+        onUpdate.mockClear();
+        rerender({ allSlots: { weapon: { itemId: 2, itemStars: 7 } }, optimizationTrigger: 1 });
+        expect(onUpdate).toHaveBeenCalled();
+        expect(
+            onUpdate.mock.calls.every(([, slot]) => slot.itemId === "2" && slot.itemStars === 7)
+        ).toBe(true);
+        onUpdate.mockClear();
+        rerender({ allSlots: {}, optimizationTrigger: 2 });
+        expect(result.current.selectedItem).toBe("");
+        expect(
+            onUpdate.mock.calls.every(
+                ([, slot]) => slot.itemId === null && slot.drifIds.length === 0
+            )
+        ).toBe(true);
+    });
+
+    it("keeps local edits when the provider acknowledges another slot", () => {
+        const onUpdate = vi.fn();
+        const base = {
+            slotKey: "weapon",
+            items,
+            orbs,
+            drifs,
+            gameRules,
+            onUpdate,
+            optimizationTrigger: 0,
+        };
+        const { result, rerender } = renderHook(
+            ({ allSlots }) => useGearSlot({ ...base, allSlots }),
+            { initialProps: { allSlots: {} } }
+        );
+        act(() => result.current.setSelectedItem("1"));
+        act(() => result.current.setItemStars((stars) => stars + 1));
+        rerender({ allSlots: { armor: { itemId: 2 } } });
+        expect(result.current.selectedItem).toBe("1");
+        expect(result.current.itemStars).toBe(2);
+    });
+
     it("never publishes empty defaults when mounting a saved mobile slot", () => {
         const saved = {
             itemId: 1,
@@ -66,7 +111,6 @@ describe("useGearSlot", () => {
             drifLevels: { 0: 6 },
         };
         const { onUpdate, unmount } = renderSlot({
-            initializeFromSnapshot: true,
             allSlots: { weapon: saved },
         });
         expect(onUpdate).toHaveBeenCalled();
@@ -81,13 +125,12 @@ describe("useGearSlot", () => {
             expect(published.drifIds[0]).toBe("20");
         }
         unmount();
-        const remounted = renderSlot({ initializeFromSnapshot: true, allSlots: { weapon: saved } });
+        const remounted = renderSlot({ allSlots: { weapon: saved } });
         expect(remounted.onUpdate.mock.calls[0][1].itemId).toBe("1");
     });
 
     it("initializes mobile built-in drif levels before the first publication", () => {
         const { onUpdate } = renderSlot({
-            initializeFromSnapshot: true,
             allSlots: { weapon: { itemId: 3, itemStars: 7, drifIds: [22], drifLevels: { 0: 13 } } },
         });
         for (const [, published] of onUpdate.mock.calls) {

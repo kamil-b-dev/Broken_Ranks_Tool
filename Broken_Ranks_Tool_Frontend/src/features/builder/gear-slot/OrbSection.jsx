@@ -1,4 +1,3 @@
-import React from "react";
 import { formatGroupLabel } from "./gearSlotPresentation";
 import CategoryIcon from "../../../shared/ui/CategoryIcon";
 

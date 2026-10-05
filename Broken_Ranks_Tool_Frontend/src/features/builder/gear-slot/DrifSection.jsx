@@ -1,4 +1,3 @@
-import React from "react";
 import { useEquipmentLocksState } from "../../../shared/state/EquipmentContext";
 import BuiltInDrifSlots from "./BuiltInDrifSlots";
 import StandardDrifSlot from "./StandardDrifSlot";

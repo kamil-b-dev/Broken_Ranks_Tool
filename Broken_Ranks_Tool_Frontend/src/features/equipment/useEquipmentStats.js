@@ -61,15 +61,6 @@ export const useEquipmentStats = (requestData) => {
         [calculateStatsFor, requestData]
     );
 
-    const resetStats = useCallback(() => {
-        calculationVersion.current += 1;
-        calculationRequestFingerprint.current = null;
-        setIsCalculatingStats(false);
-        setCalculationNotice(null);
-        setStats(null);
-        setStatSources(emptySources());
-        setCalculatedRequestFingerprint(null);
-    }, []);
     const dismissCalculationNotice = useCallback(() => setCalculationNotice(null), []);
 
     const restoreStats = useCallback((nextStats, nextSources = {}, nextRequestData = null) => {
@@ -101,7 +92,6 @@ export const useEquipmentStats = (requestData) => {
         dismissCalculationNotice,
         calculateStats,
         calculateStatsFor,
-        resetStats,
         restoreStats,
     };
 };

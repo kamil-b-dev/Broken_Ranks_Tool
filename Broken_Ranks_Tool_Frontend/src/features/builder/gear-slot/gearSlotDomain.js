@@ -206,14 +206,3 @@ export const getAvailableSecondaryOrbs = ({
         );
     });
 };
-
-export const hasElementalDrifInOtherSlot = ({ allSlots, currentSlotKey, drifs, elementalTypes }) =>
-    Object.entries(allSlots || {})
-        .filter(([slotKey, slot]) => slotKey !== currentSlotKey && slot?.drifIds)
-        .some(([, slot]) =>
-            slot.drifIds.some((drifId) => {
-                if (!drifId) return false;
-                const drif = drifs.find((candidate) => String(candidate.id) === String(drifId));
-                return drif && elementalTypes.includes(drif.bonusType);
-            })
-        );
