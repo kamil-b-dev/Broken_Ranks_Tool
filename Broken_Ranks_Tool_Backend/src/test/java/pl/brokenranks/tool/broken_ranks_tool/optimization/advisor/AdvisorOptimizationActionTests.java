@@ -353,6 +353,35 @@ class AdvisorOptimizationActionTests extends AdvisorOptimizationTestSupport {
     }
 
     @Test
+    void rejectsOrbLevelsInAnUnequippedSlotBeforeLoadingTemplates() {
+        Fixture f = fixture(List.of(item(1, ITEM_CATEGORY.HELMET, "I", 10, 0)), List.of());
+        SlotData empty = new SlotData();
+        empty.setOrbLevels(List.of(1));
+
+        var result = f.service.optimize(request(A, Map.of("helmet", slot(1, 1), "boots", empty)));
+
+        assertFalse(result.getSummary().isSuccess());
+        verifyNoInteractions(f.items, f.drifs, f.orbs, f.calculator);
+    }
+
+    @Test
+    void acceptsAnItemWithoutOrbsOrDrifsAlongsideAnEmptySlot() {
+        Fixture f = fixture(List.of(item(1, ITEM_CATEGORY.HELMET, "I", 10, 0)), List.of());
+        SlotData helmet = slot(1, 1);
+        helmet.setOrbIds(List.of());
+        helmet.setOrbLevels(List.of());
+
+        var result =
+                f.service.optimize(request(A, Map.of("helmet", helmet, "boots", new SlotData())));
+
+        assertTrue(result.getSummary().isSuccess());
+        assertEquals(1L, result.getOptimizedSetup().getSlots().get("helmet").getItemId());
+        assertTrue(result.getOptimizedSetup().getSlots().get("helmet").getDrifIds().isEmpty());
+        assertTrue(result.getOptimizedSetup().getSlots().get("helmet").getOrbIds().isEmpty());
+        assertFalse(result.getOptimizedSetup().getSlots().containsKey("boots"));
+    }
+
+    @Test
     void cancellationReturnsANonDestructiveCompletedAnalysis() {
         Fixture f =
                 fixture(

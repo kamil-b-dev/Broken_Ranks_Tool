@@ -168,10 +168,12 @@ describe("useGearSlot", () => {
         act(() => result.current.setDrifLevels({ 0: 21 }));
         expect(result.current.isOverCapacity).toBe(false);
         drop(result, { ...drifs[1], dragType: "drifs" }, "drif-1");
-        expect(result.current.isOverCapacity).toBe(true);
+        expect(result.current.isOverCapacity).toBe(false);
+        expect(result.current.selectedDrifs).toEqual(["20"]);
+        expect(result.current.currentPowerUsed).toBe(8);
     });
 
-    it("rejects invalid or globally used upgrades", () => {
+    it("rejects unknown drifs and globally used orbs", () => {
         const allSlots = {
             armor: { orbIds: [10], drifIds: [21] },
         };
@@ -181,7 +183,7 @@ describe("useGearSlot", () => {
         expect(result.current.groupedOrbs1.Atak).toBeUndefined();
         drop(result, { ...orbs[0], dragType: "orbs" }, "orb1");
         expect(result.current.orbSlots.orb1.id).toBe("");
-        drop(result, { ...drifs[3], size: "UNKNOWN", dragType: "drifs" }, "drif-0");
+        drop(result, { id: 999, dragType: "drifs" }, "drif-0");
         expect(result.current.selectedDrifs).toEqual([]);
     });
 
@@ -282,7 +284,9 @@ describe("useGearSlot", () => {
         );
     });
     it("counts only active ordinary sockets after lowering stars", () => {
-        const { result, onUpdate } = renderSlot();
+        const { result, onUpdate } = renderSlot({
+            items: items.map((item) => (item.id === 2 ? { ...item, capacity: 4 } : item)),
+        });
         drop(result, { ...items[1], dragType: "items" }, "item");
         act(() => result.current.setItemStars(7));
         drop(result, { ...drifs[0], dragType: "drifs" }, "drif-0");

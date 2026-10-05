@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
     EQUIPMENT_DRAFT_STORAGE_KEY,
     readEquipmentDraft,
@@ -9,6 +9,37 @@ import {
 
 describe("workingDraftStorage", () => {
     beforeEach(() => localStorage.clear());
+    afterEach(() => vi.restoreAllMocks());
+
+    it("keeps reads and automatic writes safe when obtaining localStorage throws", () => {
+        vi.spyOn(globalThis, "localStorage", "get").mockImplementation(() => {
+            throw new DOMException("Storage blocked", "SecurityError");
+        });
+
+        expect(readEquipmentDraft()).toBeNull();
+        expect(readOptimizerDraft()).toBeNull();
+        expect(writeEquipmentDraft({ requestData: { slots: {} } })).toBe(false);
+        expect(writeOptimizerDraft({ priorities: [] })).toBe(false);
+    });
+
+    it("uses injected storage without accessing the browser getter", () => {
+        const storage = localStorage;
+        vi.spyOn(globalThis, "localStorage", "get").mockImplementation(() => {
+            throw new DOMException("Storage blocked", "SecurityError");
+        });
+        const equipment = {
+            requestData: { slots: {}, characterStats: {} },
+            characterConfig: null,
+            lockedSlots: [],
+            lockedDrifs: {},
+        };
+        const optimizer = { priorities: [] };
+
+        expect(writeEquipmentDraft(equipment, storage)).toBe(true);
+        expect(readEquipmentDraft(storage)).toEqual(equipment);
+        expect(writeOptimizerDraft(optimizer, storage)).toBe(true);
+        expect(readOptimizerDraft(storage)).toEqual(optimizer);
+    });
 
     it("round-trips independent equipment and optimizer drafts", () => {
         const equipment = {

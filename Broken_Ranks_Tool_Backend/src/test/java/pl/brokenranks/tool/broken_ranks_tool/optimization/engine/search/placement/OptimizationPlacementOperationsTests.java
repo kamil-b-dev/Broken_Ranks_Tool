@@ -111,7 +111,7 @@ class OptimizationPlacementOperationsTests {
 
     private BuildState state(Placement... placements) {
         BuildState state = new BuildState();
-        state.slots().put("weapon", new ArrayList<>(Arrays.asList(placements)));
+        state.putSlot("weapon", new ArrayList<>(Arrays.asList(placements)));
         return state;
     }
 

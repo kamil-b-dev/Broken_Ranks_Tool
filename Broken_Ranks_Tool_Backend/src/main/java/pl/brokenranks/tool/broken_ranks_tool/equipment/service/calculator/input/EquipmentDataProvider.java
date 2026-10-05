@@ -1,6 +1,8 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.input;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -75,9 +77,18 @@ public class EquipmentDataProvider {
                 .toList();
     }
 
-    /** Immutable container for the templates required by the calculation pipeline. */
+    /**
+     * Detached, read-only template maps for one calculation or prepared run.
+     * Template entities are shared references and must remain unchanged during that run.
+     */
     public record CalculationContext(
             Map<Long, ItemTemplate> items,
             Map<Long, OrbTemplate> orbs,
-            Map<Long, DrifTemplate> drifs) {}
+            Map<Long, DrifTemplate> drifs) {
+        public CalculationContext {
+            items = Collections.unmodifiableMap(new LinkedHashMap<>(items));
+            orbs = Collections.unmodifiableMap(new LinkedHashMap<>(orbs));
+            drifs = Collections.unmodifiableMap(new LinkedHashMap<>(drifs));
+        }
+    }
 }

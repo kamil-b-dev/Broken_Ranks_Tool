@@ -61,7 +61,7 @@ class OptimizationResidualCapacityFillerTests {
                         false);
         OptimizationContext context = context(slot, drif, type, Set.of());
         BuildState state = new BuildState();
-        state.slots().put(slot.key(), new ArrayList<>(Collections.singletonList(null)));
+        state.putSlot(slot.key(), new ArrayList<>(Collections.singletonList(null)));
         OptimizationStateEvaluation evaluation = mock(OptimizationStateEvaluation.class);
         when(evaluation.globalCount(any(), eq(type), any())).thenReturn(0);
         when(evaluation.minimumsSatisfied(any(), any())).thenReturn(true);
@@ -97,7 +97,7 @@ class OptimizationResidualCapacityFillerTests {
                         false);
         OptimizationContext context = context(slot, drif, type, Set.of("helmet"));
         BuildState state = new BuildState();
-        state.slots().put(slot.key(), new ArrayList<>(Collections.singletonList(null)));
+        state.putSlot(slot.key(), new ArrayList<>(Collections.singletonList(null)));
         EquipmentRulesRegistry rules = new EquipmentRulesRegistry();
         OptimizationPlacementOperations placements =
                 new OptimizationPlacementOperations(new EquipmentPlacementRules(rules), rules);
@@ -130,7 +130,7 @@ class OptimizationResidualCapacityFillerTests {
                         false);
         OptimizationContext context = context(slot, drif, type, Set.of());
         BuildState state = new BuildState();
-        state.slots().put(slot.key(), new ArrayList<>(Collections.singletonList(null)));
+        state.putSlot(slot.key(), new ArrayList<>(Collections.singletonList(null)));
         OptimizationStateEvaluation evaluation = mock(OptimizationStateEvaluation.class);
         when(evaluation.calculatedValue(state, type, context)).thenReturn(60.0);
         EquipmentRulesRegistry rules = new EquipmentRulesRegistry();

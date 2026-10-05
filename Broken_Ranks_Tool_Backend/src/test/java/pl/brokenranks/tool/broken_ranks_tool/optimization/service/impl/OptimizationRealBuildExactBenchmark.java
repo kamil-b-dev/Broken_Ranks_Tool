@@ -395,7 +395,7 @@ class OptimizationRealBuildExactBenchmark {
                                 placements.add(
                                         new Placement(context.drifs().get(id), level, false));
                             }
-                            state.slots().put(slot.key(), placements);
+                            state.putSlot(slot.key(), placements);
                         });
         return state;
     }

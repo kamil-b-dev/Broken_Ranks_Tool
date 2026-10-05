@@ -1150,7 +1150,7 @@ public final class CpSatBuildOptimizationSolver {
                     index < placements.size() && selectedIndex < selected.size();
                     index++) {
                 if (placements.get(index) == null)
-                    placements.set(index, selected.get(selectedIndex++));
+                    result.setPlacement(slot.key(), index, selected.get(selectedIndex++));
             }
         }
         return result;

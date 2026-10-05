@@ -46,7 +46,7 @@ public final class BuildStateJsonHintLoader {
                 }
             }
             while (placements.size() < slot.maxDrifs()) placements.add(null);
-            result.slots().put(slot.key(), placements);
+            result.putSlot(slot.key(), placements);
         }
         return result;
     }

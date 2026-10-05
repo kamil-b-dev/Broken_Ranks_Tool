@@ -325,7 +325,7 @@ public final class ExactBuildOptimizationSolver {
         private BuildState current() {
             BuildState state = new BuildState();
             for (SlotOption option : selected) {
-                state.slots().put(option.slot().key(), new ArrayList<>(option.placements()));
+                state.putSlot(option.slot().key(), new ArrayList<>(option.placements()));
             }
             return state;
         }

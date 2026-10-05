@@ -189,6 +189,11 @@
                 <version>3.9.0</version>
                 <configuration>
                     <java>
+                        <includes>
+                            <include>src/main/java/**/*.java</include>
+                            <include>src/test/java/**/*.java</include>
+                            <include>database/tools/*.java</include>
+                        </includes>
                         <googleJavaFormat>
                             <version>1.28.0</version>
                             <style>AOSP</style>

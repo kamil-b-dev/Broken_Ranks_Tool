@@ -144,8 +144,8 @@ class OptimizationLargeNeighborhoodSearchTests {
                         new HashMap<>(),
                         new HashMap<>());
         BuildState initial = new BuildState();
-        initial.slots().put("low", new ArrayList<>(List.of(new Placement(magic, 21, false))));
-        initial.slots().put("high", new ArrayList<>(List.of(new Placement(defense, 21, false))));
+        initial.putSlot("low", new ArrayList<>(List.of(new Placement(magic, 21, false))));
+        initial.putSlot("high", new ArrayList<>(List.of(new Placement(defense, 21, false))));
 
         OptimizationLargeNeighborhoodSearch.SearchResult result = search.improve(initial, context);
         BuildState improved = result.best();
@@ -267,7 +267,7 @@ class OptimizationLargeNeighborhoodSearchTests {
         placements.add(new Placement(stronger, 21, false));
         placements.add(null);
         placements.add(null);
-        initial.slots().put("helmet", placements);
+        initial.putSlot("helmet", placements);
 
         BuildState improved = search.improve(initial, context).best();
 
@@ -375,7 +375,7 @@ class OptimizationLargeNeighborhoodSearchTests {
         placements.add(new Placement(mentalDefense, 21, false));
         placements.add(null);
         placements.add(null);
-        initial.slots().put("helmet", placements);
+        initial.putSlot("helmet", placements);
 
         BuildState improved = search.improve(initial, context).best();
 

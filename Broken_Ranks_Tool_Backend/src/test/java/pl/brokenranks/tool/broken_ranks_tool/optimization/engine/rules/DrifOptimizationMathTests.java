@@ -32,7 +32,7 @@ class DrifOptimizationMathTests {
         for (int multiplier = 1; multiplier <= 4; multiplier++) {
             for (int extra = 0; extra < basePower; extra++) {
                 BuildState state = new BuildState();
-                state.slots().put("helmet", List.of(new Placement(drif, 1, false)));
+                state.putSlot("helmet", List.of(new Placement(drif, 1, false)));
                 SlotContext slot = slot(basePower + multiplier * basePower + extra);
                 assertEquals(
                         Math.min(levels[multiplier - 1], size.getMaxLevel()),
@@ -46,7 +46,7 @@ class DrifOptimizationMathTests {
     void freeSocketDoesNotAllowPlacementWithoutEnoughPower() {
         DrifTemplate drif = drif(DRIF_SIZE.ARCYDRIF);
         BuildState state = new BuildState();
-        state.slots().put("helmet", Arrays.asList(new Placement(drif, 6, false), null));
+        state.putSlot("helmet", Arrays.asList(new Placement(drif, 6, false), null));
         SlotContext slot = slot(2 * drif.getBonusType().getBasePower() - 1);
         assertNull(highestFittingLevel(state, slot, drif));
         assertNull(lowestTierFittingLevel(state, slot, drif));

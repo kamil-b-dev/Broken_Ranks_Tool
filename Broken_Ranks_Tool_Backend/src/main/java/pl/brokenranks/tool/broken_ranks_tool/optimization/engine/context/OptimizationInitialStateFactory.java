@@ -24,7 +24,7 @@ public final class OptimizationInitialStateFactory {
                             : isEntireSlotLocked(slot, context) || !slot.optimizable()
                                     ? readOriginalPlacements(slot, context, false)
                                     : createUnlockedPlacements(slot, context);
-            state.slots().put(slot.key(), placements);
+            state.putSlot(slot.key(), placements);
         }
         return state;
     }

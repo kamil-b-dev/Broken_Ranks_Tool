@@ -203,6 +203,45 @@ class EquipmentPreparedCalculationTests {
     }
 
     @Test
+    void emptyEquipmentIncludesBaseStatsAndMatchesAnExplicitEmptySlot() {
+        request.setSlots(Map.of());
+        request.setCharacterStats(Map.of("Siła", 10));
+        clearInvocations(itemsRepository, drifsRepository, orbsRepository);
+
+        var empty = calculator.calculateWithSources(request);
+        assertEquals(
+                Map.of(
+                        "Siła",
+                        "10",
+                        "CRITICAL_CHANCE",
+                        "2%",
+                        "MANA_REGEN",
+                        "5%",
+                        "STAMINA_REGEN",
+                        "5%"),
+                empty.stats());
+        assertTrue(empty.drifCategories().isEmpty());
+        assertTrue(empty.orbBonusTypes().isEmpty());
+        verifyNoInteractions(itemsRepository, drifsRepository, orbsRepository);
+
+        var prepared = calculator.prepareCalculationWithSources(Map.of(), Map.of(), Map.of());
+        assertEquals(empty, prepared.apply(request));
+        request.setSlots(Map.of("helmet", new EquipmentRequest.SlotData()));
+        assertEquals(empty, calculator.calculateWithSources(request));
+        assertEquals(empty, prepared.apply(request));
+    }
+
+    @Test
+    void emptyEquipmentWithoutCharacterStatsStillIncludesDefaultBonuses() {
+        request.setSlots(Map.of());
+        request.setCharacterStats(null);
+
+        assertEquals(
+                Map.of("CRITICAL_CHANCE", "2%", "MANA_REGEN", "5%", "STAMINA_REGEN", "5%"),
+                calculator.calculateTotalStats(request));
+    }
+
+    @Test
     void rejectsGapsInBuiltInDrifPositions() {
         var helmet = request.getSlots().get("helmet");
         items.get(helmet.getItemId()).setName("Allenor X");

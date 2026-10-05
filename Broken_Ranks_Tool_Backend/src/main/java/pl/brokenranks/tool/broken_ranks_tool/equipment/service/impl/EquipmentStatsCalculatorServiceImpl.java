@@ -1,7 +1,6 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.service.impl;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
@@ -71,8 +70,7 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
             Map<Long, ItemTemplate> items,
             Map<Long, OrbTemplate> orbs,
             Map<Long, DrifTemplate> drifs) {
-        CalculationContext context =
-                new CalculationContext(Map.copyOf(items), Map.copyOf(orbs), Map.copyOf(drifs));
+        CalculationContext context = new CalculationContext(items, orbs, drifs);
         return request -> calculateWithSources(request, context);
     }
 
@@ -80,15 +78,12 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
             EquipmentRequest request, CalculationContext preparedContext) {
         requestValidator.validateRequest(request);
         requestValidator.validateCharacterStats(request.getCharacterStats());
-        if (request.getSlots() == null || request.getSlots().isEmpty()) {
-            return new CalculationResultDto(
-                    Collections.emptyMap(), Collections.emptyMap(), Collections.emptySet());
-        }
-
         CalculationContext ctx =
                 preparedContext != null
                         ? preparedContext
-                        : dataProvider.buildContext(request.getSlots().values());
+                        : request.getSlots().isEmpty()
+                                ? new CalculationContext(Map.of(), Map.of(), Map.of())
+                                : dataProvider.buildContext(request.getSlots().values());
         CalculationState state = new CalculationState(ctx);
 
         initializeDefaultStats(state);

@@ -6,8 +6,9 @@ const isObject = (value) => value !== null && typeof value === "object" && !Arra
 const cloneJson = (value) => JSON.parse(JSON.stringify(value));
 
 const readVersionedValue = (key, storage) => {
-    if (!storage) return null;
     try {
+        storage = storage === undefined ? globalThis.localStorage : storage;
+        if (!storage) return null;
         const stored = JSON.parse(storage.getItem(key) || "null");
         return stored?.version === WORKING_DRAFT_VERSION ? stored.value : null;
     } catch {
@@ -16,8 +17,9 @@ const readVersionedValue = (key, storage) => {
 };
 
 const writeVersionedValue = (key, value, storage) => {
-    if (!storage) return false;
     try {
+        storage = storage === undefined ? globalThis.localStorage : storage;
+        if (!storage) return false;
         storage.setItem(key, JSON.stringify({ version: WORKING_DRAFT_VERSION, value }));
         return true;
     } catch {
@@ -26,7 +28,7 @@ const writeVersionedValue = (key, value, storage) => {
 };
 
 /** Reads the last automatically saved equipment workspace. */
-export const readEquipmentDraft = (storage = globalThis.localStorage) => {
+export const readEquipmentDraft = (storage) => {
     const draft = readVersionedValue(EQUIPMENT_DRAFT_STORAGE_KEY, storage);
     if (!isObject(draft?.requestData) || !isObject(draft.requestData.slots)) return null;
     return cloneJson({
@@ -43,15 +45,15 @@ export const readEquipmentDraft = (storage = globalThis.localStorage) => {
 };
 
 /** Saves the current equipment workspace without interrupting the user on storage errors. */
-export const writeEquipmentDraft = (draft, storage = globalThis.localStorage) =>
+export const writeEquipmentDraft = (draft, storage) =>
     writeVersionedValue(EQUIPMENT_DRAFT_STORAGE_KEY, draft, storage);
 
 /** Reads the last versioned optimizer configuration payload. */
-export const readOptimizerDraft = (storage = globalThis.localStorage) => {
+export const readOptimizerDraft = (storage) => {
     const draft = readVersionedValue(OPTIMIZER_DRAFT_STORAGE_KEY, storage);
     return isObject(draft) ? cloneJson(draft) : null;
 };
 
 /** Saves the current optimizer configuration without interrupting the user on storage errors. */
-export const writeOptimizerDraft = (draft, storage = globalThis.localStorage) =>
+export const writeOptimizerDraft = (draft, storage) =>
     writeVersionedValue(OPTIMIZER_DRAFT_STORAGE_KEY, draft, storage);

@@ -103,7 +103,7 @@ class OptimizationResultAssemblerTests {
                         new HashMap<>(),
                         new HashMap<>());
         BuildState state = new BuildState();
-        state.slots().put("helmet", new ArrayList<>(List.of(new Placement(magic, 6, false))));
+        state.putSlot("helmet", new ArrayList<>(List.of(new Placement(magic, 6, false))));
 
         assertThrows(
                 IllegalStateException.class,
