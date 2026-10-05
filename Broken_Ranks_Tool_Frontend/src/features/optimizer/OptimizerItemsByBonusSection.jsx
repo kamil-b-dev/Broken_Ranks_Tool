@@ -13,7 +13,7 @@ const OptimizerItemsByBonusSection = ({ itemsByBonus }) => {
     );
 
     return (
-        <section className="bg-black/40 border border-stone-800 rounded-xs p-3">
+        <section className="bg-black/40 border border-stone-800 optimizer-info-divider rounded-xs p-3">
             <h5 className="text-[10px] text-stone-400 uppercase tracking-widest font-semibold mb-3">
                 Bonus do drifów na przedmiotach
             </h5>
@@ -26,13 +26,13 @@ const OptimizerItemsByBonusSection = ({ itemsByBonus }) => {
                     {bonusGroups.map(([bonus, items]) => (
                         <div
                             key={bonus}
-                            className="border-b border-stone-800/70 pb-2 last:border-0 last:pb-0"
+                            className="border-b border-stone-800/70 optimizer-info-divider pb-2 last:border-0 last:pb-0"
                         >
                             <div className="flex items-center justify-between gap-2 mb-1.5">
                                 <span className="text-[10px] text-stone-500 uppercase tracking-wide">
                                     Bonus do drifów
                                 </span>
-                                <span className="text-purple-300 font-bold text-xs tabular-nums">
+                                <span className="text-purple-300 optimizer-accent-text font-bold text-xs tabular-nums">
                                     +{formatBonus(bonus)}%
                                 </span>
                             </div>

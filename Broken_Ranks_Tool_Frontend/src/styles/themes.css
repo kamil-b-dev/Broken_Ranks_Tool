@@ -1,4 +1,4 @@
-/* The equipment creator uses gold framing with crimson reserved for interaction states. */
+/* Themes apply to explicit component roles; Tailwind utilities keep their own meaning. */
 .builder-theme {
     --builder-crimson: #8f1428;
     --builder-crimson-bright: #cf3e50;
@@ -36,22 +36,22 @@
 }
 
 .builder-theme .section-kicker,
-.builder-theme [class*="text-rose-"] {
-    color: var(--builder-gold-bright) !important;
+.builder-theme .builder-accent-text {
+    color: var(--builder-gold-bright);
 }
 
-.builder-theme [class*="border-rose-"] {
-    border-color: var(--builder-gold-line) !important;
+.builder-theme .builder-accent-frame {
+    border-color: var(--builder-gold-line);
 }
 
-.builder-theme [class*="bg-rose-"] {
-    background-color: var(--builder-crimson-dark) !important;
+.builder-theme .builder-accent-surface {
+    background-color: var(--builder-crimson-dark);
 }
 
 .builder-theme input:focus,
 .builder-theme select:focus,
 .builder-theme button:focus-visible {
-    border-color: var(--builder-crimson-bright) !important;
+    border-color: var(--builder-crimson-bright);
     outline-color: rgba(239, 106, 134, 0.85);
 }
 
@@ -74,52 +74,52 @@
 }
 
 .item-database-theme {
-    border-color: var(--builder-gold-line) !important;
+    border-color: var(--builder-gold-line);
     background:
         linear-gradient(180deg, rgba(21, 21, 20, 0.88), rgba(4, 5, 6, 0.96) 62%),
-        url("../assets/database-panel-backdrop-texture.webp") !important;
+        url("../assets/database-panel-backdrop-texture.webp");
     background-size:
         auto,
-        34rem 34rem !important;
+        34rem 34rem;
     background-blend-mode: normal, luminosity;
     box-shadow:
         0 0 34px rgba(0, 0, 0, 0.9),
-        inset 0 1px rgba(233, 190, 116, 0.07) !important;
+        inset 0 1px rgba(233, 190, 116, 0.07);
 }
 
 .item-database-theme > div:first-child {
-    border-bottom-color: var(--builder-gold-line) !important;
+    border-bottom-color: var(--builder-gold-line);
 }
 
 .item-database-theme > div:nth-child(2) {
-    border-color: rgba(143, 98, 46, 0.76) !important;
-    background-color: rgba(12, 5, 7, 0.82) !important;
+    border-color: rgba(143, 98, 46, 0.76);
+    background-color: rgba(12, 5, 7, 0.82);
 }
 
 .item-database-theme input,
 .item-database-theme select {
-    border-color: rgba(124, 88, 47, 0.78) !important;
-    background-color: rgba(8, 4, 6, 0.86) !important;
+    border-color: rgba(124, 88, 47, 0.78);
+    background-color: rgba(8, 4, 6, 0.86);
 }
 
 .item-database-theme input:focus,
 .item-database-theme select:focus {
-    border-color: #9f253b !important;
+    border-color: #9f253b;
     box-shadow:
         inset 0 0 12px rgba(0, 0, 0, 0.88),
         0 0 0 1px rgba(123, 25, 43, 0.24);
 }
 
 .item-database-theme ul {
-    border-left-color: rgba(125, 88, 45, 0.62) !important;
+    border-left-color: rgba(125, 88, 45, 0.62);
 }
 
 .item-database-theme li {
-    border-bottom-color: rgba(105, 76, 44, 0.5) !important;
+    border-bottom-color: rgba(105, 76, 44, 0.5);
 }
 
 .item-database-theme li:hover {
-    background-color: rgba(66, 13, 25, 0.32) !important;
+    background-color: rgba(66, 13, 25, 0.32);
 }
 
 .item-database-theme .database-category-heading {
@@ -128,11 +128,11 @@
 
 .item-database-theme h3,
 .item-database-theme [aria-pressed="true"] span {
-    color: var(--builder-gold-bright) !important;
+    color: var(--builder-gold-bright);
 }
 
 .item-database-theme [aria-pressed="false"] span {
-    color: #9b815d !important;
+    color: #9b815d;
 }
 
 /* The optimizer shares the creator's forged-metal, gold and crimson palette. */
@@ -232,11 +232,11 @@
     .optimizer-main-grid {
         grid-template-columns:
             minmax(11rem, 0.8fr) minmax(12rem, 0.85fr) minmax(22rem, 1.65fr)
-            minmax(20rem, 1.35fr) !important;
+            minmax(20rem, 1.35fr);
     }
 
     .optimizer-main-grid > * {
-        grid-column: auto !important;
+        grid-column: auto;
     }
 }
 
@@ -292,36 +292,34 @@
     }
 }
 
-.optimizer-theme > section,
-.optimizer-theme > div:last-child {
+.optimizer-theme > section {
     box-shadow:
         inset 0 1px rgba(221, 196, 255, 0.045),
         0 18px 42px rgba(0, 0, 0, 0.38);
 }
 
-.optimizer-settings-strip,
-.optimizer-console {
-    border-color: rgba(126, 85, 44, 0.72) !important;
+.optimizer-settings-strip {
+    border-color: rgba(126, 85, 44, 0.72);
     background:
         linear-gradient(rgba(183, 127, 63, 0.018) 1px, transparent 1px),
         linear-gradient(90deg, rgba(183, 127, 63, 0.014) 1px, transparent 1px),
         linear-gradient(155deg, rgba(20, 17, 18, 0.98), rgba(5, 5, 6, 0.99) 62%),
-        url("../assets/dark-forged-metal-texture.webp") !important;
+        url("../assets/dark-forged-metal-texture.webp");
     background-size:
         2.75rem 2.75rem,
         2.75rem 2.75rem,
         auto,
-        28rem 28rem !important;
+        28rem 28rem;
     background-blend-mode: normal, normal, normal, soft-light;
     box-shadow:
         0 18px 42px rgba(0, 0, 0, 0.42),
         inset 0 1px rgba(255, 224, 175, 0.04),
-        inset 0 0 30px rgba(83, 46, 24, 0.055) !important;
+        inset 0 0 30px rgba(83, 46, 24, 0.055);
 }
 
 .optimizer-settings-strip h3 {
     grid-row: 1 / span 2;
-    color: #d2a860 !important;
+    color: #d2a860;
 }
 
 .optimizer-mode-navigation {
@@ -387,34 +385,27 @@
     line-height: 1.3;
 }
 
-.optimizer-theme [class*="bg-purple-950"],
-.optimizer-theme [class*="bg-purple-900"] {
-    background-color: var(--optimizer-accent-dark) !important;
+.optimizer-theme .optimizer-accent-surface {
+    background-color: var(--optimizer-accent-dark);
 }
 
-.optimizer-theme [class*="border-purple-950"],
-.optimizer-theme [class*="border-purple-900"],
-.optimizer-theme [class*="border-purple-800"] {
-    border-color: rgba(124, 88, 47, 0.78) !important;
+.optimizer-theme .optimizer-accent-frame {
+    border-color: rgba(124, 88, 47, 0.78);
 }
 
-.optimizer-theme [class*="border-purple-500"],
-.optimizer-theme [class*="border-purple-600"] {
-    border-color: rgba(207, 62, 80, 0.9) !important;
+.optimizer-theme .optimizer-accent-active {
+    border-color: rgba(207, 62, 80, 0.9);
 }
 
-.optimizer-theme [class*="text-purple-100"],
-.optimizer-theme [class*="text-purple-200"],
-.optimizer-theme [class*="text-purple-300"],
-.optimizer-theme [class*="text-purple-400"] {
-    color: var(--optimizer-accent-bright) !important;
+.optimizer-theme .optimizer-accent-text {
+    color: var(--optimizer-accent-bright);
     text-shadow: 0 0 12px rgba(211, 160, 82, 0.18);
 }
 
 .optimizer-theme input:focus,
 .optimizer-theme select:focus,
 .optimizer-theme button:focus-visible {
-    border-color: var(--builder-crimson-bright, #cf3e50) !important;
+    border-color: var(--builder-crimson-bright, #cf3e50);
     outline-color: rgba(239, 106, 134, 0.85);
 }
 
@@ -423,34 +414,34 @@
 }
 
 .optimizer-theme input[type="range"]::-webkit-slider-thumb {
-    border-color: var(--builder-gold-bright, #e4ba70) !important;
-    background: var(--builder-crimson, #8f1428) !important;
-    box-shadow: 0 0 5px rgba(143, 20, 40, 0.58) !important;
+    border-color: var(--builder-gold-bright, #e4ba70);
+    background: var(--builder-crimson, #8f1428);
+    box-shadow: 0 0 5px rgba(143, 20, 40, 0.58);
 }
 
 .optimizer-theme input[type="range"]::-moz-range-thumb {
-    border-color: var(--builder-gold-bright, #e4ba70) !important;
-    background: var(--builder-crimson, #8f1428) !important;
-    box-shadow: 0 0 5px rgba(143, 20, 40, 0.58) !important;
+    border-color: var(--builder-gold-bright, #e4ba70);
+    background: var(--builder-crimson, #8f1428);
+    box-shadow: 0 0 5px rgba(143, 20, 40, 0.58);
 }
 
-.optimizer-lock-column [class*="border-red-"] {
-    border-color: rgba(143, 20, 40, 0.82) !important;
+.optimizer-lock-column .optimizer-lock-frame {
+    border-color: rgba(143, 20, 40, 0.82);
 }
 
-.optimizer-lock-column [class*="bg-red-"] {
-    background-color: rgba(55, 7, 16, 0.78) !important;
+.optimizer-lock-column .optimizer-lock-surface {
+    background-color: rgba(55, 7, 16, 0.78);
 }
 
-.optimizer-lock-column [class*="text-red-"] {
-    color: #e6a0aa !important;
+.optimizer-lock-column .optimizer-lock-text {
+    color: #e6a0aa;
 }
 
 .optimizer-lock-column > div:first-child,
 .optimizer-bonus-column > div:first-child,
 .optimizer-priority-column > div:first-child,
 .optimizer-info-column > div:first-child {
-    border-bottom-color: rgba(142, 94, 48, 0.72) !important;
+    border-bottom-color: rgba(142, 94, 48, 0.72);
 }
 
 .optimizer-lock-column > div:first-child h4,
@@ -462,16 +453,16 @@
 }
 
 .optimizer-bonus-column {
-    border-right-color: rgba(112, 75, 40, 0.74) !important;
+    border-right-color: rgba(112, 75, 40, 0.74);
 }
 
 .optimizer-bonus-column input {
-    border-color: rgba(124, 88, 47, 0.78) !important;
-    background-color: rgba(8, 4, 6, 0.86) !important;
+    border-color: rgba(124, 88, 47, 0.78);
+    background-color: rgba(8, 4, 6, 0.86);
 }
 
 .optimizer-bonus-column input:focus {
-    border-color: var(--builder-crimson-bright, #cf3e50) !important;
+    border-color: var(--builder-crimson-bright, #cf3e50);
     box-shadow:
         0 0 0 1px rgba(143, 20, 40, 0.24),
         inset 0 0 12px rgba(0, 0, 0, 0.72);
@@ -483,29 +474,29 @@
 }
 
 .optimizer-bonus-column [role="group"] button[aria-pressed="true"] {
-    border-color: rgba(207, 62, 80, 0.9) !important;
-    background-color: rgba(55, 7, 16, 0.82) !important;
-    color: var(--optimizer-accent-bright) !important;
+    border-color: rgba(207, 62, 80, 0.9);
+    background-color: rgba(55, 7, 16, 0.82);
+    color: var(--optimizer-accent-bright);
 }
 
 .optimizer-bonus-column .optimizer-bonus-card {
-    border-color: rgba(112, 78, 43, 0.68) !important;
+    border-color: rgba(112, 78, 43, 0.68);
     background:
         linear-gradient(rgba(5, 5, 5, 0.72), rgba(2, 3, 3, 0.9)),
-        url("../assets/dark-basalt-texture.webp") center / 16rem !important;
+        url("../assets/dark-basalt-texture.webp") center / 16rem;
     background-blend-mode: normal, soft-light;
 }
 
 .optimizer-bonus-column .optimizer-bonus-card:hover {
-    border-color: rgba(201, 147, 76, 0.88) !important;
+    border-color: rgba(201, 147, 76, 0.88);
     background:
         linear-gradient(rgba(47, 30, 15, 0.68), rgba(8, 6, 4, 0.92)),
-        url("../assets/panel-aged-leather-texture.webp") center / 16rem !important;
+        url("../assets/panel-aged-leather-texture.webp") center / 16rem;
     background-blend-mode: normal, soft-light;
 }
 
 .optimizer-info-column {
-    border-left-color: rgba(112, 75, 40, 0.74) !important;
+    border-left-color: rgba(112, 75, 40, 0.74);
 }
 
 .optimizer-workspace-column {
@@ -513,36 +504,36 @@
 }
 
 .optimizer-run-action {
-    border-color: rgba(197, 48, 62, 0.96) !important;
-    background: linear-gradient(180deg, rgba(93, 10, 20, 0.9), rgba(26, 4, 8, 0.98)) !important;
+    border-color: rgba(197, 48, 62, 0.96);
+    background: linear-gradient(180deg, rgba(93, 10, 20, 0.9), rgba(26, 4, 8, 0.98));
     box-shadow:
         inset 0 0 0 1px rgba(255, 178, 150, 0.04),
         inset 0 1px rgba(255, 224, 169, 0.08),
-        0 0 22px rgba(143, 20, 40, 0.2) !important;
+        0 0 22px rgba(143, 20, 40, 0.2);
 }
 
 .optimizer-run-action:hover:not(:disabled) {
-    background: linear-gradient(180deg, rgba(121, 15, 27, 0.94), rgba(31, 4, 9, 0.99)) !important;
+    background: linear-gradient(180deg, rgba(121, 15, 27, 0.94), rgba(31, 4, 9, 0.99));
     box-shadow:
         inset 0 0 0 1px rgba(255, 191, 157, 0.08),
-        0 0 30px rgba(171, 34, 48, 0.28) !important;
+        0 0 30px rgba(171, 34, 48, 0.28);
 }
 
 .optimizer-info-column section {
-    border-color: rgba(112, 78, 43, 0.72) !important;
+    border-color: rgba(112, 78, 43, 0.72);
     background:
         linear-gradient(145deg, rgba(25, 18, 14, 0.7), rgba(3, 4, 4, 0.9)),
-        url("../assets/smoked-parchment-texture.webp") center / 24rem !important;
+        url("../assets/smoked-parchment-texture.webp") center / 24rem;
     background-blend-mode: normal, soft-light;
     box-shadow: inset 0 1px rgba(255, 224, 169, 0.04);
 }
 
 .optimizer-info-column section h5 {
-    color: var(--builder-gold-bright, #e4ba70) !important;
+    color: var(--builder-gold-bright, #e4ba70);
 }
 
-.optimizer-info-column section [class*="border-stone-8"] {
-    border-color: rgba(103, 70, 39, 0.72) !important;
+.optimizer-info-column section .optimizer-info-divider {
+    border-color: rgba(103, 70, 39, 0.72);
 }
 
 @media (max-width: 700px) {

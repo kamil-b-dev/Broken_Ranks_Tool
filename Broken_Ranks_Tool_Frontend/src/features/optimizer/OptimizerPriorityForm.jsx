@@ -28,7 +28,7 @@ const SizeConstraints = ({ bonus, onChange }) => {
     };
 
     return (
-        <details className="optimizer-priority-sizes border-t border-stone-800/50 pt-2">
+        <details className="optimizer-priority-sizes border-t border-stone-800/50 optimizer-info-divider pt-2">
             <summary className="cursor-pointer text-[10px] uppercase tracking-wider text-stone-400">
                 Rozmiary drifów
             </summary>
@@ -104,14 +104,14 @@ const OptimizerPriorityForm = ({
                     </span>
                 </div>
             )}
-            <div className="optimizer-priority-options flex flex-col gap-2 bg-black/30 p-2 rounded-xs border border-stone-800/50">
+            <div className="optimizer-priority-options flex flex-col gap-2 bg-black/30 p-2 rounded-xs border border-stone-800/50 optimizer-info-divider">
                 {!simple && (
                     <div className="optimizer-priority-option optimizer-priority-weight flex flex-col gap-1">
                         <div className="flex justify-between items-end">
                             <span className="text-[10px] text-stone-400 uppercase tracking-wider font-semibold">
                                 Waga priorytetu
                             </span>
-                            <span className="text-xs text-purple-400 font-bold">
+                            <span className="text-xs text-purple-400 optimizer-accent-text font-bold">
                                 {bonus.weight}{" "}
                                 <span className="text-stone-600 text-[9px] font-normal">/ 30</span>
                             </span>
@@ -124,7 +124,7 @@ const OptimizerPriorityForm = ({
                             value={bonus.weight}
                             onChange={(event) => onChange("weight", event.target.value)}
                             style={{ "--optimizer-range-progress": `${weightProgress}%` }}
-                            className="w-full h-1 bg-stone-950 border border-stone-800 rounded-xs appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-purple-900 [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:border-purple-400 [&::-webkit-slider-thumb]:rounded-xs [&::-webkit-slider-thumb]:shadow-[0_0_5px_rgba(168,85,247,0.7)] hover:[&::-webkit-slider-thumb]:bg-purple-700 hover:[&::-webkit-slider-thumb]:border-purple-300 transition-all [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-purple-900 [&::-moz-range-thumb]:border [&::-moz-range-thumb]:border-purple-400 [&::-moz-range-thumb]:rounded-xs [&::-moz-range-thumb]:shadow-[0_0_5px_rgba(168,85,247,0.7)] hover:[&::-moz-range-thumb]:bg-purple-700 hover:[&::-moz-range-thumb]:border-purple-300"
+                            className="w-full h-1 bg-stone-950 border border-stone-800 optimizer-info-divider rounded-xs appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-purple-900 optimizer-accent-surface [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:border-purple-400 [&::-webkit-slider-thumb]:rounded-xs [&::-webkit-slider-thumb]:shadow-[0_0_5px_rgba(168,85,247,0.7)] hover:[&::-webkit-slider-thumb]:bg-purple-700 hover:[&::-webkit-slider-thumb]:border-purple-300 transition-all [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-purple-900 [&::-moz-range-thumb]:border [&::-moz-range-thumb]:border-purple-400 [&::-moz-range-thumb]:rounded-xs [&::-moz-range-thumb]:shadow-[0_0_5px_rgba(168,85,247,0.7)] hover:[&::-moz-range-thumb]:bg-purple-700 hover:[&::-moz-range-thumb]:border-purple-300"
                         />
                     </div>
                 )}
@@ -137,7 +137,7 @@ const OptimizerPriorityForm = ({
                             {["min", "max"].map((field, index) => (
                                 <React.Fragment key={field}>
                                     {index > 0 && <span className="text-stone-700">-</span>}
-                                    <div className="flex items-center gap-1.5 bg-stone-950 border border-stone-700 rounded-xs px-1.5 py-0.5 focus-within:border-purple-600 transition-colors">
+                                    <div className="flex items-center gap-1.5 bg-stone-950 border border-stone-700 rounded-xs px-1.5 py-0.5 focus-within:border-purple-600 optimizer-accent-active transition-colors">
                                         <span className="text-[9px] text-stone-500">
                                             {field.toUpperCase()}
                                         </span>
@@ -158,7 +158,7 @@ const OptimizerPriorityForm = ({
                         </div>
                     </div>
                 )}
-                <div className="optimizer-priority-option flex items-center justify-between gap-3 pt-2 border-t border-stone-800/50">
+                <div className="optimizer-priority-option flex items-center justify-between gap-3 pt-2 border-t border-stone-800/50 optimizer-info-divider">
                     <span className="text-[10px] text-stone-500 uppercase tracking-wider whitespace-nowrap">
                         {hasCap
                             ? `Dąż do capa (${maxCap > 0 ? "+" : ""}${maxCap}%):`
@@ -181,13 +181,13 @@ const OptimizerPriorityForm = ({
                     )}
                 </div>
                 {!simple && (
-                    <div className="optimizer-priority-option optimizer-priority-percentage flex items-center justify-between gap-3 pt-2 border-t border-stone-800/50">
+                    <div className="optimizer-priority-option optimizer-priority-percentage flex items-center justify-between gap-3 pt-2 border-t border-stone-800/50 optimizer-info-divider">
                         <span className="text-[10px] text-stone-500 uppercase tracking-wider whitespace-nowrap">
                             Wymuś %:
                         </span>
                         <div className="flex items-center gap-2">
                             <div
-                                className={`flex items-center gap-1 bg-stone-950 border rounded-xs px-1.5 py-0.5 transition-colors ${bonus.forcePercentage ? "border-purple-600" : "border-stone-700"}`}
+                                className={`flex items-center gap-1 bg-stone-950 border rounded-xs px-1.5 py-0.5 transition-colors ${bonus.forcePercentage ? "border-purple-600 optimizer-accent-active" : "border-stone-700"}`}
                             >
                                 <input
                                     type="number"
@@ -216,7 +216,7 @@ const OptimizerPriorityForm = ({
                     </div>
                 )}
                 {!simple && (
-                    <div className="optimizer-priority-option flex items-center justify-between gap-3 pt-2 border-t border-stone-800/50">
+                    <div className="optimizer-priority-option flex items-center justify-between gap-3 pt-2 border-t border-stone-800/50 optimizer-info-divider">
                         <span
                             className="text-[10px] text-stone-500 uppercase tracking-wider whitespace-nowrap"
                             title="Algorytm będzie dążył do najwyższej możliwej wartości tego modyfikatora, po spełnieniu limitów ilościowych i celów capa."

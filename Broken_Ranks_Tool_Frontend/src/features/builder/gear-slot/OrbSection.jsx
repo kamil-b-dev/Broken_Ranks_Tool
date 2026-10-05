@@ -39,7 +39,7 @@ const OrbSection = ({
 
     return (
         <div
-            className={`${dropEligible ? "equipment-drop-eligible" : ""} orb-selector-row flex gap-1 w-full items-center mb-1 p-1.5 bg-black/60 border transition-colors shadow-[inset_0_0_15px_rgba(0,0,0,0.8)] ${dragOverZone === slotKey ? "border-amber-700/50 bg-amber-950/20" : "border-rose-900/70"}`}
+            className={`${dropEligible ? "equipment-drop-eligible" : ""} orb-selector-row flex gap-1 w-full items-center mb-1 p-1.5 bg-black/60 border transition-colors shadow-[inset_0_0_15px_rgba(0,0,0,0.8)] ${dragOverZone === slotKey ? "border-amber-700/50 bg-amber-950/20" : "border-rose-900/70 builder-accent-frame"}`}
             onDragOver={(e) => handleDragOver(e, slotKey)}
             onDragLeave={handleDragLeave}
             onDrop={(e) => handleDrop(e, slotKey)}
@@ -55,7 +55,7 @@ const OrbSection = ({
                 aria-label="Wybierz rodzaj orba"
                 onChange={(e) => setOrbState({ type: e.target.value, id: "", level: "" })}
                 disabled={!selectedItem}
-                className="flex-3 min-w-0 bg-transparent text-rose-700 font-serif p-1 text-xs border-b border-rose-900/70 focus:border-rose-500 outline-hidden text-center cursor-pointer disabled:opacity-30"
+                className="flex-3 min-w-0 bg-transparent text-rose-700 builder-accent-text font-serif p-1 text-xs border-b border-rose-900/70 builder-accent-frame focus:border-rose-500 outline-hidden text-center cursor-pointer disabled:opacity-30"
             >
                 <option value="" className="bg-stone-950 text-stone-500">
                     Rodzaj
@@ -81,7 +81,7 @@ const OrbSection = ({
                     }));
                 }}
                 disabled={!orbState.type}
-                className="flex-3 min-w-0 bg-transparent text-stone-300 font-serif p-1 text-xs border-b border-rose-900/70 focus:border-rose-500 outline-hidden text-center disabled:opacity-30 cursor-pointer"
+                className="flex-3 min-w-0 bg-transparent text-stone-300 font-serif p-1 text-xs border-b border-rose-900/70 builder-accent-frame focus:border-rose-500 outline-hidden text-center disabled:opacity-30 cursor-pointer"
             >
                 <option value="" className="bg-stone-950 text-stone-500">
                     Wielkość
@@ -99,7 +99,7 @@ const OrbSection = ({
                 aria-label="Wybierz poziom orba"
                 onChange={(e) => setOrbState((prev) => ({ ...prev, level: e.target.value }))}
                 disabled={!orbState.id || isSubOrb}
-                className="flex-2 min-w-0 bg-transparent text-stone-300 font-serif p-1 text-xs border-b border-rose-900/70 focus:border-rose-500 outline-hidden text-center disabled:opacity-30 cursor-pointer"
+                className="flex-2 min-w-0 bg-transparent text-stone-300 font-serif p-1 text-xs border-b border-rose-900/70 builder-accent-frame focus:border-rose-500 outline-hidden text-center disabled:opacity-30 cursor-pointer"
             >
                 <option value="" className="bg-stone-950 text-stone-500">
                     lvl

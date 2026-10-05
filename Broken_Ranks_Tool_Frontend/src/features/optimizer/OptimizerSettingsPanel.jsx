@@ -53,7 +53,7 @@ const VariantsOptions = ({ settings, onChange, label }) => (
                     })
                 }
                 aria-label="Maksymalna dopuszczalna strata wariantu w procentach"
-                className="w-16 border border-purple-900/80 bg-black px-2 py-1 text-center text-xs text-stone-200 outline-hidden focus:border-purple-500 disabled:cursor-not-allowed"
+                className="w-16 border border-purple-900/80 optimizer-accent-frame bg-black px-2 py-1 text-center text-xs text-stone-200 outline-hidden focus:border-purple-500 optimizer-accent-active disabled:cursor-not-allowed"
             />
             <span className="text-[11px] text-stone-400">%</span>
         </label>
@@ -72,7 +72,7 @@ const OptimizerSettingsPanel = ({ settings, onChange }) => {
                     <label className="flex items-center gap-3 text-[11px] text-stone-400">
                         Profil buildu
                         <select
-                            className="border border-purple-900/80 bg-black px-2 py-1 text-stone-200"
+                            className="border border-purple-900/80 optimizer-accent-frame bg-black px-2 py-1 text-stone-200"
                             value={settings.advisorProfession || "AUTO"}
                             onChange={(event) =>
                                 onChange({ ...settings, advisorProfession: event.target.value })
@@ -86,7 +86,7 @@ const OptimizerSettingsPanel = ({ settings, onChange }) => {
                 )}
                 {!advisory && (
                     <div className="flex flex-wrap items-center gap-3">
-                        <div className="optimizer-settings-mode flex border border-purple-900/80 bg-black p-0.5">
+                        <div className="optimizer-settings-mode flex border border-purple-900/80 optimizer-accent-frame bg-black p-0.5">
                             {[
                                 ["SIMPLE", "Prosty"],
                                 ["ADVANCED", "Zaawansowany"],
@@ -98,7 +98,7 @@ const OptimizerSettingsPanel = ({ settings, onChange }) => {
                                     onClick={() =>
                                         onChange({ ...settings, configurationMode: value })
                                     }
-                                    className={`px-3 py-1 text-[10px] uppercase tracking-wider ${configurationMode === value ? "bg-purple-900 text-purple-100" : "text-stone-400"}`}
+                                    className={`px-3 py-1 text-[10px] uppercase tracking-wider ${configurationMode === value ? "bg-purple-900 optimizer-accent-surface text-purple-100 optimizer-accent-text" : "text-stone-400"}`}
                                 >
                                     {label}
                                 </button>

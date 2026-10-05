@@ -1,12 +1,5 @@
 /* Material hierarchy for the optimizer: textures identify function while
    dark overlays keep controls and numerical results visually dominant. */
-.optimizer-console {
-    background:
-        linear-gradient(145deg, rgba(18, 16, 15, 0.94), rgba(3, 4, 5, 0.98) 72%),
-        url("../../../assets/dark-forged-metal-texture.webp") center / 30rem;
-    background-blend-mode: normal, soft-light;
-}
-
 .optimizer-lock-card {
     background:
         linear-gradient(105deg, rgba(25, 18, 14, 0.9), rgba(3, 4, 4, 0.96)),

@@ -13,6 +13,42 @@ const initialData = {
     },
 };
 
+test("themes only recolor explicitly marked component roles", async ({ page }) => {
+    await page.route("**/api/initial-data", (route) => route.fulfill({ json: initialData }));
+
+    for (const [route, theme, utility, role] of [
+        ["/kreator", ".builder-theme", "text-rose-800", "builder-accent-text"],
+        ["/optymalizator", ".optimizer-theme", "text-purple-300", "optimizer-accent-text"],
+    ]) {
+        await page.goto(route);
+        await expect(page.locator(theme)).toBeVisible();
+        await page.locator(theme).evaluate(
+            (container, classes) => {
+                for (const [name, className] of [
+                    ["utility", classes.utility],
+                    ["role", `${classes.utility} ${classes.role}`],
+                ]) {
+                    const element = document.createElement("span");
+                    element.dataset.themeProbe = name;
+                    element.className = className;
+                    element.textContent = name;
+                    container.append(element);
+                }
+            },
+            { utility, role }
+        );
+
+        await expect(page.locator('[data-theme-probe="role"]')).toHaveCSS(
+            "color",
+            "rgb(228, 186, 112)"
+        );
+        await expect(page.locator('[data-theme-probe="utility"]')).not.toHaveCSS(
+            "color",
+            "rgb(228, 186, 112)"
+        );
+    }
+});
+
 test("opens the home page, builder, and optimizer", async ({ page }) => {
     await page.route("**/api/initial-data", (route) => route.fulfill({ json: initialData }));
 

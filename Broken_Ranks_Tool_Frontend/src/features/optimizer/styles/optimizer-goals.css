@@ -32,7 +32,7 @@
 .simple-profile-header {
     background:
         linear-gradient(100deg, rgba(34, 23, 16, 0.82), rgba(4, 4, 5, 0.9)),
-        url("../../../assets/panel-blackened-steel-texture.webp") center / 22rem !important;
+        url("../../../assets/panel-blackened-steel-texture.webp") center / 22rem;
     background-blend-mode: normal, soft-light;
     box-shadow: inset 0 1px rgba(255, 224, 169, 0.045);
 }
@@ -41,7 +41,7 @@
 .simple-profile-toggle {
     background:
         linear-gradient(105deg, rgba(22, 16, 13, 0.72), rgba(3, 4, 4, 0.9)),
-        url("../../../assets/dark-basalt-texture.webp") center / 20rem !important;
+        url("../../../assets/dark-basalt-texture.webp") center / 20rem;
     background-blend-mode: normal, soft-light;
 }
 
@@ -236,7 +236,7 @@
 .optimizer-subcolumn-heading h4,
 .optimizer-priority-toolbar h4 {
     color: #d0a45d;
-    font-family: var(--display-font) !important;
+    font-family: var(--display-font);
     font-size: 0.66rem;
     font-weight: 700;
     letter-spacing: 0.09em;
@@ -252,11 +252,11 @@
 .optimizer-bonus-search input {
     height: 2.35rem;
     padding: 0 2rem 0 0.7rem;
-    border: 1px solid rgba(114, 76, 37, 0.74) !important;
+    border: 1px solid rgba(114, 76, 37, 0.74);
     color: #c7c1ba;
     font-family: var(--ui-font);
     font-size: 0.66rem;
-    background: rgba(2, 3, 3, 0.88) !important;
+    background: rgba(2, 3, 3, 0.88);
     outline: none;
 }
 
@@ -278,18 +278,18 @@
 
 .optimizer-bonus-filters button {
     display: flex;
-    min-width: 0 !important;
+    min-width: 0;
     align-items: center;
     justify-content: center;
     gap: 0.25rem;
     padding: 0.42rem 0.25rem;
-    border: 1px solid rgba(95, 66, 39, 0.7) !important;
+    border: 1px solid rgba(95, 66, 39, 0.7);
     color: #786f68;
     font-family: var(--ui-font);
     font-size: 0.5rem;
     letter-spacing: 0.07em;
     text-transform: uppercase;
-    background: rgba(3, 4, 4, 0.74) !important;
+    background: rgba(3, 4, 4, 0.74);
 }
 
 .optimizer-filter-category-icon {
@@ -299,9 +299,9 @@
 }
 
 .optimizer-bonus-filters button[aria-pressed="true"] {
-    border-color: rgba(153, 100, 47, 0.9) !important;
-    color: #d7ad66 !important;
-    background: rgba(65, 37, 16, 0.55) !important;
+    border-color: rgba(153, 100, 47, 0.9);
+    color: #d7ad66;
+    background: rgba(65, 37, 16, 0.55);
 }
 
 .optimizer-bonus-list,
@@ -325,17 +325,17 @@
     gap: 0.38rem;
     margin-bottom: 0.28rem;
     padding: 0.42rem;
-    border: 1px solid rgba(83, 58, 37, 0.66) !important;
+    border: 1px solid rgba(83, 58, 37, 0.66);
     color: #a59c94;
     font-family: var(--ui-font);
     font-size: 0.62rem;
     text-align: left;
-    background: rgba(2, 3, 3, 0.66) !important;
+    background: rgba(2, 3, 3, 0.66);
 }
 
 .optimizer-bonus-card:hover {
-    border-color: rgba(147, 92, 42, 0.86) !important;
-    background: rgba(38, 22, 12, 0.52) !important;
+    border-color: rgba(147, 92, 42, 0.86);
+    background: rgba(38, 22, 12, 0.52);
 }
 
 .optimizer-bonus-glyph,
@@ -536,10 +536,10 @@
 
 .optimizer-priority-potential {
     grid-column: 1 / -1;
-    padding: 0.32rem 0.45rem !important;
-    border-color: rgba(44, 95, 112, 0.58) !important;
+    padding: 0.32rem 0.45rem;
+    border-color: rgba(44, 95, 112, 0.58);
     font-size: 0.54rem;
-    background: rgba(8, 31, 38, 0.48) !important;
+    background: rgba(8, 31, 38, 0.48);
 }
 
 .optimizer-priority-weight {
@@ -551,7 +551,7 @@
         90deg,
         #991b1b 0 var(--optimizer-range-progress),
         #12090b var(--optimizer-range-progress) 100%
-    ) !important;
+    );
 }
 
 .optimizer-priority-weight input[type="range"]::-moz-range-progress {
@@ -565,7 +565,7 @@
 
 .optimizer-priority-sizes summary,
 .optimizer-priority-sizes label {
-    color: #b8ada4 !important;
+    color: #b8ada4;
 }
 
 .optimizer-priority-sizes input[type="checkbox"] {
@@ -593,23 +593,23 @@
 }
 
 .optimizer-priority-sizes span:last-child {
-    color: #8f8780 !important;
+    color: #8f8780;
 }
 
 .optimizer-priority-options {
-    display: grid !important;
+    display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.26rem !important;
-    padding: 0 !important;
-    border: 0 !important;
-    background: transparent !important;
+    gap: 0.26rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
 }
 
 .optimizer-priority-option {
     min-width: 0;
     min-height: 2.25rem;
-    padding: 0.3rem 0.4rem !important;
-    border: 1px solid rgba(79, 58, 42, 0.58) !important;
+    padding: 0.3rem 0.4rem;
+    border: 1px solid rgba(79, 58, 42, 0.58);
     background:
         linear-gradient(rgba(3, 4, 4, 0.78), rgba(1, 2, 2, 0.9)),
         url("../../../assets/dark-basalt-texture.webp") center / 16rem;
@@ -618,8 +618,8 @@
 
 .optimizer-priority-option > span:first-child {
     overflow: hidden;
-    color: #b8ada4 !important;
-    font-size: 0.55rem !important;
+    color: #b8ada4;
+    font-size: 0.55rem;
     text-overflow: ellipsis;
 }
 
@@ -656,16 +656,16 @@
     gap: 0.55rem;
     margin: 0 0.72rem 0.55rem;
     padding: 0.58rem 0.7rem;
-    border: 1px solid rgba(103, 70, 39, 0.72) !important;
-    background: rgba(2, 3, 3, 0.66) !important;
-    box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.52) !important;
+    border: 1px solid rgba(103, 70, 39, 0.72);
+    background: rgba(2, 3, 3, 0.66);
+    box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.52);
 }
 
 .optimizer-settings-strip h3 {
     padding: 0.1rem 0 0.55rem;
     border-bottom: 1px solid rgba(95, 64, 36, 0.66);
-    color: #cda35f !important;
-    font-family: var(--display-font) !important;
+    color: #cda35f;
+    font-family: var(--display-font);
     font-size: 0.72rem;
     letter-spacing: 0.09em;
     text-align: center;
@@ -684,7 +684,7 @@
 .optimizer-settings-choice,
 .optimizer-settings-loss {
     min-height: 2.3rem;
-    border: 1px solid rgba(103, 70, 39, 0.72) !important;
+    border: 1px solid rgba(103, 70, 39, 0.72);
     background:
         linear-gradient(rgba(7, 7, 7, 0.9), rgba(2, 3, 3, 0.94)),
         url("../../../assets/dark-basalt-texture.webp") center / 14rem;
@@ -702,23 +702,23 @@
 }
 
 .optimizer-settings-mode button {
-    padding: 0.42rem 0.9rem !important;
-    font-size: 0.65rem !important;
+    padding: 0.42rem 0.9rem;
+    font-size: 0.65rem;
 }
 
 .optimizer-settings-choice:hover {
-    border-color: rgba(155, 99, 49, 0.9) !important;
+    border-color: rgba(155, 99, 49, 0.9);
     background:
         linear-gradient(rgba(20, 13, 11, 0.9), rgba(5, 4, 4, 0.96)),
         url("../../../assets/dark-basalt-texture.webp") center / 14rem;
 }
 
 .optimizer-settings-options label {
-    gap: 0.4rem !important;
+    gap: 0.4rem;
 }
 
 .optimizer-settings-options label span {
-    font-size: 0.64rem !important;
+    font-size: 0.64rem;
 }
 
 .optimizer-settings-options input[type="checkbox"] {
@@ -757,12 +757,12 @@
 
 .optimizer-theme input[type="number"],
 .optimizer-theme div:has(> input[type="number"]) {
-    border-color: rgba(160, 111, 52, 0.9) !important;
+    border-color: rgba(160, 111, 52, 0.9);
 }
 
 .optimizer-theme input[type="number"]:focus,
 .optimizer-theme div:has(> input[type="number"]:focus) {
-    border-color: #d0a45d !important;
+    border-color: #d0a45d;
     box-shadow: 0 0 0 1px rgba(208, 164, 93, 0.2);
 }
 
@@ -796,7 +796,7 @@
     justify-content: center;
     gap: 0.65rem;
     padding: 0.7rem 1.25rem;
-    border: 1px solid rgba(197, 48, 62, 0.96) !important;
+    border: 1px solid rgba(197, 48, 62, 0.96);
     color: #ebd3bc;
     font-family: var(--ui-font);
     font-size: 0.8rem;
@@ -805,22 +805,22 @@
     text-transform: uppercase;
     background:
         linear-gradient(180deg, rgba(93, 10, 20, 0.9), rgba(26, 4, 8, 0.98)),
-        url("../../../assets/crimson-lacquer-texture.webp") center / 24rem !important;
+        url("../../../assets/crimson-lacquer-texture.webp") center / 24rem;
     background-blend-mode: normal, multiply;
     box-shadow:
         inset 0 0 0 1px rgba(255, 178, 150, 0.04),
-        inset 0 0 18px rgba(0, 0, 0, 0.58) !important;
+        inset 0 0 18px rgba(0, 0, 0, 0.58);
 }
 
 .optimizer-run-action:hover:not(:disabled) {
-    border-color: rgba(237, 78, 88, 1) !important;
+    border-color: rgba(237, 78, 88, 1);
     color: #fff0dc;
     background:
         linear-gradient(180deg, rgba(121, 15, 27, 0.94), rgba(31, 4, 9, 0.99)),
-        url("../../../assets/crimson-lacquer-texture.webp") center / 24rem !important;
+        url("../../../assets/crimson-lacquer-texture.webp") center / 24rem;
     box-shadow:
         inset 0 0 0 1px rgba(255, 191, 157, 0.08),
-        0 0 14px rgba(171, 34, 48, 0.2) !important;
+        0 0 14px rgba(171, 34, 48, 0.2);
 }
 
 .optimizer-run-action:disabled {

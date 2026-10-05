@@ -77,7 +77,7 @@ const DrifSection = ({
                 </span>
                 {fullSelectedItem && itemCapacity > 0 && (
                     <span
-                        className={`text-[10px] font-serif font-bold uppercase tracking-wider ${isOverCapacity ? "text-red-500 animate-pulse" : isAtMaxCapacity ? "text-amber-500" : "text-stone-500"}`}
+                        className={`text-[10px] font-serif font-bold uppercase tracking-wider ${isOverCapacity ? "text-red-500 optimizer-lock-text animate-pulse" : isAtMaxCapacity ? "text-amber-500" : "text-stone-500"}`}
                     >
                         Pojemność: {currentPowerUsed}/{itemCapacity}
                     </span>
@@ -85,7 +85,7 @@ const DrifSection = ({
             </div>
 
             {fullSelectedItem && itemCapacity > 0 && (
-                <div className="w-full bg-black border border-rose-900/70 shadow-inner h-1 mb-2">
+                <div className="w-full bg-black border border-rose-900/70 builder-accent-frame shadow-inner h-1 mb-2">
                     <div
                         className={`h-full transition-all duration-300 ${isOverCapacity ? "bg-linear-to-r from-rose-900 to-red-600" : isAtMaxCapacity ? "bg-linear-to-r from-amber-700 to-amber-500" : "bg-linear-to-r from-stone-700 to-stone-400"}`}
                         style={{ width: `${Math.min(capacityPercentage, 100)}%` }}

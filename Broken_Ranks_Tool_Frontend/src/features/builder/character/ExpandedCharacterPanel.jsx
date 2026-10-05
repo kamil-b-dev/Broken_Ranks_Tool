@@ -1,8 +1,8 @@
 import { STAT_CONFIG } from "./characterConstants";
 
 const ExpandedCharacterPanel = ({ development }) => (
-    <div className="bg-linear-to-b from-stone-900 to-black p-6 border-2 border-stone-800 shadow-[0_0_30px_rgba(0,0,0,0.9)] flex flex-col shrink-0 h-full w-full">
-        <div className="flex justify-between items-end border-b-4 border-double border-red-900/70 pb-3 mb-4">
+    <div className="bg-linear-to-b from-stone-900 to-black p-6 border-2 border-stone-800 optimizer-info-divider shadow-[0_0_30px_rgba(0,0,0,0.9)] flex flex-col shrink-0 h-full w-full">
+        <div className="flex justify-between items-end border-b-4 border-double border-red-900/70 optimizer-lock-frame pb-3 mb-4">
             <h3 className="text-xl font-serif font-bold text-stone-300 uppercase tracking-widest drop-shadow-[0_2px_5px_rgba(0,0,0,1)]">
                 Rozwój Bohatera
             </h3>
@@ -20,7 +20,7 @@ const ExpandedCharacterPanel = ({ development }) => (
                 />
             </div>
         </div>
-        <div className="mb-6 p-3 bg-stone-950 border border-stone-800 shadow-[inset_0_0_20px_rgba(0,0,0,0.8)] flex justify-between items-center relative overflow-hidden">
+        <div className="mb-6 p-3 bg-stone-950 border border-stone-800 optimizer-info-divider shadow-[inset_0_0_20px_rgba(0,0,0,0.8)] flex justify-between items-center relative overflow-hidden">
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--tw-gradient-stops))] from-amber-900/5 to-transparent pointer-events-none" />
             <span className="text-stone-400 text-xs font-serif uppercase tracking-widest relative z-10">
                 Dostępne punkty:
@@ -35,7 +35,7 @@ const ExpandedCharacterPanel = ({ development }) => (
             {Object.keys(STAT_CONFIG).map((name) => (
                 <div
                     key={name}
-                    className="flex items-center justify-between bg-black/60 p-3 border-b border-stone-800 group hover:bg-stone-900/50 transition-colors"
+                    className="flex items-center justify-between bg-black/60 p-3 border-b border-stone-800 optimizer-info-divider group hover:bg-stone-900/50 transition-colors"
                 >
                     <div className="flex flex-col">
                         <span className="text-stone-400 text-xs font-serif uppercase tracking-wider">
@@ -56,7 +56,7 @@ const ExpandedCharacterPanel = ({ development }) => (
                                 type="button"
                                 onClick={() => development.changePoints(name, -1)}
                                 aria-label={`Odejmij punkt: ${name}`}
-                                className="w-8 h-8 flex items-center justify-center bg-linear-to-b from-stone-800 to-stone-900 border border-stone-700 hover:from-red-900 hover:to-black hover:border-red-800 text-stone-300 font-serif font-bold transition-all disabled:opacity-30"
+                                className="w-8 h-8 flex items-center justify-center bg-linear-to-b from-stone-800 to-stone-900 border border-stone-700 hover:from-red-900 hover:to-black hover:border-red-800 optimizer-lock-frame text-stone-300 font-serif font-bold transition-all disabled:opacity-30"
                                 disabled={development.spentPoints[name] <= 0}
                             >
                                 -
@@ -79,7 +79,7 @@ const ExpandedCharacterPanel = ({ development }) => (
             <button
                 type="button"
                 onClick={development.resetPoints}
-                className="text-xs text-red-800 hover:text-red-500 font-serif font-bold uppercase tracking-widest border border-red-900/50 bg-black/50 px-4 py-2 hover:bg-red-900/20 transition-colors shadow-inner"
+                className="text-xs text-red-800 optimizer-lock-text hover:text-red-500 font-serif font-bold uppercase tracking-widest border border-red-900/50 optimizer-lock-frame bg-black/50 px-4 py-2 hover:bg-red-900/20 optimizer-lock-surface transition-colors shadow-inner"
             >
                 Zresetuj
             </button>

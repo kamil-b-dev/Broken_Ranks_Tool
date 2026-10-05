@@ -41,7 +41,7 @@ const ItemSection = ({
 
     return (
         <div
-            className={`${hookData.isDropEligible?.("item") ? "equipment-drop-eligible" : ""} w-full flex flex-col gap-1.5 p-2 bg-black/60 border transition-colors shadow-[inset_0_0_10px_rgba(0,0,0,1)] ${dragOverZone === "item" ? "border-amber-700/50 bg-amber-900/10" : "border-rose-900/70"}`}
+            className={`${hookData.isDropEligible?.("item") ? "equipment-drop-eligible" : ""} w-full flex flex-col gap-1.5 p-2 bg-black/60 border transition-colors shadow-[inset_0_0_10px_rgba(0,0,0,1)] ${dragOverZone === "item" ? "border-amber-700/50 bg-amber-900/10" : "border-rose-900/70 builder-accent-frame"}`}
             onDragOver={(e) => handleDragOver(e, "item")}
             onDragLeave={handleDragLeave}
             onDrop={(e) => handleDrop(e, "item")}
@@ -79,7 +79,7 @@ const ItemSection = ({
                     setDrifTypes({});
                     setDrifLevels({});
                 }}
-                className={`w-full bg-black/80 text-xs font-serif border border-rose-900/70 focus:border-rose-500 p-1.5 outline-hidden text-center cursor-pointer shadow-inner ${fullSelectedItem ? getRarityColor(fullSelectedItem.rarity) : "text-stone-300"}`}
+                className={`w-full bg-black/80 text-xs font-serif border border-rose-900/70 builder-accent-frame focus:border-rose-500 builder-accent-frame p-1.5 outline-hidden text-center cursor-pointer shadow-inner ${fullSelectedItem ? getRarityColor(fullSelectedItem.rarity) : "text-stone-300"}`}
             >
                 <option value="" className="text-stone-600">
                     -- {label} --
@@ -96,7 +96,7 @@ const ItemSection = ({
             </select>
 
             <div
-                className={`flex justify-center gap-1 bg-stone-950 p-1 border border-rose-900/70 shadow-inner transition-opacity ${!selectedItem ? "opacity-30 pointer-events-none" : "opacity-100"}`}
+                className={`flex justify-center gap-1 bg-stone-950 p-1 border border-rose-900/70 builder-accent-frame shadow-inner transition-opacity ${!selectedItem ? "opacity-30 pointer-events-none" : "opacity-100"}`}
             >
                 {[...Array(9)].map((_, i) => {
                     const starValue = i + 1;

@@ -48,7 +48,7 @@ const ItemDatabase = ({
     return (
         <div
             onDragEnd={() => setDraggedResource(null)}
-            className="item-database-theme bg-linear-to-b from-stone-900 to-black p-6 border-2 border-stone-800 shadow-[0_0_30px_rgba(0,0,0,0.9)] flex h-full min-h-0 flex-col relative"
+            className="item-database-theme bg-linear-to-b from-stone-900 to-black p-6 border-2 border-stone-800 optimizer-info-divider shadow-[0_0_30px_rgba(0,0,0,0.9)] flex h-full min-h-0 flex-col relative"
         >
             <ItemDatabaseControls
                 activeTab={activeTab}

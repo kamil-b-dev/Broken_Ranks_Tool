@@ -8,7 +8,7 @@ import {
 } from "./simpleProfileDefinitions";
 
 const QuantityField = ({ label, value, onChange }) => (
-    <label className="simple-profile-field flex items-center justify-between gap-4 border border-purple-950/80 bg-black/25 p-3 text-xs text-stone-300">
+    <label className="simple-profile-field flex items-center justify-between gap-4 border border-purple-950/80 optimizer-accent-frame bg-black/25 p-3 text-xs text-stone-300">
         <span>{label}</span>
         <input
             type="number"
@@ -16,13 +16,13 @@ const QuantityField = ({ label, value, onChange }) => (
             max="12"
             value={value}
             onChange={(event) => onChange(Math.max(1, Math.min(12, Number(event.target.value))))}
-            className="w-16 border border-purple-900/80 bg-black px-2 py-1 text-center text-stone-100"
+            className="w-16 border border-purple-900/80 optimizer-accent-frame bg-black px-2 py-1 text-center text-stone-100"
         />
     </label>
 );
 
 const Toggle = ({ label, checked, onChange }) => (
-    <label className="simple-profile-toggle flex cursor-pointer items-center gap-2 border border-stone-800 bg-black/25 p-3 text-xs text-stone-300">
+    <label className="simple-profile-toggle flex cursor-pointer items-center gap-2 border border-stone-800 optimizer-info-divider bg-black/25 p-3 text-xs text-stone-300">
         <input
             type="checkbox"
             checked={checked}
@@ -45,8 +45,8 @@ const SimpleProfileGoalsPanel = ({ settings, onChange }) => {
 
     return (
         <div className="simple-profile-panel min-h-0 flex-1 overflow-y-auto p-3 custom-scrollbar">
-            <div className="simple-profile-header mb-3 flex flex-wrap items-center justify-between gap-3 border border-purple-950/80 bg-black/30 p-3">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-purple-200">
+            <div className="simple-profile-header mb-3 flex flex-wrap items-center justify-between gap-3 border border-purple-950/80 optimizer-accent-frame bg-black/30 p-3">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-purple-200 optimizer-accent-text">
                     Konfiguracja profilu profesji
                 </h4>
                 <label className="flex items-center gap-3 text-xs text-stone-300">
@@ -61,7 +61,7 @@ const SimpleProfileGoalsPanel = ({ settings, onChange }) => {
                                 simpleOptions: defaultSimpleOptions(event.target.value),
                             })
                         }
-                        className="min-w-44 border border-purple-900/80 bg-black px-2 py-1 text-stone-100"
+                        className="min-w-44 border border-purple-900/80 optimizer-accent-frame bg-black px-2 py-1 text-stone-100"
                     >
                         {SIMPLE_PROFILES.map((option) => (
                             <option key={option.value} value={option.value}>
@@ -73,7 +73,7 @@ const SimpleProfileGoalsPanel = ({ settings, onChange }) => {
             </div>
 
             {styled && (
-                <label className="simple-profile-field mb-3 flex items-center justify-between border border-purple-950/80 bg-black/25 p-3 text-xs text-stone-300">
+                <label className="simple-profile-field mb-3 flex items-center justify-between border border-purple-950/80 optimizer-accent-frame bg-black/25 p-3 text-xs text-stone-300">
                     Styl buildu
                     <select
                         aria-label="Styl buildu"
@@ -88,7 +88,7 @@ const SimpleProfileGoalsPanel = ({ settings, onChange }) => {
                                 ),
                             })
                         }
-                        className="border border-purple-900/80 bg-black px-2 py-1 text-stone-100"
+                        className="border border-purple-900/80 optimizer-accent-frame bg-black px-2 py-1 text-stone-100"
                     >
                         {SIMPLE_STYLES.map((style) => (
                             <option key={style.value} value={style.value}>
@@ -113,13 +113,13 @@ const SimpleProfileGoalsPanel = ({ settings, onChange }) => {
             </div>
 
             {elemental && (
-                <label className="simple-profile-field mt-2 flex items-center justify-between border border-purple-950/80 bg-black/25 p-3 text-xs text-stone-300">
+                <label className="simple-profile-field mt-2 flex items-center justify-between border border-purple-950/80 optimizer-accent-frame bg-black/25 p-3 text-xs text-stone-300">
                     Drif żywiołowy w broni
                     <select
                         aria-label="Żywioł broni"
                         value={options.element || (profile === "SHEED" ? "NONE" : "FIRE")}
                         onChange={(event) => update("element", event.target.value)}
-                        className="border border-purple-900/80 bg-black px-2 py-1 text-stone-100"
+                        className="border border-purple-900/80 optimizer-accent-frame bg-black px-2 py-1 text-stone-100"
                     >
                         {SIMPLE_ELEMENTS.filter(
                             (element) => profile === "SHEED" || element.value !== "NONE"
