@@ -6,6 +6,10 @@ import {
     SIZE_INDEX,
     getDrifMaxLevel,
     getOrbMaxLevel,
+    getMaximumStoneSizeIndex,
+    getEffectiveDrifMultiplier,
+    calculateMaximumDrifSlots,
+    calculateItemCapacity,
 } from "../../shared/domain/equipment/equipmentRules";
 import {
     normalizeCharacterConfig,
@@ -27,15 +31,6 @@ const CHARACTER_STAT_NAMES = new Set(
     [...Object.keys(STAT_CONFIG), "Obrażenia"].map((name) => name.toLowerCase())
 );
 const ORB_SIZE_INDEX = { SUBORB: 0, BIORB: 1, MAGNIORB: 2, ARCYORB: 3 };
-
-const maximumSizeIndex = (tier) => (tier >= 10 ? 3 : tier >= 7 ? 2 : tier >= 4 ? 1 : 0);
-
-const maximumDrifSlots = (tier, stars) => {
-    const base = tier >= 10 ? 3 : tier >= 4 ? 2 : 1;
-    return base + ((tier === 2 || tier === 3) && stars >= 7 ? 1 : 0);
-};
-
-const drifPowerMultiplier = (level) => (level <= 6 ? 1 : level <= 11 ? 2 : level <= 16 ? 3 : 4);
 
 const itemFitsSlot = (item, slotDefinition) => {
     if (!item.category) return true;
@@ -292,7 +287,10 @@ export const parseBuildPayload = (
             if (allowedCategories.length > 0 && !allowedCategory) {
                 throw new Error(`Orb w slocie ${slotKey} ma niedozwoloną kategorię.`);
             }
-            if ((ORB_SIZE_INDEX[String(orb?.size).toUpperCase()] ?? -1) > maximumSizeIndex(tier)) {
+            if (
+                (ORB_SIZE_INDEX[String(orb?.size).toUpperCase()] ?? -1) >
+                getMaximumStoneSizeIndex(tier)
+            ) {
                 throw new Error(`Orb w slocie ${slotKey} jest zbyt duży.`);
             }
         });
@@ -300,7 +298,12 @@ export const parseBuildPayload = (
             validateBuiltInDrifs(item, drifIds, drifsById, gameRules, slotKey);
         } else {
             const populatedDrifs = drifIds.filter(Boolean);
-            const maximum = maximumDrifSlots(tier, stars);
+            const maximum = calculateMaximumDrifSlots({
+                hasItem: true,
+                isEpicOrSet: false,
+                tier,
+                stars,
+            });
             if (
                 populatedDrifs.length > maximum ||
                 drifIds.some((id, index) => id && index >= maximum)
@@ -309,14 +312,15 @@ export const parseBuildPayload = (
             }
             populatedDrifs.forEach((id) => {
                 const drif = drifsById.get(String(id));
-                if ((SIZE_INDEX[String(drif?.size).toUpperCase()] ?? -1) > maximumSizeIndex(tier)) {
+                if (
+                    (SIZE_INDEX[String(drif?.size).toUpperCase()] ?? -1) >
+                    getMaximumStoneSizeIndex(tier)
+                ) {
                     throw new Error(`Drif w slocie ${slotKey} jest zbyt duży.`);
                 }
             });
             if (gameRules.drifBasePowers && Number(item?.capacity) >= 0) {
-                const starCapacityBonus = stars >= 9 ? 4 : stars >= 8 ? 2 : stars >= 7 ? 1 : 0;
-                const capacity = Number(item.capacity) || 0;
-                const availableCapacity = capacity === 0 ? 0 : capacity + starCapacityBonus;
+                const availableCapacity = calculateItemCapacity(item, stars);
                 const usedCapacity = drifIds.reduce((sum, id, index) => {
                     if (!id) return sum;
                     const drif = drifsById.get(String(id));
@@ -324,7 +328,7 @@ export const parseBuildPayload = (
                     return (
                         sum +
                         (Number(gameRules.drifBasePowers[drif?.bonusType]) || 0) *
-                            drifPowerMultiplier(level)
+                            getEffectiveDrifMultiplier(level)
                     );
                 }, 0);
                 if (usedCapacity > availableCapacity) {

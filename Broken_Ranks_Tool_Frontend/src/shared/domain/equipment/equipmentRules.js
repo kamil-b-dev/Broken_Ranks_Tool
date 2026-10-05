@@ -15,6 +15,32 @@ export const ROMAN_TO_INT = {
 
 export const ROMAN_ORDER = ROMAN_TO_INT;
 
+/** Pure equipment rules shared by import validation, the editor and optimizer previews. */
+export const getMaximumStoneSizeIndex = (tier) =>
+    tier >= 10 ? 3 : tier >= 7 ? 2 : tier >= 4 ? 1 : 0;
+
+export const getEffectiveDrifMultiplier = (level) => {
+    const normalized = Number.parseInt(level) || 1;
+    return normalized <= 6 ? 1 : normalized <= 11 ? 2 : normalized <= 16 ? 3 : 4;
+};
+
+export const calculateMaximumDrifSlots = ({ hasItem, isEpicOrSet, tier, stars }) => {
+    if (!hasItem || isEpicOrSet) return 0;
+    const base = tier >= 10 ? 3 : tier >= 4 ? 2 : tier >= 1 ? 1 : 0;
+    return base + ((tier === 2 || tier === 3) && stars >= 7 ? 1 : 0);
+};
+
+export const calculateMaximumDrifSizeIndex = ({ hasItem, isEpicOrSet, tier }) =>
+    !hasItem || isEpicOrSet ? -1 : getMaximumStoneSizeIndex(tier);
+
+export const calculateMaximumOrbSizeIndex = ({ hasItem, tier }) =>
+    hasItem ? getMaximumStoneSizeIndex(tier) : -1;
+
+export const calculateItemCapacity = (item, stars) => {
+    const base = Number(item?.capacity) || 0;
+    return base === 0 ? 0 : base + (stars >= 9 ? 4 : stars >= 8 ? 2 : stars >= 7 ? 1 : 0);
+};
+
 export const SIZE_INDEX = {
     SUBDRIF: 0,
     BIDRIF: 1,
