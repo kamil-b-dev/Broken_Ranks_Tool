@@ -35,8 +35,8 @@ const canonicalSetup = ({ slots, characterStats = {} }) => ({
     ),
 });
 
-async function importBuild(page, name) {
-    const payload = JSON.parse(await readFile(fixtureUrl(name), "utf8"));
+async function importBuild(page, name, suppliedPayload) {
+    const payload = suppliedPayload || JSON.parse(await readFile(fixtureUrl(name), "utf8"));
     await page.goto("/kreator");
     await expect(page.getByRole("button", { name: /Wczytaj build/ })).toBeEnabled();
     await page
@@ -136,7 +136,7 @@ test("runs the reported Archer 12/12 configuration through browser and backend",
     );
 });
 
-test("cancels a running advisor and applies a verified plan explicitly", async ({
+test("cancels a running advisor without requiring a plan before cancellation", async ({
     page,
     request,
 }) => {
@@ -176,10 +176,60 @@ test("cancels a running advisor and applies a verified plan explicitly", async (
     expect(http.status()).toBe(200);
     const response = await http.json();
     expect(response.advisorReport.status).toBe("CANCELLED");
-    expect(response.advisorReport.verifiedCandidates).toBeGreaterThan(0);
+    expect(response.advisorReport.verifiedCandidates).toBeGreaterThanOrEqual(0);
     expect(response.advisorReport.verifiedCandidates).toBeLessThanOrEqual(6);
-    expect(response.advisorReport.plans.length).toBeGreaterThan(0);
     expect(response.advisorReport.proofComplete).toBe(false);
+    await assertCalculatorParity(request, response);
+    const exported = await exportCurrent(page);
+    expect(canonicalSetup(exported.build.requestData)).toEqual(
+        canonicalSetup(response.optimizedSetup)
+    );
+});
+
+test("applies a verified advisor purchase plan explicitly", async ({ page, request }) => {
+    const initial = await (await request.get("/api/initial-data")).json();
+    const helmet = initial.items
+        .filter((item) => item.category === "HELMET" && item.rarity === "RARE")
+        .sort((left, right) => right.capacity - left.capacity)[0];
+    expect(helmet.capacity).toBeGreaterThan(0);
+    const payload = {
+        format: "broken-ranks-tool-build",
+        version: 1,
+        build: {
+            requestData: {
+                slots: {
+                    helmet: {
+                        itemId: helmet.id,
+                        itemStars: 5,
+                        drifIds: [],
+                        drifLevels: {},
+                        orbIds: [],
+                        orbLevels: [],
+                    },
+                },
+                characterStats: {},
+            },
+            characterConfig: null,
+            lockedSlots: [],
+            lockedDrifs: {},
+        },
+    };
+    await importBuild(page, "empty-helmet.json", payload);
+    await page.getByRole("link", { name: /Optymalizator drifów/ }).click();
+    await page.getByRole("button", { name: /^Doradca/ }).click();
+    await page.getByLabel("Główny cel").selectOption("CRITICAL_CHANCE");
+    await page.getByLabel("Maksymalna liczba działań w planie").selectOption("1");
+    await page.getByLabel("Zakupy drifów", { exact: true }).check();
+    const result = page.waitForResponse(
+        (res) => res.url().endsWith("/api/optimizer/drifs") && res.request().method() === "POST"
+    );
+    await page.getByRole("button", { name: /ANALIZUJ BUILD/i }).click();
+    const http = await result;
+    expect(http.status()).toBe(200);
+    const response = await http.json();
+    expect(response.summary.success).toBe(true);
+    expect(response.advisorReport.plans.length).toBeGreaterThan(0);
+    expect(response.advisorReport.plans[0].actions.length).toBeGreaterThan(0);
     await assertCalculatorParity(request, response);
     await page.getByRole("button", { name: /Zastosuj wybrany wariant/ }).click();
     const exported = await exportCurrent(page);

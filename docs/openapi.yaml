@@ -4,7 +4,7 @@ info:
   version: 1.0.0
   description: Same-origin API used by the equipment builder and optimizer.
   license:
-    name: Proprietary
+    name: AGPL-3.0-only
     url: https://github.com/kamil-b-dev/Broken_Ranks_Tool/blob/master/LICENSE
 servers:
   - url: /
@@ -19,18 +19,29 @@ paths:
           description: Initial application data.
           headers:
             Cache-Control:
-              schema: { type: string }
+              schema:
+                type: string
           content:
             application/json:
-              schema: { $ref: "#/components/schemas/InitialData" }
-        "429": { $ref: "#/components/responses/RateLimited" }
+              schema:
+                $ref: "#/components/schemas/InitialData"
+        "429":
+          $ref: "#/components/responses/RateLimited"
   /api/items:
     get:
       operationId: getItems
       summary: Return all item templates.
       responses:
-        "200": { $ref: "#/components/responses/CatalogueList" }
-        "429": { $ref: "#/components/responses/RateLimited" }
+        "200":
+          description: Catalogue templates.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ItemTemplate"
+        "429":
+          $ref: "#/components/responses/RateLimited"
   /api/items/category/{category}:
     get:
       operationId: getItemsByCategory
@@ -39,25 +50,51 @@ paths:
         - name: category
           in: path
           required: true
-          schema: { type: string }
+          schema:
+            type: string
       responses:
-        "200": { $ref: "#/components/responses/CatalogueList" }
-        "400": { $ref: "#/components/responses/ApiFailure" }
-        "429": { $ref: "#/components/responses/RateLimited" }
+        "200":
+          description: Catalogue templates.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ItemTemplate"
+        "400":
+          $ref: "#/components/responses/ApiFailure"
+        "429":
+          $ref: "#/components/responses/RateLimited"
   /api/orbs:
     get:
       operationId: getOrbs
       summary: Return all orb templates.
       responses:
-        "200": { $ref: "#/components/responses/CatalogueList" }
-        "429": { $ref: "#/components/responses/RateLimited" }
+        "200":
+          description: Catalogue templates.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OrbTemplate"
+        "429":
+          $ref: "#/components/responses/RateLimited"
   /api/drifs:
     get:
       operationId: getDrifs
       summary: Return all drif templates.
       responses:
-        "200": { $ref: "#/components/responses/CatalogueList" }
-        "429": { $ref: "#/components/responses/RateLimited" }
+        "200":
+          description: Catalogue templates.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DrifTemplate"
+        "429":
+          $ref: "#/components/responses/RateLimited"
   /api/rules:
     get:
       operationId: getGameRules
@@ -67,29 +104,37 @@ paths:
           description: Game rules keyed by stable enum names.
           content:
             application/json:
-              schema: { type: object, additionalProperties: true }
-        "429": { $ref: "#/components/responses/RateLimited" }
+              schema:
+                $ref: "#/components/schemas/PublicGameRules"
+        "429":
+          $ref: "#/components/responses/RateLimited"
   /api/dictionaries/categories:
     get:
       operationId: getItemCategoryDictionary
       summary: Return translated item category names.
       responses:
-        "200": { $ref: "#/components/responses/Dictionary" }
-        "429": { $ref: "#/components/responses/RateLimited" }
+        "200":
+          $ref: "#/components/responses/Dictionary"
+        "429":
+          $ref: "#/components/responses/RateLimited"
   /api/dictionaries/orb-categories:
     get:
       operationId: getOrbCategoryDictionary
       summary: Return translated orb category names.
       responses:
-        "200": { $ref: "#/components/responses/Dictionary" }
-        "429": { $ref: "#/components/responses/RateLimited" }
+        "200":
+          $ref: "#/components/responses/Dictionary"
+        "429":
+          $ref: "#/components/responses/RateLimited"
   /api/dictionaries/drif-categories:
     get:
       operationId: getDrifCategoryDictionary
       summary: Return translated drif category names.
       responses:
-        "200": { $ref: "#/components/responses/Dictionary" }
-        "429": { $ref: "#/components/responses/RateLimited" }
+        "200":
+          $ref: "#/components/responses/Dictionary"
+        "429":
+          $ref: "#/components/responses/RateLimited"
   /api/calculator/calculate:
     post:
       operationId: calculateEquipment
@@ -98,16 +143,21 @@ paths:
         required: true
         content:
           application/json:
-            schema: { $ref: "#/components/schemas/EquipmentRequest" }
+            schema:
+              $ref: "#/components/schemas/EquipmentRequest"
       responses:
         "200":
           description: Calculated values with source classifications.
           content:
             application/json:
-              schema: { $ref: "#/components/schemas/CalculationResult" }
-        "400": { $ref: "#/components/responses/ApiFailure" }
-        "413": { $ref: "#/components/responses/RequestTooLarge" }
-        "429": { $ref: "#/components/responses/RateLimited" }
+              schema:
+                $ref: "#/components/schemas/CalculationResult"
+        "400":
+          $ref: "#/components/responses/ApiFailure"
+        "413":
+          $ref: "#/components/responses/RequestTooLarge"
+        "429":
+          $ref: "#/components/responses/RateLimited"
   /api/optimizer/drifs:
     post:
       operationId: optimizeDrifs
@@ -116,16 +166,22 @@ paths:
         required: true
         content:
           application/json:
-            schema: { $ref: "#/components/schemas/OptimizationRequest" }
+            schema:
+              $ref: "#/components/schemas/OptimizationRequest"
       responses:
         "200":
-          description: Optimized setup, summary, and optional advisor report.
+          description: HTTP success may contain summary.success=false. A successful build has a calculator-verified
+            setup; unmet soft targets remain warnings.
           content:
             application/json:
-              schema: { type: object, additionalProperties: true }
-        "400": { $ref: "#/components/responses/ApiFailure" }
-        "413": { $ref: "#/components/responses/RequestTooLarge" }
-        "429": { $ref: "#/components/responses/RateLimited" }
+              schema:
+                $ref: "#/components/schemas/OptimizationResponse"
+        "400":
+          $ref: "#/components/responses/ApiFailure"
+        "413":
+          $ref: "#/components/responses/RequestTooLarge"
+        "429":
+          $ref: "#/components/responses/RateLimited"
   /api/optimizer/advisor/{runId}/cancel:
     post:
       operationId: cancelAdvisorRun
@@ -134,12 +190,16 @@ paths:
         - name: runId
           in: path
           required: true
-          schema: { type: string, format: uuid }
+          schema:
+            type: string
+            format: uuid
         - name: X-Advisor-Cancellation-Token
           in: header
           required: true
           description: Independent random token supplied with the advisor request.
-          schema: { type: string, format: uuid }
+          schema:
+            type: string
+            format: uuid
       responses:
         "200":
           description: Whether a matching active run was marked for cancellation.
@@ -147,156 +207,243 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [cancelled]
+                required:
+                  - cancelled
                 properties:
-                  cancelled: { type: boolean }
-        "400": { $ref: "#/components/responses/ApiFailure" }
-        "429": { $ref: "#/components/responses/RateLimited" }
+                  cancelled:
+                    type: boolean
+        "400":
+          $ref: "#/components/responses/ApiFailure"
+        "429":
+          $ref: "#/components/responses/RateLimited"
 components:
   responses:
-    CatalogueList:
-      description: Catalogue templates.
-      content:
-        application/json:
-          schema:
-            type: array
-            items: { type: object, additionalProperties: true }
     Dictionary:
       description: Labels keyed by stable enum names.
       content:
         application/json:
           schema:
             type: object
-            additionalProperties: { type: string }
+            additionalProperties:
+              type: string
     ApiFailure:
       description: Invalid or forbidden request.
       content:
         application/json:
-          schema: { $ref: "#/components/schemas/ApiError" }
+          schema:
+            $ref: "#/components/schemas/ApiError"
     RequestTooLarge:
       description: Request body exceeds the configured 256 KiB default limit.
       content:
         application/json:
-          schema: { $ref: "#/components/schemas/ApiError" }
+          schema:
+            $ref: "#/components/schemas/ApiError"
     RateLimited:
       description: Per-client or whole-instance one-minute allowance exhausted.
       headers:
         Retry-After:
-          schema: { type: integer, minimum: 1 }
+          schema:
+            type: integer
+            minimum: 1
       content:
         application/json:
-          schema: { $ref: "#/components/schemas/ApiError" }
+          schema:
+            $ref: "#/components/schemas/ApiError"
   schemas:
     ApiError:
       type: object
-      required: [code, message]
+      required:
+        - code
+        - message
       properties:
-        code: { type: string }
-        message: { type: string }
-        requestId: { type: [string, "null"] }
+        code:
+          type: string
+        message:
+          type: string
+        requestId:
+          type:
+            - string
+            - "null"
     SlotData:
       type: object
       properties:
-        itemId: { type: [integer, "null"], format: int64 }
-        itemStars: { type: [integer, "null"], minimum: 1, maximum: 9 }
+        itemId:
+          type:
+            - integer
+            - "null"
+          format: int64
+        itemStars:
+          type:
+            - integer
+            - "null"
+          minimum: 1
+          maximum: 9
         orbIds:
-          type: [array, "null"]
+          type:
+            - array
+            - "null"
           maxItems: 2
-          items: { type: [integer, "null"], format: int64 }
+          items:
+            type:
+              - integer
+              - "null"
+            format: int64
         orbLevels:
-          type: [array, "null"]
+          type:
+            - array
+            - "null"
           maxItems: 2
-          items: { type: [integer, "null"] }
+          items:
+            type:
+              - integer
+              - "null"
         drifIds:
-          type: [array, "null"]
+          type:
+            - array
+            - "null"
           maxItems: 8
-          items: { type: [integer, "null"], format: int64 }
+          items:
+            type:
+              - integer
+              - "null"
+            format: int64
         drifLevels:
-          type: [object, "null"]
+          type:
+            - object
+            - "null"
           maxProperties: 8
-          additionalProperties: { type: integer }
+          additionalProperties:
+            type: integer
     EquipmentRequest:
       type: object
       properties:
         slots:
-          type: [object, "null"]
+          type:
+            - object
+            - "null"
           maxProperties: 12
-          additionalProperties: { $ref: "#/components/schemas/SlotData" }
+          additionalProperties:
+            $ref: "#/components/schemas/SlotData"
         characterStats:
-          type: [object, "null"]
+          type:
+            - object
+            - "null"
           maxProperties: 32
-          additionalProperties: { type: integer, minimum: 0, maximum: 50000 }
+          additionalProperties:
+            type: integer
+            minimum: 0
+            maximum: 50000
     CalculationResult:
       type: object
-      required: [stats, drifCategories, orbBonusTypes]
+      required:
+        - stats
+        - drifCategories
+        - orbBonusTypes
       properties:
         stats:
           type: object
-          additionalProperties: { type: string }
+          additionalProperties:
+            type: string
         drifCategories:
           type: object
-          additionalProperties: { type: string }
+          additionalProperties:
+            type: string
         orbBonusTypes:
           type: array
           uniqueItems: true
-          items: { type: string }
+          items:
+            type: string
     OptimizationRequest:
       type: object
-      required: [mode, originalSlots]
+      required:
+        - originalSlots
       properties:
-        mode: { type: string, enum: [BUILD_FROM_SCRATCH, ADVISOR] }
+        mode:
+          type: string
+          enum:
+            - BUILD_FROM_SCRATCH
+            - ADVISOR
+          default: BUILD_FROM_SCRATCH
         configurationMode:
           type: string
-          enum: [SIMPLE, ADVANCED]
+          enum:
+            - SIMPLE
+            - ADVANCED
           default: ADVANCED
         simpleProfile:
-          type: [string, "null"]
+          type:
+            - string
+            - "null"
           enum:
-            [
-              BARBARIAN,
-              KNIGHT,
-              ARCHER,
-              FIRE_MAGE,
-              DRUID,
-              SHEED,
-              VOODOO,
-              MAGICAL,
-              MAGICAL_RANGED,
-              MAGICAL_MENTAL,
-              PHYSICAL_MELEE,
-              PHYSICAL_RANGED,
-              null,
-            ]
+            - BARBARIAN
+            - KNIGHT
+            - ARCHER
+            - FIRE_MAGE
+            - DRUID
+            - SHEED
+            - VOODOO
+            - MAGICAL
+            - MAGICAL_RANGED
+            - MAGICAL_MENTAL
+            - PHYSICAL_MELEE
+            - PHYSICAL_RANGED
+            - null
         simpleOptions:
-          type: [object, "null"]
-          additionalProperties: true
+          anyOf:
+            - $ref: "#/components/schemas/SimpleOptions"
+            - type: "null"
         simpleAspects:
-          type: [object, "null"]
+          type:
+            - object
+            - "null"
           maxProperties: 6
-          additionalProperties: { type: string, enum: [NORMAL, IMPORTANT, KEY] }
+          additionalProperties:
+            type: string
+            enum:
+              - NORMAL
+              - IMPORTANT
+              - KEY
         characterStats:
-          type: [object, "null"]
+          type:
+            - object
+            - "null"
           maxProperties: 32
-          additionalProperties: { type: integer, minimum: 0, maximum: 50000 }
+          additionalProperties:
+            type: integer
+            minimum: 0
+            maximum: 50000
         originalSlots:
           type: object
           minProperties: 1
           maxProperties: 12
-          additionalProperties: { $ref: "#/components/schemas/SlotData" }
+          additionalProperties:
+            $ref: "#/components/schemas/SlotData"
         priorities:
           type: object
-          description: At least one priority is required in advanced mode; named simple profiles resolve priorities server-side.
+          description: At least one priority is required in advanced mode; named simple profiles resolve priorities
+            server-side.
           maxProperties: 32
-          additionalProperties: { type: integer, minimum: 1, maximum: 30 }
+          additionalProperties:
+            type: integer
+            minimum: 1
+            maximum: 30
         targetQuantities:
           type: object
           maxProperties: 32
           additionalProperties:
             type: object
-            required: [min, max]
+            required:
+              - min
+              - max
             properties:
-              min: { type: integer, minimum: 0, maximum: 12 }
-              max: { type: integer, minimum: 0, maximum: 12 }
+              min:
+                type: integer
+                minimum: 0
+                maximum: 12
+              max:
+                type: integer
+                minimum: 0
+                maximum: 12
         drifSizeQuantities:
           type: object
           maxProperties: 32
@@ -305,15 +452,24 @@ components:
             maxProperties: 4
             additionalProperties:
               type: object
-              required: [min, max]
+              required:
+                - min
+                - max
               properties:
-                min: { type: integer, minimum: 0, maximum: 12 }
-                max: { type: integer, minimum: 0, maximum: 12 }
+                min:
+                  type: integer
+                  minimum: 0
+                  maximum: 12
+                max:
+                  type: integer
+                  minimum: 0
+                  maximum: 12
         lockedSlots:
           type: array
           maxItems: 12
           uniqueItems: true
-          items: { type: string }
+          items:
+            type: string
         lockedDrifs:
           type: object
           maxProperties: 12
@@ -321,85 +477,762 @@ components:
             type: array
             maxItems: 8
             uniqueItems: true
-            items: { type: integer }
+            items:
+              type: integer
         forceCapBonuses:
           type: array
           maxItems: 32
           uniqueItems: true
-          items: { type: string }
+          items:
+            type: string
         forcedPercentageTargets:
           type: object
           maxProperties: 32
-          additionalProperties: { type: number, minimum: 0 }
+          additionalProperties:
+            type: number
+            minimum: 0
         maximizeBonuses:
           type: array
           maxItems: 32
           uniqueItems: true
-          items: { type: string }
-        forceMaximizationByDrifBonus: { type: boolean }
-        generateVariants: { type: boolean }
-        maxVariantLossPercent: { type: integer, minimum: 0, maximum: 100 }
+          items:
+            type: string
+        forceMaximizationByDrifBonus:
+          type: boolean
+        generateVariants:
+          type: boolean
+        maxVariantLossPercent:
+          type: integer
+          minimum: 0
+          maximum: 100
         advisor:
           oneOf:
             - $ref: "#/components/schemas/AdvisorOptions"
             - type: "null"
     AdvisorOptions:
       type: object
-      required: [goal]
+      required:
+        - goal
       dependentRequired:
-        runId: [cancellationToken]
-        cancellationToken: [runId]
+        runId:
+          - cancellationToken
+        cancellationToken:
+          - runId
       properties:
-        goal: { type: string }
+        goal:
+          type: string
         strategy:
           type: string
-          enum: [MINIMUM_CHANGE, BEST_RESULT]
+          enum:
+            - MINIMUM_CHANGE
+            - BEST_RESULT
           default: MINIMUM_CHANGE
         runId:
-          type: [string, "null"]
+          type:
+            - string
+            - "null"
           format: uuid
         cancellationToken:
-          type: [string, "null"]
+          type:
+            - string
+            - "null"
           format: uuid
           description: Required together with runId and used only to authorize cancellation.
         timeBudgetMs:
           type: integer
-          enum: [3000, 6000]
+          enum:
+            - 3000
+            - 6000
           default: 3000
-        maxActions: { type: integer, minimum: 1, maximum: 10, default: 3 }
-        targetValue: { type: [number, "null"], minimum: 0 }
-        targetGain: { type: [number, "null"], minimum: 0 }
+        maxActions:
+          type: integer
+          minimum: 1
+          maximum: 10
+          default: 3
+        targetValue:
+          type:
+            - number
+            - "null"
+          minimum: 0
+        targetGain:
+          type:
+            - number
+            - "null"
+          minimum: 0
         profession:
           type: string
-          enum: [AUTO, MAGICAL, PHYSICAL, UNIVERSAL]
+          enum:
+            - AUTO
+            - MAGICAL
+            - PHYSICAL
+            - UNIVERSAL
           default: AUTO
         allowedChanges:
           type: object
           properties:
-            stars: { type: boolean, default: true }
-            items: { type: boolean, default: false }
-            drifs: { type: boolean, default: false }
-            drifUpgrades: { type: boolean, default: false }
+            stars:
+              type: boolean
+              default: true
+            items:
+              type: boolean
+              default: false
+            drifs:
+              type: boolean
+              default: false
+            drifUpgrades:
+              type: boolean
+              default: false
         protectedModifiers:
           type: object
           maxProperties: 32
           additionalProperties:
             type: object
             properties:
-              enabled: { type: boolean, default: true }
-              loss: { type: number, minimum: 0, default: 0 }
+              enabled:
+                type: boolean
+                default: true
+              loss:
+                type: number
+                minimum: 0
+                default: 0
     InitialData:
       type: object
-      required: [items, orbs, drifs, gameRules, dictionaries]
+      additionalProperties: false
+      required:
+        - items
+        - orbs
+        - drifs
+        - gameRules
+        - dictionaries
       properties:
         items:
           type: array
-          items: { type: object, additionalProperties: true }
+          items:
+            $ref: "#/components/schemas/ItemTemplate"
         orbs:
           type: array
-          items: { type: object, additionalProperties: true }
+          items:
+            $ref: "#/components/schemas/OrbTemplate"
         drifs:
           type: array
-          items: { type: object, additionalProperties: true }
-        gameRules: { type: object, additionalProperties: true }
-        dictionaries: { type: object, additionalProperties: true }
+          items:
+            $ref: "#/components/schemas/DrifTemplate"
+        gameRules:
+          $ref: "#/components/schemas/GameRules"
+        dictionaries:
+          $ref: "#/components/schemas/Dictionaries"
+    SimpleOptions:
+      type: object
+      additionalProperties: false
+      properties:
+        damageDrifs:
+          type:
+            - integer
+            - "null"
+          minimum: 1
+          maximum: 12
+        accuracyDrifs:
+          type:
+            - integer
+            - "null"
+          minimum: 1
+          maximum: 12
+        style:
+          type:
+            - string
+            - "null"
+          enum:
+            - OFFENSIVE
+            - DEFENSIVE
+            - null
+        element:
+          type:
+            - string
+            - "null"
+          enum:
+            - NONE
+            - FIRE
+            - FROST
+            - ENERGY
+            - null
+        passiveDamageReduction:
+          type:
+            - boolean
+            - "null"
+        percentageDamageReduction:
+          type:
+            - boolean
+            - "null"
+        damageReductionChance:
+          type:
+            - boolean
+            - "null"
+        dodgeChance:
+          type:
+            - boolean
+            - "null"
+    ItemTemplate:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+        - category
+        - tier
+        - reqLevel
+        - boss
+        - capacity
+        - stats
+        - rarity
+        - profile
+        - classScope
+        - allowedClasses
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        category:
+          type: string
+        tier:
+          type: string
+        reqLevel:
+          type: integer
+        boss:
+          type:
+            - string
+            - "null"
+        capacity:
+          type:
+            - integer
+            - "null"
+        stats:
+          type:
+            - object
+            - "null"
+          additionalProperties:
+            type: number
+        rarity:
+          type: string
+        profile:
+          type:
+            - string
+            - "null"
+        classScope:
+          type:
+            - string
+            - "null"
+        allowedClasses:
+          type:
+            - array
+            - "null"
+          items:
+            type: string
+    DrifTemplate:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+        - baseValue
+        - increment
+        - size
+        - bonusType
+        - rankRange
+        - price
+        - category
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        baseValue:
+          type: string
+        increment:
+          type: string
+        size:
+          type: string
+          enum:
+            - SUBDRIF
+            - BIDRIF
+            - MAGNIDRIF
+            - ARCYDRIF
+        bonusType:
+          type: string
+        rankRange:
+          type:
+            - string
+            - "null"
+        price:
+          type: integer
+        category:
+          type: string
+    OrbTemplate:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+        - size
+        - category
+        - bonusType
+        - bonusLvl1
+        - bonusLvl2
+        - bonusLvl3
+        - rankRange
+        - price
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        size:
+          type: string
+          enum:
+            - SUBORB
+            - BIORB
+            - MAGNIORB
+            - ARCYORB
+        category:
+          type: string
+        bonusType:
+          type: string
+        bonusLvl1:
+          type:
+            - string
+            - "null"
+        bonusLvl2:
+          type:
+            - string
+            - "null"
+        bonusLvl3:
+          type:
+            - string
+            - "null"
+        rankRange:
+          type:
+            - string
+            - "null"
+        price:
+          type: integer
+    GameRules:
+      type: object
+      additionalProperties: false
+      required:
+        - epicBuiltInDrifs
+        - slotOrbRules
+        - bonusTranslations
+        - drifBasePowers
+        - drifMaxCaps
+        - drifBonusCategories
+        - elementalTypes
+        - drifPenaltyMultipliers
+      properties:
+        epicBuiltInDrifs:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+        slotOrbRules:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+        bonusTranslations:
+          type: object
+          additionalProperties:
+            type: string
+        drifBasePowers:
+          type: object
+          additionalProperties:
+            type: integer
+        drifMaxCaps:
+          type: object
+          additionalProperties:
+            type:
+              - integer
+              - "null"
+        drifBonusCategories:
+          type: object
+          additionalProperties:
+            type: string
+        elementalTypes:
+          type: array
+          items:
+            type: string
+        drifPenaltyMultipliers:
+          type: object
+          additionalProperties:
+            type: number
+    Dictionaries:
+      type: object
+      additionalProperties: false
+      required:
+        - itemCategories
+        - orbCategories
+        - drifCategories
+      properties:
+        itemCategories:
+          type: object
+          additionalProperties:
+            type: string
+        orbCategories:
+          type: object
+          additionalProperties:
+            type: string
+        drifCategories:
+          type: object
+          additionalProperties:
+            type: string
+    GoalResult:
+      type: object
+      additionalProperties: false
+      required:
+        - statKey
+        - bonusName
+        - priority
+        - placedCount
+        - minimumCount
+        - maximumCount
+        - calculatorValue
+        - targetLabel
+        - quantitySatisfied
+        - targetSatisfied
+      properties:
+        statKey:
+          type:
+            - string
+            - "null"
+        bonusName:
+          type:
+            - string
+            - "null"
+        priority:
+          type: integer
+        placedCount:
+          type: integer
+        minimumCount:
+          type: integer
+        maximumCount:
+          type: integer
+        calculatorValue:
+          type:
+            - string
+            - "null"
+        targetLabel:
+          type:
+            - string
+            - "null"
+        quantitySatisfied:
+          type: boolean
+        targetSatisfied:
+          type:
+            - boolean
+            - "null"
+    PlacementChange:
+      type: object
+      additionalProperties: false
+      required:
+        - slotKey
+        - itemName
+        - fromModifier
+        - fromLevel
+        - toModifier
+        - toLevel
+      properties:
+        slotKey:
+          type: string
+        itemName:
+          type:
+            - string
+            - "null"
+        fromModifier:
+          type:
+            - string
+            - "null"
+        fromLevel:
+          type:
+            - integer
+            - "null"
+        toModifier:
+          type:
+            - string
+            - "null"
+        toLevel:
+          type:
+            - integer
+            - "null"
+    StatChange:
+      type: object
+      additionalProperties: false
+      required:
+        - statKey
+        - finalValue
+        - variantValue
+      properties:
+        statKey:
+          type: string
+        finalValue:
+          type:
+            - string
+            - "null"
+        variantValue:
+          type:
+            - string
+            - "null"
+    OptimizationVariant:
+      type: object
+      additionalProperties: false
+      required:
+        - main
+        - bonusName
+        - finalValue
+        - variantValue
+        - gain
+        - totalLoss
+        - changeCount
+        - score
+        - changes
+        - statChanges
+        - setup
+        - calculationResult
+      properties:
+        main:
+          type: boolean
+        bonusName:
+          type:
+            - string
+            - "null"
+        finalValue:
+          type: number
+        variantValue:
+          type: number
+        gain:
+          type: number
+        totalLoss:
+          type: number
+        changeCount:
+          type: integer
+        score:
+          type: number
+        changes:
+          type:
+            - array
+            - "null"
+          items:
+            $ref: "#/components/schemas/PlacementChange"
+        statChanges:
+          type:
+            - array
+            - "null"
+          items:
+            $ref: "#/components/schemas/StatChange"
+        setup:
+          $ref: "#/components/schemas/EquipmentRequest"
+        calculationResult:
+          anyOf:
+            - $ref: "#/components/schemas/CalculationResult"
+            - type: "null"
+    ItemDrifBonus:
+      type: object
+      additionalProperties: false
+      required:
+        - slotKey
+        - itemName
+      properties:
+        slotKey:
+          type: string
+        itemName:
+          type:
+            - string
+            - "null"
+    OptimizationSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - success
+        - message
+        - drifsPlaced
+        - totalPowerUsed
+        - executionTimeSeconds
+        - warnings
+        - itemsByDrifBonus
+        - goalResults
+        - nextVariants
+      properties:
+        success:
+          type: boolean
+        message:
+          type:
+            - string
+            - "null"
+        drifsPlaced:
+          type: integer
+        totalPowerUsed:
+          type: integer
+        executionTimeSeconds:
+          type: number
+        warnings:
+          type:
+            - array
+            - "null"
+          items:
+            type: string
+        itemsByDrifBonus:
+          type:
+            - object
+            - "null"
+          additionalProperties:
+            type: array
+            items:
+              $ref: "#/components/schemas/ItemDrifBonus"
+        goalResults:
+          type:
+            - array
+            - "null"
+          items:
+            $ref: "#/components/schemas/GoalResult"
+        nextVariants:
+          type:
+            - array
+            - "null"
+          items:
+            $ref: "#/components/schemas/OptimizationVariant"
+    AdvisorPlan:
+      type: object
+      additionalProperties: false
+      required:
+        - kind
+        - actions
+        - upgrades
+        - targetReached
+        - drifCounts
+      properties:
+        kind:
+          type: string
+          enum:
+            - MOVES
+            - ONE_UPGRADE
+            - PLAN
+        actions:
+          type: array
+          items:
+            type: string
+        upgrades:
+          type: integer
+        targetReached:
+          type: boolean
+        drifCounts:
+          type: object
+          additionalProperties:
+            type: integer
+    AdvisorReport:
+      type: object
+      additionalProperties: false
+      required:
+        - evaluatedStates
+        - timeLimitReached
+        - cancelled
+        - status
+        - targetReached
+        - baselineValue
+        - goal
+        - maxActions
+        - searchSpaceExhausted
+        - proofComplete
+        - verifiedCandidates
+        - candidateCount
+        - plans
+      properties:
+        evaluatedStates:
+          type: integer
+        timeLimitReached:
+          type: boolean
+        cancelled:
+          type: boolean
+        status:
+          type: string
+          enum:
+            - OPTIMAL
+            - BEST_FOUND
+            - INFEASIBLE
+            - CANCELLED
+        targetReached:
+          type: boolean
+        baselineValue:
+          type: number
+        goal:
+          type: string
+        maxActions:
+          type: integer
+        searchSpaceExhausted:
+          type: boolean
+        proofComplete:
+          type: boolean
+        verifiedCandidates:
+          type: integer
+        candidateCount:
+          type: integer
+        plans:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdvisorPlan"
+    OptimizationResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - optimizedSetup
+        - summary
+        - calculationResult
+        - advisorReport
+      properties:
+        optimizedSetup:
+          anyOf:
+            - $ref: "#/components/schemas/EquipmentRequest"
+            - type: "null"
+        summary:
+          $ref: "#/components/schemas/OptimizationSummary"
+        calculationResult:
+          anyOf:
+            - $ref: "#/components/schemas/CalculationResult"
+            - type: "null"
+        advisorReport:
+          anyOf:
+            - $ref: "#/components/schemas/AdvisorReport"
+            - type: "null"
+    PublicGameRules:
+      type: object
+      additionalProperties: false
+      required:
+        - epicBuiltInDrifs
+        - slotOrbRules
+        - bonusTranslations
+        - drifBasePowers
+        - elementalTypes
+      properties:
+        epicBuiltInDrifs:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+        slotOrbRules:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+        bonusTranslations:
+          type: object
+          additionalProperties:
+            type: string
+        drifBasePowers:
+          type: object
+          additionalProperties:
+            type: integer
+        elementalTypes:
+          type: array
+          items:
+            type: string
