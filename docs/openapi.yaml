@@ -170,8 +170,9 @@ paths:
               $ref: "#/components/schemas/OptimizationRequest"
       responses:
         "200":
-          description: HTTP success may contain summary.success=false. A successful build has a calculator-verified
-            setup; unmet soft targets remain warnings.
+          description: HTTP 200 may contain a business failure or a valid calculator-verified build with unmet
+            soft targets. Both may have summary.success=false; a valid build still includes optimizedSetup,
+            calculationResult and warnings explaining the unmet targets.
           content:
             application/json:
               schema:
@@ -1064,6 +1065,9 @@ components:
       properties:
         success:
           type: boolean
+          description: In build-from-scratch mode false also describes a valid build with unmet soft targets.
+            Inspect optimizedSetup, calculationResult and warnings to distinguish it from a business failure
+            without a build. The flag does not indicate proof of a global optimum.
         message:
           type:
             - string
