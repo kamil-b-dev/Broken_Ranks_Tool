@@ -35,6 +35,8 @@ class ApplySqliteMigrationTests {
                                 "21",
                                 "-encoding",
                                 "UTF-8",
+                                "-classpath",
+                                System.getProperty("java.class.path"),
                                 "-d",
                                 classes.toString(),
                                 Path.of("database", "tools", "ApplySqliteMigration.java")
@@ -92,6 +94,58 @@ class ApplySqliteMigrationTests {
             try (ResultSet rows = statement.executeQuery("SELECT count(*) FROM audit")) {
                 assertTrue(rows.next());
                 assertEquals(2, rows.getInt(1));
+            }
+        }
+        assertNoWorkingDirectories();
+    }
+
+    @ParameterizedTest
+    @ValueSource(
+            strings = {
+                "COMMIT; BEGIN;",
+                "END; BEGIN;",
+                "SAVEPOINT user_transaction; RELEASE user_transaction;",
+                "VACUUM INTO 'outside.db';"
+            })
+    void rejectsScriptOwnedTransactionsAndExternalFiles(String sql) throws Exception {
+        Path target = directory.resolve("forbidden.db");
+        assertThrows(IllegalArgumentException.class, () -> migrate(source, target, script(sql)));
+        assertFalse(Files.exists(target));
+        assertArrayEquals(original, Files.readAllBytes(source));
+        assertNoWorkingDirectories();
+    }
+
+    @Test
+    void rejectsAttachmentBeforeAnySourceWriteCanHappen() throws Exception {
+        Path target = directory.resolve("attached.db");
+        String sql =
+                "ATTACH DATABASE '"
+                        + source.toString().replace("'", "''")
+                        + "' AS original; INSERT INTO original.entries(stats) VALUES('illegal');";
+        assertThrows(IllegalArgumentException.class, () -> migrate(source, target, script(sql)));
+        assertArrayEquals(original, Files.readAllBytes(source));
+        assertFalse(Files.exists(target));
+    }
+
+    @Test
+    void copiesCommittedWalPagesWithoutCheckpointingTheSource() throws Exception {
+        try (Connection writer = connect(source);
+                Statement statement = writer.createStatement()) {
+            statement.execute("PRAGMA journal_mode=WAL");
+            statement.execute("PRAGMA wal_autocheckpoint=0");
+            statement.executeUpdate("INSERT INTO entries(stats) VALUES('from WAL')");
+            byte[] mainBefore = Files.readAllBytes(source);
+            Path wal = Path.of(source + "-wal");
+            byte[] walBefore = Files.readAllBytes(wal);
+            Path target = directory.resolve("wal-copy.db");
+            migrate(source, target, script("INSERT INTO entries(stats) VALUES('migration');"));
+            assertArrayEquals(mainBefore, Files.readAllBytes(source));
+            assertArrayEquals(walBefore, Files.readAllBytes(wal));
+            try (Connection copy = connect(target);
+                    Statement query = copy.createStatement();
+                    ResultSet rows = query.executeQuery("SELECT count(*) FROM entries")) {
+                assertTrue(rows.next());
+                assertEquals(3, rows.getInt(1));
             }
         }
         assertNoWorkingDirectories();
@@ -213,7 +267,7 @@ class ApplySqliteMigrationTests {
     @ValueSource(strings = {"BEGIN; INSERT INTO entries(stats) VALUES('new'); COMMIT;", "VACUUM;"})
     void rejectsOperationsOutsideTheManagedTransaction(String sql) throws Exception {
         Path target = directory.resolve("result.db");
-        assertThrows(SQLException.class, () -> migrate(source, target, script(sql)));
+        assertThrows(IllegalArgumentException.class, () -> migrate(source, target, script(sql)));
         assertFalse(Files.exists(target));
         assertArrayEquals(original, Files.readAllBytes(source));
         assertNoWorkingDirectories();

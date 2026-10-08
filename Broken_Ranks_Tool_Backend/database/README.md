@@ -22,10 +22,16 @@ docelowej kopii i migracji. Źródło pozostaje nietknięte. Plik docelowy musi 
 narzędzie nigdy nie nadpisuje istniejącego pliku ani nie pozwala wskazać domyślnej
 ścieżki `database/catalog/broken_ranks.db` jako celu, także gdy katalog został usunięty.
 
+Źródło jest otwierane przez SQLite w trybie `mode=ro`, a kopia powstaje przez online backup.
+Obejmuje ona również zatwierdzone strony WAL, bez checkpointu źródła. Ewentualny checkpoint
+po migracji dotyczy wyłącznie własnej kopii roboczej przed jej publikacją.
+
 SQL jest wykonywany parserem SQLite na kopii roboczej, w jednej transakcji. Literały,
-komentarze i triggery mogą zawierać średniki. Skrypt nie powinien sterować transakcją
-przez `BEGIN`, `COMMIT`, `ROLLBACK` ani zawierać operacji wymagających pracy poza
-transakcją, takich jak `VACUUM`. Nowa kopia docelowa jest tworzona dopiero po poprawnym
+komentarze i triggery mogą zawierać średniki. Narzędzie odrzuca sterowanie transakcją
+(`BEGIN`, `COMMIT`, `END`, `ROLLBACK`, `SAVEPOINT`, `RELEASE`) poza ciałem triggera,
+dołączanie innych baz (`ATTACH`, `DETACH`), `VACUUM`, ładowanie rozszerzeń oraz ustawienia
+zewnętrznych katalogów plików tymczasowych. Słowa kluczowe wewnątrz literałów i cytowanych
+nazw nie są operacjami. Nowa kopia docelowa jest tworzona dopiero po poprawnym
 wykonaniu skryptu. Błąd SQL wycofuje zmiany i usuwa kopię roboczą, bez usuwania
 istniejącej bazy docelowej. Utworzenie celu przez `CREATE_NEW` chroni również przed
 nadpisaniem pliku, który pojawił się podczas wykonywania migracji.
