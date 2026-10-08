@@ -63,6 +63,8 @@ paths:
                   $ref: "#/components/schemas/ItemTemplate"
         "400":
           $ref: "#/components/responses/ApiFailure"
+        "404":
+          description: No item templates exist for the category. The response has no body.
         "429":
           $ref: "#/components/responses/RateLimited"
   /api/orbs:
