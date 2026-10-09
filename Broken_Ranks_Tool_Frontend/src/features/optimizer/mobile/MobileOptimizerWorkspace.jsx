@@ -1,3 +1,7 @@
+import "../styles/optimizer-shell.css";
+import "../styles/optimizer-goals.css";
+import "../styles/optimizer-report.css";
+import "../styles/optimizer-results.css";
 import { useEffect, useRef } from "react";
 import AppNotice from "../../../shared/ui/AppNotice";
 import { useOptimizerWorkspace } from "../useOptimizerWorkspace";
@@ -11,6 +15,7 @@ import MobileOptimizerOptions from "./MobileOptimizerOptions";
 import MobileOptimizerReport from "./MobileOptimizerReport";
 import { useMobileOptimizerNavigation } from "./useMobileOptimizerNavigation";
 import "./mobile-optimizer.css";
+import OptimizationElapsedTime from "../OptimizationElapsedTime";
 
 export default function MobileOptimizerWorkspace({ settings, onSettingsChange, onBackToBuilder }) {
     const model = useOptimizerWorkspace({
@@ -21,6 +26,7 @@ export default function MobileOptimizerWorkspace({ settings, onSettingsChange, o
     const simple = !advisory && settings.configurationMode === "SIMPLE";
     const navigation = useMobileOptimizerNavigation(advisory);
     const heading = useRef(null);
+    const bonusOpener = useRef(null);
     const mode = advisory ? "ADVISOR" : simple ? "SIMPLE" : "ADVANCED";
     const sections = [
         ["goals", advisory ? "Cel i ochrony" : simple ? "Profil" : "Cele"],
@@ -92,11 +98,20 @@ export default function MobileOptimizerWorkspace({ settings, onSettingsChange, o
                     }
                     onClick={model.handleOptimizeClick}
                 >
-                    {model.isOptimizing
-                        ? `Analiza trwa (${model.optimizationElapsedSeconds} s)`
-                        : advisory
-                          ? "Analizuj build"
-                          : "Uruchom optymalizację"}
+                    {model.isOptimizing ? (
+                        <>
+                            Analiza trwa (
+                            <OptimizationElapsedTime
+                                startedAt={model.optimizationStartedAt}
+                                elapsedSeconds={model.optimizationElapsedSeconds}
+                            />{" "}
+                            s)
+                        </>
+                    ) : advisory ? (
+                        "Analizuj build"
+                    ) : (
+                        "Uruchom optymalizację"
+                    )}
                 </button>
                 {model.isOptimizing && advisory && (
                     <button type="button" onClick={model.handleCancel}>
@@ -134,6 +149,7 @@ export default function MobileOptimizerWorkspace({ settings, onSettingsChange, o
                         <>
                             <button
                                 className="mobile-add-goal"
+                                ref={bonusOpener}
                                 type="button"
                                 onClick={() => navigation.change("goals", true)}
                             >
@@ -215,7 +231,11 @@ export default function MobileOptimizerWorkspace({ settings, onSettingsChange, o
                 <MobileOptimizerReport model={model} advisory={advisory} />
             )}
             {!advisory && !simple && navigation.picking && (
-                <MobileBonusPicker model={model} onClose={navigation.closePicker} />
+                <MobileBonusPicker
+                    openerRef={bonusOpener}
+                    model={model}
+                    onClose={navigation.closePicker}
+                />
             )}
         </main>
     );

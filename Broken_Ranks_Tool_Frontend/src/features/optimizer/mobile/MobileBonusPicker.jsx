@@ -4,17 +4,20 @@ import {
     DRIF_CATEGORY_ORDER,
 } from "../../../shared/domain/equipment/drifCategories";
 
-export default function MobileBonusPicker({ model, onClose }) {
+export default function MobileBonusPicker({ model, onClose, openerRef }) {
     const dialog = useRef(null);
     useLayoutEffect(() => {
         const element = dialog.current;
-        const opener = document.activeElement;
+        const opener = openerRef?.current || document.activeElement;
         element.showModal();
         return () => {
             element.close();
             if (opener?.isConnected) opener.focus();
+            queueMicrotask(() => {
+                if (opener?.isConnected && !document.querySelector("dialog[open]")) opener.focus();
+            });
         };
-    }, []);
+    }, [openerRef]);
     return (
         <dialog
             ref={dialog}

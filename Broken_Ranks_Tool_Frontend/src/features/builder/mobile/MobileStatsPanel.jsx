@@ -1,4 +1,5 @@
-import { useState } from "react";
+import "../stats-panel/stats-panel.css";
+import { memo, useMemo, useState } from "react";
 import {
     useEquipmentCalculation,
     useEquipmentCatalogState,
@@ -6,9 +7,13 @@ import {
 import TabList from "../../../shared/ui/TabList";
 import { buildStatColumns } from "../stats-panel/statsPanelDomain";
 
-export default function MobileStatsPanel() {
+function MobileStatsPanel() {
     const equipment = { ...useEquipmentCalculation(), ...useEquipmentCatalogState() };
-    const columns = buildStatColumns(equipment);
+    const { stats, gameRules, statSources } = equipment;
+    const columns = useMemo(
+        () => buildStatColumns({ stats, gameRules, statSources }),
+        [stats, gameRules, statSources]
+    );
     const [activeView, setActiveView] = useState("all");
     const visibleColumns = columns.filter((column) => {
         if (activeView === "all") return true;
@@ -75,3 +80,4 @@ export default function MobileStatsPanel() {
         </section>
     );
 }
+export default memo(MobileStatsPanel);

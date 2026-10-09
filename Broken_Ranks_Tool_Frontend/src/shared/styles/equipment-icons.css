@@ -1,0 +1,48 @@
+.equipment-slot-icon {
+    width: 3rem;
+    height: 3rem;
+    border: 1px solid rgba(133, 88, 42, 0.58);
+    background-image: url("../../assets/ui/equipment-slot-icons.webp");
+    background-repeat: no-repeat;
+    background-size: 400% 300%;
+    box-shadow:
+        inset 0 0 12px rgba(0, 0, 0, 0.75),
+        0 0 8px rgba(174, 105, 38, 0.08);
+}
+
+.equipment-slot-icon-helmet {
+    background-position: 0 0;
+}
+.equipment-slot-icon-armor {
+    background-position: 33.333% 0;
+}
+.equipment-slot-icon-cape {
+    background-position: 66.667% 0;
+}
+.equipment-slot-icon-legs {
+    background-position: 100% 0;
+}
+.equipment-slot-icon-boots {
+    background-position: 0 50%;
+}
+.equipment-slot-icon-gloves {
+    background-position: 33.333% 50%;
+}
+.equipment-slot-icon-belt {
+    background-position: 66.667% 50%;
+}
+.equipment-slot-icon-weapon {
+    background-position: 100% 50%;
+}
+.equipment-slot-icon-shield {
+    background-position: 0 100%;
+}
+.equipment-slot-icon-ring1 {
+    background-position: 33.333% 100%;
+}
+.equipment-slot-icon-ring2 {
+    background-position: 66.667% 100%;
+}
+.equipment-slot-icon-necklace {
+    background-position: 100% 100%;
+}

@@ -6,8 +6,10 @@ import { useGearSlot } from "../gear-slot/useGearSlot";
 import DrifSection from "../gear-slot/DrifSection";
 import OrbSection from "../gear-slot/OrbSection";
 import MobileItemPicker from "./MobileItemPicker";
+import { useRef } from "react";
 
 export default function MobileGearSlot({ slot, items, pickingItem, onPickItem, onClosePicker }) {
+    const pickerOpener = useRef(null);
     const { data, gameRules } = useEquipmentCatalogState();
     const { requestData, handleSlotUpdate, optimizationTrigger } = useEquipmentSetup();
     const model = useGearSlot({
@@ -43,7 +45,12 @@ export default function MobileGearSlot({ slot, items, pickingItem, onPickItem, o
                         {model.fullSelectedItem.reqLevel || "—"}
                     </p>
                 )}
-                <button type="button" className="mobile-primary" onClick={onPickItem}>
+                <button
+                    ref={pickerOpener}
+                    type="button"
+                    className="mobile-primary"
+                    onClick={onPickItem}
+                >
                     {model.selectedItem ? "Zmień przedmiot" : "Wybierz przedmiot"}
                 </button>
                 {model.selectedItem && (
@@ -80,6 +87,7 @@ export default function MobileGearSlot({ slot, items, pickingItem, onPickItem, o
                             <div key={key} role="group" aria-label={`Orb ${index + 1}`}>
                                 <h3>Orb {index + 1}</h3>
                                 <OrbSection
+                                    showCategoryIcons={false}
                                     slotKey={key}
                                     selectedItem={model.selectedItem}
                                     dragOverZone={model.dragOverZone}
@@ -113,6 +121,7 @@ export default function MobileGearSlot({ slot, items, pickingItem, onPickItem, o
                             </p>
                         )}
                         <DrifSection
+                            showCategoryIcons={false}
                             slotKey={slot.key}
                             drifs={data.drifs}
                             fullSelectedItem={model.fullSelectedItem}
@@ -128,6 +137,7 @@ export default function MobileGearSlot({ slot, items, pickingItem, onPickItem, o
             )}
             {pickingItem && (
                 <MobileItemPicker
+                    openerRef={pickerOpener}
                     items={items}
                     slotLabel={slot.label}
                     onClose={onClosePicker}

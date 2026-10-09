@@ -1,22 +1,34 @@
-import { useState } from "react";
+import "./mobile-workspace.css";
+import "../../shared/styles/equipment-icons.css";
+import { lazy, Suspense, useCallback, useState } from "react";
 import { useAppRoute, APP_ROUTES } from "../useAppRoute";
-import { useEquipment } from "../../shared/state/EquipmentContext";
+import {
+    useEquipmentCatalogState,
+    useEquipmentBuildActions,
+} from "../../shared/state/EquipmentContext";
+import EquipmentCalculationNotice from "../components/EquipmentCalculationNotice";
 import { useBuildFileActions } from "../../features/builds/useBuildFileActions";
 import { useBuildLibrary } from "../../features/builds/useBuildLibrary";
 import { MAX_SAVED_BUILDS } from "../../features/builds/buildLibraryStorage";
 import { DEFAULT_OPTIMIZER_SETTINGS } from "../../features/optimizer/optimizerDefaults";
-import MobileOptimizerWorkspace from "../../features/optimizer/mobile/MobileOptimizerWorkspace";
-import BuildLibraryWorkspace from "../../features/builds/BuildLibraryWorkspace";
-import MobileBuilderWorkspace from "../../features/builder/mobile/MobileBuilderWorkspace";
+const MobileBuilderWorkspace = lazy(
+    () => import("../../features/builder/mobile/MobileBuilderWorkspace")
+);
 import AppNotice from "../../shared/ui/AppNotice";
 import WorkspaceState from "../components/WorkspaceState";
-import crest from "../../assets/broken-ranks-crest.webp";
-import homeIcon from "../../assets/navigation-icons/home.png";
-import equipmentBuilderIcon from "../../assets/navigation-icons/equipment-builder.png";
-import drifOptimizerIcon from "../../assets/navigation-icons/drif-optimizer.png";
-import localBuildsIcon from "../../assets/navigation-icons/local-builds.png";
+import crest from "../../assets/mobile/broken-ranks-crest.webp";
+import homeIcon from "../../assets/mobile/home.webp";
+import equipmentBuilderIcon from "../../assets/mobile/equipment-builder.webp";
+import drifOptimizerIcon from "../../assets/mobile/drif-optimizer.webp";
+import localBuildsIcon from "../../assets/mobile/local-builds.webp";
 import "./mobile-app.css";
-import "../../features/builds/mobile/mobile-builds.css";
+
+const MobileOptimizerWorkspace = lazy(
+    () => import("../../features/optimizer/mobile/MobileOptimizerWorkspace")
+);
+const BuildLibraryWorkspace = lazy(
+    () => import("../../features/builds/mobile/MobileBuildLibraryWorkspace")
+);
 
 const destinations = [
     { key: "home", label: "Start", icon: homeIcon },
@@ -28,7 +40,7 @@ const destinations = [
 /** Mobile composition shares data and actions with the unchanged desktop app. */
 export default function MobileApp() {
     const { activeView, navigate } = useAppRoute();
-    const equipment = useEquipment();
+    const equipment = { ...useEquipmentCatalogState(), ...useEquipmentBuildActions() };
     const {
         fileInputRef,
         loadBuild,
@@ -41,14 +53,17 @@ export default function MobileApp() {
     });
     const [settings, setSettings] = useState(DEFAULT_OPTIMIZER_SETTINGS);
     const unavailable = equipment.loading || Boolean(equipment.initialDataError);
-    const goTo = (view) => {
-        if (view === activeView && window.location.search) {
-            window.history.pushState(null, "", APP_ROUTES[view]);
-            window.dispatchEvent(new PopStateEvent("popstate"));
-        }
-        navigate(view);
-        window.scrollTo({ top: 0, behavior: "instant" });
-    };
+    const goTo = useCallback(
+        (view) => {
+            if (view === activeView && window.location.search) {
+                window.history.pushState(null, "", APP_ROUTES[view]);
+                window.dispatchEvent(new PopStateEvent("popstate"));
+            }
+            navigate(view);
+            window.scrollTo({ top: 0, behavior: "instant" });
+        },
+        [activeView, navigate]
+    );
 
     return (
         <div className="mobile-app">
@@ -111,42 +126,41 @@ export default function MobileApp() {
                     notice={library.notice || fileNotice}
                     onDismiss={library.notice ? library.dismissNotice : dismissFileNotice}
                 />
-                <AppNotice
-                    notice={equipment.calculationNotice}
-                    onDismiss={equipment.dismissCalculationNotice}
-                />
-                {activeView === "home" ? (
-                    <main id="workspace-content" className="mobile-home">
-                        <h1>Broken Ranks Tool</h1>
-                    </main>
-                ) : unavailable ? (
-                    <main>
-                        <WorkspaceState
-                            loading={equipment.loading}
-                            error={equipment.initialDataError}
+                <EquipmentCalculationNotice />
+                <Suspense fallback={<WorkspaceState loading />}>
+                    {activeView === "home" ? (
+                        <main id="workspace-content" className="mobile-home">
+                            <h1>Broken Ranks Tool</h1>
+                        </main>
+                    ) : unavailable ? (
+                        <main>
+                            <WorkspaceState
+                                loading={equipment.loading}
+                                error={equipment.initialDataError}
+                            />
+                        </main>
+                    ) : activeView === "builder" ? (
+                        <MobileBuilderWorkspace />
+                    ) : activeView === "optimizer" ? (
+                        <MobileOptimizerWorkspace
+                            settings={settings}
+                            onSettingsChange={setSettings}
+                            onBackToBuilder={() => goTo("builder")}
                         />
-                    </main>
-                ) : activeView === "builder" ? (
-                    <MobileBuilderWorkspace />
-                ) : activeView === "optimizer" ? (
-                    <MobileOptimizerWorkspace
-                        settings={settings}
-                        onSettingsChange={setSettings}
-                        onBackToBuilder={() => goTo("builder")}
-                    />
-                ) : (
-                    <BuildLibraryWorkspace
-                        builds={library.builds}
-                        data={equipment.data}
-                        gameRules={equipment.gameRules}
-                        onRename={library.rename}
-                        onOverwrite={library.overwrite}
-                        onLoad={library.load}
-                        onExport={library.exportBuild}
-                        onRemove={library.remove}
-                        onOpenBuilder={() => goTo("builder")}
-                    />
-                )}
+                    ) : (
+                        <BuildLibraryWorkspace
+                            builds={library.builds}
+                            data={equipment.data}
+                            gameRules={equipment.gameRules}
+                            onRename={library.rename}
+                            onOverwrite={library.overwrite}
+                            onLoad={library.load}
+                            onExport={library.exportBuild}
+                            onRemove={library.remove}
+                            onOpenBuilder={() => goTo("builder")}
+                        />
+                    )}
+                </Suspense>
             </div>
             <nav className="mobile-navigation" aria-label="Główne widoki aplikacji">
                 {destinations.map(({ key, label, icon }) => (

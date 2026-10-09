@@ -1,0 +1,39 @@
+.workbench {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--ui-line);
+    background: linear-gradient(155deg, rgba(31, 27, 25, 0.98), rgba(9, 9, 10, 0.98) 60%);
+    box-shadow:
+        0 20px 42px rgba(0, 0, 0, 0.4),
+        inset 0 1px rgba(255, 243, 219, 0.05),
+        inset 0 0 42px rgba(83, 30, 22, 0.06);
+}
+.workbench::before {
+    position: absolute;
+    top: 0;
+    right: 12%;
+    left: 12%;
+    height: 1px;
+    content: "";
+    background: linear-gradient(90deg, transparent, rgba(188, 130, 52, 0.55), transparent);
+}
+.workbench-heading {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(133, 75, 47, 0.48);
+}
+.workbench-heading h2 {
+    font-size: 1.12rem;
+    letter-spacing: 0.12em;
+}
+.workbench-help {
+    max-width: 22rem;
+    margin: 0;
+    color: #827b73;
+    font-size: 0.72rem;
+    line-height: 1.5;
+    text-align: right;
+}

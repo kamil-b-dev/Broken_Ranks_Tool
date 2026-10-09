@@ -1,8 +1,10 @@
 /** Presents optimizer progress and the primary run action. */
+import OptimizationElapsedTime from "./OptimizationElapsedTime";
 const OptimizerRunAction = ({
     priorityCount,
     isOptimizing,
     elapsedSeconds,
+    startedAt,
     lastDurationSeconds,
     hasResult,
     onRun,
@@ -53,7 +55,12 @@ const OptimizerRunAction = ({
                         </svg>
                         KALKULACJA W TLE...
                         <span className="text-purple-300 optimizer-accent-text tabular-nums">
-                            ({elapsedSeconds} s)
+                            (
+                            <OptimizationElapsedTime
+                                startedAt={startedAt}
+                                elapsedSeconds={elapsedSeconds}
+                            />{" "}
+                            s)
                         </span>
                     </>
                 ) : hasResult ? (

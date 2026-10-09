@@ -1,5 +1,5 @@
-import { useCallback } from "react";
-import { createBuildPayload, parseBuildFile, parseBuildPayload } from "./buildFile";
+import { useCallback, useLayoutEffect, useRef } from "react";
+import { createBuildPayload } from "./buildPayload";
 
 /** Owns snapshot and JSON transfer operations for the shared equipment state. */
 export const useEquipmentBuildTransfer = ({
@@ -17,18 +17,32 @@ export const useEquipmentBuildTransfer = ({
     calculateStatsFor,
     markEquipmentChanged,
 }) => {
-    const createBuildSnapshot = useCallback(
-        () => ({
-            payload: createBuildPayload({
-                requestData,
-                characterConfig,
-                lockedSlots,
-                lockedDrifs,
-            }),
+    const importVersion = useRef(0);
+    const snapshot = useRef({
+        requestData,
+        characterConfig,
+        lockedSlots,
+        lockedDrifs,
+        stats,
+        statSources,
+    });
+    useLayoutEffect(() => {
+        snapshot.current = {
+            requestData,
+            characterConfig,
+            lockedSlots,
+            lockedDrifs,
             stats,
             statSources,
+        };
+    }, [requestData, characterConfig, lockedSlots, lockedDrifs, stats, statSources]);
+    const createBuildSnapshot = useCallback(
+        () => ({
+            payload: createBuildPayload(snapshot.current),
+            stats: snapshot.current.stats,
+            statSources: snapshot.current.statSources,
         }),
-        [requestData, characterConfig, lockedSlots, lockedDrifs, stats, statSources]
+        []
     );
 
     const applyImportedBuild = useCallback(
@@ -52,18 +66,31 @@ export const useEquipmentBuildTransfer = ({
     );
 
     const loadBuildSnapshot = useCallback(
-        (snapshot) => {
+        async (snapshot) => {
+            const version = ++importVersion.current;
+            const { parseBuildPayload } = await import("./buildFile");
+            if (version !== importVersion.current) return false;
             const importedBuild = parseBuildPayload(snapshot?.payload, data);
             applyImportedBuild(importedBuild);
+            return true;
         },
         [applyImportedBuild, data]
     );
 
     const loadBuildFromFile = useCallback(
         async (file) => {
-            const importedBuild = await parseBuildFile(file, data);
-            applyImportedBuild(importedBuild);
-            return importedBuild.importSummary || null;
+            const version = ++importVersion.current;
+            try {
+                const { parseBuildFile } = await import("./buildFile");
+                if (version !== importVersion.current) return false;
+                const importedBuild = await parseBuildFile(file, data);
+                if (version !== importVersion.current) return false;
+                applyImportedBuild(importedBuild);
+                return importedBuild.importSummary || null;
+            } catch (error) {
+                if (version !== importVersion.current) return false;
+                throw error;
+            }
         },
         [applyImportedBuild, data]
     );

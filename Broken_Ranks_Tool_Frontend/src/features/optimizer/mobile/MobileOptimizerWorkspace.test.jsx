@@ -133,7 +133,9 @@ describe("mobile optimizer integration", () => {
         ).toBeInTheDocument();
         click(/Wynik główny/);
         click("Zastosuj wybrany wariant");
-        expect(readEquipmentDraft().requestData.slots.boots.drifIds).toEqual([60]);
+        await waitFor(() =>
+            expect(readEquipmentDraft().requestData.slots.boots.drifIds).toEqual([60])
+        );
     });
 
     it("cancels an advisor run from another section and protects an outdated recommendation", async () => {
@@ -193,7 +195,9 @@ describe("mobile optimizer integration", () => {
         section("Porady");
         click("Zastosuj wybrany wariant");
         expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-        expect(readEquipmentDraft().requestData.slots.boots.drifIds).toEqual([60]);
+        await waitFor(() =>
+            expect(readEquipmentDraft().requestData.slots.boots.drifIds).toEqual([60])
+        );
     });
 
     it("closes a directly linked picker, handles browser Back and keeps simple profile settings", async () => {

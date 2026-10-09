@@ -39,6 +39,7 @@ const StandardDrifSlot = ({
     bonusTranslations,
     drifBasePowers,
     groupByType,
+    showCategoryIcons = true,
     locked,
     parentLocked,
     showLock,
@@ -97,11 +98,13 @@ const StandardDrifSlot = ({
             onDragLeave={locked ? undefined : onDragLeave}
             onDrop={locked ? undefined : onDrop}
         >
-            <CategoryIcon
-                kind="drif"
-                category={currentCategory}
-                className="drif-selector-category-icon"
-            />
+            {showCategoryIcons && (
+                <CategoryIcon
+                    kind="drif"
+                    category={currentCategory}
+                    className="drif-selector-category-icon"
+                />
+            )}
             <select
                 value={currentType}
                 aria-label={`Wybierz rodzaj drifa ${index + 1}`}

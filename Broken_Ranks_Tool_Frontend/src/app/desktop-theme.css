@@ -1,0 +1,58 @@
+/* Themes apply to explicit component roles; Tailwind utilities keep their own meaning. */
+
+/* The optimizer shares the creator's forged-metal, gold and crimson palette. */
+
+@media (max-width: 700px) {
+    .workbench-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 700px) {
+    .app-masthead {
+        grid-template-columns: 1fr;
+        padding: 1rem;
+    }
+}
+
+@media (max-width: 700px) {
+    .brand-lockup h1 {
+        white-space: normal;
+    }
+}
+
+@media (max-width: 700px) {
+    .main-switch {
+        grid-column: 1;
+        grid-row: 2;
+    }
+}
+
+@media (max-width: 700px) {
+    .header-actions {
+        grid-column: 1;
+        grid-row: 3;
+        width: 100%;
+        justify-content: stretch;
+    }
+}
+
+@media (max-width: 700px) {
+    .header-action {
+        flex: 1;
+    }
+}
+
+@media (max-width: 700px) {
+    .brand-subtitle {
+        max-width: 23rem;
+    }
+}
+
+@media (max-width: 700px) {
+    .workbench-help {
+        max-width: none;
+        text-align: left;
+    }
+}

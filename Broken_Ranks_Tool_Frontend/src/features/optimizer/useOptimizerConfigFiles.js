@@ -21,6 +21,7 @@ export const useOptimizerConfigFiles = ({
     onNotice = () => {},
 }) => {
     const inputRef = useRef(null);
+    const importVersion = useRef(0);
     const save = () => {
         const advanced = settings.mode !== "ADVISOR" && settings.configurationMode !== "SIMPLE";
         const invalid =
@@ -39,11 +40,13 @@ export const useOptimizerConfigFiles = ({
         const file = event.target.files?.[0];
         event.target.value = "";
         if (!file) return;
+        const version = ++importVersion.current;
         try {
             const imported = parseOptimizerConfigPayload(
                 await readOptimizerConfigurationFile(file),
                 gameRules
             );
+            if (version !== importVersion.current) return;
             replaceConfiguration(imported);
             if (imported.maxVariantLossPercent !== null || imported.mode !== null)
                 onSettingsChange((previous) => mergeOptimizerSettings(previous, imported));
@@ -52,6 +55,7 @@ export const useOptimizerConfigFiles = ({
                 message: `Wczytano konfigurację: ${imported.priorities.length} priorytetów.`,
             });
         } catch (error) {
+            if (version !== importVersion.current) return;
             const message = error.message || "niepoprawny plik JSON.";
             onNotice({
                 type: "error",

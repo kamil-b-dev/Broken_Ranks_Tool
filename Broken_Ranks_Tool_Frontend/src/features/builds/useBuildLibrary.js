@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
     MAX_SAVED_BUILDS,
     createLocalBuildRecord,
@@ -10,15 +10,17 @@ import {
     BUILD_LIBRARY_CHANGED_EVENT,
     withBuildLibraryLock,
 } from "./buildLibraryStorage";
-import { downloadBuildPayload } from "./buildFile";
+import { downloadBuildPayload } from "./buildDownloads";
 
 /** Owns the persistent browser library and applies saved snapshots to the editor. */
 export const useBuildLibrary = ({ createSnapshot, applySnapshot }) => {
     const [builds, setBuilds] = useState(() => readBuildLibrary());
     const [notice, setNotice] = useState(null);
+    const origin = useRef(Symbol("build-library"));
 
     useEffect(() => {
         const refresh = (event) => {
+            if (event.detail?.origin === origin.current) return;
             if (
                 event.type !== "storage" ||
                 event.key == null ||
@@ -36,14 +38,20 @@ export const useBuildLibrary = ({ createSnapshot, applySnapshot }) => {
     }, []);
 
     const commit = useCallback(async (update) => {
+        let next;
         try {
-            await withBuildLibraryLock(() => writeBuildLibrary(update(readBuildLibrary())));
+            await withBuildLibraryLock(() => {
+                next = update(readBuildLibrary());
+                writeBuildLibrary(next);
+            });
         } catch (error) {
             setBuilds(readBuildLibrary());
             throw error;
         }
-        setBuilds(readBuildLibrary());
-        window.dispatchEvent(new Event(BUILD_LIBRARY_CHANGED_EVENT));
+        setBuilds(next);
+        window.dispatchEvent(
+            new CustomEvent(BUILD_LIBRARY_CHANGED_EVENT, { detail: { origin: origin.current } })
+        );
     }, []);
 
     const saveCurrent = useCallback(
@@ -134,11 +142,11 @@ export const useBuildLibrary = ({ createSnapshot, applySnapshot }) => {
     );
 
     const load = useCallback(
-        (id) => {
+        async (id) => {
             try {
                 const record = builds.find((build) => build.id === id);
                 if (!record) throw new Error("Nie znaleziono wybranego buildu.");
-                applySnapshot(record);
+                if ((await applySnapshot(record)) === false) return false;
                 setNotice({ type: "success", message: `Wczytano lokalny build „${record.name}”.` });
                 return true;
             } catch (error) {

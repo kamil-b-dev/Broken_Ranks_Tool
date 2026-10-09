@@ -24,7 +24,7 @@
 .equipment-figure-heading strong {
     color: transparent;
     font-size: 0.92rem;
-    background: url("../../../assets/brushed-bronze-texture.webp") center / 8rem;
+    background: url("../../../assets/ui/brushed-bronze-texture.webp") center / 8rem;
     background-clip: text;
 }
 
@@ -50,7 +50,7 @@
     border: 1px solid rgba(151, 102, 47, 0.2);
     background:
         linear-gradient(rgba(2, 3, 3, 0.38), rgba(2, 3, 3, 0.6)),
-        url("../../../assets/equipment-workbench-texture.webp") center / cover,
+        url("../../../assets/ui/equipment-workbench-texture.webp") center / cover,
         linear-gradient(rgba(151, 102, 47, 0.09) 1px, transparent 1px),
         linear-gradient(90deg, rgba(151, 102, 47, 0.07) 1px, transparent 1px),
         radial-gradient(ellipse at center, rgba(120, 68, 31, 0.12), transparent 65%);
@@ -121,55 +121,6 @@
         inset 0 0 12px rgba(0, 0, 0, 0.72);
 }
 
-.equipment-ring-slot-helmet {
-    top: 7%;
-    left: 50%;
-}
-.equipment-ring-slot-cape {
-    top: 17%;
-    left: 28%;
-}
-.equipment-ring-slot-necklace {
-    top: 17%;
-    left: 72%;
-}
-.equipment-ring-slot-armor {
-    top: 34%;
-    left: 9%;
-}
-.equipment-ring-slot-gloves {
-    top: 34%;
-    left: 91%;
-}
-.equipment-ring-slot-ring1 {
-    top: 54%;
-    left: 6%;
-}
-.equipment-ring-slot-ring2 {
-    top: 54%;
-    left: 94%;
-}
-.equipment-ring-slot-belt {
-    top: 74%;
-    left: 9%;
-}
-.equipment-ring-slot-weapon {
-    top: 74%;
-    left: 91%;
-}
-.equipment-ring-slot-legs {
-    top: 88%;
-    left: 28%;
-}
-.equipment-ring-slot-shield {
-    top: 88%;
-    left: 72%;
-}
-.equipment-ring-slot-boots {
-    top: 92%;
-    left: 50%;
-}
-
 .equipment-slot-overview.equipment-slot-overview-ring {
     position: relative;
     z-index: 3;
@@ -189,7 +140,7 @@
     color: #8e847a;
     background:
         linear-gradient(105deg, rgba(31, 24, 19, 0.86), rgba(4, 6, 6, 0.95) 62%),
-        url("../../../assets/panel-blackened-steel-texture.webp") center / 18rem;
+        url("../../../assets/ui/panel-blackened-steel-texture.webp") center / 18rem;
     box-shadow:
         inset 0 1px rgba(255, 225, 175, 0.04),
         inset 0 0 15px rgba(0, 0, 0, 0.68);
@@ -205,7 +156,7 @@
     border-color: rgba(238, 179, 79, 0.98);
     background:
         linear-gradient(105deg, rgba(94, 53, 17, 0.84), rgba(12, 7, 3, 0.96) 66%),
-        url("../../../assets/brushed-bronze-texture.webp") center / 18rem;
+        url("../../../assets/ui/brushed-bronze-texture.webp") center / 18rem;
     box-shadow:
         inset 0 0 20px rgba(194, 117, 37, 0.28),
         0 0 16px rgba(230, 151, 53, 0.42);
@@ -215,7 +166,7 @@
     border-color: rgba(235, 61, 48, 0.96);
     background:
         linear-gradient(105deg, rgba(83, 24, 18, 0.8), rgba(12, 5, 6, 0.94) 66%),
-        url("../../../assets/panel-oxblood-texture.webp") center / 18rem;
+        url("../../../assets/ui/panel-oxblood-texture.webp") center / 18rem;
     box-shadow:
         inset 0 0 18px rgba(126, 27, 19, 0.24),
         0 0 12px rgba(204, 45, 32, 0.26);
@@ -397,7 +348,7 @@
     text-align: left;
     background:
         linear-gradient(105deg, rgba(34, 26, 20, 0.82), rgba(5, 7, 7, 0.94) 58%),
-        url("../../../assets/panel-blackened-steel-texture.webp") center / 18rem;
+        url("../../../assets/ui/panel-blackened-steel-texture.webp") center / 18rem;
     background-blend-mode: normal, soft-light;
     box-shadow:
         inset 0 1px rgba(255, 225, 175, 0.045),
@@ -417,7 +368,7 @@
     border-color: rgba(224, 61, 50, 0.94);
     background:
         linear-gradient(105deg, rgba(87, 25, 18, 0.74), rgba(14, 6, 7, 0.92) 68%),
-        url("../../../assets/panel-oxblood-texture.webp") center / 19rem;
+        url("../../../assets/ui/panel-oxblood-texture.webp") center / 19rem;
     background-blend-mode: normal, soft-light;
     box-shadow:
         inset 0 0 22px rgba(139, 34, 20, 0.22),
@@ -429,55 +380,6 @@
     min-width: 0;
     flex-direction: column;
     gap: 0.16rem;
-}
-
-.equipment-slot-icon {
-    width: 3rem;
-    height: 3rem;
-    border: 1px solid rgba(133, 88, 42, 0.58);
-    background-image: url("../../../assets/equipment-slot-icons.webp");
-    background-repeat: no-repeat;
-    background-size: 400% 300%;
-    box-shadow:
-        inset 0 0 12px rgba(0, 0, 0, 0.75),
-        0 0 8px rgba(174, 105, 38, 0.08);
-}
-
-.equipment-slot-icon-helmet {
-    background-position: 0 0;
-}
-.equipment-slot-icon-armor {
-    background-position: 33.333% 0;
-}
-.equipment-slot-icon-cape {
-    background-position: 66.667% 0;
-}
-.equipment-slot-icon-legs {
-    background-position: 100% 0;
-}
-.equipment-slot-icon-boots {
-    background-position: 0 50%;
-}
-.equipment-slot-icon-gloves {
-    background-position: 33.333% 50%;
-}
-.equipment-slot-icon-belt {
-    background-position: 66.667% 50%;
-}
-.equipment-slot-icon-weapon {
-    background-position: 100% 50%;
-}
-.equipment-slot-icon-shield {
-    background-position: 0 100%;
-}
-.equipment-slot-icon-ring1 {
-    background-position: 33.333% 100%;
-}
-.equipment-slot-icon-ring2 {
-    background-position: 66.667% 100%;
-}
-.equipment-slot-icon-necklace {
-    background-position: 100% 100%;
 }
 
 .equipment-slot-overview-heading {

@@ -1,3 +1,9 @@
+import "./styles/optimizer-shell.css";
+import "./styles/optimizer-goals.css";
+import "./styles/optimizer-report.css";
+import "./styles/optimizer-results.css";
+import "./styles/optimizer-theme.css";
+import "../../shared/styles/equipment-icons.css";
 import OptimizerPanel from "./OptimizerPanel";
 import OptimizerOverviewBar from "./OptimizerOverviewBar";
 import { useEquipmentSetup, useEquipmentLocksState } from "../../shared/state/EquipmentContext";

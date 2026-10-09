@@ -1,7 +1,14 @@
 const formatDuration = (duration) => duration?.toFixed?.(2) ?? duration;
+import OptimizationElapsedTime from "./OptimizationElapsedTime";
 
 /** Presents progress and the latest outcome of an optimization run. */
-const OptimizerStatusSection = ({ isOptimizing, elapsedSeconds, status, lastDurationSeconds }) => {
+const OptimizerStatusSection = ({
+    isOptimizing,
+    elapsedSeconds,
+    startedAt,
+    status,
+    lastDurationSeconds,
+}) => {
     const duration = status?.executionTimeSeconds ?? lastDurationSeconds;
     const advisor = status?.advisorReport;
     const advisorStatus = {
@@ -36,7 +43,14 @@ const OptimizerStatusSection = ({ isOptimizing, elapsedSeconds, status, lastDura
                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                         />
                     </svg>
-                    <span>Optymalizacja trwa ({elapsedSeconds} s).</span>
+                    <span>
+                        Optymalizacja trwa (
+                        <OptimizationElapsedTime
+                            startedAt={startedAt}
+                            elapsedSeconds={elapsedSeconds}
+                        />{" "}
+                        s).
+                    </span>
                 </div>
             ) : status ? (
                 <div className={successful ? "is-success" : "is-warning"}>

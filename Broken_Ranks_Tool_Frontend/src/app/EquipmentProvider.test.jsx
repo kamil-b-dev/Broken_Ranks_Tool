@@ -455,13 +455,18 @@ describe("EquipmentProvider", () => {
         });
         await act(async () => exposeRef.current.calculateStats());
         const snapshot = exposeRef.current.createBuildSnapshot();
+        let finishCalculation;
+        const calculationReady = new Promise((resolve) => {
+            finishCalculation = resolve;
+        });
         server.use(
-            http.post("*/api/calculator/calculate", () =>
-                HttpResponse.json({ stats: { Atak: 211 } })
-            )
+            http.post("*/api/calculator/calculate", async () => {
+                await calculationReady;
+                return HttpResponse.json({ stats: { Atak: 211 } });
+            })
         );
 
-        act(() => {
+        await act(async () => {
             exposeRef.current.handleSlotUpdate("helmet", {
                 itemId: null,
                 itemStars: 1,
@@ -470,11 +475,12 @@ describe("EquipmentProvider", () => {
                 drifIds: [],
                 drifLevels: {},
             });
-            exposeRef.current.loadBuildSnapshot(snapshot);
+            await exposeRef.current.loadBuildSnapshot(snapshot);
         });
 
         expect(exposeRef.current.requestData.slots.helmet.itemId).toBe(1);
         expect(exposeRef.current.stats).toBeNull();
+        finishCalculation();
         await waitFor(() => expect(exposeRef.current.stats).toEqual({ Atak: 211 }));
     });
 

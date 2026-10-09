@@ -74,14 +74,15 @@ const OrbDetails = ({ item }) => (
     </div>
 );
 
-const ItemDatabaseTooltip = ({ tooltip, bonusTranslations, drifBasePowers, id }) => {
+const ItemDatabaseTooltip = ({ tooltip, bonusTranslations, drifBasePowers, id, elementRef }) => {
     if (!tooltip.show || !tooltip.item) return null;
     const { item, type } = tooltip;
     return (
         <div
+            ref={elementRef}
             id={id}
             role="tooltip"
-            style={{ top: tooltip.y, left: tooltip.x }}
+            style={{ top: 0, left: 0, transform: `translate3d(${tooltip.x}px, ${tooltip.y}px, 0)` }}
             className="fixed z-50 bg-linear-to-b from-stone-900 to-black border border-stone-700 p-4 shadow-[0_0_20px_rgba(0,0,0,1)] pointer-events-none w-64"
         >
             <div className="flex justify-between items-start border-b-2 border-double border-rose-900/50 builder-accent-frame pb-2 mb-2">

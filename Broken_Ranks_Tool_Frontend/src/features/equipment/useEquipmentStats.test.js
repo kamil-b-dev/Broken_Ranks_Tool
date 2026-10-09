@@ -8,6 +8,46 @@ vi.mock("../../shared/api/equipmentApi", () => ({ calculateEquipmentStats: vi.fn
 afterEach(() => vi.restoreAllMocks());
 
 describe("useEquipmentStats", () => {
+    it("shares a pending calculation and preserves it through editor normalization", async () => {
+        let finish;
+        calculateEquipmentStats.mockImplementation(
+            () =>
+                new Promise((resolve) => {
+                    finish = resolve;
+                })
+        );
+        const request = { slots: { helmet: { itemId: 1, drifIds: [], itemStars: 1 } } };
+        const { result, rerender } = renderHook(({ input }) => useEquipmentStats(input), {
+            initialProps: { input: request },
+        });
+        let first;
+        let second;
+        act(() => {
+            first = result.current.calculateStats();
+            second = result.current.calculateStats();
+        });
+        expect(first).toBe(second);
+        const signal = calculateEquipmentStats.mock.calls.at(-1)[1].signal;
+        rerender({
+            input: {
+                slots: {
+                    helmet: { itemId: "1", itemStars: 1, drifIds: ["", "", ""], drifLevels: {} },
+                },
+            },
+        });
+        expect(signal.aborted).toBe(false);
+        await act(async () => {
+            finish({ stats: { Siła: 42 } });
+            await first;
+        });
+        expect(result.current.stats).toEqual({ Siła: 42 });
+        const sources = result.current.statSources;
+        act(() => result.current.restoreStats(null));
+        const emptySources = result.current.statSources;
+        rerender({ input: request });
+        expect(result.current.statSources).toBe(emptySources);
+        expect(sources).not.toBe(emptySources);
+    });
     it("keeps an imported calculation through state installation and rejects it after another edit", async () => {
         let finish;
         calculateEquipmentStats.mockImplementation(
@@ -46,7 +86,9 @@ describe("useEquipmentStats", () => {
 
         await act(async () => result.current.calculateStats());
 
-        expect(calculateEquipmentStats).toHaveBeenCalledWith(requestData);
+        expect(calculateEquipmentStats).toHaveBeenCalledWith(requestData, {
+            signal: expect.any(AbortSignal),
+        });
         expect(result.current.stats).toEqual({ hp: 120 });
         expect(result.current.statSources).toEqual({
             drifCategories: { OFFENSIVE: ["CRITICAL_CHANCE"] },
@@ -99,12 +141,17 @@ describe("useEquipmentStats", () => {
         calculateEquipmentStats.mockImplementation(
             () => new Promise((resolve) => finishes.push(resolve))
         );
-        const { result } = renderHook(() => useEquipmentStats({ slots: {} }));
+        const { result, rerender } = renderHook(({ request }) => useEquipmentStats(request), {
+            initialProps: { request: { slots: { helmet: { itemId: 1 } } } },
+        });
         let first;
         let second;
 
         act(() => {
             first = result.current.calculateStats();
+        });
+        rerender({ request: { slots: { helmet: { itemId: 2 } } } });
+        act(() => {
             second = result.current.calculateStats();
         });
         await act(async () => {
@@ -127,12 +174,17 @@ describe("useEquipmentStats", () => {
         calculateEquipmentStats.mockImplementation(
             () => new Promise((resolve, reject) => finishes.push({ resolve, reject }))
         );
-        const { result } = renderHook(() => useEquipmentStats({ slots: {} }));
+        const { result, rerender } = renderHook(({ request }) => useEquipmentStats(request), {
+            initialProps: { request: { slots: { helmet: { itemId: 1 } } } },
+        });
         let first;
         let second;
 
         act(() => {
             first = result.current.calculateStats();
+        });
+        rerender({ request: { slots: { helmet: { itemId: 2 } } } });
+        act(() => {
             second = result.current.calculateStats();
         });
         await act(async () => {

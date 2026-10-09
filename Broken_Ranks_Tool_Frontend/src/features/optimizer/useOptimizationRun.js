@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 const currentTime = () => performance.now();
 
@@ -6,26 +6,19 @@ const currentTime = () => performance.now();
 export const useOptimizationRun = (runOptimization, now = currentTime) => {
     const [isOptimizing, setIsOptimizing] = useState(false);
     const [elapsedSeconds, setElapsedSeconds] = useState(0);
+    const [startedAt, setStartedAt] = useState(null);
     const [lastDurationSeconds, setLastDurationSeconds] = useState(null);
     const [status, setStatus] = useState(null);
     const [activeVariantIndex, setActiveVariantIndex] = useState(0);
     const startedAtRef = useRef(null);
     const runVersionRef = useRef(0);
 
-    useEffect(() => {
-        if (!isOptimizing) return undefined;
-        const timerId = window.setInterval(() => {
-            if (startedAtRef.current === null) return;
-            setElapsedSeconds(Math.floor((now() - startedAtRef.current) / 1000));
-        }, 250);
-        return () => window.clearInterval(timerId);
-    }, [isOptimizing, now]);
-
     const run = async (configuration) => {
         const runVersion = ++runVersionRef.current;
         setIsOptimizing(true);
         setElapsedSeconds(0);
         const startedAt = now();
+        setStartedAt(startedAt);
         startedAtRef.current = startedAt;
 
         try {
@@ -45,6 +38,7 @@ export const useOptimizationRun = (runOptimization, now = currentTime) => {
                 setElapsedSeconds(durationSeconds);
                 setLastDurationSeconds(durationSeconds);
                 startedAtRef.current = null;
+                setStartedAt(null);
                 setIsOptimizing(false);
             }
         }
@@ -53,6 +47,7 @@ export const useOptimizationRun = (runOptimization, now = currentTime) => {
     const reset = useCallback(() => {
         runVersionRef.current += 1;
         startedAtRef.current = null;
+        setStartedAt(null);
         setIsOptimizing(false);
         setElapsedSeconds(0);
         setStatus(null);
@@ -62,6 +57,7 @@ export const useOptimizationRun = (runOptimization, now = currentTime) => {
     return {
         isOptimizing,
         elapsedSeconds,
+        startedAt,
         lastDurationSeconds,
         status,
         activeVariantIndex,

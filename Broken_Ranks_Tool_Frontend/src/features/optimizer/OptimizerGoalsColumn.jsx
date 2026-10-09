@@ -32,6 +32,7 @@ const OptimizerGoalsColumn = ({
     onClear,
     isOptimizing,
     elapsedSeconds,
+    startedAt,
     lastDurationSeconds,
     hasResult,
     onRun,
@@ -107,6 +108,7 @@ const OptimizerGoalsColumn = ({
             }
             isOptimizing={isOptimizing}
             elapsedSeconds={elapsedSeconds}
+            startedAt={startedAt}
             lastDurationSeconds={lastDurationSeconds}
             hasResult={hasResult}
             onRun={onRun}

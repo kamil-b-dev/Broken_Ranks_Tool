@@ -36,6 +36,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
         toggleAllExpanded,
         isOptimizing,
         optimizationElapsedSeconds,
+        optimizationStartedAt,
         lastOptimizationDurationSeconds,
         optimizationStatus,
         activeVariantIndex,
@@ -113,6 +114,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                     onClear={clearAll}
                     isOptimizing={isOptimizing}
                     elapsedSeconds={optimizationElapsedSeconds}
+                    startedAt={optimizationStartedAt}
                     lastDurationSeconds={lastOptimizationDurationSeconds}
                     hasResult={Boolean(optimizationStatus)}
                     onRun={handleOptimizeClick}
@@ -123,6 +125,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                     advisory={optimizerSettings.mode === "ADVISOR"}
                     isOptimizing={isOptimizing}
                     elapsedSeconds={optimizationElapsedSeconds}
+                    startedAt={optimizationStartedAt}
                     status={optimizationStatus}
                     lastDurationSeconds={lastOptimizationDurationSeconds}
                     currentDetails={reportModDetails}

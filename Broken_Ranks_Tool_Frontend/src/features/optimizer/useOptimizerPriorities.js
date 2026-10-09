@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { createBonusOption, sortBonusesByCategory } from "./optimizerDomain";
 
 const createPriority = (bonus) => ({
@@ -44,29 +44,30 @@ export const useOptimizerPriorities = (gameRules) => {
         [allBonuses, prioritizedBonuses, searchQuery, selectedCategory]
     );
 
-    const selectBonus = (bonus) => {
+    const selectBonus = useCallback((bonus) => {
         setPrioritizedBonuses((previous) => [...previous, createPriority(bonus)]);
         setExpandedPriorities((previous) => new Set([...previous, bonus.key]));
-    };
+    }, []);
 
-    const removeBonus = (bonus) => {
+    const removeBonus = useCallback((bonus) => {
         setPrioritizedBonuses((previous) => previous.filter((item) => item.key !== bonus.key));
         setExpandedPriorities((previous) => {
             const next = new Set(previous);
             next.delete(bonus.key);
             return next;
         });
-    };
+    }, []);
 
-    const clearAll = () => {
+    const clearAll = useCallback(() => {
         setPrioritizedBonuses([]);
         setExpandedPriorities(new Set());
-    };
+    }, []);
 
-    const updateBonus = (key, field, value) => {
+    const updateBonus = useCallback((key, field, value) => {
         setPrioritizedBonuses((previous) =>
             previous.map((bonus) => {
                 if (bonus.key !== key) return bonus;
+                if (Object.is(bonus[field], value)) return bonus;
                 if (field === "forceCap" && value) {
                     return { ...bonus, forceCap: true, forcePercentage: false, maximize: false };
                 }
@@ -79,7 +80,7 @@ export const useOptimizerPriorities = (gameRules) => {
                 return { ...bonus, [field]: value };
             })
         );
-    };
+    }, []);
 
     const sortByPriority = () => {
         setPrioritizedBonuses((previous) => {
@@ -96,14 +97,14 @@ export const useOptimizerPriorities = (gameRules) => {
         setPrioritySortDirection((previous) => (previous === "desc" ? "asc" : "desc"));
     };
 
-    const toggleExpanded = (key) => {
+    const toggleExpanded = useCallback((key) => {
         setExpandedPriorities((previous) => {
             const next = new Set(previous);
             if (next.has(key)) next.delete(key);
             else next.add(key);
             return next;
         });
-    };
+    }, []);
 
     const toggleAllExpanded = () => {
         setExpandedPriorities((previous) =>
@@ -111,10 +112,10 @@ export const useOptimizerPriorities = (gameRules) => {
         );
     };
 
-    const replaceConfiguration = ({ priorities }) => {
+    const replaceConfiguration = useCallback(({ priorities }) => {
         setPrioritizedBonuses(priorities);
         setExpandedPriorities(new Set(priorities.map((priority) => priority.key)));
-    };
+    }, []);
 
     return {
         prioritizedBonuses,

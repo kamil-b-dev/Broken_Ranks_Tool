@@ -1,4 +1,3 @@
-import { SLOTS } from "../../../shared/domain/equipment/equipmentSlots";
 import GearSlot from "./GearSlot";
 
 /** Edits the slot currently selected in the equipment overview. */
@@ -18,11 +17,8 @@ const SelectedSlotEditor = ({
             </div>
         </div>
         <div className="selected-slot-editor-content">
-            {SLOTS.map((slot) => (
-                <div
-                    key={slot.key}
-                    className={slot.key === model.activeSlot.key ? "block" : "hidden"}
-                >
+            {[model.activeSlot].map((slot) => (
+                <div key={slot.key}>
                     <GearSlot
                         expanded
                         slotKey={slot.key}

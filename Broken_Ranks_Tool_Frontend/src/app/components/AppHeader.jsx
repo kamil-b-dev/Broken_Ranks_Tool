@@ -1,8 +1,9 @@
-import crest from "../../assets/broken-ranks-crest.webp";
-import drifOptimizerIcon from "../../assets/navigation-icons/drif-optimizer.png";
-import equipmentBuilderIcon from "../../assets/navigation-icons/equipment-builder.png";
-import homeIcon from "../../assets/navigation-icons/home.png";
-import localBuildsIcon from "../../assets/navigation-icons/local-builds.png";
+import { requestEquipmentCatalog } from "../../features/equipment/useEquipmentCatalog";
+import crest from "../../assets/ui/header-crest.webp";
+import drifOptimizerIcon from "../../assets/ui/drif-optimizer.webp";
+import equipmentBuilderIcon from "../../assets/ui/equipment-builder.webp";
+import homeIcon from "../../assets/ui/home.webp";
+import localBuildsIcon from "../../assets/ui/local-builds.webp";
 import { APP_ROUTES } from "../useAppRoute";
 
 const AppHeader = ({
@@ -30,7 +31,12 @@ const AppHeader = ({
             </div>
             <h1>Broken Ranks Tool</h1>
         </a>
-        <nav className="main-switch" aria-label="Główne widoki aplikacji">
+        <nav
+            onPointerEnter={requestEquipmentCatalog}
+            onFocus={requestEquipmentCatalog}
+            className="main-switch"
+            aria-label="Główne widoki aplikacji"
+        >
             <a
                 href={APP_ROUTES.home}
                 onClick={(event) => {

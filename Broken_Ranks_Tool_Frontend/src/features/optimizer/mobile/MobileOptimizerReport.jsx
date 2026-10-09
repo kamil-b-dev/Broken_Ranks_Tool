@@ -21,6 +21,7 @@ export default function MobileOptimizerReport({ model, advisory }) {
             <OptimizerStatusSection
                 isOptimizing={model.isOptimizing}
                 elapsedSeconds={model.optimizationElapsedSeconds}
+                startedAt={model.optimizationStartedAt}
                 status={status}
                 lastDurationSeconds={model.lastOptimizationDurationSeconds}
             />

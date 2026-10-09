@@ -10,6 +10,7 @@ const OptimizerReportColumn = ({
     advisory,
     isOptimizing,
     elapsedSeconds,
+    startedAt,
     status,
     lastDurationSeconds,
     currentDetails,
@@ -37,6 +38,7 @@ const OptimizerReportColumn = ({
                     <OptimizerStatusSection
                         isOptimizing={isOptimizing}
                         elapsedSeconds={elapsedSeconds}
+                        startedAt={startedAt}
                         status={status}
                         lastDurationSeconds={lastDurationSeconds}
                     />

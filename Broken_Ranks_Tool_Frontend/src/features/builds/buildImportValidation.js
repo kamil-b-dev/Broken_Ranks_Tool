@@ -138,6 +138,11 @@ export const validateImportedBuild = (
             9,
             `Niepoprawna liczba gwiazdek w slocie ${slotKey}.`
         );
+        // Bound collection work before walking IDs in large imported files.
+        if (Array.isArray(slot.drifIds) && slot.drifIds.length > 8)
+            throw new Error(`Za dużo pozycji drifów w slocie ${slotKey}.`);
+        if (Array.isArray(slot.orbIds) && slot.orbIds.length > 2)
+            throw new Error(`Niepoprawne rozmieszczenie orbów w slocie ${slotKey}.`);
         validateKnownIds(
             slot.orbIds,
             knownOrbs,

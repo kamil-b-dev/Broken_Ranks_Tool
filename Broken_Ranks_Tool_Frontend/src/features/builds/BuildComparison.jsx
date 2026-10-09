@@ -122,13 +122,15 @@ const BuildComparison = ({ builds, items = [], drifs = [], gameRules = {} }) => 
                 </label>
             </div>
 
-            <EquipmentComparisonTable
-                active={activeSection === "equipment"}
-                builds={builds}
-                rows={equipmentRows}
-                onlyDifferences={onlyDifferences}
-                comparisonStyle={comparisonStyle}
-            />
+            {activeSection === "equipment" && (
+                <EquipmentComparisonTable
+                    active={activeSection === "equipment"}
+                    builds={builds}
+                    rows={equipmentRows}
+                    onlyDifferences={onlyDifferences}
+                    comparisonStyle={comparisonStyle}
+                />
+            )}
 
             <div
                 id="build-comparison-panel-character"
@@ -137,12 +139,14 @@ const BuildComparison = ({ builds, items = [], drifs = [], gameRules = {} }) => 
                 tabIndex={0}
                 hidden={activeSection !== "character"}
             >
-                <StatComparisonTable
-                    builds={builds}
-                    sections={characterSections}
-                    onlyDifferences={onlyDifferences}
-                    comparisonStyle={comparisonStyle}
-                />
+                {activeSection === "character" && (
+                    <StatComparisonTable
+                        builds={builds}
+                        sections={characterSections}
+                        onlyDifferences={onlyDifferences}
+                        comparisonStyle={comparisonStyle}
+                    />
+                )}
             </div>
 
             <div
@@ -153,16 +157,23 @@ const BuildComparison = ({ builds, items = [], drifs = [], gameRules = {} }) => 
                 hidden={activeSection !== "drifs"}
                 className="build-comparison-drif-view custom-scrollbar"
             >
-                <DrifComposition analysis={drifAnalysis} comparisonStyle={comparisonStyle} />
-                <div className="build-drif-result-heading">
-                    <strong>Różnica w statystykach</strong>
-                </div>
-                <StatComparisonTable
-                    builds={builds}
-                    sections={drifSections}
-                    onlyDifferences={onlyDifferences}
-                    comparisonStyle={comparisonStyle}
-                />
+                {activeSection === "drifs" && (
+                    <>
+                        <DrifComposition
+                            analysis={drifAnalysis}
+                            comparisonStyle={comparisonStyle}
+                        />
+                        <div className="build-drif-result-heading">
+                            <strong>Różnica w statystykach</strong>
+                        </div>
+                        <StatComparisonTable
+                            builds={builds}
+                            sections={drifSections}
+                            onlyDifferences={onlyDifferences}
+                            comparisonStyle={comparisonStyle}
+                        />
+                    </>
+                )}
             </div>
 
             {activeSection !== "equipment" && builds.some((build) => !build.stats) && (

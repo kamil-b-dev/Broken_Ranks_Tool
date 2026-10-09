@@ -1,0 +1,7 @@
+.category-artwork {
+    display: block;
+    object-fit: contain;
+    object-position: center;
+    pointer-events: none;
+    user-select: none;
+}

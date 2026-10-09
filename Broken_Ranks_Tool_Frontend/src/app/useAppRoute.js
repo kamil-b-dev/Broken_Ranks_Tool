@@ -1,3 +1,4 @@
+import { requestEquipmentCatalog } from "../features/equipment/useEquipmentCatalog";
 import { useCallback, useEffect, useState } from "react";
 
 export const APP_ROUTES = {
@@ -35,6 +36,7 @@ export const useAppRoute = () => {
     const navigate = useCallback((view) => {
         const path = APP_ROUTES[view] ?? APP_ROUTES.home;
         if (path !== window.location.pathname) window.history.pushState(null, "", path);
+        if (view !== "home") requestEquipmentCatalog();
         setActiveView(routeForPath(path));
     }, []);
 

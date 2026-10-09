@@ -30,6 +30,7 @@ const DrifSection = ({
     bonusTranslations,
     drifBasePowers,
     showOptimizationLocks = false,
+    showCategoryIcons = true,
 }) => {
     const {
         isEpicOrSet,
@@ -86,8 +87,10 @@ const DrifSection = ({
             {fullSelectedItem && itemCapacity > 0 && (
                 <div className="w-full bg-black border border-rose-900/70 builder-accent-frame shadow-inner h-1 mb-2">
                     <div
-                        className={`h-full transition-all duration-300 ${isOverCapacity ? "bg-linear-to-r from-rose-900 to-red-600" : isAtMaxCapacity ? "bg-linear-to-r from-amber-700 to-amber-500" : "bg-linear-to-r from-stone-700 to-stone-400"}`}
-                        style={{ width: `${Math.min(capacityPercentage, 100)}%` }}
+                        className={`h-full w-full origin-left transition-transform duration-300 ${isOverCapacity ? "bg-linear-to-r from-rose-900 to-red-600" : isAtMaxCapacity ? "bg-linear-to-r from-amber-700 to-amber-500" : "bg-linear-to-r from-stone-700 to-stone-400"}`}
+                        style={{
+                            transform: `scaleX(${Math.max(0, Math.min(capacityPercentage, 100)) / 100})`,
+                        }}
                     ></div>
                 </div>
             )}
@@ -95,6 +98,7 @@ const DrifSection = ({
             <div className="flex flex-col w-full gap-2 items-center">
                 {isEpicOrSet && (
                     <BuiltInDrifSlots
+                        showCategoryIcons={showCategoryIcons}
                         drifs={builtInDrifs}
                         levels={builtInLvls}
                         onLevelsChange={setBuiltInLvls}
@@ -104,6 +108,7 @@ const DrifSection = ({
                 {!isEpicOrSet &&
                     Array.from({ length: maxDrifs }).map((_, index) => (
                         <StandardDrifSlot
+                            showCategoryIcons={showCategoryIcons}
                             key={index}
                             index={index}
                             slotKey={slotKey}

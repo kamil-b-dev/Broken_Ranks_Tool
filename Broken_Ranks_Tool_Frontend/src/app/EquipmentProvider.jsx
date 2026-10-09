@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
-import { parseBuildPayload } from "../features/builds/buildFile";
 import { useEquipmentBuildTransfer } from "../features/builds/useEquipmentBuildTransfer";
 import { useEquipmentLocks } from "../features/equipment/useEquipmentLocks";
 import { useEquipmentCatalog } from "../features/equipment/useEquipmentCatalog";
@@ -11,12 +10,15 @@ import {
     EquipmentSetupContext,
     EquipmentLocksContext,
     EquipmentCalculationContext,
+    EquipmentBuildActionsContext,
 } from "../shared/state/EquipmentContext";
 import {
     readEquipmentDraft,
     writeEquipmentDraft,
     preserveEquipmentDraft,
 } from "./storage/workingDraftStorage";
+import { equipmentRequestIdentity } from "../shared/domain/equipment/equipmentRequestIdentity";
+import { useWorkingDraftSave } from "./storage/useWorkingDraftSave";
 
 /**
  * Provides application state for equipment, character stats, and optimization.
@@ -35,7 +37,7 @@ export const EquipmentProvider = ({ children }) => {
         gameRules,
         loading,
         initialDataError,
-    } = useEquipmentCatalog();
+    } = useEquipmentCatalog({ deferHome: true });
 
     const [requestData, setRequestData] = useState({ slots: {}, characterStats: {} });
     const [draftRestored, setDraftRestored] = useState(!initialDraft);
@@ -71,25 +73,35 @@ export const EquipmentProvider = ({ children }) => {
 
     useEffect(() => {
         if (draftRestored || !initialDraft || loading || initialDataError) return;
-        try {
-            const imported = parseBuildPayload(
-                {
-                    format: "broken-ranks-tool-build",
-                    version: 1,
-                    build: initialDraft,
-                },
-                { ...data, gameRules }
-            );
-            setRequestData(imported.requestData);
-            setCharacterConfig(imported.characterConfig);
-            replaceLocks(imported.lockedSlots, imported.lockedDrifs);
-            markEquipmentChanged();
-        } catch {
-            // Keep a recoverable copy; never overwrite the original if that copy cannot be saved.
-            setDraftWritesAllowed(preserveEquipmentDraft());
-        } finally {
-            setDraftRestored(true);
-        }
+        let active = true;
+        const restore = async () => {
+            try {
+                const { parseBuildPayload } = await import("../features/builds/buildFile");
+                if (!active) return;
+                const imported = parseBuildPayload(
+                    {
+                        format: "broken-ranks-tool-build",
+                        version: 1,
+                        build: initialDraft,
+                    },
+                    { ...data, gameRules }
+                );
+                setRequestData(imported.requestData);
+                setCharacterConfig(imported.characterConfig);
+                replaceLocks(imported.lockedSlots, imported.lockedDrifs);
+                markEquipmentChanged();
+            } catch {
+                if (!active) return;
+                // Keep a recoverable copy; never overwrite the original if that copy cannot be saved.
+                setDraftWritesAllowed(preserveEquipmentDraft());
+            } finally {
+                if (active) setDraftRestored(true);
+            }
+        };
+        void restore();
+        return () => {
+            active = false;
+        };
     }, [
         data,
         draftRestored,
@@ -101,15 +113,11 @@ export const EquipmentProvider = ({ children }) => {
         replaceLocks,
     ]);
 
-    useEffect(() => {
-        if (!draftRestored || !draftWritesAllowed) return;
-        writeEquipmentDraft({
-            requestData,
-            characterConfig,
-            lockedSlots,
-            lockedDrifs,
-        });
-    }, [characterConfig, draftRestored, draftWritesAllowed, lockedDrifs, lockedSlots, requestData]);
+    const workingDraft = useMemo(
+        () => ({ requestData, characterConfig, lockedSlots, lockedDrifs }),
+        [requestData, characterConfig, lockedSlots, lockedDrifs]
+    );
+    useWorkingDraftSave(writeEquipmentDraft, workingDraft, draftRestored && draftWritesAllowed);
 
     /**
      * Updates the equipment data for a single slot.
@@ -117,20 +125,27 @@ export const EquipmentProvider = ({ children }) => {
      * @param {object} slotData New slot data.
      */
     const handleSlotUpdate = useCallback((slotKey, slotData) => {
-        setRequestData((prev) => ({
-            ...prev,
-            slots: {
-                ...(prev.slots || {}),
-                [slotKey]: {
-                    itemId: slotData.itemId,
-                    itemStars: slotData.itemStars,
-                    orbIds: slotData.orbIds,
-                    orbLevels: slotData.orbLevels,
-                    drifIds: slotData.drifIds,
-                    drifLevels: slotData.drifLevels,
+        setRequestData((prev) => {
+            if (
+                equipmentRequestIdentity({ slots: { [slotKey]: prev.slots?.[slotKey] } }) ===
+                equipmentRequestIdentity({ slots: { [slotKey]: slotData } })
+            )
+                return prev;
+            return {
+                ...prev,
+                slots: {
+                    ...(prev.slots || {}),
+                    [slotKey]: {
+                        itemId: slotData.itemId,
+                        itemStars: slotData.itemStars,
+                        orbIds: slotData.orbIds,
+                        orbLevels: slotData.orbLevels,
+                        drifIds: slotData.drifIds,
+                        drifLevels: slotData.drifLevels,
+                    },
                 },
-            },
-        }));
+            };
+        });
     }, []);
 
     /**
@@ -138,8 +153,16 @@ export const EquipmentProvider = ({ children }) => {
      * @param {object} newStats New character statistics.
      */
     const handleCharacterStatsUpdate = useCallback((newStats, newConfig = null) => {
-        setRequestData((prev) => ({ ...prev, characterStats: newStats }));
-        if (newConfig) setCharacterConfig(newConfig);
+        setRequestData((prev) =>
+            equipmentRequestIdentity({ characterStats: prev.characterStats }) ===
+            equipmentRequestIdentity({ characterStats: newStats })
+                ? prev
+                : { ...prev, characterStats: newStats }
+        );
+        if (newConfig)
+            setCharacterConfig((previous) =>
+                JSON.stringify(previous) === JSON.stringify(newConfig) ? previous : newConfig
+            );
     }, []);
 
     const buildImportData = useMemo(() => ({ ...data, gameRules }), [data, gameRules]);
@@ -168,8 +191,9 @@ export const EquipmentProvider = ({ children }) => {
             orbCategories,
             drifCategories,
             gameRules,
-            loading,
+            loading: loading || !draftRestored,
             initialDataError,
+            draftRestored,
             requestData,
             stats,
             statSources,
@@ -200,6 +224,7 @@ export const EquipmentProvider = ({ children }) => {
             drifCategories,
             gameRules,
             loading,
+            draftRestored,
             initialDataError,
             requestData,
             stats,
@@ -233,10 +258,19 @@ export const EquipmentProvider = ({ children }) => {
             orbCategories,
             drifCategories,
             gameRules,
-            loading,
+            loading: loading || !draftRestored,
             initialDataError,
         }),
-        [data, categoryNames, orbCategories, drifCategories, gameRules, loading, initialDataError]
+        [
+            data,
+            categoryNames,
+            orbCategories,
+            drifCategories,
+            gameRules,
+            loading,
+            initialDataError,
+            draftRestored,
+        ]
     );
     const setupValue = useMemo(
         () => ({
@@ -277,17 +311,23 @@ export const EquipmentProvider = ({ children }) => {
         ]
     );
 
+    const buildActionsValue = useMemo(
+        () => ({ createBuildSnapshot, loadBuildSnapshot, loadBuildFromFile }),
+        [createBuildSnapshot, loadBuildSnapshot, loadBuildFromFile]
+    );
     return (
-        <EquipmentCatalogContext.Provider value={catalogValue}>
-            <EquipmentSetupContext.Provider value={setupValue}>
-                <EquipmentLocksContext.Provider value={locksValue}>
-                    <EquipmentCalculationContext.Provider value={calculationValue}>
-                        <EquipmentContext.Provider value={value}>
-                            {children}
-                        </EquipmentContext.Provider>
-                    </EquipmentCalculationContext.Provider>
-                </EquipmentLocksContext.Provider>
-            </EquipmentSetupContext.Provider>
-        </EquipmentCatalogContext.Provider>
+        <EquipmentBuildActionsContext.Provider value={buildActionsValue}>
+            <EquipmentCatalogContext.Provider value={catalogValue}>
+                <EquipmentSetupContext.Provider value={setupValue}>
+                    <EquipmentLocksContext.Provider value={locksValue}>
+                        <EquipmentCalculationContext.Provider value={calculationValue}>
+                            <EquipmentContext.Provider value={value}>
+                                {children}
+                            </EquipmentContext.Provider>
+                        </EquipmentCalculationContext.Provider>
+                    </EquipmentLocksContext.Provider>
+                </EquipmentSetupContext.Provider>
+            </EquipmentCatalogContext.Provider>
+        </EquipmentBuildActionsContext.Provider>
     );
 };

@@ -3,18 +3,19 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
 import { useEquipment } from "../shared/state/EquipmentContext";
-import { downloadBuildPayload } from "../features/builds/buildFile";
+import { downloadBuildPayload } from "../features/builds/buildDownloads";
 
 vi.mock("../shared/state/EquipmentContext", async (importOriginal) => ({
     ...(await importOriginal()),
     useEquipment: vi.fn(),
     useEquipmentCatalogState: () => useEquipment(),
+    useEquipmentBuildActions: () => useEquipment(),
     useEquipmentSetup: () => useEquipment(),
     useEquipmentLocksState: () => useEquipment(),
     useEquipmentCalculation: () => useEquipment(),
 }));
 
-vi.mock("../features/builds/buildFile", async (importOriginal) => ({
+vi.mock("../features/builds/buildDownloads", async (importOriginal) => ({
     ...(await importOriginal()),
     downloadBuildPayload: vi.fn(),
 }));
@@ -67,6 +68,27 @@ const equipment = {
     applyOptimizationSetup: vi.fn(),
 };
 
+const renderApp = async () => {
+    const result = render(<App />);
+    await screen.findByRole("link", { name: /Kreator ekwipunku/i }, { timeout: 10000 });
+    if (
+        !useEquipment.mock.results.at(-1).value.loading &&
+        !useEquipment.mock.results.at(-1).value.initialDataError
+    ) {
+        const heading =
+            window.location.pathname === "/optymalizator"
+                ? "Ustawienia"
+                : window.location.pathname === "/"
+                  ? "Broken Ranks Tool"
+                  : "Ekwipunek";
+        await screen.findByRole(
+            "heading",
+            { name: heading, ...(heading === "Broken Ranks Tool" ? { level: 2 } : {}) },
+            { timeout: 10000 }
+        );
+    }
+    return result;
+};
 describe("App", () => {
     beforeEach(() => {
         vi.clearAllMocks();
@@ -77,7 +99,7 @@ describe("App", () => {
 
     it("navigates through the builder and optimizer workspaces", async () => {
         const user = userEvent.setup();
-        render(<App />);
+        await renderApp();
 
         expect(screen.getByRole("heading", { name: "Broken Ranks Tool" })).toBeInTheDocument();
         expect(screen.getByText("także z Broken HUD")).toBeInTheDocument();
@@ -85,7 +107,9 @@ describe("App", () => {
             "href",
             "#workspace-content"
         );
-        expect(screen.getByRole("heading", { name: "Ekwipunek" })).toBeInTheDocument();
+        expect(
+            await screen.findByRole("heading", { name: "Ekwipunek" }, { timeout: 10000 })
+        ).toBeInTheDocument();
         expect(screen.getByRole("link", { name: /Kreator ekwipunku/i })).toHaveAttribute(
             "aria-current",
             "page"
@@ -98,7 +122,9 @@ describe("App", () => {
             "aria-current",
             "page"
         );
-        expect(screen.getByRole("heading", { name: "Ustawienia" })).toBeInTheDocument();
+        expect(
+            await screen.findByRole("heading", { name: "Ustawienia" }, { timeout: 10000 })
+        ).toBeInTheDocument();
         await user.click(screen.getByRole("button", { name: "Zaawansowany" }));
         const optimizerSearch = screen.getByPlaceholderText("Szukaj statystyki...");
         await user.type(optimizerSearch, "krytyk");
@@ -120,7 +146,7 @@ describe("App", () => {
     }, 20000);
 
     it("reports a successful build import", async () => {
-        const { container } = render(<App />);
+        const { container } = await renderApp();
         const input = container.querySelector('input[type="file"]');
         const file = new File(["{}"], "build.json", { type: "application/json" });
 
@@ -135,7 +161,7 @@ describe("App", () => {
 
     it("reports a failed build import without a blocking alert", async () => {
         equipment.loadBuildFromFile.mockRejectedValueOnce(new Error("uszkodzony plik"));
-        const { container } = render(<App />);
+        const { container } = await renderApp();
         const input = container.querySelector('input[type="file"]');
         const file = new File(["{}"], "build.json", { type: "application/json" });
 
@@ -149,11 +175,13 @@ describe("App", () => {
 
     it("saves and reloads named builds from the local library", async () => {
         const user = userEvent.setup();
-        render(<App />);
+        await renderApp();
 
         await user.click(screen.getByRole("button", { name: /Zapisz lokalnie/i }));
         await user.click(screen.getByRole("link", { name: /Buildy lokalne/i }));
-        expect(screen.getByRole("heading", { name: "Buildy lokalne" })).toBeInTheDocument();
+        expect(
+            await screen.findByRole("heading", { name: "Buildy lokalne" }, { timeout: 10000 })
+        ).toBeInTheDocument();
         const nameInput = screen.getByLabelText("Zmień nazwę lokalnego buildu");
         await user.clear(nameInput);
         await user.type(nameInput, "PvE ogień");
@@ -166,12 +194,14 @@ describe("App", () => {
         expect(equipment.loadBuildSnapshot).toHaveBeenCalledWith(
             expect.objectContaining({ name: "PvE ogień" })
         );
-        expect(screen.getByRole("heading", { name: "Ekwipunek" })).toBeVisible();
+        expect(
+            await screen.findByRole("heading", { name: "Ekwipunek" }, { timeout: 10000 })
+        ).toBeVisible();
     });
 
     it("exports a saved local build to JSON and allows dismissing the message", async () => {
         const user = userEvent.setup();
-        render(<App />);
+        await renderApp();
 
         await user.click(screen.getByRole("button", { name: /Zapisz lokalnie/i }));
         expect(screen.getByRole("status")).toHaveTextContent("Zapisano lokalnie");
@@ -186,17 +216,17 @@ describe("App", () => {
         expect(screen.queryByRole("status")).not.toBeInTheDocument();
     });
 
-    it("shows the initial API error", () => {
+    it("shows the initial API error", async () => {
         useEquipment.mockReturnValue({ ...equipment, initialDataError: "brak połączenia" });
-        render(<App />);
+        await renderApp();
         expect(screen.getByRole("alert")).toHaveTextContent("brak połączenia");
         expect(screen.queryByRole("heading", { name: "Ekwipunek" })).not.toBeInTheDocument();
         expect(screen.getByRole("button", { name: /Zapisz lokalnie/i })).toBeDisabled();
     });
 
-    it("shows a dedicated loading state before rendering the workspaces", () => {
+    it("shows a dedicated loading state before rendering the workspaces", async () => {
         useEquipment.mockReturnValue({ ...equipment, loading: true });
-        render(<App />);
+        await renderApp();
 
         expect(screen.getByRole("status")).toHaveTextContent("Ładowanie danych gry");
         expect(screen.queryByRole("heading", { name: "Ekwipunek" })).not.toBeInTheDocument();
@@ -209,9 +239,11 @@ describe("App", () => {
     it("supports direct routes and browser history", async () => {
         window.history.replaceState(null, "", "/optymalizator");
         const user = userEvent.setup();
-        render(<App />);
+        await renderApp();
 
-        expect(screen.getByRole("heading", { name: "Ustawienia" })).toBeInTheDocument();
+        expect(
+            await screen.findByRole("heading", { name: "Ustawienia" }, { timeout: 10000 })
+        ).toBeInTheDocument();
         expect(screen.queryByRole("heading", { name: "Ekwipunek" })).not.toBeInTheDocument();
 
         await user.click(screen.getByRole("link", { name: /Buildy lokalne/i }));
@@ -224,14 +256,16 @@ describe("App", () => {
     it("renders the home page at the root and opens a selected tool", async () => {
         window.history.replaceState(null, "", "/");
         const user = userEvent.setup();
-        render(<App />);
+        await renderApp();
 
         expect(screen.getAllByRole("heading", { name: "Broken Ranks Tool" })).toHaveLength(2);
         expect(screen.queryByText("Warsztat świadomych wyborów")).not.toBeInTheDocument();
         await user.click(screen.getByRole("link", { name: /Kreator ekwipunku/i }));
 
         expect(window.location.pathname).toBe("/kreator");
-        expect(screen.getByRole("heading", { name: "Ekwipunek" })).toBeVisible();
+        expect(
+            await screen.findByRole("heading", { name: "Ekwipunek" }, { timeout: 10000 })
+        ).toBeVisible();
     });
 
     it("keeps optimizer lock controls out of the manual builder", async () => {
@@ -267,7 +301,7 @@ describe("App", () => {
             lockedSlots: ["helmet"],
         });
 
-        render(<App />);
+        await renderApp();
 
         await vi.waitFor(() =>
             expect(screen.getByLabelText("Wybierz przedmiot dla slotu Hełm")).toHaveValue("1")

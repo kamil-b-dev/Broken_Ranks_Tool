@@ -17,8 +17,20 @@ const CompactCharacterPanel = ({ development }) => (
                     type="number"
                     min="1"
                     max="140"
-                    value={development.level}
-                    onChange={(event) => development.changeLevel(event.target.value)}
+                    value={development.levelInput}
+                    onChange={(event) => development.editLevel(event.target.value)}
+                    onBlur={development.commitLevel}
+                    onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                            event.preventDefault();
+                            development.commitLevel();
+                            event.currentTarget.blur();
+                        }
+                        if (event.key === "Escape") {
+                            event.preventDefault();
+                            development.cancelLevelEdit();
+                        }
+                    }}
                     aria-label="Poziom postaci"
                 />
                 <button

@@ -6,8 +6,9 @@ import {
     trimSpentPoints,
 } from "../builder/character/characterDevelopmentDomain";
 
-export const BUILD_FILE_FORMAT = "broken-ranks-tool-build";
-export const BUILD_FILE_VERSION = 1;
+import { BUILD_FILE_FORMAT, BUILD_FILE_VERSION, createBuildPayload } from "./buildPayload";
+export { BUILD_FILE_FORMAT, BUILD_FILE_VERSION, createBuildPayload } from "./buildPayload";
+export { downloadBuildPayload } from "./buildDownloads";
 export const MAX_BUILD_FILE_SIZE = 5 * 1024 * 1024;
 
 const isObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
@@ -26,7 +27,11 @@ const normalizeImportedCharacterConfig = (config) => {
 // Legacy files may store drif levels in arrays and orb levels in index maps.
 // Publish the container shapes expected by EquipmentRequest after validation.
 const normalizeSlotLevels = (slot) => {
-    const normalized = { ...slot };
+    const normalized = Object.fromEntries(
+        ["itemId", "itemStars", "drifIds", "drifLevels", "orbIds", "orbLevels"]
+            .filter((key) => Object.hasOwn(slot, key))
+            .map((key) => [key, slot[key]])
+    );
     if (slot.drifLevels != null) {
         normalized.drifLevels = Object.fromEntries(
             Object.entries(slot.drifLevels).map(([index, level]) => [index, Number(level)])
@@ -48,30 +53,7 @@ const normalizeSlotLevels = (slot) => {
  * @param {object} build Current build state.
  * @returns {object} Serializable build payload.
  */
-export const createBuildPayload = ({ requestData, characterConfig, lockedSlots, lockedDrifs }) => ({
-    format: BUILD_FILE_FORMAT,
-    version: BUILD_FILE_VERSION,
-    exportedAt: new Date().toISOString(),
-    build: {
-        requestData,
-        characterConfig,
-        lockedSlots,
-        lockedDrifs,
-    },
-});
-
 /** Downloads a serialized build payload and releases the temporary browser URL. */
-export const downloadBuildPayload = (payload, date = new Date()) => {
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `broken-ranks-build-${date.toISOString().slice(0, 10)}.json`;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-};
 
 /**
  * Reads and validates an exported build against currently available game data.
