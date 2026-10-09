@@ -17,7 +17,17 @@ npm run test:coverage
 npm run build
 npm run check:bundle-size
 npm run test:e2e
+npm run test:performance
 ```
 
 `npm run assets:optimize` odtwarza wersje WebP, gdy w odpowiednim miejscu zostanie
 podmieniony źródłowy PNG wymieniony w `scripts/optimize-assets.mjs`.
+
+`npm run assets:optimize:mobile` i `npm run assets:optimize:ui` odtwarzają mniejsze
+warianty grafik do kontrolek. Oryginalne grafiki pozostają źródłami tych wariantów.
+E2E obejmuje Chromium oraz mobilny WebKit (`npx playwright install webkit`).
+Profil `test:performance` buduje produkcję i uruchamia ją przez `vite preview`,
+kontrolując zasoby konkretnych widoków oraz regresje krytycznych interakcji.
+Raporty funkcjonalne i wydajnościowe są rozdzielone, a CI instaluje oba silniki
+i uruchamia oba profile przeglądarkowe.
+Czyste testy domenowe używają Node; komponenty i hooki pozostają w jsdom.
