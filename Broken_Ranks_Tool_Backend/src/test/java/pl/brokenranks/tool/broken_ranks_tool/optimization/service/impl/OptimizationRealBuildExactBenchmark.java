@@ -2,7 +2,6 @@ package pl.brokenranks.tool.broken_ranks_tool.optimization.service.impl;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -29,6 +28,7 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.reference.CpSatBuildOp
 import pl.brokenranks.tool.broken_ranks_tool.optimization.reference.ExactBuildOptimizationSolver;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.reference.ExactOptimizationSolver;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.reference.OptimizedBuildJsonExporter;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Manual exact-search adapter for exported real builds. It is skipped unless both file paths are

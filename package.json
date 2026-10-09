@@ -7,7 +7,8 @@
         "railway:apply": "railway config apply",
         "lint": "eslint .github/scripts scripts eslint.config.mjs",
         "typecheck": "tsc -p tsconfig.infrastructure.json",
-        "test:contracts": "node --test scripts/api-contract.test.mjs"
+        "test:contracts": "node --test scripts/api-contract.test.mjs",
+        "test:dependency-policy": "node --test scripts/dependency-policy.test.mjs"
     },
     "devDependencies": {
         "@eslint/js": "^10.0.1",

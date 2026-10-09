@@ -3,7 +3,6 @@ package pl.brokenranks.tool.broken_ranks_tool.optimization.reference;
 import static org.junit.jupiter.api.Assertions.*;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationEngineFixture.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -37,7 +36,7 @@ class OracleProofManifestTests {
         var stone = drif(1, type);
         var context = context(request(type), slot("helmet", 8, 1, 0, false, Set.of(), stone));
         var rules = new EquipmentRulesRegistry();
-        var mapper = new ObjectMapper();
+        var mapper = new tools.jackson.databind.json.JsonMapper();
         var plan = new CpSatBuildOptimizationSolver.ObjectivePlan(Map.of(type, 2.0), List.of(type));
         String original =
                 OracleProofManifest.fingerprint(

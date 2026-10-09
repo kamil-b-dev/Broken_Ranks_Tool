@@ -1,7 +1,5 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.reference;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.ortools.sat.CpSolver;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -10,6 +8,8 @@ import java.security.MessageDigest;
 import java.util.*;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRulesRegistry;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationContext;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 /** Binds resumable partition proofs to their complete inputs and compiled model implementation. */
 public final class OracleProofManifest {

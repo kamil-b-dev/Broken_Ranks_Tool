@@ -2,7 +2,6 @@ package pl.brokenranks.tool.broken_ranks_tool.optimization.service.impl;
 
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -26,6 +25,7 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.reference.CpSatBuildOp
 import pl.brokenranks.tool.broken_ranks_tool.optimization.reference.OptimizedBuildJsonExporter;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.reference.profile.FireMageBalancedEndgameFixture;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.referencebuild.OptimizationReferenceBuildRepository;
+import tools.jackson.databind.ObjectMapper;
 
 /** Manual oracle entry point for the balanced Fire Mage endgame fixture. */
 @SpringBootTest

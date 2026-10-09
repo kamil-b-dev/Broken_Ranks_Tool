@@ -2,7 +2,6 @@ package pl.brokenranks.tool.broken_ranks_tool.optimization.reference;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
@@ -43,6 +42,7 @@ class RealBuildOracleInputTests {
                 {"settings":{"mode":"%s","configurationMode":"%s"},"priorities":[{"key":"DAMAGE_MAGIC","weight":10,"min":1,"max":2,"sizeRanges":{"SUBDRIF":{"min":1,"max":1},"ARCYDRIF":{"min":0,"max":0}}}]}
                 """
                         .formatted(mode, configuration));
-        return new RealBuildOracleInput(new ObjectMapper()).read(build, config);
+        return new RealBuildOracleInput(new tools.jackson.databind.json.JsonMapper())
+                .read(build, config);
     }
 }

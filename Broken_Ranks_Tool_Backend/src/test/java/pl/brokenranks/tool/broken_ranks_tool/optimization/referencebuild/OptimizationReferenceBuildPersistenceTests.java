@@ -2,7 +2,6 @@ package pl.brokenranks.tool.broken_ranks_tool.optimization.referencebuild;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
@@ -14,6 +13,7 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.Optimiza
 import pl.brokenranks.tool.broken_ranks_tool.optimization.reference.BuildStateJsonHintLoader;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.reference.profile.FireMageBalancedEndgameFixture;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.simpleprofile.SimpleBuildProfile;
+import tools.jackson.databind.ObjectMapper;
 
 @SpringBootTest
 class OptimizationReferenceBuildPersistenceTests {

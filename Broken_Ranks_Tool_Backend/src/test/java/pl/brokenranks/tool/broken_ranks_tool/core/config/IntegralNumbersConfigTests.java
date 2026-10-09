@@ -2,18 +2,18 @@ package pl.brokenranks.tool.broken_ranks_tool.core.config;
 
 import static org.assertj.core.api.Assertions.*;
 
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
+import tools.jackson.databind.DatabindException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 class IntegralNumbersConfigTests {
     private final ObjectMapper mapper = mapper();
 
     private ObjectMapper mapper() {
-        var builder = Jackson2ObjectMapperBuilder.json();
+        var builder = JsonMapper.builder();
         new IntegralNumbersConfig().integralNumbers().customize(builder);
         return builder.build();
     }
@@ -43,7 +43,7 @@ class IntegralNumbersConfigTests {
                     "{\"slots\":{\"helmet\":{\"itemId\":9223372036854775808.0}}}"
                 }) {
             assertThatThrownBy(() -> mapper.readValue(json, EquipmentRequest.class))
-                    .isInstanceOf(JsonMappingException.class);
+                    .isInstanceOf(DatabindException.class);
         }
     }
 
@@ -54,7 +54,7 @@ class IntegralNumbersConfigTests {
                                 mapper.readValue(
                                         "{\"targetQuantities\":{\"CRITICAL_CHANCE\":{\"min\":1.9,\"max\":2}}}",
                                         OptimizationRequest.class))
-                .isInstanceOf(JsonMappingException.class);
+                .isInstanceOf(DatabindException.class);
         var request =
                 mapper.readValue(
                         "{\"targetQuantities\":{\"CRITICAL_CHANCE\":{\"min\":1.0,\"max\":2.0}},\"forcedPercentageTargets\":{\"CRITICAL_CHANCE\":12.5}}",
