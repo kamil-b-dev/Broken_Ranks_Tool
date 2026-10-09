@@ -35,7 +35,7 @@ final class OptimizationReplacementStrategy implements DeterministicRefinementSt
     private BuildState bestReplacement(BuildState state, OptimizationContext context) {
         BuildState best = state;
         for (SlotContext slot : context.slots()) {
-            if (evaluation.refinementBudgetExhausted(context)) return state;
+            if (evaluation.refinementBudgetExhausted(context)) return best;
             if (!slot.optimizable() || placements.isSlotLocked(slot, context)) continue;
             List<Placement> placements = state.slots().get(slot.key());
             for (int index = 0; index < placements.size(); index++) {

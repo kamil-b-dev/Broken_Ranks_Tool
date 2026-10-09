@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ITEM_STAR;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.RESISTANCE_STAT_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.SPECIAL_STAT_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.ItemBaseStatRules;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.CalculationState;
 
@@ -33,6 +34,7 @@ public class ItemStatProcessor {
         if (item.getStats() == null || item.getStats().isEmpty()) {
             return;
         }
+        ItemBaseStatRules.validate(item.getId(), item.getStats());
 
         ITEM_STAR starMod = ITEM_STAR.fromLevel(starLevel);
         double statMod = starMod.getStatsMod();

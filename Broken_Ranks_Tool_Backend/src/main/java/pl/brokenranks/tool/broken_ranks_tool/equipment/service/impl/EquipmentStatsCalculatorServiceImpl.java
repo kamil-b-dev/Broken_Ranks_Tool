@@ -27,7 +27,6 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.proces
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.DrifSecurityValidator;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentPlacementRules;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentRequestValidator;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.UpgradeLevelPolicy;
 
 /** Orchestrates validation, data preparation, and equipment statistic processors. */
 @Service
@@ -37,7 +36,6 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
     private final EquipmentDataProvider dataProvider;
     private final EquipmentRequestValidator requestValidator;
     private final EquipmentPlacementRules placementRules;
-    private final UpgradeLevelPolicy levelPolicy;
     private final DrifSecurityValidator securityValidator;
     private final ItemStatProcessor itemProcessor;
     private final OrbStatProcessor orbProcessor;

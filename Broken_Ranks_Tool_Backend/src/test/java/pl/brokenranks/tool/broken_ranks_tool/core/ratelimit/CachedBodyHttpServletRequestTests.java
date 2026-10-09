@@ -1,6 +1,7 @@
 package pl.brokenranks.tool.broken_ranks_tool.core.ratelimit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 
 import jakarta.servlet.ReadListener;
@@ -34,7 +35,11 @@ class CachedBodyHttpServletRequestTests {
 
     @Test
     void reportsNonBlockingStreamLifecycle() throws Exception {
-        ServletInputStream stream = request(new byte[] {1, 2, 3}, null).getInputStream();
+        MockHttpServletRequest original = new MockHttpServletRequest();
+        original.setAsyncSupported(true);
+        original.startAsync();
+        var request = new CachedBodyHttpServletRequest(original, new byte[] {1, 2, 3});
+        ServletInputStream stream = request.getInputStream();
         AtomicBoolean dataAvailable = new AtomicBoolean();
         AtomicBoolean allDataRead = new AtomicBoolean();
 
@@ -49,9 +54,25 @@ class CachedBodyHttpServletRequestTests {
         assertThat(target).containsExactly(1, 2, 3);
         assertThat(stream.isFinished()).isTrue();
 
-        stream.setReadListener(listener(dataAvailable, allDataRead));
         assertThat(allDataRead).isTrue();
+        assertThatIllegalStateException()
+                .isThrownBy(() -> stream.setReadListener(listener(dataAvailable, allDataRead)));
+        assertThatIllegalStateException()
+                .isThrownBy(
+                        () ->
+                                request.getInputStream()
+                                        .setReadListener(listener(dataAvailable, allDataRead)));
         assertThat(stream.read()).isEqualTo(-1);
+    }
+
+    @Test
+    void rejectsNonBlockingRegistrationOutsideAsyncProcessing() {
+        var stream = request(new byte[] {1}, null).getInputStream();
+        assertThatIllegalStateException()
+                .isThrownBy(
+                        () ->
+                                stream.setReadListener(
+                                        listener(new AtomicBoolean(), new AtomicBoolean())));
     }
 
     @Test

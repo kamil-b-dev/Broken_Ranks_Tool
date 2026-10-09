@@ -1,5 +1,6 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator;
 
+import java.util.EnumMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -64,6 +65,7 @@ public class EquipmentRequestValidator {
 
     public void validateCharacterStats(Map<String, Integer> stats) {
         if (stats == null) return;
+        Map<STAT_TYPE, Integer> totals = new EnumMap<>(STAT_TYPE.class);
         stats.forEach(
                 (key, value) -> {
                     if (!STAT_TYPE.isValid(key)
@@ -74,6 +76,13 @@ public class EquipmentRequestValidator {
                                 "Wykryto nieprawidłową statystykę postaci: "
                                         + key
                                         + ". Wartość musi mieścić się w zakresie 0–50 000.");
+                    }
+                    STAT_TYPE type = STAT_TYPE.fromDescription(key).orElseThrow();
+                    if (totals.merge(type, value, Integer::sum) > MAX_CHARACTER_STAT) {
+                        throw new IllegalArgumentException(
+                                "Łączna wartość statystyki postaci "
+                                        + type.getDescription()
+                                        + " musi mieścić się w zakresie 0–50 000.");
                     }
                 });
     }

@@ -107,8 +107,7 @@ class DrifAndOrbStatProcessorTests {
         CalculationState state =
                 new CalculationState(
                         new CalculationContext(Map.of(1L, item), Map.of(20L, orb), Map.of()));
-        OrbStatProcessor processor =
-                new OrbStatProcessor(placementRules, levelPolicy, securityValidator);
+        OrbStatProcessor processor = new OrbStatProcessor(placementRules, securityValidator);
 
         processor.process("helmet", slot, item, 8, state);
         assertThrows(
@@ -149,7 +148,7 @@ class DrifAndOrbStatProcessorTests {
                 new CalculationState(
                         new CalculationContext(
                                 Map.of(1L, item), Map.of(20L, first, 21L, second), Map.of()));
-        new OrbStatProcessor(placementRules, levelPolicy, securityValidator)
+        new OrbStatProcessor(placementRules, securityValidator)
                 .process("helmet", slot, item, 8, state);
 
         assertEquals(
@@ -177,8 +176,7 @@ class DrifAndOrbStatProcessorTests {
         CalculationState state =
                 new CalculationState(
                         new CalculationContext(Map.of(1L, item), Map.of(20L, orb), Map.of()));
-        OrbStatProcessor processor =
-                new OrbStatProcessor(placementRules, levelPolicy, securityValidator);
+        OrbStatProcessor processor = new OrbStatProcessor(placementRules, securityValidator);
         EquipmentRequest.SlotData trailingEmpty = slot(1L, List.of());
         trailingEmpty.setOrbIds(java.util.Arrays.asList(20L, null));
         trailingEmpty.setOrbLevels(List.of(1, 1));

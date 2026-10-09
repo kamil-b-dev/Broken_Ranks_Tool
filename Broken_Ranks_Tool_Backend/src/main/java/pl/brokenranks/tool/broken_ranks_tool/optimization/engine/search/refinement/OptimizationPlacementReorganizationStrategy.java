@@ -26,7 +26,7 @@ final class OptimizationPlacementReorganizationStrategy implements Deterministic
     private BuildState improveSwaps(BuildState state, OptimizationContext context) {
         BuildState bestState = state;
         for (int first = 0; first < context.slots().size(); first++) {
-            if (evaluation.refinementBudgetExhausted(context)) return state;
+            if (evaluation.refinementBudgetExhausted(context)) return bestState;
             SlotContext firstSlot = context.slots().get(first);
             if (!firstSlot.optimizable() || placements.isSlotLocked(firstSlot, context)) continue;
             for (int second = first + 1; second < context.slots().size(); second++) {

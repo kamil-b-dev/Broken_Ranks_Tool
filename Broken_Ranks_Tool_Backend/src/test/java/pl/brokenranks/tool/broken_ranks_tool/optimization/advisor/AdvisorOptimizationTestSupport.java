@@ -87,8 +87,7 @@ abstract class AdvisorOptimizationTestSupport {
         EquipmentPlacementRules placement = new EquipmentPlacementRules(rules);
         UpgradeLevelPolicy levels = new UpgradeLevelPolicy();
         ItemStatProcessor itemProcessor = new ItemStatProcessor();
-        OrbStatProcessor orbProcessor =
-                new OrbStatProcessor(placement, levels, new OrbSecurityValidator());
+        OrbStatProcessor orbProcessor = new OrbStatProcessor(placement, new OrbSecurityValidator());
         DrifValueCalculator values = new DrifValueCalculator();
         EquipmentStatsCalculatorService calculator =
                 spy(
@@ -96,7 +95,6 @@ abstract class AdvisorOptimizationTestSupport {
                                 new EquipmentDataProvider(itemRepo, orbRepo, drifRepo),
                                 new EquipmentRequestValidator(rules),
                                 placement,
-                                levels,
                                 new DrifSecurityValidator(placement, levels),
                                 itemProcessor,
                                 orbProcessor,

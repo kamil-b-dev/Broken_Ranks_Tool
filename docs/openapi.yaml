@@ -713,6 +713,7 @@ components:
           type:
             - object
             - "null"
+          description: Base item statistics and resistances are integers. Special item modifiers may be fractional.
           additionalProperties:
             type: number
         rarity:

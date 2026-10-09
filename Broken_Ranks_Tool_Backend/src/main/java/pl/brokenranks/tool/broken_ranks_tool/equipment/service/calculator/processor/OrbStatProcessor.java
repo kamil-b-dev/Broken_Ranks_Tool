@@ -10,7 +10,6 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.OrbTempl
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.CalculationState;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentPlacementRules;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.OrbSecurityValidator;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.UpgradeLevelPolicy;
 
 /** Calculates orb statistics using orb levels and item star modifiers. */
 @Component
@@ -18,7 +17,6 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.Upgrade
 public class OrbStatProcessor {
 
     private final EquipmentPlacementRules placementRules;
-    private final UpgradeLevelPolicy levelPolicy;
     private final OrbSecurityValidator securityValidator;
 
     /** Validates the slot's orbs and adds their statistics to the accumulator. */

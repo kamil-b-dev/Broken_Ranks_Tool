@@ -11,7 +11,9 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_T
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_SIZE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRulesRegistry;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentPlacementRules;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.UpgradeLevelPolicy;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context.OptimizationInitialStateFactory;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
 
@@ -21,6 +23,25 @@ class OptimizationFinalResultValidatorTests {
             new OptimizationFinalResultValidator(
                     new OptimizationStateEvaluator(rules), new EquipmentPlacementRules(rules));
     private final DRIF_BONUS_TYPE type = DRIF_BONUS_TYPE.CRITICAL_CHANCE;
+
+    @Test
+    void preservesIndividualBuiltInLocksInTheModelAndFinalValidation() {
+        var first = drif(1, type);
+        var second = drif(2, DRIF_BONUS_TYPE.DAMAGE_PHYSICAL);
+        first.setSize(DRIF_SIZE.MAGNIDRIF);
+        second.setSize(DRIF_SIZE.MAGNIDRIF);
+        var slot = slot("weapon", 0, 0, 0, true, Set.of(0), first, second);
+        slot.original().setDrifLevels(Map.of("0", 1, "1", 1));
+        var request = request(type);
+        request.setLockedDrifs(Map.of("weapon", Set.of(0)));
+        var context = context(request, slot);
+        var state = new OptimizationInitialStateFactory(new UpgradeLevelPolicy()).create(context);
+        assertEquals(1, state.slots().get("weapon").get(0).level());
+        assertEquals(16, state.slots().get("weapon").get(1).level());
+        assertNull(validator.validate(state, context));
+        state.setPlacement("weapon", 0, new Placement(first, 16, true));
+        assertNotNull(validator.validate(state, context));
+    }
 
     @ParameterizedTest
     @CsvSource({"2,3", "0,0"})

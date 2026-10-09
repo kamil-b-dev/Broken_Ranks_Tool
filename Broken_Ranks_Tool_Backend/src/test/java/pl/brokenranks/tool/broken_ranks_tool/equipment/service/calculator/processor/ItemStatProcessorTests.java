@@ -1,6 +1,7 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.processor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -51,5 +52,27 @@ class ItemStatProcessorTests {
                 .tier("XII")
                 .stats(stats)
                 .build();
+    }
+
+    @Test
+    void rejectsFractionalBaseStatsBeforeAnyStarProcessing() {
+        var processor = new ItemStatProcessor();
+        for (String name : new String[] {"Siła", "Odporność ogień"}) {
+            for (int stars : new int[] {1, 9}) {
+                var state =
+                        new CalculationState(new CalculationContext(Map.of(), Map.of(), Map.of()));
+                assertThrows(
+                        IllegalArgumentException.class,
+                        () -> processor.process(item(Map.of(name, 12.5)), stars, state));
+                assertEquals(Map.of(), state.getAccumulator().getNumericResults());
+            }
+        }
+    }
+
+    @Test
+    void preservesFractionalSpecialBonuses() {
+        var state = new CalculationState(new CalculationContext(Map.of(), Map.of(), Map.of()));
+        new ItemStatProcessor().process(item(Map.of("Bonus drify", 7.5)), 9, state);
+        assertEquals("7.5", state.getAccumulator().getFormattedResults().get("Bonus drify"));
     }
 }

@@ -140,7 +140,8 @@ public final class OptimizationInputValidator {
                         && data.getDrifIds().stream().anyMatch(java.util.Objects::nonNull)
                 || data.getOrbIds() != null
                         && data.getOrbIds().stream().anyMatch(java.util.Objects::nonNull)
-                || data.getDrifLevels() != null && !data.getDrifLevels().isEmpty();
+                || data.getDrifLevels() != null && !data.getDrifLevels().isEmpty()
+                || data.getOrbLevels() != null && !data.getOrbLevels().isEmpty();
     }
 
     private String validateOrbs(

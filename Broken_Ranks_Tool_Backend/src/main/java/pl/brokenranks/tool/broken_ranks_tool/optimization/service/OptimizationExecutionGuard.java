@@ -23,6 +23,7 @@ public class OptimizationExecutionGuard {
     private final Counter rejectedRuns;
     private final Counter successfulRuns;
     private final Counter unsuccessfulRuns;
+    private final Counter softTargetsUnmetRuns;
     private final Counter failedRuns;
     private final Timer duration;
 
@@ -36,6 +37,8 @@ public class OptimizationExecutionGuard {
         this.rejectedRuns = outcomeCounter(meterRegistry, OptimizationRunOutcome.REJECTED);
         this.successfulRuns = outcomeCounter(meterRegistry, OptimizationRunOutcome.SUCCESS);
         this.unsuccessfulRuns = outcomeCounter(meterRegistry, OptimizationRunOutcome.NO_SOLUTION);
+        this.softTargetsUnmetRuns =
+                outcomeCounter(meterRegistry, OptimizationRunOutcome.SOFT_TARGETS_UNMET);
         this.failedRuns = outcomeCounter(meterRegistry, OptimizationRunOutcome.ERROR);
         this.duration = meterRegistry.timer("optimizer.duration");
     }
@@ -55,7 +58,15 @@ public class OptimizationExecutionGuard {
         try {
             OptimizationResponse response = optimizationService.optimize(request);
             boolean successful = response.getSummary() != null && response.getSummary().isSuccess();
-            (successful ? successfulRuns : unsuccessfulRuns).increment();
+            boolean hasVerifiedBuild =
+                    response.getOptimizedSetup() != null
+                            && response.getOptimizedSetup().getSlots() != null
+                            && !response.getOptimizedSetup().getSlots().isEmpty()
+                            && response.getCalculationResult() != null;
+            (successful
+                            ? successfulRuns
+                            : hasVerifiedBuild ? softTargetsUnmetRuns : unsuccessfulRuns)
+                    .increment();
             log.info(
                     "Optimization finished: success={}, slots={}, priorities={}",
                     successful,
