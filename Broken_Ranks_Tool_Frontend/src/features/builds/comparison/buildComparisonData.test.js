@@ -22,6 +22,16 @@ const build = (id, itemId) => ({
 });
 
 describe("build comparison data", () => {
+    it("counts only occupied stone positions in a partial build", () => {
+        const record = build("a", 1);
+        record.payload.build.requestData.slots.helmet.drifIds = ["8", "", null];
+        record.payload.build.requestData.slots.helmet.orbIds = [null, ""];
+        expect(summarizeLocalBuild(record)).toMatchObject({ equipped: 1, drifs: 1, orbs: 0 });
+        expect(createEquipmentComparisonRows([record])[0].values[0]).toMatchObject({
+            drifCount: 1,
+            orbCount: 0,
+        });
+    });
     it("summarizes equipment and marks slot differences", () => {
         const left = build("a", 1);
         const right = build("b", 2);

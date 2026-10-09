@@ -5,14 +5,25 @@ import {
 } from "../../../shared/domain/equipment/drifCategories";
 import { toFiniteNumber } from "./comparisonValues";
 
-const createComparisonRow = (key, builds, bonusTranslations) => {
+const usefulValue = (key, value, gameRules) => {
+    if (value == null) return null;
+    const cap = gameRules.drifMaxCaps?.[key];
+    const negativeDirection =
+        key === "MANA_USAGE_REDUCTION" || key === "STAMINA_USAGE_REDUCTION" || cap < 0;
+    const effect = negativeDirection ? -value : value;
+    return cap != null && Number.isFinite(Number(cap))
+        ? Math.min(effect, Math.abs(Number(cap)))
+        : effect;
+};
+
+const createComparisonRow = (key, builds, gameRules) => {
     const values = builds.map((build) => build.stats?.[key] ?? null);
-    const numericValues = values.map(toFiniteNumber);
+    const numericValues = values.map((value) => usefulValue(key, toFiniteNumber(value), gameRules));
     const finiteValues = numericValues.filter((value) => value != null);
     const highest = finiteValues.length ? Math.max(...finiteValues) : null;
     return {
         key,
-        label: bonusTranslations[key] || key,
+        label: gameRules.bonusTranslations?.[key] || key,
         values,
         highestIndexes:
             highest == null
@@ -20,13 +31,6 @@ const createComparisonRow = (key, builds, bonusTranslations) => {
                 : numericValues.flatMap((value, index) => (value === highest ? [index] : [])),
         differs: new Set(values.map((value) => String(value ?? ""))).size > 1,
     };
-};
-
-export const createStatComparisonRows = (builds, bonusTranslations = {}) => {
-    const keys = new Set(builds.flatMap((build) => Object.keys(build.stats || {})));
-    return [...keys]
-        .map((key) => createComparisonRow(key, builds, bonusTranslations))
-        .sort((left, right) => left.label.localeCompare(right.label, "pl"));
 };
 
 const resolveStatGroup = (key, builds, gameRules) => {
@@ -45,7 +49,6 @@ const resolveStatGroup = (key, builds, gameRules) => {
 
 /** Separates calculated values into character, orb, and drif comparison groups. */
 export const createStatComparisonGroups = (builds, gameRules = {}) => {
-    const bonusTranslations = gameRules.bonusTranslations || {};
     const groups = {
         character: [],
         orbs: [],
@@ -55,7 +58,7 @@ export const createStatComparisonGroups = (builds, gameRules = {}) => {
 
     [...keys].forEach((key) => {
         if (/bonus drify|pojemność/i.test(key)) return;
-        const row = createComparisonRow(key, builds, bonusTranslations);
+        const row = createComparisonRow(key, builds, gameRules);
         const group = resolveStatGroup(key, builds, gameRules);
         if (group === "ORBS") groups.orbs.push(row);
         else if (DRIF_CATEGORY_ORDER.includes(group)) groups.drifs[group].push(row);

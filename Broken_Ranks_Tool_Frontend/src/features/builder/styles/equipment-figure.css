@@ -37,13 +37,6 @@
     border-bottom: 1px solid rgba(145, 96, 45, 0.34);
 }
 
-.equipment-slot-column {
-    display: grid;
-    min-width: 0;
-    align-content: stretch;
-    gap: 0.45rem;
-}
-
 .equipment-character-figure {
     position: relative;
     display: grid;
@@ -118,36 +111,6 @@
     transform: translate(-50%, -50%);
 }
 
-.equipment-ring-slot {
-    position: absolute;
-    z-index: 3;
-    display: grid;
-    width: 3.25rem;
-    height: 3.25rem;
-    place-items: center;
-    border: 1px solid rgba(100, 78, 58, 0.54);
-    border-radius: 50%;
-    color: #786f67;
-    background:
-        radial-gradient(circle, rgba(26, 27, 25, 0.94), rgba(2, 4, 4, 0.98) 72%),
-        url("../../../assets/panel-blackened-steel-texture.webp") center / 10rem;
-    box-shadow:
-        0 0 0 3px rgba(2, 4, 4, 0.78),
-        0 0 0 4px rgba(107, 73, 40, 0.22),
-        inset 0 0 12px rgba(0, 0, 0, 0.82);
-    transform: translate(-50%, -50%);
-    transition:
-        border-color 150ms ease,
-        box-shadow 150ms ease,
-        filter 150ms ease,
-        transform 150ms ease;
-}
-
-.equipment-ring-slot:hover {
-    border-color: rgba(201, 139, 71, 0.82);
-    transform: translate(-50%, -50%) scale(1.06);
-}
-
 .equipment-ring-slot-equipped {
     border-color: rgba(190, 130, 64, 0.82);
     color: #c79a5e;
@@ -156,58 +119,6 @@
         0 0 0 4px rgba(178, 117, 54, 0.52),
         0 0 14px rgba(152, 91, 38, 0.24),
         inset 0 0 12px rgba(0, 0, 0, 0.72);
-}
-
-.equipment-ring-slot-active {
-    border-color: rgba(235, 63, 49, 0.96);
-    box-shadow:
-        0 0 0 3px rgba(30, 4, 4, 0.9),
-        0 0 0 4px rgba(225, 51, 39, 0.75),
-        0 0 20px rgba(211, 43, 31, 0.58),
-        inset 0 0 16px rgba(116, 20, 16, 0.56);
-}
-
-.equipment-ring-slot small {
-    position: absolute;
-    top: calc(100% + 0.32rem);
-    left: 50%;
-    width: 5rem;
-    overflow: hidden;
-    color: currentcolor;
-    font-family: var(--ui-font);
-    font-size: 0.46rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-align: center;
-    text-overflow: ellipsis;
-    text-transform: uppercase;
-    transform: translateX(-50%);
-    white-space: nowrap;
-}
-
-.equipment-ring-icon {
-    display: block;
-    width: 2.5rem;
-    height: 2.5rem;
-    opacity: 0.42;
-    background-image: url("../../../assets/equipment-slot-icons.webp");
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: 400% 300%;
-    filter: grayscale(0.45) sepia(0.18) brightness(0.72);
-    transition:
-        opacity 150ms ease,
-        filter 150ms ease;
-}
-
-.equipment-ring-slot-equipped .equipment-ring-icon {
-    opacity: 0.96;
-    filter: sepia(0.12) saturate(0.9) brightness(0.92);
-}
-
-.equipment-ring-slot-active .equipment-ring-icon {
-    opacity: 1;
-    filter: sepia(0.08) saturate(1.08) brightness(1.05) drop-shadow(0 0 5px rgba(211, 49, 39, 0.72));
 }
 
 .equipment-ring-slot-helmet {
@@ -567,24 +478,6 @@
 }
 .equipment-slot-icon-necklace {
     background-position: 100% 100%;
-}
-
-.equipment-slot-column:first-child .equipment-slot-overview::after,
-.equipment-slot-column:last-child .equipment-slot-overview::before {
-    position: absolute;
-    z-index: 2;
-    top: 50%;
-    width: 0.6rem;
-    height: 1px;
-    content: "";
-    background: rgba(166, 105, 48, 0.55);
-}
-
-.equipment-slot-column:first-child .equipment-slot-overview::after {
-    right: -0.6rem;
-}
-.equipment-slot-column:last-child .equipment-slot-overview::before {
-    left: -0.6rem;
 }
 
 .equipment-slot-overview-heading {

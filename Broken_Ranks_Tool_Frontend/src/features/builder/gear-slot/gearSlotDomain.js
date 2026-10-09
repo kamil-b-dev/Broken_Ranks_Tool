@@ -147,7 +147,9 @@ export const createGearSlotUpdate = ({
         itemId: selectedItem || null,
         itemStars,
         orbIds: selectedOrbs.map((orb) => orb.id),
-        orbLevels: selectedOrbs.map((orb) => Number.parseInt(orb.level)),
+        orbLevels: selectedOrbs.map((orb) =>
+            orb.level === "" || orb.level == null ? 1 : Number.parseInt(orb.level)
+        ),
         drifIds,
         drifLevels: publishedDrifLevels,
     };

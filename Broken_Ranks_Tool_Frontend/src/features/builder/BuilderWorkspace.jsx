@@ -60,7 +60,6 @@ const BuilderWorkspace = ({
             className={`builder-theme w-full flex-1 flex-col gap-4 xl:gap-5 ${active ? "flex" : "hidden"}`}
         >
             <CharacterPanel
-                compact
                 onStatsChange={onCharacterStatsUpdate}
                 externalConfig={characterConfig}
                 externalStats={requestData.characterStats}

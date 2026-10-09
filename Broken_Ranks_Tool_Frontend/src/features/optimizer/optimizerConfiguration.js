@@ -108,7 +108,11 @@ export const createOptimizerConfigPayload = (priorities, settings, exportedAt = 
             max: Number(max),
             forceCap: Boolean(forceCap),
             forcePercentage: Boolean(forcePercentage),
-            forcedPercentage: forcePercentage ? Number(forcedPercentage) : null,
+            forcedPercentage: forcePercentage
+                ? forcedPercentage === "" || forcedPercentage == null
+                    ? ""
+                    : Number(forcedPercentage)
+                : null,
             maximize: Boolean(maximize),
             sizeRanges: normalizeSizeRanges(sizeRanges),
         })
@@ -146,11 +150,12 @@ export const parseOptimizerConfigPayload = (payload, gameRules = {}) => {
         const min = clamp(Number.isFinite(parsedMin) ? Math.trunc(parsedMin) : 0, 0, 12);
         const max = clamp(Number.isFinite(parsedMax) ? Math.trunc(parsedMax) : 12, min, 12);
         const parsedForcedPercentage = Number(entry.forcedPercentage);
+        const emptyPercentage = entry.forcedPercentage === "" || entry.forcedPercentage == null;
         const forcePercentage =
             !entry.forceCap &&
             Boolean(entry.forcePercentage) &&
-            Number.isFinite(parsedForcedPercentage) &&
-            parsedForcedPercentage >= 0;
+            (emptyPercentage ||
+                (Number.isFinite(parsedForcedPercentage) && parsedForcedPercentage >= 0));
 
         return [
             {
@@ -160,7 +165,7 @@ export const parseOptimizerConfigPayload = (payload, gameRules = {}) => {
                 max,
                 forceCap: Boolean(entry.forceCap),
                 forcePercentage,
-                forcedPercentage: forcePercentage ? parsedForcedPercentage : "",
+                forcedPercentage: forcePercentage && !emptyPercentage ? parsedForcedPercentage : "",
                 maximize:
                     !entry.forceCap &&
                     !forcePercentage &&

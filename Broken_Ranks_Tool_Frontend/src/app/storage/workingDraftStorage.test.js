@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
     EQUIPMENT_DRAFT_STORAGE_KEY,
+    EQUIPMENT_DRAFT_RECOVERY_STORAGE_KEY,
+    preserveEquipmentDraft,
     readEquipmentDraft,
     readOptimizerDraft,
     writeEquipmentDraft,
@@ -74,5 +76,26 @@ describe("workingDraftStorage", () => {
         restored.requestData.slots.helmet = { itemId: 1 };
 
         expect(readEquipmentDraft().requestData.slots).toEqual({});
+    });
+
+    it("preserves the exact rejected draft before the working key is replaced", () => {
+        const original = JSON.stringify({
+            version: 1,
+            value: { requestData: { slots: { helmet: { itemId: 999 } } } },
+        });
+        localStorage.setItem(EQUIPMENT_DRAFT_STORAGE_KEY, original);
+        expect(preserveEquipmentDraft()).toBe(true);
+        writeEquipmentDraft({ requestData: { slots: {} } });
+        expect(localStorage.getItem(EQUIPMENT_DRAFT_RECOVERY_STORAGE_KEY)).toBe(original);
+    });
+
+    it("reports failure when a rejected draft cannot be backed up", () => {
+        const storage = {
+            getItem: () => "original",
+            setItem: () => {
+                throw new DOMException("full", "QuotaExceededError");
+            },
+        };
+        expect(preserveEquipmentDraft(storage)).toBe(false);
     });
 });

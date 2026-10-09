@@ -16,6 +16,20 @@ import {
 } from "./gearSlotDomain";
 
 describe("gearSlotDomain", () => {
+    it("publishes a valid default level for a selected orb before its level is edited", () => {
+        const update = createGearSlotUpdate({
+            selectedItem: "7",
+            itemStars: 1,
+            orbSlots: { orb1: { id: "2", level: "" }, orb2: { id: "", level: "" } },
+            isLegendary: false,
+            selectedDrifs: [],
+            drifLevels: {},
+            maxDrifs: 3,
+            builtInDrifs: [],
+            builtInLvls: [],
+        });
+        expect(JSON.parse(JSON.stringify(update)).orbLevels).toEqual([1]);
+    });
     it("maps drif levels to capacity multipliers", () => {
         expect([1, 6, 7, 11, 12, 16, 17, 21].map(getEffectiveDrifMultiplier)).toEqual([
             1, 1, 2, 2, 3, 3, 4, 4,

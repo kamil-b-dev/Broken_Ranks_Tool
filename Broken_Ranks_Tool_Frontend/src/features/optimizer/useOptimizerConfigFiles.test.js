@@ -37,6 +37,23 @@ describe("useOptimizerConfigFiles", () => {
 
     afterEach(() => vi.unstubAllGlobals());
 
+    it("refuses to export an incomplete percentage target", () => {
+        const onNotice = vi.fn();
+        const { result } = renderHook(() =>
+            useOptimizerConfigFiles({
+                priorities: [
+                    { key: "CRITICAL_CHANCE", forcePercentage: true, forcedPercentage: "" },
+                ],
+                settings: {},
+                gameRules,
+                onNotice,
+            })
+        );
+        act(() => result.current.save());
+        expect(downloadOptimizerConfiguration).not.toHaveBeenCalled();
+        expect(onNotice).toHaveBeenCalledWith(expect.objectContaining({ type: "error" }));
+    });
+
     it("exports the current normalized configuration", () => {
         const priorities = [{ key: "CRITICAL_CHANCE", weight: 10 }];
         const settings = { mode: "BUILD_FROM_SCRATCH", maxVariantLossPercent: 10 };

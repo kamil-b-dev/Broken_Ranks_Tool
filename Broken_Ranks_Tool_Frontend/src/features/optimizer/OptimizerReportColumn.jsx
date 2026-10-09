@@ -47,6 +47,7 @@ const OptimizerReportColumn = ({
                                 currentDetails={currentDetails}
                                 activeVariant={displayedVariant}
                                 maxCaps={maxCaps}
+                                advisory={advisory}
                             />
                             <OptimizerVariantsSection
                                 variants={status.nextVariants}

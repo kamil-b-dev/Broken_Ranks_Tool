@@ -57,6 +57,16 @@ const validPayload = () => ({
     },
 });
 
+describe("character stat aliases", () => {
+    it("enforces the total limit for case aliases before importing a build", () => {
+        const payload = validPayload();
+        payload.build.requestData.characterStats = { Siła: 50_000, siła: 1 };
+        expect(() => parseBuildPayload(payload, gameData)).toThrow(/Łączna wartość/);
+        payload.build.requestData.characterStats = { Siła: 25_000, siła: 25_000 };
+        expect(() => parseBuildPayload(payload, gameData)).not.toThrow();
+    });
+});
+
 describe("createBuildPayload", () => {
     it("creates a versioned export with an ISO timestamp", () => {
         vi.useFakeTimers();

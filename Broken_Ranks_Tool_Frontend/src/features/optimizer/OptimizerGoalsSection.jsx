@@ -1,19 +1,27 @@
 import { numericStatValue } from "./optimizerDomain";
 
-const evaluateGoal = (goal, current, activeVariant, maxCap) => {
+const evaluateGoal = (goal, current, activeVariant, maxCap, advisory) => {
     const variantChange = activeVariant?.statChanges?.find(
         (change) => change.statKey === goal.statKey
     );
-    const calculatorValue = variantChange?.variantValue ?? goal.calculatorValue;
+    const calculatorValue =
+        activeVariant?.calculationResult?.stats?.[goal.statKey] ??
+        variantChange?.variantValue ??
+        goal.calculatorValue;
     const displayedCount =
         activeVariant?.advisorCounts?.[goal.statKey] ?? current?.count ?? goal.placedCount;
     const quantitySatisfied =
         displayedCount >= goal.minimumCount && displayedCount <= goal.maximumCount;
-    const targetValue = numericStatValue(goal.targetLabel);
+    const targetValue = Math.abs(numericStatValue(goal.targetLabel));
     const calculatedValue = numericStatValue(calculatorValue);
+    const negative =
+        Number(maxCap) < 0 ||
+        ["MANA_USAGE_REDUCTION", "STAMINA_USAGE_REDUCTION"].includes(goal.statKey);
+    const effect = negative ? -calculatedValue : calculatedValue;
     const targetSatisfied =
-        !goal.targetLabel ||
-        (Number(maxCap) < 0 ? -calculatedValue >= targetValue : calculatedValue >= targetValue);
+        (!activeVariant || activeVariant.main) && goal.targetSatisfied != null
+            ? goal.targetSatisfied
+            : !goal.targetLabel || effect + (advisory ? 1e-8 : 0.5) >= targetValue;
 
     return {
         calculatorValue,
@@ -25,8 +33,8 @@ const evaluateGoal = (goal, current, activeVariant, maxCap) => {
     };
 };
 
-const GoalCard = ({ goal, current, activeVariant, maxCap, showTargetLabel }) => {
-    const result = evaluateGoal(goal, current, activeVariant, maxCap);
+const GoalCard = ({ goal, current, activeVariant, maxCap, showTargetLabel, advisory }) => {
+    const result = evaluateGoal(goal, current, activeVariant, maxCap, advisory);
 
     return (
         <div className={`optimizer-goal-row ${result.complete ? "is-complete" : "is-partial"}`}>
@@ -71,6 +79,7 @@ const OptimizerGoalsSection = ({
     activeVariant,
     maxCaps,
     showTargetLabel = false,
+    advisory = false,
 }) => (
     <section className="optimizer-report-section optimizer-goals-section">
         <h5>Realizacja celów</h5>
@@ -84,6 +93,7 @@ const OptimizerGoalsSection = ({
                         activeVariant={activeVariant}
                         maxCap={maxCaps?.[goal.statKey]}
                         showTargetLabel={showTargetLabel}
+                        advisory={advisory}
                     />
                 ))}
             </div>

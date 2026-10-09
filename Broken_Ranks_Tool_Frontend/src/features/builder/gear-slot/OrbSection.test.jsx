@@ -7,7 +7,7 @@ import OrbSection from "./OrbSection";
 const groupedOrbs = {
     EXTRA_GOLD: [
         { id: 1, size: "SUBORB", category: "UTILITY" },
-        { id: 2, size: "BIDORB", category: "UTILITY" },
+        { id: 2, size: "BIORB", category: "UTILITY" },
     ],
 };
 
@@ -36,6 +36,8 @@ describe("OrbSection", () => {
 
         await user.selectOptions(screen.getByLabelText("Wybierz rodzaj orba"), "EXTRA_GOLD");
         await user.selectOptions(screen.getByLabelText("Wybierz wielkość orba"), "2");
+        expect(screen.getByLabelText("Wybierz poziom orba")).toHaveValue("1");
+        expect(screen.getByRole("option", { name: "lvl" })).toBeDisabled();
         await user.selectOptions(screen.getByLabelText("Wybierz poziom orba"), "3");
 
         expect(screen.getByLabelText("Wybierz wielkość orba")).toHaveValue("2");

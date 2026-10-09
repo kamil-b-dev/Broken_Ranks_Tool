@@ -26,6 +26,7 @@ const OptimizerBonusColumn = ({
         <div className="optimizer-bonus-search">
             <input
                 type="text"
+                aria-label="Szukaj statystyki do optymalizacji"
                 placeholder="Szukaj statystyki..."
                 value={searchQuery}
                 onChange={(event) => onSearchChange(event.target.value)}

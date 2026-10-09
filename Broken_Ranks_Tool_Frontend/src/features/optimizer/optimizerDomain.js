@@ -98,16 +98,9 @@ export const formatPotentialValue = (value) =>
     `${Number(value).toLocaleString("pl-PL", { maximumFractionDigits: 2 })}%`;
 
 /** Calculates current counts, penalties, and achievable ranges for prioritized modifiers. */
-export const calculateCurrentModDetails = ({
-    prioritizedBonuses,
-    slots,
-    drifs,
-    items,
-    gameRules,
-}) => {
+export const calculatePlacedDrifCounts = (slots, drifs) => {
     const counts = {};
     const drifsById = new Map(drifs.map((drif) => [String(drif.id), drif]));
-    const itemsById = new Map(items.map((item) => [String(item.id), item]));
 
     Object.values(slots || {}).forEach((slot) => {
         const typesInSlot = new Set();
@@ -119,6 +112,19 @@ export const calculateCurrentModDetails = ({
             }
         });
     });
+
+    return counts;
+};
+
+export const calculateCurrentModDetails = ({
+    prioritizedBonuses,
+    slots,
+    drifs,
+    items,
+    gameRules,
+}) => {
+    const counts = calculatePlacedDrifCounts(slots, drifs);
+    const itemsById = new Map(items.map((item) => [String(item.id), item]));
 
     return prioritizedBonuses.map((bonus) => {
         const count = counts[bonus.key] || 0;

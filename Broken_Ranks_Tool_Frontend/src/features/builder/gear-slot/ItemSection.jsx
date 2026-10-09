@@ -101,16 +101,22 @@ const ItemSection = ({
                     const starValue = i + 1;
                     const isFilled = starValue <= (hoverStars || itemStars);
                     return (
-                        <span
+                        <button
                             key={starValue}
-                            className={`cursor-pointer text-lg leading-none transition-all duration-150 transform hover:scale-125 drop-shadow-[0_1px_1px_rgba(0,0,0,1)] ${getStarColor(starValue, isFilled)}`}
+                            type="button"
+                            disabled={!selectedItem}
+                            aria-label={`Ustaw ${starValue} gwiazdek: ${label}`}
+                            aria-pressed={itemStars === starValue}
+                            className={`cursor-pointer border-0 bg-transparent p-0 text-lg leading-none transition-all duration-150 transform hover:scale-125 drop-shadow-[0_1px_1px_rgba(0,0,0,1)] ${getStarColor(starValue, isFilled)}`}
                             onMouseEnter={() => setHoverStars(starValue)}
                             onMouseLeave={() => setHoverStars(0)}
+                            onFocus={() => setHoverStars(starValue)}
+                            onBlur={() => setHoverStars(0)}
                             onClick={() => setItemStars(starValue)}
                             title={`Wzmocnienie: ${starValue}★`}
                         >
                             ★
-                        </span>
+                        </button>
                     );
                 })}
             </div>

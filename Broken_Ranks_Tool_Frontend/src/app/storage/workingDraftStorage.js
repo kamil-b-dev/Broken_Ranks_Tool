@@ -1,4 +1,5 @@
 export const EQUIPMENT_DRAFT_STORAGE_KEY = "broken-ranks-tool.equipment-draft.v1";
+export const EQUIPMENT_DRAFT_RECOVERY_STORAGE_KEY = `${EQUIPMENT_DRAFT_STORAGE_KEY}.recovery`;
 export const OPTIMIZER_DRAFT_STORAGE_KEY = "broken-ranks-tool.optimizer-draft.v1";
 export const WORKING_DRAFT_VERSION = 1;
 
@@ -47,6 +48,19 @@ export const readEquipmentDraft = (storage) => {
 /** Saves the current equipment workspace without interrupting the user on storage errors. */
 export const writeEquipmentDraft = (draft, storage) =>
     writeVersionedValue(EQUIPMENT_DRAFT_STORAGE_KEY, draft, storage);
+
+/** Preserves the last rejected workspace before automatic saving can replace it. */
+export const preserveEquipmentDraft = (storage) => {
+    try {
+        storage = storage === undefined ? globalThis.localStorage : storage;
+        if (!storage) return false;
+        const raw = storage.getItem(EQUIPMENT_DRAFT_STORAGE_KEY);
+        if (raw != null) storage.setItem(EQUIPMENT_DRAFT_RECOVERY_STORAGE_KEY, raw);
+        return true;
+    } catch {
+        return false;
+    }
+};
 
 /** Reads the last versioned optimizer configuration payload. */
 export const readOptimizerDraft = (storage) => {

@@ -175,7 +175,24 @@
     }
 
     .equipment-character-figure {
+        min-height: 0;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-rows: none;
+        gap: 0.5rem;
+        padding: 0.5rem;
+    }
+
+    .equipment-character-figure::before,
+    .equipment-character-figure::after,
+    .equipment-character-figure .equipment-figure-aura,
+    .equipment-character-figure .equipment-center-silhouette {
         display: none;
+    }
+
+    .equipment-character-figure .equipment-slot-overview-ring {
+        grid-column: auto;
+        grid-row: auto;
+        min-width: 0;
     }
 
     .equipment-slot-overview {

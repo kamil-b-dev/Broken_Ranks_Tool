@@ -72,14 +72,23 @@ const validateCharacterStats = (stats) => {
     if (Object.keys(stats).some((key) => !CHARACTER_STAT_NAMES.has(key.toLowerCase()))) {
         throw new Error("Build zawiera nieznaną statystykę postaci.");
     }
-    Object.values(stats).forEach((value) =>
+    const totals = new Map();
+    Object.entries(stats).forEach(([name, value]) => {
         requireIntegerInRange(
             value,
             0,
             CHARACTER_STAT_MAX,
             "Statystyki postaci muszą być liczbami całkowitymi od 0 do 50000."
-        )
-    );
+        );
+        const key = name.toLowerCase();
+        const total = (totals.get(key) || 0) + value;
+        if (total > CHARACTER_STAT_MAX) {
+            throw new Error(
+                `Łączna wartość statystyki postaci ${name} nie może przekraczać 50000.`
+            );
+        }
+        totals.set(key, total);
+    });
 };
 
 const validateKnownIds = (ids, knownIds, message) => {

@@ -28,10 +28,11 @@ export default function MobileOptimizerReport({ model, advisory }) {
                 <>
                     <OptimizerGoalsSection
                         goals={status.goalResults}
-                        currentDetails={model.currentModDetails}
+                        currentDetails={model.reportModDetails}
                         activeVariant={model.displayedVariant}
                         maxCaps={model.gameRules.drifMaxCaps}
                         showTargetLabel
+                        advisory={advisory}
                     />
                     <fieldset disabled={model.isOptimizing} aria-label="Wybór wariantu">
                         <OptimizerVariantsSection

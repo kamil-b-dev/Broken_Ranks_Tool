@@ -1,18 +1,10 @@
 import { useRef, useState } from "react";
 
-/** Coordinates build import/export and the user-facing result notice. */
-export const useBuildFileActions = ({ saveBuildToFile, loadBuildFromFile }) => {
+/** Coordinates build import and the user-facing result notice. */
+export const useBuildFileActions = ({ loadBuildFromFile }) => {
     const fileInputRef = useRef(null);
     const [notice, setNotice] = useState(null);
 
-    const saveBuild = () => {
-        try {
-            saveBuildToFile();
-            setNotice({ type: "success", message: "Build został zapisany w pliku JSON." });
-        } catch (error) {
-            setNotice({ type: "error", message: `Nie udało się zapisać buildu: ${error.message}` });
-        }
-    };
     const loadBuild = async (event) => {
         const file = event.target.files?.[0];
         if (!file) return;
@@ -33,5 +25,5 @@ export const useBuildFileActions = ({ saveBuildToFile, loadBuildFromFile }) => {
         }
     };
 
-    return { fileInputRef, notice, dismissNotice: () => setNotice(null), saveBuild, loadBuild };
+    return { fileInputRef, notice, dismissNotice: () => setNotice(null), loadBuild };
 };

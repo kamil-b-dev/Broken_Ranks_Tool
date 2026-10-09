@@ -3,6 +3,8 @@ import {
     createOptimizerConfigPayload,
     mergeOptimizerSettings,
     parseOptimizerConfigPayload,
+    findInvalidPercentageTarget,
+    findInvalidSizeConstraint,
 } from "./optimizerConfiguration";
 import {
     downloadOptimizerConfiguration,
@@ -19,8 +21,20 @@ export const useOptimizerConfigFiles = ({
     onNotice = () => {},
 }) => {
     const inputRef = useRef(null);
-    const save = () =>
+    const save = () => {
+        const advanced = settings.mode !== "ADVISOR" && settings.configurationMode !== "SIMPLE";
+        const invalid =
+            advanced &&
+            (findInvalidPercentageTarget(priorities) || findInvalidSizeConstraint(priorities));
+        if (invalid) {
+            onNotice({
+                type: "error",
+                message: `Uzupełnij poprawne ograniczenia celu ${invalid.value || invalid.key} przed zapisaniem konfiguracji.`,
+            });
+            return;
+        }
         downloadOptimizerConfiguration(createOptimizerConfigPayload(priorities, settings));
+    };
     const load = async (event) => {
         const file = event.target.files?.[0];
         event.target.value = "";

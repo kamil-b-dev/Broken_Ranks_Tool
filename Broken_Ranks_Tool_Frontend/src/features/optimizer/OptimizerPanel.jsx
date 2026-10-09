@@ -44,6 +44,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
         setNotice,
         configFiles,
         currentModDetails,
+        reportModDetails,
         displayedVariant,
         handleOptimizeClick,
         handleApplyVariant,
@@ -124,7 +125,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                     elapsedSeconds={optimizationElapsedSeconds}
                     status={optimizationStatus}
                     lastDurationSeconds={lastOptimizationDurationSeconds}
-                    currentDetails={currentModDetails}
+                    currentDetails={reportModDetails}
                     displayedVariant={displayedVariant}
                     maxCaps={gameRules?.drifMaxCaps}
                     translations={gameRules?.bonusTranslations}

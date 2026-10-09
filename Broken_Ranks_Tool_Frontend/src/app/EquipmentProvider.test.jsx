@@ -5,7 +5,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { EquipmentProvider } from "./EquipmentProvider";
 import { useEquipment } from "../shared/state/EquipmentContext";
 import { server } from "../test/server";
-import { readEquipmentDraft, writeEquipmentDraft } from "./storage/workingDraftStorage";
+import {
+    readEquipmentDraft,
+    writeEquipmentDraft,
+    EQUIPMENT_DRAFT_RECOVERY_STORAGE_KEY,
+} from "./storage/workingDraftStorage";
 import legacyEpicBuild from "../test/fixtures/builds/legacy-epic-build.json";
 import legacyEpicCatalog from "../test/fixtures/builds/legacy-epic-catalog.json";
 import { advisorBuildSignature } from "../features/optimizer/advisor/advisorBuildSignature";
@@ -187,6 +191,10 @@ describe("EquipmentProvider", () => {
         await waitFor(() => expect(exposeRef.current.requestData.slots).toEqual({}));
         expect(exposeRef.current.lockedSlots).toEqual([]);
         await waitFor(() => expect(readEquipmentDraft().requestData.slots).toEqual({}));
+        expect(
+            JSON.parse(localStorage.getItem(EQUIPMENT_DRAFT_RECOVERY_STORAGE_KEY)).value.requestData
+                .slots.helmet.itemId
+        ).toBe(999);
     });
 
     it("loads initial game data from the backend", async () => {

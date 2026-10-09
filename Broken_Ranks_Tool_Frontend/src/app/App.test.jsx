@@ -43,7 +43,6 @@ const equipment = {
     handleSlotUpdate: vi.fn(),
     handleCharacterStatsUpdate: vi.fn(),
     calculateStats: vi.fn(),
-    saveBuildToFile: vi.fn(),
     loadBuildFromFile: vi.fn(),
     createBuildSnapshot: vi.fn(() => ({
         payload: {
@@ -114,7 +113,6 @@ describe("App", () => {
         expect(
             JSON.parse(localStorage.getItem("broken-ranks-tool.build-library.v1")).builds
         ).toHaveLength(1);
-        expect(equipment.saveBuildToFile).not.toHaveBeenCalled();
         expect(equipment.calculateStats).toHaveBeenCalledOnce();
 
         await user.click(screen.getByRole("link", { name: /Optymalizator drifów/i }));

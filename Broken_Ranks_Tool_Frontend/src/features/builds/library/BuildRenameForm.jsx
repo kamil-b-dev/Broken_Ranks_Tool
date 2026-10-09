@@ -6,9 +6,9 @@ const BuildRenameForm = ({ builds, onRename }) => {
     const target = builds.find((build) => build.id === targetId) || builds[0] || null;
     const editedName = name ?? target?.name ?? "";
 
-    const renameBuild = (event) => {
+    const renameBuild = async (event) => {
         event.preventDefault();
-        if (onRename(target?.id, editedName)) setName(null);
+        if (await onRename(target?.id, editedName)) setName(null);
     };
 
     const selectBuild = (event) => {

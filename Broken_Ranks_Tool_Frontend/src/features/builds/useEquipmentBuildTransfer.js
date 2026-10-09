@@ -1,10 +1,5 @@
 import { useCallback } from "react";
-import {
-    createBuildPayload,
-    downloadBuildPayload,
-    parseBuildFile,
-    parseBuildPayload,
-} from "./buildFile";
+import { createBuildPayload, parseBuildFile, parseBuildPayload } from "./buildFile";
 
 /** Owns snapshot and JSON transfer operations for the shared equipment state. */
 export const useEquipmentBuildTransfer = ({
@@ -56,11 +51,6 @@ export const useEquipmentBuildTransfer = ({
         ]
     );
 
-    const saveBuildToFile = useCallback(() => {
-        const { payload } = createBuildSnapshot();
-        downloadBuildPayload(payload);
-    }, [createBuildSnapshot]);
-
     const loadBuildSnapshot = useCallback(
         (snapshot) => {
             const importedBuild = parseBuildPayload(snapshot?.payload, data);
@@ -78,5 +68,5 @@ export const useEquipmentBuildTransfer = ({
         [applyImportedBuild, data]
     );
 
-    return { saveBuildToFile, loadBuildFromFile, createBuildSnapshot, loadBuildSnapshot };
+    return { loadBuildFromFile, createBuildSnapshot, loadBuildSnapshot };
 };

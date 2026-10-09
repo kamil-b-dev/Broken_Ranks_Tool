@@ -12,7 +12,11 @@ import {
     EquipmentLocksContext,
     EquipmentCalculationContext,
 } from "../shared/state/EquipmentContext";
-import { readEquipmentDraft, writeEquipmentDraft } from "./storage/workingDraftStorage";
+import {
+    readEquipmentDraft,
+    writeEquipmentDraft,
+    preserveEquipmentDraft,
+} from "./storage/workingDraftStorage";
 
 /**
  * Provides application state for equipment, character stats, and optimization.
@@ -35,6 +39,7 @@ export const EquipmentProvider = ({ children }) => {
 
     const [requestData, setRequestData] = useState({ slots: {}, characterStats: {} });
     const [draftRestored, setDraftRestored] = useState(!initialDraft);
+    const [draftWritesAllowed, setDraftWritesAllowed] = useState(true);
     const {
         stats,
         statSources,
@@ -54,6 +59,7 @@ export const EquipmentProvider = ({ children }) => {
         applyOptimizationSetup,
         runDrifOptimization,
         cancelDrifOptimization,
+        invalidateDrifOptimization,
     } = useEquipmentOptimization({
         requestData,
         setRequestData,
@@ -79,7 +85,8 @@ export const EquipmentProvider = ({ children }) => {
             replaceLocks(imported.lockedSlots, imported.lockedDrifs);
             markEquipmentChanged();
         } catch {
-            // Discard drafts that no longer satisfy the current catalogue and domain rules.
+            // Keep a recoverable copy; never overwrite the original if that copy cannot be saved.
+            setDraftWritesAllowed(preserveEquipmentDraft());
         } finally {
             setDraftRestored(true);
         }
@@ -95,14 +102,14 @@ export const EquipmentProvider = ({ children }) => {
     ]);
 
     useEffect(() => {
-        if (!draftRestored) return;
+        if (!draftRestored || !draftWritesAllowed) return;
         writeEquipmentDraft({
             requestData,
             characterConfig,
             lockedSlots,
             lockedDrifs,
         });
-    }, [characterConfig, draftRestored, lockedDrifs, lockedSlots, requestData]);
+    }, [characterConfig, draftRestored, draftWritesAllowed, lockedDrifs, lockedSlots, requestData]);
 
     /**
      * Updates the equipment data for a single slot.
@@ -136,8 +143,8 @@ export const EquipmentProvider = ({ children }) => {
     }, []);
 
     const buildImportData = useMemo(() => ({ ...data, gameRules }), [data, gameRules]);
-    const { saveBuildToFile, loadBuildFromFile, createBuildSnapshot, loadBuildSnapshot } =
-        useEquipmentBuildTransfer({
+    const { loadBuildFromFile, createBuildSnapshot, loadBuildSnapshot } = useEquipmentBuildTransfer(
+        {
             data: buildImportData,
             requestData,
             characterConfig,
@@ -151,7 +158,8 @@ export const EquipmentProvider = ({ children }) => {
             restoreStats,
             calculateStatsFor,
             markEquipmentChanged,
-        });
+        }
+    );
 
     const value = useMemo(
         () => ({
@@ -180,7 +188,7 @@ export const EquipmentProvider = ({ children }) => {
             applyOptimizationSetup,
             runDrifOptimization,
             cancelDrifOptimization,
-            saveBuildToFile,
+            invalidateDrifOptimization,
             loadBuildFromFile,
             createBuildSnapshot,
             loadBuildSnapshot,
@@ -211,7 +219,7 @@ export const EquipmentProvider = ({ children }) => {
             applyOptimizationSetup,
             runDrifOptimization,
             cancelDrifOptimization,
-            saveBuildToFile,
+            invalidateDrifOptimization,
             loadBuildFromFile,
             createBuildSnapshot,
             loadBuildSnapshot,

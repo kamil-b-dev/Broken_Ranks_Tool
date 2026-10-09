@@ -29,6 +29,9 @@ export const useEquipmentOptimization = ({
     const [optimizationTrigger, setOptimizationTrigger] = useState(0);
     const activeAdvisor = useRef(null);
     const optimizerRunVersion = useRef(0);
+    const invalidateDrifOptimization = useCallback(() => {
+        optimizerRunVersion.current += 1;
+    }, []);
     const currentInputSignature = useRef(null);
     useLayoutEffect(() => {
         currentInputSignature.current = inputSignature(requestData, lockedSlots, lockedDrifs);
@@ -185,6 +188,7 @@ export const useEquipmentOptimization = ({
     return {
         optimizationTrigger,
         markEquipmentChanged,
+        invalidateDrifOptimization,
         applyOptimizationSetup,
         runDrifOptimization,
         cancelDrifOptimization,

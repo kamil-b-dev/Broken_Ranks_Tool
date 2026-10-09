@@ -1,3 +1,5 @@
+import { resolveDrifCategoryKey } from "../../../shared/domain/equipment/drifCategories";
+
 const CHARACTER_STAT_NAMES = new Set([
     "Siła",
     "Zręczność",
@@ -12,39 +14,6 @@ export const DRIF_CATEGORY_CONFIG = {
     OFFENSIVE: { title: "Drify ofensywne", accent: "red" },
     DEFENSIVE: { title: "Drify defensywne", accent: "sky" },
     UTILITY: { title: "Drify użytkowe", accent: "emerald" },
-};
-
-const DRIF_CATEGORY_FALLBACK = {
-    CC_PROTECTION: "DEFENSIVE",
-    CRITICAL_DAMAGE_CHANCE_REDUCTION: "DEFENSIVE",
-    CRITICAL_DAMAGE_REDUCTION: "DEFENSIVE",
-    DAMAGE_REDUCTION: "DEFENSIVE",
-    DAMAGE_REDUCTION_CHANCE: "DEFENSIVE",
-    DEFENSE_MELEE: "DEFENSIVE",
-    DEFENSE_MENTAL: "DEFENSIVE",
-    DEFENSE_RANGE: "DEFENSIVE",
-    DODGE_CHANCE: "DEFENSIVE",
-    DOUBLE_DEFENSE_ROLL_CHANCE: "DEFENSIVE",
-    PASIVE_DAMAGE_REDUCTION: "DEFENSIVE",
-    PERCENTAGE_DAMAGE_REDUCTION: "DEFENSIVE",
-    CRITICAL_CHANCE: "OFFENSIVE",
-    DAMAGE_ENERGY: "OFFENSIVE",
-    DAMAGE_FIRE: "OFFENSIVE",
-    DAMAGE_FROST: "OFFENSIVE",
-    DAMAGE_MAGIC: "OFFENSIVE",
-    DAMAGE_PHYSICAL: "OFFENSIVE",
-    DOUBLE_ATTACK_CHANCE: "OFFENSIVE",
-    DOUBLE_HIT_ROLL_CHANCE: "OFFENSIVE",
-    HIT_CHANCE_MELEE: "OFFENSIVE",
-    HIT_CHANCE_MENTAL: "OFFENSIVE",
-    HIT_CHANCE_RANGED: "OFFENSIVE",
-    MENTAL_DEFENSE_REDUCTION: "OFFENSIVE",
-    DISPELL_CHANCE: "UTILITY",
-    MANA_REGEN: "UTILITY",
-    MANA_STEAL: "UTILITY",
-    MANA_USAGE_REDUCTION: "UTILITY",
-    STAMINA_REGEN: "UTILITY",
-    STAMINA_USAGE_REDUCTION: "UTILITY",
 };
 
 const BASIC_CATEGORY_CONFIG = {
@@ -92,7 +61,7 @@ export const buildStatColumns = ({ stats, gameRules = {}, statSources = {} }) =>
         if (drifCategories[key]) return String(drifCategories[key]).trim().toUpperCase();
         if (orbBonusTypes.has(key)) return null;
         return (
-            String(gameRules.drifBonusCategories?.[key] || DRIF_CATEGORY_FALLBACK[key] || "")
+            String(resolveDrifCategoryKey(key, gameRules.drifBonusCategories))
                 .trim()
                 .toUpperCase() || null
         );

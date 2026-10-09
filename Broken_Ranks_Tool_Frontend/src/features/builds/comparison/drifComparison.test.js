@@ -14,6 +14,31 @@ const build = (id, itemId) => ({
 });
 
 describe("drif comparison", () => {
+    it("ignores empty positions without shifting the levels of occupied ones", () => {
+        const left = build("a", 1);
+        const right = build("b", 1);
+        for (const record of [left, right]) {
+            record.payload.build.requestData.slots.helmet.drifIds = ["", null, "8"];
+            record.payload.build.requestData.slots.helmet.drifLevels = { 2: 6 };
+        }
+        const result = createDrifComposition(
+            [left, right],
+            [
+                {
+                    id: 8,
+                    name: "Band",
+                    bonusType: "CRITICAL_CHANCE",
+                    category: "OFFENSIVE",
+                    size: "SUBDRIF",
+                },
+            ]
+        );
+        expect(result.builds.map((record) => record.total)).toEqual([1, 1]);
+        expect(result.common).toMatchObject([
+            { id: "8", count: 1, minimumLevel: 6, maximumLevel: 6 },
+        ]);
+        expect(result.common).toHaveLength(1);
+    });
     it("finds the shared core and compares category and size distributions", () => {
         const left = build("a", 1);
         left.payload.build.requestData.slots.helmet.drifIds = [8, 9, 9];

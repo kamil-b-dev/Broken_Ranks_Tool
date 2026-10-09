@@ -74,11 +74,13 @@ const OrbDetails = ({ item }) => (
     </div>
 );
 
-const ItemDatabaseTooltip = ({ tooltip, bonusTranslations, drifBasePowers }) => {
+const ItemDatabaseTooltip = ({ tooltip, bonusTranslations, drifBasePowers, id }) => {
     if (!tooltip.show || !tooltip.item) return null;
     const { item, type } = tooltip;
     return (
         <div
+            id={id}
+            role="tooltip"
             style={{ top: tooltip.y, left: tooltip.x }}
             className="fixed z-50 bg-linear-to-b from-stone-900 to-black border border-stone-700 p-4 shadow-[0_0_20px_rgba(0,0,0,1)] pointer-events-none w-64"
         >

@@ -1,26 +1,15 @@
 import { useCharacterDevelopment } from "./useCharacterDevelopment";
 import CompactCharacterPanel from "./CompactCharacterPanel";
-import ExpandedCharacterPanel from "./ExpandedCharacterPanel";
 
-/** Connects character development state to its compact or expanded presentation. */
-const CharacterPanel = ({
-    onStatsChange,
-    externalConfig,
-    externalStats,
-    syncTrigger,
-    compact = false,
-}) => {
+/** Connects character development state to the desktop presentation. */
+const CharacterPanel = ({ onStatsChange, externalConfig, externalStats, syncTrigger }) => {
     const development = useCharacterDevelopment({
         onStatsChange,
         externalConfig,
         externalStats,
         syncTrigger,
     });
-    return compact ? (
-        <CompactCharacterPanel development={development} />
-    ) : (
-        <ExpandedCharacterPanel development={development} />
-    );
+    return <CompactCharacterPanel development={development} />;
 };
 
 export default CharacterPanel;
