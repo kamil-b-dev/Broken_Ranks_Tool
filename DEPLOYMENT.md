@@ -6,7 +6,7 @@ required while the application does not persist user data.
 
 ## Prerequisites
 
-- Node.js 22 or newer
+- Node.js 22.13 or newer (Vite requires at least 22.12; the root ESLint requires 22.13)
 - Docker Desktop for the local smoke test
 - Railway CLI 5.42.1 or newer
 - access to `kamil-b-dev/Broken_Ranks_Tool` in Railway
@@ -20,8 +20,9 @@ Run the complete container smoke test from the repository root:
 ```
 
 The test builds the image, starts it with a 1 GB memory limit, checks readiness, frontend and
-initial data, runs a full optimization, and verifies that an overlapping optimization receives
-HTTP 429.
+initial data, runs an optimization, and checks that its setup passes the calculator with matching
+statistics. Overlapping requests and HTTP 429 are covered separately by backend tests and the
+real-backend Playwright integration suite.
 
 ## Create or update Railway infrastructure
 
