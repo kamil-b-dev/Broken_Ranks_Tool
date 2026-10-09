@@ -1,6 +1,5 @@
 package pl.brokenranks.tool.broken_ranks_tool.core.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import org.slf4j.MDC;
@@ -16,6 +15,7 @@ import org.springframework.security.web.util.matcher.AnyRequestMatcher;
 import pl.brokenranks.tool.broken_ranks_tool.core.web.error.ApiError;
 import pl.brokenranks.tool.broken_ranks_tool.core.web.error.ApiErrorCode;
 import pl.brokenranks.tool.broken_ranks_tool.core.web.filter.RequestTracingFilter;
+import tools.jackson.databind.ObjectMapper;
 
 /** Security policy for the public, same-origin SPA and API. */
 @Configuration

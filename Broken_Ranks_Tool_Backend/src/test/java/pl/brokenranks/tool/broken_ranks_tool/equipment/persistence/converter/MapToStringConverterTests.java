@@ -5,10 +5,23 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class MapToStringConverterTests {
 
     private final MapToStringConverter converter = new MapToStringConverter();
+
+    @ParameterizedTest
+    @ValueSource(doubles = {Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY})
+    void rejectsNonFiniteStatisticsOnReadAndWrite(double value) {
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> converter.convertToDatabaseColumn(Map.of("Damage", value)));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> converter.convertToEntityAttribute("Damage:" + value));
+    }
 
     @Test
     void convertsMapToDatabaseAndBackIncludingLocalizedPercentValues() {

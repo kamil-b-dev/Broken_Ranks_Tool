@@ -7,18 +7,45 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.CalculationResultDto;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.config.OptimizationProperties;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationResponse;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationSummary;
 
 class OptimizationExecutionGuardTests {
+
+    @Test
+    void recordsVerifiedBuildsWithUnmetTargetsSeparatelyFromMissingSolutions() {
+        var service = Mockito.mock(ModsOptimizationService.class);
+        var setup = new EquipmentRequest();
+        var slot = new EquipmentRequest.SlotData();
+        slot.setItemId(1L);
+        setup.setSlots(Map.of("helmet", slot));
+        var summary = new OptimizationSummary();
+        summary.setSuccess(false);
+        var response =
+                new OptimizationResponse(
+                        setup,
+                        summary,
+                        new CalculationResultDto(Map.of("Siła", "10"), Map.of(), Set.of()));
+        when(service.optimize(any())).thenReturn(response);
+        var registry = new SimpleMeterRegistry();
+        assertSame(response, guard(service, registry).optimize(new OptimizationRequest()));
+        assertEquals(
+                1.0, registry.counter("optimizer.runs", "outcome", "soft_targets_unmet").count());
+        assertEquals(0.0, registry.counter("optimizer.runs", "outcome", "no_solution").count());
+        assertEquals(0.0, registry.counter("optimizer.runs", "outcome", "success").count());
+    }
 
     @Test
     void recordsSuccessfulOptimizationsAndTheirDuration() {

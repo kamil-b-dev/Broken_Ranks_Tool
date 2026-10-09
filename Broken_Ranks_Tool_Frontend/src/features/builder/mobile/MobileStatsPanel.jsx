@@ -1,10 +1,13 @@
 import { useState } from "react";
-import { useEquipment } from "../../../shared/state/EquipmentContext";
+import {
+    useEquipmentCalculation,
+    useEquipmentCatalogState,
+} from "../../../shared/state/EquipmentContext";
 import TabList from "../../../shared/ui/TabList";
 import { buildStatColumns } from "../stats-panel/statsPanelDomain";
 
 export default function MobileStatsPanel() {
-    const equipment = useEquipment();
+    const equipment = { ...useEquipmentCalculation(), ...useEquipmentCatalogState() };
     const columns = buildStatColumns(equipment);
     const [activeView, setActiveView] = useState("all");
     const visibleColumns = columns.filter((column) => {

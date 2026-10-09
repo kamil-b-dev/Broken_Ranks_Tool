@@ -1,7 +1,7 @@
 const TAB_LABELS = { items: "Przedmioty", orbs: "Orby", drifs: "Drify" };
 
 const selectClass =
-    "flex-1 min-w-0 bg-black/60 text-stone-400 font-serif p-2 text-xs border border-stone-800 focus:border-rose-900 outline-hidden cursor-pointer shadow-[inset_0_0_10px_rgba(0,0,0,1)]";
+    "flex-1 min-w-0 bg-black/60 text-stone-400 font-serif p-2 text-xs border border-stone-800 optimizer-info-divider focus:border-rose-900 builder-accent-frame outline-hidden cursor-pointer shadow-[inset_0_0_10px_rgba(0,0,0,1)]";
 
 const ItemDatabaseControls = ({
     activeTab,
@@ -17,7 +17,7 @@ const ItemDatabaseControls = ({
     onClearFilters,
 }) => (
     <>
-        <div className="flex justify-between items-end border-b-4 border-double border-rose-900/70 pb-3 mb-4 shrink-0">
+        <div className="flex justify-between items-end border-b-4 border-double border-rose-900/70 builder-accent-frame pb-3 mb-4 shrink-0">
             <h3 className="text-xl font-serif font-bold text-stone-300 uppercase tracking-widest drop-shadow-[0_2px_5px_rgba(0,0,0,1)]">
                 Baza Danych
             </h3>
@@ -25,13 +25,13 @@ const ItemDatabaseControls = ({
                 <button
                     type="button"
                     onClick={onClearFilters}
-                    className="text-xs text-rose-800 hover:text-rose-600 transition-colors font-serif font-bold uppercase tracking-widest"
+                    className="text-xs text-rose-800 builder-accent-text hover:text-rose-600 transition-colors font-serif font-bold uppercase tracking-widest"
                 >
                     Wyczyść filtry
                 </button>
             )}
         </div>
-        <div className="flex bg-black/60 p-1 mb-4 shrink-0 border border-stone-800 shadow-[inset_0_0_10px_rgba(0,0,0,1)]">
+        <div className="flex bg-black/60 p-1 mb-4 shrink-0 border border-stone-800 optimizer-info-divider shadow-[inset_0_0_10px_rgba(0,0,0,1)]">
             {Object.entries(TAB_LABELS).map(([tab, label]) => {
                 const isActive = activeTab === tab;
                 return (
@@ -40,7 +40,7 @@ const ItemDatabaseControls = ({
                         type="button"
                         onClick={() => onTabChange(tab)}
                         aria-pressed={isActive}
-                        className={`database-tab-button flex-1 py-2 text-xs font-serif font-bold uppercase tracking-widest transition-all ${isActive ? "border-b-2 border-red-700" : "border-b-2 border-transparent"}`}
+                        className={`database-tab-button flex-1 py-2 text-xs font-serif font-bold uppercase tracking-widest transition-all ${isActive ? "border-b-2 border-red-700 optimizer-lock-frame" : "border-b-2 border-transparent"}`}
                     >
                         <span
                             className={
@@ -60,7 +60,7 @@ const ItemDatabaseControls = ({
                 placeholder={`Wyszukaj ${activeTab === "items" ? "(np. Morana)" : activeTab === "orbs" ? "orba" : "drifa"}...`}
                 value={filters.search}
                 onChange={(event) => onFilterChange("search", event.target.value)}
-                className="w-full bg-black/60 text-stone-300 font-serif p-2 text-sm border border-stone-800 focus:border-rose-900 outline-hidden transition-colors shadow-[inset_0_0_10px_rgba(0,0,0,1)]"
+                className="w-full bg-black/60 text-stone-300 font-serif p-2 text-sm border border-stone-800 optimizer-info-divider focus:border-rose-900 builder-accent-frame outline-hidden transition-colors shadow-[inset_0_0_10px_rgba(0,0,0,1)]"
             />
             <div className="flex gap-2">
                 {activeTab === "items" && (

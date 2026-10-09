@@ -2,32 +2,63 @@ version: 2
 updates:
   - package-ecosystem: maven
     directory: /Broken_Ranks_Tool_Backend
+    target-branch: dev
     schedule:
-      interval: weekly
+      interval: daily
+      time: "05:00"
+      timezone: Europe/Warsaw
     groups:
       backend-dependencies:
+        applies-to: version-updates
+        patterns: ["*"]
+        update-types: [minor, patch]
+
+  # Security updates target the default branch; maintain it as well as dev.
+  - package-ecosystem: maven
+    directory: /Broken_Ranks_Tool_Backend
+    schedule:
+      interval: daily
+      time: "05:00"
+      timezone: Europe/Warsaw
+    groups:
+      backend-dependencies:
+        applies-to: version-updates
+        patterns: ["*"]
+        update-types: [minor, patch]
+      backend-security:
+        applies-to: security-updates
         patterns: ["*"]
 
   - package-ecosystem: npm
     directory: /Broken_Ranks_Tool_Frontend
     schedule:
-      interval: weekly
+      interval: daily
     groups:
       frontend-dependencies:
+        applies-to: version-updates
+        patterns: ["*"]
+        update-types: [minor, patch]
+      frontend-security:
+        applies-to: security-updates
         patterns: ["*"]
 
   - package-ecosystem: npm
     directory: /
     schedule:
-      interval: weekly
+      interval: daily
     groups:
       infrastructure-dependencies:
+        applies-to: version-updates
+        patterns: ["*"]
+        update-types: [minor, patch]
+      infrastructure-security:
+        applies-to: security-updates
         patterns: ["*"]
 
   - package-ecosystem: docker
     directory: /
     schedule:
-      interval: weekly
+      interval: daily
 
   - package-ecosystem: github-actions
     directory: /

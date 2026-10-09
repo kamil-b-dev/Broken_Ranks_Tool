@@ -1,6 +1,6 @@
 # Backend
 
-API Spring Boot 3 uruchamiane na Javie 21.
+API Spring Boot 4 uruchamiane na Javie 21. Spring Framework, Jackson 3, Hibernate i Tomcat korzystają ze spójnych wersji zarządzanych przez BOM Spring Boot.
 
 Pakiety najwyższego poziomu odpowiadają funkcjom i kierunkowi zależności:
 

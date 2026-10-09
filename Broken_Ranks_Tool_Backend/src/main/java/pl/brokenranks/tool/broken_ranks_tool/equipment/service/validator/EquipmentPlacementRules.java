@@ -8,6 +8,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ITEM_TIER;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ORB_CATEGORY;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.RARITY;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRulesRegistry;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.ModifierNumbers;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.OrbTemplate;
@@ -82,9 +83,9 @@ public class EquipmentPlacementRules {
     private boolean isModifierNumber(String value) {
         if (value == null || value.isBlank()) return false;
         try {
-            Double.parseDouble(value.replace("%", "").replace(",", ".").trim());
+            ModifierNumbers.parse(value, "modyfikator drifa");
             return true;
-        } catch (NumberFormatException exception) {
+        } catch (IllegalArgumentException exception) {
             return false;
         }
     }

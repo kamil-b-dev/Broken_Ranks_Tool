@@ -25,8 +25,8 @@ const OptimizerMobileNavigation = (props) => {
                     aria-current={activeColumn === key ? "page" : undefined}
                     className={`px-2 py-2 border rounded-xs text-[9px] sm:text-[10px] uppercase tracking-wide transition-colors ${
                         activeColumn === key
-                            ? "border-purple-500 bg-purple-950/50 text-purple-200"
-                            : "border-stone-800 bg-black/30 text-stone-500"
+                            ? "border-purple-500 optimizer-accent-active bg-purple-950/50 optimizer-accent-surface text-purple-200 optimizer-accent-text"
+                            : "border-stone-800 optimizer-info-divider bg-black/30 text-stone-500"
                     }`}
                 >
                     {key === "priorities" ? `${label} (${priorityCount})` : label}

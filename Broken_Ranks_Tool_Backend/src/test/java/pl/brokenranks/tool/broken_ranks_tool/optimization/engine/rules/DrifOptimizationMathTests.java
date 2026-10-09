@@ -32,7 +32,7 @@ class DrifOptimizationMathTests {
         for (int multiplier = 1; multiplier <= 4; multiplier++) {
             for (int extra = 0; extra < basePower; extra++) {
                 BuildState state = new BuildState();
-                state.slots().put("helmet", List.of(new Placement(drif, 1, false)));
+                state.putSlot("helmet", List.of(new Placement(drif, 1, false)));
                 SlotContext slot = slot(basePower + multiplier * basePower + extra);
                 assertEquals(
                         Math.min(levels[multiplier - 1], size.getMaxLevel()),
@@ -46,7 +46,7 @@ class DrifOptimizationMathTests {
     void freeSocketDoesNotAllowPlacementWithoutEnoughPower() {
         DrifTemplate drif = drif(DRIF_SIZE.ARCYDRIF);
         BuildState state = new BuildState();
-        state.slots().put("helmet", Arrays.asList(new Placement(drif, 6, false), null));
+        state.putSlot("helmet", Arrays.asList(new Placement(drif, 6, false), null));
         SlotContext slot = slot(2 * drif.getBonusType().getBasePower() - 1);
         assertNull(highestFittingLevel(state, slot, drif));
         assertNull(lowestTierFittingLevel(state, slot, drif));
@@ -83,14 +83,25 @@ class DrifOptimizationMathTests {
 
     @ParameterizedTest
     @CsvSource(
-            value = {"NULL|1%", "2%|NULL", "invalid|1%", "2%|invalid"},
+            value = {
+                "NULL|1%",
+                "2%|NULL",
+                "invalid|1%",
+                "2%|invalid",
+                "NaN|1%",
+                "2%|Infinity",
+                "1e309|1%"
+            },
             delimiter = '|',
             nullValues = "NULL")
-    void missingOrMalformedValuesDoNotBreakSearch(String base, String increment) {
+    void rejectsMalformedCatalogValuesWithTheTemplateId(String base, String increment) {
         DrifTemplate drif = drif(DRIF_SIZE.SUBDRIF);
         drif.setBaseValue(base);
         drif.setIncrement(increment);
-        assertEquals(0, calculateDrifValue(drif, 6));
+        assertTrue(
+                assertThrows(IllegalArgumentException.class, () -> calculateDrifValue(drif, 6))
+                        .getMessage()
+                        .contains("id=1"));
     }
 
     private DrifTemplate drif(DRIF_SIZE size) {

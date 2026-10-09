@@ -2,7 +2,6 @@ package pl.brokenranks.tool.broken_ranks_tool.optimization.service.impl;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManagerFactory;
 import java.nio.file.Path;
 import org.hibernate.SessionFactory;
@@ -13,6 +12,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCalculatorService;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.*;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.simpleprofile.*;
+import tools.jackson.databind.ObjectMapper;
 
 /** Manual regression benchmark for the exported 12/12 Archer build. */
 @SpringBootTest(

@@ -11,24 +11,29 @@ export const useEquipmentStats = (requestData) => {
     const [isCalculatingStats, setIsCalculatingStats] = useState(false);
     const [calculationNotice, setCalculationNotice] = useState(null);
     const calculationVersion = useRef(0);
+    const calculationRequestFingerprint = useRef(null);
     const requestFingerprint = useMemo(() => JSON.stringify(requestData), [requestData]);
     const statsAreCurrent = Boolean(stats) && calculatedRequestFingerprint === requestFingerprint;
 
     useLayoutEffect(() => {
+        // An import may already be calculating the request being installed in state.
+        if (calculationRequestFingerprint.current === requestFingerprint) return;
         calculationVersion.current += 1;
         setIsCalculatingStats(false);
         setCalculationNotice(null);
     }, [requestFingerprint]);
 
-    const calculateStats = useCallback(async () => {
+    const calculateStatsFor = useCallback(async (nextRequestData) => {
+        const nextFingerprint = JSON.stringify(nextRequestData);
         const version = ++calculationVersion.current;
+        calculationRequestFingerprint.current = nextFingerprint;
         setIsCalculatingStats(true);
         setCalculationNotice(null);
         try {
-            const response = await calculateEquipmentStats(requestData);
+            const response = await calculateEquipmentStats(nextRequestData);
             if (version !== calculationVersion.current) return;
             setStats(response.stats || response);
-            setCalculatedRequestFingerprint(requestFingerprint);
+            setCalculatedRequestFingerprint(nextFingerprint);
             setStatSources({
                 drifCategories: response.drifCategories || {},
                 orbBonusTypes: response.orbBonusTypes || [],
@@ -50,20 +55,19 @@ export const useEquipmentStats = (requestData) => {
         } finally {
             if (version === calculationVersion.current) setIsCalculatingStats(false);
         }
-    }, [requestData, requestFingerprint]);
-
-    const resetStats = useCallback(() => {
-        calculationVersion.current += 1;
-        setIsCalculatingStats(false);
-        setCalculationNotice(null);
-        setStats(null);
-        setStatSources(emptySources());
-        setCalculatedRequestFingerprint(null);
     }, []);
+    const calculateStats = useCallback(
+        () => calculateStatsFor(requestData),
+        [calculateStatsFor, requestData]
+    );
+
     const dismissCalculationNotice = useCallback(() => setCalculationNotice(null), []);
 
     const restoreStats = useCallback((nextStats, nextSources = {}, nextRequestData = null) => {
         calculationVersion.current += 1;
+        calculationRequestFingerprint.current = nextRequestData
+            ? JSON.stringify(nextRequestData)
+            : null;
         setIsCalculatingStats(false);
         setCalculationNotice(null);
         setStats(nextStats || null);
@@ -87,7 +91,7 @@ export const useEquipmentStats = (requestData) => {
         calculationNotice,
         dismissCalculationNotice,
         calculateStats,
-        resetStats,
+        calculateStatsFor,
         restoreStats,
     };
 };

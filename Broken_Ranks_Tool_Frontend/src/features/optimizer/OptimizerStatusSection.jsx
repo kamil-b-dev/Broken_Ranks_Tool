@@ -1,5 +1,3 @@
-import React from "react";
-
 const formatDuration = (duration) => duration?.toFixed?.(2) ?? duration;
 
 /** Presents progress and the latest outcome of an optimization run. */

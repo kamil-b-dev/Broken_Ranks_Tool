@@ -1,5 +1,8 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.validation;
 
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.validation.OptimizationPreservedDrifs.preservedIndexes;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.validation.OptimizationPreservedDrifs.requestedLevel;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -64,7 +67,7 @@ public final class OptimizationInputValidator {
                             usedOrbBonuses);
             if (error != null) return error;
         }
-        return validateFeasibility(context);
+        return OptimizationFeasibilityValidator.validate(context);
     }
 
     private String validateSelectedDrifCatalog(OptimizationContext context) {
@@ -137,162 +140,8 @@ public final class OptimizationInputValidator {
                         && data.getDrifIds().stream().anyMatch(java.util.Objects::nonNull)
                 || data.getOrbIds() != null
                         && data.getOrbIds().stream().anyMatch(java.util.Objects::nonNull)
-                || data.getDrifLevels() != null && !data.getDrifLevels().isEmpty();
-    }
-
-    private String validateFeasibility(OptimizationContext context) {
-        if (context.request().getTargetQuantities() == null
-                && context.request().getDrifSizeQuantities() == null) return null;
-        Map<DRIF_BONUS_TYPE, Integer> missingMinimumsByType =
-                new java.util.EnumMap<>(DRIF_BONUS_TYPE.class);
-        Map<DRIF_BONUS_TYPE, Integer> missingSizeMinimumsByType =
-                new java.util.EnumMap<>(DRIF_BONUS_TYPE.class);
-        int totalFreeSockets = 0;
-        for (SlotContext slot : context.slots()) {
-            totalFreeSockets += availableSockets(slot, context);
-        }
-        for (var entry :
-                context.request().getTargetQuantities() == null
-                        ? Map.<DRIF_BONUS_TYPE, OptimizationRequest.QuantityRange>of().entrySet()
-                        : context.request().getTargetQuantities().entrySet()) {
-            int fixedCount = 0;
-            int upperBound = 0;
-            for (SlotContext slot : context.slots()) {
-                int fixedInSlot = fixedCount(slot, entry.getKey(), context);
-                fixedCount += fixedInSlot;
-                upperBound += fixedInSlot;
-                if (fixedInSlot == 0 && canAdd(slot, entry.getKey(), context)) {
-                    upperBound++;
-                }
-            }
-            if (fixedCount > entry.getValue().getMax()) {
-                return "Zablokowane lub wbudowane drify typu "
-                        + entry.getKey().getDescription()
-                        + " przekraczają ustawione maksimum.";
-            }
-            if (entry.getValue().getMin() > upperBound) {
-                return "Minimum dla "
-                        + entry.getKey().getDescription()
-                        + " jest fizycznie nieosiągalne na przekazanym ekwipunku.";
-            }
-            missingMinimumsByType.put(
-                    entry.getKey(), Math.max(0, entry.getValue().getMin() - fixedCount));
-        }
-        if (context.request().getDrifSizeQuantities() != null) {
-            for (var bonusEntry : context.request().getDrifSizeQuantities().entrySet()) {
-                for (var sizeEntry : bonusEntry.getValue().entrySet()) {
-                    int fixed = 0;
-                    int upperBound = 0;
-                    for (SlotContext slot : context.slots()) {
-                        int fixedInSlot =
-                                fixedCount(slot, bonusEntry.getKey(), sizeEntry.getKey(), context);
-                        fixed += fixedInSlot;
-                        upperBound += fixedInSlot;
-                        if (fixedInSlot == 0
-                                && canAdd(slot, bonusEntry.getKey(), sizeEntry.getKey(), context))
-                            upperBound++;
-                    }
-                    if (fixed > sizeEntry.getValue().getMax()) {
-                        return "Zablokowane drify przekraczają maksimum rozmiaru "
-                                + sizeEntry.getKey()
-                                + " dla "
-                                + bonusEntry.getKey().getDescription()
-                                + ".";
-                    }
-                    if (sizeEntry.getValue().getMin() > upperBound) {
-                        return "Minimum rozmiaru "
-                                + sizeEntry.getKey()
-                                + " dla "
-                                + bonusEntry.getKey().getDescription()
-                                + " jest fizycznie nieosiągalne.";
-                    }
-                    missingSizeMinimumsByType.merge(
-                            bonusEntry.getKey(),
-                            Math.max(0, sizeEntry.getValue().getMin() - fixed),
-                            Integer::sum);
-                }
-            }
-        }
-        int totalMissingMinimums =
-                context.request().getPriorities().keySet().stream()
-                        .mapToInt(
-                                type ->
-                                        Math.max(
-                                                missingMinimumsByType.getOrDefault(type, 0),
-                                                missingSizeMinimumsByType.getOrDefault(type, 0)))
-                        .sum();
-        if (totalMissingMinimums > totalFreeSockets) {
-            return "Ustawione minima wymagają łącznie więcej gniazd, niż pozostaje dostępnych.";
-        }
-        return null;
-    }
-
-    private int fixedCount(SlotContext slot, DRIF_BONUS_TYPE type, OptimizationContext context) {
-        return fixedCount(slot, type, null, context);
-    }
-
-    private int fixedCount(
-            SlotContext slot,
-            DRIF_BONUS_TYPE type,
-            pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_SIZE size,
-            OptimizationContext context) {
-        if (size != null && slot.special()) return 0;
-        List<Long> ids =
-                slot.original().getDrifIds() != null ? slot.original().getDrifIds() : List.of();
-        Set<Integer> fixed = preservedIndexes(slot.key(), slot.original(), slot, context.request());
-        int count = 0;
-        for (Integer index : fixed) {
-            if (index == null || index < 0 || index >= ids.size()) continue;
-            DrifTemplate drif = context.drifs().get(ids.get(index));
-            if (drif != null
-                    && drif.getBonusType() == type
-                    && (size == null || drif.getSize() == size)) count++;
-        }
-        return count;
-    }
-
-    private int availableSockets(SlotContext slot, OptimizationContext context) {
-        if (slot.special()
-                || context.request().getLockedSlots() != null
-                        && context.request().getLockedSlots().contains(slot.key())) {
-            return 0;
-        }
-        Set<Integer> fixed = preservedIndexes(slot.key(), slot.original(), slot, context.request());
-        return Math.max(0, slot.maxDrifs() - fixed.size());
-    }
-
-    private boolean canAdd(SlotContext slot, DRIF_BONUS_TYPE type, OptimizationContext context) {
-        return canAdd(slot, type, null, context);
-    }
-
-    private boolean canAdd(
-            SlotContext slot,
-            DRIF_BONUS_TYPE type,
-            pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_SIZE size,
-            OptimizationContext context) {
-        if (availableSockets(slot, context) == 0) return false;
-        DrifTemplate candidate =
-                slot.candidates().stream()
-                        .filter(drif -> drif.getBonusType() == type)
-                        .filter(drif -> size == null || drif.getSize() == size)
-                        .findFirst()
-                        .orElse(null);
-        if (candidate == null) return false;
-        int usedPower = 0;
-        List<Long> ids =
-                slot.original().getDrifIds() != null ? slot.original().getDrifIds() : List.of();
-        for (Integer index :
-                preservedIndexes(slot.key(), slot.original(), slot, context.request())) {
-            if (index == null || index < 0 || index >= ids.size()) continue;
-            DrifTemplate fixed = context.drifs().get(ids.get(index));
-            if (fixed != null) {
-                usedPower +=
-                        DrifPowerRules.power(
-                                fixed.getBonusType().getBasePower(),
-                                requestedLevel(slot.original(), index));
-            }
-        }
-        return usedPower + candidate.getBonusType().getBasePower() <= slot.capacity();
+                || data.getDrifLevels() != null && !data.getDrifLevels().isEmpty()
+                || data.getOrbLevels() != null && !data.getOrbLevels().isEmpty();
     }
 
     private String validateOrbs(
@@ -380,23 +229,6 @@ public final class OptimizationInputValidator {
         return null;
     }
 
-    private Set<Integer> preservedIndexes(
-            String key,
-            EquipmentRequest.SlotData data,
-            SlotContext slot,
-            OptimizationRequest request) {
-        List<Long> ids = data.getDrifIds() != null ? data.getDrifIds() : List.of();
-        if (slot.special()
-                || request.getLockedSlots() != null && request.getLockedSlots().contains(key)) {
-            Set<Integer> all = new HashSet<>();
-            for (int index = 0; index < ids.size(); index++) all.add(index);
-            return all;
-        }
-        return request.getLockedDrifs() != null
-                ? request.getLockedDrifs().getOrDefault(key, Set.of())
-                : Set.of();
-    }
-
     private String validatePreservedDrifs(
             String key,
             EquipmentRequest.SlotData data,
@@ -456,12 +288,6 @@ public final class OptimizationInputValidator {
             return "Slot " + key + ": zablokowane drify przekraczają pojemność przedmiotu.";
         }
         return validatePreservedLevelKeys(key, data, preserved);
-    }
-
-    private Integer requestedLevel(EquipmentRequest.SlotData data, int index) {
-        return data.getDrifLevels() == null
-                ? 1
-                : data.getDrifLevels().getOrDefault(String.valueOf(index), 1);
     }
 
     private String validatePreservedLevelKeys(

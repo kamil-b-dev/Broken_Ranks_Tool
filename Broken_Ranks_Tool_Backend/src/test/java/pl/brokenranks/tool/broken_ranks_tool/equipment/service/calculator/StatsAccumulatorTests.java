@@ -10,6 +10,29 @@ import org.junit.jupiter.api.Test;
 class StatsAccumulatorTests {
 
     @Test
+    void rejectsNonFiniteValuesAndAccumulationOverflowWithoutCorruptingTheSnapshot() {
+        var accumulator = new StatsAccumulator();
+        for (double value :
+                new double[] {Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY}) {
+            assertThrows(
+                    IllegalArgumentException.class, () -> accumulator.addFlatValue("Armor", value));
+            assertThrows(
+                    IllegalArgumentException.class,
+                    () -> accumulator.addRawValue("Armor", "1", value));
+        }
+        assertThrows(
+                IllegalArgumentException.class, () -> accumulator.addRawValue("Armor", "NaN%", 1));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> accumulator.addRawValue("Armor", "1e308", 100));
+        accumulator.addFlatValue("Armor", Double.MAX_VALUE);
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> accumulator.addFlatValue("Armor", Double.MAX_VALUE));
+        assertEquals(Map.of("Armor", Double.MAX_VALUE), accumulator.getNumericResults());
+    }
+
+    @Test
     void parsesFlatAndPercentageValuesAndFormatsThem() {
         StatsAccumulator accumulator = new StatsAccumulator();
 

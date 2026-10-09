@@ -2,6 +2,8 @@ import {
     getDrifMaxLevel,
     ROMAN_TO_INT,
     SIZE_INDEX,
+    getMaximumStoneSizeIndex,
+    calculateItemCapacity,
 } from "../../shared/domain/equipment/equipmentRules";
 import {
     DRIF_CATEGORY_LABELS,
@@ -78,12 +80,7 @@ export const calculateDrifValue = (drif, level) => {
     return value;
 };
 
-export const maxDrifSizeIndexForTier = (tier) => {
-    if (tier >= 10) return SIZE_INDEX.ARCYDRIF;
-    if (tier >= 7) return SIZE_INDEX.MAGNIDRIF;
-    if (tier >= 4) return SIZE_INDEX.BIDRIF;
-    return SIZE_INDEX.SUBDRIF;
-};
+export const maxDrifSizeIndexForTier = getMaximumStoneSizeIndex;
 
 export const highestLevelForCapacity = (drif, capacity, basePower) => {
     const affordableMultiplier = Math.max(
@@ -101,16 +98,9 @@ export const formatPotentialValue = (value) =>
     `${Number(value).toLocaleString("pl-PL", { maximumFractionDigits: 2 })}%`;
 
 /** Calculates current counts, penalties, and achievable ranges for prioritized modifiers. */
-export const calculateCurrentModDetails = ({
-    prioritizedBonuses,
-    slots,
-    drifs,
-    items,
-    gameRules,
-}) => {
+export const calculatePlacedDrifCounts = (slots, drifs) => {
     const counts = {};
     const drifsById = new Map(drifs.map((drif) => [String(drif.id), drif]));
-    const itemsById = new Map(items.map((item) => [String(item.id), item]));
 
     Object.values(slots || {}).forEach((slot) => {
         const typesInSlot = new Set();
@@ -122,6 +112,19 @@ export const calculateCurrentModDetails = ({
             }
         });
     });
+
+    return counts;
+};
+
+export const calculateCurrentModDetails = ({
+    prioritizedBonuses,
+    slots,
+    drifs,
+    items,
+    gameRules,
+}) => {
+    const counts = calculatePlacedDrifCounts(slots, drifs);
+    const itemsById = new Map(items.map((item) => [String(item.id), item]));
 
     return prioritizedBonuses.map((bonus) => {
         const count = counts[bonus.key] || 0;
@@ -150,9 +153,7 @@ export const calculateCurrentModDetails = ({
             if (!drif) return [];
 
             const stars = Math.max(1, Math.min(9, Number(slot.itemStars) || 1));
-            const baseCapacity = Number(item.capacity) || 0;
-            const capacityBonus = stars === 7 ? 1 : stars === 8 ? 2 : stars === 9 ? 4 : 0;
-            const capacity = baseCapacity === 0 ? 0 : baseCapacity + capacityBonus;
+            const capacity = calculateItemCapacity(item, stars);
             if (capacity <= 0 || capacity < basePower) return [];
 
             const itemDrifBonus =

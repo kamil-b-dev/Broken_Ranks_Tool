@@ -1,6 +1,17 @@
 export const BUILD_LIBRARY_STORAGE_KEY = "broken-ranks-tool.build-library.v1";
 export const BUILD_LIBRARY_VERSION = 1;
 export const MAX_SAVED_BUILDS = 10;
+export const BUILD_LIBRARY_CHANGED_EVENT = "broken-ranks-tool:build-library-changed";
+
+/** Serializes read/modify/write operations across tabs of the same origin. */
+export const withBuildLibraryLock = async (operation) => {
+    if (!globalThis.navigator?.locks?.request) {
+        throw new Error(
+            "Bezpieczny zapis biblioteki wymaga obsługi Web Locks przez przeglądarkę i adresu HTTPS lub localhost."
+        );
+    }
+    return navigator.locks.request(BUILD_LIBRARY_STORAGE_KEY, { mode: "exclusive" }, operation);
+};
 
 const cloneJson = (value) => JSON.parse(JSON.stringify(value));
 const isObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
@@ -46,9 +57,10 @@ const isStoredBuildRecord = (record) =>
     isObject(record.payload?.build);
 
 /** Reads a detached, bounded build library. Invalid or obsolete data is ignored. */
-export const readBuildLibrary = (storage = globalThis.localStorage) => {
-    if (!storage) return [];
+export const readBuildLibrary = (storage) => {
     try {
+        storage = storage === undefined ? globalThis.localStorage : storage;
+        if (!storage) return [];
         const stored = JSON.parse(storage.getItem(BUILD_LIBRARY_STORAGE_KEY) || "null");
         if (stored?.version !== BUILD_LIBRARY_VERSION || !Array.isArray(stored.builds)) return [];
         return cloneJson(stored.builds.filter(isStoredBuildRecord).slice(0, MAX_SAVED_BUILDS));
@@ -58,7 +70,12 @@ export const readBuildLibrary = (storage = globalThis.localStorage) => {
 };
 
 /** Persists the complete local build library as one versioned document. */
-export const writeBuildLibrary = (builds, storage = globalThis.localStorage) => {
+export const writeBuildLibrary = (builds, storage) => {
+    try {
+        storage = storage === undefined ? globalThis.localStorage : storage;
+    } catch {
+        throw new Error("Pamięć lokalna przeglądarki jest niedostępna.");
+    }
     if (!storage) throw new Error("Pamięć lokalna przeglądarki jest niedostępna.");
     if (!Array.isArray(builds) || builds.length > MAX_SAVED_BUILDS) {
         throw new Error(`Możesz zapisać maksymalnie ${MAX_SAVED_BUILDS} buildów.`);

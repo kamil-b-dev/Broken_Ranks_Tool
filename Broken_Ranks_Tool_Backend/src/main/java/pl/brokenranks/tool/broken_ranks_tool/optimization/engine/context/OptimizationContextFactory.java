@@ -20,7 +20,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.Upgrade
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
 
-/** Assembles the immutable request context used by the optimization search. */
+/** Assembles read-only input collections and mutable search state for one optimization run. */
 public final class OptimizationContextFactory {
     private final OptimizationTemplateProvider templates;
     private final OptimizationSlotContextFactory slots;

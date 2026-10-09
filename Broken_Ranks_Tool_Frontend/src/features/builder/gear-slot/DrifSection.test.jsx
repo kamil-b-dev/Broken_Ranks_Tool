@@ -11,7 +11,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("../../../shared/state/EquipmentContext", () => ({
-    useEquipment: () => mocks.equipment,
+    useEquipmentLocksState: () => mocks.equipment,
 }));
 
 vi.mock("./BuiltInDrifSlots", () => ({

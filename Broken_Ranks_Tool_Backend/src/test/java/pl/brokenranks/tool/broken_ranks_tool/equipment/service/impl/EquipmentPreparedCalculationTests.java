@@ -37,10 +37,9 @@ class EquipmentPreparedCalculationTests {
                         new EquipmentDataProvider(itemsRepository, orbsRepository, drifsRepository),
                         new EquipmentRequestValidator(rules),
                         placement,
-                        levels,
                         new DrifSecurityValidator(placement, levels),
                         new ItemStatProcessor(),
-                        new OrbStatProcessor(placement, levels, new OrbSecurityValidator()),
+                        new OrbStatProcessor(placement, new OrbSecurityValidator()),
                         new DrifStatProcessor(placement, levels, rules, new DrifValueCalculator()),
                         new DrifCounter(placement),
                         new CalculationMetadataFactory(),
@@ -200,6 +199,45 @@ class EquipmentPreparedCalculationTests {
         request.setCharacterStats(Map.of("strength", 10));
         assertThrows(
                 IllegalArgumentException.class, () -> calculator.calculateWithSources(request));
+    }
+
+    @Test
+    void emptyEquipmentIncludesBaseStatsAndMatchesAnExplicitEmptySlot() {
+        request.setSlots(Map.of());
+        request.setCharacterStats(Map.of("Siła", 10));
+        clearInvocations(itemsRepository, drifsRepository, orbsRepository);
+
+        var empty = calculator.calculateWithSources(request);
+        assertEquals(
+                Map.of(
+                        "Siła",
+                        "10",
+                        "CRITICAL_CHANCE",
+                        "2%",
+                        "MANA_REGEN",
+                        "5%",
+                        "STAMINA_REGEN",
+                        "5%"),
+                empty.stats());
+        assertTrue(empty.drifCategories().isEmpty());
+        assertTrue(empty.orbBonusTypes().isEmpty());
+        verifyNoInteractions(itemsRepository, drifsRepository, orbsRepository);
+
+        var prepared = calculator.prepareCalculationWithSources(Map.of(), Map.of(), Map.of());
+        assertEquals(empty, prepared.apply(request));
+        request.setSlots(Map.of("helmet", new EquipmentRequest.SlotData()));
+        assertEquals(empty, calculator.calculateWithSources(request));
+        assertEquals(empty, prepared.apply(request));
+    }
+
+    @Test
+    void emptyEquipmentWithoutCharacterStatsStillIncludesDefaultBonuses() {
+        request.setSlots(Map.of());
+        request.setCharacterStats(null);
+
+        assertEquals(
+                Map.of("CRITICAL_CHANCE", "2%", "MANA_REGEN", "5%", "STAMINA_REGEN", "5%"),
+                calculator.calculateTotalStats(request));
     }
 
     @Test

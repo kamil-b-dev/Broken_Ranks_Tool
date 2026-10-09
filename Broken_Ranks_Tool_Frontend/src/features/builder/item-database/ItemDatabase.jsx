@@ -1,5 +1,5 @@
 import { setDraggedResource } from "../useDraggedResource";
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { useItemDatabaseFilters } from "./useItemDatabaseFilters";
 import ItemDatabaseControls from "./ItemDatabaseControls";
 import { buildItemDatabaseGroups, filterItemDatabaseGroups } from "./itemDatabaseDomain";
@@ -19,6 +19,7 @@ const ItemDatabase = ({
     const { activeTab, filters, setFilter, clearFilters, changeTab, hasActiveFilters } =
         useItemDatabaseFilters();
     const [tooltip, setTooltip] = useState({ show: false, x: 0, y: 0, item: null, type: "item" });
+    const tooltipId = useId();
     const { bonusTranslations = {}, drifBasePowers = {} } = gameRules;
     const { groupedData, allCategories, allTiers, allStats } = useMemo(
         () => buildItemDatabaseGroups({ activeTab, items, orbs, drifs, categoryNames }),
@@ -41,14 +42,37 @@ const ItemDatabase = ({
         setDraggedResource(resource);
         hideTooltip();
     };
-    const showTooltip = (event, item, type) =>
-        setTooltip({ show: true, x: event.clientX + 15, y: event.clientY + 15, item, type });
-    const hideTooltip = () => setTooltip({ show: false, x: 0, y: 0, item: null, type: "item" });
+    const showTooltip = (event, item, type) => {
+        if (event.type === "mousemove" && tooltip.keyboard) return;
+        const keyboard = event.type === "focus";
+        const rect = keyboard ? event.currentTarget.getBoundingClientRect() : null;
+        setTooltip({
+            show: true,
+            x: Math.max(
+                0,
+                Math.min(keyboard ? rect.left : event.clientX + 15, window.innerWidth - 272)
+            ),
+            y: Math.max(
+                0,
+                Math.min(keyboard ? rect.bottom : event.clientY + 15, window.innerHeight - 340)
+            ),
+            item,
+            type,
+            keyboard,
+        });
+    };
+    const hideTooltip = (event) => {
+        if (event?.type === "mouseleave" && tooltip.keyboard) return;
+        setTooltip({ show: false, x: 0, y: 0, item: null, type: "item" });
+    };
 
     return (
         <div
             onDragEnd={() => setDraggedResource(null)}
-            className="item-database-theme bg-linear-to-b from-stone-900 to-black p-6 border-2 border-stone-800 shadow-[0_0_30px_rgba(0,0,0,0.9)] flex h-full min-h-0 flex-col relative"
+            className="item-database-theme bg-linear-to-b from-stone-900 to-black p-6 border-2 border-stone-800 optimizer-info-divider shadow-[0_0_30px_rgba(0,0,0,0.9)] flex h-full min-h-0 flex-col relative"
+            onKeyDown={(event) => {
+                if (event.key === "Escape") hideTooltip();
+            }}
         >
             <ItemDatabaseControls
                 activeTab={activeTab}
@@ -71,11 +95,14 @@ const ItemDatabase = ({
                 onHover={showTooltip}
                 onLeave={hideTooltip}
                 onClearFilters={clearFilters}
+                tooltipId={tooltipId}
+                activeDetailsKey={tooltip.show ? `${tooltip.type}:${tooltip.item.id}` : null}
             />
             <ItemDatabaseTooltip
                 tooltip={tooltip}
                 bonusTranslations={bonusTranslations}
                 drifBasePowers={drifBasePowers}
+                id={tooltipId}
             />
         </div>
     );

@@ -1,6 +1,5 @@
 package pl.brokenranks.tool.broken_ranks_tool.core.ratelimit;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletInputStream;
@@ -21,6 +20,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import pl.brokenranks.tool.broken_ranks_tool.core.web.error.ApiError;
 import pl.brokenranks.tool.broken_ranks_tool.core.web.error.ApiErrorCode;
 import pl.brokenranks.tool.broken_ranks_tool.core.web.filter.RequestTracingFilter;
+import tools.jackson.databind.ObjectMapper;
 
 /** Rejects oversized or excessively frequent requests before request bodies are parsed. */
 @Component

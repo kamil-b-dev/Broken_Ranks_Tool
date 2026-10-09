@@ -44,7 +44,6 @@
 .mobile-app .mobile-optimizer-sections {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.4rem;
     margin-block: 1rem;
 }
 .mobile-app .mobile-optimizer-sections.is-advisor {
@@ -53,7 +52,6 @@
 .mobile-app .mobile-optimizer-sections button {
     padding: 0.6rem;
     border: 1px solid var(--mobile-border);
-    border-radius: 0.5rem;
     color: var(--mobile-muted);
 }
 .mobile-app .mobile-optimizer-sections button[aria-current] {
@@ -449,7 +447,6 @@
     padding: 0.8rem;
     text-align: left;
     border: 1px solid var(--mobile-border);
-    border-radius: 0.5rem;
     background: #25211d;
 }
 

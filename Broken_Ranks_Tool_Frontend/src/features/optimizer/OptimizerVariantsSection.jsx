@@ -1,5 +1,3 @@
-import React from "react";
-
 const formatNumber = (value) => Number(value).toLocaleString("pl-PL", { maximumFractionDigits: 2 });
 
 /** Presents alternative optimization setups and delegates selection to the workflow owner. */

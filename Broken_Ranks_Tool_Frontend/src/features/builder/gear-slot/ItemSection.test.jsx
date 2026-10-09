@@ -73,6 +73,9 @@ describe("ItemSection", () => {
         await user.hover(star);
         await user.unhover(star);
         await user.click(star);
+        const keyboardStar = screen.getByRole("button", { name: "Ustaw 6 gwiazdek: Hełm" });
+        keyboardStar.focus();
+        await user.keyboard("{Enter}");
         fireEvent.dragOver(container.firstChild);
         fireEvent.dragLeave(container.firstChild);
         fireEvent.drop(container.firstChild);
@@ -82,6 +85,7 @@ describe("ItemSection", () => {
         expect(hookData.setHoverStars).toHaveBeenCalledWith(5);
         expect(hookData.setHoverStars).toHaveBeenCalledWith(0);
         expect(hookData.setItemStars).toHaveBeenCalledWith(5);
+        expect(hookData.setItemStars).toHaveBeenCalledWith(6);
         expect(handleDragOver).toHaveBeenCalledWith(expect.anything(), "item");
         expect(handleDragLeave).toHaveBeenCalled();
         expect(handleDrop).toHaveBeenCalledWith(expect.anything(), "item");

@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
     MAX_SAVED_BUILDS,
     createLocalBuildRecord,
@@ -6,6 +6,9 @@ import {
     readBuildLibrary,
     replaceLocalBuildRecord,
     writeBuildLibrary,
+    BUILD_LIBRARY_STORAGE_KEY,
+    BUILD_LIBRARY_CHANGED_EVENT,
+    withBuildLibraryLock,
 } from "./buildLibraryStorage";
 import { downloadBuildPayload } from "./buildFile";
 
@@ -14,19 +17,46 @@ export const useBuildLibrary = ({ createSnapshot, applySnapshot }) => {
     const [builds, setBuilds] = useState(() => readBuildLibrary());
     const [notice, setNotice] = useState(null);
 
-    const commit = useCallback((nextBuilds) => {
-        writeBuildLibrary(nextBuilds);
-        setBuilds(nextBuilds);
+    useEffect(() => {
+        const refresh = (event) => {
+            if (
+                event.type !== "storage" ||
+                event.key == null ||
+                event.key === BUILD_LIBRARY_STORAGE_KEY
+            ) {
+                setBuilds(readBuildLibrary());
+            }
+        };
+        window.addEventListener("storage", refresh);
+        window.addEventListener(BUILD_LIBRARY_CHANGED_EVENT, refresh);
+        return () => {
+            window.removeEventListener("storage", refresh);
+            window.removeEventListener(BUILD_LIBRARY_CHANGED_EVENT, refresh);
+        };
+    }, []);
+
+    const commit = useCallback(async (update) => {
+        try {
+            await withBuildLibraryLock(() => writeBuildLibrary(update(readBuildLibrary())));
+        } catch (error) {
+            setBuilds(readBuildLibrary());
+            throw error;
+        }
+        setBuilds(readBuildLibrary());
+        window.dispatchEvent(new Event(BUILD_LIBRARY_CHANGED_EVENT));
     }, []);
 
     const saveCurrent = useCallback(
-        (name) => {
+        async (name) => {
             try {
-                if (builds.length >= MAX_SAVED_BUILDS) {
-                    throw new Error(`Biblioteka mieści maksymalnie ${MAX_SAVED_BUILDS} buildów.`);
-                }
                 const record = createLocalBuildRecord({ name, snapshot: createSnapshot() });
-                commit([...builds, record]);
+                await commit((latest) => {
+                    if (latest.length >= MAX_SAVED_BUILDS)
+                        throw new Error(
+                            `Biblioteka mieści maksymalnie ${MAX_SAVED_BUILDS} buildów.`
+                        );
+                    return [...latest, record];
+                });
                 setNotice({
                     type: "success",
                     message: `Zapisano lokalnie build „${record.name}”.`,
@@ -40,18 +70,21 @@ export const useBuildLibrary = ({ createSnapshot, applySnapshot }) => {
                 return null;
             }
         },
-        [builds, commit, createSnapshot]
+        [commit, createSnapshot]
     );
 
     const overwrite = useCallback(
-        (id) => {
+        async (id) => {
             try {
                 const existing = builds.find((build) => build.id === id);
                 if (!existing) throw new Error("Nie znaleziono wybranego buildu.");
-                const next = builds.map((build) =>
-                    build.id === id ? replaceLocalBuildRecord(build, createSnapshot()) : build
-                );
-                commit(next);
+                const snapshot = createSnapshot();
+                await commit((latest) => {
+                    requireUnchangedRecord(latest, existing);
+                    return latest.map((build) =>
+                        build.id === id ? replaceLocalBuildRecord(build, snapshot) : build
+                    );
+                });
                 setNotice({
                     type: "success",
                     message: `Zaktualizowano lokalny build „${existing.name}”.`,
@@ -67,17 +100,23 @@ export const useBuildLibrary = ({ createSnapshot, applySnapshot }) => {
     );
 
     const rename = useCallback(
-        (id, name) => {
+        async (id, name) => {
             try {
                 const existing = builds.find((build) => build.id === id);
                 if (!existing) throw new Error("Nie znaleziono wybranego buildu.");
                 const normalizedName = normalizeBuildName(name, existing.name);
-                const next = builds.map((build) =>
-                    build.id === id
-                        ? { ...build, name: normalizedName, updatedAt: new Date().toISOString() }
-                        : build
-                );
-                commit(next);
+                await commit((latest) => {
+                    requireUnchangedRecord(latest, existing);
+                    return latest.map((build) =>
+                        build.id === id
+                            ? {
+                                  ...build,
+                                  name: normalizedName,
+                                  updatedAt: new Date().toISOString(),
+                              }
+                            : build
+                    );
+                });
                 setNotice({
                     type: "success",
                     message: `Zmieniono nazwę buildu na „${normalizedName}”.`,
@@ -136,11 +175,14 @@ export const useBuildLibrary = ({ createSnapshot, applySnapshot }) => {
     );
 
     const remove = useCallback(
-        (id) => {
+        async (id) => {
             const record = builds.find((build) => build.id === id);
             if (!record) return;
             try {
-                commit(builds.filter((build) => build.id !== id));
+                await commit((latest) => {
+                    requireUnchangedRecord(latest, record);
+                    return latest.filter((build) => build.id !== id);
+                });
                 setNotice({ type: "success", message: `Usunięto build „${record.name}”.` });
             } catch (error) {
                 setNotice({
@@ -163,4 +205,15 @@ export const useBuildLibrary = ({ createSnapshot, applySnapshot }) => {
         remove,
         dismissNotice: () => setNotice(null),
     };
+};
+
+const requireUnchangedRecord = (latest, expected) => {
+    if (
+        JSON.stringify(latest.find((record) => record.id === expected.id)) !==
+        JSON.stringify(expected)
+    ) {
+        throw new Error(
+            "Build zmienił się lub został usunięty w innej karcie. Sprawdź aktualną wersję przed ponowieniem zmiany."
+        );
+    }
 };

@@ -158,7 +158,8 @@ public class AdvisorOptimizationService {
                         || slot.getDrifLevels() != null && !slot.getDrifLevels().isEmpty();
         boolean hasOrb =
                 slot.getOrbIds() != null
-                        && slot.getOrbIds().stream().anyMatch(java.util.Objects::nonNull);
+                                && slot.getOrbIds().stream().anyMatch(java.util.Objects::nonNull)
+                        || slot.getOrbLevels() != null && !slot.getOrbLevels().isEmpty();
         return hasDrif || hasOrb;
     }
 

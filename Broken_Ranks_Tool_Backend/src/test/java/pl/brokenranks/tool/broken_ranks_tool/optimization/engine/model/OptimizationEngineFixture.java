@@ -84,6 +84,6 @@ public final class OptimizationEngineFixture {
     }
 
     public static void put(BuildState state, String key, Placement... placements) {
-        state.slots().put(key, new ArrayList<>(Arrays.asList(placements)));
+        state.putSlot(key, new ArrayList<>(Arrays.asList(placements)));
     }
 }

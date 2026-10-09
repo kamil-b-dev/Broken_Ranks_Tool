@@ -45,7 +45,7 @@ public final class OptimizationSelectedBonusMaximizer {
                     && stateEvaluation.calculatedValue(state, type, context)
                             >= target - TARGET_TOLERANCE) continue;
             bestState = bestReplacementForType(state, bestState, type, maximizedTypes, context);
-            if (context.maximizationSearchBudget().exhausted()) return state;
+            if (context.maximizationSearchBudget().exhausted()) return bestState;
         }
         return bestState;
     }
@@ -65,7 +65,7 @@ public final class OptimizationSelectedBonusMaximizer {
                 bestState =
                         bestReplacementInSlot(
                                 state, bestState, slot, candidate, maximizedTypes, context);
-                if (context.maximizationSearchBudget().exhausted()) return state;
+                if (context.maximizationSearchBudget().exhausted()) return bestState;
             }
         }
         return bestState;
@@ -84,7 +84,7 @@ public final class OptimizationSelectedBonusMaximizer {
             Placement replaced = placements.get(index);
             if (!canReplace(state, placements, slot, index, replaced, candidate, context)) continue;
             for (Integer level : fittingCandidateLevels(placements, slot, candidate, index)) {
-                if (!context.maximizationSearchBudget().tryConsume()) return state;
+                if (!context.maximizationSearchBudget().tryConsume()) return bestState;
                 BuildState trial = state.copy();
                 trial.setPlacement(slot.key(), index, new Placement(candidate, level, false));
                 if (stateEvaluation.minimumsSatisfied(trial, context)

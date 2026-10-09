@@ -5,8 +5,18 @@ import { useEquipmentLocks } from "../features/equipment/useEquipmentLocks";
 import { useEquipmentCatalog } from "../features/equipment/useEquipmentCatalog";
 import { useEquipmentStats } from "../features/equipment/useEquipmentStats";
 import { useEquipmentOptimization } from "../features/optimizer/useEquipmentOptimization";
-import { EquipmentContext } from "../shared/state/EquipmentContext";
-import { readEquipmentDraft, writeEquipmentDraft } from "./storage/workingDraftStorage";
+import {
+    EquipmentContext,
+    EquipmentCatalogContext,
+    EquipmentSetupContext,
+    EquipmentLocksContext,
+    EquipmentCalculationContext,
+} from "../shared/state/EquipmentContext";
+import {
+    readEquipmentDraft,
+    writeEquipmentDraft,
+    preserveEquipmentDraft,
+} from "./storage/workingDraftStorage";
 
 /**
  * Provides application state for equipment, character stats, and optimization.
@@ -29,6 +39,7 @@ export const EquipmentProvider = ({ children }) => {
 
     const [requestData, setRequestData] = useState({ slots: {}, characterStats: {} });
     const [draftRestored, setDraftRestored] = useState(!initialDraft);
+    const [draftWritesAllowed, setDraftWritesAllowed] = useState(true);
     const {
         stats,
         statSources,
@@ -36,6 +47,7 @@ export const EquipmentProvider = ({ children }) => {
         calculationNotice,
         dismissCalculationNotice,
         calculateStats,
+        calculateStatsFor,
         restoreStats,
     } = useEquipmentStats(requestData);
 
@@ -47,6 +59,7 @@ export const EquipmentProvider = ({ children }) => {
         applyOptimizationSetup,
         runDrifOptimization,
         cancelDrifOptimization,
+        invalidateDrifOptimization,
     } = useEquipmentOptimization({
         requestData,
         setRequestData,
@@ -72,7 +85,8 @@ export const EquipmentProvider = ({ children }) => {
             replaceLocks(imported.lockedSlots, imported.lockedDrifs);
             markEquipmentChanged();
         } catch {
-            // Discard drafts that no longer satisfy the current catalogue and domain rules.
+            // Keep a recoverable copy; never overwrite the original if that copy cannot be saved.
+            setDraftWritesAllowed(preserveEquipmentDraft());
         } finally {
             setDraftRestored(true);
         }
@@ -88,14 +102,14 @@ export const EquipmentProvider = ({ children }) => {
     ]);
 
     useEffect(() => {
-        if (!draftRestored) return;
+        if (!draftRestored || !draftWritesAllowed) return;
         writeEquipmentDraft({
             requestData,
             characterConfig,
             lockedSlots,
             lockedDrifs,
         });
-    }, [characterConfig, draftRestored, lockedDrifs, lockedSlots, requestData]);
+    }, [characterConfig, draftRestored, draftWritesAllowed, lockedDrifs, lockedSlots, requestData]);
 
     /**
      * Updates the equipment data for a single slot.
@@ -129,8 +143,8 @@ export const EquipmentProvider = ({ children }) => {
     }, []);
 
     const buildImportData = useMemo(() => ({ ...data, gameRules }), [data, gameRules]);
-    const { saveBuildToFile, loadBuildFromFile, createBuildSnapshot, loadBuildSnapshot } =
-        useEquipmentBuildTransfer({
+    const { loadBuildFromFile, createBuildSnapshot, loadBuildSnapshot } = useEquipmentBuildTransfer(
+        {
             data: buildImportData,
             requestData,
             characterConfig,
@@ -142,8 +156,10 @@ export const EquipmentProvider = ({ children }) => {
             setCharacterConfig,
             replaceLocks,
             restoreStats,
+            calculateStatsFor,
             markEquipmentChanged,
-        });
+        }
+    );
 
     const value = useMemo(
         () => ({
@@ -172,7 +188,7 @@ export const EquipmentProvider = ({ children }) => {
             applyOptimizationSetup,
             runDrifOptimization,
             cancelDrifOptimization,
-            saveBuildToFile,
+            invalidateDrifOptimization,
             loadBuildFromFile,
             createBuildSnapshot,
             loadBuildSnapshot,
@@ -203,12 +219,75 @@ export const EquipmentProvider = ({ children }) => {
             applyOptimizationSetup,
             runDrifOptimization,
             cancelDrifOptimization,
-            saveBuildToFile,
+            invalidateDrifOptimization,
             loadBuildFromFile,
             createBuildSnapshot,
             loadBuildSnapshot,
         ]
     );
 
-    return <EquipmentContext.Provider value={value}>{children}</EquipmentContext.Provider>;
+    const catalogValue = useMemo(
+        () => ({
+            data,
+            categoryNames,
+            orbCategories,
+            drifCategories,
+            gameRules,
+            loading,
+            initialDataError,
+        }),
+        [data, categoryNames, orbCategories, drifCategories, gameRules, loading, initialDataError]
+    );
+    const setupValue = useMemo(
+        () => ({
+            requestData,
+            characterConfig,
+            optimizationTrigger,
+            handleSlotUpdate,
+            handleCharacterStatsUpdate,
+        }),
+        [
+            requestData,
+            characterConfig,
+            optimizationTrigger,
+            handleSlotUpdate,
+            handleCharacterStatsUpdate,
+        ]
+    );
+    const locksValue = useMemo(
+        () => ({ lockedSlots, lockedDrifs, toggleSlotLock, toggleDrifLock }),
+        [lockedSlots, lockedDrifs, toggleSlotLock, toggleDrifLock]
+    );
+    const calculationValue = useMemo(
+        () => ({
+            stats,
+            statSources,
+            isCalculatingStats,
+            calculationNotice,
+            dismissCalculationNotice,
+            calculateStats,
+        }),
+        [
+            stats,
+            statSources,
+            isCalculatingStats,
+            calculationNotice,
+            dismissCalculationNotice,
+            calculateStats,
+        ]
+    );
+
+    return (
+        <EquipmentCatalogContext.Provider value={catalogValue}>
+            <EquipmentSetupContext.Provider value={setupValue}>
+                <EquipmentLocksContext.Provider value={locksValue}>
+                    <EquipmentCalculationContext.Provider value={calculationValue}>
+                        <EquipmentContext.Provider value={value}>
+                            {children}
+                        </EquipmentContext.Provider>
+                    </EquipmentCalculationContext.Provider>
+                </EquipmentLocksContext.Provider>
+            </EquipmentSetupContext.Provider>
+        </EquipmentCatalogContext.Provider>
+    );
 };

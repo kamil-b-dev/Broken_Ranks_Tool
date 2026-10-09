@@ -84,6 +84,9 @@ const CompactCharacterPanel = ({ development }) => (
             <span>Pozostało</span>
             <strong>{development.pointsLeft}</strong>
             <small>z {development.totalPoints} pkt</small>
+            <button type="button" className="character-reset" onClick={development.resetPoints}>
+                Zresetuj punkty
+            </button>
         </div>
     </section>
 );

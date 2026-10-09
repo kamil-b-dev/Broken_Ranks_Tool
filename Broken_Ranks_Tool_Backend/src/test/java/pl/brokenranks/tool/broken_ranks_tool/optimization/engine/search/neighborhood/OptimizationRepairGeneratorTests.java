@@ -156,7 +156,7 @@ class OptimizationRepairGeneratorTests {
         for (SlotContext slot : slots) {
             List<Placement> placements = new ArrayList<>();
             placements.add(null);
-            state.slots().put(slot.key(), placements);
+            state.putSlot(slot.key(), placements);
         }
         return state;
     }

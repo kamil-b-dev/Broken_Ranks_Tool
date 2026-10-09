@@ -45,11 +45,11 @@
     grid-template-columns: minmax(12rem, 0.9fr) minmax(13rem, 1fr) minmax(15rem, 1.25fr);
     align-items: start;
     gap: 1rem;
-    border-color: rgba(166, 118, 54, 0.88) !important;
+    border-color: rgba(166, 118, 54, 0.88);
 }
 
 .gear-slot-editor-expanded:hover {
-    border-color: rgba(218, 167, 86, 0.96) !important;
+    border-color: rgba(218, 167, 86, 0.96);
 }
 
 .gear-slot-editor-expanded,
@@ -138,9 +138,6 @@
 }
 
 .builder-theme .item-database-theme {
-    background-image:
-        linear-gradient(155deg, rgba(16, 16, 15, 0.82), rgba(2, 3, 3, 0.93) 68%),
-        url("../../../assets/database-panel-backdrop-texture.webp");
     background-position: center top;
     background-size:
         auto,
@@ -154,7 +151,7 @@
     grid-template-columns: minmax(0, 1fr) auto;
     min-height: 2.75rem;
     margin-bottom: 0.3rem;
-    border: 1px solid rgba(127, 91, 49, 0.62) !important;
+    border: 1px solid rgba(127, 91, 49, 0.62);
     background-image:
         linear-gradient(90deg, rgba(8, 5, 4, 0.69), rgba(1, 2, 2, 0.84)),
         url("../../../assets/smoked-parchment-texture.webp");

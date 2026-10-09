@@ -1,8 +1,8 @@
 const ACCENT_CLASSES = {
     stone: {
-        card: "border-stone-800",
-        heading: "text-stone-300 border-stone-800",
-        row: "border-stone-800 hover:bg-stone-900/50",
+        card: "border-stone-800 optimizer-info-divider",
+        heading: "text-stone-300 border-stone-800 optimizer-info-divider",
+        row: "border-stone-800 optimizer-info-divider hover:bg-stone-900/50",
         value: "text-stone-100",
     },
     amber: {
@@ -12,10 +12,10 @@ const ACCENT_CLASSES = {
         value: "text-amber-400",
     },
     red: {
-        card: "border-red-900/45",
-        heading: "text-red-400 border-red-900/45",
-        row: "border-red-900/25 hover:bg-red-950/25",
-        value: "text-red-400",
+        card: "border-red-900/45 optimizer-lock-frame",
+        heading: "text-red-400 optimizer-lock-text border-red-900/45 optimizer-lock-frame",
+        row: "border-red-900/25 optimizer-lock-frame hover:bg-red-950/25 optimizer-lock-surface",
+        value: "text-red-400 optimizer-lock-text",
     },
     sky: {
         card: "border-sky-900/45",
@@ -24,10 +24,10 @@ const ACCENT_CLASSES = {
         value: "text-sky-300",
     },
     rose: {
-        card: "border-rose-900/45",
-        heading: "text-rose-400 border-rose-900/45",
-        row: "border-rose-900/25 hover:bg-rose-950/25",
-        value: "text-rose-300",
+        card: "border-rose-900/45 builder-accent-frame",
+        heading: "text-rose-400 builder-accent-text border-rose-900/45 builder-accent-frame",
+        row: "border-rose-900/25 builder-accent-frame hover:bg-rose-950/25 builder-accent-surface",
+        value: "text-rose-300 builder-accent-text",
     },
     violet: {
         card: "border-violet-900/45",

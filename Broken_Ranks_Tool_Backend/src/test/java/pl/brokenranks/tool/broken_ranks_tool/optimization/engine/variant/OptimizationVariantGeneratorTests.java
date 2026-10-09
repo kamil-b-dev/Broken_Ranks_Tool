@@ -205,12 +205,9 @@ class OptimizationVariantGeneratorTests {
     private BuildState state(
             DrifTemplate magic, int magicLevel, DrifTemplate defense, int defenseLevel) {
         BuildState state = new BuildState();
-        state.slots()
-                .put("magic", new ArrayList<>(List.of(new Placement(magic, magicLevel, false))));
-        state.slots()
-                .put(
-                        "defense",
-                        new ArrayList<>(List.of(new Placement(defense, defenseLevel, false))));
+        state.putSlot("magic", new ArrayList<>(List.of(new Placement(magic, magicLevel, false))));
+        state.putSlot(
+                "defense", new ArrayList<>(List.of(new Placement(defense, defenseLevel, false))));
         return state;
     }
 

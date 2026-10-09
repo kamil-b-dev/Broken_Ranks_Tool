@@ -137,7 +137,7 @@ class OptimizationExhaustiveSearchTests {
                 choice -> {
                     List<Placement> placements = new ArrayList<>();
                     placements.add(choice.placement());
-                    state.slots().put(choice.slotKey(), placements);
+                    state.putSlot(choice.slotKey(), placements);
                 });
         return state;
     }
@@ -159,7 +159,7 @@ class OptimizationExhaustiveSearchTests {
                                 : 1;
                 placements.add(drif != null ? new Placement(drif, level, false) : null);
             }
-            state.slots().put(slot.key(), placements);
+            state.putSlot(slot.key(), placements);
         }
         return state;
     }

@@ -3,13 +3,15 @@ package pl.brokenranks.tool.broken_ranks_tool.catalog.controller;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
+import pl.brokenranks.tool.broken_ranks_tool.catalog.service.DictionariesFactory;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_CATEGORY;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ITEM_CATEGORY;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ORB_CATEGORY;
 
 class DictionaryControllerTests {
 
-    private final DictionaryController controller = new DictionaryController();
+    private final DictionaryController controller =
+            new DictionaryController(new DictionariesFactory());
 
     @Test
     void exposesCompleteItemOrbAndDrifDictionaries() {

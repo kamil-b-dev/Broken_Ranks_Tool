@@ -4,6 +4,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+. "$PSScriptRoot/smoke-assertions.ps1"
 $containerName = "broken-ranks-smoke-$PID"
 $baseUrl = "http://127.0.0.1:$Port"
 
@@ -39,7 +40,7 @@ function New-FullOptimizationRequest {
     $slots = [ordered]@{}
     foreach ($definition in $definitions.GetEnumerator()) {
         $item = $InitialData.items |
-            Where-Object { $definition.Value -contains $_.category } |
+            Where-Object { $definition.Value -contains $_.category -and $_.rarity -in @("RARE", "LEGENDARY") } |
             Sort-Object capacity -Descending |
             Select-Object -First 1
         if ($null -ne $item) {
@@ -54,13 +55,16 @@ function New-FullOptimizationRequest {
         }
     }
 
-    $bonusNames = @($InitialData.gameRules.drifBasePowers.PSObject.Properties.Name | Select-Object -First 5)
+    $bonusNames = @("CRITICAL_CHANCE")
+    if (-not ($InitialData.drifs | Where-Object { $_.bonusType -eq "CRITICAL_CHANCE" })) {
+        throw "Catalog lacks the drif required by the smoke fixture."
+    }
     $priorities = [ordered]@{}
     $targetQuantities = [ordered]@{}
     $weight = 30
     foreach ($bonusName in $bonusNames) {
         $priorities[$bonusName] = $weight
-        $targetQuantities[$bonusName] = @{ min = 0; max = 12 }
+        $targetQuantities[$bonusName] = @{ min = 1; max = 12 }
         $weight -= 4
     }
 
@@ -89,8 +93,8 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Docker container did not start." }
 
     Wait-ForReadiness
-    $home = Invoke-WebRequest "$baseUrl/" -TimeoutSec 5
-    if ($home.StatusCode -ne 200 -or $home.Content -notmatch '<div id="root"></div>') {
+    $homeResponse = Invoke-WebRequest "$baseUrl/" -TimeoutSec 5
+    if ($homeResponse.StatusCode -ne 200 -or $homeResponse.Content -notmatch '<div id="root"></div>') {
         throw "Frontend smoke check failed."
     }
 
@@ -99,10 +103,14 @@ try {
         throw "Initial data smoke check failed."
     }
 
-    $payload = New-FullOptimizationRequest $initialData | ConvertTo-Json -Depth 8 -Compress
+    $request = New-FullOptimizationRequest $initialData
+    $payload = $request | ConvertTo-Json -Depth 8 -Compress
     $result = Invoke-RestMethod "$baseUrl/api/optimizer/drifs" -Method Post `
         -ContentType "application/json" -Body $payload -TimeoutSec 60
-    if ($null -eq $result.summary) { throw "Optimization response is incomplete." }
+    Assert-SmokeOptimizationResult $result $request.originalSlots
+    $calculated = Invoke-RestMethod "$baseUrl/api/calculator/calculate" -Method Post `
+        -ContentType "application/json" -Body ($result.optimizedSetup | ConvertTo-Json -Depth 12 -Compress) -TimeoutSec 15
+    Assert-SmokeCalculationParity $result.calculationResult $calculated
     Write-Host "Deployment smoke test passed."
 } finally {
     docker rm --force $containerName 2>$null | Out-Null

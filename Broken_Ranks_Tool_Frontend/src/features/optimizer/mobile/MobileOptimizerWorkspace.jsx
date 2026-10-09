@@ -162,7 +162,6 @@ export default function MobileOptimizerWorkspace({ settings, onSettingsChange, o
                                 onRemove={model.removeBonus}
                                 onUpdate={model.updateBonus}
                                 configurationMode="ADVANCED"
-                                labelControls
                             />
                             <MobileOptimizerOptions
                                 settings={settings}

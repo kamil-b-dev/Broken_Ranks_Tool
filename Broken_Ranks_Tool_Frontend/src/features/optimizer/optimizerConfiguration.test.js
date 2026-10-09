@@ -14,6 +14,32 @@ const gameRules = {
 };
 
 describe("optimizerConfiguration", () => {
+    it("keeps an incomplete percentage invalid after draft serialization and restoration", () => {
+        const original = {
+            key: "CRITICAL_CHANCE",
+            weight: 15,
+            min: 0,
+            max: 12,
+            forcePercentage: true,
+            forcedPercentage: "",
+        };
+        const restored = parseOptimizerConfigPayload(
+            JSON.parse(JSON.stringify(createOptimizerConfigPayload([original], {}))),
+            gameRules
+        );
+        expect(restored.priorities[0]).toMatchObject({
+            forcePercentage: true,
+            forcedPercentage: "",
+        });
+        expect(findInvalidPercentageTarget(restored.priorities)).toBeDefined();
+        original.forcedPercentage = 0;
+        const valid = parseOptimizerConfigPayload(
+            createOptimizerConfigPayload([original], {}),
+            gameRules
+        );
+        expect(valid.priorities[0].forcedPercentage).toBe(0);
+        expect(findInvalidPercentageTarget(valid.priorities)).toBeUndefined();
+    });
     it("normalizes conflicting imported targets and sends only the cap target", () => {
         const imported = parseOptimizerConfigPayload(
             {

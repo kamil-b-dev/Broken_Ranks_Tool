@@ -32,7 +32,7 @@ const OptimizerRunAction = ({
                 {isOptimizing ? (
                     <>
                         <svg
-                            className="animate-spin h-5 w-5 text-purple-400"
+                            className="animate-spin h-5 w-5 text-purple-400 optimizer-accent-text"
                             xmlns="http://www.w3.org/2000/svg"
                             fill="none"
                             viewBox="0 0 24 24"
@@ -52,7 +52,9 @@ const OptimizerRunAction = ({
                             />
                         </svg>
                         KALKULACJA W TLE...
-                        <span className="text-purple-300 tabular-nums">({elapsedSeconds} s)</span>
+                        <span className="text-purple-300 optimizer-accent-text tabular-nums">
+                            ({elapsedSeconds} s)
+                        </span>
                     </>
                 ) : hasResult ? (
                     mode === "ADVISOR" ? (

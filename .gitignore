@@ -72,3 +72,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Local repository technology audit
+/audyt-2026-10-05.txt

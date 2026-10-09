@@ -2,18 +2,12 @@ package pl.brokenranks.tool.broken_ranks_tool.optimization.service.impl;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,8 +15,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRulesRegistry;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.BuildConfigurationMode;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationMode;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationResponse;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context.OptimizationContextFactory;
@@ -36,6 +28,7 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.reference.CpSatBuildOp
 import pl.brokenranks.tool.broken_ranks_tool.optimization.reference.ExactBuildOptimizationSolver;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.reference.ExactOptimizationSolver;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.reference.OptimizedBuildJsonExporter;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Manual exact-search adapter for exported real builds. It is skipped unless both file paths are
@@ -64,7 +57,11 @@ class OptimizationRealBuildExactBenchmark {
                 "Set -Doptimizer.build and -Doptimizer.config to run the real-build solver");
 
         OptimizationRequest request =
-                request(Path.of(buildPath).toAbsolutePath(), Path.of(configPath).toAbsolutePath());
+                new pl.brokenranks.tool.broken_ranks_tool.optimization.reference
+                                .RealBuildOracleInput(objectMapper)
+                        .read(
+                                Path.of(buildPath).toAbsolutePath(),
+                                Path.of(configPath).toAbsolutePath());
         OptimizationContext context = contextFactory.create(request, 1, 1, 1);
         OptimizationStateEvaluator evaluator = new OptimizationStateEvaluator(rules);
         ExactBuildOptimizationSolver solver =
@@ -306,73 +303,6 @@ class OptimizationRealBuildExactBenchmark {
         return result;
     }
 
-    private OptimizationRequest request(Path buildPath, Path configPath) throws Exception {
-        JsonNode buildRoot = objectMapper.readTree(Files.readString(buildPath)).path("build");
-        JsonNode requestData = buildRoot.path("requestData");
-        JsonNode configRoot = objectMapper.readTree(Files.readString(configPath));
-        Map<String, EquipmentRequest.SlotData> slots =
-                objectMapper.convertValue(
-                        requestData.path("slots"),
-                        new TypeReference<Map<String, EquipmentRequest.SlotData>>() {});
-        Map<String, Integer> characterStats =
-                objectMapper.convertValue(
-                        requestData.path("characterStats"),
-                        new TypeReference<Map<String, Integer>>() {});
-
-        Map<DRIF_BONUS_TYPE, Integer> priorities = new LinkedHashMap<>();
-        Map<DRIF_BONUS_TYPE, OptimizationRequest.QuantityRange> quantities = new LinkedHashMap<>();
-        Set<DRIF_BONUS_TYPE> caps = new LinkedHashSet<>();
-        Set<DRIF_BONUS_TYPE> maximized = new LinkedHashSet<>();
-        Map<DRIF_BONUS_TYPE, Double> percentages = new LinkedHashMap<>();
-        for (JsonNode priority : configRoot.path("priorities")) {
-            DRIF_BONUS_TYPE type = DRIF_BONUS_TYPE.valueOf(priority.path("key").asText());
-            priorities.put(type, priority.path("weight").asInt());
-            quantities.put(
-                    type,
-                    new OptimizationRequest.QuantityRange(
-                            priority.path("min").asInt(), priority.path("max").asInt()));
-            if (priority.path("forceCap").asBoolean()) caps.add(type);
-            if (priority.path("maximize").asBoolean()) maximized.add(type);
-            if (priority.path("forcePercentage").asBoolean()) {
-                percentages.put(type, priority.path("forcedPercentage").asDouble());
-            }
-        }
-
-        OptimizationRequest request = new OptimizationRequest();
-        request.setMode(OptimizationMode.BUILD_FROM_SCRATCH);
-        request.setConfigurationMode(BuildConfigurationMode.ADVANCED);
-        request.setOriginalSlots(slots);
-        request.setCharacterStats(characterStats);
-        request.setPriorities(priorities);
-        request.setTargetQuantities(quantities);
-        request.setDrifSizeQuantities(Map.of());
-        request.setForceCapBonuses(caps);
-        request.setMaximizeBonuses(maximized);
-        request.setForcedPercentageTargets(percentages);
-        request.setLockedSlots(stringSet(buildRoot.path("lockedSlots")));
-        request.setLockedDrifs(lockedDrifs(buildRoot.path("lockedDrifs")));
-        request.setMaxVariantLossPercent(100);
-        return request;
-    }
-
-    private Set<String> stringSet(JsonNode node) {
-        Set<String> values = new LinkedHashSet<>();
-        node.forEach(value -> values.add(value.asText()));
-        return values;
-    }
-
-    private Map<String, Set<Integer>> lockedDrifs(JsonNode node) {
-        Map<String, Set<Integer>> result = new LinkedHashMap<>();
-        node.properties()
-                .forEach(
-                        entry -> {
-                            Set<Integer> indexes = new LinkedHashSet<>();
-                            entry.getValue().forEach(value -> indexes.add(value.asInt()));
-                            result.put(entry.getKey(), indexes);
-                        });
-        return result;
-    }
-
     private BuildState toState(EquipmentRequest setup, OptimizationContext context) {
         BuildState state = new BuildState();
         context.slots()
@@ -395,7 +325,7 @@ class OptimizationRealBuildExactBenchmark {
                                 placements.add(
                                         new Placement(context.drifs().get(id), level, false));
                             }
-                            state.slots().put(slot.key(), placements);
+                            state.putSlot(slot.key(), placements);
                         });
         return state;
     }

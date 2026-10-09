@@ -1,5 +1,6 @@
 import { act, renderHook } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { setDraggedResource } from "../useDraggedResource";
 import { useGearSlotDragDrop } from "./useGearSlotDragDrop";
 
 const eventFor = (data) => ({
@@ -17,8 +18,8 @@ const createProps = (overrides = {}) => ({
     maxDrifIndex: 1,
     elementalTypes: ["DAMAGE_FIRE", "DAMAGE_FROST"],
     drifs: [
-        { id: 3, bonusType: "DAMAGE_FIRE" },
-        { id: 4, bonusType: "DAMAGE_FROST" },
+        { id: 3, size: "BIDRIF", bonusType: "DAMAGE_FIRE" },
+        { id: 4, size: "BIDRIF", bonusType: "DAMAGE_FROST" },
     ],
     selectedDrifs: [4],
     setSelectedItem: vi.fn(),
@@ -31,6 +32,66 @@ const createProps = (overrides = {}) => ({
 });
 
 describe("useGearSlotDragDrop", () => {
+    beforeEach(() => setDraggedResource(null));
+
+    it("rejects an over-capacity drif both when highlighting and when dropping", () => {
+        const props = createProps({
+            selectedDrifs: [],
+            itemCapacity: 1,
+            drifBasePowers: { DAMAGE_FIRE: 2 },
+        });
+        const payload = { dragType: "drifs", id: 3 };
+        const { result } = renderHook(() => useGearSlotDragDrop(props));
+        act(() => setDraggedResource(payload));
+
+        expect(result.current.isDropEligible("drif-0")).toBe(false);
+        const dragOver = eventFor(payload);
+        act(() => result.current.handleDragOver(dragOver, "drif-0"));
+        expect(dragOver.preventDefault).not.toHaveBeenCalled();
+        act(() => result.current.handleDrop(eventFor(payload), "drif-0"));
+
+        expect(props.setSelectedDrifs).not.toHaveBeenCalled();
+        expect(props.setDrifTypes).not.toHaveBeenCalled();
+        expect(props.setDrifLevels).not.toHaveBeenCalled();
+    });
+
+    it("accepts a drif at capacity and uses its catalog metadata", () => {
+        const props = createProps({
+            selectedDrifs: [],
+            itemCapacity: 2,
+            drifBasePowers: { DAMAGE_FIRE: 2 },
+            drifs: [{ id: 3, name: "Katalogowy drif", size: "BIDRIF", bonusType: "DAMAGE_FIRE" }],
+        });
+        const payload = { dragType: "drifs", id: "3", name: "Obca nazwa", bonusType: "ARMOR" };
+        const { result } = renderHook(() => useGearSlotDragDrop(props));
+        act(() => setDraggedResource(payload));
+        expect(result.current.isDropEligible("drif-0")).toBe(true);
+        act(() => result.current.handleDrop(eventFor(payload), "drif-0"));
+
+        expect(props.setSelectedDrifs.mock.calls[0][0]([])).toEqual(["3"]);
+        expect(props.setDrifTypes.mock.calls[0][0]({})).toEqual({ 0: "Katalogowy drif" });
+        expect(props.setDrifLevels.mock.calls[0][0]({})).toEqual({ 0: 1 });
+    });
+
+    it.each([
+        ["unknown id", { id: 99 }, {}],
+        [
+            "forged size",
+            { id: 3, size: "SUBDRIF" },
+            { drifs: [{ id: 3, size: "ARCYDRIF", bonusType: "CRITICAL_CHANCE" }] },
+        ],
+        ["forged elemental type", { id: 3, bonusType: "ARMOR" }, { slotKey: "helmet" }],
+    ])("rejects %s using the current catalog", (_reason, data, overrides) => {
+        const props = createProps({ selectedDrifs: [], ...overrides });
+        const payload = { dragType: "drifs", ...data };
+        const { result } = renderHook(() => useGearSlotDragDrop(props));
+        act(() => setDraggedResource(payload));
+
+        expect(result.current.isDropEligible("drif-0")).toBe(false);
+        act(() => result.current.handleDrop(eventFor(payload), "drif-0"));
+        expect(props.setSelectedDrifs).not.toHaveBeenCalled();
+    });
+
     it("resets upgrades when a new item is dropped", () => {
         const props = createProps();
         const { result } = renderHook(() => useGearSlotDragDrop(props));
@@ -68,8 +129,8 @@ describe("useGearSlotDragDrop", () => {
     it("rejects duplicate ordinary bonus types and positions outside active sockets", () => {
         const props = createProps({
             drifs: [
-                { id: 3, bonusType: "CRITICAL_CHANCE" },
-                { id: 4, bonusType: "CRITICAL_CHANCE" },
+                { id: 3, size: "BIDRIF", bonusType: "CRITICAL_CHANCE" },
+                { id: 4, size: "BIDRIF", bonusType: "CRITICAL_CHANCE" },
             ],
             selectedDrifs: [4],
         });

@@ -3,7 +3,7 @@
 Status: **zatwierdzony i zapisany w katalogowej bazie danych**  
 Data rozpoczęcia: **2026-09-25**
 
-Dokument zbiera dane wejściowe do przygotowania wzorcowego buildu endgame Maga Ognia. Nie jest jeszcze zatwierdzoną rekomendacją ani dowodem optimum.
+Dokument opisuje zaakceptowany, wyspecjalizowany wzorzec endgame Maga Ognia oraz osobny wariant zrównoważony. Zakres akceptacji i dowodu jest określony dla każdej strategii poniżej; nie jest to uniwersalna rekomendacja najlepszego buildu.
 
 ## Kandydat na zestaw przedmiotów
 

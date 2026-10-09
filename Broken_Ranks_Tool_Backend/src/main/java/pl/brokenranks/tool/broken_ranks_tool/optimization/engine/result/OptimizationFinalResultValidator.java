@@ -107,7 +107,12 @@ final class OptimizationFinalResultValidator {
                             : slot.original()
                                     .getDrifLevels()
                                     .getOrDefault(String.valueOf(index), 1);
-            if (!slot.special() && actual.level() != expectedLevel) return false;
+            boolean levelLocked =
+                    !slot.special()
+                            || context.request().getLockedSlots() != null
+                                    && context.request().getLockedSlots().contains(slot.key())
+                            || slot.lockedIndices().contains(index);
+            if (levelLocked && actual.level() != expectedLevel) return false;
         }
         return !slot.special() || placements.size() == originalIds.size();
     }

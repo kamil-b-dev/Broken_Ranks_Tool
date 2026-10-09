@@ -13,10 +13,23 @@ import {
     getAvailableSecondaryOrbs,
     getEffectiveDrifMultiplier,
     groupGearOptionsByType,
-    hasElementalDrifInOtherSlot,
 } from "./gearSlotDomain";
 
 describe("gearSlotDomain", () => {
+    it("publishes a valid default level for a selected orb before its level is edited", () => {
+        const update = createGearSlotUpdate({
+            selectedItem: "7",
+            itemStars: 1,
+            orbSlots: { orb1: { id: "2", level: "" }, orb2: { id: "", level: "" } },
+            isLegendary: false,
+            selectedDrifs: [],
+            drifLevels: {},
+            maxDrifs: 3,
+            builtInDrifs: [],
+            builtInLvls: [],
+        });
+        expect(JSON.parse(JSON.stringify(update)).orbLevels).toEqual([1]);
+    });
     it("maps drif levels to capacity multipliers", () => {
         expect([1, 6, 7, 11, 12, 16, 17, 21].map(getEffectiveDrifMultiplier)).toEqual([
             1, 1, 2, 2, 3, 3, 4, 4,
@@ -212,26 +225,6 @@ describe("gearSlotDomain", () => {
         ).toEqual([3]);
     });
 
-    it("detects elemental drifs only outside the current slot", () => {
-        const input = {
-            drifs: [{ id: 4, bonusType: "DAMAGE_FIRE" }],
-            elementalTypes: ["DAMAGE_FIRE"],
-        };
-        expect(
-            hasElementalDrifInOtherSlot({
-                ...input,
-                allSlots: { helmet: { drifIds: [4] }, weapon: { drifIds: [] } },
-                currentSlotKey: "weapon",
-            })
-        ).toBe(true);
-        expect(
-            hasElementalDrifInOtherSlot({
-                ...input,
-                allSlots: { weapon: { drifIds: [4] } },
-                currentSlotKey: "weapon",
-            })
-        ).toBe(false);
-    });
     it("does not publish levels for removed stones or stones in an empty item slot", () => {
         const state = {
             selectedItem: "7",

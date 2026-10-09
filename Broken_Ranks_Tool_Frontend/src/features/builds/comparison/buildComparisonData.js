@@ -2,12 +2,13 @@ import { SLOTS } from "../../../shared/domain/equipment/equipmentSlots";
 
 export const getBuildSlots = (record) => record?.payload?.build?.requestData?.slots || {};
 
-export const getPopulatedIds = (ids) => (Array.isArray(ids) ? ids.filter((id) => id != null) : []);
+export const isPopulatedId = (id) => id != null && id !== "";
+export const getPopulatedIds = (ids) => (Array.isArray(ids) ? ids.filter(isPopulatedId) : []);
 
 export const summarizeLocalBuild = (record) => {
     const slots = Object.values(getBuildSlots(record));
     return {
-        equipped: slots.filter((slot) => slot?.itemId != null).length,
+        equipped: slots.filter((slot) => isPopulatedId(slot?.itemId)).length,
         drifs: slots.reduce((sum, slot) => sum + getPopulatedIds(slot?.drifIds).length, 0),
         orbs: slots.reduce((sum, slot) => sum + getPopulatedIds(slot?.orbIds).length, 0),
         level: Number(record?.payload?.build?.characterConfig?.level) || 1,

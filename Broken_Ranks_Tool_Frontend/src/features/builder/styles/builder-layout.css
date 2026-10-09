@@ -261,6 +261,20 @@
     font-size: 1.25rem;
 }
 
+.character-reset {
+    flex-basis: 100%;
+    padding: 0.3rem 0.5rem;
+    border: 1px solid rgba(134, 85, 35, 0.62);
+    background: rgba(0, 0, 0, 0.5);
+    color: #ddd6ca;
+    font-family: var(--ui-font);
+    font-size: 0.65rem;
+}
+
+.character-reset:hover {
+    border-color: #e5b75f;
+}
+
 .builder-workspace-grid {
     display: grid;
     min-width: 0;

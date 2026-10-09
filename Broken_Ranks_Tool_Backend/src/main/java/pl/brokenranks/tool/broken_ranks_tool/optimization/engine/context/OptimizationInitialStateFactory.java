@@ -24,7 +24,7 @@ public final class OptimizationInitialStateFactory {
                             : isEntireSlotLocked(slot, context) || !slot.optimizable()
                                     ? readOriginalPlacements(slot, context, false)
                                     : createUnlockedPlacements(slot, context);
-            state.slots().put(slot.key(), placements);
+            state.putSlot(slot.key(), placements);
         }
         return state;
     }
@@ -72,7 +72,7 @@ public final class OptimizationInitialStateFactory {
         DrifTemplate drif = context.drifs().get(ids.get(index));
         if (drif == null) return null;
         int level =
-                maximizeLevel && drif.getSize() != null
+                maximizeLevel && !slot.lockedIndices().contains(index) && drif.getSize() != null
                         ? drif.getSize().getMaxLevel()
                         : slot.original().getDrifLevels() != null
                                 ? slot.original()

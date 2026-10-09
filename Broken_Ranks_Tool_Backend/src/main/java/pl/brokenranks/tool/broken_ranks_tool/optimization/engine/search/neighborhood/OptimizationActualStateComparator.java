@@ -67,7 +67,11 @@ final class OptimizationActualStateComparator {
             } else if (target != null) {
                 weightedUtility += Math.min(value, target) * priority;
             } else {
-                weightedUtility += value * priority;
+                double useful =
+                        type.getMaxCap() == null
+                                ? value
+                                : Math.min(value, Math.abs(type.getMaxCap()));
+                weightedUtility += useful * priority;
             }
         }
 

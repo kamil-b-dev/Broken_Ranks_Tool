@@ -5,6 +5,7 @@ import java.util.Objects;
 import lombok.experimental.UtilityClass;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_SIZE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.DrifPowerRules;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.ModifierNumbers;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
 
@@ -69,21 +70,13 @@ public class DrifOptimizationMath {
     }
 
     public static double calculateDrifValue(DrifTemplate drif, int level) {
-        if (drif.getBaseValue() == null || drif.getIncrement() == null) return 0.0;
-        try {
-            double total = parseModifierNumber(drif.getBaseValue());
-            double increment = parseModifierNumber(drif.getIncrement());
-            for (int current = 2; current <= level; current++) {
-                total += incrementForLevel(increment, current);
-            }
-            return total;
-        } catch (NumberFormatException exception) {
-            return 0.0;
+        String description = "drif id=" + drif.getId();
+        double total = ModifierNumbers.parse(drif.getBaseValue(), description + ".baseValue");
+        double increment = ModifierNumbers.parse(drif.getIncrement(), description + ".increment");
+        for (int current = 2; current <= level; current++) {
+            total += incrementForLevel(increment, current);
         }
-    }
-
-    private double parseModifierNumber(String value) {
-        return Double.parseDouble(value.replace("%", "").replace(",", ".").trim());
+        return ModifierNumbers.finite(total, description + ".wynik");
     }
 
     private double incrementForLevel(double increment, int level) {

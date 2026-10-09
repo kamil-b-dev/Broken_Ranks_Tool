@@ -1,18 +1,18 @@
 /* Optimizer redesign: protect the build, define goals, then review the result. */
 .app-shell-optimizer .main-switch a[aria-current="page"] {
-    border-bottom-color: rgba(203, 145, 62, 0.95) !important;
-    color: #e1b969 !important;
+    border-bottom-color: rgba(203, 145, 62, 0.95);
+    color: #e1b969;
     background:
         linear-gradient(rgba(100, 59, 19, 0.16), rgba(3, 3, 4, 0.92)),
-        url("../../../assets/dark-forged-metal-texture.webp") center / 18rem !important;
+        url("../../../assets/dark-forged-metal-texture.webp") center / 18rem;
     box-shadow:
         inset 0 0 18px rgba(135, 82, 28, 0.1),
-        0 1px rgba(234, 184, 96, 0.08) !important;
+        0 1px rgba(234, 184, 96, 0.08);
 }
 
 .optimizer-theme {
     --optimizer-ui-font: var(--ui-font);
-    gap: 0.75rem !important;
+    gap: 0.75rem;
     font-family: var(--optimizer-ui-font);
 }
 
@@ -36,7 +36,7 @@
         dt,
         dd
     ) {
-    font-family: var(--optimizer-ui-font) !important;
+    font-family: var(--optimizer-ui-font);
 }
 
 .optimizer-overview {
@@ -107,31 +107,42 @@
 
 .optimizer-console {
     min-height: 0;
-    padding: 0 !important;
+    padding: 0;
     overflow: hidden;
-    border: 1px solid rgba(137, 93, 43, 0.76) !important;
+    border: 1px solid rgba(137, 93, 43, 0.76);
+    background:
+        linear-gradient(rgba(183, 127, 63, 0.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(183, 127, 63, 0.014) 1px, transparent 1px),
+        linear-gradient(155deg, rgba(20, 17, 18, 0.98), rgba(5, 5, 6, 0.99) 62%),
+        url("../../../assets/dark-forged-metal-texture.webp");
+    background-size:
+        2.75rem 2.75rem,
+        2.75rem 2.75rem,
+        auto,
+        28rem 28rem;
+    background-blend-mode: normal, normal, normal, soft-light;
     box-shadow:
         0 20px 46px rgba(0, 0, 0, 0.48),
-        inset 0 1px rgba(246, 201, 125, 0.035) !important;
+        inset 0 1px rgba(246, 201, 125, 0.035);
 }
 
 .optimizer-main-grid {
     display: grid;
     min-height: 44rem;
-    grid-template-columns: minmax(14rem, 0.82fr) minmax(34rem, 1.82fr) minmax(21rem, 1.08fr) !important;
-    gap: 0 !important;
+    grid-template-columns: minmax(14rem, 0.82fr) minmax(34rem, 1.82fr) minmax(21rem, 1.08fr);
+    gap: 0;
 }
 
 .optimizer-main-grid > * {
     min-width: 0;
-    grid-column: auto !important;
+    grid-column: auto;
 }
 
 .optimizer-workspace-column {
-    height: clamp(44rem, calc(100vh - 13.5rem), 58rem) !important;
-    min-height: 44rem !important;
-    max-height: 58rem !important;
-    padding: 0 !important;
+    height: clamp(44rem, calc(100vh - 13.5rem), 58rem);
+    min-height: 44rem;
+    max-height: 58rem;
+    padding: 0;
 }
 
 .optimizer-column-heading {
@@ -157,7 +168,7 @@
 
 .optimizer-column-heading h3 {
     color: #dfb66a;
-    font-family: var(--display-font) !important;
+    font-family: var(--display-font);
     font-size: 0.85rem;
     font-weight: 700;
     letter-spacing: 0.12em;
@@ -376,21 +387,6 @@
 .optimizer-lock-drif button {
     flex: 0 0 auto;
     color: #75687b;
-}
-
-.optimizer-level-lock {
-    display: inline-flex;
-    flex: 0 0 auto;
-    cursor: pointer;
-    align-items: center;
-    gap: 0.25rem;
-    color: #9c8ca4;
-    font-size: 0.52rem;
-    white-space: nowrap;
-}
-
-.optimizer-level-lock input {
-    accent-color: #cf3e50;
 }
 
 .optimizer-lock-drif-locked button {

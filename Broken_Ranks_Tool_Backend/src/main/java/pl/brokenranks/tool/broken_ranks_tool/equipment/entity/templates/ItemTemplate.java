@@ -11,6 +11,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ITEM_CATEGOR
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ITEM_CLASS_SCOPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ITEM_PROFILE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.RARITY;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.ItemBaseStatRules;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.ItemProfileClassifier;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.BaseNamedEntity;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.converter.MapToStringConverter;
@@ -63,6 +64,12 @@ public class ItemTemplate extends BaseNamedEntity {
     @PrePersist
     @PreUpdate
     void refreshProfile() {
+        validateStatistics();
         profile = ItemProfileClassifier.classify(category, stats);
+    }
+
+    @PostLoad
+    void validateStatistics() {
+        ItemBaseStatRules.validate(getId(), stats);
     }
 }

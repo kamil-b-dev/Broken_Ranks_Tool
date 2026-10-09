@@ -3,13 +3,13 @@ import { describe, expect, it, vi } from "vitest";
 import { useBuildFileActions } from "./useBuildFileActions";
 
 describe("useBuildFileActions", () => {
-    it("reports successful export and allows dismissing its notice", () => {
-        const saveBuildToFile = vi.fn();
-        const { result } = renderHook(() =>
-            useBuildFileActions({ saveBuildToFile, loadBuildFromFile: vi.fn() })
-        );
-        act(() => result.current.saveBuild());
-        expect(saveBuildToFile).toHaveBeenCalledOnce();
+    it("reports successful import and allows dismissing its notice", async () => {
+        const loadBuildFromFile = vi.fn().mockResolvedValue(null);
+        const { result } = renderHook(() => useBuildFileActions({ loadBuildFromFile }));
+        const file = new File(["{}"], "build.json");
+        const target = { files: [file], value: "build.json" };
+        await act(() => result.current.loadBuild({ target }));
+        expect(loadBuildFromFile).toHaveBeenCalledWith(file);
         expect(result.current.notice).toMatchObject({ type: "success" });
         act(() => result.current.dismissNotice());
         expect(result.current.notice).toBeNull();
@@ -17,9 +17,7 @@ describe("useBuildFileActions", () => {
 
     it("reports import failures and clears the file input value", async () => {
         const loadBuildFromFile = vi.fn().mockRejectedValue(new Error("uszkodzony plik"));
-        const { result } = renderHook(() =>
-            useBuildFileActions({ saveBuildToFile: vi.fn(), loadBuildFromFile })
-        );
+        const { result } = renderHook(() => useBuildFileActions({ loadBuildFromFile }));
         const target = { files: [new File(["{}"], "build.json")], value: "build.json" };
         await act(() => result.current.loadBuild({ target }));
         expect(result.current.notice).toEqual({

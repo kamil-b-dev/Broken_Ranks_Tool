@@ -1,11 +1,13 @@
 package pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.input;
 
-import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
@@ -17,6 +19,27 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.Or
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.input.EquipmentDataProvider.CalculationContext;
 
 class EquipmentDataProviderTests {
+
+    @Test
+    void calculationContextOwnsReadOnlyMapsAndSharesRunScopedTemplates() {
+        ItemTemplate item = ItemTemplate.builder().id(1L).build();
+        OrbTemplate orb = OrbTemplate.builder().id(2L).build();
+        DrifTemplate drif = DrifTemplate.builder().id(3L).build();
+        var items = new LinkedHashMap<>(Map.of(1L, item));
+        var orbs = new LinkedHashMap<>(Map.of(2L, orb));
+        var drifs = new LinkedHashMap<>(Map.of(3L, drif));
+        CalculationContext context = new CalculationContext(items, orbs, drifs);
+        items.clear();
+        orbs.clear();
+        drifs.clear();
+
+        assertSame(item, context.items().get(1L));
+        assertSame(orb, context.orbs().get(2L));
+        assertSame(drif, context.drifs().get(3L));
+        assertThrows(UnsupportedOperationException.class, () -> context.items().clear());
+        assertThrows(UnsupportedOperationException.class, () -> context.orbs().put(4L, orb));
+        assertThrows(UnsupportedOperationException.class, () -> context.drifs().remove(3L));
+    }
 
     @Test
     void loadsDistinctRequestedTemplatesInThreeBatches() {

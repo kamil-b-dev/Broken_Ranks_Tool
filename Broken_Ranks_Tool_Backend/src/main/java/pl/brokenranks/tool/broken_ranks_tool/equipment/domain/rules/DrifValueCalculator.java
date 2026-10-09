@@ -9,27 +9,15 @@ import org.springframework.stereotype.Component;
 public class DrifValueCalculator {
 
     public String calculate(String baseValue, String incrementValue, int level) {
-        if (baseValue == null || incrementValue == null) return "0";
+        BigDecimal total = ModifierNumbers.decimal(baseValue, "drif.baseValue");
+        BigDecimal increment = ModifierNumbers.decimal(incrementValue, "drif.increment");
         boolean percentage = baseValue.contains("%") || incrementValue.contains("%");
-        try {
-            BigDecimal total = parse(baseValue);
-            BigDecimal increment = parse(incrementValue);
-            for (int currentLevel = 2; currentLevel <= level; currentLevel++) {
-                total =
-                        total.add(
-                                currentLevel >= 19
-                                        ? increment.multiply(BigDecimal.TWO)
-                                        : increment);
-            }
-            String result =
-                    total.setScale(2, RoundingMode.HALF_UP).stripTrailingZeros().toPlainString();
-            return percentage ? result + "%" : result;
-        } catch (NumberFormatException exception) {
-            return "0";
+        for (int currentLevel = 2; currentLevel <= level; currentLevel++) {
+            total = total.add(currentLevel >= 19 ? increment.multiply(BigDecimal.TWO) : increment);
         }
-    }
-
-    private BigDecimal parse(String value) {
-        return new BigDecimal(value.replace(",", ".").replace("%", "").trim());
+        ModifierNumbers.finite(total.doubleValue(), "wynik drifa");
+        String result =
+                total.setScale(2, RoundingMode.HALF_UP).stripTrailingZeros().toPlainString();
+        return percentage ? result + "%" : result;
     }
 }

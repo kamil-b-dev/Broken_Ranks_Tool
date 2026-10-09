@@ -1,13 +1,13 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.reference;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.BuildState;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationContext;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.Placement;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 /** Restores an exported optimizer build as a CP-SAT starting hint. */
 @RequiredArgsConstructor
@@ -46,7 +46,7 @@ public final class BuildStateJsonHintLoader {
                 }
             }
             while (placements.size() < slot.maxDrifs()) placements.add(null);
-            result.slots().put(slot.key(), placements);
+            result.putSlot(slot.key(), placements);
         }
         return result;
     }

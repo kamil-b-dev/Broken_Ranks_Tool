@@ -1,6 +1,6 @@
 import React from "react";
 import { useGearSlot } from "./useGearSlot.js";
-import { useEquipment } from "../../../shared/state/EquipmentContext";
+import { useEquipmentLocksState } from "../../../shared/state/EquipmentContext";
 import ItemSection from "./ItemSection.jsx";
 import OrbSection from "./OrbSection.jsx";
 import DrifSection from "./DrifSection.jsx";
@@ -46,19 +46,19 @@ const GearSlot = (props) => {
         groupedOrbs2,
     } = hookData;
 
-    const { lockedSlots, toggleSlotLock } = useEquipment();
+    const { lockedSlots, toggleSlotLock } = useEquipmentLocksState();
 
     const isSlotLocked = lockedSlots?.includes(slotKey) || false;
 
     if (!gameRules)
         return (
-            <div className="w-64 p-3 text-xs text-stone-500 font-serif text-center border border-stone-800 bg-black">
+            <div className="w-64 p-3 text-xs text-stone-500 font-serif text-center border border-stone-800 optimizer-info-divider bg-black">
                 Ładowanie reguł...
             </div>
         );
 
-    const slotClasses = `gear-slot-editor ${expanded ? "gear-slot-editor-expanded" : "w-64"} flex flex-col items-center gap-3 p-4 bg-linear-to-b from-stone-900/95 to-black transition-all duration-200 border-2 relative overflow-hidden shadow-[inset_0_0_20px_rgba(0,0,0,0.9),0_0_15px_rgba(0,0,0,0.8)] hover:border-rose-700
-        ${isOverCapacity ? "border-red-600 shadow-[inset_0_0_40px_rgba(153,27,27,0.4),0_0_20px_rgba(153,27,27,0.6)]" : "border-rose-900/80"}
+    const slotClasses = `gear-slot-editor ${expanded ? "gear-slot-editor-expanded" : "w-64"} flex flex-col items-center gap-3 p-4 bg-linear-to-b from-stone-900/95 to-black transition-all duration-200 border-2 relative overflow-hidden shadow-[inset_0_0_20px_rgba(0,0,0,0.9),0_0_15px_rgba(0,0,0,0.8)] hover:border-rose-700 builder-accent-frame
+        ${isOverCapacity ? "border-red-600 optimizer-lock-frame shadow-[inset_0_0_40px_rgba(153,27,27,0.4),0_0_20px_rgba(153,27,27,0.6)]" : "border-rose-900/80 builder-accent-frame"}
         ${isSlotLocked ? "opacity-90 grayscale-[0.3]" : ""}`;
 
     return (
@@ -72,7 +72,7 @@ const GearSlot = (props) => {
                     <button
                         onClick={() => toggleSlotLock(slotKey)}
                         type="button"
-                        className={`transition-colors p-1 rounded-xs ${isSlotLocked ? "text-red-500 hover:text-red-400 bg-red-950/40 border border-red-900/50" : "text-stone-600 hover:text-stone-300"}`}
+                        className={`transition-colors p-1 rounded-xs ${isSlotLocked ? "text-red-500 optimizer-lock-text hover:text-red-400 bg-red-950/40 optimizer-lock-surface border border-red-900/50 optimizer-lock-frame" : "text-stone-600 hover:text-stone-300"}`}
                         title={isSlotLocked ? "Odblokuj slot" : "Zablokuj slot w optymalizatorze"}
                     >
                         {isSlotLocked ? (
@@ -117,7 +117,7 @@ const GearSlot = (props) => {
             </div>
 
             <div className="gear-slot-orb-section w-full flex flex-col items-center mt-1">
-                <span className="text-[10px] font-serif font-bold text-rose-800/80 uppercase tracking-widest mb-1 pointer-events-none drop-shadow-md">
+                <span className="text-[10px] font-serif font-bold text-rose-800/80 builder-accent-text uppercase tracking-widest mb-1 pointer-events-none drop-shadow-md">
                     Orb
                 </span>
                 <OrbSection

@@ -42,19 +42,6 @@ final class OptimizationSlotContextFactory {
                 Comparator.comparingDouble(SlotContext::drifBonus)
                         .reversed()
                         .thenComparing(SlotContext::key));
-        slots.forEach(
-                slot ->
-                        slot.candidates()
-                                .sort(
-                                        Comparator.comparing(
-                                                        (DrifTemplate drif) ->
-                                                                request.getPriorities()
-                                                                        .getOrDefault(
-                                                                                drif.getBonusType(),
-                                                                                0),
-                                                        Comparator.reverseOrder())
-                                                .thenComparing(drif -> drif.getBonusType().name())
-                                                .thenComparing(DrifTemplate::getId)));
         return slots;
     }
 
@@ -116,6 +103,14 @@ final class OptimizationSlotContextFactory {
                                 java.util.LinkedHashMap::new))
                 .values()
                 .stream()
+                .sorted(
+                        Comparator.comparing(
+                                        (DrifTemplate drif) ->
+                                                request.getPriorities()
+                                                        .getOrDefault(drif.getBonusType(), 0),
+                                        Comparator.reverseOrder())
+                                .thenComparing(drif -> drif.getBonusType().name())
+                                .thenComparing(DrifTemplate::getId))
                 .collect(Collectors.toCollection(ArrayList::new));
     }
 

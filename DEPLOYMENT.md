@@ -6,7 +6,7 @@ required while the application does not persist user data.
 
 ## Prerequisites
 
-- Node.js 22 or newer
+- Node.js 22.13 or newer (Vite requires at least 22.12; the root ESLint requires 22.13)
 - Docker Desktop for the local smoke test
 - Railway CLI 5.42.1 or newer
 - access to `kamil-b-dev/Broken_Ranks_Tool` in Railway
@@ -20,8 +20,9 @@ Run the complete container smoke test from the repository root:
 ```
 
 The test builds the image, starts it with a 1 GB memory limit, checks readiness, frontend and
-initial data, runs a full optimization, and verifies that an overlapping optimization receives
-HTTP 429.
+initial data, runs an optimization, and checks that its setup passes the calculator with matching
+statistics. Overlapping requests and HTTP 429 are covered separately by backend tests and the
+real-backend Playwright integration suite.
 
 ## Create or update Railway infrastructure
 
@@ -62,6 +63,19 @@ Configure settings that are scoped to the Railway workspace and billing account 
 In the GitHub repository settings, enable private vulnerability reporting before making the
 application public. This is a repository setting, independent of Railway.
 
+Dependency security checks run on every pull request and push to `dev` or `master`, in merge
+queues, and daily even without code changes. Keep these checks required in the branch rules:
+`Audit backend dependencies / osv-scan`, `Scan production container`, `Audit frontend dependencies`, and
+`Audit infrastructure dependencies`, alongside the quality checks. Do not bypass failed scans.
+
+Dependabot checks Maven dependencies daily on both `dev` and the default branch, including the
+Spring Boot parent and explicit Jackson BOM/Tomcat security overrides. Minor and patch updates
+are grouped; major updates get separate pull requests so compatibility changes are tested.
+Enable the dependency graph, Dependabot alerts, and Dependabot security updates in GitHub's
+repository settings; these settings are separate from `.github/dependabot.yml`. Merge tested
+updates into `dev` promptly and keep the default branch aligned. New CVEs can still require a
+new update; a past successful scan does not guarantee future scanner results.
+
 ## Runtime safeguards
 
 The application reads Railway's injected `PORT`. The versioned catalog database from
@@ -72,6 +86,10 @@ The production JDBC URL opens this catalogue in read-only mode. The image stores
 directory, JAR, catalogue directory, and database without write permission and assigns them to root.
 Treat a startup failure caused by a write attempt as a defect instead of making these paths
 writable; the JVM can still use the container's temporary directory.
+SQLite JDBC loads its native shared library from the JVM temporary directory. When running
+with a read-only root filesystem and a tmpfs at `/tmp`, explicitly use
+`--tmpfs /tmp:rw,exec,nosuid,size=128m`; Docker's default `noexec` tmpfs prevents this library
+from loading. The catalogue and application paths remain read-only.
 
 Public calculation endpoints are protected by per-client and whole-instance, one-minute request
 limits. The checked-in Railway configuration initially uses the global allowance as the client

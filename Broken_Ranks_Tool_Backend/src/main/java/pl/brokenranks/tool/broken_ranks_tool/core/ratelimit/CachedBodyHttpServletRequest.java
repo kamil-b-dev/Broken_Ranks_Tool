@@ -11,11 +11,13 @@ import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /** Replays an already size-checked request body for downstream JSON parsing. */
 final class CachedBodyHttpServletRequest extends HttpServletRequestWrapper {
 
     private final byte[] body;
+    private final AtomicBoolean listenerRegistered = new AtomicBoolean();
 
     CachedBodyHttpServletRequest(HttpServletRequest request, byte[] body) {
         super(request);
@@ -24,7 +26,7 @@ final class CachedBodyHttpServletRequest extends HttpServletRequestWrapper {
 
     @Override
     public ServletInputStream getInputStream() {
-        return new CachedBodyServletInputStream(body);
+        return new CachedBodyServletInputStream(body, this, listenerRegistered);
     }
 
     @Override
@@ -54,9 +56,18 @@ final class CachedBodyHttpServletRequest extends HttpServletRequestWrapper {
     private static final class CachedBodyServletInputStream extends ServletInputStream {
 
         private final ByteArrayInputStream input;
+        private final HttpServletRequest request;
+        private final AtomicBoolean listenerRegistered;
+        private final AtomicBoolean completionScheduled = new AtomicBoolean();
+        private ReadListener listener;
+        private volatile boolean notifyingData;
+        private volatile boolean failed;
 
-        private CachedBodyServletInputStream(byte[] body) {
+        private CachedBodyServletInputStream(
+                byte[] body, HttpServletRequest request, AtomicBoolean listenerRegistered) {
             input = new ByteArrayInputStream(body);
+            this.request = request;
+            this.listenerRegistered = listenerRegistered;
         }
 
         @Override
@@ -72,22 +83,59 @@ final class CachedBodyHttpServletRequest extends HttpServletRequestWrapper {
         @Override
         public void setReadListener(ReadListener readListener) {
             Objects.requireNonNull(readListener, "readListener");
-            try {
-                if (!isFinished()) readListener.onDataAvailable();
-                if (isFinished()) readListener.onAllDataRead();
-            } catch (IOException exception) {
-                readListener.onError(exception);
-            }
+            if (!request.isAsyncStarted())
+                throw new IllegalStateException(
+                        "Non-blocking reads require an active asynchronous request");
+            if (!listenerRegistered.compareAndSet(false, true))
+                throw new IllegalStateException(
+                        "A read listener is already registered for this request");
+            listener = readListener;
+            notifyingData = true;
+            request.getAsyncContext()
+                    .start(
+                            () -> {
+                                try {
+                                    if (!isFinished()) listener.onDataAvailable();
+                                } catch (IOException | RuntimeException exception) {
+                                    failed = true;
+                                    listener.onError(exception);
+                                } finally {
+                                    notifyingData = false;
+                                    notifyCompletion();
+                                }
+                            });
         }
 
         @Override
         public int read() {
-            return input.read();
+            int value = input.read();
+            notifyCompletion();
+            return value;
         }
 
         @Override
         public int read(byte[] bytes, int offset, int length) {
-            return input.read(bytes, offset, length);
+            int count = input.read(bytes, offset, length);
+            notifyCompletion();
+            return count;
+        }
+
+        private void notifyCompletion() {
+            if (listener == null
+                    || notifyingData
+                    || failed
+                    || !isFinished()
+                    || !completionScheduled.compareAndSet(false, true)) return;
+            request.getAsyncContext()
+                    .start(
+                            () -> {
+                                try {
+                                    listener.onAllDataRead();
+                                } catch (IOException | RuntimeException exception) {
+                                    failed = true;
+                                    listener.onError(exception);
+                                }
+                            });
         }
     }
 }

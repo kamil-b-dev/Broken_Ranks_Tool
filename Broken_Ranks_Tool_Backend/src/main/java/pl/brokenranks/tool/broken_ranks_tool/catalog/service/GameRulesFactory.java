@@ -29,8 +29,7 @@ public class GameRulesFactory {
                 EquipmentRulesRegistry.EPIC_BUILTIN_DRIFS,
                 rulesRegistry.getSlotOrbRules(),
                 bonusTranslations(),
-                Arrays.stream(DRIF_BONUS_TYPE.values())
-                        .collect(Collectors.toMap(Enum::name, DRIF_BONUS_TYPE::getBasePower)),
+                drifBasePowers(),
                 maxCaps,
                 drifs.stream()
                         .filter(drif -> drif.getBonusType() != null && drif.getCategory() != null)
@@ -43,6 +42,20 @@ public class GameRulesFactory {
                 IntStream.rangeClosed(1, 12)
                         .boxed()
                         .collect(Collectors.toMap(count -> count, rulesRegistry::getDrifPenalty)));
+    }
+
+    public Map<String, Object> createPublicRules() {
+        return Map.of(
+                "bonusTranslations", bonusTranslations(),
+                "drifBasePowers", drifBasePowers(),
+                "slotOrbRules", rulesRegistry.getSlotOrbRules(),
+                "elementalTypes", rulesRegistry.getElementalDamageTypes(),
+                "epicBuiltInDrifs", EquipmentRulesRegistry.EPIC_BUILTIN_DRIFS);
+    }
+
+    private Map<String, Integer> drifBasePowers() {
+        return Arrays.stream(DRIF_BONUS_TYPE.values())
+                .collect(Collectors.toMap(Enum::name, DRIF_BONUS_TYPE::getBasePower));
     }
 
     private Map<String, String> bonusTranslations() {

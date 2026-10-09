@@ -12,6 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import pl.brokenranks.tool.broken_ranks_tool.catalog.dto.ItemTemplateDto;
 import pl.brokenranks.tool.broken_ranks_tool.catalog.dto.OrbTemplateDto;
+import pl.brokenranks.tool.broken_ranks_tool.catalog.service.GameRulesFactory;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_CATEGORY;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ITEM_CATEGORY;
@@ -92,7 +93,8 @@ class CatalogControllersTests {
     void exposesCompleteLegacyRulesContract() {
         EquipmentRulesRegistry registry = new EquipmentRulesRegistry();
 
-        Map<String, Object> response = new RulesController(registry).getGameRules().getBody();
+        Map<String, Object> response =
+                new RulesController(new GameRulesFactory(registry)).getGameRules().getBody();
 
         assertThat(response)
                 .containsKeys(

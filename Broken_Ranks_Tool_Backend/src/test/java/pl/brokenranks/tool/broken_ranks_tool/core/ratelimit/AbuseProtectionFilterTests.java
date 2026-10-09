@@ -12,7 +12,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
@@ -20,7 +19,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -270,7 +269,8 @@ class AbuseProtectionFilterTests {
         AbuseProtectionProperties.Limit limit = new AbuseProtectionProperties.Limit(2, 10);
         AbuseProtectionProperties properties =
                 new AbuseProtectionProperties(256, limit, limit, limit, limit);
-        return new AbuseProtectionFilter(properties, new RequestRateLimiter(), new ObjectMapper());
+        return new AbuseProtectionFilter(
+                properties, new RequestRateLimiter(), new tools.jackson.databind.json.JsonMapper());
     }
 
     private HttpServletRequest unknownLengthRequest(byte[] content) {

@@ -1,4 +1,3 @@
-import React from "react";
 import {
     DRIF_MULTIPLIERS,
     getDrifMaxLevel,
@@ -85,11 +84,11 @@ const StandardDrifSlot = ({
     const currentCategory = current?.category || grouped[currentType]?.[0]?.category;
     const maximumLevel = current ? getDrifMaxLevel(current.size) : 21;
     const borderClass = locked
-        ? "border-red-900/60 bg-red-950/10"
+        ? "border-red-900/60 optimizer-lock-frame bg-red-950/10 optimizer-lock-surface"
         : dragActive
           ? "border-amber-800/50 bg-amber-950/20"
-          : "border-rose-900/70";
-    const selectClass = `${locked ? "cursor-not-allowed border-red-900/50" : "border-rose-900/70 focus:border-rose-500 cursor-pointer"} ${overCapacity && !locked ? "border-red-500/80" : ""}`;
+          : "border-rose-900/70 builder-accent-frame";
+    const selectClass = `${locked ? "cursor-not-allowed border-red-900/50 optimizer-lock-frame" : "border-rose-900/70 builder-accent-frame focus:border-rose-500 cursor-pointer"} ${overCapacity && !locked ? "border-red-500/80 optimizer-lock-frame" : ""}`;
 
     return (
         <div
@@ -194,7 +193,7 @@ const StandardDrifSlot = ({
                     onClick={onToggleLock}
                     type="button"
                     disabled={parentLocked || !drifId}
-                    className={`p-1 flex-[0.5] flex justify-center items-center transition-colors ${locked ? "text-red-500 hover:text-red-400" : "text-stone-700 hover:text-stone-400"} ${parentLocked || !drifId ? "opacity-30 cursor-not-allowed" : "cursor-pointer"}`}
+                    className={`p-1 flex-[0.5] flex justify-center items-center transition-colors ${locked ? "text-red-500 optimizer-lock-text hover:text-red-400 " : "text-stone-700 hover:text-stone-400"} ${parentLocked || !drifId ? "opacity-30 cursor-not-allowed" : "cursor-pointer"}`}
                     title={locked ? "Odblokuj drif" : "Zablokuj drif w optymalizatorze"}
                 >
                     <LockIcon locked={locked} />

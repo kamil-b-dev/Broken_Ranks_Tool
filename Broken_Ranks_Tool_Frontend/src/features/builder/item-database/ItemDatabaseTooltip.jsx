@@ -5,7 +5,7 @@ const ItemStats = ({ item }) =>
         Object.entries(item.stats).map(([name, value]) => (
             <div
                 key={name}
-                className="flex justify-between text-xs my-1 border-b border-stone-800/50 pb-1"
+                className="flex justify-between text-xs my-1 border-b border-stone-800/50 optimizer-info-divider pb-1"
             >
                 <span className="text-stone-400 font-serif uppercase tracking-wider">{name}</span>
                 <span className="text-stone-300 font-bold font-serif">+{value}</span>
@@ -17,18 +17,18 @@ const ItemStats = ({ item }) =>
 
 const DrifDetails = ({ item, basePowers }) => (
     <div className="flex flex-col gap-1.5 text-xs font-serif mt-2">
-        <div className="flex justify-between border-b border-stone-800/50 pb-1">
+        <div className="flex justify-between border-b border-stone-800/50 optimizer-info-divider pb-1">
             <span className="text-stone-500">Wartość bazowa:</span>
             <span className="text-stone-300 font-bold">{item.baseValue || "?"}</span>
         </div>
-        <div className="flex justify-between border-b border-stone-800/50 pb-1">
+        <div className="flex justify-between border-b border-stone-800/50 optimizer-info-divider pb-1">
             <span className="text-stone-500">Przyrost co lvl:</span>
             <span className="text-orange-500 font-bold">{item.increment || "?"}</span>
         </div>
         <div className="text-[10px] text-orange-600/70 italic mb-2 text-right">
             Arcydrif (19-21 lvl): przyrost x2 ({doubleIncrement(item.increment)})
         </div>
-        <div className="flex justify-between mb-2 pb-1 border-b-2 border-double border-rose-900/30">
+        <div className="flex justify-between mb-2 pb-1 border-b-2 border-double border-rose-900/30 builder-accent-frame">
             <span className="text-stone-500">Potęga bazowa:</span>
             <span className="text-orange-400 font-bold">
                 {basePowers[item.bonusType] || "?"} pkt
@@ -56,13 +56,13 @@ const DrifDetails = ({ item, basePowers }) => (
 const OrbDetails = ({ item }) => (
     <div className="flex flex-col gap-1.5 text-xs font-serif mt-2">
         {[
-            [1, "text-rose-700"],
-            [2, "text-rose-600"],
-            [3, "text-rose-500"],
+            [1, "text-rose-700 builder-accent-text"],
+            [2, "text-rose-600 builder-accent-text"],
+            [3, "text-rose-500 builder-accent-text"],
         ].map(([level, color]) => (
             <div
                 key={level}
-                className={`flex justify-between ${level === 3 ? "mb-2 pb-2 border-b-2 border-double border-rose-900/30" : "border-b border-stone-800/50 pb-1"}`}
+                className={`flex justify-between ${level === 3 ? "mb-2 pb-2 border-b-2 border-double border-rose-900/30 builder-accent-frame" : "border-b border-stone-800/50 optimizer-info-divider pb-1"}`}
             >
                 <span className="text-stone-500">Bonus Lvl {level}:</span>
                 <span className={`${color} font-bold`}>{item[`bonusLvl${level}`] || "?"}</span>
@@ -74,15 +74,17 @@ const OrbDetails = ({ item }) => (
     </div>
 );
 
-const ItemDatabaseTooltip = ({ tooltip, bonusTranslations, drifBasePowers }) => {
+const ItemDatabaseTooltip = ({ tooltip, bonusTranslations, drifBasePowers, id }) => {
     if (!tooltip.show || !tooltip.item) return null;
     const { item, type } = tooltip;
     return (
         <div
+            id={id}
+            role="tooltip"
             style={{ top: tooltip.y, left: tooltip.x }}
             className="fixed z-50 bg-linear-to-b from-stone-900 to-black border border-stone-700 p-4 shadow-[0_0_20px_rgba(0,0,0,1)] pointer-events-none w-64"
         >
-            <div className="flex justify-between items-start border-b-2 border-double border-rose-900/50 pb-2 mb-2">
+            <div className="flex justify-between items-start border-b-2 border-double border-rose-900/50 builder-accent-frame pb-2 mb-2">
                 <h4
                     className={`text-base font-serif tracking-wide ${type === "items" ? getRarityColor(item.rarity) : `font-bold bg-clip-text text-transparent bg-linear-to-r ${type === "orbs" ? "from-red-400 to-rose-600" : "from-orange-400 to-amber-600"}`}`}
                 >
@@ -99,7 +101,7 @@ const ItemDatabaseTooltip = ({ tooltip, bonusTranslations, drifBasePowers }) => 
                 </h4>
                 {(item.tier || item.size) && (
                     <span
-                        className={`text-xs font-serif font-bold mt-1 ml-2 ${type === "orbs" ? "text-rose-800" : "text-orange-600"}`}
+                        className={`text-xs font-serif font-bold mt-1 ml-2 ${type === "orbs" ? "text-rose-800 builder-accent-text" : "text-orange-600"}`}
                     >
                         {item.tier || item.size}
                     </span>

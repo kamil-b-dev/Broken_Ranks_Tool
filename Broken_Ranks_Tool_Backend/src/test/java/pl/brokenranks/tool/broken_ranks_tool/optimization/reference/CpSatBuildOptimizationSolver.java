@@ -2,18 +2,15 @@ package pl.brokenranks.tool.broken_ranks_tool.optimization.reference;
 
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.DrifOptimizationMath.calculateDrifValue;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.DrifOptimizationMath.power;
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationRequestConstraints.isMaximized;
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationRequestConstraints.targetFor;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationRequestConstraints.directedValue;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.reference.CpSatModel.*;
 
 import com.google.ortools.Loader;
 import com.google.ortools.sat.BoolVar;
 import com.google.ortools.sat.CpModel;
 import com.google.ortools.sat.CpSolver;
 import com.google.ortools.sat.CpSolverStatus;
-import com.google.ortools.sat.IntVar;
 import com.google.ortools.sat.LinearArgument;
-import com.google.ortools.sat.LinearExpr;
-import com.google.ortools.sat.Literal;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -22,7 +19,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_SIZE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRulesRegistry;
@@ -35,12 +31,6 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.SlotConte
 
 /** Development-only CP-SAT oracle for complete build-from-scratch configurations. */
 public final class CpSatBuildOptimizationSolver {
-    private static final long VALUE_SCALE = 100_000L;
-    private static final long PENALTY_SCALE = 100L;
-    private static final long PROGRESS_SCALE = 1_000_000L;
-    private static final long MAX_PROGRESS = PROGRESS_SCALE * 1_000L;
-    private static final long VALUE_BOUND = 10_000_000_000L;
-
     public enum Status {
         OPTIMAL,
         NO_BETTER_PROVEN,
@@ -86,19 +76,7 @@ public final class CpSatBuildOptimizationSolver {
 
     public record SlotCount(DRIF_BONUS_TYPE type, String slot) {}
 
-    private record Choice(SlotContext slot, Placement placement, BoolVar selected, long value) {}
-
-    private record Outcome(DRIF_BONUS_TYPE type, DRIF_SIZE size, int power, long value) {}
-
-    private record Objective(
-            LinearArgument expression,
-            boolean maximize,
-            List<LinearArgument> directProofComponents) {
-        private Objective(LinearArgument expression, boolean maximize) {
-            this(expression, maximize, List.of());
-        }
-    }
-
+    private final CpSatObjectiveModel objectivesModel;
     private final EquipmentRulesRegistry rules;
     private final OptimizationInitialStateFactory initialStates;
     private final OptimizationStateEvaluator evaluator;
@@ -107,6 +85,7 @@ public final class CpSatBuildOptimizationSolver {
             EquipmentRulesRegistry rules,
             OptimizationInitialStateFactory initialStates,
             OptimizationStateEvaluator evaluator) {
+        this.objectivesModel = new CpSatObjectiveModel(rules, evaluator);
         this.rules = rules;
         this.initialStates = initialStates;
         this.evaluator = evaluator;
@@ -132,17 +111,14 @@ public final class CpSatBuildOptimizationSolver {
             List<Long> provenObjectivePrefix) {
         return solve(
                 context,
-                limit,
-                hint,
-                provenObjectivePrefix,
-                Map.of(),
-                Integer.MAX_VALUE,
-                null,
-                null,
-                objectivePlan,
-                null,
-                Map.of(),
-                Map.of());
+                new SolveOptions(
+                        limit,
+                        hint,
+                        provenObjectivePrefix,
+                        new CountConstraints(Map.of(), Map.of(), Map.of(), null),
+                        Integer.MAX_VALUE,
+                        new ProofTarget(null, null),
+                        objectivePlan));
     }
 
     public Result solve(
@@ -171,17 +147,14 @@ public final class CpSatBuildOptimizationSolver {
             int objectiveLimit) {
         return solve(
                 context,
-                limit,
-                hint,
-                provenObjectivePrefix,
-                fixedCounts,
-                objectiveLimit,
-                null,
-                null,
-                null,
-                null,
-                Map.of(),
-                Map.of());
+                new SolveOptions(
+                        limit,
+                        hint,
+                        provenObjectivePrefix,
+                        new CountConstraints(fixedCounts, Map.of(), Map.of(), null),
+                        objectiveLimit,
+                        new ProofTarget(null, null),
+                        null));
     }
 
     public Result proveNoBetter(
@@ -193,17 +166,14 @@ public final class CpSatBuildOptimizationSolver {
             long incumbent) {
         return solve(
                 context,
-                limit,
-                hint,
-                provenObjectivePrefix,
-                Map.of(),
-                7,
-                objectiveIndex,
-                incumbent,
-                null,
-                null,
-                Map.of(),
-                Map.of());
+                new SolveOptions(
+                        limit,
+                        hint,
+                        provenObjectivePrefix,
+                        new CountConstraints(Map.of(), Map.of(), Map.of(), null),
+                        7,
+                        new ProofTarget(objectiveIndex, incumbent),
+                        null));
     }
 
     public Result proveNoBetter(
@@ -216,17 +186,14 @@ public final class CpSatBuildOptimizationSolver {
             ObjectivePlan objectivePlan) {
         return solve(
                 context,
-                limit,
-                hint,
-                provenObjectivePrefix,
-                Map.of(),
-                Integer.MAX_VALUE,
-                objectiveIndex,
-                incumbent,
-                objectivePlan,
-                null,
-                Map.of(),
-                Map.of());
+                new SolveOptions(
+                        limit,
+                        hint,
+                        provenObjectivePrefix,
+                        new CountConstraints(Map.of(), Map.of(), Map.of(), null),
+                        Integer.MAX_VALUE,
+                        new ProofTarget(objectiveIndex, incumbent),
+                        objectivePlan));
     }
 
     /**
@@ -265,12 +232,16 @@ public final class CpSatBuildOptimizationSolver {
                                                     .mapToLong(
                                                             level ->
                                                                     scaled(
-                                                                            calculateDrifValue(
-                                                                                            drif,
-                                                                                            level)
-                                                                                    * (1.0
-                                                                                            + slot
-                                                                                                    .drifBonus()))))
+                                                                            directedValue(
+                                                                                    type,
+                                                                                    calculateDrifValue(
+                                                                                                    drif,
+                                                                                                    level)
+                                                                                            * (1.0
+                                                                                                    + slot
+                                                                                                            .drifBonus()),
+                                                                                    context
+                                                                                            .request()))))
                             .max()
                             .orElse(Long.MIN_VALUE);
             if (best != Long.MIN_VALUE) bestSlotValues.add(best);
@@ -316,7 +287,7 @@ public final class CpSatBuildOptimizationSolver {
             model.addEquality(choice.selected(), selected ? 1 : 0);
         }
         List<Objective> objectives =
-                plannedObjectives(
+                objectivesModel.plannedObjectives(
                         model,
                         context,
                         fixed,
@@ -373,17 +344,14 @@ public final class CpSatBuildOptimizationSolver {
             ObjectivePlan objectivePlan) {
         return solve(
                 context,
-                limit,
-                hint,
-                provenObjectivePrefix,
-                fixedCounts,
-                Integer.MAX_VALUE,
-                objectiveIndex,
-                incumbent,
-                objectivePlan,
-                fixedTotalCount,
-                Map.of(),
-                Map.of());
+                new SolveOptions(
+                        limit,
+                        hint,
+                        provenObjectivePrefix,
+                        new CountConstraints(fixedCounts, Map.of(), Map.of(), fixedTotalCount),
+                        Integer.MAX_VALUE,
+                        new ProofTarget(objectiveIndex, incumbent),
+                        objectivePlan));
     }
 
     public Result proveNoBetter(
@@ -400,42 +368,54 @@ public final class CpSatBuildOptimizationSolver {
             ObjectivePlan objectivePlan) {
         return solve(
                 context,
-                limit,
-                hint,
-                provenObjectivePrefix,
-                fixedCounts,
-                Integer.MAX_VALUE,
-                objectiveIndex,
-                incumbent,
-                objectivePlan,
-                fixedTotalCount,
-                fixedSizeCounts,
-                fixedSlotCounts);
+                new SolveOptions(
+                        limit,
+                        hint,
+                        provenObjectivePrefix,
+                        new CountConstraints(
+                                fixedCounts, fixedSizeCounts, fixedSlotCounts, fixedTotalCount),
+                        Integer.MAX_VALUE,
+                        new ProofTarget(objectiveIndex, incumbent),
+                        objectivePlan));
     }
 
-    private Result solve(
-            OptimizationContext context,
+    private record CountConstraints(
+            Map<DRIF_BONUS_TYPE, Integer> bonuses,
+            Map<SizeCount, Integer> sizes,
+            Map<SlotCount, Integer> slots,
+            Integer total) {}
+
+    private record ProofTarget(Integer objectiveIndex, Long incumbent) {}
+
+    private record SolveOptions(
             Duration limit,
             BuildState hint,
-            List<Long> provenObjectivePrefix,
-            Map<DRIF_BONUS_TYPE, Integer> fixedCounts,
+            List<Long> provenPrefix,
+            CountConstraints counts,
             int objectiveLimit,
-            Integer proofObjectiveIndex,
-            Long proofIncumbent,
-            ObjectivePlan objectivePlan,
-            Integer fixedTotalCount,
-            Map<SizeCount, Integer> fixedSizeCounts,
-            Map<SlotCount, Integer> fixedSlotCounts) {
-        Loader.loadNativeLibraries();
-        long started = System.nanoTime();
-        long deadline = started + limit.toNanos();
+            ProofTarget proof,
+            ObjectivePlan plan) {}
+
+    private record PreparedModel(
+            CpModel model, BuildState fixed, List<Choice> choices, List<Objective> objectives) {}
+
+    private PreparedModel prepareModel(OptimizationContext context, SolveOptions options) {
+        BuildState hint = options.hint();
+        List<Long> provenObjectivePrefix = options.provenPrefix();
+        Map<DRIF_BONUS_TYPE, Integer> fixedCounts = options.counts().bonuses();
+        Map<SizeCount, Integer> fixedSizeCounts = options.counts().sizes();
+        Map<SlotCount, Integer> fixedSlotCounts = options.counts().slots();
+        Integer fixedTotalCount = options.counts().total();
+        int objectiveLimit = options.objectiveLimit();
+        Integer proofObjectiveIndex = options.proof().objectiveIndex();
+        ObjectivePlan objectivePlan = options.plan();
         CpModel model = new CpModel();
         BuildState fixed = initialStates.create(context);
         Map<DRIF_BONUS_TYPE, Integer> resolvedFixedCounts =
                 resolvedFixedCounts(context, fixedCounts);
         List<Choice> choices = createChoices(model, context, fixed, proofObjectiveIndex != null);
         addSlotConstraints(model, context, fixed, choices);
-        addEquivalentSlotSymmetryBreaking(model, context, fixed, choices);
+        addEquivalentSlotSymmetryBreaking(model, context, fixed, choices, fixedSlotCounts);
         addQuantityConstraints(model, context, fixed, choices);
         addFixedCounts(model, context, fixed, choices, resolvedFixedCounts);
         fixedSizeCounts.forEach(
@@ -454,8 +434,9 @@ public final class CpSatBuildOptimizationSolver {
                 proofObjectiveIndex == null ? objectiveLimit : proofObjectiveIndex + 1;
         List<Objective> objectives =
                 objectivePlan == null
-                        ? qualityObjectives(model, context, fixed, choices, resolvedFixedCounts)
-                        : plannedObjectives(
+                        ? objectivesModel.qualityObjectives(
+                                model, context, fixed, choices, resolvedFixedCounts)
+                        : objectivesModel.plannedObjectives(
                                 model,
                                 context,
                                 fixed,
@@ -471,6 +452,26 @@ public final class CpSatBuildOptimizationSolver {
         if (!validationError.isBlank()) {
             throw new IllegalStateException("Invalid CP-SAT model: " + validationError);
         }
+
+        return new PreparedModel(model, fixed, choices, objectives);
+    }
+
+    private Result solve(OptimizationContext context, SolveOptions options) {
+        Duration limit = options.limit();
+        BuildState hint = options.hint();
+        List<Long> provenObjectivePrefix = options.provenPrefix();
+        int objectiveLimit = options.objectiveLimit();
+        Integer proofObjectiveIndex = options.proof().objectiveIndex();
+        Long proofIncumbent = options.proof().incumbent();
+
+        Loader.loadNativeLibraries();
+        long started = System.nanoTime();
+        long deadline = started + limit.toNanos();
+        PreparedModel prepared = prepareModel(context, options);
+        CpModel model = prepared.model();
+        BuildState fixed = prepared.fixed();
+        List<Choice> choices = prepared.choices();
+        List<Objective> objectives = prepared.objectives();
 
         CpSolver solver = new CpSolver();
         List<Long> objectiveValues = new ArrayList<>(provenObjectivePrefix);
@@ -639,7 +640,13 @@ public final class CpSatBuildOptimizationSolver {
             for (var drif : slot.candidates()) {
                 for (int level : DRIF_SIZE.meaningfulLevels()) {
                     if (level > drif.getSize().getMaxLevel()) continue;
-                    long value = scaled(calculateDrifValue(drif, level) * (1.0 + slot.drifBonus()));
+                    long value =
+                            scaled(
+                                    directedValue(
+                                            drif.getBonusType(),
+                                            calculateDrifValue(drif, level)
+                                                    * (1.0 + slot.drifBonus()),
+                                            context.request()));
                     Placement placement = new Placement(drif, level, false);
                     unique.putIfAbsent(
                             new Outcome(
@@ -720,7 +727,11 @@ public final class CpSatBuildOptimizationSolver {
      * representative without removing any distinct build.
      */
     private void addEquivalentSlotSymmetryBreaking(
-            CpModel model, OptimizationContext context, BuildState fixed, List<Choice> choices) {
+            CpModel model,
+            OptimizationContext context,
+            BuildState fixed,
+            List<Choice> choices,
+            Map<SlotCount, Integer> fixedSlotCounts) {
         List<SlotContext> candidates =
                 context.slots().stream()
                         .filter(slot -> slot.optimizable() && !slot.special())
@@ -730,6 +741,15 @@ public final class CpSatBuildOptimizationSolver {
             SlotContext left = candidates.get(leftIndex);
             for (int rightIndex = leftIndex + 1; rightIndex < candidates.size(); rightIndex++) {
                 SlotContext right = candidates.get(rightIndex);
+                if (java.util.Arrays.stream(DRIF_BONUS_TYPE.values())
+                        .anyMatch(
+                                type ->
+                                        !Objects.equals(
+                                                fixedSlotCounts.get(
+                                                        new SlotCount(type, left.key())),
+                                                fixedSlotCounts.get(
+                                                        new SlotCount(type, right.key())))))
+                    continue;
                 if (!equivalentSlots(left, right, fixed, choices)) continue;
                 List<Choice> leftChoices = choicesFor(left, choices);
                 List<Choice> rightChoices = choicesFor(right, choices);
@@ -817,316 +837,6 @@ public final class CpSatBuildOptimizationSolver {
         if (!elemental.isEmpty()) model.addLessOrEqual(sum(elemental), 1 - constant);
     }
 
-    private List<Objective> qualityObjectives(
-            CpModel model,
-            OptimizationContext context,
-            BuildState fixed,
-            List<Choice> choices,
-            Map<DRIF_BONUS_TYPE, Integer> fixedCounts) {
-        Map<DRIF_BONUS_TYPE, IntVar> values = new EnumMap<>(DRIF_BONUS_TYPE.class);
-        Map<DRIF_BONUS_TYPE, IntVar> losses = new EnumMap<>(DRIF_BONUS_TYPE.class);
-        for (DRIF_BONUS_TYPE type : context.request().getPriorities().keySet()) {
-            values.put(
-                    type,
-                    penalizedValue(
-                            model, context, fixed, choices, type, true, fixedCounts.get(type)));
-            losses.put(
-                    type, penaltyLoss(model, context, fixed, choices, type, fixedCounts.get(type)));
-        }
-
-        List<LinearArgument> deficits = new ArrayList<>();
-        List<Long> deficitWeights = new ArrayList<>();
-        List<LinearArgument> utilities = new ArrayList<>();
-        List<Long> utilityWeights = new ArrayList<>();
-        List<LinearArgument> excesses = new ArrayList<>();
-        List<Long> excessWeights = new ArrayList<>();
-        List<IntVar> maximizedProgresses = new ArrayList<>();
-        List<Long> maximizedWeights = new ArrayList<>();
-        for (var entry : context.request().getPriorities().entrySet()) {
-            DRIF_BONUS_TYPE type = entry.getKey();
-            long weight = Math.max(1, entry.getValue() == null ? 1 : entry.getValue());
-            long baseline =
-                    scaled(context.calculatorBaseline().getOrDefault(type, 0.0)) * PENALTY_SCALE;
-            LinearArgument calculated = expr(List.of(values.get(type)), List.of(1L), baseline);
-            Double forcedTarget = targetFor(type, context.request());
-            long cap =
-                    (forcedTarget != null
-                                    ? scaled(forcedTarget)
-                                    : type.getMaxCap() != null
-                                            ? scaled(Math.abs(type.getMaxCap()))
-                                            : VALUE_BOUND / PENALTY_SCALE)
-                            * PENALTY_SCALE;
-            IntVar positive = model.newIntVar(0, VALUE_BOUND, "positive_" + type);
-            model.addMaxEquality(positive, new LinearArgument[] {calculated, model.newConstant(0)});
-            if (isMaximized(type, context.request())) {
-                long scale =
-                        Math.max(1L, scaled(evaluator.maximizationScale(type, context)))
-                                * PENALTY_SCALE;
-                IntVar progress = model.newIntVar(0, MAX_PROGRESS, "maximized_progress_" + type);
-                model.addLessOrEqual(
-                        LinearExpr.term(progress, scale),
-                        LinearExpr.term(positive, PROGRESS_SCALE));
-                maximizedProgresses.add(progress);
-                maximizedWeights.add(weight);
-            }
-            IntVar utility = model.newIntVar(0, cap, "utility_" + type);
-            model.addMinEquality(utility, new LinearArgument[] {positive, model.newConstant(cap)});
-            utilities.add(utility);
-            utilityWeights.add(weight);
-            if (forcedTarget != null) {
-                IntVar deficit = model.newIntVar(0, VALUE_BOUND, "deficit_" + type);
-                model.addMaxEquality(
-                        deficit,
-                        new LinearArgument[] {
-                            expr(List.of(values.get(type)), List.of(-1L), cap - baseline),
-                            model.newConstant(0)
-                        });
-                deficits.add(deficit);
-                deficitWeights.add(weight);
-            }
-            if (forcedTarget != null || type.getMaxCap() != null) {
-                IntVar excess = model.newIntVar(0, VALUE_BOUND, "excess_" + type);
-                model.addMaxEquality(
-                        excess,
-                        new LinearArgument[] {
-                            expr(List.of(values.get(type)), List.of(1L), baseline - cap),
-                            model.newConstant(0)
-                        });
-                excesses.add(excess);
-                excessWeights.add(weight);
-            }
-        }
-        LinearArgument deficit = weighted(deficits, deficitWeights);
-        IntVar minimumMaximizedProgress =
-                model.newIntVar(0, MAX_PROGRESS, "minimum_maximized_progress");
-        if (maximizedProgresses.isEmpty()) {
-            model.addEquality(minimumMaximizedProgress, 0);
-        } else {
-            maximizedProgresses.forEach(
-                    progress -> model.addLessOrEqual(minimumMaximizedProgress, progress));
-        }
-        LinearArgument maximizedUtility =
-                weighted(new ArrayList<>(maximizedProgresses), maximizedWeights);
-        LinearArgument utility = weighted(utilities, utilityWeights);
-        LinearArgument loss = LinearExpr.sum(losses.values().toArray(LinearArgument[]::new));
-        LinearArgument excess = weighted(excesses, excessWeights);
-        List<Choice> regular = choices;
-        LinearArgument usedPower =
-                weighted(
-                        regular,
-                        choice -> power(choice.placement().drif(), choice.placement().level()));
-        return List.of(
-                new Objective(deficit, false),
-                new Objective(minimumMaximizedProgress, true),
-                new Objective(maximizedUtility, true),
-                new Objective(utility, true),
-                new Objective(loss, false),
-                new Objective(excess, false),
-                new Objective(usedPower, true));
-    }
-
-    private List<Objective> plannedObjectives(
-            CpModel model,
-            OptimizationContext context,
-            BuildState fixed,
-            List<Choice> choices,
-            ObjectivePlan plan,
-            Map<DRIF_BONUS_TYPE, Integer> fixedCounts,
-            int requiredObjectiveCount) {
-        Map<DRIF_BONUS_TYPE, IntVar> calculatedValues = new EnumMap<>(DRIF_BONUS_TYPE.class);
-        Set<DRIF_BONUS_TYPE> requiredTypes = new java.util.LinkedHashSet<>();
-        requiredTypes.addAll(plan.minimumValues().keySet());
-        requiredTypes.addAll(plan.primaryMaximizationOrder());
-        plan.balancedCapGroups().forEach(requiredTypes::addAll);
-        requiredTypes.addAll(plan.secondaryMaximizationOrder());
-        for (DRIF_BONUS_TYPE type : requiredTypes) {
-            IntVar value =
-                    penalizedValue(
-                            model, context, fixed, choices, type, true, fixedCounts.get(type));
-            long baseline =
-                    scaled(context.calculatorBaseline().getOrDefault(type, 0.0)) * PENALTY_SCALE;
-            IntVar calculated = model.newIntVar(-VALUE_BOUND, VALUE_BOUND, "planned_value_" + type);
-            model.addEquality(calculated, expr(List.of(value), List.of(1L), baseline));
-            calculatedValues.put(type, calculated);
-        }
-        plan.minimumValues()
-                .forEach(
-                        (type, minimum) ->
-                                model.addGreaterOrEqual(
-                                        calculatedValues.get(type),
-                                        scaled(minimum) * PENALTY_SCALE));
-
-        List<Objective> result = new ArrayList<>();
-        for (DRIF_BONUS_TYPE type : plan.primaryMaximizationOrder()) {
-            if (result.size() >= requiredObjectiveCount) return result;
-            result.add(new Objective(calculatedValues.get(type), true));
-        }
-        for (List<DRIF_BONUS_TYPE> group : plan.balancedCapGroups()) {
-            if (result.size() >= requiredObjectiveCount) return result;
-            addBalancedCapObjectives(
-                    model, result, calculatedValues, group, requiredObjectiveCount);
-        }
-        for (DRIF_BONUS_TYPE type : plan.secondaryMaximizationOrder()) {
-            if (result.size() >= requiredObjectiveCount) return result;
-            result.add(new Objective(calculatedValues.get(type), true));
-        }
-        // An explicit plan is the complete lexicographic definition of optimum. Appending the
-        // generic quality objectives here made a domain optimum depend on undocumented internal
-        // tie-breakers and needlessly enlarged the proof.
-        return result;
-    }
-
-    private void addBalancedCapObjectives(
-            CpModel model,
-            List<Objective> objectives,
-            Map<DRIF_BONUS_TYPE, IntVar> calculatedValues,
-            List<DRIF_BONUS_TYPE> group,
-            int requiredObjectiveCount) {
-        if (group.isEmpty())
-            throw new IllegalArgumentException("Balanced cap group cannot be empty");
-        long commonCap =
-                group.stream()
-                        .map(DRIF_BONUS_TYPE::getMaxCap)
-                        .filter(Objects::nonNull)
-                        .mapToLong(cap -> Math.abs((long) cap))
-                        .reduce(1L, this::lcm);
-        List<LinearArgument> progresses = new ArrayList<>();
-        for (DRIF_BONUS_TYPE type : group) {
-            Integer configuredCap = type.getMaxCap();
-            if (configuredCap == null || configuredCap <= 0) {
-                throw new IllegalArgumentException(type + " needs a positive cap for balancing");
-            }
-            long cap = configuredCap.longValue();
-            long scaledCap = scaled(cap) * PENALTY_SCALE;
-            IntVar capped = model.newIntVar(0, scaledCap, "balanced_capped_" + type);
-            model.addMinEquality(
-                    capped,
-                    new LinearArgument[] {
-                        calculatedValues.get(type), model.newConstant(scaledCap)
-                    });
-            progresses.add(LinearExpr.term(capped, commonCap / cap));
-        }
-        long maximumProgress = scaled(commonCap) * PENALTY_SCALE;
-        IntVar minimumProgress =
-                model.newIntVar(0, maximumProgress, "balanced_minimum_" + objectives.size());
-        progresses.forEach(progress -> model.addLessOrEqual(minimumProgress, progress));
-        objectives.add(new Objective(minimumProgress, true, List.copyOf(progresses)));
-        if (objectives.size() < requiredObjectiveCount) {
-            objectives.add(
-                    new Objective(LinearExpr.sum(progresses.toArray(LinearArgument[]::new)), true));
-        }
-    }
-
-    private long lcm(long left, long right) {
-        return left / gcd(left, right) * right;
-    }
-
-    private long gcd(long left, long right) {
-        while (right != 0) {
-            long remainder = left % right;
-            left = right;
-            right = remainder;
-        }
-        return left;
-    }
-
-    private IntVar penalizedValue(
-            CpModel model,
-            OptimizationContext context,
-            BuildState fixed,
-            List<Choice> choices,
-            DRIF_BONUS_TYPE type,
-            boolean includeSpecial,
-            Integer fixedCount) {
-        long fixedRaw = rawValue(fixed, context, type, includeSpecial);
-        List<Choice> typed =
-                choices.stream()
-                        .filter(choice -> choice.placement().drif().getBonusType() == type)
-                        .toList();
-        IntVar raw =
-                model.newIntVar(-VALUE_BOUND, VALUE_BOUND, "raw_" + type + "_" + includeSpecial);
-        model.addEquality(
-                raw,
-                expr(
-                        typed.stream()
-                                .map(Choice::selected)
-                                .map(LinearArgument.class::cast)
-                                .toList(),
-                        typed.stream().map(Choice::value).toList(),
-                        fixedRaw));
-        long fixedPlacementCount = count(fixed, context, type, includeSpecial);
-        IntVar count = model.newIntVar(0, 12, "count_" + type + "_" + includeSpecial);
-        model.addEquality(count, countExpression(model, choices, type, null, fixedPlacementCount));
-        return penalize(model, raw, count, type + "_" + includeSpecial, false, fixedCount);
-    }
-
-    private IntVar penaltyLoss(
-            CpModel model,
-            OptimizationContext context,
-            BuildState fixed,
-            List<Choice> choices,
-            DRIF_BONUS_TYPE type,
-            Integer fixedCount) {
-        long fixedRaw = rawValue(fixed, context, type, false);
-        List<Choice> typed =
-                choices.stream()
-                        .filter(choice -> choice.placement().drif().getBonusType() == type)
-                        .toList();
-        IntVar raw = model.newIntVar(-VALUE_BOUND, VALUE_BOUND, "loss_raw_" + type);
-        model.addEquality(
-                raw,
-                expr(
-                        typed.stream()
-                                .map(Choice::selected)
-                                .map(LinearArgument.class::cast)
-                                .toList(),
-                        typed.stream().map(Choice::value).toList(),
-                        fixedRaw));
-        IntVar absolute = model.newIntVar(0, VALUE_BOUND, "abs_" + type);
-        model.addAbsEquality(absolute, raw);
-        IntVar count = model.newIntVar(0, 12, "loss_count_" + type);
-        model.addEquality(
-                count,
-                countExpression(model, choices, type, null, count(fixed, context, type, false)));
-        return penalize(model, absolute, count, "loss_" + type, true, fixedCount);
-    }
-
-    private IntVar penalize(
-            CpModel model,
-            IntVar raw,
-            IntVar count,
-            String name,
-            boolean loss,
-            Integer fixedCount) {
-        List<BoolVar> countCases = new ArrayList<>();
-        IntVar result =
-                model.newIntVar(
-                        -VALUE_BOUND * PENALTY_SCALE,
-                        VALUE_BOUND * PENALTY_SCALE,
-                        name + "_result");
-        if (fixedCount != null) {
-            long penalty = Math.round(rules.getDrifPenalty(fixedCount) * PENALTY_SCALE);
-            long factor = loss ? PENALTY_SCALE - penalty : penalty;
-            model.addEquality(count, fixedCount);
-            model.addEquality(result, LinearExpr.term(raw, factor));
-            return result;
-        }
-        for (int amount = 0; amount <= 12; amount++) {
-            BoolVar active = model.newBoolVar(name + "_is_" + amount);
-            countCases.add(active);
-            long penalty = Math.round(rules.getDrifPenalty(amount) * PENALTY_SCALE);
-            long factor = loss ? PENALTY_SCALE - penalty : penalty;
-            model.addEquality(result, LinearExpr.term(raw, factor)).onlyEnforceIf(active);
-        }
-        model.addExactlyOne(countCases.toArray(Literal[]::new));
-        model.addEquality(
-                count,
-                weighted(
-                        new ArrayList<>(countCases),
-                        java.util.stream.LongStream.rangeClosed(0, 12).boxed().toList()));
-        return result;
-    }
-
     private BuildState materialize(
             OptimizationContext context, BuildState fixed, List<Choice> choices, CpSolver solver) {
         BuildState result = fixed.copy();
@@ -1150,7 +860,7 @@ public final class CpSatBuildOptimizationSolver {
                     index < placements.size() && selectedIndex < selected.size();
                     index++) {
                 if (placements.get(index) == null)
-                    placements.set(index, selected.get(selectedIndex++));
+                    result.setPlacement(slot.key(), index, selected.get(selectedIndex++));
             }
         }
         return result;
@@ -1175,127 +885,9 @@ public final class CpSatBuildOptimizationSolver {
                         == scaled(calculateDrifValue(right.drif(), right.level()));
     }
 
-    private LinearArgument countExpression(
-            CpModel model, List<Choice> choices, DRIF_BONUS_TYPE type, String slot) {
-        List<LinearArgument> variables =
-                choices.stream()
-                        .filter(choice -> choice.slot().key().equals(slot))
-                        .filter(choice -> choice.placement().drif().getBonusType() == type)
-                        .map(Choice::selected)
-                        .map(LinearArgument.class::cast)
-                        .toList();
-        return expr(variables, variables.stream().map(ignored -> 1L).toList(), 0);
-    }
-
-    private LinearArgument countExpression(
-            CpModel model,
-            List<Choice> choices,
-            DRIF_BONUS_TYPE type,
-            DRIF_SIZE size,
-            long constant) {
-        List<LinearArgument> variables =
-                choices.stream()
-                        .filter(choice -> choice.placement().drif().getBonusType() == type)
-                        .filter(
-                                choice ->
-                                        size == null || choice.placement().drif().getSize() == size)
-                        .map(Choice::selected)
-                        .map(LinearArgument.class::cast)
-                        .toList();
-        return expr(variables, variables.stream().map(ignored -> 1L).toList(), constant);
-    }
-
-    private long count(
-            BuildState state,
-            OptimizationContext context,
-            DRIF_BONUS_TYPE type,
-            boolean includeSpecial) {
-        long result = 0;
-        for (SlotContext slot : context.slots()) {
-            if (!includeSpecial && slot.special()) continue;
-            result +=
-                    state.slots().getOrDefault(slot.key(), List.of()).stream()
-                            .filter(Objects::nonNull)
-                            .filter(placement -> placement.drif().getBonusType() == type)
-                            .count();
-        }
-        return result;
-    }
-
-    private long countBySize(
-            BuildState state, OptimizationContext context, DRIF_BONUS_TYPE type, DRIF_SIZE size) {
-        long result = 0;
-        for (SlotContext slot : context.slots()) {
-            if (slot.special()) continue;
-            result +=
-                    state.slots().getOrDefault(slot.key(), List.of()).stream()
-                            .filter(Objects::nonNull)
-                            .filter(
-                                    placement ->
-                                            placement.drif().getBonusType() == type
-                                                    && placement.drif().getSize() == size)
-                            .count();
-        }
-        return result;
-    }
-
-    private long rawValue(
-            BuildState state,
-            OptimizationContext context,
-            DRIF_BONUS_TYPE type,
-            boolean includeSpecial) {
-        long result = 0;
-        for (SlotContext slot : context.slots()) {
-            if (!includeSpecial && slot.special()) continue;
-            for (Placement placement : state.slots().getOrDefault(slot.key(), List.of())) {
-                if (placement != null && placement.drif().getBonusType() == type) {
-                    result +=
-                            scaled(
-                                    calculateDrifValue(placement.drif(), placement.level())
-                                            * (1.0 + slot.drifBonus()));
-                }
-            }
-        }
-        return result;
-    }
-
     private boolean wholeSlotLocked(SlotContext slot, OptimizationContext context) {
         return context.request().getLockedSlots() != null
                 && context.request().getLockedSlots().contains(slot.key());
-    }
-
-    private LinearArgument sum(List<Choice> choices) {
-        return LinearExpr.sum(
-                choices.stream().map(Choice::selected).toArray(LinearArgument[]::new));
-    }
-
-    private LinearArgument weighted(
-            List<Choice> choices, java.util.function.ToLongFunction<Choice> coefficient) {
-        return LinearExpr.weightedSum(
-                choices.stream().map(Choice::selected).toArray(LinearArgument[]::new),
-                choices.stream().mapToLong(coefficient).toArray());
-    }
-
-    private LinearArgument weighted(
-            List<? extends LinearArgument> variables, List<Long> coefficients) {
-        return LinearExpr.weightedSum(
-                variables.toArray(LinearArgument[]::new),
-                coefficients.stream().mapToLong(Long::longValue).toArray());
-    }
-
-    private LinearArgument expr(
-            List<? extends LinearArgument> variables, List<Long> coefficients, long constant) {
-        List<LinearArgument> allVariables = new ArrayList<>(variables);
-        List<Long> allCoefficients = new ArrayList<>(coefficients);
-        if (constant != 0) {
-            allVariables.add(LinearExpr.constant(1));
-            allCoefficients.add(constant);
-        }
-        return weighted(allVariables, allCoefficients);
-    }
-
-    private long scaled(double value) {
-        return Math.round(value * VALUE_SCALE);
     }
 
     private Result result(

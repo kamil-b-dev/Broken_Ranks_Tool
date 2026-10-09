@@ -329,7 +329,7 @@ class CustomModsOptimizationPlacementTests extends CustomModsOptimizationTestSup
         placements.add(new Placement(mentalDefense, 21, false));
         placements.add(null);
         placements.add(null);
-        state.slots().put("helmet", placements);
+        state.putSlot("helmet", placements);
 
         BuildState result = service.maximizeSelectedBonuses(state, context);
 

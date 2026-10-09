@@ -1,4 +1,3 @@
-import React from "react";
 import CategoryIcon from "../../../shared/ui/CategoryIcon";
 
 /** Renders fixed drif types provided by epic and set items with editable levels. */
@@ -27,7 +26,7 @@ const BuiltInDrifSlots = ({ drifs, levels, onLevelsChange }) =>
                     next[index] = Number.parseInt(event.target.value);
                     onLevelsChange(next);
                 }}
-                className={`flex-2 min-w-0 bg-transparent font-serif p-1 text-xs border-b outline-hidden text-center cursor-pointer bg-stone-950 ${drif.id ? "text-yellow-300 border-yellow-900/50 hover:border-yellow-500" : "text-rose-600 border-rose-900"}`}
+                className={`flex-2 min-w-0 bg-transparent font-serif p-1 text-xs border-b outline-hidden text-center cursor-pointer bg-stone-950 ${drif.id ? "text-yellow-300 border-yellow-900/50 hover:border-yellow-500" : "text-rose-600 builder-accent-text border-rose-900 builder-accent-frame"}`}
                 disabled={!drif.id}
             >
                 {Array.from({ length: 16 }, (_, levelIndex) => levelIndex + 1).map((level) => (

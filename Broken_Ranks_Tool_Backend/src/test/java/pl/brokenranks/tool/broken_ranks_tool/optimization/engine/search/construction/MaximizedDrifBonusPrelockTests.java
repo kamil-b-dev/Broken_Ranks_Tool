@@ -82,8 +82,8 @@ class MaximizedDrifBonusPrelockTests {
                         new HashMap<>(),
                         new HashMap<>());
         BuildState state = new BuildState();
-        state.slots().put("high", new ArrayList<>(java.util.Arrays.asList(null, null)));
-        state.slots().put("low", new ArrayList<>(java.util.Arrays.asList(null, null)));
+        state.putSlot("high", new ArrayList<>(java.util.Arrays.asList(null, null)));
+        state.putSlot("low", new ArrayList<>(java.util.Arrays.asList(null, null)));
 
         new MaximizedDrifBonusPrelock(new EquipmentRulesRegistry()).apply(state, context);
 
@@ -147,8 +147,8 @@ class MaximizedDrifBonusPrelockTests {
                         new HashMap<>(),
                         new HashMap<>());
         BuildState state = new BuildState();
-        state.slots().put("first", new ArrayList<>(List.of(new Placement(magic, 21, true))));
-        state.slots().put("second", new ArrayList<>(List.of(new Placement(magic, 21, true))));
+        state.putSlot("first", new ArrayList<>(List.of(new Placement(magic, 21, true))));
+        state.putSlot("second", new ArrayList<>(List.of(new Placement(magic, 21, true))));
 
         assertFalse(
                 new OptimizationStateEvaluator(new EquipmentRulesRegistry())
@@ -209,8 +209,8 @@ class MaximizedDrifBonusPrelockTests {
                         new HashMap<>(),
                         new HashMap<>());
         BuildState state = new BuildState();
-        state.slots().put("high", new ArrayList<>(java.util.Arrays.asList(null, null)));
-        state.slots().put("low", new ArrayList<>(java.util.Arrays.asList(null, null)));
+        state.putSlot("high", new ArrayList<>(java.util.Arrays.asList(null, null)));
+        state.putSlot("low", new ArrayList<>(java.util.Arrays.asList(null, null)));
 
         new MaximizedDrifBonusPrelock(new EquipmentRulesRegistry()).apply(state, context);
 

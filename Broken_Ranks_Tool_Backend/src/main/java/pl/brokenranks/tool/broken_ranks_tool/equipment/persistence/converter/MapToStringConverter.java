@@ -5,6 +5,7 @@ import jakarta.persistence.Converter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.ModifierNumbers;
 
 /** Converts maps to a single database column because SQLite lacks native JSON types. */
 @Converter
@@ -24,7 +25,12 @@ public class MapToStringConverter implements AttributeConverter<Map<String, Doub
             return "";
         }
         return attribute.entrySet().stream()
-                .map(entry -> entry.getKey() + DELIMITER_KEY_VALUE + entry.getValue())
+                .map(
+                        entry ->
+                                entry.getKey()
+                                        + DELIMITER_KEY_VALUE
+                                        + ModifierNumbers.finite(
+                                                entry.getValue(), "statystyka " + entry.getKey()))
                 .collect(Collectors.joining(DELIMITER_ENTRY));
     }
 
@@ -46,12 +52,7 @@ public class MapToStringConverter implements AttributeConverter<Map<String, Doub
                 throw new IllegalArgumentException("Niepoprawny wpis mapy statystyk: " + entry);
             }
             String cleanValue = kv[1].replace("%", "").replace(",", ".").trim();
-            try {
-                map.put(kv[0], Double.parseDouble(cleanValue));
-            } catch (NumberFormatException exception) {
-                throw new IllegalArgumentException(
-                        "Niepoprawna wartość mapy statystyk dla klucza: " + kv[0], exception);
-            }
+            map.put(kv[0], ModifierNumbers.parse(cleanValue, "statystyka " + kv[0]));
         }
         return map;
     }

@@ -14,10 +14,19 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ORB_CATEGORY
 @Component
 public class DictionariesFactory {
     public DictionariesDto create() {
-        return new DictionariesDto(
-                enumMap(ITEM_CATEGORY.class, ITEM_CATEGORY::getDescription),
-                enumMap(ORB_CATEGORY.class, ORB_CATEGORY::getDescription),
-                enumMap(DRIF_CATEGORY.class, DRIF_CATEGORY::getDescription));
+        return new DictionariesDto(itemCategories(), orbCategories(), drifCategories());
+    }
+
+    public Map<String, String> itemCategories() {
+        return enumMap(ITEM_CATEGORY.class, ITEM_CATEGORY::getDescription);
+    }
+
+    public Map<String, String> orbCategories() {
+        return enumMap(ORB_CATEGORY.class, ORB_CATEGORY::getDescription);
+    }
+
+    public Map<String, String> drifCategories() {
+        return enumMap(DRIF_CATEGORY.class, DRIF_CATEGORY::getDescription);
     }
 
     private <T extends Enum<T>> Map<String, String> enumMap(

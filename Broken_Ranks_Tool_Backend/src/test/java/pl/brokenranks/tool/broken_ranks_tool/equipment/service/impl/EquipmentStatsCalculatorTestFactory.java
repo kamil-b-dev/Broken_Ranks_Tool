@@ -11,7 +11,6 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.proces
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.DrifSecurityValidator;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentPlacementRules;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentRequestValidator;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.UpgradeLevelPolicy;
 
 /** Creates the package-private calculator implementation for cross-package integration tests. */
 public final class EquipmentStatsCalculatorTestFactory {
@@ -21,7 +20,6 @@ public final class EquipmentStatsCalculatorTestFactory {
             EquipmentDataProvider dataProvider,
             EquipmentRequestValidator requestValidator,
             EquipmentPlacementRules placementRules,
-            UpgradeLevelPolicy levelPolicy,
             DrifSecurityValidator securityValidator,
             ItemStatProcessor itemProcessor,
             OrbStatProcessor orbProcessor,
@@ -33,7 +31,6 @@ public final class EquipmentStatsCalculatorTestFactory {
                 dataProvider,
                 requestValidator,
                 placementRules,
-                levelPolicy,
                 securityValidator,
                 itemProcessor,
                 orbProcessor,

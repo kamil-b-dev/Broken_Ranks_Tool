@@ -5,7 +5,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { EquipmentProvider } from "./EquipmentProvider";
 import { useEquipment } from "../shared/state/EquipmentContext";
 import { server } from "../test/server";
-import { readEquipmentDraft, writeEquipmentDraft } from "./storage/workingDraftStorage";
+import {
+    readEquipmentDraft,
+    writeEquipmentDraft,
+    EQUIPMENT_DRAFT_RECOVERY_STORAGE_KEY,
+} from "./storage/workingDraftStorage";
 import legacyEpicBuild from "../test/fixtures/builds/legacy-epic-build.json";
 import legacyEpicCatalog from "../test/fixtures/builds/legacy-epic-catalog.json";
 import { advisorBuildSignature } from "../features/optimizer/advisor/advisorBuildSignature";
@@ -187,6 +191,10 @@ describe("EquipmentProvider", () => {
         await waitFor(() => expect(exposeRef.current.requestData.slots).toEqual({}));
         expect(exposeRef.current.lockedSlots).toEqual([]);
         await waitFor(() => expect(readEquipmentDraft().requestData.slots).toEqual({}));
+        expect(
+            JSON.parse(localStorage.getItem(EQUIPMENT_DRAFT_RECOVERY_STORAGE_KEY)).value.requestData
+                .slots.helmet.itemId
+        ).toBe(999);
     });
 
     it("loads initial game data from the backend", async () => {
@@ -412,7 +420,7 @@ describe("EquipmentProvider", () => {
         expect(exposeRef.current.isCalculatingStats).toBe(false);
     });
 
-    it("captures and restores a local build snapshot with calculated statistics", async () => {
+    it("recalculates a saved snapshot against current rules instead of restoring saved statistics", async () => {
         server.use(
             http.get("*/api/initial-data", () =>
                 HttpResponse.json({
@@ -447,6 +455,11 @@ describe("EquipmentProvider", () => {
         });
         await act(async () => exposeRef.current.calculateStats());
         const snapshot = exposeRef.current.createBuildSnapshot();
+        server.use(
+            http.post("*/api/calculator/calculate", () =>
+                HttpResponse.json({ stats: { Atak: 211 } })
+            )
+        );
 
         act(() => {
             exposeRef.current.handleSlotUpdate("helmet", {
@@ -461,7 +474,8 @@ describe("EquipmentProvider", () => {
         });
 
         expect(exposeRef.current.requestData.slots.helmet.itemId).toBe(1);
-        expect(exposeRef.current.stats).toEqual({ Atak: 155 });
+        expect(exposeRef.current.stats).toBeNull();
+        await waitFor(() => expect(exposeRef.current.stats).toEqual({ Atak: 211 }));
     });
 
     it("returns backend optimization errors and reports calculator failures", async () => {

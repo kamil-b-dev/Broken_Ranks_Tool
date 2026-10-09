@@ -15,7 +15,7 @@ vi.mock("./useGearSlot.js", () => ({
 }));
 
 vi.mock("../../../shared/state/EquipmentContext", () => ({
-    useEquipment: () => mocks.equipment,
+    useEquipmentLocksState: () => mocks.equipment,
 }));
 
 vi.mock("./ItemSection.jsx", () => ({

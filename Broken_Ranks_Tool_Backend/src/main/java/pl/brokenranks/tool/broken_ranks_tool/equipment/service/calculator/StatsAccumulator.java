@@ -25,11 +25,7 @@ public class StatsAccumulator {
             double parsedValue = Double.parseDouble(cleanValue);
             double totalValue = parsedValue * multiplier;
 
-            if (isPercent) {
-                percentStats.merge(statName, totalValue, Double::sum);
-            } else {
-                flatStats.merge(statName, totalValue, Double::sum);
-            }
+            addFiniteValue(isPercent ? percentStats : flatStats, statName, totalValue);
         } catch (NumberFormatException exception) {
             throw new IllegalArgumentException(
                     "Niepoprawna wartość statystyki " + statName + ": " + rawValue + ".",
@@ -43,7 +39,24 @@ public class StatsAccumulator {
      * @param value Flat value to add.
      */
     public void addFlatValue(String statName, double value) {
-        flatStats.merge(statName, value, Double::sum);
+        addFiniteValue(flatStats, statName, value);
+    }
+
+    private void addFiniteValue(Map<String, Double> target, String statName, double value) {
+        if (!Double.isFinite(value)) {
+            throw new IllegalArgumentException(
+                    "Statystyka " + statName + " musi być skończoną liczbą.");
+        }
+        target.compute(
+                statName,
+                (name, previous) -> {
+                    double total = previous == null ? value : previous + value;
+                    if (!Double.isFinite(total)) {
+                        throw new IllegalArgumentException(
+                                "Suma statystyki " + statName + " przekracza zakres liczbowy.");
+                    }
+                    return total;
+                });
     }
 
     /** Distributes the rounded bonus pool evenly in a stable statistic-name order. */

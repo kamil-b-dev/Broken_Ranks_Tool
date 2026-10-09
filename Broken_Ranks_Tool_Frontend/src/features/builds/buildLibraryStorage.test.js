@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
     BUILD_LIBRARY_STORAGE_KEY,
     MAX_SAVED_BUILDS,
@@ -21,6 +21,29 @@ const snapshot = (itemId = 1) => ({
 
 describe("buildLibrary", () => {
     beforeEach(() => localStorage.clear());
+    afterEach(() => vi.restoreAllMocks());
+
+    it("returns an empty library and reports unavailable storage when the getter throws", () => {
+        vi.spyOn(globalThis, "localStorage", "get").mockImplementation(() => {
+            throw new DOMException("Storage blocked", "SecurityError");
+        });
+
+        expect(readBuildLibrary()).toEqual([]);
+        expect(() => writeBuildLibrary([])).toThrow(
+            "Pamięć lokalna przeglądarki jest niedostępna."
+        );
+    });
+
+    it("honors injected storage when browser storage is inaccessible", () => {
+        const storage = localStorage;
+        vi.spyOn(globalThis, "localStorage", "get").mockImplementation(() => {
+            throw new DOMException("Storage blocked", "SecurityError");
+        });
+        const record = createLocalBuildRecord({ name: "PvE", snapshot: snapshot(), id: "pve" });
+
+        writeBuildLibrary([record], storage);
+        expect(readBuildLibrary(storage)).toEqual([record]);
+    });
 
     it("creates a detached named record and preserves its identity when overwritten", () => {
         const record = createLocalBuildRecord({

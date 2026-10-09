@@ -66,7 +66,9 @@ export const useGearSlotDragDrop = ({
         }));
     };
 
-    const canDropDrif = (drif, zone, checkCapacity = true) => {
+    const canDropDrif = (payload, zone) => {
+        const drif = drifs.find((candidate) => String(candidate.id) === String(payload.id));
+        if (!drif) return false;
         const sizeIndex = SIZE_INDEX[drif.size?.toUpperCase()] ?? -1;
         if (!selectedItem || maxDrifs === 0 || sizeIndex < 0 || sizeIndex > maxDrifIndex)
             return false;
@@ -89,16 +91,12 @@ export const useGearSlotDragDrop = ({
         ) {
             return false;
         }
-        if (!checkCapacity) return true;
         const next = selectedDrifs.slice(0, maxDrifs);
         next[index] = String(drif.id);
         return (
             calculateUsedDrifPower({
                 selectedDrifs: next,
-                drifs: [
-                    ...drifs.filter((candidate) => String(candidate.id) !== String(drif.id)),
-                    drif,
-                ],
+                drifs,
                 basePowers: drifBasePowers,
                 levels: { ...drifLevels, [index]: 1 },
             }) <= itemCapacity
@@ -116,8 +114,9 @@ export const useGearSlotDragDrop = ({
         }
         return data.dragType === "drifs" && zone.startsWith("drif-") && canDropDrif(data, zone);
     };
-    const applyDrif = (drif, zone) => {
-        if (!canDropDrif(drif, zone, false)) return;
+    const applyDrif = (payload, zone) => {
+        if (!canDropDrif(payload, zone)) return;
+        const drif = drifs.find((candidate) => String(candidate.id) === String(payload.id));
         const index = Number(zone.slice("drif-".length));
         setDrifTypes((previous) => ({
             ...previous,

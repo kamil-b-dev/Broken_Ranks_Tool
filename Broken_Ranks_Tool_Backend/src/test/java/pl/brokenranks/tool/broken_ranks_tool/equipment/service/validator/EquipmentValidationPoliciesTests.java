@@ -180,6 +180,17 @@ class EquipmentValidationPoliciesTests {
     }
 
     @Test
+    void appliesTheCharacterLimitAfterCombiningCaseAliases() {
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> requestValidator.validateCharacterStats(Map.of("Siła", 50_000, "siła", 1)));
+        assertDoesNotThrow(
+                () ->
+                        requestValidator.validateCharacterStats(
+                                Map.of("Siła", 25_000, "SIŁA", 25_000)));
+    }
+
+    @Test
     void rejectsOrphanedStoneDataButAllowsCleanEmptySlots() {
         EquipmentRequest request = new EquipmentRequest();
         EquipmentRequest.SlotData empty = new EquipmentRequest.SlotData();

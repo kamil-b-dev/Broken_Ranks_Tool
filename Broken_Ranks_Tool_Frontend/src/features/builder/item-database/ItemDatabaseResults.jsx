@@ -1,23 +1,44 @@
 import CategoryIcon from "../../../shared/ui/CategoryIcon";
 import { getEquipmentIconClass, getRarityColor, getVariantLabel } from "./itemDatabasePresentation";
 
-const ItemRow = ({ item, category, onDragStart, onHover, onLeave }) => (
+const detailsProps = (item, type, onHover, onLeave, tooltipId, activeDetailsKey) => ({
+    type: "button",
+    "aria-label":
+        `Szczegóły: ${item.name || item.description || item.bonusType} ${item.size || item.tier || ""}`.trim(),
+    "aria-describedby": activeDetailsKey === `${type}:${item.id}` ? tooltipId : undefined,
+    onFocus: (event) => onHover(event, item, type),
+    onBlur: onLeave,
+    onClick: (event) => onHover({ type: "focus", currentTarget: event.currentTarget }, item, type),
+});
+
+const ItemRow = ({
+    item,
+    category,
+    onDragStart,
+    onHover,
+    onLeave,
+    tooltipId,
+    activeDetailsKey,
+}) => (
     <li
         draggable
         onDragStart={(event) => onDragStart(event, item, "items")}
         onMouseMove={(event) => onHover(event, item, "items")}
         onMouseLeave={onLeave}
-        className="database-result-row p-1.5 transition-colors flex justify-between items-center group cursor-grab active:cursor-grabbing hover:bg-stone-900/50 border-b border-stone-800/50"
+        className="database-result-row p-1.5 transition-colors flex justify-between items-center group cursor-grab active:cursor-grabbing hover:bg-stone-900/50 border-b border-stone-800/50 optimizer-info-divider"
     >
-        <span className="database-item-copy">
+        <button
+            {...detailsProps(item, "items", onHover, onLeave, tooltipId, activeDetailsKey)}
+            className="database-item-copy text-left focus-visible:outline-2 focus-visible:outline-amber-500"
+        >
             <span className={`truncate font-serif ${getRarityColor(item.rarity)}`}>
                 {item.name || item.description || item.bonusType}
             </span>
             <small>{category}</small>
-        </span>
+        </button>
         <div className="flex items-center gap-2 shrink-0">
             {item.tier && (
-                <span className="text-[10px] text-stone-400 font-serif font-bold border border-stone-800/50 px-1.5 py-0.5 bg-black">
+                <span className="text-[10px] text-stone-400 font-serif font-bold border border-stone-800/50 optimizer-info-divider px-1.5 py-0.5 bg-black">
                     {item.tier}
                 </span>
             )}
@@ -28,10 +49,19 @@ const ItemRow = ({ item, category, onDragStart, onHover, onLeave }) => (
     </li>
 );
 
-const VariantRow = ({ variants, type, bonusTranslations, onDragStart, onHover, onLeave }) => {
+const VariantRow = ({
+    variants,
+    type,
+    bonusTranslations,
+    onDragStart,
+    onHover,
+    onLeave,
+    tooltipId,
+    activeDetailsKey,
+}) => {
     const baseItem = variants[0];
     return (
-        <li className="database-result-row database-variant-row p-1.5 flex justify-between items-center gap-2 hover:bg-stone-900/50 transition-colors border-b border-stone-800/50">
+        <li className="database-result-row database-variant-row p-1.5 flex justify-between items-center gap-2 hover:bg-stone-900/50 transition-colors border-b border-stone-800/50 optimizer-info-divider">
             <CategoryIcon
                 kind={type}
                 category={baseItem.category}
@@ -43,7 +73,8 @@ const VariantRow = ({ variants, type, bonusTranslations, onDragStart, onHover, o
                     />
                 }
             />
-            <span
+            <button
+                {...detailsProps(baseItem, type, onHover, onLeave, tooltipId, activeDetailsKey)}
                 className="truncate flex-1 cursor-help flex items-center gap-1.5"
                 onMouseMove={(event) => onHover(event, baseItem, type)}
                 onMouseLeave={onLeave}
@@ -58,20 +89,28 @@ const VariantRow = ({ variants, type, bonusTranslations, onDragStart, onHover, o
                 <span className="text-stone-400 font-serif text-xs">
                     {bonusTranslations[baseItem.bonusType] || baseItem.bonusType || ""}
                 </span>
-            </span>
+            </button>
             <div className="flex gap-1 shrink-0">
                 {variants.map((variant) => (
-                    <div
+                    <button
                         key={variant.id}
+                        {...detailsProps(
+                            variant,
+                            type,
+                            onHover,
+                            onLeave,
+                            tooltipId,
+                            activeDetailsKey
+                        )}
                         draggable
                         onDragStart={(event) => onDragStart(event, variant, type)}
                         onMouseMove={(event) => onHover(event, variant, type)}
                         onMouseLeave={onLeave}
-                        className={`w-7 h-7 flex items-center justify-center font-serif text-[12px] font-bold cursor-grab active:cursor-grabbing transition-colors shadow-inner border ${type === "orbs" ? "bg-black text-rose-700 border-rose-900/50 hover:bg-rose-950/40 hover:text-red-500 hover:border-rose-700" : "bg-black text-orange-600 border-orange-900/50 hover:bg-amber-950/30 hover:text-amber-500 hover:border-orange-500"}`}
+                        className={`w-7 h-7 flex items-center justify-center font-serif text-[12px] font-bold cursor-grab active:cursor-grabbing transition-colors shadow-inner border ${type === "orbs" ? "bg-black text-rose-700 builder-accent-text border-rose-900/50 builder-accent-frame hover:bg-rose-950/40 builder-accent-surface hover:text-red-500 optimizer-lock-text hover:border-rose-700 " : "bg-black text-orange-600 border-orange-900/50 hover:bg-amber-950/30 hover:text-amber-500 hover:border-orange-500"}`}
                         title={variant.size || variant.tier}
                     >
                         {getVariantLabel(variant)}
-                    </div>
+                    </button>
                 ))}
             </div>
         </li>
@@ -86,6 +125,8 @@ const ItemDatabaseResults = ({
     onHover,
     onLeave,
     onClearFilters,
+    tooltipId,
+    activeDetailsKey,
 }) => (
     <div className="min-h-0 flex-1 overflow-y-auto pr-2 space-y-4 custom-scrollbar">
         {Object.entries(groups)
@@ -99,7 +140,7 @@ const ItemDatabaseResults = ({
                         />
                         {category}
                     </h4>
-                    <ul className="text-sm space-y-1 pl-2 border-l border-stone-800">
+                    <ul className="text-sm space-y-1 pl-2 border-l border-stone-800 optimizer-info-divider">
                         {entries.map((entry, index) =>
                             activeTab === "items" ? (
                                 <ItemRow
@@ -109,6 +150,8 @@ const ItemDatabaseResults = ({
                                     onDragStart={onDragStart}
                                     onHover={onHover}
                                     onLeave={onLeave}
+                                    tooltipId={tooltipId}
+                                    activeDetailsKey={activeDetailsKey}
                                 />
                             ) : (
                                 <VariantRow
@@ -119,6 +162,8 @@ const ItemDatabaseResults = ({
                                     onDragStart={onDragStart}
                                     onHover={onHover}
                                     onLeave={onLeave}
+                                    tooltipId={tooltipId}
+                                    activeDetailsKey={activeDetailsKey}
                                 />
                             )
                         )}
@@ -133,7 +178,7 @@ const ItemDatabaseResults = ({
                 <button
                     type="button"
                     onClick={onClearFilters}
-                    className="text-rose-800 hover:text-rose-600 text-sm font-serif border border-stone-700 px-3 py-1 bg-black/60 shadow-inner"
+                    className="text-rose-800 builder-accent-text hover:text-rose-600 text-sm font-serif border border-stone-700 px-3 py-1 bg-black/60 shadow-inner"
                 >
                     Zresetuj filtry
                 </button>

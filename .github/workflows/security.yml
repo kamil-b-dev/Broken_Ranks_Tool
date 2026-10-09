@@ -3,29 +3,12 @@ name: Dependency security
 on:
   workflow_dispatch:
   schedule:
-    - cron: "17 4 * * 1"
+    - cron: "17 4 * * *"
   pull_request:
     branches: [dev, master]
-    paths:
-      - ".github/workflows/security.yml"
-      - "Broken_Ranks_Tool_Backend/pom.xml"
-      - "Broken_Ranks_Tool_Frontend/package.json"
-      - "Broken_Ranks_Tool_Frontend/package-lock.json"
-      - "package.json"
-      - "package-lock.json"
-      - "Dockerfile"
-      - ".railway/**"
   push:
     branches: [dev, master]
-    paths:
-      - ".github/workflows/security.yml"
-      - "Broken_Ranks_Tool_Backend/pom.xml"
-      - "Broken_Ranks_Tool_Frontend/package.json"
-      - "Broken_Ranks_Tool_Frontend/package-lock.json"
-      - "package.json"
-      - "package-lock.json"
-      - "Dockerfile"
-      - ".railway/**"
+  merge_group:
 
 permissions:
   contents: read

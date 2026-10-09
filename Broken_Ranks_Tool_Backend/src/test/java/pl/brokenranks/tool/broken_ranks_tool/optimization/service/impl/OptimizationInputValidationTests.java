@@ -23,6 +23,19 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRespon
 class OptimizationInputValidationTests extends CustomModsOptimizationTestSupport {
 
     @Test
+    void rejectsOrbLevelsOnAnEmptySlotBesideValidEquipment() {
+        var item = item(1L, 12);
+        var request = request(item.getId(), priorities());
+        var empty =
+                new pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest.SlotData();
+        empty.setOrbLevels(List.of(1));
+        var slots = new HashMap<>(request.getOriginalSlots());
+        slots.put("boots", empty);
+        request.setOriginalSlots(slots);
+        assertRejected(service(item, List.of(), calculator()).optimize(request), "pusty slot");
+    }
+
+    @Test
     void rejectsUnknownItemInsteadOfSilentlyOmittingItsSlot() {
         ItemTemplate item = item(1L, 12);
         OptimizationRequest request = request(999L, priorities());

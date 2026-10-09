@@ -21,9 +21,7 @@ export const useCharacterDevelopment = ({
         const imported = normalizeCharacterConfig(externalConfig);
         return trimSpentPoints(imported.spentPoints, totalPointsForLevel(imported.level));
     });
-    const [publishChanges, setPublishChanges] = useState(
-        !externalConfig && Object.keys(externalStats || {}).length === 0
-    );
+    const [publishChanges, setPublishChanges] = useState(false);
     const previousSyncTrigger = useRef(syncTrigger);
     const totalPoints = totalPointsForLevel(level);
     const pointsLeft = totalPoints - spentPointCount(spentPoints);

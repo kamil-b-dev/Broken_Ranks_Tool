@@ -30,6 +30,33 @@ const renderOptimization = (slots = {}) => {
 };
 
 describe("useEquipmentOptimization", () => {
+    it("does not apply a pending result after its owning workflow invalidates the run", async () => {
+        let finish;
+        optimizeEquipmentDrifs.mockImplementation(
+            () =>
+                new Promise((resolve) => {
+                    finish = resolve;
+                })
+        );
+        const { result, setRequestData, restoreStats } = renderOptimization({
+            helmet: { itemId: 7 },
+        });
+        let pending;
+        await act(async () => {
+            pending = result.current.runDrifOptimization({});
+        });
+        act(() => result.current.invalidateDrifOptimization());
+        await act(async () => {
+            finish({
+                optimizedSetup: { slots: { helmet: { itemId: 9 } } },
+                summary: { success: true },
+                calculationResult: { stats: { Siła: "10" } },
+            });
+            expect(await pending).toMatchObject({ applied: false });
+        });
+        expect(setRequestData).not.toHaveBeenCalled();
+        expect(restoreStats).not.toHaveBeenCalled();
+    });
     it.each(["equipment", "character stats", "slot locks", "drif locks"])(
         "discards a result after changing %s during optimization",
         async (changed) => {

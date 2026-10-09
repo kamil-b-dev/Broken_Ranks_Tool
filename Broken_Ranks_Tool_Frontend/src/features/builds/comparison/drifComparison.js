@@ -5,7 +5,7 @@ import {
     normalizeDrifCategoryKey,
     resolveDrifCategoryKey,
 } from "../../../shared/domain/equipment/drifCategories";
-import { getBuildSlots } from "./buildComparisonData";
+import { getBuildSlots, isPopulatedId } from "./buildComparisonData";
 import { toFiniteNumber } from "./comparisonValues";
 
 const drifSort = (left, right) =>
@@ -17,7 +17,7 @@ const readBuildDrifs = (build, drifById, gameRules) => {
     const entriesById = new Map();
     Object.values(getBuildSlots(build)).forEach((slot) => {
         (slot?.drifIds || []).forEach((id, index) => {
-            if (id == null) return;
+            if (!isPopulatedId(id)) return;
             const template = drifById.get(String(id));
             const bonusType = template?.bonusType || "";
             const category =

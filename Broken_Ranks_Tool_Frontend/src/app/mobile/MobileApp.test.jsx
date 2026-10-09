@@ -17,9 +17,10 @@ const mountApp = () =>
     );
 const clickSection = (name) => fireEvent.click(button(name));
 const clickStatTab = (name) => fireEvent.click(screen.getByRole("tab", { name, exact: true }));
-const save = () => {
+const save = async () => {
     fireEvent.click(screen.getByText("Build", { selector: "summary" }));
     fireEvent.click(screen.getByRole("button", { name: /Zapisz lokalnie/ }));
+    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("Zapisano lokalnie"));
 };
 const importFile = (container, payload) => {
     fireEvent.click(screen.getByText("Build", { selector: "summary" }));
@@ -162,7 +163,7 @@ describe("mobile application integration", () => {
         clickSection("Zresetuj punkty");
         clickSection("Statystyki");
         expect(screen.queryByText("12%")).not.toBeInTheDocument();
-        save();
+        await save();
         expect(screen.getByRole("status")).toHaveTextContent("Zapisano lokalnie");
         const records = JSON.parse(localStorage.getItem("broken-ranks-tool.build-library.v1"));
         expect(records.builds[0].payload.build.requestData.slots.helmet.itemStars).toBe(9);
@@ -181,7 +182,7 @@ describe("mobile application integration", () => {
         await screen.findByRole("heading", { name: "Hełm", level: 1 }, { timeout: 10000 });
         importFile(app.container, savedBuild());
         await waitFor(() => expect(screen.getByLabelText("Gwiazdki")).toHaveValue("7"));
-        save();
+        await save();
         importFile(app.container, savedBuild(9));
         await waitFor(() => expect(screen.getByLabelText("Gwiazdki")).toHaveValue("9"));
         expect(screen.getByRole("status")).toHaveTextContent("Wczytano build z pliku");

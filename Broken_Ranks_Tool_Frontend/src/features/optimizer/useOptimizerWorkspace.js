@@ -1,6 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useEquipment } from "../../shared/state/EquipmentContext";
-import { calculateCurrentModDetails } from "./optimizerDomain";
+import {
+    calculateCurrentModDetails,
+    calculatePlacedDrifCounts,
+    getDrifPenaltyMultiplier,
+} from "./optimizerDomain";
 import {
     buildOptimizationConfig,
     createOptimizerConfigPayload,
@@ -24,6 +28,7 @@ export const useOptimizerWorkspace = ({ optimizerSettings, onOptimizerSettingsCh
         drifCategories,
         runDrifOptimization,
         cancelDrifOptimization,
+        invalidateDrifOptimization,
         requestData,
         data,
         lockedSlots,
@@ -60,9 +65,13 @@ export const useOptimizerWorkspace = ({ optimizerSettings, onOptimizerSettingsCh
         status: optimizationStatus,
         activeVariantIndex,
         setActiveVariantIndex,
-        reset: resetOptimization,
+        reset: resetRunReport,
         run: runOptimization,
     } = useOptimizationRun(runDrifOptimization);
+    const resetOptimization = useCallback(() => {
+        invalidateDrifOptimization?.();
+        resetRunReport();
+    }, [invalidateDrifOptimization, resetRunReport]);
     const [notice, setNotice] = useState(null);
     const draftRestoredRef = useRef(false);
     const skipDraftSaveRef = useRef(false);
@@ -89,7 +98,10 @@ export const useOptimizerWorkspace = ({ optimizerSettings, onOptimizerSettingsCh
         }
         writeOptimizerDraft(createOptimizerConfigPayload(prioritizedBonuses, optimizerSettings));
     }, [optimizerSettings, prioritizedBonuses]);
-    useEffect(() => resetOptimization(), [optimizerSettings.mode, resetOptimization]);
+    useLayoutEffect(
+        () => resetOptimization(),
+        [optimizerSettings.mode, optimizerSettings.configurationMode, resetOptimization]
+    );
     useEffect(() => {
         if (optimizerSettings.mode === "ADVISOR" && !stats && calculateStats) calculateStats();
     }, [calculateStats, optimizerSettings.mode, stats]);
@@ -113,6 +125,28 @@ export const useOptimizerWorkspace = ({ optimizerSettings, onOptimizerSettingsCh
         [data.drifs, data.items, gameRules, prioritizedBonuses, requestData.slots]
     );
     const activeVariant = optimizationStatus?.nextVariants?.[activeVariantIndex];
+    const reportModDetails = useMemo(() => {
+        const counts = activeVariant?.setup?.slots
+            ? calculatePlacedDrifCounts(activeVariant.setup.slots, data.drifs)
+            : null;
+        return (optimizationStatus?.goalResults || []).map((goal) => {
+            const count =
+                activeVariant?.advisorCounts?.[goal.statKey] ??
+                counts?.[goal.statKey] ??
+                (counts ? 0 : goal.placedCount);
+            return {
+                key: goal.statKey,
+                count,
+                penaltyPercent:
+                    (1 - getDrifPenaltyMultiplier(count, gameRules.drifPenaltyMultipliers)) * 100,
+            };
+        });
+    }, [
+        activeVariant,
+        data.drifs,
+        gameRules.drifPenaltyMultipliers,
+        optimizationStatus?.goalResults,
+    ]);
     const displayedVariant = useMemo(() => {
         if (optimizerSettings.mode !== "ADVISOR" || !activeVariant?.setup) return activeVariant;
         return {
@@ -257,6 +291,7 @@ export const useOptimizerWorkspace = ({ optimizerSettings, onOptimizerSettingsCh
         setNotice,
         configFiles,
         currentModDetails,
+        reportModDetails,
         displayedVariant,
         handleOptimizeClick,
         handleApplyVariant,

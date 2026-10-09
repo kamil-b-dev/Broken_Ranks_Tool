@@ -61,6 +61,20 @@ const props = {
 };
 
 describe("ItemDatabase", () => {
+    it("opens details on keyboard focus and closes them with Escape or blur", async () => {
+        const user = userEvent.setup();
+        render(<ItemDatabase {...props} />);
+        const details = screen.getByRole("button", { name: "Szczegóły: Morana X" });
+        fireEvent.focus(details);
+        expect(screen.getByRole("tooltip")).toHaveTextContent("+5");
+        expect(details).toHaveAttribute("aria-describedby", screen.getByRole("tooltip").id);
+        fireEvent.keyDown(details, { key: "Escape" });
+        expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
+        await user.click(details);
+        expect(screen.getByRole("tooltip")).toBeInTheDocument();
+        await user.tab();
+        expect(screen.queryByRole("tooltip")).not.toHaveTextContent("+5");
+    });
     it("filters items and clears active filters", async () => {
         const user = userEvent.setup();
         render(<ItemDatabase {...props} />);

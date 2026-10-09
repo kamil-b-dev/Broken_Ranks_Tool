@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 enum OptimizationRunOutcome {
     REJECTED("rejected"),
     SUCCESS("success"),
+    SOFT_TARGETS_UNMET("soft_targets_unmet"),
     NO_SOLUTION("no_solution"),
     ERROR("error");
 
