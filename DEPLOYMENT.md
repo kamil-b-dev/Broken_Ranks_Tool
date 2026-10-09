@@ -65,7 +65,7 @@ application public. This is a repository setting, independent of Railway.
 
 Dependency security checks run on every pull request and push to `dev` or `master`, in merge
 queues, and daily even without code changes. Keep these checks required in the branch rules:
-`Audit backend dependencies`, `Scan production container`, `Audit frontend dependencies`, and
+`Audit backend dependencies / osv-scan`, `Scan production container`, `Audit frontend dependencies`, and
 `Audit infrastructure dependencies`, alongside the quality checks. Do not bypass failed scans.
 
 Dependabot checks Maven dependencies daily on both `dev` and the default branch, including the
