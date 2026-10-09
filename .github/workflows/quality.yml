@@ -172,10 +172,13 @@ jobs:
         run: npm run check:bundle-size
 
       - name: Install Playwright browser
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps chromium webkit
 
       - name: Run browser tests
         run: npm run test:e2e
+
+      - name: Check production UI performance budgets
+        run: npm run test:performance
 
       - name: Upload frontend coverage
         if: always()
@@ -191,6 +194,14 @@ jobs:
         with:
           name: browser-test-report
           path: Broken_Ranks_Tool_Frontend/playwright-report
+          if-no-files-found: ignore
+
+      - name: Upload production UI performance report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: production-ui-performance
+          path: Broken_Ranks_Tool_Frontend/performance-report
           if-no-files-found: ignore
 
   container-smoke:

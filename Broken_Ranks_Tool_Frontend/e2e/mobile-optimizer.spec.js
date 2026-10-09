@@ -1,4 +1,5 @@
-import { expect, test, devices } from "@playwright/test";
+import { expect, test } from "@playwright/test";
+import { mobileDevice } from "./mobile-device";
 import AxeBuilder from "@axe-core/playwright";
 import {
     optimizerBuild,
@@ -6,8 +7,7 @@ import {
     optimizerResponse,
 } from "../src/test/fixtures/equipment/optimizerScenario.js";
 
-const { defaultBrowserType: _defaultBrowserType, ...phone } = devices["Pixel 7"];
-test.use(phone);
+test.use(mobileDevice);
 
 test.beforeEach(async ({ page }) => {
     await page.addInitScript(

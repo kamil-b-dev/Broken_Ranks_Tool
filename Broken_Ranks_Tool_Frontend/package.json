@@ -8,6 +8,8 @@
         "build": "vite build",
         "check:bundle-size": "node scripts/check-bundle-size.mjs",
         "assets:optimize": "node scripts/optimize-assets.mjs",
+        "assets:optimize:mobile": "node scripts/optimize-mobile-assets.mjs",
+        "assets:optimize:ui": "node scripts/optimize-ui-assets.mjs",
         "format": "prettier --write .",
         "format:check": "prettier --check .",
         "lint": "eslint .",
@@ -15,6 +17,7 @@
         "test:coverage": "vitest run --coverage && node scripts/check-coverage-floor.mjs",
         "test:e2e": "playwright test",
         "test:integration": "playwright test --config playwright.integration.config.js",
+        "test:performance": "playwright test --config playwright.performance.config.js",
         "preview": "vite preview",
         "docs": "node scripts/generate-docs.mjs"
     },
