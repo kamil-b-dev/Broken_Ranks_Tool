@@ -20,7 +20,9 @@ class OptimizationPreservedDrifs {
         if (slot.special()
                 || request.getLockedSlots() != null && request.getLockedSlots().contains(key)) {
             Set<Integer> all = new HashSet<>();
-            for (int index = 0; index < ids.size(); index++) all.add(index);
+            for (int index = 0; index < ids.size(); index++) {
+                if (slot.special() || ids.get(index) != null) all.add(index);
+            }
             return all;
         }
         return request.getLockedDrifs() != null

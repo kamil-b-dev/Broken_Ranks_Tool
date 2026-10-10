@@ -172,7 +172,8 @@ paths:
               $ref: "#/components/schemas/OptimizationRequest"
       responses:
         "200":
-          description: HTTP 200 may contain a business failure or a valid calculator-verified build with unmet
+          description:
+            HTTP 200 may contain a business failure or a valid calculator-verified build with unmet
             soft targets. Both may have summary.success=false; a valid build still includes optimizedSetup,
             calculationResult and warnings explaining the unmet targets.
           content:
@@ -205,7 +206,7 @@ paths:
             format: uuid
       responses:
         "200":
-          description: Whether a matching active run was marked for cancellation.
+          description: Whether a matching active run was marked for cancellation. A matching request still in transit remembers the cancellation intent for 10 seconds; a false result only means there was no active matching flag to set.
           content:
             application/json:
               schema:
@@ -423,7 +424,8 @@ components:
             $ref: "#/components/schemas/SlotData"
         priorities:
           type: object
-          description: At least one priority is required in advanced mode; named simple profiles resolve priorities
+          description:
+            At least one priority is required in advanced mode; named simple profiles resolve priorities
             server-side.
           maxProperties: 32
           additionalProperties:
@@ -449,6 +451,7 @@ components:
                 maximum: 12
         drifSizeQuantities:
           type: object
+          description: Liczności rozmiarów obejmują zwykłe i wbudowane drify. Wbudowane drify przekraczające maksimum są zachowywane z ostrzeżeniem; wyjątek nie pozwala dodawać kolejnych drifów ponad limit.
           maxProperties: 32
           additionalProperties:
             type: object
@@ -562,6 +565,18 @@ components:
             - number
             - "null"
           minimum: 0
+        limitBenefitToTarget:
+          type: boolean
+          default: false
+          description: Stop rewarding the main modifier at its explicit target rather than its natural cap. Has no effect without a finite requested target.
+        purchaseScope:
+          type: string
+          enum:
+            - GOAL_ONLY
+            - GOAL_AND_PROTECTED
+            - ANY
+          default: GOAL_ONLY
+          description: Bonus types considered when drif purchases are enabled. Protected means an active protection derived from the baseline build.
         profession:
           type: string
           enum:
@@ -1068,7 +1083,8 @@ components:
       properties:
         success:
           type: boolean
-          description: In build-from-scratch mode false also describes a valid build with unmet soft targets.
+          description:
+            In build-from-scratch mode false also describes a valid build with unmet soft targets.
             Inspect optimizedSetup, calculationResult and warnings to distinguish it from a business failure
             without a build. The flag does not indicate proof of a global optimum.
         message:

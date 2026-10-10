@@ -8,9 +8,9 @@ import java.util.Map;
 import java.util.Set;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_SIZE;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.STAT_TYPE;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentRequestValidator;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.CharacterStatRules;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.BuildConfigurationMode;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationMode;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 
 /** Validates the optimizer API contract before search data is loaded. */
@@ -24,6 +24,7 @@ public final class OptimizationRequestValidator {
                 || request.getOriginalSlots().isEmpty()) {
             return "Brak konfiguracji do optymalizacji.";
         }
+        if (request.getMode() == OptimizationMode.ADVISOR) return validateCharacterStats(request);
         if (request.getPriorities() == null || request.getPriorities().isEmpty()) {
             return "Wybierz przynajmniej jeden modyfikator i ustaw jego priorytet.";
         }
@@ -97,9 +98,6 @@ public final class OptimizationRequestValidator {
                 return "Ograniczenie rozmiarów ma pusty typ modyfikatora.";
             }
             int minimumSum = 0;
-            int maximumSum =
-                    (DRIF_SIZE.values().length - bonusEntry.getValue().size())
-                            * MAX_GLOBAL_DRIFS_PER_TYPE;
             for (Map.Entry<DRIF_SIZE, OptimizationRequest.QuantityRange> sizeEntry :
                     bonusEntry.getValue().entrySet()) {
                 OptimizationRequest.QuantityRange range = sizeEntry.getValue();
@@ -113,13 +111,13 @@ public final class OptimizationRequestValidator {
                             + ".";
                 }
                 minimumSum += range.getMin();
-                maximumSum += range.getMax();
             }
             OptimizationRequest.QuantityRange total =
                     request.getTargetQuantities() == null
                             ? null
                             : request.getTargetQuantities().get(bonusEntry.getKey());
-            if (total != null && (minimumSum > total.getMax() || maximumSum < total.getMin())) {
+            // Maximum sums require catalog data: preserved built-in drifs can exceed a size quota.
+            if (total != null && minimumSum > total.getMax()) {
                 return "Zakresy rozmiarów są sprzeczne z łącznym limitem dla "
                         + bonusEntry.getKey().getDescription()
                         + ".";
@@ -226,15 +224,11 @@ public final class OptimizationRequestValidator {
     }
 
     private static String validateCharacterStats(OptimizationRequest request) {
-        if (request.getCharacterStats() == null) return null;
-        for (Map.Entry<String, Integer> entry : request.getCharacterStats().entrySet()) {
-            if (!STAT_TYPE.isValid(entry.getKey())
-                    || entry.getValue() == null
-                    || entry.getValue() < 0
-                    || entry.getValue() > EquipmentRequestValidator.MAX_CHARACTER_STAT) {
-                return "Nieprawidłowa statystyka postaci: " + entry.getKey() + ".";
-            }
+        try {
+            CharacterStatRules.validate(request.getCharacterStats());
+            return null;
+        } catch (IllegalArgumentException exception) {
+            return exception.getMessage();
         }
-        return null;
     }
 }

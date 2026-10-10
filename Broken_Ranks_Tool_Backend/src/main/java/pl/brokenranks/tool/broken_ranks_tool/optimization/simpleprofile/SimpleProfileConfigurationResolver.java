@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.BuildConfigurationMode;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationMode;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 
 /** Expands simple profession choices into deterministic internal optimization goals. */
@@ -18,7 +19,8 @@ public final class SimpleProfileConfigurationResolver {
     private SimpleProfileConfigurationResolver() {}
 
     public static String resolve(OptimizationRequest request) {
-        if (request.getConfigurationMode() != BuildConfigurationMode.SIMPLE
+        if (request.getMode() != OptimizationMode.BUILD_FROM_SCRATCH
+                || request.getConfigurationMode() != BuildConfigurationMode.SIMPLE
                 || request.getSimpleProfile() == null) return null;
         if (isLegacy(request.getSimpleProfile())) return resolveLegacy(request);
 

@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_SIZE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest.SlotData;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
@@ -129,7 +130,7 @@ final class AdvisorDrifActionGenerator {
             Consumer<AdvisorSearch.Node> accept) {
         for (DrifTemplate drif : model.templates.drifs().values()) {
             if (!search.running()) return;
-            if (drif.getBonusType() != search.options.getGoal()
+            if (!purchasable(drif.getBonusType())
                     || !model.placement.isValidDrifSizeForTier(drif, model.item(slot))) continue;
             for (int nextLevel : DRIF_SIZE.meaningfulLevels()) {
                 if (nextLevel > drif.getSize().getMaxLevel()) continue;
@@ -146,6 +147,17 @@ final class AdvisorDrifActionGenerator {
                         accept);
             }
         }
+    }
+
+    private boolean purchasable(DRIF_BONUS_TYPE type) {
+        if (type == null) return false;
+        return switch (search.options.getPurchaseScope()) {
+            case GOAL_ONLY -> type == search.options.getGoal();
+            case GOAL_AND_PROTECTED ->
+                    type == search.options.getGoal()
+                            || Double.isFinite(search.minima[type.ordinal()]);
+            case ANY -> true;
+        };
     }
 
     private String moveLabel(

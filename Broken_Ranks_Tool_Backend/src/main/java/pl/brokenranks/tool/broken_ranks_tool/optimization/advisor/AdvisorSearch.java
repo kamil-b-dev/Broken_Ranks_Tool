@@ -23,7 +23,7 @@ final class AdvisorSearch {
     final AdvisorSearchControl control;
     final Comparator<Node> ranking;
     final AdvisorBeamPolicy beamPolicy = new AdvisorBeamPolicy();
-    final Set<StateKey> seen = new HashSet<>();
+    private final Map<StateKey, List<PathCost>> seen = new HashMap<>();
     final List<Node> finalists = new ArrayList<>();
     final List<Node> proofCandidates = new ArrayList<>();
     private final AdvisorActionGenerator actions;
@@ -72,7 +72,8 @@ final class AdvisorSearch {
                 options.getTargetValue() != null
                         ? options.getTargetValue()
                         : options.getTargetGain() != null
-                                ? value(baseline) + options.getTargetGain()
+                                ? useful(options.getGoal(), baseline[options.getGoal().ordinal()])
+                                        + options.getTargetGain()
                                 : Double.POSITIVE_INFINITY;
         Integer cap = options.getGoal().getMaxCap();
         target = cap == null ? requestedTarget : Math.min(requestedTarget, Math.abs(cap));
@@ -86,7 +87,7 @@ final class AdvisorSearch {
 
     List<Node> run(Map<String, SlotData> slots) {
         Node initial = new Node(slots, model.evaluate(slots), List.of(), Set.of(), 0, 0);
-        seen.add(stateSignature(initial));
+        admit(initial);
         List<Node> beam = List.of(initial);
         for (int depth = 0; depth < options.getMaxActions() && running(); depth++) {
             List<Node> next = new ArrayList<>();
@@ -95,8 +96,10 @@ final class AdvisorSearch {
                 actions.generate(
                         node,
                         candidate -> {
-                            if (!running() || !seen.add(stateSignature(candidate))) return;
-                            control.recordEvaluation();
+                            if (!running()) return;
+                            int uniqueStates = seen.size();
+                            if (!admit(candidate)) return;
+                            if (seen.size() > uniqueStates) control.recordEvaluation();
                             Node scored =
                                     new Node(
                                             candidate.slots(),
@@ -109,8 +112,8 @@ final class AdvisorSearch {
                             // compensate.
                             next.add(scored);
                             if (exact) proofCandidates.add(scored);
-                            if (deficit(scored.stats()) <= 0.1 && gain(scored.stats()) > EPSILON)
-                                finalists.add(scored);
+                            if (deficit(scored.stats()) <= EPSILON
+                                    && gain(scored.stats()) > EPSILON) finalists.add(scored);
                             if (exact && next.size() > 1_500) {
                                 exact = false;
                                 proofCandidates.clear();
@@ -143,7 +146,8 @@ final class AdvisorSearch {
     }
 
     double value(double[] stats) {
-        return useful(options.getGoal(), stats[options.getGoal().ordinal()]);
+        double value = useful(options.getGoal(), stats[options.getGoal().ordinal()]);
+        return options.isLimitBenefitToTarget() ? Math.min(value, target) : value;
     }
 
     double gain(double[] stats) {
@@ -200,6 +204,22 @@ final class AdvisorSearch {
 
     private StateKey stateSignature(Node node) {
         return new StateKey(signature(node.slots()), Set.copyOf(node.changed()));
+    }
+
+    boolean admit(Node node) {
+        StateKey key = stateSignature(node);
+        PathCost cost = new PathCost(node.upgrades(), node.effort(), node.actions().size());
+        List<PathCost> known = seen.computeIfAbsent(key, ignored -> new ArrayList<>());
+        if (known.stream().anyMatch(previous -> previous.noMoreExpensiveThan(cost))) return false;
+        known.removeIf(cost::noMoreExpensiveThan);
+        known.add(cost);
+        return true;
+    }
+
+    private record PathCost(int upgrades, int effort, int actions) {
+        boolean noMoreExpensiveThan(PathCost other) {
+            return upgrades <= other.upgrades && effort <= other.effort && actions <= other.actions;
+        }
     }
 
     private record StateKey(String equipment, Set<AdvisorChangeKey> changed) {}

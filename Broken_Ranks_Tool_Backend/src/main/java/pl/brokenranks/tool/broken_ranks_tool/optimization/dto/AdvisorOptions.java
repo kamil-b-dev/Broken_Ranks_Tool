@@ -18,6 +18,12 @@ public class AdvisorOptions {
         BEST_RESULT
     }
 
+    public enum PurchaseScope {
+        GOAL_ONLY,
+        GOAL_AND_PROTECTED,
+        ANY
+    }
+
     @NotNull private DRIF_BONUS_TYPE goal;
 
     @NotNull private Strategy strategy = Strategy.MINIMUM_CHANGE;
@@ -44,6 +50,11 @@ public class AdvisorOptions {
 
     @DecimalMin("0.0")
     private Double targetGain;
+
+    /** Explicitly stops rewarding the main modifier beyond the requested target. */
+    private boolean limitBenefitToTarget;
+
+    @NotNull private PurchaseScope purchaseScope = PurchaseScope.GOAL_ONLY;
 
     @NotNull private AdvisorProfession profession = AdvisorProfession.AUTO;
 

@@ -135,12 +135,13 @@ final class AdvisorItemActionGenerator {
         }
         var character = model.request.getCharacterStats();
         if (character != null) {
-            magical +=
-                    character.getOrDefault(STAT_TYPE.POWER.getDescription(), 0)
-                            + character.getOrDefault(STAT_TYPE.KNOWLEDGE.getDescription(), 0);
-            physical +=
-                    character.getOrDefault(STAT_TYPE.STRENGTH.getDescription(), 0)
-                            + character.getOrDefault(STAT_TYPE.DEXTERITY.getDescription(), 0);
+            for (var entry : character.entrySet()) {
+                STAT_TYPE type = STAT_TYPE.fromDescription(entry.getKey()).orElse(null);
+                if (type == STAT_TYPE.POWER || type == STAT_TYPE.KNOWLEDGE)
+                    magical += entry.getValue();
+                if (type == STAT_TYPE.STRENGTH || type == STAT_TYPE.DEXTERITY)
+                    physical += entry.getValue();
+            }
         }
         return magical == physical
                 ? AdvisorProfession.UNIVERSAL

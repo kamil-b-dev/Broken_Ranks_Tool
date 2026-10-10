@@ -17,6 +17,32 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.Optimizat
 class OptimizationRequestValidatorTests {
 
     @Test
+    void sharesCanonicalCharacterStatLimitWithCalculator() {
+        var request = new OptimizationRequest();
+        request.setCharacterStats(Map.of("Siła", 30_000, "siła", 30_000));
+        assertNotNull(OptimizationRequestValidator.validateSettings(request));
+        request.setCharacterStats(Map.of("Siła", 30_000, "siła", 20_000));
+        assertNull(OptimizationRequestValidator.validateSettings(request));
+    }
+
+    @Test
+    void advisorIgnoresInactiveScratchControls() {
+        var request = new OptimizationRequest();
+        request.setMode(
+                pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationMode.ADVISOR);
+        request.setOriginalSlots(
+                Map.of(
+                        "helmet",
+                        new pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest
+                                .SlotData()));
+        request.setConfigurationMode(BuildConfigurationMode.SIMPLE);
+        request.setMaxVariantLossPercent(101);
+        assertNull(OptimizationRequestValidator.validate(request));
+        request.setCharacterStats(Map.of("Siła", 50_001));
+        assertNotNull(OptimizationRequestValidator.validate(request));
+    }
+
+    @Test
     void usesFivePercentVariantLossWhenOlderRequestOmitsSetting() {
         OptimizationRequest request = new OptimizationRequest();
 

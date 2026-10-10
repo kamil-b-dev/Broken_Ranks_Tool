@@ -116,7 +116,7 @@ public final class OptimizationBeamSearch {
                         < maxQuantity(candidate.getBonusType(), context.request())
                 && stateEvaluation.sizeCount(
                                 state, candidate.getBonusType(), candidate.getSize(), context)
-                        < maximum(candidate.getBonusType(), candidate.getSize(), context.request())
+                        < maximum(candidate.getBonusType(), candidate.getSize(), context)
                 && !placementOperations.containsAnotherElemental(state, candidate, null);
     }
 

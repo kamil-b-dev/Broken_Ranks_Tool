@@ -44,12 +44,10 @@ final class OptimizationMetricsCalculator {
                     drifValue(placement.drif(), placement.level(), context)
                             * (1.0 + slot.drifBonus());
             accumulator.searchCounts.merge(type, 1, Integer::sum);
-            if (!slot.special()) {
-                accumulator
-                        .sizeCounts
-                        .computeIfAbsent(type, ignored -> new LinkedHashMap<>())
-                        .merge(placement.drif().getSize(), 1, Integer::sum);
-            }
+            accumulator
+                    .sizeCounts
+                    .computeIfAbsent(type, ignored -> new LinkedHashMap<>())
+                    .merge(placement.drif().getSize(), 1, Integer::sum);
             accumulator.searchRawValues.merge(type, value, Double::sum);
             if (!unique.add(type)) continue;
             if (!slot.special()) {

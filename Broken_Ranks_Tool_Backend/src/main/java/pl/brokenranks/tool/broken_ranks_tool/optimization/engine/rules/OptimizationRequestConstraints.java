@@ -44,7 +44,10 @@ public class OptimizationRequestConstraints {
     public static Double targetFor(DRIF_BONUS_TYPE type, OptimizationRequest request) {
         if (request.getForcedPercentageTargets() != null) {
             Double target = request.getForcedPercentageTargets().get(type);
-            if (target != null) return Math.abs(target);
+            if (target != null)
+                return type.getMaxCap() == null
+                        ? Math.abs(target)
+                        : Math.min(Math.abs(target), Math.abs(type.getMaxCap()));
         }
         if (isForcedCap(type, request) && type.getMaxCap() != null) {
             return (double) Math.abs(type.getMaxCap());
@@ -68,6 +71,13 @@ public class OptimizationRequestConstraints {
         Double requestedTarget = targetFor(type, request);
         if (requestedTarget != null) return requestedTarget;
         return type.getMaxCap() != null ? (double) Math.abs(type.getMaxCap()) : null;
+    }
+
+    /** Utility of an already directed calculator value; surplus never invalidates a build. */
+    public static double usefulValue(
+            DRIF_BONUS_TYPE type, double value, OptimizationRequest request) {
+        Double bound = usefulTargetFor(type, request);
+        return bound == null ? Math.max(0.0, value) : Math.min(Math.max(0.0, value), bound);
     }
 
     /**

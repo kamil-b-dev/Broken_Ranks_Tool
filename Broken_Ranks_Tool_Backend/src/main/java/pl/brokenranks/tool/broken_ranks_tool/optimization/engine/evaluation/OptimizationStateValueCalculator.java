@@ -8,6 +8,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_T
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_SIZE;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationDrifSizeConstraints;
 
 /** Answers value, count, and quantity-constraint queries for calculated state metrics. */
 final class OptimizationStateValueCalculator {
@@ -47,7 +48,10 @@ final class OptimizationStateValueCalculator {
                 for (var sizeEntry : bonusEntry.getValue().entrySet()) {
                     int count = sizeCount(metrics, bonusEntry.getKey(), sizeEntry.getKey());
                     if (count < sizeEntry.getValue().getMin()
-                            || count > sizeEntry.getValue().getMax()) return false;
+                            || count
+                                    > OptimizationDrifSizeConstraints.maximum(
+                                            bonusEntry.getKey(), sizeEntry.getKey(), context))
+                        return false;
                 }
             }
         }

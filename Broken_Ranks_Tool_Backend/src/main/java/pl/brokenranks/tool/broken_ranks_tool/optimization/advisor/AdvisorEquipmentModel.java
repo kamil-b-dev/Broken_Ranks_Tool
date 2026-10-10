@@ -3,6 +3,8 @@ package pl.brokenranks.tool.broken_ranks_tool.optimization.advisor;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.advisor.AdvisorSlotData.*;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.advisor.AdvisorStatValues.*;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.*;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.*;
@@ -65,8 +67,11 @@ final class AdvisorEquipmentModel {
                 counts[i] += c.counts()[i];
             }
         }
-        for (int i = 0; i < TYPES.length; i++)
+        for (int i = 0; i < TYPES.length; i++) {
             result[i] += raw[i] * rules.getDrifPenalty(counts[i]);
+            result[i] =
+                    BigDecimal.valueOf(result[i]).setScale(2, RoundingMode.HALF_UP).doubleValue();
+        }
         return result;
     }
 
@@ -133,7 +138,9 @@ final class AdvisorEquipmentModel {
     }
 
     boolean locked(String key) {
-        return request.getLockedSlots() != null && request.getLockedSlots().contains(key);
+        ItemTemplate original = item(request.getOriginalSlots().get(key));
+        return original != null && original.getRarity() == RARITY.SET
+                || request.getLockedSlots() != null && request.getLockedSlots().contains(key);
     }
 
     boolean movable(String key, SlotData slot, int index) {

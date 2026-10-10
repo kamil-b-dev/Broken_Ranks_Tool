@@ -34,12 +34,12 @@ final class AdvisorFinalistVerifier {
         List<Verified> verified = new ArrayList<>();
         List<AdvisorSearch.Node> queue =
                 search.exhaustive() ? List.copyOf(candidates) : diversify(candidates, search);
-        int checkLimit = search.exhaustive() ? queue.size() : Math.min(18, queue.size());
         int checks = 0;
         boolean deadlineReached = false;
         for (AdvisorSearch.Node candidate : queue) {
             // Cancellation stops search, but already found plans still need verification.
-            if (checks >= checkLimit || (search.cancelled() && checks >= 6)) break;
+            if (!search.exhaustive() && verified.size() >= 18 || search.cancelled() && checks >= 6)
+                break;
             if (clock.getAsLong() >= deadline) {
                 deadlineReached = true;
                 break;
@@ -92,6 +92,7 @@ final class AdvisorFinalistVerifier {
                         .filter(node -> !queue.contains(node))
                         .ifPresent(queue::add);
             }
+        candidates.stream().filter(node -> !queue.contains(node)).forEach(queue::add);
         return queue;
     }
 

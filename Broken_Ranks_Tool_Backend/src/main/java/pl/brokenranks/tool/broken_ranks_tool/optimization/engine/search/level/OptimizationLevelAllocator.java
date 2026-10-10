@@ -122,6 +122,6 @@ public final class OptimizationLevelAllocator {
                                 type, current.getSize(), context.request())
                 && candidateCount
                         < OptimizationDrifSizeConstraints.maximum(
-                                type, candidate.getSize(), context.request());
+                                type, candidate.getSize(), context);
     }
 }

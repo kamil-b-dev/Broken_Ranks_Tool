@@ -11,6 +11,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_T
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationSummary;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationDrifSizeConstraints;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.variant.GeneratedOptimizationVariant;
 
 /** Creates user-facing optimization goals, warnings, and summary metadata. */
@@ -38,13 +39,37 @@ final class OptimizationSummaryFactory {
             List<GeneratedOptimizationVariant> variants) {
         Metrics metrics = stateEvaluator.metrics(state, context);
         Map<String, String> calculatorStats = calculatorAdapter.actualStats(state, context);
+        List<String> reportedWarnings = new ArrayList<>(warnings);
+        reportedWarnings.addAll(OptimizationDrifSizeConstraints.builtInWarnings(context));
+        if (context.request().getForcedPercentageTargets() != null) {
+            context.request().getForcedPercentageTargets().entrySet().stream()
+                    .sorted(Map.Entry.comparingByKey())
+                    .filter(
+                            entry ->
+                                    entry.getKey().getMaxCap() != null
+                                            && entry.getValue()
+                                                    > Math.abs(entry.getKey().getMaxCap()))
+                    .forEach(
+                            entry ->
+                                    reportedWarnings.add(
+                                            "Cel dla "
+                                                    + entry.getKey().getDescription()
+                                                    + " przekraczał cap i został ograniczony z "
+                                                    + String.format(
+                                                            java.util.Locale.ROOT,
+                                                            "%.2f%%",
+                                                            entry.getValue())
+                                                    + " do "
+                                                    + Math.abs(entry.getKey().getMaxCap())
+                                                    + "%."));
+        }
         return new OptimizationSummary(
                 warnings.isEmpty(),
                 resultMessage(warnings),
                 totalDrifCount(metrics),
                 metrics.totalPower(),
                 executionTime,
-                warnings,
+                reportedWarnings,
                 itemDrifBonusMap(context),
                 goalResults(metrics, calculatorStats, context),
                 variantSummaryFactory.create(state, variants, context));

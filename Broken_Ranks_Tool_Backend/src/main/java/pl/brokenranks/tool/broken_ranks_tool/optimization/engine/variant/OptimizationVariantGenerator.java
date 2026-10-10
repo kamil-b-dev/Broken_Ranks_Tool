@@ -38,13 +38,10 @@ public final class OptimizationVariantGenerator {
      */
     public List<GeneratedOptimizationVariant> generate(
             BuildState mainState, OptimizationContext context, List<BuildState> evaluatedStates) {
-        if (context.request().getMaximizeBonuses() == null
-                || context.request().getMaximizeBonuses().isEmpty()
-                || evaluatedStates == null
-                || evaluatedStates.isEmpty()) return List.of();
+        if (evaluatedStates == null || evaluatedStates.isEmpty()) return List.of();
 
         List<DRIF_BONUS_TYPE> focuses =
-                context.request().getMaximizeBonuses().stream()
+                context.request().getPriorities().keySet().stream()
                         .sorted(
                                 Comparator.comparingInt(
                                                 (DRIF_BONUS_TYPE type) ->
@@ -53,7 +50,6 @@ public final class OptimizationVariantGenerator {
                                                                 .getOrDefault(type, 0))
                                         .reversed()
                                         .thenComparing(Enum::name))
-                        .limit(MAX_ALTERNATIVES)
                         .toList();
         List<DRIF_BONUS_TYPE> trackedTypes =
                 context.request().getPriorities().keySet().stream()
@@ -72,6 +68,20 @@ public final class OptimizationVariantGenerator {
         List<DRIF_BONUS_TYPE> missingFocuses =
                 focuses.stream()
                         .filter(
+                                type ->
+                                        context.request().getMaximizeBonuses() != null
+                                                && context.request()
+                                                        .getMaximizeBonuses()
+                                                        .contains(type))
+                        .filter(
+                                type -> {
+                                    Double bound =
+                                            pl.brokenranks.tool.broken_ranks_tool.optimization
+                                                    .engine.rules.OptimizationRequestConstraints
+                                                    .usefulTargetFor(type, context.request());
+                                    return bound == null || main.values().get(type) < bound - 1e-8;
+                                })
+                        .filter(
                                 focus ->
                                         !frontierPolicy.hasAcceptableCandidate(
                                                 new ArrayList<>(unique.values()),
@@ -79,6 +89,7 @@ public final class OptimizationVariantGenerator {
                                                 focus,
                                                 trackedTypes,
                                                 context))
+                        .limit(MAX_ALTERNATIVES)
                         .toList();
         if (!missingFocuses.isEmpty()) {
             BuildState fallbackStart = contextFactory.withoutOptimizerPrelocks(mainState, context);
@@ -105,7 +116,9 @@ public final class OptimizationVariantGenerator {
                                                 .noneMatch(
                                                         other ->
                                                                 frontierPolicy.dominates(
-                                                                        other, candidate, focuses)))
+                                                                        other,
+                                                                        candidate,
+                                                                        trackedTypes)))
                         .toList();
         Map<String, GeneratedOptimizationVariant> selected = new LinkedHashMap<>();
 

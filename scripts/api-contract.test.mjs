@@ -30,6 +30,29 @@ test("legacy optimizer requests may omit the defaulted mode", () => {
   assert.throws(() => validate("SimpleOptions", { damageDrifs: 13 }));
 });
 
+test("advisor purchase scope and benefit limit are typed and optional for legacy requests", () => {
+  validate("AdvisorOptions", { goal: "CRITICAL_CHANCE" });
+  for (const purchaseScope of ["GOAL_ONLY", "GOAL_AND_PROTECTED", "ANY"]) {
+    validate("AdvisorOptions", {
+      goal: "CRITICAL_CHANCE",
+      purchaseScope,
+      limitBenefitToTarget: true,
+    });
+  }
+  assert.throws(() =>
+    validate("AdvisorOptions", {
+      goal: "CRITICAL_CHANCE",
+      purchaseScope: "UNLIMITED",
+    }),
+  );
+  assert.throws(() =>
+    validate("AdvisorOptions", {
+      goal: "CRITICAL_CHANCE",
+      limitBenefitToTarget: "yes",
+    }),
+  );
+});
+
 test("a business failure is a valid response, but malformed DTOs are rejected", () => {
   validate("OptimizationResponse", response);
   assert.throws(() =>

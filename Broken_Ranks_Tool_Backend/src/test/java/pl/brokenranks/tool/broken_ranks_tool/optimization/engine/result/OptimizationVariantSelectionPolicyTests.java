@@ -11,6 +11,59 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.BuildStat
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationVariantSelectionPolicy.Candidate;
 
 class OptimizationVariantSelectionPolicyTests {
+
+    @Test
+    void doesNotCompareGainsOfDifferentModifiersAsIfTheyWereTheSameOutcome() {
+        Candidate magic =
+                new Candidate(
+                        DRIF_BONUS_TYPE.DAMAGE_MAGIC,
+                        10,
+                        20,
+                        0,
+                        List.of(change("helmet", "A", "B")),
+                        "magic",
+                        new BuildState(),
+                        java.util.Map.of(
+                                DRIF_BONUS_TYPE.DAMAGE_MAGIC,
+                                10.0,
+                                DRIF_BONUS_TYPE.CRITICAL_CHANCE,
+                                0.0));
+        Candidate critical =
+                new Candidate(
+                        DRIF_BONUS_TYPE.CRITICAL_CHANCE,
+                        10,
+                        11,
+                        0,
+                        List.of(change("helmet", "A", "B")),
+                        "critical",
+                        new BuildState(),
+                        java.util.Map.of(
+                                DRIF_BONUS_TYPE.DAMAGE_MAGIC,
+                                0.0,
+                                DRIF_BONUS_TYPE.CRITICAL_CHANCE,
+                                1.0));
+        assertEquals(2, policy.select(List.of(magic, critical)).size());
+    }
+
+    @Test
+    void levelChangesRemainDistinctWhenTheyRequireDifferentTradeoffs() {
+        Candidate first =
+                candidate(
+                        10,
+                        15,
+                        1,
+                        new PlacementChange("helmet", "helmet", "A", 6, "A", 11),
+                        "first");
+        Candidate second =
+                candidate(
+                        10,
+                        16,
+                        3,
+                        new PlacementChange("helmet", "helmet", "A", 11, "A", 16),
+                        "second");
+        assertEquals(2, policy.select(List.of(first, second)).size());
+    }
+
     private final OptimizationVariantSelectionPolicy policy =
             new OptimizationVariantSelectionPolicy();
 

@@ -287,12 +287,19 @@ public final class OptimizationInputValidator {
         if (!slot.special() && usedPower > slot.capacity()) {
             return "Slot " + key + ": zablokowane drify przekraczają pojemność przedmiotu.";
         }
-        return validatePreservedLevelKeys(key, data, preserved);
+        boolean entireSlotPreserved =
+                slot.special()
+                        || context.request().getLockedSlots() != null
+                                && context.request().getLockedSlots().contains(key);
+        return validatePreservedLevelKeys(key, data, preserved, entireSlotPreserved);
     }
 
     private String validatePreservedLevelKeys(
-            String key, EquipmentRequest.SlotData data, Set<Integer> preserved) {
-        if (data.getDrifLevels() == null || preserved.isEmpty()) return null;
+            String key,
+            EquipmentRequest.SlotData data,
+            Set<Integer> preserved,
+            boolean entireSlotPreserved) {
+        if (data.getDrifLevels() == null) return null;
         List<String> invalid = new ArrayList<>();
         for (String levelKey : data.getDrifLevels().keySet()) {
             try {
@@ -301,7 +308,9 @@ public final class OptimizationInputValidator {
             } catch (NumberFormatException ignored) {
                 // Report malformed keys below when the slot configuration is preserved.
             }
-            if (preserved.size() == (data.getDrifIds() != null ? data.getDrifIds().size() : 0)) {
+            if (entireSlotPreserved
+                    || preserved.size()
+                            == (data.getDrifIds() != null ? data.getDrifIds().size() : 0)) {
                 invalid.add(levelKey);
             }
         }
@@ -334,6 +343,25 @@ public final class OptimizationInputValidator {
                 }
                 if (request.getLockedDrifs().get(key) == null) {
                     return "Blokada drifa w slocie " + key + " ma pustą listę indeksów.";
+                }
+                SlotContext slot = validSlots.get(key);
+                List<Long> ids =
+                        slot.original().getDrifIds() != null
+                                ? slot.original().getDrifIds()
+                                : List.of();
+                for (Integer index : request.getLockedDrifs().get(key)) {
+                    if (index == null)
+                        return "Slot " + key + ": blokada drifa zawiera nieprawidłowy indeks.";
+                    if (index < 0 || index >= ids.size() || ids.get(index) == null) {
+                        return "Slot "
+                                + key
+                                + ": blokada drifa wskazuje pustą lub nieistniejącą pozycję.";
+                    }
+                    if (!slot.special() && index >= slot.maxDrifs()) {
+                        return "Slot "
+                                + key
+                                + ": blokada drifa przekracza liczbę dostępnych gniazd.";
+                    }
                 }
             }
         }

@@ -13,6 +13,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRul
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationDrifSizeConstraints;
 
 /** Calculates structured quality measures and maximization scales for states. */
 @RequiredArgsConstructor
@@ -45,7 +46,14 @@ final class OptimizationStateQualityCalculator {
                                     .getOrDefault(bonusEntry.getKey(), Map.of())
                                     .getOrDefault(sizeEntry.getKey(), 0);
                     hardViolations += Math.max(0, sizeEntry.getValue().getMin() - count);
-                    hardViolations += Math.max(0, count - sizeEntry.getValue().getMax());
+                    hardViolations +=
+                            Math.max(
+                                    0,
+                                    count
+                                            - OptimizationDrifSizeConstraints.maximum(
+                                                    bonusEntry.getKey(),
+                                                    sizeEntry.getKey(),
+                                                    context));
                 }
             }
         }

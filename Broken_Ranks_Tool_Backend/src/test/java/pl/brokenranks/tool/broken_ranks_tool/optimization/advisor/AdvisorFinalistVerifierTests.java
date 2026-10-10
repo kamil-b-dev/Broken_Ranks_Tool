@@ -15,6 +15,30 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCal
 
 class AdvisorFinalistVerifierTests {
     @Test
+    void invalidEarlyCandidatesDoNotUseUpTheVerifiedFinalistQuota() {
+        AdvisorSearch search = exactSearch();
+        when(search.exhaustive()).thenReturn(false);
+        var candidates = IntStream.range(0, 20).mapToObj(index -> candidate()).toList();
+        AtomicInteger calculations = new AtomicInteger();
+        when(search.deficit(any(double[].class)))
+                .thenAnswer(call -> calculations.get() < 20 ? 1.0 : 0.0);
+        var result =
+                new AdvisorFinalistVerifier(() -> 0)
+                        .verify(
+                                candidates,
+                                mock(AdvisorEquipmentModel.class),
+                                search,
+                                setup -> {
+                                    calculations.incrementAndGet();
+                                    return new CalculationResultDto(Map.of(), Map.of(), Set.of());
+                                },
+                                1);
+        assertEquals(20, result.verifiedCandidates());
+        assertEquals(1, result.selected().size());
+        assertFalse(result.proofComplete());
+    }
+
+    @Test
     void expiredVerificationBudgetCannotProduceAProof() {
         AdvisorSearch search = mock(AdvisorSearch.class);
         when(search.exhaustive()).thenReturn(true);
