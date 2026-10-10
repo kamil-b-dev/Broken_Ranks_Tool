@@ -237,6 +237,7 @@ describe("OptimizerPanel", () => {
         expect(updateSettings(settings)).toEqual({
             ...settings,
             advisorProfession: "AUTO",
+            advisorPurchaseScope: "GOAL_ONLY",
             configurationMode: "ADVANCED",
             maxVariantLossPercent: 0,
             simpleProfile: "BARBARIAN",

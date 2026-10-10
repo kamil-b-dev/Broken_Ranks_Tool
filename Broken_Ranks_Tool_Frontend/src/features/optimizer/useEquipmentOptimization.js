@@ -78,6 +78,7 @@ export const useEquipmentOptimization = ({
             }
             const advisory = configuration.mode === "ADVISOR";
             let advisorRun = null;
+            let previousAdvisorRun = null;
             const request = createEquipmentOptimizationRequest({
                 slots,
                 characterStats: requestData?.characterStats,
@@ -86,12 +87,17 @@ export const useEquipmentOptimization = ({
                 lockedDrifs,
             });
             if (advisory && request.advisor) {
-                const previousAdvisorRun = activeAdvisor.current;
+                previousAdvisorRun = activeAdvisor.current;
                 advisorRun = {
                     runId: crypto.randomUUID(),
                     cancellationToken: crypto.randomUUID(),
                     cancellationRequested: false,
+                    previous: previousAdvisorRun,
+                    finished: false,
                 };
+                advisorRun.completed = new Promise((resolve) => {
+                    advisorRun.complete = resolve;
+                });
                 request.advisor = {
                     ...request.advisor,
                     runId: advisorRun.runId,
@@ -110,6 +116,8 @@ export const useEquipmentOptimization = ({
                 }
             }
             try {
+                // Cancel acknowledges the flag; only the previous response confirms worker release.
+                if (previousAdvisorRun) await previousAdvisorRun.completed;
                 if (advisorRun?.cancellationRequested) {
                     return {
                         success: false,
@@ -179,7 +187,15 @@ export const useEquipmentOptimization = ({
                 console.error("Błąd optymalizacji drifów:", error);
                 return { success: false, message: failureMessage(error), applied: false };
             } finally {
-                if (activeAdvisor.current === advisorRun) activeAdvisor.current = null;
+                if (advisorRun) {
+                    advisorRun.finished = true;
+                    advisorRun.complete();
+                }
+                if (activeAdvisor.current === advisorRun) {
+                    let previous = previousAdvisorRun;
+                    while (previous?.finished) previous = previous.previous;
+                    activeAdvisor.current = previous || null;
+                }
             }
         },
         [slots, requestData, lockedSlots, lockedDrifs, applyOptimizationSetup]

@@ -10,7 +10,17 @@ export const DEFAULT_ADVISOR_SEARCH = {
     target: "",
     maxActions: 3,
     timeBudgetMs: 3000,
+    limitBenefitToTarget: false,
 };
+
+export const ADVISOR_PURCHASE_SCOPES = [
+    ["GOAL_ONLY", "Tylko główny mod"],
+    ["GOAL_AND_PROTECTED", "Główny i chronione mody"],
+    ["ANY", "Dowolny mod"],
+];
+
+export const normalizeAdvisorPurchaseScope = (value) =>
+    ADVISOR_PURCHASE_SCOPES.some(([key]) => key === value) ? value : "GOAL_ONLY";
 
 export const ADVISOR_TIME_BUDGETS = [3000, 6000];
 
@@ -78,6 +88,9 @@ export const buildAdvisorConfiguration = (settings, stats, gameRules, characterS
             profession: settings.advisorProfession || "AUTO",
             allowedChanges: { ...DEFAULT_ADVISOR_CHANGES, ...settings.advisorAllowedChanges },
             protectedModifiers,
+            purchaseScope: normalizeAdvisorPurchaseScope(settings.advisorPurchaseScope),
+            limitBenefitToTarget:
+                search.targetMode !== "MAXIMIZE" && search.limitBenefitToTarget === true,
             strategy: ["MINIMUM_CHANGE", "BEST_RESULT"].includes(search.strategy)
                 ? search.strategy
                 : "MINIMUM_CHANGE",

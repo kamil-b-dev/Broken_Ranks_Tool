@@ -7,7 +7,7 @@ export const advisorBuildSignature = (slots) =>
             .map(([key, slot]) => [
                 key,
                 Number(slot.itemId),
-                Number(slot.itemStars || 0),
+                Number(slot.itemStars ?? 1),
                 ["drif", "orb"].map((kind) =>
                     (slot[`${kind}Ids`] || []).flatMap((id, index) =>
                         id ? [[index, Number(id), Number(slot[`${kind}Levels`]?.[index] || 1)]] : []

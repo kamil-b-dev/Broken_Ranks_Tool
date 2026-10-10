@@ -80,25 +80,51 @@ const OptimizerGoalsSection = ({
     maxCaps,
     showTargetLabel = false,
     advisory = false,
-}) => (
-    <section className="optimizer-report-section optimizer-goals-section">
-        <h5>Realizacja celów</h5>
-        {goals?.length ? (
-            <div className="optimizer-goals-list">
-                {goals.map((goal) => (
-                    <GoalCard
-                        key={goal.statKey}
-                        goal={goal}
-                        current={currentDetails.find((detail) => detail.key === goal.statKey)}
-                        activeVariant={activeVariant}
-                        maxCap={maxCaps?.[goal.statKey]}
-                        showTargetLabel={showTargetLabel}
-                        advisory={advisory}
-                    />
-                ))}
-            </div>
-        ) : null}
-    </section>
-);
+}) => {
+    const missed =
+        activeVariant && !activeVariant.main
+            ? (goals || []).flatMap((goal) => {
+                  const result = evaluateGoal(
+                      goal,
+                      currentDetails.find((detail) => detail.key === goal.statKey),
+                      activeVariant,
+                      maxCaps?.[goal.statKey],
+                      advisory
+                  );
+                  return goal.targetLabel && result.targetSatisfied === false
+                      ? [
+                            `${goal.bonusName}: ${result.calculatorValue ?? "—"} (cel ${goal.targetLabel})`,
+                        ]
+                      : [];
+              })
+            : [];
+    return (
+        <section className="optimizer-report-section optimizer-goals-section">
+            <h5>Realizacja celów</h5>
+            {missed.length > 0 && (
+                <div className="is-warning">
+                    <p className="optimizer-status-message" role="status">
+                        Wybrany wariant nie osiąga celu: {missed.join("; ")}.
+                    </p>
+                </div>
+            )}
+            {goals?.length ? (
+                <div className="optimizer-goals-list">
+                    {goals.map((goal) => (
+                        <GoalCard
+                            key={goal.statKey}
+                            goal={goal}
+                            current={currentDetails.find((detail) => detail.key === goal.statKey)}
+                            activeVariant={activeVariant}
+                            maxCap={maxCaps?.[goal.statKey]}
+                            showTargetLabel={showTargetLabel}
+                            advisory={advisory}
+                        />
+                    ))}
+                </div>
+            ) : null}
+        </section>
+    );
+};
 
 export default OptimizerGoalsSection;

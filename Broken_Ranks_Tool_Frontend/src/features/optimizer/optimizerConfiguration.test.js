@@ -279,6 +279,6 @@ describe("optimizerConfiguration", () => {
                     ),
                 },
             ])
-        ).toEqual(expect.objectContaining({ key: "CRITICAL_CHANCE", min: 1, max: 6 }));
+        ).toBeUndefined(); // Catalog-aware validation preserves mandatory built-in drifs.
     });
 });

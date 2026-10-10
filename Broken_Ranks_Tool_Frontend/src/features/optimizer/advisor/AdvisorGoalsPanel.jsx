@@ -4,6 +4,8 @@ import {
     selectedAdvisorGoal,
     DEFAULT_ADVISOR_CHANGES,
     DEFAULT_ADVISOR_SEARCH,
+    ADVISOR_PURCHASE_SCOPES,
+    normalizeAdvisorPurchaseScope,
 } from "./advisorConfiguration";
 import {
     DRIF_CATEGORY_LABELS,
@@ -116,25 +118,42 @@ const AdvisorGoalsPanel = ({ stats = {}, gameRules = {}, settings, onChange, sec
                             <option value="GAIN">Zyskaj określoną liczbę p.p.</option>
                         </select>
                         {search.targetMode !== "MAXIMIZE" && (
-                            <label className="advisor-loss-control">
-                                {search.targetMode === "VALUE"
-                                    ? "Wartość celu (%)"
-                                    : "Przyrost (p.p.)"}
-                                <input
-                                    type="number"
-                                    min="0"
-                                    step="0.1"
-                                    value={search.target}
-                                    onChange={(event) =>
-                                        update({
-                                            advisorSearch: {
-                                                ...search,
-                                                target: event.target.value,
-                                            },
-                                        })
-                                    }
-                                />
-                            </label>
+                            <>
+                                <label className="advisor-loss-control">
+                                    {search.targetMode === "VALUE"
+                                        ? "Wartość celu (%)"
+                                        : "Przyrost (p.p.)"}
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        step="0.1"
+                                        value={search.target}
+                                        onChange={(event) =>
+                                            update({
+                                                advisorSearch: {
+                                                    ...search,
+                                                    target: event.target.value,
+                                                },
+                                            })
+                                        }
+                                    />
+                                </label>
+                                <label className="advisor-loss-control">
+                                    <input
+                                        type="checkbox"
+                                        checked={search.limitBenefitToTarget === true}
+                                        onChange={(event) =>
+                                            update({
+                                                advisorSearch: {
+                                                    ...search,
+                                                    limitBenefitToTarget: event.target.checked,
+                                                },
+                                            })
+                                        }
+                                    />
+                                    Nie premiuj wzrostu ponad zadany cel
+                                </label>
+                            </>
                         )}
                     </section>
 
@@ -219,6 +238,24 @@ const AdvisorGoalsPanel = ({ stats = {}, gameRules = {}, settings, onChange, sec
                             ))}
                         </div>
                     </section>
+                    {(settings.advisorAllowedChanges?.drifs ?? DEFAULT_ADVISOR_CHANGES.drifs) && (
+                        <section className="advisor-goal-card">
+                            <label htmlFor="advisor-purchase-scope">Zakres zakupów drifów</label>
+                            <select
+                                id="advisor-purchase-scope"
+                                value={normalizeAdvisorPurchaseScope(settings.advisorPurchaseScope)}
+                                onChange={(event) =>
+                                    update({ advisorPurchaseScope: event.target.value })
+                                }
+                            >
+                                {ADVISOR_PURCHASE_SCOPES.map(([value, label]) => (
+                                    <option key={value} value={value}>
+                                        {label}
+                                    </option>
+                                ))}
+                            </select>
+                        </section>
+                    )}
                     <section className="advisor-goal-card advisor-search-limits">
                         <label className="advisor-search-field" htmlFor="advisor-actions">
                             <span>Maksymalna liczba działań w planie</span>

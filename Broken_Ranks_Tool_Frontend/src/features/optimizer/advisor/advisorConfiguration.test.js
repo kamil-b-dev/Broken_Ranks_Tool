@@ -24,6 +24,37 @@ const rules = {
 };
 
 describe("advisor configuration", () => {
+    it("preserves purchase scope and explicitly limited benefit through export, import and request mapping", () => {
+        const settings = {
+            mode: "ADVISOR",
+            advisorGoal: "DAMAGE_MAGIC",
+            advisorPurchaseScope: "GOAL_AND_PROTECTED",
+            advisorSearch: { targetMode: "VALUE", target: 30, limitBenefitToTarget: true },
+        };
+        const restored = parseOptimizerConfigPayload(
+            createOptimizerConfigPayload([], settings),
+            rules
+        );
+        expect(restored.advisorPurchaseScope).toBe("GOAL_AND_PROTECTED");
+        expect(buildAdvisorConfiguration(restored, {}, rules).advisor).toMatchObject({
+            purchaseScope: "GOAL_AND_PROTECTED",
+            limitBenefitToTarget: true,
+            targetValue: 30,
+        });
+        expect(
+            buildAdvisorConfiguration(
+                {
+                    ...restored,
+                    advisorSearch: { targetMode: "MAXIMIZE", limitBenefitToTarget: true },
+                },
+                {},
+                rules
+            ).advisor.limitBenefitToTarget
+        ).toBe(false);
+        const legacy = parseOptimizerConfigPayload(createOptimizerConfigPayload([], {}), rules);
+        expect(legacy.advisorPurchaseScope).toBe("GOAL_ONLY");
+        expect(legacy.advisorSearch.limitBenefitToTarget).toBe(false);
+    });
     it("allows absent modifiers and preserves the sign of reductions", () => {
         const mods = advisorModifiers({ MANA_USAGE_REDUCTION: "-12,5%" }, rules);
         expect(mods.find(({ key }) => key === "DAMAGE_MAGIC").value).toBe(0);

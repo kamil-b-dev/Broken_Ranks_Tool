@@ -10,6 +10,7 @@ export const DEFAULT_OPTIMIZER_SETTINGS = {
     generateVariants: false,
     maxVariantLossPercent: 5,
     advisorProfession: "AUTO",
+    advisorPurchaseScope: "GOAL_ONLY",
     advisorGoal: "",
     advisorProtectedModifiers: {},
     advisorAllowedChanges: {
@@ -24,5 +25,6 @@ export const DEFAULT_OPTIMIZER_SETTINGS = {
         target: "",
         maxActions: 3,
         timeBudgetMs: 3000,
+        limitBenefitToTarget: false,
     },
 };

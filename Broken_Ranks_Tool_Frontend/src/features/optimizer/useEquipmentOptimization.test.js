@@ -374,10 +374,8 @@ describe("useEquipmentOptimization", () => {
             });
             await Promise.resolve();
         });
-        const newestRunId = optimizeEquipmentDrifs.mock.calls[1][0].advisor.runId;
+        expect(optimizeEquipmentDrifs).toHaveBeenCalledTimes(1);
         const previousRunId = optimizeEquipmentDrifs.mock.calls[0][0].advisor.runId;
-        const newestCancellationToken =
-            optimizeEquipmentDrifs.mock.calls[1][0].advisor.cancellationToken;
         const previousCancellationToken =
             optimizeEquipmentDrifs.mock.calls[0][0].advisor.cancellationToken;
         expect(cancelAdvisorOptimization).toHaveBeenCalledWith({
@@ -389,6 +387,10 @@ describe("useEquipmentOptimization", () => {
             finishes[0]({ summary: { success: true } });
             await first;
         });
+        expect(optimizeEquipmentDrifs).toHaveBeenCalledTimes(2);
+        const newestRunId = optimizeEquipmentDrifs.mock.calls[1][0].advisor.runId;
+        const newestCancellationToken =
+            optimizeEquipmentDrifs.mock.calls[1][0].advisor.cancellationToken;
         await act(async () => result.current.cancelDrifOptimization());
         expect(cancelAdvisorOptimization).toHaveBeenCalledWith({
             runId: newestRunId,
@@ -403,13 +405,19 @@ describe("useEquipmentOptimization", () => {
 
     it("does not start a pending replacement after the user cancels it", async () => {
         let finishPreviousCancellation;
+        let finishPreviousAnalysis;
         cancelAdvisorOptimization.mockImplementationOnce(
             () =>
                 new Promise((resolve) => {
                     finishPreviousCancellation = resolve;
                 })
         );
-        optimizeEquipmentDrifs.mockImplementation(() => new Promise(() => {}));
+        optimizeEquipmentDrifs.mockImplementation(
+            () =>
+                new Promise((resolve) => {
+                    finishPreviousAnalysis = resolve;
+                })
+        );
         const { result } = renderOptimization({ helmet: { itemId: 7 } });
 
         await act(async () => {
@@ -430,6 +438,10 @@ describe("useEquipmentOptimization", () => {
         await act(async () => {
             await result.current.cancelDrifOptimization();
             finishPreviousCancellation({ cancelled: true });
+            finishPreviousAnalysis({
+                summary: { success: true },
+                advisorReport: { cancelled: true, plans: [] },
+            });
         });
 
         await expect(replacement).resolves.toEqual({
