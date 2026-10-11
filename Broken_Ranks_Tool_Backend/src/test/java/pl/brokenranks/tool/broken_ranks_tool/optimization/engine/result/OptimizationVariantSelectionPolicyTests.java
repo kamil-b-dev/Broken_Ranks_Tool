@@ -11,6 +11,40 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.BuildStat
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationVariantSelectionPolicy.Candidate;
 
 class OptimizationVariantSelectionPolicyTests {
+    @Test
+    void equivalentUsefulBonusesUseSharedQualityBeforeTheNumberOfChanges() {
+        var type = DRIF_BONUS_TYPE.CRITICAL_CHANCE;
+        var deltas = java.util.Map.of(type, 3.0);
+        var lowPenalty =
+                new pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.Quality(
+                        0, 0, 0, 0, 30, 0, 0, 0.5, 4);
+        var highPenalty =
+                new pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.Quality(
+                        0, 0, 0, 0, 30, 1, 0, 0.5, 4);
+        var better =
+                new Candidate(
+                        type,
+                        10,
+                        13,
+                        0,
+                        List.of(change("helmet", "A", "B"), change("boots", "C", "D")),
+                        "better",
+                        new BuildState(),
+                        deltas,
+                        lowPenalty);
+        var worse =
+                new Candidate(
+                        type,
+                        10,
+                        13,
+                        0,
+                        List.of(change("helmet", "A", "B")),
+                        "worse",
+                        new BuildState(),
+                        deltas,
+                        highPenalty);
+        assertEquals(List.of(better), policy.select(List.of(worse, better)));
+    }
 
     @Test
     void doesNotCompareGainsOfDifferentModifiersAsIfTheyWereTheSameOutcome() {

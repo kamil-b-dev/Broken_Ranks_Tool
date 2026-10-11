@@ -51,6 +51,13 @@ public final class OptimizationInputValidator {
         }
 
         Map<Long, OrbTemplate> orbs = loadOrbs(request);
+        if (context.calculatorSession().catalog() == null) {
+            context.calculatorSession()
+                    .catalog(
+                            new pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator
+                                    .input.EquipmentDataProvider.CalculationContext(
+                                    context.items(), orbs, context.drifs()));
+        }
         Set<ORB_BONUS_TYPE> usedOrbBonuses = new HashSet<>();
 
         for (Map.Entry<String, EquipmentRequest.SlotData> entry :

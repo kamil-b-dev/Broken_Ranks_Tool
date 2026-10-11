@@ -38,7 +38,8 @@ final class AdvisorPlanResultFactory {
                             node.actions(),
                             node.upgrades(),
                             search.reached(node.stats()),
-                            counts));
+                            counts,
+                            node.actionDetails()));
         }
         return new Result(plans, variants);
     }

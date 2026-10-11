@@ -69,16 +69,6 @@ final class OptimizationNeighborhoodSupport {
     }
 
     private int compareApproximate(BuildState left, BuildState right, OptimizationContext context) {
-        if (hasMaximizedTypes(context)) {
-            boolean leftBetter = stateEvaluator.isBetterMaximizationState(left, right, context);
-            boolean rightBetter = stateEvaluator.isBetterMaximizationState(right, left, context);
-            if (leftBetter != rightBetter) return leftBetter ? -1 : 1;
-        }
         return stateEvaluator.stateComparator(context).compare(left, right);
-    }
-
-    private boolean hasMaximizedTypes(OptimizationContext context) {
-        return context.request().getMaximizeBonuses() != null
-                && !context.request().getMaximizeBonuses().isEmpty();
     }
 }

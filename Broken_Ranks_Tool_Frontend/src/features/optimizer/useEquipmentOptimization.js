@@ -154,6 +154,8 @@ export const useEquipmentOptimization = ({
                                           advisorGain: variant.gain,
                                           advisorActions:
                                               advisorReport.plans?.[index]?.actions || [],
+                                          advisorActionDetails:
+                                              advisorReport.plans?.[index]?.actionDetails || [],
                                           advisorKind: advisorReport.plans?.[index]?.kind,
                                           advisorCounts: advisorReport.plans?.[index]?.drifCounts,
                                           targetReached:
@@ -171,6 +173,10 @@ export const useEquipmentOptimization = ({
                 const applied =
                     runVersion === optimizerRunVersion.current &&
                     hasEquipment &&
+                    (!summary?.outcome ||
+                        ["VALID_BUILD", "VALID_BUILD_SOFT_TARGETS_UNMET"].includes(
+                            summary.outcome
+                        )) &&
                     applyOptimizationSetup(optimizedSetup, calculationResult);
                 return {
                     ...summary,

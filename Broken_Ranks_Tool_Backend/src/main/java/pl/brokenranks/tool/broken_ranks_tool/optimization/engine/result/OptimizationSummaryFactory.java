@@ -28,7 +28,8 @@ final class OptimizationSummaryFactory {
         this.stateEvaluator = stateEvaluator;
         this.calculatorAdapter = calculatorAdapter;
         this.variantSummaryFactory =
-                new OptimizationVariantSummaryFactory(calculatorAdapter, setupMapper);
+                new OptimizationVariantSummaryFactory(
+                        calculatorAdapter, setupMapper, stateEvaluator);
     }
 
     OptimizationSummary create(

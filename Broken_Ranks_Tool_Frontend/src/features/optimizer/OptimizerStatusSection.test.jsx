@@ -3,6 +3,42 @@ import { describe, expect, it } from "vitest";
 import OptimizerStatusSection from "./OptimizerStatusSection";
 
 describe("OptimizerStatusSection", () => {
+    it.each([
+        ["TIME_LIMIT", "Limit czasu"],
+        ["STATE_LIMIT", "Limit liczby stanów"],
+    ])("distinguishes advisor stop reason %s", (stopReason, label) => {
+        render(
+            <OptimizerStatusSection
+                status={{
+                    success: true,
+                    outcome: "VALID_BUILD",
+                    message: "Gotowe.",
+                    advisorReport: { status: "BEST_FOUND", stopReason },
+                }}
+            />
+        );
+        expect(screen.getByText(label)).toBeInTheDocument();
+    });
+    it("shows scratch measurements and a soft target warning without misclassifying the valid build", () => {
+        const { container } = render(
+            <OptimizerStatusSection
+                status={{
+                    success: true,
+                    outcome: "VALID_BUILD_SOFT_TARGETS_UNMET",
+                    message: "Cel nieosiągnięty.",
+                    searchReport: {
+                        stopReason: "OPERATION_LIMIT",
+                        evaluatedStates: 123,
+                        verifiedStates: 7,
+                    },
+                }}
+            />
+        );
+        expect(container.querySelector(".is-warning")).toBeInTheDocument();
+        expect(screen.getByText("Limit operacji")).toBeInTheDocument();
+        expect(screen.getByText("123")).toBeInTheDocument();
+        expect(screen.getByText("7")).toBeInTheDocument();
+    });
     it("shows live optimization progress", () => {
         render(<OptimizerStatusSection isOptimizing elapsedSeconds={7} />);
 

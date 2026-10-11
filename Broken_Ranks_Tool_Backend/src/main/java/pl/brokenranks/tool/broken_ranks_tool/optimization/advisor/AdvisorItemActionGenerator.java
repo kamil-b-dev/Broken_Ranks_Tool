@@ -1,6 +1,5 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.advisor;
 
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.advisor.AdvisorSearch.slotName;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.advisor.AdvisorSlotData.signature;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.advisor.AdvisorSlotData.stars;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.support.EquipmentSlotDataCopier.copySlot;
@@ -10,6 +9,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.EQUIPMENT_SLOT;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ITEM_CATEGORY;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ITEM_PROFILE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.RARITY;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.SPECIAL_STAT_TYPE;
@@ -24,11 +25,14 @@ final class AdvisorItemActionGenerator {
     private final AdvisorEquipmentModel model;
     private final AdvisorNodeFactory nodes;
     private final Map<ReplacementCacheKey, List<ItemTemplate>> replacements = new HashMap<>();
+    private final AdvisorItemDominance dominance;
+    private Map<ITEM_CATEGORY, List<ItemTemplate>> itemsByCategory;
 
     AdvisorItemActionGenerator(AdvisorSearch search, AdvisorNodeFactory nodes) {
         this.search = search;
         this.model = search.model;
         this.nodes = nodes;
+        this.dominance = new AdvisorItemDominance(model);
     }
 
     void generateChanges(
@@ -43,29 +47,30 @@ final class AdvisorItemActionGenerator {
             if (!search.running()) return;
             SlotData next = copySlot(slot);
             next.setItemId(replacement.getId());
-            nodes.emit(
-                    node,
-                    key,
-                    next,
-                    "Zmień "
-                            + slotName(key)
-                            + ": "
-                            + model.item(slot).getName()
-                            + " → "
-                            + replacement.getName()
-                            + " ("
-                            + stars(slot)
-                            + "★)",
-                    new AdvisorChangeKey.Item(key),
-                    1,
-                    accept);
+            nodes.emit(node, key, next, new AdvisorChangeKey.Item(key), 1, accept);
         }
     }
 
     private List<ItemTemplate> candidates(String key, SlotData slot) {
-        AdvisorProfession selected = selectedProfile();
+        if (itemsByCategory == null) {
+            AdvisorProfession selected = selectedProfile();
+            itemsByCategory =
+                    model.templates.items().values().stream()
+                            .filter(
+                                    item ->
+                                            item.getCategory() != null
+                                                    && item.getRarity() != RARITY.EPIC
+                                                    && item.getRarity() != RARITY.SET)
+                            .filter(item -> selected.accepts(item.getProfile()))
+                            .collect(
+                                    java.util.stream.Collectors.groupingBy(
+                                            ItemTemplate::getCategory));
+        }
         List<ItemTemplate> compatible =
-                model.templates.items().values().stream()
+                EQUIPMENT_SLOT.fromKey(key).itemCategories().stream()
+                        .flatMap(
+                                category ->
+                                        itemsByCategory.getOrDefault(category, List.of()).stream())
                         .filter(
                                 item ->
                                         !item.getId().equals(slot.getItemId())
@@ -74,7 +79,6 @@ final class AdvisorItemActionGenerator {
                                 item ->
                                         item.getRarity() != RARITY.EPIC
                                                 && item.getRarity() != RARITY.SET)
-                        .filter(item -> selected.accepts(item.getProfile()))
                         .filter(item -> validReplacement(key, slot, item))
                         .toList();
         int currentCapacity = model.levels.calculateItemCapacity(model.item(slot), stars(slot));
@@ -84,11 +88,26 @@ final class AdvisorItemActionGenerator {
                         .max()
                         .orElse(currentCapacity);
         int maximumCapacity = Math.max(currentCapacity, bestReplacementCapacity);
-        return compatible.stream()
+        List<ItemTemplate> maximumCapacityItems =
+                compatible.stream()
+                        .filter(
+                                item ->
+                                        model.levels.calculateItemCapacity(item, stars(slot))
+                                                == maximumCapacity)
+                        .toList();
+        return maximumCapacityItems.stream()
                 .filter(
                         item ->
-                                model.levels.calculateItemCapacity(item, stars(slot))
-                                        == maximumCapacity)
+                                maximumCapacityItems.stream()
+                                        .noneMatch(
+                                                other ->
+                                                        dominance.dominates(
+                                                                other,
+                                                                item,
+                                                                stars(slot),
+                                                                search.options
+                                                                        .getAllowedChanges()
+                                                                        .isStars())))
                 .sorted(
                         Comparator.comparingDouble(
                                         (ItemTemplate item) ->

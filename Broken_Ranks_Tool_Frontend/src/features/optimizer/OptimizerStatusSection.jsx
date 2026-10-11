@@ -17,7 +17,18 @@ const OptimizerStatusSection = ({
         INFEASIBLE: "Brak planu w pełnym zakresie",
         CANCELLED: "Analiza anulowana",
     }[advisor?.status];
-    const successful = status?.success && !["CANCELLED", "INFEASIBLE"].includes(advisor?.status);
+    const successful =
+        (status?.outcome ? status.outcome === "VALID_BUILD" : status?.success) &&
+        !["CANCELLED", "INFEASIBLE"].includes(advisor?.status);
+    const search = status?.searchReport;
+    const stopReason = {
+        COMPLETED: advisor ? "Zakończono zakres" : "Zakończono heurystykę",
+        OPERATION_LIMIT: "Limit operacji",
+        TIME_LIMIT: "Limit czasu",
+        STATE_LIMIT: "Limit liczby stanów",
+        CANCELLED: "Anulowanie",
+        INTERRUPTED: "Przerwano obliczenia",
+    }[advisor?.stopReason ?? search?.stopReason];
 
     return (
         <section className="optimizer-report-section optimizer-status-section">
@@ -78,6 +89,24 @@ const OptimizerStatusSection = ({
                         </p>
                     )}
                     <dl className="optimizer-status-metrics">
+                        {stopReason && (
+                            <div>
+                                <dd>{stopReason}</dd>
+                                <dt>Zakończenie</dt>
+                            </div>
+                        )}
+                        {!advisor && search && (
+                            <>
+                                <div>
+                                    <dd>{search.evaluatedStates}</dd>
+                                    <dt>Oceny stanów</dt>
+                                </div>
+                                <div>
+                                    <dd>{search.verifiedStates}</dd>
+                                    <dt>Przeliczenia kalkulatorem</dt>
+                                </div>
+                            </>
+                        )}
                         {!advisor && status.configurationMode && (
                             <div>
                                 <dd>

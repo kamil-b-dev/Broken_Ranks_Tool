@@ -10,6 +10,7 @@ final class OptimizationEvaluationCache {
             OptimizationMetricsCalculator calculator) {
         String key = state.signature();
         StateEvaluation cached = context.evaluationCache().get(key);
+        context.calculatorSession().metrics().evaluated(cached != null);
         if (cached != null) return cached;
         StateEvaluation calculated = new StateEvaluation(calculator.calculate(state, context));
         context.evaluationCache().put(key, calculated);

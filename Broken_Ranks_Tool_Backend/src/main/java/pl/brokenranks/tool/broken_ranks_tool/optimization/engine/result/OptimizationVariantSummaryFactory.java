@@ -7,7 +7,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRulesRegistry;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationSummary;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.variant.GeneratedOptimizationVariant;
 
@@ -20,9 +22,21 @@ final class OptimizationVariantSummaryFactory {
     private final OptimizationVariantSelectionPolicy selectionPolicy =
             new OptimizationVariantSelectionPolicy();
     private final OptimizationVariantDiffAnalyzer diffAnalyzer;
+    private final OptimizationStateEvaluator evaluator;
 
     OptimizationVariantSummaryFactory(
             OptimizationCalculatorAdapter calculatorAdapter, OptimizationSetupMapper setupMapper) {
+        this(
+                calculatorAdapter,
+                setupMapper,
+                new OptimizationStateEvaluator(new EquipmentRulesRegistry()));
+    }
+
+    OptimizationVariantSummaryFactory(
+            OptimizationCalculatorAdapter calculatorAdapter,
+            OptimizationSetupMapper setupMapper,
+            OptimizationStateEvaluator evaluator) {
+        this.evaluator = evaluator;
         this.calculatorAdapter = calculatorAdapter;
         this.setupMapper = setupMapper;
         this.diffAnalyzer = new OptimizationVariantDiffAnalyzer(calculatorAdapter);
@@ -87,7 +101,13 @@ final class OptimizationVariantSummaryFactory {
                                 changes,
                                 variant.signature(),
                                 variant,
-                                deltas));
+                                deltas,
+                                evaluator.verifiedQuality(
+                                        variant,
+                                        context,
+                                        type ->
+                                                calculatorAdapter.actualValue(
+                                                        variant, type, context))));
             }
         }
         return candidates;

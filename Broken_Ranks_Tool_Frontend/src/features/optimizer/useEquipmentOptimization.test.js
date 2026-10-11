@@ -30,6 +30,29 @@ const renderOptimization = (slots = {}) => {
 };
 
 describe("useEquipmentOptimization", () => {
+    it.each([
+        ["INVALID_INPUT", false],
+        ["NO_BUILD_FOUND", false],
+        ["VALID_BUILD", true],
+        ["VALID_BUILD_SOFT_TARGETS_UNMET", true],
+    ])(
+        "uses explicit outcome %s when deciding whether to apply a returned build",
+        async (outcome, applied) => {
+            optimizeEquipmentDrifs.mockResolvedValue({
+                optimizedSetup: { slots: { helmet: { itemId: 9 } } },
+                summary: { success: false, outcome },
+                calculationResult: { stats: { Siła: "10" } },
+            });
+            const { result, setRequestData } = renderOptimization({ helmet: { itemId: 7 } });
+            await act(async () => {
+                expect(await result.current.runDrifOptimization({})).toMatchObject({
+                    applied,
+                    outcome,
+                });
+            });
+            expect(setRequestData).toHaveBeenCalledTimes(applied ? 1 : 0);
+        }
+    );
     it("does not apply a pending result after its owning workflow invalidates the run", async () => {
         let finish;
         optimizeEquipmentDrifs.mockImplementation(

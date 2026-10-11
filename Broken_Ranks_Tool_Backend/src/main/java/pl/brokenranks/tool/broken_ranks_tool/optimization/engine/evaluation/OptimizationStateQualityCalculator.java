@@ -26,12 +26,6 @@ final class OptimizationStateQualityCalculator {
         if (evaluation.quality != null) return evaluation.quality;
         Metrics metrics = evaluation.metrics;
         int hardViolations = metrics.overflowPower();
-        double minimumMaximizedProgress = Double.POSITIVE_INFINITY;
-        double maximizedUtility = 0.0;
-        boolean hasMaximizedTypes = false;
-        double forcedCapDeficit = 0.0;
-        double forcedCapExcess = 0.0;
-        double weightedUtility = 0.0;
         for (Map.Entry<DRIF_BONUS_TYPE, OptimizationRequest.QuantityRange> entry :
                 safeQuantities(context.request()).entrySet()) {
             int count = metrics.counts().getOrDefault(entry.getKey(), 0);
@@ -57,49 +51,66 @@ final class OptimizationStateQualityCalculator {
                 }
             }
         }
-        for (Map.Entry<DRIF_BONUS_TYPE, Integer> entry :
-                context.request().getPriorities().entrySet()) {
-            DRIF_BONUS_TYPE type = entry.getKey();
-            int priority = Math.max(1, entry.getValue() != null ? entry.getValue() : 1);
-            double value = valueCalculator.calculatedValue(metrics, type, context);
-            if (isMaximized(type, context.request())) {
-                hasMaximizedTypes = true;
-                double scale = maximizationScale(type, context);
-                double progress = maximizationProgress(type, value, scale, context.request());
-                minimumMaximizedProgress = Math.min(minimumMaximizedProgress, progress);
-                maximizedUtility += progress * priority;
-            }
-            Double target = targetFor(type, context.request());
-            if (target != null) {
-                forcedCapDeficit += Math.max(0.0, target - value) * priority;
-                forcedCapExcess += Math.max(0.0, value - target) * priority;
-                weightedUtility += Math.min(value, target) * priority;
-            } else {
-                weightedUtility += cappedValue(type, value) * priority;
-                Integer cap = type.getMaxCap();
-                if (cap != null) {
-                    forcedCapExcess += Math.max(0.0, value - Math.abs(cap)) * priority;
-                }
-            }
-        }
-        if (!hasMaximizedTypes) minimumMaximizedProgress = 0.0;
-        evaluation.quality =
+        Quality constraints =
                 new Quality(
                         hardViolations,
-                        forcedCapDeficit,
-                        minimumMaximizedProgress,
-                        maximizedUtility,
-                        weightedUtility,
+                        0,
+                        0,
+                        0,
+                        0,
                         metrics.penaltyLoss(),
-                        forcedCapExcess,
+                        0,
                         metrics.capacityUtilization(),
                         metrics.totalPower());
+        evaluation.quality =
+                objectives(
+                        constraints,
+                        context,
+                        type -> valueCalculator.calculatedValue(metrics, type, context));
         return evaluation.quality;
     }
 
-    private double cappedValue(DRIF_BONUS_TYPE type, double value) {
-        Integer cap = type.getMaxCap();
-        return cap == null ? Math.max(0.0, value) : Math.min(Math.max(0.0, value), Math.abs(cap));
+    Quality objectives(
+            Quality constraints,
+            OptimizationContext context,
+            java.util.function.ToDoubleFunction<DRIF_BONUS_TYPE> values) {
+        double minimumProgress = Double.POSITIVE_INFINITY;
+        double maximizedUtility = 0;
+        double deficit = 0;
+        double excess = 0;
+        double utility = 0;
+        boolean maximized = false;
+        for (var entry : context.sortedPriorities()) {
+            DRIF_BONUS_TYPE type = entry.getKey();
+            int priority = Math.max(1, entry.getValue() == null ? 1 : entry.getValue());
+            double value = values.applyAsDouble(type);
+            if (isMaximized(type, context.request())) {
+                maximized = true;
+                double progress =
+                        maximizationProgress(
+                                type,
+                                usefulValue(type, value, context.request()),
+                                maximizationScale(type, context),
+                                context.request());
+                minimumProgress = Math.min(minimumProgress, progress);
+                maximizedUtility += progress * priority;
+            }
+            Double target = targetFor(type, context.request());
+            if (target != null) deficit += Math.max(0, target - value) * priority;
+            Double bound = usefulTargetFor(type, context.request());
+            if (bound != null) excess += Math.max(0, value - bound) * priority;
+            utility += usefulValue(type, value, context.request()) * priority;
+        }
+        return new Quality(
+                constraints.hardViolations(),
+                deficit,
+                maximized ? minimumProgress : 0,
+                maximizedUtility,
+                utility,
+                constraints.penaltyLoss(),
+                excess,
+                constraints.capacityUtilization(),
+                constraints.totalPower());
     }
 
     double maximizationScale(DRIF_BONUS_TYPE type, OptimizationContext context) {

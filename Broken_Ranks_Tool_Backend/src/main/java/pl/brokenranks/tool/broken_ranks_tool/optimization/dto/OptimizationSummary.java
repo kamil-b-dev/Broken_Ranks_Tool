@@ -2,7 +2,6 @@ package pl.brokenranks.tool.broken_ranks_tool.optimization.dto;
 
 import java.util.List;
 import java.util.Map;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.CalculationResultDto;
@@ -11,7 +10,6 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 /** Contains optimization metadata and result summary. */
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class OptimizationSummary {
     private boolean success;
     private String message;
@@ -30,6 +28,31 @@ public class OptimizationSummary {
 
     /** Calculator-verified alternatives that improve at least one maximized modifier. */
     private List<OptimizationVariant> nextVariants;
+
+    private OptimizationOutcome outcome;
+    private OptimizationSearchReport searchReport;
+
+    /** Retains the existing Java construction contract while extending response metadata. */
+    public OptimizationSummary(
+            boolean success,
+            String message,
+            int drifsPlaced,
+            int totalPowerUsed,
+            double executionTimeSeconds,
+            List<String> warnings,
+            Map<Double, List<ItemDrifBonus>> itemsByDrifBonus,
+            List<GoalResult> goalResults,
+            List<OptimizationVariant> nextVariants) {
+        this.success = success;
+        this.message = message;
+        this.drifsPlaced = drifsPlaced;
+        this.totalPowerUsed = totalPowerUsed;
+        this.executionTimeSeconds = executionTimeSeconds;
+        this.warnings = warnings;
+        this.itemsByDrifBonus = itemsByDrifBonus;
+        this.goalResults = goalResults;
+        this.nextVariants = nextVariants;
+    }
 
     /** Identifies an item within an optimizer slot. */
     public record ItemDrifBonus(String slotKey, String itemName) {}

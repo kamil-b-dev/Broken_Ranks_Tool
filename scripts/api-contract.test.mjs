@@ -151,3 +151,83 @@ test("endpoint responses use the DTO schemas and declared project license", () =
     "#/components/schemas/OptimizationResponse",
   );
 });
+
+test("optimizer outcomes and search measurements extend legacy responses with typed metadata", () => {
+  for (const outcome of [
+    "INVALID_INPUT",
+    "NO_BUILD_FOUND",
+    "VALID_BUILD_SOFT_TARGETS_UNMET",
+    "VALID_BUILD",
+  ])
+    validate("OptimizationResponse", {
+      ...response,
+      summary: {
+        ...summary,
+        outcome,
+        searchReport: {
+          stopReason: "OPERATION_LIMIT",
+          proofComplete: false,
+          budgets: {
+            beam: { initial: 10, consumed: 10, remaining: 0, exhausted: true },
+          },
+          generatedNeighborhoodStates: 0,
+          evaluatedStates: 1,
+          verifiedStates: 1,
+          evaluationCacheHits: 0,
+          calculatorCacheHits: 0,
+          peakEvaluationCacheEntries: 1,
+          peakCalculatorCacheEntries: 1,
+          peakDrifCacheEntries: 1,
+          stageSeconds: { construction: 0.01 },
+        },
+      },
+    });
+  assert.throws(() =>
+    validate("OptimizationSummary", { ...summary, outcome: "OPTIMAL" }),
+  );
+  assert.throws(() =>
+    validate("OptimizationSearchReport", { stopReason: "TIMEOUT" }),
+  );
+  assert.throws(() =>
+    validate("OptimizationSearchReport", { evaluatedStates: -1 }),
+  );
+});
+
+test("advisor structured actions distinguish drif occurrences and preserve display labels", () => {
+  const action = {
+    type: "UPGRADE_DRIF",
+    slotKey: "boots",
+    fromItemId: null,
+    toItemId: null,
+    fromStars: null,
+    toStars: null,
+    drifs: [
+      {
+        identity: "initial:helmet:0",
+        drifId: 10,
+        from: { slotKey: "boots", socketIndex: 0 },
+        to: { slotKey: "boots", socketIndex: 0 },
+        fromLevel: 1,
+        toLevel: 16,
+      },
+    ],
+  };
+  validate("AdvisorAction", action);
+  validate("AdvisorPlan", {
+    kind: "ONE_UPGRADE",
+    actions: ["Ulepsz drif"],
+    upgrades: 1,
+    targetReached: true,
+    drifCounts: { CRITICAL_CHANCE: 1 },
+    actionDetails: [action],
+  });
+  assert.throws(() => validate("AdvisorAction", { ...action, type: "DELETE" }));
+  assert.throws(() =>
+    validate("AdvisorAction", {
+      ...action,
+      drifs: [
+        { ...action.drifs[0], to: { slotKey: "boots", socketIndex: -1 } },
+      ],
+    }),
+  );
+});

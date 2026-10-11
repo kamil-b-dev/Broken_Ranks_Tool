@@ -1099,6 +1099,14 @@ components:
         - goalResults
         - nextVariants
       properties:
+        outcome:
+          type: [string, "null"]
+          enum: [INVALID_INPUT, NO_BUILD_FOUND, VALID_BUILD_SOFT_TARGETS_UNMET, VALID_BUILD, null]
+          description: Explicit result kind. Optional for compatibility with older responses.
+        searchReport:
+          oneOf:
+            - $ref: "#/components/schemas/OptimizationSearchReport"
+            - type: "null"
         success:
           type: boolean
           description:
@@ -1151,6 +1159,11 @@ components:
         - targetReached
         - drifCounts
       properties:
+        actionDetails:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdvisorAction"
+          description: Structured counterparts of actions; repeated upgrades of one drif are merged.
         kind:
           type: string
           enum:
@@ -1187,10 +1200,13 @@ components:
         - candidateCount
         - plans
       properties:
+        stopReason:
+          $ref: "#/components/schemas/SearchStopReason"
         evaluatedStates:
           type: integer
         timeLimitReached:
           type: boolean
+          description: Actual search or verification deadline reached; state limit is reported separately in stopReason.
         cancelled:
           type: boolean
         status:
@@ -1220,6 +1236,82 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/AdvisorPlan"
+    SearchStopReason:
+      type: string
+      enum: [COMPLETED, OPERATION_LIMIT, TIME_LIMIT, STATE_LIMIT, CANCELLED, INTERRUPTED, NOT_STARTED]
+    OptimizationSearchReport:
+      type: object
+      additionalProperties: false
+      properties:
+        stopReason:
+          $ref: "#/components/schemas/SearchStopReason"
+        proofComplete:
+          type: boolean
+          description: Always false for scratch heuristics, including a completed run.
+        budgets:
+          type: object
+          additionalProperties:
+            type: object
+            additionalProperties: false
+            required: [initial, consumed, remaining, exhausted]
+            properties:
+              initial: { type: integer, minimum: 0 }
+              consumed: { type: integer, minimum: 0 }
+              remaining: { type: integer, minimum: 0 }
+              exhausted: { type: boolean }
+        generatedNeighborhoodStates: { type: integer, minimum: 0 }
+        evaluatedStates: { type: integer, minimum: 0 }
+        verifiedStates:
+          type: integer
+          minimum: 0
+          description: Authoritative calculator invocations including repeated final verification.
+        evaluationCacheHits: { type: integer, minimum: 0 }
+        calculatorCacheHits: { type: integer, minimum: 0 }
+        peakEvaluationCacheEntries: { type: integer, minimum: 0 }
+        peakCalculatorCacheEntries: { type: integer, minimum: 0 }
+        peakDrifCacheEntries: { type: integer, minimum: 0 }
+        stageSeconds:
+          type: object
+          additionalProperties: { type: number, minimum: 0 }
+    AdvisorActionLocation:
+      type: object
+      additionalProperties: false
+      required: [slotKey, socketIndex]
+      properties:
+        slotKey: { type: string }
+        socketIndex: { type: integer, minimum: 0 }
+    AdvisorDrifChange:
+      type: object
+      additionalProperties: false
+      required: [identity, drifId, from, to, fromLevel, toLevel]
+      properties:
+        identity: { type: string }
+        drifId: { type: integer }
+        from:
+          oneOf:
+            - $ref: "#/components/schemas/AdvisorActionLocation"
+            - type: "null"
+        to:
+          $ref: "#/components/schemas/AdvisorActionLocation"
+        fromLevel: { type: [integer, "null"] }
+        toLevel: { type: integer }
+    AdvisorAction:
+      type: object
+      additionalProperties: false
+      required: [type, slotKey, fromItemId, toItemId, fromStars, toStars, drifs]
+      properties:
+        type:
+          type: string
+          enum: [MOVE, SWAP, UPGRADE_DRIF, PURCHASE_DRIF, UPGRADE_STARS, REPLACE_ITEM]
+        slotKey: { type: string }
+        fromItemId: { type: [integer, "null"] }
+        toItemId: { type: [integer, "null"] }
+        fromStars: { type: [integer, "null"] }
+        toStars: { type: [integer, "null"] }
+        drifs:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdvisorDrifChange"
     OptimizationResponse:
       type: object
       additionalProperties: false

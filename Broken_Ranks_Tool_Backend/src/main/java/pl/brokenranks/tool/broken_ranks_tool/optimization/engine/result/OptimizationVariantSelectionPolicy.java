@@ -11,7 +11,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationSummary;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationQualityComparator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.BuildState;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.Quality;
 
 /** Selects a small Pareto-optimal and behaviorally diverse set of alternatives. */
 final class OptimizationVariantSelectionPolicy {
@@ -44,6 +46,13 @@ final class OptimizationVariantSelectionPolicy {
 
     private boolean dominates(Candidate left, Candidate right) {
         if (left == right) return false;
+        if (left.usefulDeltas().equals(right.usefulDeltas())
+                && left.quality() != null
+                && right.quality() != null) {
+            int quality =
+                    new OptimizationQualityComparator().compare(left.quality(), right.quality());
+            if (quality != 0) return quality > 0;
+        }
         Set<DRIF_BONUS_TYPE> types = new HashSet<>(left.usefulDeltas().keySet());
         types.addAll(right.usefulDeltas().keySet());
         boolean noWorse =
@@ -104,7 +113,29 @@ final class OptimizationVariantSelectionPolicy {
             List<OptimizationSummary.PlacementChange> changes,
             String signature,
             BuildState state,
-            Map<DRIF_BONUS_TYPE, Double> usefulDeltas) {
+            Map<DRIF_BONUS_TYPE, Double> usefulDeltas,
+            Quality quality) {
+        Candidate(
+                DRIF_BONUS_TYPE type,
+                double finalValue,
+                double variantValue,
+                double totalLoss,
+                List<OptimizationSummary.PlacementChange> changes,
+                String signature,
+                BuildState state,
+                Map<DRIF_BONUS_TYPE, Double> usefulDeltas) {
+            this(
+                    type,
+                    finalValue,
+                    variantValue,
+                    totalLoss,
+                    changes,
+                    signature,
+                    state,
+                    usefulDeltas,
+                    null);
+        }
+
         Candidate(
                 DRIF_BONUS_TYPE type,
                 double finalValue,

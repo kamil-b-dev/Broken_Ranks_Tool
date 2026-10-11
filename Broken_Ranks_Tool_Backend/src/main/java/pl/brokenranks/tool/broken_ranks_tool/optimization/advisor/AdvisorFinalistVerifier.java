@@ -138,7 +138,13 @@ final class AdvisorFinalistVerifier {
 
     private AdvisorSearch.Node withStats(AdvisorSearch.Node n, double[] stats) {
         return new AdvisorSearch.Node(
-                n.slots(), stats, n.actions(), n.changed(), n.upgrades(), n.effort());
+                n.slots(),
+                stats,
+                n.actions(),
+                n.changed(),
+                n.upgrades(),
+                n.effort(),
+                n.actionDetails());
     }
 
     private boolean dominates(AdvisorSearch.Node a, AdvisorSearch.Node b, AdvisorSearch search) {

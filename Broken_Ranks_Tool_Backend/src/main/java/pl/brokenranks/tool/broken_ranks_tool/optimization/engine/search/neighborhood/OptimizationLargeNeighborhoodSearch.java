@@ -35,18 +35,41 @@ public final class OptimizationLargeNeighborhoodSearch {
         return improve(initial, context, MAX_GENERATED_STATES);
     }
 
+    public SearchResult improve(List<BuildState> seeds, OptimizationContext context) {
+        return improve(seeds, context, MAX_GENERATED_STATES);
+    }
+
     public SearchResult improve(
             BuildState initial, OptimizationContext context, int maxGeneratedStates) {
+        return improve(List.of(initial), context, maxGeneratedStates);
+    }
+
+    private SearchResult improve(
+            List<BuildState> seeds, OptimizationContext context, int maxGeneratedStates) {
+        long started = System.nanoTime();
+        if (seeds.isEmpty()) throw new IllegalArgumentException("Missing search seed");
+        context.calculatorSession().metrics().beginNeighborhood(maxGeneratedStates);
         OptimizationNeighborhoodSearchControl control =
-                new OptimizationNeighborhoodSearchControl(maxGeneratedStates);
-        control.rememberEvaluated(initial);
-        BuildState best = directedMoveSearch.improve(initial, context, control);
+                new OptimizationNeighborhoodSearchControl(
+                        maxGeneratedStates, context.calculatorSession().metrics());
+        BuildState best = seeds.getFirst();
+        for (BuildState seed : seeds) {
+            control.rememberEvaluated(seed);
+            if (actualStateComparator.isBetter(seed, best, context)) best = seed;
+        }
+        for (BuildState seed : seeds) {
+            if (control.exhausted()) break;
+            BuildState candidate = directedMoveSearch.improve(seed, context, control);
+            if (actualStateComparator.isBetter(candidate, best, context)) best = candidate;
+        }
         List<List<SlotContext>> groups = groupPlanner.createGroups(context.slots());
         for (int round = 0; round < MAX_ROUNDS && !control.exhausted(); round++) {
             String before = best.signature();
             best = improveGroups(best, groups, context, control);
             if (before.equals(best.signature())) break;
         }
+        context.calculatorSession().metrics().neighborhoodExhausted(control.exhausted());
+        context.calculatorSession().metrics().recordStage("neighborhood", started, context);
         return new SearchResult(best, control.evaluatedStates());
     }
 

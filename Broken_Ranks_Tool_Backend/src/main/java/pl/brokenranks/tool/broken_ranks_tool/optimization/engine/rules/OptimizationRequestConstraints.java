@@ -3,6 +3,7 @@ package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules;
 import java.util.Map;
 import lombok.experimental.UtilityClass;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.ModifierValueRules;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 
 /** Normalizes and evaluates user-provided optimization constraints. */
@@ -77,7 +78,7 @@ public class OptimizationRequestConstraints {
     public static double usefulValue(
             DRIF_BONUS_TYPE type, double value, OptimizationRequest request) {
         Double bound = usefulTargetFor(type, request);
-        return bound == null ? Math.max(0.0, value) : Math.min(Math.max(0.0, value), bound);
+        return ModifierValueRules.bounded(Math.max(0.0, value), bound);
     }
 
     /**
@@ -93,7 +94,7 @@ public class OptimizationRequestConstraints {
 
     public static double directedValue(
             DRIF_BONUS_TYPE type, double value, OptimizationRequest request) {
-        return type.getMaxCap() != null && type.getMaxCap() < 0 ? -value : value;
+        return ModifierValueRules.directed(type, value);
     }
 
     public static int clampQuantity(int value) {

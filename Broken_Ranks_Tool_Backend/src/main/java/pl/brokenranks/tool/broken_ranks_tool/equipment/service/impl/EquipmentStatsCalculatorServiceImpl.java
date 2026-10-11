@@ -17,6 +17,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.Calcul
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.CalculationMetadataFactory.CalculationMetadata;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.CalculationState;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.DrifCounter;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.NumericStats;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.input.EquipmentDataProvider;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.input.EquipmentDataProvider.CalculationContext;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.input.OrbSelectionNormalizer;
@@ -73,7 +74,32 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
         return request -> calculateWithSources(request, context);
     }
 
+    @Override
+    public Function<EquipmentRequest, NumericStats> prepareNumericCalculation(
+            Map<Long, ItemTemplate> items,
+            Map<Long, OrbTemplate> orbs,
+            Map<Long, DrifTemplate> drifs) {
+        CalculationContext context = new CalculationContext(items, orbs, drifs);
+        return request ->
+                calculateState(request, context)
+                        .state()
+                        .getAccumulator()
+                        .getRoundedNumericResults();
+    }
+
     private CalculationResultDto calculateWithSources(
+            EquipmentRequest request, CalculationContext preparedContext) {
+        CalculatedEquipment calculated = calculateState(request, preparedContext);
+        CalculationMetadata metadata =
+                metadataFactory.create(
+                        calculated.state().getContext(), calculated.request().getSlots().values());
+        return new CalculationResultDto(
+                calculated.state().getAccumulator().getFormattedResults(),
+                metadata.drifCategories(),
+                metadata.orbBonusTypes());
+    }
+
+    private CalculatedEquipment calculateState(
             EquipmentRequest request, CalculationContext preparedContext) {
         request = OrbSelectionNormalizer.normalize(request);
         requestValidator.validateRequest(request);
@@ -93,12 +119,10 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
 
         processSlots(request, ctx, state);
 
-        CalculationMetadata metadata = metadataFactory.create(ctx, request.getSlots().values());
-        return new CalculationResultDto(
-                state.getAccumulator().getFormattedResults(),
-                metadata.drifCategories(),
-                metadata.orbBonusTypes());
+        return new CalculatedEquipment(state, request);
     }
+
+    private record CalculatedEquipment(CalculationState state, EquipmentRequest request) {}
 
     private void initializeDefaultStats(CalculationState state) {
         state.getAccumulator().addRawValue(DRIF_BONUS_TYPE.CRITICAL_CHANCE.name(), "2%", 1.0);

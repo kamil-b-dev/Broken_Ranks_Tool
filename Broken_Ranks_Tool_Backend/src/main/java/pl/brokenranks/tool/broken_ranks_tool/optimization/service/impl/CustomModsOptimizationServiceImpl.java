@@ -9,6 +9,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.input.
 import pl.brokenranks.tool.broken_ranks_tool.optimization.advisor.AdvisorOptimizationService;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.config.OptimizationProperties;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationMode;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationOutcome;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationResponse;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationSummary;
@@ -72,9 +73,14 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
 
         OptimizationSearchPipeline.PipelineResult searchResult = searchPipeline.optimize(context);
         if (searchResult == null) {
-            return failedResponse(
-                    "Nie znaleziono poprawnego układu w dostępnym budżecie wyszukiwania. Nie oznacza to dowodu, że rozwiązanie nie istnieje.",
-                    elapsedSeconds(startTime));
+            OptimizationResponse failed =
+                    failedResponse(
+                            "Nie znaleziono poprawnego układu w dostępnym budżecie wyszukiwania. Nie oznacza to dowodu, że rozwiązanie nie istnieje.",
+                            elapsedSeconds(startTime));
+            failed.getSummary().setOutcome(OptimizationOutcome.NO_BUILD_FOUND);
+            failed.getSummary()
+                    .setSearchReport(context.calculatorSession().metrics().report(context));
+            return failed;
         }
         return successfulResponse(searchResult, context, startTime);
     }
@@ -99,27 +105,47 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
         BuildState state = searchResult.best();
         String validationError = resultAssembler.validateFinalResult(state, context);
         if (validationError != null) {
-            return failedResponse(validationError, elapsedSeconds(startTime));
+            OptimizationResponse failed =
+                    failedResponse(validationError, elapsedSeconds(startTime));
+            failed.getSummary().setOutcome(OptimizationOutcome.NO_BUILD_FOUND);
+            failed.getSummary()
+                    .setSearchReport(context.calculatorSession().metrics().report(context));
+            return failed;
         }
 
         EquipmentRequest optimizedSetup = resultAssembler.toSetup(state, context);
         List<String> forcedCapWarnings = resultAssembler.forcedCapWarnings(state, context);
+        long variantsStarted = System.nanoTime();
         List<GeneratedOptimizationVariant> variants =
                 context.request().isGenerateVariants()
                         ? variantGenerator.generate(state, context, searchResult.evaluatedStates())
                         : List.of();
+        context.calculatorSession().metrics().recordStage("variants", variantsStarted, context);
+        long finalStarted = System.nanoTime();
         OptimizationSummary summary =
                 resultAssembler.createSummary(
                         state, context, elapsedSeconds(startTime), forcedCapWarnings, variants);
+        context.calculatorSession()
+                .metrics()
+                .recordStage("finalVerification", finalStarted, context);
+        summary.setOutcome(
+                summary.isSuccess()
+                        ? OptimizationOutcome.VALID_BUILD
+                        : OptimizationOutcome.VALID_BUILD_SOFT_TARGETS_UNMET);
+        summary.setSearchReport(context.calculatorSession().metrics().report(context));
         return new OptimizationResponse(
                 optimizedSetup, summary, summary.getNextVariants().getFirst().calculationResult());
     }
 
     private OptimizationResponse failedResponse(String message, double seconds) {
-        return new OptimizationResponse(
-                new EquipmentRequest(),
-                new OptimizationSummary(
-                        false, message, 0, 0, seconds, List.of(), Map.of(), List.of(), List.of()));
+        OptimizationResponse response =
+                new OptimizationResponse(
+                        new EquipmentRequest(),
+                        new OptimizationSummary(
+                                false, message, 0, 0, seconds, List.of(), Map.of(), List.of(),
+                                List.of()));
+        response.getSummary().setOutcome(OptimizationOutcome.INVALID_INPUT);
+        return response;
     }
 
     private double elapsedSeconds(long startTime) {

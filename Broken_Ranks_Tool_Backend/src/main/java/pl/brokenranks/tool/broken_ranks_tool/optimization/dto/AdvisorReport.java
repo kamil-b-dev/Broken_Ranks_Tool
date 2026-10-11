@@ -17,11 +17,13 @@ public record AdvisorReport(
         boolean proofComplete,
         int verifiedCandidates,
         int candidateCount,
-        List<Plan> plans) {
+        List<Plan> plans,
+        SearchStopReason stopReason) {
     public record Plan(
             AdvisorPlanKind kind,
             List<String> actions,
             int upgrades,
             boolean targetReached,
-            Map<String, Integer> drifCounts) {}
+            Map<String, Integer> drifCounts,
+            List<AdvisorAction> actionDetails) {}
 }

@@ -3,8 +3,6 @@ package pl.brokenranks.tool.broken_ranks_tool.optimization.advisor;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.advisor.AdvisorSlotData.*;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.advisor.AdvisorStatValues.*;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.*;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.*;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.*;
@@ -31,6 +29,21 @@ final class AdvisorEquipmentModel {
     private final Map<String, Contribution> contributions = new HashMap<>();
     private final Map<String, double[]> equipmentValues = new HashMap<>();
     private final Map<String, Double> drifValues = new HashMap<>();
+    private final Map<String, Map<String, Double>> itemValues = new HashMap<>();
+
+    Map<String, Double> itemValues(ItemTemplate item, int stars) {
+        return itemValues.computeIfAbsent(
+                item.getId() + "@" + stars,
+                ignored -> {
+                    CalculationState state = new CalculationState(templates);
+                    items.process(item, stars, state);
+                    return Map.copyOf(state.getAccumulator().getNumericResults());
+                });
+    }
+
+    double itemDrifBonus(ItemTemplate item, int stars) {
+        return items.calculateFinalDrifMod(item, stars);
+    }
 
     AdvisorEquipmentModel(
             CalculationContext templates,
@@ -69,8 +82,7 @@ final class AdvisorEquipmentModel {
         }
         for (int i = 0; i < TYPES.length; i++) {
             result[i] += raw[i] * rules.getDrifPenalty(counts[i]);
-            result[i] =
-                    BigDecimal.valueOf(result[i]).setScale(2, RoundingMode.HALF_UP).doubleValue();
+            result[i] = ModifierValueRules.rounded(result[i]);
         }
         return result;
     }
@@ -111,11 +123,8 @@ final class AdvisorEquipmentModel {
                     drifValues.computeIfAbsent(
                             id + "@" + level,
                             ignored ->
-                                    parse(
-                                            values.calculate(
-                                                    drif.getBaseValue(),
-                                                    drif.getIncrement(),
-                                                    level)));
+                                    values.calculateNumeric(
+                                            drif.getBaseValue(), drif.getIncrement(), level));
             int type = drif.getBonusType().ordinal();
             raw[type] += value * multiplier;
             counts[type]++;

@@ -106,6 +106,18 @@ public class StatsAccumulator {
         return result;
     }
 
+    public NumericStats getRoundedNumericResults() {
+        Map<String, Double> result = new HashMap<>();
+        getNumericResults()
+                .forEach(
+                        (key, value) ->
+                                result.put(
+                                        key,
+                                        pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules
+                                                .ModifierValueRules.rounded(value)));
+        return new NumericStats(result, percentStats.keySet());
+    }
+
     private String formatValue(double value, boolean isPercent) {
         BigDecimal bd =
                 BigDecimal.valueOf(value).setScale(2, RoundingMode.HALF_UP).stripTrailingZeros();

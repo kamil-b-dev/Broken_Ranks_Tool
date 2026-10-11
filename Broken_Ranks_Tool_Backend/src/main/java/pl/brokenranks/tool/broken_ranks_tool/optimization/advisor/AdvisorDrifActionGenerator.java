@@ -1,6 +1,5 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.advisor;
 
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.advisor.AdvisorSearch.slotName;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.advisor.AdvisorSlotData.*;
 
 import java.util.LinkedHashMap;
@@ -67,13 +66,7 @@ final class AdvisorDrifActionGenerator {
                 Map<String, SlotData> next = new LinkedHashMap<>(node.slots());
                 next.put(leftKey, nextLeft);
                 next.put(rightKey, nextRight);
-                accept.accept(
-                        nodes.child(
-                                node,
-                                next,
-                                moveLabel(leftKey, left, leftSocket, rightKey, right, rightSocket),
-                                0,
-                                0));
+                accept.accept(nodes.child(node, next, 0, 0));
             }
         }
     }
@@ -84,8 +77,7 @@ final class AdvisorDrifActionGenerator {
             SlotData slot,
             Consumer<AdvisorSearch.Node> accept) {
         for (int index = 0; index < model.maxDrifs(slot) && search.running(); index++) {
-            if (!model.movable(key, slot, index)
-                    || node.changed().contains(new AdvisorChangeKey.Drif(key, index))) continue;
+            if (!model.movable(key, slot, index)) continue;
             Long current = id(slot, index);
             if (current != null && search.options.getAllowedChanges().isDrifUpgrades())
                 generateUpgrades(node, key, slot, index, current, accept);
@@ -110,12 +102,6 @@ final class AdvisorDrifActionGenerator {
                     node,
                     key,
                     placed(slot, index, current, nextLevel),
-                    "Ulepsz "
-                            + drifLabel(current, level(slot, index))
-                            + " w "
-                            + location(key, index)
-                            + " do poziomu "
-                            + nextLevel,
                     new AdvisorChangeKey.Drif(key, index),
                     nextLevel - level(slot, index),
                     accept);
@@ -138,10 +124,6 @@ final class AdvisorDrifActionGenerator {
                         node,
                         key,
                         placed(slot, index, drif.getId(), nextLevel),
-                        "Dodaj "
-                                + drifLabel(drif.getId(), nextLevel)
-                                + " do "
-                                + location(key, index),
                         new AdvisorChangeKey.Drif(key, index),
                         1,
                         accept);
@@ -158,48 +140,5 @@ final class AdvisorDrifActionGenerator {
                             || Double.isFinite(search.minima[type.ordinal()]);
             case ANY -> true;
         };
-    }
-
-    private String moveLabel(
-            String leftKey,
-            SlotData left,
-            int leftSocket,
-            String rightKey,
-            SlotData right,
-            int rightSocket) {
-        Long first = id(left, leftSocket);
-        Long second = id(right, rightSocket);
-        if (first == null)
-            return "Przenieś "
-                    + drifLabel(second, level(right, rightSocket))
-                    + " z "
-                    + location(rightKey, rightSocket)
-                    + " do "
-                    + location(leftKey, leftSocket);
-        if (second == null)
-            return "Przenieś "
-                    + drifLabel(first, level(left, leftSocket))
-                    + " z "
-                    + location(leftKey, leftSocket)
-                    + " do "
-                    + location(rightKey, rightSocket);
-        return "Zamień "
-                + drifLabel(first, level(left, leftSocket))
-                + " ("
-                + location(leftKey, leftSocket)
-                + ") z "
-                + drifLabel(second, level(right, rightSocket))
-                + " ("
-                + location(rightKey, rightSocket)
-                + ")";
-    }
-
-    private String drifLabel(Long id, int level) {
-        DrifTemplate drif = model.templates.drifs().get(id);
-        return drif.getSize() + " " + drif.getName() + " " + level;
-    }
-
-    private static String location(String key, int index) {
-        return slotName(key) + ", gniazdo " + (index + 1);
     }
 }

@@ -24,6 +24,32 @@ abstract class AdvisorOptimizationTestSupport {
     protected static final DRIF_BONUS_TYPE A = DRIF_BONUS_TYPE.CRITICAL_CHANCE;
     protected static final DRIF_BONUS_TYPE B = DRIF_BONUS_TYPE.CC_PROTECTION;
 
+    protected static AdvisorEquipmentModel model(
+            List<ItemTemplate> items, List<DrifTemplate> drifs, OptimizationRequest request) {
+        EquipmentRulesRegistry rules = new EquipmentRulesRegistry();
+        EquipmentPlacementRules placement = new EquipmentPlacementRules(rules);
+        var templates =
+                new EquipmentDataProvider.CalculationContext(
+                        items.stream()
+                                .collect(
+                                        java.util.stream.Collectors.toMap(
+                                                ItemTemplate::getId, Function.identity())),
+                        Map.of(),
+                        drifs.stream()
+                                .collect(
+                                        java.util.stream.Collectors.toMap(
+                                                DrifTemplate::getId, Function.identity())));
+        return new AdvisorEquipmentModel(
+                templates,
+                request,
+                placement,
+                new UpgradeLevelPolicy(),
+                rules,
+                new ItemStatProcessor(),
+                new OrbStatProcessor(placement, new OrbSecurityValidator()),
+                new DrifValueCalculator());
+    }
+
     protected static OptimizationRequest request(
             DRIF_BONUS_TYPE goal, Map<String, SlotData> slots) {
         OptimizationRequest request = new OptimizationRequest();

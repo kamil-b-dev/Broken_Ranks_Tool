@@ -12,9 +12,11 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest.SlotData;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.AdvisorReport;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.AdvisorStatus;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationOutcome;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationResponse;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationSummary;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationSummary.GoalResult;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.SearchStopReason;
 
 /** Maps advisor search results to the public optimization response. */
 final class AdvisorResponseFactory {
@@ -57,7 +59,8 @@ final class AdvisorResponseFactory {
         response.setAdvisorReport(
                 new AdvisorReport(
                         search.control.evaluated(),
-                        search.limited() || verification.timeLimitReached(),
+                        search.stopReason() == SearchStopReason.TIME_LIMIT
+                                || verification.timeLimitReached(),
                         search.control.cancelled(),
                         status(search, verification, reached),
                         reached,
@@ -68,8 +71,23 @@ final class AdvisorResponseFactory {
                         verification.proofComplete(),
                         verification.verifiedCandidates(),
                         verification.candidateCount(),
-                        output.plans()));
+                        output.plans(),
+                        stopReason(search, verification)));
+        response.getSummary()
+                .setOutcome(
+                        Double.isFinite(search.requestedTarget) && !reached
+                                ? OptimizationOutcome.VALID_BUILD_SOFT_TARGETS_UNMET
+                                : OptimizationOutcome.VALID_BUILD);
         return response;
+    }
+
+    private SearchStopReason stopReason(
+            AdvisorSearch search, AdvisorFinalistVerifier.Result verification) {
+        if (search.cancelled()) return SearchStopReason.CANCELLED;
+        if (search.stopReason() != SearchStopReason.COMPLETED) return search.stopReason();
+        return verification.timeLimitReached()
+                ? SearchStopReason.TIME_LIMIT
+                : SearchStopReason.COMPLETED;
     }
 
     private AdvisorStatus status(
@@ -85,18 +103,21 @@ final class AdvisorResponseFactory {
     }
 
     OptimizationResponse failure(String message, long started) {
-        return new OptimizationResponse(
-                new EquipmentRequest(),
-                new OptimizationSummary(
-                        false,
-                        message,
-                        0,
-                        0,
-                        elapsedSeconds(started),
-                        List.of(),
-                        Map.of(),
-                        List.of(),
-                        List.of()));
+        OptimizationResponse response =
+                new OptimizationResponse(
+                        new EquipmentRequest(),
+                        new OptimizationSummary(
+                                false,
+                                message,
+                                0,
+                                0,
+                                elapsedSeconds(started),
+                                List.of(),
+                                Map.of(),
+                                List.of(),
+                                List.of()));
+        response.getSummary().setOutcome(OptimizationOutcome.INVALID_INPUT);
+        return response;
     }
 
     private List<GoalResult> goals(

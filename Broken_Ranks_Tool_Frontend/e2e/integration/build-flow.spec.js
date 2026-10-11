@@ -170,9 +170,13 @@ test("cancels a running advisor without requiring a plan before cancellation", a
     const busy = await request.post("/api/optimizer/drifs", { data: run });
     expect(busy.status()).toBe(429);
     const wrong = await request.post(`/api/optimizer/advisor/${run.advisor.runId}/cancel`, {
-        headers: { "X-Advisor-Cancellation-Token": "00000000-0000-4000-8000-000000000000" },
-        data: {},
+        headers: {
+            "Content-Type": "application/json",
+            "X-Advisor-Cancellation-Token": "00000000-0000-4000-8000-000000000000",
+        },
+        data: null,
     });
+    expect(wrong.status()).toBe(200);
     expect((await wrong.json()).cancelled).toBe(false);
     const cancellation = page.waitForResponse((res) =>
         res.url().endsWith(`/advisor/${run.advisor.runId}/cancel`)

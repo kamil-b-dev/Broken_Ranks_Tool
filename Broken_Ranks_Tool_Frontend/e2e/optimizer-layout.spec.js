@@ -20,11 +20,19 @@ test.beforeEach(async ({ page }) => {
             json: { stats: { CRITICAL_CHANCE: "44.39%", MANA_USAGE_REDUCTION: "-53.31%" } },
         })
     );
-    await page.route("**/api/optimizer/drifs", (route) =>
-        route.fulfill({
-            json: optimizerResponse(route.request().postDataJSON().mode === "ADVISOR"),
-        })
-    );
+    await page.route("**/api/optimizer/drifs", (route) => {
+        const advisory = route.request().postDataJSON().mode === "ADVISOR";
+        const result = optimizerResponse(advisory);
+        result.summary.outcome = advisory ? "VALID_BUILD" : "VALID_BUILD_SOFT_TARGETS_UNMET";
+        if (advisory) result.advisorReport.stopReason = "STATE_LIMIT";
+        else
+            result.summary.searchReport = {
+                stopReason: "OPERATION_LIMIT",
+                evaluatedStates: 1234,
+                verifiedStates: 56,
+            };
+        return route.fulfill({ json: result });
+    });
     await page.setViewportSize({ width: 1800, height: 1000 });
     await page.goto("/optymalizator?ui=desktop");
 });

@@ -8,9 +8,18 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.OrbTemplate;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.NumericStats;
 
 /** Defines the statistics calculation contract independently from the API layer. */
 public interface EquipmentStatsCalculatorService {
+    /** Prepares numeric authoritative values without formatting every search candidate. */
+    default Function<EquipmentRequest, NumericStats> prepareNumericCalculation(
+            Map<Long, ItemTemplate> items,
+            Map<Long, OrbTemplate> orbs,
+            Map<Long, DrifTemplate> drifs) {
+        var prepared = prepareCalculationWithSources(items, orbs, drifs);
+        return request -> NumericStats.fromFormatted(prepared.apply(request).stats());
+    }
 
     /**
      * Processes an equipment request and returns formatted final statistics.

@@ -1,6 +1,5 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.advisor;
 
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.advisor.AdvisorSearch.slotName;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.advisor.AdvisorSlotData.stars;
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.support.EquipmentSlotDataCopier.copySlot;
 
@@ -52,25 +51,7 @@ final class AdvisorActionGenerator {
             SlotData next = copySlot(slot);
             next.setItemStars(star);
             nodes.emit(
-                    node,
-                    key,
-                    next,
-                    starLabel(key, slot, star),
-                    new AdvisorChangeKey.Stars(key),
-                    star - stars(slot),
-                    accept);
+                    node, key, next, new AdvisorChangeKey.Stars(key), star - stars(slot), accept);
         }
-    }
-
-    private String starLabel(String key, SlotData slot, int star) {
-        return "Podnieś "
-                + slotName(key)
-                + " ("
-                + model.item(slot).getName()
-                + ") z "
-                + stars(slot)
-                + "★ do "
-                + star
-                + "★";
     }
 }

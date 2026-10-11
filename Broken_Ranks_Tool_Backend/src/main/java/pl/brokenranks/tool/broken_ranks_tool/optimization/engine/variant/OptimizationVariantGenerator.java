@@ -22,12 +22,18 @@ public final class OptimizationVariantGenerator {
     private final OptimizationVariantContextFactory contextFactory =
             new OptimizationVariantContextFactory();
     private final OptimizationVariantFrontierPolicy frontierPolicy;
+    private final pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.neighborhood
+                    .OptimizationActualStateComparator
+            qualityComparator;
 
     public OptimizationVariantGenerator(
             OptimizationLargeNeighborhoodSearch neighborhoodSearch,
             OptimizationStateEvaluator stateEvaluator,
             OptimizationResultAssembler resultAssembler) {
         this.neighborhoodSearch = neighborhoodSearch;
+        this.qualityComparator =
+                new pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.neighborhood
+                        .OptimizationActualStateComparator(stateEvaluator, resultAssembler);
         this.frontierPolicy =
                 new OptimizationVariantFrontierPolicy(stateEvaluator, resultAssembler);
     }
@@ -137,7 +143,10 @@ public final class OptimizationVariantGenerator {
                                             (OptimizationVariantProfile candidate) ->
                                                     candidate.values().get(focus))
                                     .reversed()
-                                    .thenComparing(candidate -> candidate.state().signature()))
+                                    .thenComparing(
+                                            (left, right) ->
+                                                    -qualityComparator.compare(
+                                                            left.state(), right.state(), context)))
                     .limit(CANDIDATES_PER_FOCUS)
                     .map(candidate -> new GeneratedOptimizationVariant(focus, candidate.state()))
                     .forEach(
