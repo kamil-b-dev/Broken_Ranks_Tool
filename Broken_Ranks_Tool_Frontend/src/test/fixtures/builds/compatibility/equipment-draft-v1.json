@@ -1,0 +1,9 @@
+{
+    "version": 1,
+    "value": {
+        "requestData": { "slots": { "helmet": { "itemId": 1 } }, "characterStats": {} },
+        "characterConfig": null,
+        "lockedSlots": [],
+        "lockedDrifs": {}
+    }
+}

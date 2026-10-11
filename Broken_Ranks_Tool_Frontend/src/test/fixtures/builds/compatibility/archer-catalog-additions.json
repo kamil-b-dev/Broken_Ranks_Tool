@@ -1,0 +1,17 @@
+{
+    "items": [
+        {
+            "id": 181,
+            "name": "Żmij",
+            "category": "WEAPON_2H",
+            "tier": "XII",
+            "rarity": "LEGENDARY",
+            "capacity": 32
+        }
+    ],
+    "drifs": [
+        { "id": 80, "name": "Astah", "size": "ARCYDRIF", "bonusType": "DAMAGE_PHYSICAL" },
+        { "id": 116, "name": "Oda", "size": "ARCYDRIF", "bonusType": "HIT_CHANCE_MENTAL" },
+        { "id": 120, "name": "Ulk", "size": "ARCYDRIF", "bonusType": "HIT_CHANCE_MELEE" }
+    ]
+}

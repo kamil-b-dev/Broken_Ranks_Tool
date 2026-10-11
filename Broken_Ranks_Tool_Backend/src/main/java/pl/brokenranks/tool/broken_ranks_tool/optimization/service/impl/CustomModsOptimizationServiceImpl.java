@@ -5,6 +5,7 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.input.OrbSelectionNormalizer;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.advisor.AdvisorOptimizationService;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.config.OptimizationProperties;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationMode;
@@ -55,6 +56,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
             return failedResponse(requestError, elapsedSeconds(startTime));
         }
 
+        request.setOriginalSlots(OrbSelectionNormalizer.normalizeSlots(request.getOriginalSlots()));
         if (request.getMode() == OptimizationMode.ADVISOR) return advisor.optimize(request);
 
         OptimizationContext context = createContext(request);

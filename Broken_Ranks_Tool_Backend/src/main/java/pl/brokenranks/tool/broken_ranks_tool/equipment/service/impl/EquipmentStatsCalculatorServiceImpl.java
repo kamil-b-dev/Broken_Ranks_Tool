@@ -19,6 +19,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.Calcul
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.DrifCounter;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.input.EquipmentDataProvider;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.input.EquipmentDataProvider.CalculationContext;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.input.OrbSelectionNormalizer;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.input.SlotDrifSelectionFactory;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.input.SlotDrifSelectionFactory.SlotDrifSelection;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.processor.DrifStatProcessor;
@@ -74,6 +75,7 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
 
     private CalculationResultDto calculateWithSources(
             EquipmentRequest request, CalculationContext preparedContext) {
+        request = OrbSelectionNormalizer.normalize(request);
         requestValidator.validateRequest(request);
         requestValidator.validateCharacterStats(request.getCharacterStats());
         CalculationContext ctx =

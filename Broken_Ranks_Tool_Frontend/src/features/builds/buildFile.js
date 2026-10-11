@@ -1,12 +1,13 @@
 import { validateImportedBuild } from "./buildImportValidation";
 import { parseGameBuildPayload } from "./gameBuildFile";
+import { normalizeTrailingOrbSlots } from "../../shared/domain/equipment/orbSelectionNormalization";
 import {
     normalizeCharacterConfig,
     totalPointsForLevel,
     trimSpentPoints,
 } from "../builder/character/characterDevelopmentDomain";
 
-import { BUILD_FILE_FORMAT, BUILD_FILE_VERSION, createBuildPayload } from "./buildPayload";
+import { createBuildPayload } from "./buildPayload";
 export { BUILD_FILE_FORMAT, BUILD_FILE_VERSION, createBuildPayload } from "./buildPayload";
 export { downloadBuildPayload } from "./buildDownloads";
 export const MAX_BUILD_FILE_SIZE = 5 * 1024 * 1024;
@@ -49,13 +50,6 @@ const normalizeSlotLevels = (slot) => {
 };
 
 /**
- * Creates the versioned file payload used by the build export action.
- * @param {object} build Current build state.
- * @returns {object} Serializable build payload.
- */
-/** Downloads a serialized build payload and releases the temporary browser URL. */
-
-/**
  * Reads and validates an exported build against currently available game data.
  * @param {File} file Build file selected by the user.
  * @param {object} data Current item, orb, and drif collections.
@@ -73,7 +67,7 @@ export const parseBuildFile = async (file, data = {}) => {
         throw new Error("Plik nie zawiera poprawnego JSON-a.");
     }
 
-    if (payload?.format === BUILD_FILE_FORMAT) {
+    if (BUILD_FILE_READERS.has(payload?.format)) {
         return parseBuildPayload(payload, data);
     }
     if (payload?.stats && payload?.equipped && payload?.equipmentList) {
@@ -91,13 +85,31 @@ export const parseBuildFile = async (file, data = {}) => {
  * Used by both JSON imports and the local build library.
  */
 export const parseBuildPayload = (payload, data = {}) => {
-    if (payload?.format !== BUILD_FILE_FORMAT || payload?.version !== BUILD_FILE_VERSION) {
+    const reader = BUILD_FILE_READERS.get(payload?.format)?.get(payload?.version);
+    if (!reader) {
         throw new Error("Nieobsługiwany format lub wersja pliku buildu.");
     }
+    return reader(payload.build, data);
+};
 
-    const build = payload.build;
-    const importedRequest = build?.requestData;
-    const { lockedSlots, lockedDrifs } = validateImportedBuild(build, data);
+/** v1 stays registered when the export version changes. Never reuse a version for a new shape. */
+const readVersionOneBuild = (build, data) => {
+    const originalRequest = build?.requestData;
+    const importedRequest = isObject(originalRequest?.slots)
+        ? {
+              ...originalRequest,
+              slots: Object.fromEntries(
+                  Object.entries(originalRequest.slots).map(([key, slot]) => [
+                      key,
+                      normalizeTrailingOrbSlots(slot),
+                  ])
+              ),
+          }
+        : originalRequest;
+    const { lockedSlots, lockedDrifs } = validateImportedBuild(
+        { ...build, requestData: importedRequest },
+        data
+    );
 
     return {
         requestData: cloneJson({
@@ -114,3 +126,8 @@ export const parseBuildPayload = (payload, data = {}) => {
         lockedDrifs: cloneJson(lockedDrifs),
     };
 };
+
+// Intentionally independent of BUILD_FILE_VERSION and the current export format constant.
+const BUILD_FILE_READERS = new Map([
+    ["broken-ranks-tool-build", new Map([[1, readVersionOneBuild]])],
+]);

@@ -16,6 +16,19 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.*;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.*;
 
 class AdvisorScopeAndBenefitTests extends AdvisorOptimizationTestSupport {
+    @Test
+    void advisorAcceptsAnEmptyOrbSelectionWithTrailingPaddingWithoutMutatingTheBuild() {
+        var original = slot(1, 1);
+        original.setOrbIds(Arrays.asList(null, null));
+        original.setOrbLevels(Arrays.asList(null, null));
+        var request = request(A, Map.of("helmet", original));
+        request.getAdvisor().setTargetValue(0.0);
+        var f = fixture(List.of(item(1, ITEM_CATEGORY.HELMET, "I", 4, 0)), List.of());
+        var response = assertDoesNotThrow(() -> f.service.optimize(request));
+        assertTrue(response.getSummary().isSuccess(), response.getSummary().getMessage());
+        assertTrue(response.getOptimizedSetup().getSlots().get("helmet").getOrbIds().isEmpty());
+        assertEquals(Arrays.asList(null, null), original.getOrbIds());
+    }
 
     @Test
     void automaticItemProfileUsesCanonicalCharacterStatNames() {

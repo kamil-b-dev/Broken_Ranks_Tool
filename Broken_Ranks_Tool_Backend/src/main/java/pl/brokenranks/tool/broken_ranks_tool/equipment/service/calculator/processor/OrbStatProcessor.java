@@ -71,7 +71,7 @@ public class OrbStatProcessor {
             Integer requestedLvl =
                     slot.getOrbLevels() != null && sourceIndex < slot.getOrbLevels().size()
                             ? slot.getOrbLevels().get(sourceIndex)
-                            : 1;
+                            : Integer.valueOf(1);
             if (requestedLvl == null
                     || requestedLvl < 1
                     || requestedLvl > orb.getSize().getMaxLevel()) {

@@ -190,6 +190,13 @@ paths:
     post:
       operationId: cancelAdvisorRun
       summary: Request cooperative cancellation of an advisor run.
+      requestBody:
+        required: false
+        description: Empty body or JSON null only. Other JSON values and malformed JSON are rejected before cancellation.
+        content:
+          application/json:
+            schema:
+              type: "null"
       parameters:
         - name: runId
           in: path
@@ -197,6 +204,7 @@ paths:
           schema:
             type: string
             format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
         - name: X-Advisor-Cancellation-Token
           in: header
           required: true
@@ -204,6 +212,7 @@ paths:
           schema:
             type: string
             format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         "200":
           description: Whether a matching active run was marked for cancellation. A matching request still in transit remembers the cancellation intent for 10 seconds; a false result only means there was no active matching flag to set.
@@ -270,6 +279,7 @@ components:
             - "null"
     SlotData:
       type: object
+      additionalProperties: false
       properties:
         itemId:
           type:
@@ -320,6 +330,7 @@ components:
             type: integer
     EquipmentRequest:
       type: object
+      additionalProperties: false
       properties:
         slots:
           type:
@@ -359,6 +370,8 @@ components:
             type: string
     OptimizationRequest:
       type: object
+      additionalProperties: false
+      description: Canonical request representation. Enum values and enum map keys require names, never indexes. Unknown fields and duplicate JSON keys are rejected. Legacy numeric strings and existing boolean scalar conversions remain supported during deserialization.
       required:
         - originalSlots
       properties:
@@ -437,6 +450,7 @@ components:
           maxProperties: 32
           additionalProperties:
             type: object
+            additionalProperties: false
             required:
               - min
               - max
@@ -458,6 +472,7 @@ components:
             maxProperties: 4
             additionalProperties:
               type: object
+              additionalProperties: false
               required:
                 - min
                 - max
@@ -517,6 +532,7 @@ components:
             - type: "null"
     AdvisorOptions:
       type: object
+      additionalProperties: false
       required:
         - goal
       dependentRequired:
@@ -587,6 +603,7 @@ components:
           default: AUTO
         allowedChanges:
           type: object
+          additionalProperties: false
           properties:
             stars:
               type: boolean
@@ -605,6 +622,7 @@ components:
           maxProperties: 32
           additionalProperties:
             type: object
+            additionalProperties: false
             properties:
               enabled:
                 type: boolean

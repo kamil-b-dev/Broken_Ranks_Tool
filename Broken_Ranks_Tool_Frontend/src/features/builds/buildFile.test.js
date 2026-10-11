@@ -112,6 +112,28 @@ describe("downloadBuildPayload", () => {
 });
 
 describe("parseBuildFile", () => {
+    it.each(["RARE", "LEGENDARY"])(
+        "loads a %s item with no orb even if the file has two empty placeholders",
+        (rarity) => {
+            const payload = validPayload();
+            payload.build.requestData.slots.helmet.orbIds = [null, null];
+            payload.build.requestData.slots.helmet.orbLevels = [null, null];
+            const result = parseBuildPayload(payload, {
+                ...gameData,
+                items: gameData.items.map((item) => (item.id === 1 ? { ...item, rarity } : item)),
+            });
+            expect(result.requestData.slots.helmet.orbIds).toEqual([]);
+            expect(result.requestData.slots.helmet.orbLevels).toEqual([]);
+            expect(payload.build.requestData.slots.helmet.orbIds).toEqual([null, null]);
+        }
+    );
+
+    it("rejects a null level on an occupied orb rather than replacing it with level one", () => {
+        const payload = validPayload();
+        payload.build.requestData.slots.helmet.orbIds = [2, null];
+        payload.build.requestData.slots.helmet.orbLevels = [null, null];
+        expect(() => parseBuildPayload(payload, gameData)).toThrow(/poziomy orbów/);
+    });
     it("returns a detached, validated build", async () => {
         const payload = validPayload();
 

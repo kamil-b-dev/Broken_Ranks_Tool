@@ -30,6 +30,48 @@ test("legacy optimizer requests may omit the defaulted mode", () => {
   assert.throws(() => validate("SimpleOptions", { damageDrifs: 13 }));
 });
 
+test("API request DTOs reject unexpected fields at every fixed object boundary", () => {
+  assert.throws(() =>
+    validate("EquipmentRequest", { slots: {}, unexpected: true }),
+  );
+  assert.throws(() =>
+    validate("EquipmentRequest", {
+      slots: { helmet: { itemId: 1, unexpected: true } },
+    }),
+  );
+  assert.throws(() =>
+    validate("OptimizationRequest", {
+      originalSlots: { helmet: { itemId: 1 } },
+      unexpected: true,
+    }),
+  );
+  assert.throws(() =>
+    validate("AdvisorOptions", {
+      goal: "CRITICAL_CHANCE",
+      allowedChanges: { unexpected: true },
+    }),
+  );
+  assert.throws(() =>
+    validate("AdvisorOptions", {
+      goal: "CRITICAL_CHANCE",
+      protectedModifiers: { DAMAGE_PHYSICAL: { unexpected: true } },
+    }),
+  );
+});
+
+test("advisor cancellation declares full UUID credentials and only a null JSON body", () => {
+  const endpoint = document.paths["/api/optimizer/advisor/{runId}/cancel"].post;
+  assert.equal(endpoint.requestBody.required, false);
+  assert.deepEqual(endpoint.requestBody.content["application/json"].schema, {
+    type: "null",
+  });
+  for (const parameter of endpoint.parameters) {
+    const pattern = new RegExp(parameter.schema.pattern);
+    assert.equal(pattern.test("1-1-1-1-1"), false);
+    assert.equal(pattern.test("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"), true);
+  }
+});
+
 test("advisor purchase scope and benefit limit are typed and optional for legacy requests", () => {
   validate("AdvisorOptions", { goal: "CRITICAL_CHANCE" });
   for (const purchaseScope of ["GOAL_ONLY", "GOAL_AND_PROTECTED", "ANY"]) {

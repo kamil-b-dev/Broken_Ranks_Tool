@@ -178,7 +178,7 @@ public final class OptimizationInputValidator {
             Integer level =
                     data.getOrbLevels() != null && index < data.getOrbLevels().size()
                             ? data.getOrbLevels().get(index)
-                            : 1;
+                            : Integer.valueOf(1);
             if (level == null || level < 1 || level > orb.getSize().getMaxLevel()) {
                 return "Slot " + key + ": poziom orba jest poza dozwolonym zakresem.";
             }

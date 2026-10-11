@@ -1,0 +1,22 @@
+{
+    "format": "broken-ranks-tool-build",
+    "version": 1,
+    "build": {
+        "requestData": {
+            "slots": {
+                "helmet": {
+                    "itemId": "1",
+                    "itemStars": null,
+                    "orbIds": [50],
+                    "orbLevels": { "0": "1" },
+                    "drifIds": ["60"],
+                    "drifLevels": ["6"]
+                }
+            },
+            "characterStats": null
+        },
+        "characterConfig": null,
+        "lockedSlots": [],
+        "lockedDrifs": {}
+    }
+}

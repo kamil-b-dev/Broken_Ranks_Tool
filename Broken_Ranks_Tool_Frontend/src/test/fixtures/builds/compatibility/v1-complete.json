@@ -1,0 +1,59 @@
+{
+    "format": "broken-ranks-tool-build",
+    "version": 1,
+    "exportedAt": "2026-10-10T10:00:00.000Z",
+    "build": {
+        "requestData": {
+            "slots": {
+                "helmet": {
+                    "itemId": "1",
+                    "itemStars": 7,
+                    "orbIds": ["50"],
+                    "orbLevels": [1],
+                    "drifIds": [60, null],
+                    "drifLevels": { "0": 6 }
+                },
+                "armor": {
+                    "itemId": 2,
+                    "itemStars": 1,
+                    "orbIds": [],
+                    "orbLevels": [],
+                    "drifIds": [],
+                    "drifLevels": {}
+                },
+                "weapon": {
+                    "itemId": null,
+                    "itemStars": 1,
+                    "orbIds": [],
+                    "orbLevels": [],
+                    "drifIds": [],
+                    "drifLevels": {}
+                }
+            },
+            "characterStats": {
+                "Siła": 14,
+                "Zręczność": 13,
+                "Moc": 12,
+                "Wiedza": 11,
+                "PŻ": 200,
+                "Mana": 200,
+                "Kondycja": 200,
+                "Obrażenia": 0
+            }
+        },
+        "characterConfig": {
+            "level": 20,
+            "spentPoints": {
+                "Siła": 4,
+                "Zręczność": 3,
+                "Moc": 2,
+                "Wiedza": 1,
+                "PŻ": 0,
+                "Mana": 0,
+                "Kondycja": 0
+            }
+        },
+        "lockedSlots": ["helmet"],
+        "lockedDrifs": { "helmet": [0] }
+    }
+}
