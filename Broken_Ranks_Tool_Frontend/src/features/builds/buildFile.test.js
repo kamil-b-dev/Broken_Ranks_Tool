@@ -45,6 +45,7 @@ const validPayload = () => ({
     format: BUILD_FILE_FORMAT,
     version: BUILD_FILE_VERSION,
     build: {
+        backpack: [],
         requestData: {
             slots: {
                 helmet: { itemId: 1, orbIds: [2], drifIds: [3] },
@@ -144,6 +145,7 @@ describe("parseBuildFile", () => {
             characterConfig: expect.objectContaining({ level: 140 }),
             lockedSlots: ["helmet"],
             lockedDrifs: { helmet: [0] },
+            backpack: [],
         });
         expect(result.requestData).not.toBe(payload.build.requestData);
     });

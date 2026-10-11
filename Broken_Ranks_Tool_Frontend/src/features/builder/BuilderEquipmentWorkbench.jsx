@@ -1,5 +1,6 @@
 import { SLOTS } from "../../shared/domain/equipment/equipmentSlots";
 import EquipmentSlotOverview from "./equipment/EquipmentSlotOverview";
+import BuilderEquipmentViewSwitch from "./BuilderEquipmentViewSwitch";
 
 const BuilderEquipmentWorkbench = ({
     model,
@@ -10,6 +11,9 @@ const BuilderEquipmentWorkbench = ({
     onMaximizeLevels,
     levelWarnings = [],
     children,
+    equipmentView = "character",
+    onEquipmentViewChange,
+    backpackContent,
 }) => {
     return (
         <section className="workbench builder-equipment-column flex flex-col p-5 md:p-6">
@@ -17,63 +21,75 @@ const BuilderEquipmentWorkbench = ({
                 <div>
                     <h2>Ekwipunek</h2>
                 </div>
+                {onEquipmentViewChange && (
+                    <BuilderEquipmentViewSwitch
+                        view={equipmentView}
+                        onChange={onEquipmentViewChange}
+                    />
+                )}
             </div>
-            <div className="equipment-level-actions">
-                <button type="button" onClick={() => onMaximizeLevels("orbs")}>
-                    max lvl orby
-                </button>
-                <button type="button" onClick={() => onMaximizeLevels("drifs")}>
-                    max lvl drify
-                </button>
-            </div>
-            {levelWarnings.length > 0 && (
-                <div className="equipment-level-warning" role="status">
-                    <span>Za mało pojemności:</span>
-                    {levelWarnings.map((warning, index) => (
-                        <div key={index}>{warning}</div>
-                    ))}
-                </div>
+            {equipmentView === "backpack" ? (
+                backpackContent
+            ) : (
+                <>
+                    <div className="equipment-level-actions">
+                        <button type="button" onClick={() => onMaximizeLevels("orbs")}>
+                            max lvl orby
+                        </button>
+                        <button type="button" onClick={() => onMaximizeLevels("drifs")}>
+                            max lvl drify
+                        </button>
+                    </div>
+                    {levelWarnings.length > 0 && (
+                        <div className="equipment-level-warning" role="status">
+                            <span>Za mało pojemności:</span>
+                            {levelWarnings.map((warning, index) => (
+                                <div key={index}>{warning}</div>
+                            ))}
+                        </div>
+                    )}
+                    <span className="equipment-ornament-divider" aria-hidden="true" />
+                    <div className="equipment-figure-heading" aria-live="polite">
+                        <strong>
+                            {model.equippedSlotCount}/{SLOTS.length}
+                        </strong>
+                    </div>
+                    <div className="equipment-figure-layout">
+                        <div
+                            className="equipment-character-figure"
+                            aria-label="Kołowy wybór slotów ekwipunku"
+                        >
+                            <span className="equipment-figure-aura" />
+                            <span className="equipment-center-silhouette" aria-hidden="true" />
+                            {SLOTS.map((slot) => {
+                                const equipped = Boolean(model.itemForSlot(slot));
+                                const active = slot.key === model.activeSlot.key;
+                                return (
+                                    <EquipmentSlotOverview
+                                        key={slot.key}
+                                        variant="ring"
+                                        slotKey={slot.key}
+                                        label={slot.label}
+                                        slotData={requestData.slots?.[slot.key]}
+                                        item={model.itemForSlot(slot)}
+                                        drifs={data.drifs}
+                                        orbs={data.orbs}
+                                        bonusTranslations={gameRules.bonusTranslations}
+                                        active={active}
+                                        onSelect={() => model.selectSlot(slot)}
+                                        acceptedItemIds={(model.itemsBySlot[slot.key] || []).map(
+                                            (candidate) => candidate.id
+                                        )}
+                                        onItemDrop={(item) => onOverviewItemDrop(slot, item)}
+                                        className={`equipment-ring-slot-${slot.key}${equipped ? " equipment-ring-slot-equipped" : ""}`}
+                                    />
+                                );
+                            })}
+                        </div>
+                    </div>
+                    {children}
+                </>
             )}
-            <span className="equipment-ornament-divider" aria-hidden="true" />
-            <div className="equipment-figure-heading" aria-live="polite">
-                <strong>
-                    {model.equippedSlotCount}/{SLOTS.length}
-                </strong>
-            </div>
-            <div className="equipment-figure-layout">
-                <div
-                    className="equipment-character-figure"
-                    aria-label="Kołowy wybór slotów ekwipunku"
-                >
-                    <span className="equipment-figure-aura" />
-                    <span className="equipment-center-silhouette" aria-hidden="true" />
-                    {SLOTS.map((slot) => {
-                        const equipped = Boolean(model.itemForSlot(slot));
-                        const active = slot.key === model.activeSlot.key;
-                        return (
-                            <EquipmentSlotOverview
-                                key={slot.key}
-                                variant="ring"
-                                slotKey={slot.key}
-                                label={slot.label}
-                                slotData={requestData.slots?.[slot.key]}
-                                item={model.itemForSlot(slot)}
-                                drifs={data.drifs}
-                                orbs={data.orbs}
-                                bonusTranslations={gameRules.bonusTranslations}
-                                active={active}
-                                onSelect={() => model.selectSlot(slot)}
-                                acceptedItemIds={(model.itemsBySlot[slot.key] || []).map(
-                                    (candidate) => candidate.id
-                                )}
-                                onItemDrop={(item) => onOverviewItemDrop(slot, item)}
-                                className={`equipment-ring-slot-${slot.key}${equipped ? " equipment-ring-slot-equipped" : ""}`}
-                            />
-                        );
-                    })}
-                </div>
-            </div>
-            {children}
         </section>
     );
 };

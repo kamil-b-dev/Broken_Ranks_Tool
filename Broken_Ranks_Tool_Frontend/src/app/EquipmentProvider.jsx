@@ -11,9 +11,10 @@ import {
     EquipmentLocksContext,
     EquipmentCalculationContext,
     EquipmentBuildActionsContext,
+    EquipmentBackpackContext,
 } from "../shared/state/EquipmentContext";
 import {
-    readEquipmentDraft,
+    readEquipmentDraftState,
     writeEquipmentDraft,
     preserveEquipmentDraft,
 } from "./storage/workingDraftStorage";
@@ -28,7 +29,10 @@ import { useWorkingDraftSave } from "./storage/useWorkingDraftSave";
  * @returns {JSX.Element} The context provider.
  */
 export const EquipmentProvider = ({ children }) => {
-    const [initialDraft] = useState(readEquipmentDraft);
+    const [initialStorage] = useState(readEquipmentDraftState);
+    const initialDraft = initialStorage.draft;
+    const [backpack, setBackpack] = useState([]);
+    const handleBackpackChange = useCallback((entries) => setBackpack(entries), []);
     const {
         data,
         categoryNames,
@@ -41,7 +45,10 @@ export const EquipmentProvider = ({ children }) => {
 
     const [requestData, setRequestData] = useState({ slots: {}, characterStats: {} });
     const [draftRestored, setDraftRestored] = useState(!initialDraft);
-    const [draftWritesAllowed, setDraftWritesAllowed] = useState(true);
+    const [draftWritesAllowed, setDraftWritesAllowed] = useState(
+        () =>
+            !initialStorage.rejected || preserveEquipmentDraft(undefined, initialStorage.sourceKey)
+    );
     const {
         stats,
         statSources,
@@ -81,19 +88,20 @@ export const EquipmentProvider = ({ children }) => {
                 const imported = parseBuildPayload(
                     {
                         format: "broken-ranks-tool-build",
-                        version: 1,
+                        version: initialStorage.buildVersion,
                         build: initialDraft,
                     },
                     { ...data, gameRules }
                 );
                 setRequestData(imported.requestData);
+                setBackpack(imported.backpack || []);
                 setCharacterConfig(imported.characterConfig);
                 replaceLocks(imported.lockedSlots, imported.lockedDrifs);
                 markEquipmentChanged();
             } catch {
                 if (!active) return;
                 // Keep a recoverable copy; never overwrite the original if that copy cannot be saved.
-                setDraftWritesAllowed(preserveEquipmentDraft());
+                setDraftWritesAllowed(preserveEquipmentDraft(undefined, initialStorage.sourceKey));
             } finally {
                 if (active) setDraftRestored(true);
             }
@@ -108,14 +116,15 @@ export const EquipmentProvider = ({ children }) => {
         gameRules,
         initialDataError,
         initialDraft,
+        initialStorage,
         loading,
         markEquipmentChanged,
         replaceLocks,
     ]);
 
     const workingDraft = useMemo(
-        () => ({ requestData, characterConfig, lockedSlots, lockedDrifs }),
-        [requestData, characterConfig, lockedSlots, lockedDrifs]
+        () => ({ requestData, characterConfig, lockedSlots, lockedDrifs, backpack }),
+        [requestData, characterConfig, lockedSlots, lockedDrifs, backpack]
     );
     useWorkingDraftSave(writeEquipmentDraft, workingDraft, draftRestored && draftWritesAllowed);
 
@@ -169,6 +178,8 @@ export const EquipmentProvider = ({ children }) => {
     const { loadBuildFromFile, createBuildSnapshot, loadBuildSnapshot } = useEquipmentBuildTransfer(
         {
             data: buildImportData,
+            backpack,
+            setBackpack,
             requestData,
             characterConfig,
             lockedSlots,
@@ -311,23 +322,30 @@ export const EquipmentProvider = ({ children }) => {
         ]
     );
 
+    const backpackValue = useMemo(
+        () => ({ backpack, onBackpackChange: handleBackpackChange }),
+        [backpack, handleBackpackChange]
+    );
+
     const buildActionsValue = useMemo(
         () => ({ createBuildSnapshot, loadBuildSnapshot, loadBuildFromFile }),
         [createBuildSnapshot, loadBuildSnapshot, loadBuildFromFile]
     );
     return (
-        <EquipmentBuildActionsContext.Provider value={buildActionsValue}>
-            <EquipmentCatalogContext.Provider value={catalogValue}>
-                <EquipmentSetupContext.Provider value={setupValue}>
-                    <EquipmentLocksContext.Provider value={locksValue}>
-                        <EquipmentCalculationContext.Provider value={calculationValue}>
-                            <EquipmentContext.Provider value={value}>
-                                {children}
-                            </EquipmentContext.Provider>
-                        </EquipmentCalculationContext.Provider>
-                    </EquipmentLocksContext.Provider>
-                </EquipmentSetupContext.Provider>
-            </EquipmentCatalogContext.Provider>
-        </EquipmentBuildActionsContext.Provider>
+        <EquipmentBackpackContext.Provider value={backpackValue}>
+            <EquipmentBuildActionsContext.Provider value={buildActionsValue}>
+                <EquipmentCatalogContext.Provider value={catalogValue}>
+                    <EquipmentSetupContext.Provider value={setupValue}>
+                        <EquipmentLocksContext.Provider value={locksValue}>
+                            <EquipmentCalculationContext.Provider value={calculationValue}>
+                                <EquipmentContext.Provider value={value}>
+                                    {children}
+                                </EquipmentContext.Provider>
+                            </EquipmentCalculationContext.Provider>
+                        </EquipmentLocksContext.Provider>
+                    </EquipmentSetupContext.Provider>
+                </EquipmentCatalogContext.Provider>
+            </EquipmentBuildActionsContext.Provider>
+        </EquipmentBackpackContext.Provider>
     );
 };

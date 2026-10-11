@@ -1,5 +1,6 @@
 export const BUILD_FILE_FORMAT = "broken-ranks-tool-build";
-export const BUILD_FILE_VERSION = 1;
+import { normalizeBackpack } from "../builder/backpack/backpackSerialization.js";
+export const BUILD_FILE_VERSION = 2;
 
 const pick = (value, keys) =>
     Object.fromEntries(
@@ -7,7 +8,12 @@ const pick = (value, keys) =>
     );
 
 /** Stable v1 wire fields: changes to editor state must not change the saved document. */
-export const createBuildPayload = ({ requestData, characterConfig, lockedSlots, lockedDrifs }) => {
+export const createVersionOneBuildPayload = ({
+    requestData,
+    characterConfig,
+    lockedSlots,
+    lockedDrifs,
+}) => {
     const request = pick(requestData, ["slots", "characterStats"]);
     request.slots = Object.fromEntries(
         Object.entries(request.slots).map(([key, slot]) => [
@@ -19,7 +25,7 @@ export const createBuildPayload = ({ requestData, characterConfig, lockedSlots, 
     return JSON.parse(
         JSON.stringify({
             format: BUILD_FILE_FORMAT,
-            version: BUILD_FILE_VERSION,
+            version: 1,
             exportedAt: new Date().toISOString(),
             build: {
                 requestData: request,
@@ -32,4 +38,14 @@ export const createBuildPayload = ({ requestData, characterConfig, lockedSlots, 
             },
         })
     );
+};
+
+/** v2 extends the frozen equipment fields with an independently editable backpack. */
+export const createBuildPayload = (state) => {
+    const previous = createVersionOneBuildPayload(state);
+    return {
+        ...previous,
+        version: BUILD_FILE_VERSION,
+        build: { ...previous.build, backpack: normalizeBackpack(state.backpack || []) },
+    };
 };

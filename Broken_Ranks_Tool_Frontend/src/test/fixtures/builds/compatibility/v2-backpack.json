@@ -1,0 +1,56 @@
+{
+    "format": "broken-ranks-tool-build",
+    "version": 2,
+    "exportedAt": "2026-10-11T12:00:00.000Z",
+    "build": {
+        "requestData": {
+            "slots": {},
+            "characterStats": {}
+        },
+        "characterConfig": null,
+        "lockedSlots": [],
+        "lockedDrifs": {},
+        "backpack": [
+            {
+                "id": "candidate-helmet",
+                "kind": "ITEM",
+                "equipment": {
+                    "itemId": "1",
+                    "itemStars": 1,
+                    "orbIds": ["50"],
+                    "orbLevels": [1],
+                    "drifIds": ["60"],
+                    "drifLevels": {
+                        "0": 6
+                    }
+                }
+            },
+            {
+                "id": "loose-orb",
+                "kind": "ORB",
+                "templateId": "50",
+                "level": 1
+            },
+            {
+                "id": "loose-drif",
+                "kind": "DRIF",
+                "templateId": "60",
+                "level": 6
+            },
+            {
+                "id": "unfinished-helmet",
+                "kind": "ITEM",
+                "equipment": {
+                    "itemId": "1",
+                    "itemStars": 1,
+                    "orbIds": [],
+                    "orbLevels": [],
+                    "drifIds": ["60"],
+                    "drifLevels": {
+                        "0": 21
+                    }
+                }
+            }
+        ]
+    }
+}

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {
     useEquipmentCatalogState,
     useEquipmentSetup,
+    useEquipmentBackpack,
 } from "../../../shared/state/EquipmentContext";
 import { SLOTS } from "../../../shared/domain/equipment/equipmentSlots";
 import { useBuilderWorkspace } from "../useBuilderWorkspace";
@@ -11,10 +12,21 @@ import MobileGearSlot from "./MobileGearSlot";
 import MobileCharacterPanel from "./MobileCharacterPanel";
 import MobileStatsPanel from "./MobileStatsPanel";
 import "./mobile-builder.css";
+import BackpackGrid from "../backpack/BackpackGrid";
+import BackpackEditor from "../backpack/BackpackEditor";
+import { useBackpackWorkspace } from "../backpack/useBackpackWorkspace";
+import "../backpack/backpack.css";
 
 export default function MobileBuilderWorkspace() {
     const equipment = { ...useEquipmentCatalogState(), ...useEquipmentSetup() };
     const { data, requestData, gameRules, handleSlotUpdate } = equipment;
+    const inventory = useEquipmentBackpack();
+    const backpack = useBackpackWorkspace({
+        entries: inventory.backpack,
+        onChange: inventory.onBackpackChange,
+        data,
+        gameRules,
+    });
     const model = useBuilderWorkspace({ items: data.items, slots: requestData.slots });
     const route = useMobileBuilderRoute();
     const heading = useRef(null);
@@ -79,6 +91,7 @@ export default function MobileBuilderWorkspace() {
                     <nav className="mobile-sections" aria-label="Sekcje kreatora">
                         {[
                             ["equipment", "Ekwipunek"],
+                            ["backpack", "Plecak"],
                             ["character", "Postać"],
                             ["stats", "Statystyki"],
                         ].map(([key, label]) => (
@@ -159,6 +172,21 @@ export default function MobileBuilderWorkspace() {
                                 Statystyki buildu <span aria-hidden="true">→</span>
                             </button>
                         </>
+                    ) : route.section === "backpack" ? (
+                        <div className="mobile-backpack">
+                            <BackpackGrid
+                                entries={inventory.backpack}
+                                data={data}
+                                gameRules={gameRules}
+                                model={backpack}
+                            />
+                            <BackpackEditor
+                                model={backpack}
+                                data={data}
+                                gameRules={gameRules}
+                                syncTrigger={equipment.optimizationTrigger}
+                            />
+                        </div>
                     ) : route.section === "character" ? (
                         <MobileCharacterPanel />
                     ) : (

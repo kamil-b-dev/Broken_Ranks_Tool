@@ -113,6 +113,7 @@ const GearSlot = (props) => {
                     handleDragLeave={handleDragLeave}
                     handleDrop={handleDrop}
                     hookData={hookData}
+                    allowEmptyItem={props.allowEmptyItem}
                 />
             </div>
 

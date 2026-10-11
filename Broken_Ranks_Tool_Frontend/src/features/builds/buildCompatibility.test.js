@@ -8,6 +8,8 @@ import emptyOrbPadding from "../../test/fixtures/builds/compatibility/v1-empty-o
 import {
     EQUIPMENT_DRAFT_STORAGE_KEY,
     WORKING_DRAFT_VERSION,
+    LEGACY_EQUIPMENT_DRAFT_STORAGE_KEY,
+    EQUIPMENT_DRAFT_VERSION,
     readEquipmentDraft,
     writeEquipmentDraft,
 } from "../../app/storage/workingDraftStorage";
@@ -61,7 +63,10 @@ describe("saved build compatibility contract", () => {
                 : parseBuildPayload(complete, builderCatalog);
         expect(result).toEqual(complete.build);
         expect(complete).toEqual(original);
-        expect(parseBuildPayload(createBuildPayload(result), builderCatalog)).toEqual(result);
+        expect(parseBuildPayload(createBuildPayload(result), builderCatalog)).toEqual({
+            ...result,
+            backpack: [],
+        });
     });
 
     it("keeps legacy optional-field defaults", () => {
@@ -97,9 +102,10 @@ describe("saved build compatibility contract", () => {
         (_name, payload) => {
             const imported = parseBuildPayload(payload, historicalCatalog);
             expect(imported).toEqual(payload.build);
-            expect(parseBuildPayload(createBuildPayload(imported), historicalCatalog)).toEqual(
-                imported
-            );
+            expect(parseBuildPayload(createBuildPayload(imported), historicalCatalog)).toEqual({
+                ...imported,
+                backpack: [],
+            });
         }
     );
 
@@ -141,7 +147,8 @@ describe("saved build compatibility contract", () => {
     });
 
     it("keeps the automatic equipment draft key and document readable", () => {
-        expect(EQUIPMENT_DRAFT_STORAGE_KEY).toBe("broken-ranks-tool.equipment-draft.v1");
+        expect(LEGACY_EQUIPMENT_DRAFT_STORAGE_KEY).toBe("broken-ranks-tool.equipment-draft.v1");
+        expect(EQUIPMENT_DRAFT_STORAGE_KEY).toBe("broken-ranks-tool.equipment-draft.v2");
         expect(WORKING_DRAFT_VERSION).toBe(1);
         const values = new Map([
             ["broken-ranks-tool.equipment-draft.v1", JSON.stringify(savedDraft)],
@@ -152,12 +159,19 @@ describe("saved build compatibility contract", () => {
         };
         const draft = readEquipmentDraft(storage);
         expect(draft).toEqual(savedDraft.value);
-        expect(parseBuildPayload(createBuildPayload(draft), builderCatalog)).toEqual(minimalState);
+        expect(parseBuildPayload(createBuildPayload(draft), builderCatalog)).toEqual({
+            ...minimalState,
+            backpack: [],
+        });
         expect(writeEquipmentDraft(draft, storage)).toBe(true);
         expect(JSON.parse(values.get("broken-ranks-tool.equipment-draft.v1"))).toEqual(savedDraft);
+        expect(JSON.parse(values.get(EQUIPMENT_DRAFT_STORAGE_KEY))).toEqual({
+            version: EQUIPMENT_DRAFT_VERSION,
+            value: { ...draft, backpack: [] },
+        });
     });
 
-    it.each([0, 2, 999, "1", null])(
+    it.each([0, 3, 999, "1", null])(
         "rejects unsupported version %s rather than guessing a migration",
         (version) => {
             expect(() => parseBuildPayload({ ...complete, version }, builderCatalog)).toThrow(

@@ -29,7 +29,11 @@ const section = (page, name) =>
         .getByRole("button", { name, exact: true });
 const draft = (page) =>
     page.evaluate(
-        () => JSON.parse(localStorage.getItem("broken-ranks-tool.equipment-draft.v1")).value
+        () =>
+            JSON.parse(
+                localStorage.getItem("broken-ranks-tool.equipment-draft.v2") ||
+                    localStorage.getItem("broken-ranks-tool.equipment-draft.v1")
+            ).value
     );
 const noOverflow = async (page) =>
     expect(

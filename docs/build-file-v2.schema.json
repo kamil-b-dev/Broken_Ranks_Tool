@@ -1,0 +1,419 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "urn:broken-ranks-tool:build-file:v2",
+    "title": "Broken Ranks Tool build file v2",
+    "description": "Extends v1 equipment fields with a backpack. Physically invalid backpack drafts are preserved and reported separately.",
+    "type": "object",
+    "required": [
+        "format",
+        "version",
+        "build"
+    ],
+    "properties": {
+        "format": {
+            "const": "broken-ranks-tool-build"
+        },
+        "version": {
+            "const": 2
+        },
+        "exportedAt": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "build": {
+            "type": "object",
+            "required": [
+                "requestData",
+                "backpack"
+            ],
+            "properties": {
+                "requestData": {
+                    "type": "object",
+                    "required": [
+                        "slots"
+                    ],
+                    "properties": {
+                        "slots": {
+                            "type": "object",
+                            "propertyNames": {
+                                "$ref": "#/$defs/slotKey"
+                            },
+                            "additionalProperties": {
+                                "$ref": "#/$defs/slot"
+                            }
+                        },
+                        "characterStats": {
+                            "type": [
+                                "object",
+                                "null"
+                            ],
+                            "additionalProperties": {
+                                "type": "integer",
+                                "minimum": 0
+                            }
+                        }
+                    }
+                },
+                "characterConfig": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "properties": {
+                        "level": {
+                            "type": [
+                                "integer",
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "spentPoints": {
+                            "type": [
+                                "object",
+                                "null"
+                            ],
+                            "additionalProperties": {
+                                "type": [
+                                    "integer",
+                                    "string",
+                                    "null"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "lockedSlots": {
+                    "type": [
+                        "array",
+                        "null"
+                    ],
+                    "items": {
+                        "$ref": "#/$defs/slotKey"
+                    }
+                },
+                "lockedDrifs": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "propertyNames": {
+                        "$ref": "#/$defs/slotKey"
+                    },
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    }
+                },
+                "backpack": {
+                    "type": "array",
+                    "maxItems": 1000,
+                    "items": {
+                        "$ref": "#/$defs/backpackEntry"
+                    }
+                }
+            }
+        }
+    },
+    "$defs": {
+        "slotKey": {
+            "enum": [
+                "helmet",
+                "armor",
+                "cape",
+                "legs",
+                "boots",
+                "gloves",
+                "belt",
+                "necklace",
+                "ring1",
+                "ring2",
+                "shield",
+                "weapon"
+            ]
+        },
+        "id": {
+            "type": [
+                "integer",
+                "string",
+                "null"
+            ]
+        },
+        "level": {
+            "anyOf": [
+                {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                {
+                    "type": "string",
+                    "pattern": "^[1-9][0-9]*$"
+                }
+            ]
+        },
+        "levels": {
+            "anyOf": [
+                {
+                    "type": "null"
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/level"
+                    }
+                },
+                {
+                    "type": "object",
+                    "propertyNames": {
+                        "pattern": "^(0|[1-9][0-9]*)$"
+                    },
+                    "additionalProperties": {
+                        "$ref": "#/$defs/level"
+                    }
+                }
+            ]
+        },
+        "orbLevels": {
+            "description": "Null placeholders are allowed only at empty trailing orb positions; an occupied orb still requires a valid level.",
+            "anyOf": [
+                {
+                    "type": "null"
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/level"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "type": "object",
+                    "propertyNames": {
+                        "pattern": "^(0|[1-9][0-9]*)$"
+                    },
+                    "additionalProperties": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/level"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        "slot": {
+            "type": "object",
+            "properties": {
+                "itemId": {
+                    "$ref": "#/$defs/id"
+                },
+                "itemStars": {
+                    "type": [
+                        "integer",
+                        "null"
+                    ],
+                    "minimum": 1,
+                    "maximum": 9
+                },
+                "orbIds": {
+                    "type": [
+                        "array",
+                        "null"
+                    ],
+                    "items": {
+                        "$ref": "#/$defs/id"
+                    }
+                },
+                "orbLevels": {
+                    "$ref": "#/$defs/orbLevels"
+                },
+                "drifIds": {
+                    "type": [
+                        "array",
+                        "null"
+                    ],
+                    "items": {
+                        "$ref": "#/$defs/id"
+                    }
+                },
+                "drifLevels": {
+                    "$ref": "#/$defs/levels"
+                }
+            }
+        },
+        "backpackId": {
+            "anyOf": [
+                {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                {
+                    "type": "string",
+                    "pattern": "^[1-9][0-9]*$"
+                }
+            ]
+        },
+        "backpackEntry": {
+            "oneOf": [
+                {
+                    "type": "object",
+                    "required": [
+                        "id",
+                        "kind",
+                        "equipment"
+                    ],
+                    "properties": {
+                        "id": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 128
+                        },
+                        "kind": {
+                            "const": "ITEM"
+                        },
+                        "equipment": {
+                            "$ref": "#/$defs/backpackEquipment"
+                        }
+                    }
+                },
+                {
+                    "type": "object",
+                    "required": [
+                        "id",
+                        "kind",
+                        "templateId",
+                        "level"
+                    ],
+                    "properties": {
+                        "id": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 128
+                        },
+                        "kind": {
+                            "const": "ORB"
+                        },
+                        "templateId": {
+                            "$ref": "#/$defs/backpackId"
+                        },
+                        "level": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 3
+                        }
+                    }
+                },
+                {
+                    "type": "object",
+                    "required": [
+                        "id",
+                        "kind",
+                        "templateId",
+                        "level"
+                    ],
+                    "properties": {
+                        "id": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 128
+                        },
+                        "kind": {
+                            "const": "DRIF"
+                        },
+                        "templateId": {
+                            "$ref": "#/$defs/backpackId"
+                        },
+                        "level": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 21
+                        }
+                    }
+                }
+            ]
+        },
+        "backpackEquipment": {
+            "type": "object",
+            "required": [
+                "itemId",
+                "itemStars",
+                "orbIds",
+                "orbLevels",
+                "drifIds",
+                "drifLevels"
+            ],
+            "properties": {
+                "itemId": {
+                    "$ref": "#/$defs/backpackId"
+                },
+                "itemStars": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9
+                },
+                "orbIds": {
+                    "type": "array",
+                    "maxItems": 2,
+                    "items": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/backpackId"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                },
+                "orbLevels": {
+                    "type": "array",
+                    "maxItems": 2,
+                    "items": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "minimum": 1,
+                        "maximum": 3
+                    }
+                },
+                "drifIds": {
+                    "type": "array",
+                    "maxItems": 8,
+                    "items": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/backpackId"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                },
+                "drifLevels": {
+                    "type": "object",
+                    "propertyNames": {
+                        "pattern": "^[0-7]$"
+                    },
+                    "additionalProperties": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 21
+                    }
+                }
+            }
+        }
+    }
+}

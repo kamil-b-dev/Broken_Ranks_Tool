@@ -16,6 +16,8 @@ export const useEquipmentBuildTransfer = ({
     restoreStats,
     calculateStatsFor,
     markEquipmentChanged,
+    backpack,
+    setBackpack,
 }) => {
     const importVersion = useRef(0);
     const snapshot = useRef({
@@ -25,6 +27,7 @@ export const useEquipmentBuildTransfer = ({
         lockedDrifs,
         stats,
         statSources,
+        backpack,
     });
     useLayoutEffect(() => {
         snapshot.current = {
@@ -34,8 +37,9 @@ export const useEquipmentBuildTransfer = ({
             lockedDrifs,
             stats,
             statSources,
+            backpack,
         };
-    }, [requestData, characterConfig, lockedSlots, lockedDrifs, stats, statSources]);
+    }, [requestData, characterConfig, lockedSlots, lockedDrifs, stats, statSources, backpack]);
     const createBuildSnapshot = useCallback(
         () => ({
             payload: createBuildPayload(snapshot.current),
@@ -50,6 +54,7 @@ export const useEquipmentBuildTransfer = ({
             setRequestData(importedBuild.requestData);
             setCharacterConfig(importedBuild.characterConfig);
             replaceLocks(importedBuild.lockedSlots, importedBuild.lockedDrifs);
+            setBackpack?.(importedBuild.backpack || []);
             // Persisted statistics describe the catalogue at save time, not the current rules.
             restoreStats(null);
             markEquipmentChanged();
@@ -62,6 +67,7 @@ export const useEquipmentBuildTransfer = ({
             restoreStats,
             setCharacterConfig,
             setRequestData,
+            setBackpack,
         ]
     );
 

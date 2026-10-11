@@ -7,6 +7,7 @@ import {
   BUILD_FILE_FORMAT,
   BUILD_FILE_VERSION,
   createBuildPayload,
+  createVersionOneBuildPayload,
 } from "../Broken_Ranks_Tool_Frontend/src/features/builds/buildPayload.js";
 
 const readJson = async (relative) =>
@@ -95,17 +96,17 @@ for (const file of [
   });
 }
 
-test("current exporter preserves the complete v1 document independently of editor state fields", () => {
-  const payload = createBuildPayload(editorState());
+test("frozen v1 exporter preserves the complete v1 document independently of editor state fields", () => {
+  const payload = createVersionOneBuildPayload(editorState());
   assert.equal(BUILD_FILE_FORMAT, "broken-ranks-tool-build");
-  assert.equal(BUILD_FILE_VERSION, 1);
+  assert.equal(payload.version, 1);
   assert.equal(validate(payload), true, ajv.errorsText(validate.errors));
   assert.deepEqual({ ...payload, exportedAt: golden.exportedAt }, golden);
 });
 
 test("a captured JSON save cannot be changed by subsequent editor updates", () => {
   const state = editorState();
-  const payload = createBuildPayload(state);
+  const payload = createVersionOneBuildPayload(state);
   state.requestData.slots.helmet.drifIds[0] = 999;
   state.requestData.characterStats.Siła = 999;
   state.characterConfig.spentPoints.Siła = 999;
@@ -125,4 +126,26 @@ test("v1 structural contract rejects accidental renames or removal of required d
   changed.build.requestData.equipment = changed.build.requestData.slots;
   delete changed.build.requestData.slots;
   assert.equal(validate(changed), false);
+});
+
+test("v2 exports the backpack separately while retaining every frozen v1 equipment field", async () => {
+  const fixture = await readJson(`${fixtures}compatibility/v2-backpack.json`);
+  const validateV2 = ajv.compile(
+    await readJson("../docs/build-file-v2.schema.json"),
+  );
+  assert.equal(validateV2(fixture), true, ajv.errorsText(validateV2.errors));
+  const state = structuredClone(fixture.build);
+  state.backpack[0].temporaryEditorState = true;
+  const saved = createBuildPayload(state);
+  assert.equal(BUILD_FILE_VERSION, 2);
+  assert.deepEqual({ ...saved, exportedAt: fixture.exportedAt }, fixture);
+  state.backpack[0].equipment.drifLevels[0] = 1;
+  assert.equal(saved.build.backpack[0].equipment.drifLevels[0], 6);
+  const empty = createBuildPayload(editorState());
+  assert.deepEqual(empty.build, { ...golden.build, backpack: [] });
+  assert.equal(validateV2(empty), true, ajv.errorsText(validateV2.errors));
+  const renamed = structuredClone(fixture);
+  renamed.build.inventory = renamed.build.backpack;
+  delete renamed.build.backpack;
+  assert.equal(validateV2(renamed), false);
 });

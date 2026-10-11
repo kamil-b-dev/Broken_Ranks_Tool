@@ -13,6 +13,7 @@ vi.mock("../shared/state/EquipmentContext", async (importOriginal) => ({
     useEquipmentSetup: () => useEquipment(),
     useEquipmentLocksState: () => useEquipment(),
     useEquipmentCalculation: () => useEquipment(),
+    useEquipmentBackpack: () => useEquipment(),
 }));
 
 vi.mock("../features/builds/buildDownloads", async (importOriginal) => ({
@@ -21,6 +22,8 @@ vi.mock("../features/builds/buildDownloads", async (importOriginal) => ({
 }));
 
 const equipment = {
+    backpack: [],
+    onBackpackChange: vi.fn(),
     data: { items: [], orbs: [], drifs: [] },
     categoryNames: {},
     orbCategories: {},

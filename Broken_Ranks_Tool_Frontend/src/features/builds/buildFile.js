@@ -1,6 +1,7 @@
 import { validateImportedBuild } from "./buildImportValidation";
 import { parseGameBuildPayload } from "./gameBuildFile";
 import { normalizeTrailingOrbSlots } from "../../shared/domain/equipment/orbSelectionNormalization";
+import { normalizeBackpack } from "../builder/backpack/backpackSerialization";
 import {
     normalizeCharacterConfig,
     totalPointsForLevel,
@@ -129,5 +130,21 @@ const readVersionOneBuild = (build, data) => {
 
 // Intentionally independent of BUILD_FILE_VERSION and the current export format constant.
 const BUILD_FILE_READERS = new Map([
-    ["broken-ranks-tool-build", new Map([[1, readVersionOneBuild]])],
+    [
+        "broken-ranks-tool-build",
+        new Map([
+            [1, readVersionOneBuild],
+            [
+                2,
+                (build, data) => {
+                    if (!Array.isArray(build?.backpack))
+                        throw new Error("Plik wersji 2 nie zawiera poprawnego plecaka.");
+                    return {
+                        ...readVersionOneBuild(build, data),
+                        backpack: normalizeBackpack(build.backpack),
+                    };
+                },
+            ],
+        ]),
+    ],
 ]);

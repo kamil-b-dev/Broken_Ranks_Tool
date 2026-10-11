@@ -4,6 +4,8 @@ import {
     EQUIPMENT_DRAFT_RECOVERY_STORAGE_KEY,
     preserveEquipmentDraft,
     readEquipmentDraft,
+    readEquipmentDraftState,
+    LEGACY_EQUIPMENT_DRAFT_STORAGE_KEY,
     readOptimizerDraft,
     writeEquipmentDraft,
     writeOptimizerDraft,
@@ -38,7 +40,7 @@ describe("workingDraftStorage", () => {
         const optimizer = { priorities: [] };
 
         expect(writeEquipmentDraft(equipment, storage)).toBe(true);
-        expect(readEquipmentDraft(storage)).toEqual(equipment);
+        expect(readEquipmentDraft(storage)).toEqual({ ...equipment, backpack: [] });
         expect(writeOptimizerDraft(optimizer, storage)).toBe(true);
         expect(readOptimizerDraft(storage)).toEqual(optimizer);
     });
@@ -54,7 +56,7 @@ describe("workingDraftStorage", () => {
 
         expect(writeEquipmentDraft(equipment)).toBe(true);
         expect(writeOptimizerDraft(optimizer)).toBe(true);
-        expect(readEquipmentDraft()).toEqual(equipment);
+        expect(readEquipmentDraft()).toEqual({ ...equipment, backpack: [] });
         expect(readOptimizerDraft()).toEqual(optimizer);
     });
 
@@ -67,6 +69,28 @@ describe("workingDraftStorage", () => {
             JSON.stringify({ version: 999, value: { requestData: { slots: {} } } })
         );
         expect(readEquipmentDraft()).toBeNull();
+    });
+
+    it("preserves an invalid current draft and never resurrects an older v1 workspace", () => {
+        const legacy = JSON.stringify({
+            version: 1,
+            value: { requestData: { slots: { helmet: { itemId: 1 } } } },
+        });
+        const current = JSON.stringify({
+            version: 2,
+            value: { requestData: { slots: {} }, backpack: null },
+        });
+        localStorage.setItem(LEGACY_EQUIPMENT_DRAFT_STORAGE_KEY, legacy);
+        localStorage.setItem(EQUIPMENT_DRAFT_STORAGE_KEY, current);
+        expect(readEquipmentDraftState()).toMatchObject({
+            draft: null,
+            rejected: true,
+            sourceKey: EQUIPMENT_DRAFT_STORAGE_KEY,
+        });
+        expect(readEquipmentDraft()).toBeNull();
+        expect(preserveEquipmentDraft()).toBe(true);
+        expect(localStorage.getItem(EQUIPMENT_DRAFT_RECOVERY_STORAGE_KEY)).toBe(current);
+        expect(localStorage.getItem(LEGACY_EQUIPMENT_DRAFT_STORAGE_KEY)).toBe(legacy);
     });
 
     it("does not expose mutable references", () => {

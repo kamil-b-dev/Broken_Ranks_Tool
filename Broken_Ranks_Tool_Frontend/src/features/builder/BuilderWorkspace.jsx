@@ -13,6 +13,10 @@ import ItemDatabase from "./item-database/ItemDatabase";
 import StatsPanel from "./stats-panel/StatsPanel";
 import BuilderEquipmentWorkbench from "./BuilderEquipmentWorkbench";
 import SelectedSlotEditor from "./gear-slot/SelectedSlotEditor";
+import BackpackGrid from "./backpack/BackpackGrid";
+import BackpackEditor from "./backpack/BackpackEditor";
+import { useBackpackWorkspace } from "./backpack/useBackpackWorkspace";
+import "./backpack/backpack.css";
 
 /** Composes the manual equipment builder workflow. */
 const BuilderWorkspace = ({
@@ -31,7 +35,16 @@ const BuilderWorkspace = ({
     onSlotUpdate,
     onCharacterStatsUpdate,
     onCalculateStats,
+    backpack = [],
+    onBackpackChange,
 }) => {
+    const [equipmentView, setEquipmentView] = useState("character");
+    const backpackModel = useBackpackWorkspace({
+        entries: backpack,
+        onChange: onBackpackChange,
+        data,
+        gameRules: gameRules || {},
+    });
     const model = useBuilderWorkspace({ items: data.items, slots: requestData.slots });
     const [levelWarnings, setLevelWarnings] = useState([]);
     const maximizeLevels = (kind) => {
@@ -92,6 +105,16 @@ const BuilderWorkspace = ({
                     onOverviewItemDrop={handleOverviewItemDrop}
                     onMaximizeLevels={maximizeLevels}
                     levelWarnings={levelWarnings}
+                    equipmentView={equipmentView}
+                    onEquipmentViewChange={setEquipmentView}
+                    backpackContent={
+                        <BackpackGrid
+                            entries={backpack}
+                            data={data}
+                            gameRules={gameRules || {}}
+                            model={backpackModel}
+                        />
+                    }
                 >
                     <StatsPanel
                         compact
@@ -103,14 +126,23 @@ const BuilderWorkspace = ({
                     />
                 </BuilderEquipmentWorkbench>
                 <aside className="builder-slot-editor-column">
-                    <SelectedSlotEditor
-                        model={model}
-                        data={data}
-                        requestData={requestData}
-                        gameRules={gameRules}
-                        optimizationTrigger={slotEditorSyncTrigger}
-                        onSlotUpdate={onSlotUpdate}
-                    />
+                    {equipmentView === "backpack" ? (
+                        <BackpackEditor
+                            model={backpackModel}
+                            data={data}
+                            gameRules={gameRules || {}}
+                            syncTrigger={optimizationTrigger}
+                        />
+                    ) : (
+                        <SelectedSlotEditor
+                            model={model}
+                            data={data}
+                            requestData={requestData}
+                            gameRules={gameRules}
+                            optimizationTrigger={slotEditorSyncTrigger}
+                            onSlotUpdate={onSlotUpdate}
+                        />
+                    )}
                 </aside>
             </div>
         </main>
