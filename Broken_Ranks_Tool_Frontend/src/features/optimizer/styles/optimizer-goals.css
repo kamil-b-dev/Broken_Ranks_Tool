@@ -108,7 +108,7 @@
 }
 .advisor-modifier-row {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
     align-items: center;
     gap: 0.75rem;
     padding: 0.5rem 0;
@@ -161,7 +161,14 @@
     gap: 0.45rem;
     color: #b4aca4;
 }
+.advisor-modifier-row > label:first-child {
+    min-width: 0;
+}
+.advisor-modifier-row > label:first-child > span {
+    overflow-wrap: anywhere;
+}
 .advisor-modifier-row b {
+    flex: 0 0 auto;
     margin-left: auto;
     color: #d0a45d;
     font-weight: 400;
@@ -172,6 +179,9 @@
     gap: 0.35rem;
     color: #736c66;
     white-space: nowrap;
+}
+.advisor-modifier-row > .advisor-loss-control {
+    margin-left: auto;
 }
 .advisor-loss-control input {
     width: 4.2rem;
@@ -218,6 +228,10 @@
 .optimizer-bonus-column {
     border-right: 1px solid rgba(114, 76, 37, 0.68);
     background: rgba(3, 4, 4, 0.36);
+}
+
+.optimizer-priority-column {
+    container-type: inline-size;
 }
 
 .optimizer-subcolumn-heading,
@@ -826,4 +840,19 @@
 .optimizer-run-action:disabled {
     cursor: not-allowed;
     opacity: 0.4;
+}
+
+@container (max-width: 28rem) {
+    .optimizer-priority-toolbar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .optimizer-priority-toolbar > div {
+        justify-content: flex-start;
+    }
+
+    .optimizer-priority-options {
+        grid-template-columns: minmax(0, 1fr);
+    }
 }

@@ -90,20 +90,6 @@
     min-height: 0;
 }
 
-@media (min-width: 1024px) {
-    .optimizer-main-grid {
-        grid-template-columns:
-            minmax(11rem, 0.8fr) minmax(12rem, 0.85fr) minmax(22rem, 1.65fr)
-            minmax(20rem, 1.35fr);
-    }
-}
-
-@media (min-width: 1024px) {
-    .optimizer-main-grid > * {
-        grid-column: auto;
-    }
-}
-
 .optimizer-workspace-column {
     height: calc(100vh - 21rem);
     min-height: 42rem;
@@ -201,7 +187,7 @@
 .optimizer-mode-navigation {
     display: grid;
     min-width: 0;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.5rem;
     padding: 0.65rem 0.72rem;
     border-bottom: 1px solid rgba(103, 70, 39, 0.72);
