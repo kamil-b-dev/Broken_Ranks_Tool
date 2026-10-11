@@ -79,3 +79,9 @@ build/
 
 # Local algorithm service audit
 /audyt-algorytmu-2026-10-10.txt
+
+# Local frontend-to-backend input inventory
+/dane-frontend-backend-2026-10-10.txt
+
+# Local backend input validation comparison
+/porownanie-walidacji-backendu-2026-10-11.txt
