@@ -13,7 +13,7 @@ COPY Broken_Ranks_Tool_Backend/src ./src
 COPY --from=frontend-build /workspace/frontend/dist ./src/main/resources/static
 RUN mvn -B -DskipTests package
 
-FROM eclipse-temurin:21-jre-jammy@sha256:e9aaf73145bbd1f9f6ec7f6867dd75a44f34b1a6c32a813504bf4129be2d09d7 AS runtime
+FROM eclipse-temurin:25-jre-jammy@sha256:25777acfabf927084b7ef46d8bc786b6203c8c344f56541054238b8c4fe73db9 AS runtime
 WORKDIR /app
 RUN apt-get update \
     && apt-get install --only-upgrade --no-install-recommends -y libssl3 openssl \
