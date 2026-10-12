@@ -15,6 +15,15 @@ beforeEach(() => {
         handleCharacterStatsUpdate: update,
     });
 });
+it("allocates intelligence from the same mobile point budget", async () => {
+    const user = userEvent.setup();
+    render(<MobileCharacterPanel />);
+    await user.click(screen.getByRole("button", { name: "Dodaj punkt: Inteligencja" }));
+    expect(update).toHaveBeenLastCalledWith(
+        expect.objectContaining({ Inteligencja: 11, Siła: 15 }),
+        expect.objectContaining({ spentPoints: expect.objectContaining({ Inteligencja: 1 }) })
+    );
+});
 it("keeps numeric drafts local, cancels them and commits with Enter", async () => {
     const user = userEvent.setup();
     render(<MobileCharacterPanel />);

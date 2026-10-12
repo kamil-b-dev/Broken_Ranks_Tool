@@ -39,6 +39,17 @@ const historicalCatalog = {
     drifs: [...legacyCatalog.drifs, ...archerAdditions.drifs],
 };
 const file = (payload) => ({ size: 10_000, text: async () => JSON.stringify(payload) });
+// The frozen document stays unchanged; the editor adds an unallocated new attribute.
+const withIntelligenceDefault = (build) =>
+    build.characterConfig
+        ? {
+              ...build,
+              characterConfig: {
+                  ...build.characterConfig,
+                  spentPoints: { ...build.characterConfig.spentPoints, Inteligencja: 0 },
+              },
+          }
+        : build;
 
 afterEach(() => {
     vi.doUnmock("./buildPayload");
@@ -61,7 +72,7 @@ describe("saved build compatibility contract", () => {
             source === "file"
                 ? await parseBuildFile(file(complete), builderCatalog)
                 : parseBuildPayload(complete, builderCatalog);
-        expect(result).toEqual(complete.build);
+        expect(result).toEqual(withIntelligenceDefault(complete.build));
         expect(complete).toEqual(original);
         expect(parseBuildPayload(createBuildPayload(result), builderCatalog)).toEqual({
             ...result,
@@ -101,7 +112,7 @@ describe("saved build compatibility contract", () => {
         "loads the existing historical %s fixture and retains its equipment and locks",
         (_name, payload) => {
             const imported = parseBuildPayload(payload, historicalCatalog);
-            expect(imported).toEqual(payload.build);
+            expect(imported).toEqual(withIntelligenceDefault(payload.build));
             expect(parseBuildPayload(createBuildPayload(imported), historicalCatalog)).toEqual({
                 ...imported,
                 backpack: [],
@@ -135,15 +146,19 @@ describe("saved build compatibility contract", () => {
         }));
         const future = await import("./buildFile");
         expect(future.BUILD_FILE_VERSION).toBe(999);
-        expect(future.parseBuildPayload(complete, builderCatalog)).toEqual(complete.build);
-        expect(await future.parseBuildFile(file(complete), builderCatalog)).toEqual(complete.build);
+        expect(future.parseBuildPayload(complete, builderCatalog)).toEqual(
+            withIntelligenceDefault(complete.build)
+        );
+        expect(await future.parseBuildFile(file(complete), builderCatalog)).toEqual(
+            withIntelligenceDefault(complete.build)
+        );
         // Extra historical metadata must not turn a recognized app save into a game import.
         expect(
             await future.parseBuildFile(
                 file({ ...complete, stats: {}, equipped: {}, equipmentList: [] }),
                 builderCatalog
             )
-        ).toEqual(complete.build);
+        ).toEqual(withIntelligenceDefault(complete.build));
     });
 
     it("keeps the automatic equipment draft key and document readable", () => {

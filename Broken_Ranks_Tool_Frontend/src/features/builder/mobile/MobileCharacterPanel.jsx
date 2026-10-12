@@ -44,7 +44,7 @@ export default function MobileCharacterPanel() {
             {Object.keys(STAT_CONFIG).map((name) => (
                 <div key={name} className="mobile-character-stat">
                     <span>
-                        {name}
+                        {STAT_CONFIG[name].label || name}
                         <strong>{model.finalStats[name]}</strong>
                         <small>{model.spentPoints[name]} pkt</small>
                     </span>

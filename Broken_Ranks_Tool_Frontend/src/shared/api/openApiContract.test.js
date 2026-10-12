@@ -9,6 +9,24 @@ const contract = YAML.parse(
 );
 
 describe("OpenAPI optimizer contract", () => {
+    it("shares intelligence validation between calculator and optimizer requests", () => {
+        const schemas = contract.components.schemas;
+        for (const name of ["EquipmentRequest", "OptimizationRequest"])
+            expect(schemas[name].properties.characterStats.$ref).toBe(
+                "#/components/schemas/CharacterStats"
+            );
+        const stats = schemas.CharacterStats;
+        const validName = new RegExp(stats.propertyNames.pattern);
+        expect(validName.test("Inteligencja")).toBe(true);
+        expect(validName.test("INTELIGENCJA")).toBe(true);
+        expect(validName.test("intelligence")).toBe(false);
+        expect(stats.example.Inteligencja).toBe(10);
+        expect(stats.additionalProperties).toMatchObject({
+            type: "integer",
+            minimum: 0,
+            maximum: 50000,
+        });
+    });
     it.each([
         "configurationMode",
         "simpleProfile",

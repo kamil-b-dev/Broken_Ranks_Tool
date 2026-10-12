@@ -49,10 +49,10 @@ const CompactCharacterPanel = ({ development }) => (
             aria-label="Statystyki postaci"
         >
             {Object.keys(STAT_CONFIG).map((name) => (
-                <div className="character-stat-control" key={name}>
+                <div className="character-stat-control" key={name} data-stat={name}>
                     <span className="character-stat-icon" aria-hidden="true" />
                     <div>
-                        <span>{name}</span>
+                        <span>{STAT_CONFIG[name].label || name}</span>
                         <strong>{development.finalStats[name]}</strong>
                     </div>
                     <div className="character-stat-actions">

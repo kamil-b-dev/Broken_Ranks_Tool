@@ -1,6 +1,6 @@
 .character-summary {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: auto minmax(0, 1fr) minmax(8.5rem, 12rem);
     align-items: stretch;
     gap: 0.75rem;
     padding: 0.65rem;
@@ -86,7 +86,7 @@
 .character-stat-strip {
     display: grid;
     min-width: 0;
-    grid-template-columns: repeat(7, minmax(9.5rem, 1fr));
+    grid-template-columns: repeat(8, minmax(10rem, 1fr));
     gap: 0.45rem;
     overflow-x: auto;
     padding-bottom: 0.15rem;
@@ -111,7 +111,7 @@
 
 .character-stat-icon {
     position: relative;
-    width: 3.5rem;
+    width: 2.5rem;
     height: 3.5rem;
     flex: 0 0 auto;
     overflow: hidden;
@@ -131,33 +131,41 @@
     transform: translate(-50%, -50%) scale(0.68);
 }
 
-.character-stat-control:nth-child(1) .character-stat-icon::before {
+.character-stat-control[data-stat="Siła"] .character-stat-icon::before {
     top: calc(50% - 0.3rem);
     background-position: 0 0;
 }
-.character-stat-control:nth-child(2) .character-stat-icon::before {
+.character-stat-control[data-stat="Zręczność"] .character-stat-icon::before {
     top: calc(50% - 0.3rem);
     background-position: 33.333% 0;
 }
-.character-stat-control:nth-child(3) .character-stat-icon::before {
+.character-stat-control[data-stat="Moc"] .character-stat-icon::before {
     top: calc(50% - 0.3rem);
     background-position: 66.667% 0;
 }
-.character-stat-control:nth-child(4) .character-stat-icon::before {
+.character-stat-control[data-stat="Wiedza"] .character-stat-icon::before {
     top: calc(50% - 0.3rem);
     background-position: 100% 0;
 }
-.character-stat-control:nth-child(5) .character-stat-icon::before {
+.character-stat-control[data-stat="PŻ"] .character-stat-icon::before {
     top: calc(50% + 0.3rem);
     background-position: 0 100%;
 }
-.character-stat-control:nth-child(6) .character-stat-icon::before {
+.character-stat-control[data-stat="Mana"] .character-stat-icon::before {
     top: calc(50% + 0.3rem);
     background-position: 33.333% 100%;
 }
-.character-stat-control:nth-child(7) .character-stat-icon::before {
+.character-stat-control[data-stat="Kondycja"] .character-stat-icon::before {
     top: calc(50% + 0.3rem);
     background-position: 66.667% 100%;
+}
+
+.character-stat-control[data-stat="Inteligencja"] .character-stat-icon::before {
+    height: 3.5rem;
+    background-image: url("../../../assets/ui/character-intelligence-icon.webp");
+    background-size: contain;
+    background-position: center;
+    transform: translate(-50%, -50%) scale(0.68);
 }
 
 .character-stat-control span,

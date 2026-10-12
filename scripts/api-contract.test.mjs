@@ -22,6 +22,37 @@ const response = {
   advisorReport: null,
 };
 
+test("calculator and optimizer accept localized intelligence with the usual value bounds", () => {
+  for (const characterStats of [
+    null,
+    {},
+    { Inteligencja: 10 },
+    { INTELIGENCJA: 35 },
+  ]) {
+    validate("EquipmentRequest", { slots: {}, characterStats });
+    validate("OptimizationRequest", {
+      originalSlots: { helmet: { itemId: 1 } },
+      characterStats,
+    });
+  }
+  for (const characterStats of [
+    { Inteligencja: -1 },
+    { Inteligencja: 50001 },
+    { Inteligencja: 10.5 },
+    { intelligence: 10 },
+  ]) {
+    assert.throws(() =>
+      validate("EquipmentRequest", { slots: {}, characterStats }),
+    );
+    assert.throws(() =>
+      validate("OptimizationRequest", {
+        originalSlots: { helmet: { itemId: 1 } },
+        characterStats,
+      }),
+    );
+  }
+});
+
 test("legacy optimizer requests may omit the defaulted mode", () => {
   validate("OptimizationRequest", { originalSlots: { helmet: { itemId: 1 } } });
   assert.throws(() =>

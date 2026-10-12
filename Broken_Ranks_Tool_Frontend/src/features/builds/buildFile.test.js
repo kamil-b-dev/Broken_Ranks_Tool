@@ -59,6 +59,19 @@ const validPayload = () => ({
 });
 
 describe("character stat aliases", () => {
+    it("preserves intelligence in exported and imported builds", () => {
+        const payload = validPayload();
+        payload.build.requestData.characterStats = { Inteligencja: 35 };
+        payload.build.characterConfig.spentPoints = { Inteligencja: 25 };
+        const imported = parseBuildPayload(payload, gameData);
+        const exported = createBuildPayload(imported);
+        expect(exported.build.requestData.characterStats.Inteligencja).toBe(35);
+        expect(exported.build.characterConfig.spentPoints.Inteligencja).toBe(25);
+        payload.build.requestData.characterStats = { Inteligencja: 50_000, INTELIGENCJA: 1 };
+        expect(() => parseBuildPayload(payload, gameData)).toThrow(/Łączna wartość/);
+        payload.build.requestData.characterStats = { Inteligencja: -1 };
+        expect(() => parseBuildPayload(payload, gameData)).toThrow(/całkowitymi/);
+    });
     it("enforces the total limit for case aliases before importing a build", () => {
         const payload = validPayload();
         payload.build.requestData.characterStats = { Siła: 50_000, siła: 1 };

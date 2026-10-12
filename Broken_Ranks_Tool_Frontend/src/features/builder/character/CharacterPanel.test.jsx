@@ -4,6 +4,31 @@ import { describe, expect, it, vi } from "vitest";
 import CharacterPanel from "./CharacterPanel";
 
 describe("CharacterPanel", () => {
+    it("orders all eight attributes and spends the shared budget on intelligence", async () => {
+        const user = userEvent.setup();
+        const onStatsChange = vi.fn();
+        const { container } = render(
+            <CharacterPanel onStatsChange={onStatsChange} externalConfig={{ level: 4 }} />
+        );
+        expect(
+            [...container.querySelectorAll(".character-stat-control")].map(
+                (element) => element.dataset.stat
+            )
+        ).toEqual(["PŻ", "Mana", "Kondycja", "Siła", "Zręczność", "Moc", "Wiedza", "Inteligencja"]);
+        expect(screen.getByText("Życie")).toBeInTheDocument();
+        expect(onStatsChange).not.toHaveBeenCalled();
+        await user.click(screen.getByRole("button", { name: "Dodaj 10 punktów: Inteligencja" }));
+        expect(onStatsChange).toHaveBeenLastCalledWith(
+            expect.objectContaining({ Inteligencja: 20, PŻ: 200 }),
+            expect.objectContaining({ spentPoints: expect.objectContaining({ Inteligencja: 10 }) })
+        );
+        expect(screen.getByRole("button", { name: "Dodaj 10 punktów: Moc" })).toBeDisabled();
+        await user.click(screen.getByRole("button", { name: "Zresetuj punkty" }));
+        expect(onStatsChange).toHaveBeenLastCalledWith(
+            expect.objectContaining({ Inteligencja: 10 }),
+            expect.objectContaining({ spentPoints: expect.objectContaining({ Inteligencja: 0 }) })
+        );
+    });
     it("preserves allocated points while replacing a level with the same typed value", async () => {
         const user = userEvent.setup();
         const onStatsChange = vi.fn();

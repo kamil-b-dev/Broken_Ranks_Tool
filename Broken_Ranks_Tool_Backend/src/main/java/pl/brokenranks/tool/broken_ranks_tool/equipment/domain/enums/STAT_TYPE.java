@@ -17,6 +17,7 @@ public enum STAT_TYPE {
     DEXTERITY("Zręczność"),
     POWER("Moc"),
     KNOWLEDGE("Wiedza"),
+    INTELLIGENCE("Inteligencja"),
     HEALTH("PŻ"),
     MANA("Mana"),
     STAMINA("Kondycja"),

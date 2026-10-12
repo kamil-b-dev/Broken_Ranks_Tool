@@ -336,6 +336,27 @@ components:
           maxProperties: 8
           additionalProperties:
             type: integer
+    CharacterStats:
+      type:
+        - object
+        - "null"
+      description: Absolute character statistics, including development points already converted by the client. Supported canonical names are PŻ, Mana, Kondycja, Siła, Zręczność, Moc, Wiedza, Inteligencja and Obrażenia; names are case-insensitive. Each canonical total must be at most 50000, including case aliases. Intelligence starts at 10 and gains 1 per development point, like strength and power. Missing values are not filled by the calculator; empty maps remain empty. No current item grants intelligence.
+      maxProperties: 32
+      propertyNames:
+        pattern: "^([Pp][Żż]|[Mm][Aa][Nn][Aa]|[Kk][Oo][Nn][Dd][Yy][Cc][Jj][Aa]|[Ss][Ii][Łł][Aa]|[Zz][Rr][Ęę][Cc][Zz][Nn][Oo][Śś][Ćć]|[Mm][Oo][Cc]|[Ww][Ii][Ee][Dd][Zz][Aa]|[Ii][Nn][Tt][Ee][Ll][Ii][Gg][Ee][Nn][Cc][Jj][Aa]|[Oo][Bb][Rr][Aa][Żż][Ee][Nn][Ii][Aa])$"
+      additionalProperties:
+        type: integer
+        minimum: 0
+        maximum: 50000
+      example:
+        PŻ: 200
+        Mana: 200
+        Kondycja: 200
+        Siła: 10
+        Zręczność: 10
+        Moc: 10
+        Wiedza: 10
+        Inteligencja: 10
     EquipmentRequest:
       type: object
       additionalProperties: false
@@ -348,14 +369,7 @@ components:
           additionalProperties:
             $ref: "#/components/schemas/SlotData"
         characterStats:
-          type:
-            - object
-            - "null"
-          maxProperties: 32
-          additionalProperties:
-            type: integer
-            minimum: 0
-            maximum: 50000
+          $ref: "#/components/schemas/CharacterStats"
     CalculationResult:
       type: object
       required:
@@ -429,14 +443,7 @@ components:
               - IMPORTANT
               - KEY
         characterStats:
-          type:
-            - object
-            - "null"
-          maxProperties: 32
-          additionalProperties:
-            type: integer
-            minimum: 0
-            maximum: 50000
+          $ref: "#/components/schemas/CharacterStats"
         originalSlots:
           type: object
           minProperties: 1
@@ -1109,7 +1116,14 @@ components:
       properties:
         outcome:
           type: [string, "null"]
-          enum: [INVALID_INPUT, NO_BUILD_FOUND, VALID_BUILD_SOFT_TARGETS_UNMET, VALID_BUILD, null]
+          enum:
+            [
+              INVALID_INPUT,
+              NO_BUILD_FOUND,
+              VALID_BUILD_SOFT_TARGETS_UNMET,
+              VALID_BUILD,
+              null,
+            ]
           description: Explicit result kind. Optional for compatibility with older responses.
         searchReport:
           oneOf:
@@ -1246,7 +1260,16 @@ components:
             $ref: "#/components/schemas/AdvisorPlan"
     SearchStopReason:
       type: string
-      enum: [COMPLETED, OPERATION_LIMIT, TIME_LIMIT, STATE_LIMIT, CANCELLED, INTERRUPTED, NOT_STARTED]
+      enum:
+        [
+          COMPLETED,
+          OPERATION_LIMIT,
+          TIME_LIMIT,
+          STATE_LIMIT,
+          CANCELLED,
+          INTERRUPTED,
+          NOT_STARTED,
+        ]
     OptimizationSearchReport:
       type: object
       additionalProperties: false
@@ -1310,7 +1333,15 @@ components:
       properties:
         type:
           type: string
-          enum: [MOVE, SWAP, UPGRADE_DRIF, PURCHASE_DRIF, UPGRADE_STARS, REPLACE_ITEM]
+          enum:
+            [
+              MOVE,
+              SWAP,
+              UPGRADE_DRIF,
+              PURCHASE_DRIF,
+              UPGRADE_STARS,
+              REPLACE_ITEM,
+            ]
         slotKey: { type: string }
         fromItemId: { type: [integer, "null"] }
         toItemId: { type: [integer, "null"] }
