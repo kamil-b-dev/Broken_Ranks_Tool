@@ -1,14 +1,7 @@
 import { resolveDrifCategoryKey } from "../../../shared/domain/equipment/drifCategories";
+import { STAT_CONFIG } from "../character/characterConstants";
 
-const CHARACTER_STAT_NAMES = new Set([
-    "Siła",
-    "Zręczność",
-    "Moc",
-    "Wiedza",
-    "PŻ",
-    "Mana",
-    "Kondycja",
-]);
+const CHARACTER_STAT_NAMES = new Set(Object.keys(STAT_CONFIG));
 
 export const DRIF_CATEGORY_CONFIG = {
     OFFENSIVE: { title: "Drify ofensywne", accent: "red" },

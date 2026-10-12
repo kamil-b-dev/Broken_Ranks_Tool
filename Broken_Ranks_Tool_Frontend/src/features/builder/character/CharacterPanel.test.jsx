@@ -4,6 +4,71 @@ import { describe, expect, it, vi } from "vitest";
 import CharacterPanel from "./CharacterPanel";
 
 describe("CharacterPanel", () => {
+    it("orders all eight attributes and spends the shared budget on intelligence", async () => {
+        const user = userEvent.setup();
+        const onStatsChange = vi.fn();
+        const { container } = render(
+            <CharacterPanel onStatsChange={onStatsChange} externalConfig={{ level: 4 }} />
+        );
+        expect(
+            [...container.querySelectorAll(".character-stat-control")].map(
+                (element) => element.dataset.stat
+            )
+        ).toEqual(["PŻ", "Mana", "Kondycja", "Siła", "Zręczność", "Moc", "Wiedza", "Inteligencja"]);
+        expect(screen.getByText("Życie")).toBeInTheDocument();
+        expect(onStatsChange).not.toHaveBeenCalled();
+        await user.click(screen.getByRole("button", { name: "Dodaj 10 punktów: Inteligencja" }));
+        expect(onStatsChange).toHaveBeenLastCalledWith(
+            expect.objectContaining({ Inteligencja: 20, PŻ: 200 }),
+            expect.objectContaining({ spentPoints: expect.objectContaining({ Inteligencja: 10 }) })
+        );
+        expect(screen.getByRole("button", { name: "Dodaj 10 punktów: Moc" })).toBeDisabled();
+        await user.click(screen.getByRole("button", { name: "Zresetuj punkty" }));
+        expect(onStatsChange).toHaveBeenLastCalledWith(
+            expect.objectContaining({ Inteligencja: 10 }),
+            expect.objectContaining({ spentPoints: expect.objectContaining({ Inteligencja: 0 }) })
+        );
+    });
+    it("preserves allocated points while replacing a level with the same typed value", async () => {
+        const user = userEvent.setup();
+        const onStatsChange = vi.fn();
+        render(
+            <CharacterPanel
+                onStatsChange={onStatsChange}
+                externalConfig={{ level: 140, spentPoints: { Siła: 5 } }}
+            />
+        );
+        const input = screen.getByRole("spinbutton");
+        await user.clear(input);
+        await user.type(input, "140");
+        expect(screen.getByText("15")).toBeInTheDocument();
+        expect(onStatsChange).not.toHaveBeenCalled();
+        await user.tab();
+        expect(screen.getByText("15")).toBeInTheDocument();
+        expect(onStatsChange).not.toHaveBeenCalled();
+    });
+    it("cancels provisional input with Escape and commits a complete level with Enter", async () => {
+        const user = userEvent.setup();
+        const onStatsChange = vi.fn();
+        render(
+            <CharacterPanel
+                onStatsChange={onStatsChange}
+                externalConfig={{ level: 140, spentPoints: { Siła: 5 } }}
+            />
+        );
+        const input = screen.getByRole("spinbutton");
+        await user.clear(input);
+        await user.type(input, "1");
+        await user.keyboard("{Escape}");
+        expect(input).toHaveValue(140);
+        expect(onStatsChange).not.toHaveBeenCalled();
+        await user.clear(input);
+        await user.type(input, "100{Enter}");
+        expect(onStatsChange).toHaveBeenLastCalledWith(
+            expect.objectContaining({ Siła: 15 }),
+            expect.objectContaining({ level: 100 })
+        );
+    });
     it("preserves empty imported character stats when the editor is reopened", () => {
         const onStatsChange = vi.fn();
         const panel = render(<CharacterPanel onStatsChange={onStatsChange} externalStats={{}} />);
@@ -12,6 +77,7 @@ describe("CharacterPanel", () => {
         render(<CharacterPanel onStatsChange={onStatsChange} externalStats={{}} syncTrigger={2} />);
         expect(onStatsChange).not.toHaveBeenCalled();
         fireEvent.change(screen.getByRole("spinbutton"), { target: { value: "2" } });
+        fireEvent.blur(screen.getByRole("spinbutton"));
         expect(onStatsChange).toHaveBeenLastCalledWith(
             expect.objectContaining({ Siła: 10, PŻ: 200 }),
             expect.objectContaining({ level: 2 })
@@ -56,6 +122,7 @@ describe("CharacterPanel", () => {
         expect(screen.getByText("15")).toBeInTheDocument();
 
         fireEvent.change(level, { target: { value: "1" } });
+        fireEvent.blur(level);
         expect(screen.getByText("z 0 pkt")).toBeInTheDocument();
         expect(screen.queryByText("15")).not.toBeInTheDocument();
 
@@ -140,6 +207,7 @@ describe("CharacterPanel", () => {
         expect(screen.getByText("20")).toBeInTheDocument();
         expect(onStatsChange).not.toHaveBeenCalled();
         fireEvent.change(screen.getByRole("spinbutton"), { target: { value: "11" } });
+        fireEvent.blur(screen.getByRole("spinbutton"));
         expect(onStatsChange).toHaveBeenLastCalledWith(
             expect.objectContaining({ Siła: 20 }),
             expect.objectContaining({ level: 11 })

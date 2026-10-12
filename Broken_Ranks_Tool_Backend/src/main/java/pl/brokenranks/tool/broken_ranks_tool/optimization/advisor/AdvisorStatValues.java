@@ -2,6 +2,7 @@ package pl.brokenranks.tool.broken_ranks_tool.optimization.advisor;
 
 import java.util.Map;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.ModifierValueRules;
 
 /** Converts calculator output into the numeric representation used by advisor search. */
 final class AdvisorStatValues {
@@ -10,8 +11,7 @@ final class AdvisorStatValues {
     private AdvisorStatValues() {}
 
     static double parse(String value) {
-        if (value == null) return 0;
-        return Double.parseDouble(value.replace("%", "").replace(',', '.').trim());
+        return ModifierValueRules.parse(value);
     }
 
     static double[] numeric(Map<String, Double> stats) {
@@ -27,11 +27,11 @@ final class AdvisorStatValues {
     }
 
     static double directed(DRIF_BONUS_TYPE type, double value) {
-        return type.getMaxCap() != null && type.getMaxCap() < 0 ? -value : value;
+        return ModifierValueRules.directed(type, value);
     }
 
     static double useful(DRIF_BONUS_TYPE type, double value) {
-        double result = directed(type, value);
-        return type.getMaxCap() == null ? result : Math.min(result, Math.abs(type.getMaxCap()));
+        return ModifierValueRules.bounded(
+                directed(type, value), ModifierValueRules.naturalCap(type));
     }
 }

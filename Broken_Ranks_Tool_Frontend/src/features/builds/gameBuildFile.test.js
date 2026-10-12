@@ -25,6 +25,14 @@ const stats = {
 };
 
 describe("parseGameBuildPayload", () => {
+    it("imports intelligence and its allocated points from a game export", () => {
+        const result = parseGameBuildPayload(
+            { stats: { Level: 140, BaseIntelligence: 35 }, equipped: {}, equipmentList: [] },
+            catalog
+        );
+        expect(result.requestData.characterStats.Inteligencja).toBe(35);
+        expect(result.characterConfig.spentPoints.Inteligencja).toBe(25);
+    });
     it("maps quoted item names, game slots, ornaments and named drif sizes", () => {
         const result = parseGameBuildPayload(
             {
@@ -168,6 +176,7 @@ describe("parseGameBuildPayload", () => {
             Zręczność: 10,
             Moc: 10,
             Wiedza: 10,
+            Inteligencja: 10,
             PŻ: 200,
             Mana: 200,
             Kondycja: 200,

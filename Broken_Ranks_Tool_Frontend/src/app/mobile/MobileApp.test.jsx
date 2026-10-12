@@ -68,6 +68,11 @@ describe("mobile application integration", () => {
             this.open = false;
         });
         server.use(http.get("*/api/initial-data", () => HttpResponse.json(builderCatalog)));
+        server.use(
+            http.post("*/api/calculator/calculate", () =>
+                HttpResponse.json({ stats: {}, drifCategories: {}, orbBonusTypes: [] })
+            )
+        );
     });
     afterEach(() => {
         cleanup();
@@ -89,7 +94,11 @@ describe("mobile application integration", () => {
             })
         );
         mountApp();
-        await screen.findByText("Kreator ekwipunku", { selector: "span.mobile-eyebrow" });
+        await screen.findByText(
+            "Kreator ekwipunku",
+            { selector: "span.mobile-eyebrow" },
+            { timeout: 10000 }
+        );
         clickSection("Edytuj slot: Hełm");
         clickSection("Wybierz przedmiot");
         const search = screen.getByRole("searchbox");
@@ -124,7 +133,9 @@ describe("mobile application integration", () => {
         expect(screen.getByRole("button", { name: "Maksymalne poziomy orbów" })).toBeVisible();
         clickSection("Maksymalne poziomy drifów");
         clickSection("Maksymalne poziomy orbów");
-        expect(readEquipmentDraft().requestData.slots.helmet.drifLevels[0]).toBe(6);
+        await waitFor(() =>
+            expect(readEquipmentDraft().requestData.slots.helmet?.drifLevels[0]).toBe(6)
+        );
         clickSection("Postać");
         fireEvent.change(screen.getByLabelText("Poziom postaci"), { target: { value: "2" } });
         clickSection("Dodaj punkt: Siła");
@@ -159,7 +170,7 @@ describe("mobile application integration", () => {
         });
         clickSection("Postać");
         expect(screen.getByLabelText("Poziom postaci")).toHaveValue(2);
-        expect(readEquipmentDraft().characterConfig.spentPoints.Siła).toBe(1);
+        await waitFor(() => expect(readEquipmentDraft().characterConfig?.spentPoints.Siła).toBe(1));
         clickSection("Zresetuj punkty");
         clickSection("Statystyki");
         expect(screen.queryByText("12%")).not.toBeInTheDocument();
@@ -170,10 +181,14 @@ describe("mobile application integration", () => {
         fireEvent.click(screen.getByRole("link", { name: "Start", exact: true }));
         expect(screen.getByRole("heading", { name: "Broken Ranks Tool" })).toBeInTheDocument();
         fireEvent.click(screen.getByRole("link", { name: "Optymalizator", exact: true }));
-        expect(screen.getByRole("heading", { name: "Optymalizator" })).toBeInTheDocument();
+        expect(
+            await screen.findByRole("heading", { name: "Optymalizator" }, { timeout: 10000 })
+        ).toBeInTheDocument();
         fireEvent.click(screen.getByRole("link", { name: "Start", exact: true }));
         fireEvent.click(screen.getByRole("link", { name: "Buildy", exact: true }));
-        expect(screen.getByRole("heading", { name: "Buildy lokalne" })).toBeInTheDocument();
+        expect(
+            await screen.findByRole("heading", { name: "Buildy lokalne" }, { timeout: 10000 })
+        ).toBeInTheDocument();
     });
 
     it("replaces an open slot on import, rejects a bad import and preserves data after remount", async () => {
@@ -198,7 +213,9 @@ describe("mobile application integration", () => {
         fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
         await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
         clickSection("Usuń przedmiot ze slotu");
-        expect(readEquipmentDraft().requestData.slots.helmet.itemId).toBeNull();
+        await waitFor(() =>
+            expect(readEquipmentDraft().requestData.slots.helmet.itemId).toBeNull()
+        );
         fireEvent.click(screen.getByRole("button", { name: /Wszystkie sloty/ }));
         await screen.findByText("Kreator ekwipunku", { selector: "span.mobile-eyebrow" });
     });

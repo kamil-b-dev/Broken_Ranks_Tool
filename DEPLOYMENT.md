@@ -19,7 +19,7 @@ Run the complete container smoke test from the repository root:
 .\scripts\smoke-test.ps1
 ```
 
-The test builds the image, starts it with a 1 GB memory limit, checks readiness, frontend and
+The test builds the image, starts it with a 4 GB memory limit, checks readiness, frontend and
 initial data, runs an optimization, and checks that its setup passes the calculator with matching
 statistics. Overlapping requests and HTTP 429 are covered separately by backend tests and the
 real-backend Playwright integration suite.
@@ -51,7 +51,7 @@ deploy these commits there before applying the plan.
 
 Configure settings that are scoped to the Railway workspace and billing account in the dashboard:
 
-- service memory limit: 1 GB
+- service memory limit: 4 GB
 - service CPU limit: 1 vCPU
 - compute usage email alert: 10 USD
 - compute usage hard limit: 15 USD
@@ -90,6 +90,60 @@ SQLite JDBC loads its native shared library from the JVM temporary directory. Wh
 with a read-only root filesystem and a tmpfs at `/tmp`, explicitly use
 `--tmpfs /tmp:rw,exec,nosuid,size=128m`; Docker's default `noexec` tmpfs prevents this library
 from loading. The catalogue and application paths remain read-only.
+
+The image itself supplies `JAVA_TOOL_OPTIONS` for a 4 GB container: a 128 MB initial heap,
+2 GB maximum heap, 256 MB maximum metaspace, and G1 GC. The heap grows as needed;
+the application does not reserve 2 GB of physical RAM at startup. Railway may override this variable; keep room
+for non-heap memory when changing it. `-XX:+ExitOnOutOfMemoryError` is also enforced
+in the image entrypoint, so a heap failure terminates the process instead of leaving
+a live JVM with a failed HTTP poller. Configure Railway to restart failed deployments;
+the readiness endpoint alone cannot restart a process that fails after startup.
+
+Optimizer memoization is local to a run and bounded: at most 8192 evaluations per
+search context, 512 numeric calculations per session, and 512 formatted calculations.
+Focused variants share the calculator session but have separate bounded evaluation
+caches. Eviction recalculates a candidate without reducing search budgets or discarding
+the best build. These bounds reduce retained memory; they are not a guarantee against
+all possible allocation spikes or memory leaks.
+
+Both optimizer modes reject new work with HTTP 503 and code `OPTIMIZER_MEMORY_PRESSURE`
+when used JVM heap reaches 85% of its maximum. The worker permit is released immediately;
+no search starts and no valid result in progress is discarded. Admission resumes when
+usage falls below the threshold. This is a check of current heap occupancy, including
+objects not yet collected, rather than a prediction of the next search's allocations.
+No forced GC is used. `OPTIMIZER_MEMORY_MAX_HEAP_USAGE_PERCENT` may override the threshold
+within 1–95%. Internal metrics `optimizer.memory.rejected` and
+`optimizer.memory.headroom.bytes` track rejections and remaining heap capacity.
+
+Advisor caches retain at most 2048 slot contributions and 1024 entries each for equipment
+values, item values and drif values. Evicted entries are recalculated using the same
+catalogue snapshot; search deduplication and proof candidates are not evicted.
+
+The production HTTP server has at most 64 worker threads (8 spare), 512 connections,
+and an accept backlog of 64. This bounds simultaneous request-body processing alongside
+the existing 256 KiB body limit. Standard Spring environment variables such as
+`SERVER_TOMCAT_THREADS_MAX` can override these limits when measured throughput requires it.
+
+The image and Railway IaC use the following limits for the 4 GB service. If the Railway
+dashboard already has a `JAVA_TOOL_OPTIONS` value, update it to match when deploying
+this version; an older dashboard value can override the Docker image defaults:
+
+```text
+JAVA_TOOL_OPTIONS=-Xms128m -Xmx2g -XX:MaxMetaspaceSize=256m -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError
+```
+
+This gives the heap 2 GB while reserving room for native JVM memory, thread stacks,
+and the rest of the container. It does not change the automatic exit-on-OOM entrypoint.
+
+The manual Archer benchmark can verify repeated searches under a constrained heap
+after compiling the backend normally:
+
+```powershell
+cd Broken_Ranks_Tool_Backend
+$env:JAVA_TOOL_OPTIONS = "-Xmx128m"
+./mvnw.cmd -Dtest=OptimizationArcherPerformanceBenchmark -Doptimizer.memory.repetitions=3 test
+Remove-Item Env:JAVA_TOOL_OPTIONS
+```
 
 Public calculation endpoints are protected by per-client and whole-instance, one-minute request
 limits. The checked-in Railway configuration initially uses the global allowance as the client

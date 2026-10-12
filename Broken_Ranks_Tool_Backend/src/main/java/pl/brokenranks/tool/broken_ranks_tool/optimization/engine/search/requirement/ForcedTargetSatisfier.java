@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationDrifSizeConstraints;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.evaluation.OptimizationStateEvaluation;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.placement.OptimizationPlacementOperations;
 
@@ -48,13 +49,17 @@ final class ForcedTargetSatisfier {
                         || this.placements.containsBonus(placements, type)
                         || evaluation.globalCount(state, type, context)
                                 >= maxQuantity(type, context.request())
+                        || evaluation.sizeCount(state, type, candidate.getSize(), context)
+                                >= OptimizationDrifSizeConstraints.maximum(
+                                        type, candidate.getSize(), context)
                         || this.placements.containsAnotherElemental(state, candidate, null))
                     continue;
                 Integer level = highestFittingLevel(state, slot, candidate);
                 if (level == null) continue;
                 BuildState trial = state.copy();
                 this.placements.putNextFree(trial, slot, new Placement(candidate, level, false));
-                double distance = distance(evaluation.currentValue(trial, type, context), target);
+                double distance =
+                        distance(evaluation.calculatedValue(trial, type, context), target);
                 if (best == null
                         || distance < bestDistance - MIN_GAIN
                         || (Math.abs(distance - bestDistance) <= MIN_GAIN

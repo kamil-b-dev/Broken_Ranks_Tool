@@ -1,7 +1,14 @@
 const formatDuration = (duration) => duration?.toFixed?.(2) ?? duration;
+import OptimizationElapsedTime from "./OptimizationElapsedTime";
 
 /** Presents progress and the latest outcome of an optimization run. */
-const OptimizerStatusSection = ({ isOptimizing, elapsedSeconds, status, lastDurationSeconds }) => {
+const OptimizerStatusSection = ({
+    isOptimizing,
+    elapsedSeconds,
+    startedAt,
+    status,
+    lastDurationSeconds,
+}) => {
     const duration = status?.executionTimeSeconds ?? lastDurationSeconds;
     const advisor = status?.advisorReport;
     const advisorStatus = {
@@ -10,7 +17,18 @@ const OptimizerStatusSection = ({ isOptimizing, elapsedSeconds, status, lastDura
         INFEASIBLE: "Brak planu w pełnym zakresie",
         CANCELLED: "Analiza anulowana",
     }[advisor?.status];
-    const successful = status?.success && !["CANCELLED", "INFEASIBLE"].includes(advisor?.status);
+    const successful =
+        (status?.outcome ? status.outcome === "VALID_BUILD" : status?.success) &&
+        !["CANCELLED", "INFEASIBLE"].includes(advisor?.status);
+    const search = status?.searchReport;
+    const stopReason = {
+        COMPLETED: advisor ? "Zakończono zakres" : "Zakończono heurystykę",
+        OPERATION_LIMIT: "Limit operacji",
+        TIME_LIMIT: "Limit czasu",
+        STATE_LIMIT: "Limit liczby stanów",
+        CANCELLED: "Anulowanie",
+        INTERRUPTED: "Przerwano obliczenia",
+    }[advisor?.stopReason ?? search?.stopReason];
 
     return (
         <section className="optimizer-report-section optimizer-status-section">
@@ -36,7 +54,14 @@ const OptimizerStatusSection = ({ isOptimizing, elapsedSeconds, status, lastDura
                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                         />
                     </svg>
-                    <span>Optymalizacja trwa ({elapsedSeconds} s).</span>
+                    <span>
+                        Optymalizacja trwa (
+                        <OptimizationElapsedTime
+                            startedAt={startedAt}
+                            elapsedSeconds={elapsedSeconds}
+                        />{" "}
+                        s).
+                    </span>
                 </div>
             ) : status ? (
                 <div className={successful ? "is-success" : "is-warning"}>
@@ -64,6 +89,24 @@ const OptimizerStatusSection = ({ isOptimizing, elapsedSeconds, status, lastDura
                         </p>
                     )}
                     <dl className="optimizer-status-metrics">
+                        {stopReason && (
+                            <div>
+                                <dd>{stopReason}</dd>
+                                <dt>Zakończenie</dt>
+                            </div>
+                        )}
+                        {!advisor && search && (
+                            <>
+                                <div>
+                                    <dd>{search.evaluatedStates}</dd>
+                                    <dt>Oceny stanów</dt>
+                                </div>
+                                <div>
+                                    <dd>{search.verifiedStates}</dd>
+                                    <dt>Przeliczenia kalkulatorem</dt>
+                                </div>
+                            </>
+                        )}
                         {!advisor && status.configurationMode && (
                             <div>
                                 <dd>

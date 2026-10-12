@@ -1,14 +1,18 @@
 import apiClient from "./axiosConfig";
 
 /** Loads the complete data set required to initialize the equipment tool. */
-export const fetchInitialEquipmentData = async () => {
-    const response = await apiClient.get("/initial-data");
+export const fetchInitialEquipmentData = async (options) => {
+    const response = await (options
+        ? apiClient.get("/initial-data", options)
+        : apiClient.get("/initial-data"));
     return response.data;
 };
 
 /** Calculates final statistics for the current equipment request. */
-export const calculateEquipmentStats = async (requestData) => {
-    const response = await apiClient.post("/calculator/calculate", requestData);
+export const calculateEquipmentStats = async (requestData, options) => {
+    const response = await (options
+        ? apiClient.post("/calculator/calculate", requestData, options)
+        : apiClient.post("/calculator/calculate", requestData));
     return response.data;
 };
 

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { SLOTS } from "../../shared/domain/equipment/equipmentSlots";
 import { countEquippedSlots, groupItemsBySlot, indexItemsById } from "./builderWorkspaceDomain";
 
@@ -10,13 +10,19 @@ export const useBuilderWorkspace = ({ items = [], slots = {} }) => {
     const activeSlot = SLOTS.find((slot) => slot.key === activeSlotKey) || SLOTS[0];
     const activeSlotData = slots[activeSlot.key];
 
-    return {
-        activeSlot,
-        activeItem: activeSlotData?.itemId ? itemsById.get(String(activeSlotData.itemId)) : null,
-        equippedSlotCount: countEquippedSlots(slots),
-        itemsBySlot,
-        itemForSlot: (slot) =>
-            slots[slot.key]?.itemId ? itemsById.get(String(slots[slot.key].itemId)) : null,
-        selectSlot: (slot) => setActiveSlotKey(slot.key),
-    };
+    const selectSlot = useCallback((slot) => setActiveSlotKey(slot.key), []);
+    return useMemo(
+        () => ({
+            activeSlot,
+            activeItem: activeSlotData?.itemId
+                ? itemsById.get(String(activeSlotData.itemId))
+                : null,
+            equippedSlotCount: countEquippedSlots(slots),
+            itemsBySlot,
+            itemForSlot: (slot) =>
+                slots[slot.key]?.itemId ? itemsById.get(String(slots[slot.key].itemId)) : null,
+            selectSlot,
+        }),
+        [activeSlot, activeSlotData, slots, itemsById, itemsBySlot, selectSlot]
+    );
 };

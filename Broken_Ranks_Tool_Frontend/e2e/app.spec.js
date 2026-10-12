@@ -54,6 +54,9 @@ test("opens the home page, builder, and optimizer", async ({ page }) => {
 
     await page.goto("/");
 
+    await page
+        .getByRole("link", { name: "Przejdź do głównej treści" })
+        .waitFor({ state: "attached" });
     await page.locator("body").press("Tab");
     await expect(page.getByRole("link", { name: "Przejdź do głównej treści" })).toBeFocused();
     await expect(page.getByRole("link", { name: "Przejdź do głównej treści" })).toBeVisible();

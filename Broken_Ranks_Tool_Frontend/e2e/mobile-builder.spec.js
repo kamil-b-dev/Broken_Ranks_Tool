@@ -1,4 +1,5 @@
-import { expect, test, devices } from "@playwright/test";
+import { expect, test } from "@playwright/test";
+import { mobileDevice } from "./mobile-device";
 import AxeBuilder from "@axe-core/playwright";
 import { Buffer } from "node:buffer";
 import { SLOTS } from "../src/shared/domain/equipment/equipmentSlots.js";
@@ -31,9 +32,59 @@ const equip = async (page, label) => {
 };
 
 test.describe("dedicated mobile builder", () => {
-    const { defaultBrowserType: _defaultBrowserType, ...mobileDevice } = devices["Pixel 7"];
     test.use(mobileDevice);
     test.setTimeout(60000);
+
+    test("keeps a large item picker bounded and loads other workspaces on demand", async ({
+        page,
+    }) => {
+        const requestedScripts = [];
+        page.on("request", (request) => {
+            if (request.resourceType() === "script") requestedScripts.push(request.url());
+        });
+        const largeCatalog = {
+            ...catalog,
+            items: Array.from({ length: 1500 }, (_, index) => ({
+                ...catalog.items[0],
+                id: index + 100,
+                name: `Hełm testowy ${String(index).padStart(4, "0")}`,
+            })),
+        };
+        await page.route("**/api/initial-data", (route) => route.fulfill({ json: largeCatalog }));
+        await page.goto("/kreator");
+        await page.getByRole("button", { name: "Edytuj slot: Hełm", exact: true }).tap();
+        await page.getByRole("button", { name: "Wybierz przedmiot", exact: true }).tap();
+        await expect(page.locator(".mobile-picker-results button")).toHaveCount(40);
+        await expect(page.getByText("1500 przedmiotów", { exact: true })).toBeVisible();
+        const scan = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
+        expect(scan.violations).toEqual([]);
+        await page.setViewportSize({ width: 320, height: 740 });
+        await expect(page.locator("html")).toHaveJSProperty("scrollWidth", 320);
+        await page.screenshot({ path: "../tmp/mobile-performance/pagination-320.png" });
+        await page.getByRole("button", { name: "Następna", exact: true }).tap();
+        await expect(page.locator(".mobile-picker-results button")).toHaveCount(40);
+        await expect(page.locator(".mobile-picker-results button").first()).toContainText("0040");
+        await page.getByRole("searchbox").fill("1499");
+        await expect(page.locator(".mobile-picker-results button")).toHaveCount(1);
+        await page.getByRole("button", { name: /Hełm testowy 1499/ }).tap();
+        await page
+            .getByRole("dialog")
+            .getByRole("button", { name: "Wybierz przedmiot", exact: true })
+            .tap();
+        await expect(page.getByRole("heading", { name: "Hełm testowy 1499" })).toBeVisible();
+        expect(
+            requestedScripts.some((url) =>
+                /DesktopApp|MobileOptimizerWorkspace|BuildLibraryWorkspace/.test(url)
+            )
+        ).toBe(false);
+        await page.getByRole("link", { name: "Optymalizator", exact: true }).tap();
+        await expect(page.locator(".mobile-optimizer")).toBeVisible();
+        expect(requestedScripts.some((url) => url.includes("MobileOptimizerWorkspace"))).toBe(true);
+        await page.getByRole("link", { name: "Buildy", exact: true }).tap();
+        await expect(page.getByRole("heading", { name: "Buildy lokalne" })).toBeVisible();
+        expect(requestedScripts.some((url) => url.includes("BuildLibraryWorkspace"))).toBe(true);
+        expect(requestedScripts.some((url) => url.includes("DesktopApp"))).toBe(false);
+    });
 
     test("edits every slot by touch and preserves equipment through history, rotation and reload", async ({
         page,

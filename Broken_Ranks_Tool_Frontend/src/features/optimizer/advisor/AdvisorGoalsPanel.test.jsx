@@ -19,6 +19,50 @@ const gameRules = {
     },
 };
 describe("AdvisorGoalsPanel", () => {
+    it("offers purchase scopes on the changes panel and publishes the selected scope", async () => {
+        const onChange = vi.fn();
+        render(
+            <AdvisorGoalsPanel
+                section="changes"
+                stats={{ A: "5%" }}
+                gameRules={gameRules}
+                settings={{ advisorAllowedChanges: { drifs: true } }}
+                onChange={onChange}
+            />
+        );
+        expect(screen.getByLabelText("Zakres zakupów drifów")).toHaveValue("GOAL_ONLY");
+        await userEvent.selectOptions(
+            screen.getByLabelText("Zakres zakupów drifów"),
+            "GOAL_AND_PROTECTED"
+        );
+        expect(onChange).toHaveBeenLastCalledWith(
+            expect.objectContaining({ advisorPurchaseScope: "GOAL_AND_PROTECTED" })
+        );
+        expect(screen.getByRole("option", { name: "Dowolny mod" })).toBeInTheDocument();
+    });
+
+    it("lets the user stop rewarding improvements above an explicit target", async () => {
+        const onChange = vi.fn();
+        render(
+            <AdvisorGoalsPanel
+                section="goals"
+                stats={{ A: "5%" }}
+                gameRules={gameRules}
+                settings={{ advisorSearch: { targetMode: "VALUE", target: 20 } }}
+                onChange={onChange}
+            />
+        );
+        const control = screen.getByRole("checkbox", {
+            name: "Nie premiuj wzrostu ponad zadany cel",
+        });
+        expect(control).not.toBeChecked();
+        await userEvent.click(control);
+        expect(onChange).toHaveBeenLastCalledWith(
+            expect.objectContaining({
+                advisorSearch: expect.objectContaining({ limitBenefitToTarget: true }),
+            })
+        );
+    });
     it("groups protected modifiers by drif category", () => {
         render(
             <AdvisorGoalsPanel

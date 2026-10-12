@@ -172,7 +172,8 @@ paths:
               $ref: "#/components/schemas/OptimizationRequest"
       responses:
         "200":
-          description: HTTP 200 may contain a business failure or a valid calculator-verified build with unmet
+          description:
+            HTTP 200 may contain a business failure or a valid calculator-verified build with unmet
             soft targets. Both may have summary.success=false; a valid build still includes optimizedSetup,
             calculationResult and warnings explaining the unmet targets.
           content:
@@ -185,10 +186,19 @@ paths:
           $ref: "#/components/responses/RequestTooLarge"
         "429":
           $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/OptimizerUnavailable"
   /api/optimizer/advisor/{runId}/cancel:
     post:
       operationId: cancelAdvisorRun
       summary: Request cooperative cancellation of an advisor run.
+      requestBody:
+        required: false
+        description: Empty body or JSON null only. Other JSON values and malformed JSON are rejected before cancellation.
+        content:
+          application/json:
+            schema:
+              type: "null"
       parameters:
         - name: runId
           in: path
@@ -196,6 +206,7 @@ paths:
           schema:
             type: string
             format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
         - name: X-Advisor-Cancellation-Token
           in: header
           required: true
@@ -203,9 +214,10 @@ paths:
           schema:
             type: string
             format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         "200":
-          description: Whether a matching active run was marked for cancellation.
+          description: Whether a matching active run was marked for cancellation. A matching request still in transit remembers the cancellation intent for 10 seconds; a false result only means there was no active matching flag to set.
           content:
             application/json:
               schema:
@@ -241,6 +253,12 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/ApiError"
+    OptimizerUnavailable:
+      description: New optimization or advisor search rejected because JVM heap usage reached the admission threshold. Code is OPTIMIZER_MEMORY_PRESSURE; retry later.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
     RateLimited:
       description: Per-client or whole-instance one-minute allowance exhausted.
       headers:
@@ -269,6 +287,7 @@ components:
             - "null"
     SlotData:
       type: object
+      additionalProperties: false
       properties:
         itemId:
           type:
@@ -317,8 +336,30 @@ components:
           maxProperties: 8
           additionalProperties:
             type: integer
+    CharacterStats:
+      type:
+        - object
+        - "null"
+      description: Absolute character statistics, including development points already converted by the client. Supported canonical names are PŻ, Mana, Kondycja, Siła, Zręczność, Moc, Wiedza, Inteligencja and Obrażenia; names are case-insensitive. Each canonical total must be at most 50000, including case aliases. Intelligence starts at 10 and gains 1 per development point, like strength and power. Missing values are not filled by the calculator; empty maps remain empty. No current item grants intelligence.
+      maxProperties: 32
+      propertyNames:
+        pattern: "^([Pp][Żż]|[Mm][Aa][Nn][Aa]|[Kk][Oo][Nn][Dd][Yy][Cc][Jj][Aa]|[Ss][Ii][Łł][Aa]|[Zz][Rr][Ęę][Cc][Zz][Nn][Oo][Śś][Ćć]|[Mm][Oo][Cc]|[Ww][Ii][Ee][Dd][Zz][Aa]|[Ii][Nn][Tt][Ee][Ll][Ii][Gg][Ee][Nn][Cc][Jj][Aa]|[Oo][Bb][Rr][Aa][Żż][Ee][Nn][Ii][Aa])$"
+      additionalProperties:
+        type: integer
+        minimum: 0
+        maximum: 50000
+      example:
+        PŻ: 200
+        Mana: 200
+        Kondycja: 200
+        Siła: 10
+        Zręczność: 10
+        Moc: 10
+        Wiedza: 10
+        Inteligencja: 10
     EquipmentRequest:
       type: object
+      additionalProperties: false
       properties:
         slots:
           type:
@@ -328,14 +369,7 @@ components:
           additionalProperties:
             $ref: "#/components/schemas/SlotData"
         characterStats:
-          type:
-            - object
-            - "null"
-          maxProperties: 32
-          additionalProperties:
-            type: integer
-            minimum: 0
-            maximum: 50000
+          $ref: "#/components/schemas/CharacterStats"
     CalculationResult:
       type: object
       required:
@@ -358,6 +392,8 @@ components:
             type: string
     OptimizationRequest:
       type: object
+      additionalProperties: false
+      description: Canonical request representation. Enum values and enum map keys require names, never indexes. Unknown fields and duplicate JSON keys are rejected. Legacy numeric strings and existing boolean scalar conversions remain supported during deserialization.
       required:
         - originalSlots
       properties:
@@ -407,14 +443,7 @@ components:
               - IMPORTANT
               - KEY
         characterStats:
-          type:
-            - object
-            - "null"
-          maxProperties: 32
-          additionalProperties:
-            type: integer
-            minimum: 0
-            maximum: 50000
+          $ref: "#/components/schemas/CharacterStats"
         originalSlots:
           type: object
           minProperties: 1
@@ -423,7 +452,8 @@ components:
             $ref: "#/components/schemas/SlotData"
         priorities:
           type: object
-          description: At least one priority is required in advanced mode; named simple profiles resolve priorities
+          description:
+            At least one priority is required in advanced mode; named simple profiles resolve priorities
             server-side.
           maxProperties: 32
           additionalProperties:
@@ -435,6 +465,7 @@ components:
           maxProperties: 32
           additionalProperties:
             type: object
+            additionalProperties: false
             required:
               - min
               - max
@@ -449,12 +480,14 @@ components:
                 maximum: 12
         drifSizeQuantities:
           type: object
+          description: Liczności rozmiarów obejmują zwykłe i wbudowane drify. Wbudowane drify przekraczające maksimum są zachowywane z ostrzeżeniem; wyjątek nie pozwala dodawać kolejnych drifów ponad limit.
           maxProperties: 32
           additionalProperties:
             type: object
             maxProperties: 4
             additionalProperties:
               type: object
+              additionalProperties: false
               required:
                 - min
                 - max
@@ -514,6 +547,7 @@ components:
             - type: "null"
     AdvisorOptions:
       type: object
+      additionalProperties: false
       required:
         - goal
       dependentRequired:
@@ -562,6 +596,18 @@ components:
             - number
             - "null"
           minimum: 0
+        limitBenefitToTarget:
+          type: boolean
+          default: false
+          description: Stop rewarding the main modifier at its explicit target rather than its natural cap. Has no effect without a finite requested target.
+        purchaseScope:
+          type: string
+          enum:
+            - GOAL_ONLY
+            - GOAL_AND_PROTECTED
+            - ANY
+          default: GOAL_ONLY
+          description: Bonus types considered when drif purchases are enabled. Protected means an active protection derived from the baseline build.
         profession:
           type: string
           enum:
@@ -572,6 +618,7 @@ components:
           default: AUTO
         allowedChanges:
           type: object
+          additionalProperties: false
           properties:
             stars:
               type: boolean
@@ -590,6 +637,7 @@ components:
           maxProperties: 32
           additionalProperties:
             type: object
+            additionalProperties: false
             properties:
               enabled:
                 type: boolean
@@ -1066,9 +1114,25 @@ components:
         - goalResults
         - nextVariants
       properties:
+        outcome:
+          type: [string, "null"]
+          enum:
+            [
+              INVALID_INPUT,
+              NO_BUILD_FOUND,
+              VALID_BUILD_SOFT_TARGETS_UNMET,
+              VALID_BUILD,
+              null,
+            ]
+          description: Explicit result kind. Optional for compatibility with older responses.
+        searchReport:
+          oneOf:
+            - $ref: "#/components/schemas/OptimizationSearchReport"
+            - type: "null"
         success:
           type: boolean
-          description: In build-from-scratch mode false also describes a valid build with unmet soft targets.
+          description:
+            In build-from-scratch mode false also describes a valid build with unmet soft targets.
             Inspect optimizedSetup, calculationResult and warnings to distinguish it from a business failure
             without a build. The flag does not indicate proof of a global optimum.
         message:
@@ -1117,6 +1181,11 @@ components:
         - targetReached
         - drifCounts
       properties:
+        actionDetails:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdvisorAction"
+          description: Structured counterparts of actions; repeated upgrades of one drif are merged.
         kind:
           type: string
           enum:
@@ -1153,10 +1222,13 @@ components:
         - candidateCount
         - plans
       properties:
+        stopReason:
+          $ref: "#/components/schemas/SearchStopReason"
         evaluatedStates:
           type: integer
         timeLimitReached:
           type: boolean
+          description: Actual search or verification deadline reached; state limit is reported separately in stopReason.
         cancelled:
           type: boolean
         status:
@@ -1186,6 +1258,99 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/AdvisorPlan"
+    SearchStopReason:
+      type: string
+      enum:
+        [
+          COMPLETED,
+          OPERATION_LIMIT,
+          TIME_LIMIT,
+          STATE_LIMIT,
+          CANCELLED,
+          INTERRUPTED,
+          NOT_STARTED,
+        ]
+    OptimizationSearchReport:
+      type: object
+      additionalProperties: false
+      properties:
+        stopReason:
+          $ref: "#/components/schemas/SearchStopReason"
+        proofComplete:
+          type: boolean
+          description: Always false for scratch heuristics, including a completed run.
+        budgets:
+          type: object
+          additionalProperties:
+            type: object
+            additionalProperties: false
+            required: [initial, consumed, remaining, exhausted]
+            properties:
+              initial: { type: integer, minimum: 0 }
+              consumed: { type: integer, minimum: 0 }
+              remaining: { type: integer, minimum: 0 }
+              exhausted: { type: boolean }
+        generatedNeighborhoodStates: { type: integer, minimum: 0 }
+        evaluatedStates: { type: integer, minimum: 0 }
+        verifiedStates:
+          type: integer
+          minimum: 0
+          description: Authoritative calculator invocations including repeated final verification.
+        evaluationCacheHits: { type: integer, minimum: 0 }
+        calculatorCacheHits: { type: integer, minimum: 0 }
+        peakEvaluationCacheEntries: { type: integer, minimum: 0 }
+        peakCalculatorCacheEntries: { type: integer, minimum: 0 }
+        peakDrifCacheEntries: { type: integer, minimum: 0 }
+        stageSeconds:
+          type: object
+          additionalProperties: { type: number, minimum: 0 }
+    AdvisorActionLocation:
+      type: object
+      additionalProperties: false
+      required: [slotKey, socketIndex]
+      properties:
+        slotKey: { type: string }
+        socketIndex: { type: integer, minimum: 0 }
+    AdvisorDrifChange:
+      type: object
+      additionalProperties: false
+      required: [identity, drifId, from, to, fromLevel, toLevel]
+      properties:
+        identity: { type: string }
+        drifId: { type: integer }
+        from:
+          oneOf:
+            - $ref: "#/components/schemas/AdvisorActionLocation"
+            - type: "null"
+        to:
+          $ref: "#/components/schemas/AdvisorActionLocation"
+        fromLevel: { type: [integer, "null"] }
+        toLevel: { type: integer }
+    AdvisorAction:
+      type: object
+      additionalProperties: false
+      required: [type, slotKey, fromItemId, toItemId, fromStars, toStars, drifs]
+      properties:
+        type:
+          type: string
+          enum:
+            [
+              MOVE,
+              SWAP,
+              UPGRADE_DRIF,
+              PURCHASE_DRIF,
+              UPGRADE_STARS,
+              REPLACE_ITEM,
+            ]
+        slotKey: { type: string }
+        fromItemId: { type: [integer, "null"] }
+        toItemId: { type: [integer, "null"] }
+        fromStars: { type: [integer, "null"] }
+        toStars: { type: [integer, "null"] }
+        drifs:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdvisorDrifChange"
     OptimizationResponse:
       type: object
       additionalProperties: false

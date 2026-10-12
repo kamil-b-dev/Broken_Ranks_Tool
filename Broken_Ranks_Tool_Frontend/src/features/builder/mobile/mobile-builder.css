@@ -5,38 +5,17 @@
     --mobile-gold: #e4ba70;
     background:
         linear-gradient(rgba(7, 7, 7, 0.48), rgba(4, 5, 5, 0.7)),
-        url("../../../assets/builder-page-backdrop-texture.webp") center top / 68rem 68rem repeat;
+        url("../../../assets/mobile/builder-page-backdrop-texture.webp") center top / 68rem 68rem
+            repeat;
     background-blend-mode: normal, luminosity;
-}
-
-.mobile-app .mobile-page-title {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    margin-bottom: 1.25rem;
-}
-.mobile-app .mobile-page-title h1 {
-    font-size: 1.75rem;
-    line-height: 1.3;
-    font-weight: 650;
-    margin-top: 0.35rem;
 }
 .mobile-app .mobile-builder .mobile-page-title .mobile-eyebrow {
     color: transparent;
     font-family: var(--display-font);
     font-size: 0.72rem;
     letter-spacing: 0.15em;
-    background: url("../../../assets/brushed-bronze-texture.webp") center / 8rem;
+    background: url("../../../assets/mobile/brushed-bronze-texture.webp") center / 8rem;
     background-clip: text;
-}
-.mobile-app .mobile-count {
-    font-size: 1.5rem;
-    color: var(--mobile-gold);
-}
-.mobile-app .mobile-count small {
-    font-size: 0.875rem;
-    color: var(--mobile-muted);
 }
 .mobile-app .mobile-sections {
     display: grid;
@@ -48,7 +27,7 @@
     margin-bottom: 1.25rem;
     background:
         linear-gradient(rgba(3, 5, 5, 0.87), rgba(3, 5, 5, 0.94)),
-        url("../../../assets/panel-blackened-steel-texture.webp") center / 34rem;
+        url("../../../assets/mobile/panel-blackened-steel-texture.webp") center / 34rem;
     background-blend-mode: normal, soft-light;
 }
 .mobile-app .mobile-sections button {
@@ -60,7 +39,7 @@
     border: 1px solid rgba(132, 92, 44, 0.72);
     background-image:
         linear-gradient(rgba(77, 8, 15, 0.38), rgba(8, 3, 4, 0.74)),
-        url("../../../assets/crimson-lacquer-texture.webp");
+        url("../../../assets/mobile/crimson-lacquer-texture.webp");
     background-position: center;
     background-size: auto, 18rem;
     background-blend-mode: normal, soft-light;
@@ -88,7 +67,7 @@
     border-radius: 0.2rem;
     background-image:
         linear-gradient(rgba(2, 2, 2, 0.58), rgba(2, 2, 2, 0.76)),
-        url("../../../assets/panel-aged-leather-texture.webp");
+        url("../../../assets/mobile/panel-aged-leather-texture.webp");
     background-position: center;
     background-size: auto, 15rem;
     background-blend-mode: normal, soft-light;
@@ -109,7 +88,7 @@
     border-radius: 0.2rem;
     background:
         linear-gradient(105deg, rgba(34, 26, 20, 0.82), rgba(5, 7, 7, 0.94) 58%),
-        url("../../../assets/panel-blackened-steel-texture.webp") center / 18rem;
+        url("../../../assets/mobile/panel-blackened-steel-texture.webp") center / 18rem;
     background-blend-mode: normal, soft-light;
     box-shadow:
         inset 0 1px rgba(255, 225, 175, 0.045),
@@ -189,7 +168,7 @@
     border-color: rgba(78, 42, 47, 0.72);
     background:
         linear-gradient(rgba(4, 5, 5, 0.74), rgba(0, 0, 0, 0.86)),
-        url("../../../assets/panel-blackened-steel-texture.webp") center / 22rem;
+        url("../../../assets/mobile/panel-blackened-steel-texture.webp") center / 22rem;
     background-blend-mode: normal, soft-light;
     box-shadow:
         inset 0 1px rgba(230, 179, 106, 0.035),
@@ -210,7 +189,7 @@
     border-radius: 0.2rem;
     background-image:
         linear-gradient(rgba(2, 2, 2, 0.58), rgba(2, 2, 2, 0.76)),
-        url("../../../assets/panel-aged-leather-texture.webp");
+        url("../../../assets/mobile/panel-aged-leather-texture.webp");
     background-position: center;
     background-size: auto, 15rem;
     background-blend-mode: normal, soft-light;
@@ -221,7 +200,7 @@
     border-radius: 0.25rem;
     background-image:
         linear-gradient(rgba(77, 8, 15, 0.38), rgba(8, 3, 4, 0.74)),
-        url("../../../assets/crimson-lacquer-texture.webp");
+        url("../../../assets/mobile/crimson-lacquer-texture.webp");
     background-position: center;
     background-size: auto, 18rem;
     background-blend-mode: normal, soft-light;
@@ -267,7 +246,7 @@
     border-radius: 0.2rem;
     background-image:
         linear-gradient(rgba(2, 2, 2, 0.58), rgba(2, 2, 2, 0.76)),
-        url("../../../assets/panel-aged-leather-texture.webp");
+        url("../../../assets/mobile/panel-aged-leather-texture.webp");
     background-position: center;
     background-size: auto, 15rem;
     background-blend-mode: normal, soft-light;
@@ -315,7 +294,7 @@
         calc(1rem + env(safe-area-inset-bottom, 0px));
     background:
         linear-gradient(rgba(3, 5, 5, 0.87), rgba(3, 5, 5, 0.94)),
-        url("../../../assets/panel-blackened-steel-texture.webp") center / 34rem;
+        url("../../../assets/mobile/panel-blackened-steel-texture.webp") center / 34rem;
     background-blend-mode: normal, soft-light;
     color: #f0e9df;
     border: 1px solid rgba(166, 116, 55, 0.78);
@@ -356,7 +335,7 @@
     border-radius: 0.2rem;
     background-image:
         linear-gradient(90deg, rgba(8, 5, 4, 0.69), rgba(1, 2, 2, 0.84)),
-        url("../../../assets/smoked-parchment-texture.webp");
+        url("../../../assets/mobile/smoked-parchment-texture.webp");
     background-position: center;
     background-size: auto, 14rem;
     background-blend-mode: normal, soft-light;
@@ -367,6 +346,19 @@
 }
 .mobile-app .mobile-picker-detail .mobile-primary {
     margin-top: 1.5rem;
+}
+.mobile-app .mobile-picker-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+.mobile-app .mobile-picker-pagination button {
+    padding-inline: 0.65rem;
+    border: 1px solid var(--mobile-border);
+    border-radius: 0.2rem;
+    color: var(--mobile-gold);
 }
 @media (min-width: 600px) {
     .mobile-app .mobile-slot-list {

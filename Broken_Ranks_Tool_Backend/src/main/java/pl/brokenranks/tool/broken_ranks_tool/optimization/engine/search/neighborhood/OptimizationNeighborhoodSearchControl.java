@@ -5,20 +5,28 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.BuildState;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationSearchMetrics;
 
 /** Tracks the generated-state budget and calculator-verified neighborhood states. */
 final class OptimizationNeighborhoodSearchControl {
 
     private int remainingStates;
+    private final OptimizationSearchMetrics metrics;
     private final Map<String, BuildState> evaluatedStates = new LinkedHashMap<>();
 
     OptimizationNeighborhoodSearchControl(int remainingStates) {
+        this(remainingStates, new OptimizationSearchMetrics());
+    }
+
+    OptimizationNeighborhoodSearchControl(int remainingStates, OptimizationSearchMetrics metrics) {
+        this.metrics = metrics;
         this.remainingStates = Math.max(1, remainingStates);
     }
 
     boolean tryConsume() {
         if (exhausted()) return false;
         remainingStates--;
+        metrics.generated();
         return true;
     }
 

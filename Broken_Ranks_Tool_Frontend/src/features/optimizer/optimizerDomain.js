@@ -116,67 +116,83 @@ export const calculatePlacedDrifCounts = (slots, drifs) => {
     return counts;
 };
 
-export const calculateCurrentModDetails = ({
-    prioritizedBonuses,
-    slots,
-    drifs,
-    items,
-    gameRules,
-}) => {
+export const createModifierDetailsCalculator = ({ slots, drifs, items, gameRules }) => {
     const counts = calculatePlacedDrifCounts(slots, drifs);
     const itemsById = new Map(items.map((item) => [String(item.id), item]));
 
-    return prioritizedBonuses.map((bonus) => {
+    const placementCache = new Map();
+    const resultCache = new Map();
+    const metricCache = new Map();
+    const drifsByBonus = new Map();
+    for (const drif of drifs) {
+        const group = drifsByBonus.get(drif.bonusType) || [];
+        group.push(drif);
+        drifsByBonus.set(drif.bonusType, group);
+    }
+    for (const group of drifsByBonus.values())
+        group.sort((left, right) => getDrifMaxLevel(right.size) - getDrifMaxLevel(left.size));
+    return (bonus) => {
+        const previous = resultCache.get(bonus.key);
+        if (previous?.bonus === bonus) return previous.result;
         const count = counts[bonus.key] || 0;
         const multiplier = getDrifPenaltyMultiplier(count, gameRules?.drifPenaltyMultipliers);
         const basePower = Number(gameRules?.drifBasePowers?.[bonus.key]) || 0;
         const isElemental = ELEMENTAL_DRIF_TYPES.includes(bonus.key);
-        const matchingDrifs = drifs.filter((drif) => drif.bonusType === bonus.key);
-        const eligiblePlacements = Object.entries(slots || {}).flatMap(([slotKey, slot]) => {
-            const item = itemsById.get(String(slot?.itemId));
-            if (
-                !item ||
-                ["EPIC", "SET"].includes(String(item.rarity).toUpperCase()) ||
-                (isElemental && slotKey !== "weapon")
-            ) {
-                return [];
-            }
+        const matchingDrifs = drifsByBonus.get(bonus.key) || [];
+        let eligiblePlacements = placementCache.get(bonus.key);
+        if (!eligiblePlacements) {
+            eligiblePlacements = Object.entries(slots || {}).flatMap(([slotKey, slot]) => {
+                const item = itemsById.get(String(slot?.itemId));
+                if (
+                    !item ||
+                    ["EPIC", "SET"].includes(String(item.rarity).toUpperCase()) ||
+                    (isElemental && slotKey !== "weapon")
+                ) {
+                    return [];
+                }
 
-            const tier = ROMAN_TO_INT[item.tier] || 0;
-            const maxSizeIndex = maxDrifSizeIndexForTier(tier);
-            const drif = matchingDrifs
-                .filter(
+                const tier = ROMAN_TO_INT[item.tier] || 0;
+                const maxSizeIndex = maxDrifSizeIndexForTier(tier);
+                const drif = matchingDrifs.find(
                     (candidate) =>
                         (SIZE_INDEX[String(candidate.size).toUpperCase()] ?? -1) <= maxSizeIndex
-                )
-                .sort((left, right) => getDrifMaxLevel(right.size) - getDrifMaxLevel(left.size))[0];
-            if (!drif) return [];
+                );
+                if (!drif) return [];
 
-            const stars = Math.max(1, Math.min(9, Number(slot.itemStars) || 1));
-            const capacity = calculateItemCapacity(item, stars);
-            if (capacity <= 0 || capacity < basePower) return [];
+                const stars = Math.max(1, Math.min(9, Number(slot.itemStars) || 1));
+                const capacity = calculateItemCapacity(item, stars);
+                if (capacity <= 0 || capacity < basePower) return [];
 
-            const itemDrifBonus =
-                (Number(item.stats?.["Bonus drify"]) || 0) / 100 +
-                (ITEM_STAR_DRIF_BONUS[stars] || 0);
-            return [
-                {
-                    itemDrifBonus,
-                    minimumValue:
-                        calculateDrifValue(drif, Math.min(6, getDrifMaxLevel(drif.size))) *
-                        (1 + itemDrifBonus),
-                    maximumValue:
-                        calculateDrifValue(
-                            drif,
-                            highestLevelForCapacity(drif, capacity, basePower)
-                        ) *
-                        (1 + itemDrifBonus),
-                },
-            ];
-        });
+                const itemDrifBonus =
+                    (Number(item.stats?.["Bonus drify"]) || 0) / 100 +
+                    (ITEM_STAR_DRIF_BONUS[stars] || 0);
+                return [
+                    {
+                        itemDrifBonus,
+                        minimumValue:
+                            calculateDrifValue(drif, Math.min(6, getDrifMaxLevel(drif.size))) *
+                            (1 + itemDrifBonus),
+                        maximumValue:
+                            calculateDrifValue(
+                                drif,
+                                highestLevelForCapacity(drif, capacity, basePower)
+                            ) *
+                            (1 + itemDrifBonus),
+                    },
+                ];
+            });
 
+            placementCache.set(bonus.key, eligiblePlacements);
+        }
         const requestedMinimum = Math.max(0, Math.min(12, Number(bonus.min) || 0));
         const requestedMaximum = Math.max(requestedMinimum, Math.min(12, Number(bonus.max) || 0));
+        const rangeKey = [requestedMinimum, requestedMaximum].join(":");
+        const cachedMetrics = metricCache.get(bonus.key);
+        if (cachedMetrics?.rangeKey === rangeKey) {
+            const result = { ...bonus, ...cachedMetrics.metrics };
+            resultCache.set(bonus.key, { bonus, result });
+            return result;
+        }
         const minimumPlacements = [...eligiblePlacements]
             .sort((left, right) => left.itemDrifBonus - right.itemDrifBonus)
             .slice(0, requestedMinimum);
@@ -192,8 +208,7 @@ export const calculateCurrentModDetails = ({
             gameRules?.drifPenaltyMultipliers
         );
 
-        return {
-            ...bonus,
+        const metrics = {
             count,
             penaltyPercent: Math.max(0, (1 - multiplier) * 100),
             potentialMinimum:
@@ -205,5 +220,12 @@ export const calculateCurrentModDetails = ({
             potentialMinimumCount: minimumPlacements.length,
             potentialMaximumCount: maximumPlacements.length,
         };
-    });
+        metricCache.set(bonus.key, { rangeKey, metrics });
+        const result = { ...bonus, ...metrics };
+        resultCache.set(bonus.key, { bonus, result });
+        return result;
+    };
 };
+
+export const calculateCurrentModDetails = ({ prioritizedBonuses, ...input }) =>
+    prioritizedBonuses.map(createModifierDetailsCalculator(input));

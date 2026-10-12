@@ -17,6 +17,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.It
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.processor.ItemStatProcessor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentPlacementRules;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.UpgradeLevelPolicy;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.cache.BoundedSearchCache;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
 
@@ -66,8 +67,8 @@ public final class OptimizationContextFactory {
                 new SearchBudget(refinementSearchSteps),
                 new EnumMap<>(DRIF_BONUS_TYPE.class),
                 new EnumMap<>(DRIF_BONUS_TYPE.class),
-                new HashMap<>(),
-                new HashMap<>(),
+                new BoundedSearchCache<>(BoundedSearchCache.MAX_CALCULATIONS),
+                new BoundedSearchCache<>(BoundedSearchCache.MAX_EVALUATIONS),
                 new HashMap<>());
     }
 }

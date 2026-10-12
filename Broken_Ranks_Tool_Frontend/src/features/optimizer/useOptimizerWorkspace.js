@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useEquipment } from "../../shared/state/EquipmentContext";
 import {
-    calculateCurrentModDetails,
+    createModifierDetailsCalculator,
     calculatePlacedDrifCounts,
     getDrifPenaltyMultiplier,
 } from "./optimizerDomain";
@@ -20,6 +20,7 @@ import { createRecommendationChanges } from "./advisor/optimizerRecommendation";
 import { buildAdvisorConfiguration } from "./advisor/advisorConfiguration";
 import { advisorBuildSignature } from "./advisor/advisorBuildSignature";
 import { readOptimizerDraft, writeOptimizerDraft } from "../../app/storage/workingDraftStorage";
+import { useWorkingDraftSave } from "../../app/storage/useWorkingDraftSave";
 
 /** Shared optimizer workflow; presentation changes never remount the current run. */
 export const useOptimizerWorkspace = ({ optimizerSettings, onOptimizerSettingsChange }) => {
@@ -61,6 +62,7 @@ export const useOptimizerWorkspace = ({ optimizerSettings, onOptimizerSettingsCh
     const {
         isOptimizing,
         elapsedSeconds: optimizationElapsedSeconds,
+        startedAt: optimizationStartedAt,
         lastDurationSeconds: lastOptimizationDurationSeconds,
         status: optimizationStatus,
         activeVariantIndex,
@@ -74,30 +76,38 @@ export const useOptimizerWorkspace = ({ optimizerSettings, onOptimizerSettingsCh
     }, [invalidateDrifOptimization, resetRunReport]);
     const [notice, setNotice] = useState(null);
     const draftRestoredRef = useRef(false);
-    const skipDraftSaveRef = useRef(false);
+    const [draftReady, setDraftReady] = useState(false);
     useEffect(() => {
-        if (draftRestoredRef.current || !gameRules?.bonusTranslations) return;
-        draftRestoredRef.current = true;
-        skipDraftSaveRef.current = true;
-        const savedDraft = readOptimizerDraft();
-        if (savedDraft) {
-            try {
-                const imported = parseOptimizerConfigPayload(savedDraft, gameRules);
-                replaceConfiguration(imported);
-                onOptimizerSettingsChange((previous) => mergeOptimizerSettings(previous, imported));
-            } catch {
-                // Ignore drafts from obsolete or malformed application versions.
+        if (!gameRules?.bonusTranslations) return;
+        let active = true;
+        if (!draftRestoredRef.current) {
+            draftRestoredRef.current = true;
+            const savedDraft = readOptimizerDraft();
+            if (savedDraft) {
+                try {
+                    const imported = parseOptimizerConfigPayload(savedDraft, gameRules);
+                    replaceConfiguration(imported);
+                    onOptimizerSettingsChange((previous) =>
+                        mergeOptimizerSettings(previous, imported)
+                    );
+                } catch {
+                    // Ignore drafts from obsolete or malformed application versions.
+                }
             }
         }
+        // Let the imported priorities and parent settings commit before automatic saving.
+        queueMicrotask(() => {
+            if (active) setDraftReady(true);
+        });
+        return () => {
+            active = false;
+        };
     }, [gameRules, onOptimizerSettingsChange, replaceConfiguration]);
-    useEffect(() => {
-        if (!draftRestoredRef.current) return;
-        if (skipDraftSaveRef.current) {
-            skipDraftSaveRef.current = false;
-            return;
-        }
-        writeOptimizerDraft(createOptimizerConfigPayload(prioritizedBonuses, optimizerSettings));
-    }, [optimizerSettings, prioritizedBonuses]);
+    const workingDraft = useMemo(
+        () => createOptimizerConfigPayload(prioritizedBonuses, optimizerSettings),
+        [optimizerSettings, prioritizedBonuses]
+    );
+    useWorkingDraftSave(writeOptimizerDraft, workingDraft, draftReady);
     useLayoutEffect(
         () => resetOptimization(),
         [optimizerSettings.mode, optimizerSettings.configurationMode, resetOptimization]
@@ -113,16 +123,19 @@ export const useOptimizerWorkspace = ({ optimizerSettings, onOptimizerSettingsCh
         onSettingsChange: onOptimizerSettingsChange,
         onNotice: setNotice,
     });
-    const currentModDetails = useMemo(
+    const calculateDetails = useMemo(
         () =>
-            calculateCurrentModDetails({
-                prioritizedBonuses,
+            createModifierDetailsCalculator({
                 slots: requestData.slots,
                 drifs: data.drifs,
                 items: data.items,
                 gameRules,
             }),
-        [data.drifs, data.items, gameRules, prioritizedBonuses, requestData.slots]
+        [data.drifs, data.items, gameRules, requestData.slots]
+    );
+    const currentModDetails = useMemo(
+        () => prioritizedBonuses.map(calculateDetails),
+        [calculateDetails, prioritizedBonuses]
     );
     const activeVariant = optimizationStatus?.nextVariants?.[activeVariantIndex];
     const reportModDetails = useMemo(() => {
@@ -283,6 +296,7 @@ export const useOptimizerWorkspace = ({ optimizerSettings, onOptimizerSettingsCh
         toggleAllExpanded,
         isOptimizing,
         optimizationElapsedSeconds,
+        optimizationStartedAt,
         lastOptimizationDurationSeconds,
         optimizationStatus,
         activeVariantIndex,

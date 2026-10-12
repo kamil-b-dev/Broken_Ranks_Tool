@@ -1,0 +1,143 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "urn:broken-ranks-tool:build-file:v1",
+    "title": "Broken Ranks Tool build file v1",
+    "description": "Persistence contract, independent of the calculator API. Catalog and equipment rules are validated separately. Legacy optional fields and level containers remain supported.",
+    "type": "object",
+    "required": ["format", "version", "build"],
+    "properties": {
+        "format": { "const": "broken-ranks-tool-build" },
+        "version": { "const": 1 },
+        "exportedAt": { "type": "string", "format": "date-time" },
+        "build": {
+            "type": "object",
+            "required": ["requestData"],
+            "properties": {
+                "requestData": {
+                    "type": "object",
+                    "required": ["slots"],
+                    "properties": {
+                        "slots": {
+                            "type": "object",
+                            "propertyNames": { "$ref": "#/$defs/slotKey" },
+                            "additionalProperties": { "$ref": "#/$defs/slot" }
+                        },
+                        "characterStats": {
+                            "type": ["object", "null"],
+                            "additionalProperties": {
+                                "type": "integer",
+                                "minimum": 0
+                            }
+                        }
+                    }
+                },
+                "characterConfig": {
+                    "type": ["object", "null"],
+                    "properties": {
+                        "level": { "type": ["integer", "string", "null"] },
+                        "spentPoints": {
+                            "type": ["object", "null"],
+                            "additionalProperties": {
+                                "type": ["integer", "string", "null"]
+                            }
+                        }
+                    }
+                },
+                "lockedSlots": {
+                    "type": ["array", "null"],
+                    "items": { "$ref": "#/$defs/slotKey" }
+                },
+                "lockedDrifs": {
+                    "type": ["object", "null"],
+                    "propertyNames": { "$ref": "#/$defs/slotKey" },
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": { "type": "integer", "minimum": 0 }
+                    }
+                }
+            }
+        }
+    },
+    "$defs": {
+        "slotKey": {
+            "enum": [
+                "helmet",
+                "armor",
+                "cape",
+                "legs",
+                "boots",
+                "gloves",
+                "belt",
+                "necklace",
+                "ring1",
+                "ring2",
+                "shield",
+                "weapon"
+            ]
+        },
+        "id": { "type": ["integer", "string", "null"] },
+        "level": {
+            "anyOf": [
+                { "type": "integer", "minimum": 1 },
+                { "type": "string", "pattern": "^[1-9][0-9]*$" }
+            ]
+        },
+        "levels": {
+            "anyOf": [
+                { "type": "null" },
+                { "type": "array", "items": { "$ref": "#/$defs/level" } },
+                {
+                    "type": "object",
+                    "propertyNames": { "pattern": "^(0|[1-9][0-9]*)$" },
+                    "additionalProperties": { "$ref": "#/$defs/level" }
+                }
+            ]
+        },
+        "orbLevels": {
+            "description": "Null placeholders are allowed only at empty trailing orb positions; an occupied orb still requires a valid level.",
+            "anyOf": [
+                { "type": "null" },
+                {
+                    "type": "array",
+                    "items": {
+                        "anyOf": [
+                            { "$ref": "#/$defs/level" },
+                            { "type": "null" }
+                        ]
+                    }
+                },
+                {
+                    "type": "object",
+                    "propertyNames": { "pattern": "^(0|[1-9][0-9]*)$" },
+                    "additionalProperties": {
+                        "anyOf": [
+                            { "$ref": "#/$defs/level" },
+                            { "type": "null" }
+                        ]
+                    }
+                }
+            ]
+        },
+        "slot": {
+            "type": "object",
+            "properties": {
+                "itemId": { "$ref": "#/$defs/id" },
+                "itemStars": {
+                    "type": ["integer", "null"],
+                    "minimum": 1,
+                    "maximum": 9
+                },
+                "orbIds": {
+                    "type": ["array", "null"],
+                    "items": { "$ref": "#/$defs/id" }
+                },
+                "orbLevels": { "$ref": "#/$defs/orbLevels" },
+                "drifIds": {
+                    "type": ["array", "null"],
+                    "items": { "$ref": "#/$defs/id" }
+                },
+                "drifLevels": { "$ref": "#/$defs/levels" }
+            }
+        }
+    }
+}

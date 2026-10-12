@@ -75,3 +75,16 @@ build/
 
 # Local repository technology audit
 /audyt-2026-10-05.txt
+/audyt-wydajnosci-ui-2026-10-09.txt
+
+# Local algorithm service audit
+/audyt-algorytmu-2026-10-10.txt
+
+# Local frontend-to-backend input inventory
+/dane-frontend-backend-2026-10-10.txt
+
+# Local backend input validation comparison
+/porownanie-walidacji-backendu-2026-10-11.txt
+
+# Local memory diagnostics and audit reports
+/docs/audyt-pamieci-*.md

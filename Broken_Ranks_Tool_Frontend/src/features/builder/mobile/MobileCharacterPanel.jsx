@@ -19,8 +19,20 @@ export default function MobileCharacterPanel() {
                     inputMode="numeric"
                     min={1}
                     max={140}
-                    value={model.level}
-                    onChange={(event) => model.changeLevel(event.target.value)}
+                    value={model.levelInput}
+                    onChange={(event) => model.editLevel(event.target.value)}
+                    onBlur={model.commitLevel}
+                    onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                            event.preventDefault();
+                            model.commitLevel();
+                            event.currentTarget.blur();
+                        }
+                        if (event.key === "Escape") {
+                            event.preventDefault();
+                            model.cancelLevelEdit();
+                        }
+                    }}
                 />
             </label>
             <p className="mobile-points">
@@ -32,7 +44,7 @@ export default function MobileCharacterPanel() {
             {Object.keys(STAT_CONFIG).map((name) => (
                 <div key={name} className="mobile-character-stat">
                     <span>
-                        {name}
+                        {STAT_CONFIG[name].label || name}
                         <strong>{model.finalStats[name]}</strong>
                         <small>{model.spentPoints[name]} pkt</small>
                     </span>

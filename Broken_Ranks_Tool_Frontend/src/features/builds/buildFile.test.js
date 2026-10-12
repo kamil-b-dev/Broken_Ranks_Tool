@@ -45,6 +45,7 @@ const validPayload = () => ({
     format: BUILD_FILE_FORMAT,
     version: BUILD_FILE_VERSION,
     build: {
+        backpack: [],
         requestData: {
             slots: {
                 helmet: { itemId: 1, orbIds: [2], drifIds: [3] },
@@ -58,6 +59,19 @@ const validPayload = () => ({
 });
 
 describe("character stat aliases", () => {
+    it("preserves intelligence in exported and imported builds", () => {
+        const payload = validPayload();
+        payload.build.requestData.characterStats = { Inteligencja: 35 };
+        payload.build.characterConfig.spentPoints = { Inteligencja: 25 };
+        const imported = parseBuildPayload(payload, gameData);
+        const exported = createBuildPayload(imported);
+        expect(exported.build.requestData.characterStats.Inteligencja).toBe(35);
+        expect(exported.build.characterConfig.spentPoints.Inteligencja).toBe(25);
+        payload.build.requestData.characterStats = { Inteligencja: 50_000, INTELIGENCJA: 1 };
+        expect(() => parseBuildPayload(payload, gameData)).toThrow(/Łączna wartość/);
+        payload.build.requestData.characterStats = { Inteligencja: -1 };
+        expect(() => parseBuildPayload(payload, gameData)).toThrow(/całkowitymi/);
+    });
     it("enforces the total limit for case aliases before importing a build", () => {
         const payload = validPayload();
         payload.build.requestData.characterStats = { Siła: 50_000, siła: 1 };
@@ -112,6 +126,28 @@ describe("downloadBuildPayload", () => {
 });
 
 describe("parseBuildFile", () => {
+    it.each(["RARE", "LEGENDARY"])(
+        "loads a %s item with no orb even if the file has two empty placeholders",
+        (rarity) => {
+            const payload = validPayload();
+            payload.build.requestData.slots.helmet.orbIds = [null, null];
+            payload.build.requestData.slots.helmet.orbLevels = [null, null];
+            const result = parseBuildPayload(payload, {
+                ...gameData,
+                items: gameData.items.map((item) => (item.id === 1 ? { ...item, rarity } : item)),
+            });
+            expect(result.requestData.slots.helmet.orbIds).toEqual([]);
+            expect(result.requestData.slots.helmet.orbLevels).toEqual([]);
+            expect(payload.build.requestData.slots.helmet.orbIds).toEqual([null, null]);
+        }
+    );
+
+    it("rejects a null level on an occupied orb rather than replacing it with level one", () => {
+        const payload = validPayload();
+        payload.build.requestData.slots.helmet.orbIds = [2, null];
+        payload.build.requestData.slots.helmet.orbLevels = [null, null];
+        expect(() => parseBuildPayload(payload, gameData)).toThrow(/poziomy orbów/);
+    });
     it("returns a detached, validated build", async () => {
         const payload = validPayload();
 
@@ -122,6 +158,7 @@ describe("parseBuildFile", () => {
             characterConfig: expect.objectContaining({ level: 140 }),
             lockedSlots: ["helmet"],
             lockedDrifs: { helmet: [0] },
+            backpack: [],
         });
         expect(result.requestData).not.toBe(payload.build.requestData);
     });

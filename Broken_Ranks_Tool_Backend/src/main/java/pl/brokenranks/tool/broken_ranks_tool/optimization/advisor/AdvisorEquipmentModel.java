@@ -13,6 +13,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.Calcul
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.input.EquipmentDataProvider.CalculationContext;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.processor.*;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.*;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.cache.BoundedSearchCache;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 
 /** Request-local template and contribution caches; no catalog queries inside search. */
@@ -26,9 +27,24 @@ final class AdvisorEquipmentModel {
     private final OrbStatProcessor orbs;
     private final DrifValueCalculator values;
     private final AdvisorEquipmentValidator validator;
-    private final Map<String, Contribution> contributions = new HashMap<>();
-    private final Map<String, double[]> equipmentValues = new HashMap<>();
-    private final Map<String, Double> drifValues = new HashMap<>();
+    private final Map<String, Contribution> contributions = new BoundedSearchCache<>(2_048);
+    private final Map<String, double[]> equipmentValues = new BoundedSearchCache<>(1_024);
+    private final Map<String, Double> drifValues = new BoundedSearchCache<>(1_024);
+    private final Map<String, Map<String, Double>> itemValues = new BoundedSearchCache<>(1_024);
+
+    Map<String, Double> itemValues(ItemTemplate item, int stars) {
+        return itemValues.computeIfAbsent(
+                item.getId() + "@" + stars,
+                ignored -> {
+                    CalculationState state = new CalculationState(templates);
+                    items.process(item, stars, state);
+                    return Map.copyOf(state.getAccumulator().getNumericResults());
+                });
+    }
+
+    double itemDrifBonus(ItemTemplate item, int stars) {
+        return items.calculateFinalDrifMod(item, stars);
+    }
 
     AdvisorEquipmentModel(
             CalculationContext templates,
@@ -65,8 +81,10 @@ final class AdvisorEquipmentModel {
                 counts[i] += c.counts()[i];
             }
         }
-        for (int i = 0; i < TYPES.length; i++)
+        for (int i = 0; i < TYPES.length; i++) {
             result[i] += raw[i] * rules.getDrifPenalty(counts[i]);
+            result[i] = ModifierValueRules.rounded(result[i]);
+        }
         return result;
     }
 
@@ -106,17 +124,14 @@ final class AdvisorEquipmentModel {
                     drifValues.computeIfAbsent(
                             id + "@" + level,
                             ignored ->
-                                    parse(
-                                            values.calculate(
-                                                    drif.getBaseValue(),
-                                                    drif.getIncrement(),
-                                                    level)));
+                                    values.calculateNumeric(
+                                            drif.getBaseValue(), drif.getIncrement(), level));
             int type = drif.getBonusType().ordinal();
             raw[type] += value * multiplier;
             counts[type]++;
         }
         Contribution result = new Contribution(base, raw, counts);
-        if (contributions.size() < 12000) contributions.put(signature, result);
+        contributions.put(signature, result);
         return result;
     }
 
@@ -133,7 +148,9 @@ final class AdvisorEquipmentModel {
     }
 
     boolean locked(String key) {
-        return request.getLockedSlots() != null && request.getLockedSlots().contains(key);
+        ItemTemplate original = item(request.getOriginalSlots().get(key));
+        return original != null && original.getRarity() == RARITY.SET
+                || request.getLockedSlots() != null && request.getLockedSlots().contains(key);
     }
 
     boolean movable(String key, SlotData slot, int index) {

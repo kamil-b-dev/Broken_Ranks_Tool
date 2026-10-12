@@ -1,4 +1,6 @@
-export const EQUIPMENT_DRAFT_STORAGE_KEY = "broken-ranks-tool.equipment-draft.v1";
+export const LEGACY_EQUIPMENT_DRAFT_STORAGE_KEY = "broken-ranks-tool.equipment-draft.v1";
+export const EQUIPMENT_DRAFT_STORAGE_KEY = "broken-ranks-tool.equipment-draft.v2";
+export const EQUIPMENT_DRAFT_VERSION = 2;
 export const EQUIPMENT_DRAFT_RECOVERY_STORAGE_KEY = `${EQUIPMENT_DRAFT_STORAGE_KEY}.recovery`;
 export const OPTIMIZER_DRAFT_STORAGE_KEY = "broken-ranks-tool.optimizer-draft.v1";
 export const WORKING_DRAFT_VERSION = 1;
@@ -28,34 +30,80 @@ const writeVersionedValue = (key, value, storage) => {
     }
 };
 
-/** Reads the last automatically saved equipment workspace. */
-export const readEquipmentDraft = (storage) => {
-    const draft = readVersionedValue(EQUIPMENT_DRAFT_STORAGE_KEY, storage);
-    if (!isObject(draft?.requestData) || !isObject(draft.requestData.slots)) return null;
-    return cloneJson({
-        requestData: {
-            slots: draft.requestData.slots,
-            characterStats: isObject(draft.requestData.characterStats)
-                ? draft.requestData.characterStats
-                : {},
-        },
-        characterConfig: isObject(draft.characterConfig) ? draft.characterConfig : null,
-        lockedSlots: Array.isArray(draft.lockedSlots) ? draft.lockedSlots : [],
-        lockedDrifs: isObject(draft.lockedDrifs) ? draft.lockedDrifs : {},
-    });
+/** Reads current or legacy draft metadata without losing an unsupported newer document. */
+export const readEquipmentDraftState = (storage) => {
+    let sourceKey = EQUIPMENT_DRAFT_STORAGE_KEY;
+    try {
+        storage = storage === undefined ? globalThis.localStorage : storage;
+        if (!storage) return { draft: null, rejected: false };
+        let raw = storage.getItem(sourceKey);
+        if (raw == null) {
+            sourceKey = LEGACY_EQUIPMENT_DRAFT_STORAGE_KEY;
+            raw = storage.getItem(sourceKey);
+        }
+        if (raw == null) return { draft: null, rejected: false };
+        const stored = JSON.parse(raw);
+        const expected = sourceKey === EQUIPMENT_DRAFT_STORAGE_KEY ? 2 : 1;
+        const draft = stored?.value;
+        if (
+            stored?.version !== expected ||
+            !isObject(draft?.requestData) ||
+            !isObject(draft.requestData.slots) ||
+            (expected === 2 && !Array.isArray(draft.backpack))
+        )
+            return { draft: null, rejected: true, sourceKey };
+        return {
+            rejected: false,
+            sourceKey,
+            buildVersion: expected,
+            draft: cloneJson({
+                requestData: {
+                    slots: draft.requestData.slots,
+                    characterStats: isObject(draft.requestData.characterStats)
+                        ? draft.requestData.characterStats
+                        : {},
+                },
+                characterConfig: isObject(draft.characterConfig) ? draft.characterConfig : null,
+                lockedSlots: Array.isArray(draft.lockedSlots) ? draft.lockedSlots : [],
+                lockedDrifs: isObject(draft.lockedDrifs) ? draft.lockedDrifs : {},
+                ...(expected === 2 ? { backpack: draft.backpack } : {}),
+            }),
+        };
+    } catch {
+        return { draft: null, rejected: true, sourceKey };
+    }
 };
 
-/** Saves the current equipment workspace without interrupting the user on storage errors. */
-export const writeEquipmentDraft = (draft, storage) =>
-    writeVersionedValue(EQUIPMENT_DRAFT_STORAGE_KEY, draft, storage);
+export const readEquipmentDraft = (storage) => readEquipmentDraftState(storage).draft;
 
-/** Preserves the last rejected workspace before automatic saving can replace it. */
-export const preserveEquipmentDraft = (storage) => {
+/** New writes go to v2; migration never overwrites the original v1 key. */
+export const writeEquipmentDraft = (draft, storage) => {
     try {
         storage = storage === undefined ? globalThis.localStorage : storage;
         if (!storage) return false;
-        const raw = storage.getItem(EQUIPMENT_DRAFT_STORAGE_KEY);
-        if (raw != null) storage.setItem(EQUIPMENT_DRAFT_RECOVERY_STORAGE_KEY, raw);
+        storage.setItem(
+            EQUIPMENT_DRAFT_STORAGE_KEY,
+            JSON.stringify({
+                version: EQUIPMENT_DRAFT_VERSION,
+                value: { ...draft, backpack: draft.backpack || [] },
+            })
+        );
+        return true;
+    } catch {
+        return false;
+    }
+};
+
+export const preserveEquipmentDraft = (storage, sourceKey) => {
+    try {
+        storage = storage === undefined ? globalThis.localStorage : storage;
+        if (!storage) return false;
+        sourceKey ??=
+            storage.getItem(EQUIPMENT_DRAFT_STORAGE_KEY) != null
+                ? EQUIPMENT_DRAFT_STORAGE_KEY
+                : LEGACY_EQUIPMENT_DRAFT_STORAGE_KEY;
+        const raw = storage.getItem(sourceKey);
+        if (raw != null) storage.setItem(sourceKey + ".recovery", raw);
         return true;
     } catch {
         return false;

@@ -4,12 +4,17 @@ import { useRef, useState } from "react";
 export const useBuildFileActions = ({ loadBuildFromFile }) => {
     const fileInputRef = useRef(null);
     const [notice, setNotice] = useState(null);
+    const importVersion = useRef(0);
 
     const loadBuild = async (event) => {
         const file = event.target.files?.[0];
         if (!file) return;
+        const input = event.target;
+        input.value = "";
+        const version = ++importVersion.current;
         try {
             const summary = await loadBuildFromFile(file);
+            if (version !== importVersion.current || summary === false) return;
             const skipped = (summary?.skippedDrifs || 0) + (summary?.skippedOrbs || 0);
             const details = summary
                 ? ` (${summary.importedItems}/12 przedmiotów, ${summary.importedDrifs} drifów${skipped ? `; pominięto ${skipped} nierozpoznanych dodatków` : ""})`
@@ -19,9 +24,8 @@ export const useBuildFileActions = ({ loadBuildFromFile }) => {
                 message: `Wczytano build z pliku ${file.name}${details}.`,
             });
         } catch (error) {
+            if (version !== importVersion.current) return;
             setNotice({ type: "error", message: `Nie udało się wczytać buildu: ${error.message}` });
-        } finally {
-            event.target.value = "";
         }
     };
 

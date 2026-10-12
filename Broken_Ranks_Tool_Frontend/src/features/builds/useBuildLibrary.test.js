@@ -1,10 +1,10 @@
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { downloadBuildPayload } from "./buildFile";
+import { downloadBuildPayload } from "./buildDownloads";
 import { useBuildLibrary } from "./useBuildLibrary";
 import { readBuildLibrary } from "./buildLibraryStorage";
 
-vi.mock("./buildFile", () => ({ downloadBuildPayload: vi.fn() }));
+vi.mock("./buildDownloads", () => ({ downloadBuildPayload: vi.fn() }));
 
 const snapshot = (itemId = 1) => ({
     payload: {
@@ -41,7 +41,7 @@ describe("useBuildLibrary", () => {
         expect(result.current.builds[0].name).toBe("PvE po zmianie");
         expect(result.current.notice.message).toContain("Zmieniono nazwę");
 
-        act(() => result.current.load(saved.id));
+        await act(async () => result.current.load(saved.id));
         expect(applySnapshot).toHaveBeenCalledWith(
             expect.objectContaining({ name: "PvE po zmianie" })
         );
@@ -86,7 +86,7 @@ describe("useBuildLibrary", () => {
 
         await act(async () => expect(await result.current.rename("missing", "nazwa")).toBe(false));
         expect(result.current.notice.message).toContain("Nie znaleziono");
-        act(() => expect(result.current.load("missing")).toBe(false));
+        await act(async () => expect(await result.current.load("missing")).toBe(false));
         act(() => expect(result.current.exportBuild("missing")).toBe(false));
         await act(async () => result.current.overwrite("missing"));
         expect(result.current.notice.type).toBe("error");

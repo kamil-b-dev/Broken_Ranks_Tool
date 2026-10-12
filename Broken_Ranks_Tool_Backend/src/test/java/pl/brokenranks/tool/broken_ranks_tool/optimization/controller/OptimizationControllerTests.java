@@ -19,14 +19,33 @@ import pl.brokenranks.tool.broken_ranks_tool.core.config.SecurityConfig;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationResponse;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.service.OptimizationExecutionGuard;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.service.OptimizerMemoryPressureException;
 
-@WebMvcTest(OptimizationController.class)
+@WebMvcTest(
+        value = OptimizationController.class,
+        properties = "abuse-protection.optimizer.client-requests-per-minute=12")
 @Import(SecurityConfig.class)
 class OptimizationControllerTests {
 
     @Autowired private MockMvc mockMvc;
 
     @MockitoBean private OptimizationExecutionGuard executionGuard;
+
+    @Test
+    void returnsAnExpectedServiceUnavailableResponseForMemoryPressure() throws Exception {
+        when(executionGuard.optimize(any())).thenThrow(new OptimizerMemoryPressureException());
+        mockMvc.perform(
+                        post("/api/optimizer/drifs")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        "{\"originalSlots\":{\"helmet\":{\"itemId\":1}},\"priorities\":{\"DAMAGE_MAGIC\":10}}"))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.code").value("OPTIMIZER_MEMORY_PRESSURE"))
+                .andExpect(
+                        jsonPath("$.message")
+                                .value(new OptimizerMemoryPressureException().getMessage()))
+                .andExpect(jsonPath("$.requestId").isNotEmpty());
+    }
 
     @Test
     void delegatesOptimizationAndReturnsItsContract() throws Exception {

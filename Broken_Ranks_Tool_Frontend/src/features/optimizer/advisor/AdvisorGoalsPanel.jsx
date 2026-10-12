@@ -4,30 +4,24 @@ import {
     selectedAdvisorGoal,
     DEFAULT_ADVISOR_CHANGES,
     DEFAULT_ADVISOR_SEARCH,
+    ADVISOR_PURCHASE_SCOPES,
+    normalizeAdvisorPurchaseScope,
 } from "./advisorConfiguration";
 import {
     DRIF_CATEGORY_LABELS,
     DRIF_CATEGORY_ORDER,
 } from "../../../shared/domain/equipment/drifCategories";
 import CategoryIcon from "../../../shared/ui/CategoryIcon";
+import { memo, useCallback, useLayoutEffect, useMemo, useRef } from "react";
 
-const ProtectedModifierRow = ({ modifier, rule, protectedModifiers, update }) => (
+const DEFAULT_PROTECTION = Object.freeze({ enabled: true, loss: 0 });
+const ProtectedModifierRow = memo(({ modifier, rule, onRuleChange }) => (
     <div className="advisor-modifier-row">
         <label>
             <input
                 type="checkbox"
                 checked={rule.enabled !== false}
-                onChange={(event) =>
-                    update({
-                        advisorProtectedModifiers: {
-                            ...protectedModifiers,
-                            [modifier.key]: {
-                                ...rule,
-                                enabled: event.target.checked,
-                            },
-                        },
-                    })
-                }
+                onChange={(event) => onRuleChange(modifier.key, { enabled: event.target.checked })}
             />
             <span>{modifier.label}</span>
             <b>{modifier.value}%</b>
@@ -41,38 +35,56 @@ const ProtectedModifierRow = ({ modifier, rule, protectedModifiers, update }) =>
                 step="0.1"
                 disabled={rule.enabled === false}
                 value={rule.loss ?? 0}
-                onChange={(event) =>
-                    update({
-                        advisorProtectedModifiers: {
-                            ...protectedModifiers,
-                            [modifier.key]: {
-                                ...rule,
-                                loss: event.target.value,
-                            },
-                        },
-                    })
-                }
+                onChange={(event) => onRuleChange(modifier.key, { loss: event.target.value })}
                 aria-label={`Dopuszczalny spadek: ${modifier.label}`}
             />
             p.p.
         </label>
     </div>
-);
+));
 
 /** Configures advisor goals relative to the statistics of the current build. */
 const AdvisorGoalsPanel = ({ stats = {}, gameRules = {}, settings, onChange, section = "all" }) => {
-    const modifiers = advisorModifiers(stats, gameRules);
+    const modifiers = useMemo(() => advisorModifiers(stats, gameRules), [stats, gameRules]);
     const goal = selectedAdvisorGoal(modifiers, settings.advisorGoal);
     const search = { ...DEFAULT_ADVISOR_SEARCH, ...settings.advisorSearch };
     const protectedModifiers = settings.advisorProtectedModifiers || {};
-    const update = (change) => onChange({ ...settings, ...change });
-    const protectedGroups = DRIF_CATEGORY_ORDER.map((category) => ({
-        category,
-        modifiers: modifiers.filter(
-            ({ key, value, category: modifierCategory }) =>
-                key !== goal && value !== 0 && modifierCategory === category
-        ),
-    })).filter(({ modifiers: groupedModifiers }) => groupedModifiers.length > 0);
+    const currentSettings = useRef(settings);
+    useLayoutEffect(() => {
+        currentSettings.current = settings;
+    }, [settings]);
+    const update = useCallback(
+        (change) => {
+            const next = { ...currentSettings.current, ...change };
+            onChange(next);
+        },
+        [onChange]
+    );
+    const updateRule = useCallback(
+        (key, change) => {
+            const rules = currentSettings.current.advisorProtectedModifiers || {};
+            update({
+                advisorProtectedModifiers: {
+                    ...rules,
+                    [key]: { ...(rules[key] || DEFAULT_PROTECTION), ...change },
+                },
+            });
+        },
+        [update]
+    );
+    const protectedGroups = useMemo(
+        () =>
+            section === "changes"
+                ? []
+                : DRIF_CATEGORY_ORDER.map((category) => ({
+                      category,
+                      modifiers: modifiers.filter(
+                          ({ key, value, category: modifierCategory }) =>
+                              key !== goal && value !== 0 && modifierCategory === category
+                      ),
+                  })).filter(({ modifiers: groupedModifiers }) => groupedModifiers.length > 0),
+        [modifiers, goal, section]
+    );
 
     return (
         <div className="advisor-goals-panel custom-scrollbar">
@@ -106,25 +118,42 @@ const AdvisorGoalsPanel = ({ stats = {}, gameRules = {}, settings, onChange, sec
                             <option value="GAIN">Zyskaj określoną liczbę p.p.</option>
                         </select>
                         {search.targetMode !== "MAXIMIZE" && (
-                            <label className="advisor-loss-control">
-                                {search.targetMode === "VALUE"
-                                    ? "Wartość celu (%)"
-                                    : "Przyrost (p.p.)"}
-                                <input
-                                    type="number"
-                                    min="0"
-                                    step="0.1"
-                                    value={search.target}
-                                    onChange={(event) =>
-                                        update({
-                                            advisorSearch: {
-                                                ...search,
-                                                target: event.target.value,
-                                            },
-                                        })
-                                    }
-                                />
-                            </label>
+                            <>
+                                <label className="advisor-loss-control">
+                                    {search.targetMode === "VALUE"
+                                        ? "Wartość celu (%)"
+                                        : "Przyrost (p.p.)"}
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        step="0.1"
+                                        value={search.target}
+                                        onChange={(event) =>
+                                            update({
+                                                advisorSearch: {
+                                                    ...search,
+                                                    target: event.target.value,
+                                                },
+                                            })
+                                        }
+                                    />
+                                </label>
+                                <label className="advisor-loss-control">
+                                    <input
+                                        type="checkbox"
+                                        checked={search.limitBenefitToTarget === true}
+                                        onChange={(event) =>
+                                            update({
+                                                advisorSearch: {
+                                                    ...search,
+                                                    limitBenefitToTarget: event.target.checked,
+                                                },
+                                            })
+                                        }
+                                    />
+                                    Nie premiuj wzrostu ponad zadany cel
+                                </label>
+                            </>
                         )}
                     </section>
 
@@ -164,13 +193,10 @@ const AdvisorGoalsPanel = ({ stats = {}, gameRules = {}, settings, onChange, sec
                                             key={modifier.key}
                                             modifier={modifier}
                                             rule={
-                                                protectedModifiers[modifier.key] || {
-                                                    enabled: true,
-                                                    loss: 0,
-                                                }
+                                                protectedModifiers[modifier.key] ||
+                                                DEFAULT_PROTECTION
                                             }
-                                            protectedModifiers={protectedModifiers}
-                                            update={update}
+                                            onRuleChange={updateRule}
                                         />
                                     ))}
                                 </section>
@@ -212,6 +238,24 @@ const AdvisorGoalsPanel = ({ stats = {}, gameRules = {}, settings, onChange, sec
                             ))}
                         </div>
                     </section>
+                    {(settings.advisorAllowedChanges?.drifs ?? DEFAULT_ADVISOR_CHANGES.drifs) && (
+                        <section className="advisor-goal-card">
+                            <label htmlFor="advisor-purchase-scope">Zakres zakupów drifów</label>
+                            <select
+                                id="advisor-purchase-scope"
+                                value={normalizeAdvisorPurchaseScope(settings.advisorPurchaseScope)}
+                                onChange={(event) =>
+                                    update({ advisorPurchaseScope: event.target.value })
+                                }
+                            >
+                                {ADVISOR_PURCHASE_SCOPES.map(([value, label]) => (
+                                    <option key={value} value={value}>
+                                        {label}
+                                    </option>
+                                ))}
+                            </select>
+                        </section>
+                    )}
                     <section className="advisor-goal-card advisor-search-limits">
                         <label className="advisor-search-field" htmlFor="advisor-actions">
                             <span>Maksymalna liczba działań w planie</span>
@@ -264,4 +308,4 @@ const AdvisorGoalsPanel = ({ stats = {}, gameRules = {}, settings, onChange, sec
     );
 };
 
-export default AdvisorGoalsPanel;
+export default memo(AdvisorGoalsPanel);

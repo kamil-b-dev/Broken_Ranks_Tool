@@ -8,11 +8,13 @@ import java.util.Map;
 import java.util.Set;
 import lombok.experimental.UtilityClass;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_SIZE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.DrifPowerRules;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationContext;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.SlotContext;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationDrifSizeConstraints;
 
 /** Conservative quantity bounds, separate from catalog and placement validation. */
 @UtilityClass
@@ -56,7 +58,6 @@ class OptimizationFeasibilityValidator {
             DRIF_BONUS_TYPE type,
             pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_SIZE size,
             OptimizationContext context) {
-        if (size != null && slot.special()) return 0;
         List<Long> ids =
                 slot.original().getDrifIds() != null ? slot.original().getDrifIds() : List.of();
         Set<Integer> fixed = preservedIndexes(slot.key(), slot.original(), slot, context.request());
@@ -152,6 +153,22 @@ class OptimizationFeasibilityValidator {
             OptimizationContext context, Map<DRIF_BONUS_TYPE, Integer> missingSizeMinimumsByType) {
         if (context.request().getDrifSizeQuantities() != null) {
             for (var bonusEntry : context.request().getDrifSizeQuantities().entrySet()) {
+                var total =
+                        context.request().getTargetQuantities() == null
+                                ? null
+                                : context.request().getTargetQuantities().get(bonusEntry.getKey());
+                int maximumSum =
+                        java.util.Arrays.stream(DRIF_SIZE.values())
+                                .mapToInt(
+                                        size ->
+                                                OptimizationDrifSizeConstraints.maximum(
+                                                        bonusEntry.getKey(), size, context))
+                                .sum();
+                if (total != null && maximumSum < total.getMin()) {
+                    return "Zakresy rozmiarów są sprzeczne z łącznym limitem dla "
+                            + bonusEntry.getKey().getDescription()
+                            + ".";
+                }
                 for (var sizeEntry : bonusEntry.getValue().entrySet()) {
                     int fixed = 0;
                     int upperBound = 0;
@@ -164,7 +181,9 @@ class OptimizationFeasibilityValidator {
                                 && canAdd(slot, bonusEntry.getKey(), sizeEntry.getKey(), context))
                             upperBound++;
                     }
-                    if (fixed > sizeEntry.getValue().getMax()) {
+                    if (fixed
+                            > OptimizationDrifSizeConstraints.maximum(
+                                    bonusEntry.getKey(), sizeEntry.getKey(), context)) {
                         return "Zablokowane drify przekraczają maksimum rozmiaru "
                                 + sizeEntry.getKey()
                                 + " dla "

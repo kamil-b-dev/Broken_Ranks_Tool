@@ -16,6 +16,24 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemp
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
 
 class DrifOptimizationMathTests {
+    @Test
+    void searchContributionMatchesAuthoritativeRoundingOfCatalogFractions() {
+        var drif = drif(DRIF_SIZE.ARCYDRIF);
+        drif.setBaseValue("0.005%");
+        drif.setIncrement("0.001%");
+        var calculator =
+                new pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules
+                        .DrifValueCalculator();
+        for (int level : List.of(1, 6, 11, 16, 19, 21)) {
+            double expected =
+                    Double.parseDouble(
+                            calculator
+                                    .calculate(drif.getBaseValue(), drif.getIncrement(), level)
+                                    .replace("%", ""));
+            assertEquals(expected, calculateDrifValue(drif, level), 1e-9);
+        }
+    }
+
     @ParameterizedTest
     @CsvSource({"1,1", "6,1", "7,2", "11,2", "12,3", "16,3", "17,4", "21,4"})
     void powerChangesOnlyAtLevelBandBoundaries(int level, int multiplier) {

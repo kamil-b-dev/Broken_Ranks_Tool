@@ -6,6 +6,21 @@ import {
 } from "./characterDevelopmentDomain";
 
 describe("characterDevelopmentDomain", () => {
+    it("defaults legacy intelligence allocations and converts points at one to one", () => {
+        const legacy = normalizeCharacterConfig({ level: 140, spentPoints: { Moc: 125 } });
+        expect(legacy.spentPoints.Inteligencja).toBe(0);
+        expect(calculateCharacterStats(legacy.spentPoints)).toMatchObject({
+            Moc: 135,
+            Inteligencja: 10,
+        });
+        const allocated = normalizeCharacterConfig({
+            level: 140,
+            spentPoints: { Inteligencja: 125 },
+        });
+        expect(calculateCharacterStats(allocated.spentPoints).Inteligencja).toBe(135);
+        expect(calculateCharacterStats({ Siła: 2 }).Inteligencja).toBe(10);
+        expect(trimSpentPoints(allocated.spentPoints, 4).Inteligencja).toBe(4);
+    });
     it("normalizes imported levels and point allocations", () => {
         const result = normalizeCharacterConfig({ level: 999, spentPoints: { Siła: 3, Moc: -2 } });
         expect(result.level).toBe(140);

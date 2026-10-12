@@ -8,7 +8,7 @@ export const calculateCharacterStats = (spentPoints) =>
     Object.fromEntries(
         Object.entries(STAT_CONFIG).map(([name, config]) => [
             name,
-            config.base + spentPoints[name] * config.ratio,
+            config.base + (spentPoints[name] ?? 0) * config.ratio,
         ])
     );
 const normalizePoints = (value) => {

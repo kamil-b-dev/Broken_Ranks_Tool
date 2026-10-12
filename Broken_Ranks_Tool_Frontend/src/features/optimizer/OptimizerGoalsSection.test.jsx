@@ -14,6 +14,40 @@ const goal = {
 };
 
 describe("OptimizerGoalsSection", () => {
+    it("warns that a selected tradeoff misses a goal met by the main build", () => {
+        render(
+            <OptimizerGoalsSection
+                goals={[
+                    { ...goal, targetLabel: "40%", calculatorValue: "40%", targetSatisfied: true },
+                ]}
+                currentDetails={[]}
+                activeVariant={{
+                    main: false,
+                    calculationResult: { stats: { criticalChance: "39%" } },
+                }}
+            />
+        );
+        expect(screen.getByRole("status")).toHaveTextContent("Szansa na krytyk: 39% (cel 40%)");
+        expect(screen.getByText("Częściowo")).toBeInTheDocument();
+    });
+
+    it("does not warn or reject a surplus when another modifier is improved", () => {
+        render(
+            <OptimizerGoalsSection
+                goals={[{ ...goal, targetLabel: "60%", calculatorValue: "62%" }]}
+                currentDetails={[]}
+                activeVariant={{
+                    main: false,
+                    calculationResult: {
+                        stats: { criticalChance: "70%", DAMAGE_PHYSICAL: "110%" },
+                    },
+                }}
+            />
+        );
+        expect(screen.queryByRole("status")).not.toBeInTheDocument();
+        expect(screen.getByText("70%")).toBeInTheDocument();
+        expect(screen.getByText("Osiągnięty")).toBeInTheDocument();
+    });
     it("respects the backend decision for a main goal within its percentage tolerance", () => {
         render(
             <OptimizerGoalsSection

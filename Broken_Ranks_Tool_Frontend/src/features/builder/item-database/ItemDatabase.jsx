@@ -1,5 +1,5 @@
 import { setDraggedResource } from "../useDraggedResource";
-import { useId, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { useItemDatabaseFilters } from "./useItemDatabaseFilters";
 import ItemDatabaseControls from "./ItemDatabaseControls";
 import { buildItemDatabaseGroups, filterItemDatabaseGroups } from "./itemDatabaseDomain";
@@ -20,6 +20,16 @@ const ItemDatabase = ({
         useItemDatabaseFilters();
     const [tooltip, setTooltip] = useState({ show: false, x: 0, y: 0, item: null, type: "item" });
     const tooltipId = useId();
+    const tooltipElement = useRef(null);
+    const hovered = useRef(null);
+    const position = useRef(null);
+    const frame = useRef(null);
+    useEffect(
+        () => () => {
+            if (frame.current != null) cancelAnimationFrame(frame.current);
+        },
+        []
+    );
     const { bonusTranslations = {}, drifBasePowers = {} } = gameRules;
     const { groupedData, allCategories, allTiers, allStats } = useMemo(
         () => buildItemDatabaseGroups({ activeTab, items, orbs, drifs, categoryNames }),
@@ -36,17 +46,27 @@ const ItemDatabase = ({
             }),
         [groupedData, activeTab, filters, bonusTranslations, drifBasePowers]
     );
-    const handleDragStart = (event, item, type) => {
-        const resource = { ...item, dragType: type };
-        event.dataTransfer.setData("application/json", JSON.stringify(resource));
-        setDraggedResource(resource);
-        hideTooltip();
-    };
-    const showTooltip = (event, item, type) => {
-        if (event.type === "mousemove" && tooltip.keyboard) return;
+    const hideTooltip = useCallback((event) => {
+        if (event?.type === "mouseleave" && hovered.current?.keyboard) return;
+        hovered.current = null;
+        if (frame.current != null) cancelAnimationFrame(frame.current);
+        frame.current = null;
+        setTooltip((previous) => (previous.show ? { ...previous, show: false } : previous));
+    }, []);
+    const handleDragStart = useCallback(
+        (event, item, type) => {
+            const resource = { ...item, dragType: type };
+            event.dataTransfer.setData("application/json", JSON.stringify(resource));
+            setDraggedResource(resource);
+            hideTooltip();
+        },
+        [hideTooltip]
+    );
+    const showTooltip = useCallback((event, item, type) => {
+        if (event.type === "mousemove" && hovered.current?.keyboard) return;
         const keyboard = event.type === "focus";
         const rect = keyboard ? event.currentTarget.getBoundingClientRect() : null;
-        setTooltip({
+        const next = {
             show: true,
             x: Math.max(
                 0,
@@ -59,12 +79,30 @@ const ItemDatabase = ({
             item,
             type,
             keyboard,
-        });
-    };
-    const hideTooltip = (event) => {
-        if (event?.type === "mouseleave" && tooltip.keyboard) return;
-        setTooltip({ show: false, x: 0, y: 0, item: null, type: "item" });
-    };
+        };
+        const previous = hovered.current;
+        hovered.current = next;
+        if (
+            !previous ||
+            previous.item !== item ||
+            previous.type !== type ||
+            previous.keyboard !== keyboard
+        ) {
+            setTooltip(next);
+        }
+        position.current = { x: next.x, y: next.y };
+        if (frame.current == null)
+            frame.current = requestAnimationFrame(() => {
+                frame.current = null;
+                if (tooltipElement.current && position.current) {
+                    tooltipElement.current.style.transform = `translate3d(${position.current.x}px, ${position.current.y}px, 0)`;
+                }
+            });
+    }, []);
+    const resultKey = useMemo(
+        () => `${activeTab}:${JSON.stringify(filters)}`,
+        [activeTab, filters]
+    );
 
     return (
         <div
@@ -88,6 +126,7 @@ const ItemDatabase = ({
                 onClearFilters={clearFilters}
             />
             <ItemDatabaseResults
+                key={resultKey}
                 groups={filteredGroups}
                 activeTab={activeTab}
                 bonusTranslations={bonusTranslations}
@@ -99,6 +138,7 @@ const ItemDatabase = ({
                 activeDetailsKey={tooltip.show ? `${tooltip.type}:${tooltip.item.id}` : null}
             />
             <ItemDatabaseTooltip
+                elementRef={tooltipElement}
                 tooltip={tooltip}
                 bonusTranslations={bonusTranslations}
                 drifBasePowers={drifBasePowers}
@@ -108,4 +148,4 @@ const ItemDatabase = ({
     );
 };
 
-export default ItemDatabase;
+export default memo(ItemDatabase);

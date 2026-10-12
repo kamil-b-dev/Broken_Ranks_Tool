@@ -17,8 +17,20 @@ const CompactCharacterPanel = ({ development }) => (
                     type="number"
                     min="1"
                     max="140"
-                    value={development.level}
-                    onChange={(event) => development.changeLevel(event.target.value)}
+                    value={development.levelInput}
+                    onChange={(event) => development.editLevel(event.target.value)}
+                    onBlur={development.commitLevel}
+                    onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                            event.preventDefault();
+                            development.commitLevel();
+                            event.currentTarget.blur();
+                        }
+                        if (event.key === "Escape") {
+                            event.preventDefault();
+                            development.cancelLevelEdit();
+                        }
+                    }}
                     aria-label="Poziom postaci"
                 />
                 <button
@@ -37,10 +49,10 @@ const CompactCharacterPanel = ({ development }) => (
             aria-label="Statystyki postaci"
         >
             {Object.keys(STAT_CONFIG).map((name) => (
-                <div className="character-stat-control" key={name}>
+                <div className="character-stat-control" key={name} data-stat={name}>
                     <span className="character-stat-icon" aria-hidden="true" />
                     <div>
-                        <span>{name}</span>
+                        <span>{STAT_CONFIG[name].label || name}</span>
                         <strong>{development.finalStats[name]}</strong>
                     </div>
                     <div className="character-stat-actions">

@@ -170,23 +170,25 @@ export const getAvailablePrimaryOrbs = ({
     isLegendary,
     maximumSizeIndex,
     secondaryOrbId,
-}) =>
-    orbs.filter((orb) => {
-        const secondaryType = orbs.find(
-            (candidate) => String(candidate.id) === String(secondaryOrbId)
-        )?.bonusType;
+}) => {
+    const secondaryType = orbs.find(
+        (candidate) => String(candidate.id) === String(secondaryOrbId)
+    )?.bonusType;
+    const usedTypeSet = new Set(usedTypes);
+    return orbs.filter((orb) => {
         const orbSizeIndex = ORB_SIZE_INDEX[String(orb.size).toUpperCase()] ?? -1;
         const allowed =
             allowedCategories.includes(orb.category) ||
             (isLegendary && orb.category === "OFFENSIVE");
         return (
             allowed &&
-            !usedTypes.includes(orb.bonusType) &&
+            !usedTypeSet.has(orb.bonusType) &&
             orb.bonusType !== secondaryType &&
             orbSizeIndex >= 0 &&
             orbSizeIndex <= maximumSizeIndex
         );
     });
+};
 
 export const getAvailableSecondaryOrbs = ({
     orbs,

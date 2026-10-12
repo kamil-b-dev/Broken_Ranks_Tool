@@ -4,7 +4,10 @@ import { fetchInitialEquipmentData } from "../../shared/api/equipmentApi";
 const emptyData = { items: [], orbs: [], drifs: [] };
 
 /** Loads and owns the read-only game catalog required by the equipment workspace. */
-export const useEquipmentCatalog = () => {
+export const CATALOG_DEMAND_EVENT = "broken-ranks-tool:catalog-demand";
+export const requestEquipmentCatalog = () => window.dispatchEvent(new Event(CATALOG_DEMAND_EVENT));
+
+export const useEquipmentCatalog = ({ deferHome = false } = {}) => {
     const [data, setData] = useState(emptyData);
     const [categoryNames, setCategoryNames] = useState({});
     const [orbCategories, setOrbCategories] = useState({});
@@ -15,9 +18,15 @@ export const useEquipmentCatalog = () => {
 
     useEffect(() => {
         let active = true;
+        let started = false;
+        let idle;
+        let delay;
+        const controller = new AbortController();
         const load = async () => {
+            if (!active || started) return;
+            started = true;
             try {
-                const initialData = await fetchInitialEquipmentData();
+                const initialData = await fetchInitialEquipmentData({ signal: controller.signal });
                 if (!active) return;
                 setData({
                     items: initialData.items || [],
@@ -38,11 +47,30 @@ export const useEquipmentCatalog = () => {
                 if (active) setLoading(false);
             }
         };
-        load();
+        const demand = () => {
+            void load();
+        };
+        const route = () => {
+            if (window.location.pathname !== "/") demand();
+        };
+        window.addEventListener(CATALOG_DEMAND_EVENT, demand);
+        window.addEventListener("popstate", route);
+        if (deferHome && window.location.pathname === "/") {
+            delay = setTimeout(() => {
+                if (typeof window.requestIdleCallback === "function")
+                    idle = window.requestIdleCallback(demand, { timeout: 1000 });
+                else demand();
+            }, 100);
+        } else demand();
         return () => {
             active = false;
+            controller.abort();
+            clearTimeout(delay);
+            if (idle != null) window.cancelIdleCallback(idle);
+            window.removeEventListener(CATALOG_DEMAND_EVENT, demand);
+            window.removeEventListener("popstate", route);
         };
-    }, []);
+    }, [deferHome]);
 
     return {
         data,

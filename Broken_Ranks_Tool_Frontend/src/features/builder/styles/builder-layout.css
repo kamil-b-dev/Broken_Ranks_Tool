@@ -1,57 +1,13 @@
-.workbench {
-    position: relative;
-    overflow: hidden;
-    border: 1px solid var(--ui-line);
-    background: linear-gradient(155deg, rgba(31, 27, 25, 0.98), rgba(9, 9, 10, 0.98) 60%);
-    box-shadow:
-        0 20px 42px rgba(0, 0, 0, 0.4),
-        inset 0 1px rgba(255, 243, 219, 0.05),
-        inset 0 0 42px rgba(83, 30, 22, 0.06);
-}
-
-.workbench::before {
-    position: absolute;
-    top: 0;
-    right: 12%;
-    left: 12%;
-    height: 1px;
-    content: "";
-    background: linear-gradient(90deg, transparent, rgba(188, 130, 52, 0.55), transparent);
-}
-
-.workbench-heading {
-    display: flex;
-    align-items: end;
-    justify-content: space-between;
-    gap: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid rgba(133, 75, 47, 0.48);
-}
-
-.workbench-heading h2 {
-    font-size: 1.12rem;
-    letter-spacing: 0.12em;
-}
-
-.workbench-help {
-    max-width: 22rem;
-    margin: 0;
-    color: #827b73;
-    font-size: 0.72rem;
-    line-height: 1.5;
-    text-align: right;
-}
-
 .character-summary {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: auto minmax(0, 1fr) minmax(8.5rem, 12rem);
     align-items: stretch;
     gap: 0.75rem;
     padding: 0.65rem;
     border: 1px solid rgba(112, 68, 46, 0.54);
     background:
         linear-gradient(90deg, rgba(17, 13, 13, 0.82), rgba(7, 7, 8, 0.9)),
-        url("../../../assets/panel-aged-leather-texture.webp") center / 30rem;
+        url("../../../assets/ui/panel-aged-leather-texture.webp") center / 30rem;
     background-blend-mode: normal, soft-light;
     box-shadow: inset 0 1px rgba(255, 235, 210, 0.04);
 }
@@ -67,7 +23,7 @@
     border: 1px solid rgba(81, 67, 58, 0.72);
     background:
         linear-gradient(rgba(0, 0, 0, 0.62), rgba(0, 0, 0, 0.72)),
-        url("../../../assets/hammered-black-iron-texture.webp") center / 15rem;
+        url("../../../assets/ui/hammered-black-iron-texture.webp") center / 15rem;
     background-blend-mode: normal, soft-light;
     color: #9b958d;
     font-family: var(--ui-font);
@@ -130,7 +86,7 @@
 .character-stat-strip {
     display: grid;
     min-width: 0;
-    grid-template-columns: repeat(7, minmax(9.5rem, 1fr));
+    grid-template-columns: repeat(8, minmax(10rem, 1fr));
     gap: 0.45rem;
     overflow-x: auto;
     padding-bottom: 0.15rem;
@@ -155,7 +111,7 @@
 
 .character-stat-icon {
     position: relative;
-    width: 3.5rem;
+    width: 2.5rem;
     height: 3.5rem;
     flex: 0 0 auto;
     overflow: hidden;
@@ -169,39 +125,47 @@
     width: 3.5rem;
     height: 7rem;
     content: "";
-    background-image: url("../../../assets/character-stat-icons.webp");
+    background-image: url("../../../assets/ui/character-stat-icons.webp");
     background-repeat: no-repeat;
     background-size: 400% 200%;
     transform: translate(-50%, -50%) scale(0.68);
 }
 
-.character-stat-control:nth-child(1) .character-stat-icon::before {
+.character-stat-control[data-stat="Siła"] .character-stat-icon::before {
     top: calc(50% - 0.3rem);
     background-position: 0 0;
 }
-.character-stat-control:nth-child(2) .character-stat-icon::before {
+.character-stat-control[data-stat="Zręczność"] .character-stat-icon::before {
     top: calc(50% - 0.3rem);
     background-position: 33.333% 0;
 }
-.character-stat-control:nth-child(3) .character-stat-icon::before {
+.character-stat-control[data-stat="Moc"] .character-stat-icon::before {
     top: calc(50% - 0.3rem);
     background-position: 66.667% 0;
 }
-.character-stat-control:nth-child(4) .character-stat-icon::before {
+.character-stat-control[data-stat="Wiedza"] .character-stat-icon::before {
     top: calc(50% - 0.3rem);
     background-position: 100% 0;
 }
-.character-stat-control:nth-child(5) .character-stat-icon::before {
+.character-stat-control[data-stat="PŻ"] .character-stat-icon::before {
     top: calc(50% + 0.3rem);
     background-position: 0 100%;
 }
-.character-stat-control:nth-child(6) .character-stat-icon::before {
+.character-stat-control[data-stat="Mana"] .character-stat-icon::before {
     top: calc(50% + 0.3rem);
     background-position: 33.333% 100%;
 }
-.character-stat-control:nth-child(7) .character-stat-icon::before {
+.character-stat-control[data-stat="Kondycja"] .character-stat-icon::before {
     top: calc(50% + 0.3rem);
     background-position: 66.667% 100%;
+}
+
+.character-stat-control[data-stat="Inteligencja"] .character-stat-icon::before {
+    height: 3.5rem;
+    background-image: url("../../../assets/ui/character-intelligence-icon.webp");
+    background-size: contain;
+    background-position: center;
+    transform: translate(-50%, -50%) scale(0.68);
 }
 
 .character-stat-control span,
@@ -236,7 +200,7 @@
     color: #c9c1b7;
     background:
         linear-gradient(rgba(0, 0, 0, 0.61), rgba(0, 0, 0, 0.73)),
-        url("../../../assets/hammered-black-iron-texture.webp") center / 13rem;
+        url("../../../assets/ui/hammered-black-iron-texture.webp") center / 13rem;
     background-blend-mode: normal, soft-light;
     font-size: 0.63rem;
 }
@@ -292,7 +256,7 @@
 .builder-equipment-column {
     background-image:
         linear-gradient(155deg, rgba(22, 19, 17, 0.82), rgba(3, 4, 4, 0.94) 64%),
-        url("../../../assets/panel-blackened-steel-texture.webp");
+        url("../../../assets/ui/panel-blackened-steel-texture.webp");
     background-position: center;
     background-size:
         auto,
@@ -303,7 +267,7 @@
 .builder-theme .workbench.builder-equipment-column {
     background:
         linear-gradient(155deg, rgba(17, 17, 17, 0.76), rgba(2, 3, 3, 0.92) 68%),
-        url("../../../assets/equipment-config-backdrop-texture.webp") center top / 48rem 48rem
+        url("../../../assets/ui/equipment-config-backdrop-texture.webp") center top / 48rem 48rem
             repeat;
     background-blend-mode: normal, luminosity;
 }

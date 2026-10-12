@@ -30,6 +30,29 @@ const renderOptimization = (slots = {}) => {
 };
 
 describe("useEquipmentOptimization", () => {
+    it.each([
+        ["INVALID_INPUT", false],
+        ["NO_BUILD_FOUND", false],
+        ["VALID_BUILD", true],
+        ["VALID_BUILD_SOFT_TARGETS_UNMET", true],
+    ])(
+        "uses explicit outcome %s when deciding whether to apply a returned build",
+        async (outcome, applied) => {
+            optimizeEquipmentDrifs.mockResolvedValue({
+                optimizedSetup: { slots: { helmet: { itemId: 9 } } },
+                summary: { success: false, outcome },
+                calculationResult: { stats: { Siła: "10" } },
+            });
+            const { result, setRequestData } = renderOptimization({ helmet: { itemId: 7 } });
+            await act(async () => {
+                expect(await result.current.runDrifOptimization({})).toMatchObject({
+                    applied,
+                    outcome,
+                });
+            });
+            expect(setRequestData).toHaveBeenCalledTimes(applied ? 1 : 0);
+        }
+    );
     it("does not apply a pending result after its owning workflow invalidates the run", async () => {
         let finish;
         optimizeEquipmentDrifs.mockImplementation(
@@ -374,10 +397,8 @@ describe("useEquipmentOptimization", () => {
             });
             await Promise.resolve();
         });
-        const newestRunId = optimizeEquipmentDrifs.mock.calls[1][0].advisor.runId;
+        expect(optimizeEquipmentDrifs).toHaveBeenCalledTimes(1);
         const previousRunId = optimizeEquipmentDrifs.mock.calls[0][0].advisor.runId;
-        const newestCancellationToken =
-            optimizeEquipmentDrifs.mock.calls[1][0].advisor.cancellationToken;
         const previousCancellationToken =
             optimizeEquipmentDrifs.mock.calls[0][0].advisor.cancellationToken;
         expect(cancelAdvisorOptimization).toHaveBeenCalledWith({
@@ -389,6 +410,10 @@ describe("useEquipmentOptimization", () => {
             finishes[0]({ summary: { success: true } });
             await first;
         });
+        expect(optimizeEquipmentDrifs).toHaveBeenCalledTimes(2);
+        const newestRunId = optimizeEquipmentDrifs.mock.calls[1][0].advisor.runId;
+        const newestCancellationToken =
+            optimizeEquipmentDrifs.mock.calls[1][0].advisor.cancellationToken;
         await act(async () => result.current.cancelDrifOptimization());
         expect(cancelAdvisorOptimization).toHaveBeenCalledWith({
             runId: newestRunId,
@@ -403,13 +428,19 @@ describe("useEquipmentOptimization", () => {
 
     it("does not start a pending replacement after the user cancels it", async () => {
         let finishPreviousCancellation;
+        let finishPreviousAnalysis;
         cancelAdvisorOptimization.mockImplementationOnce(
             () =>
                 new Promise((resolve) => {
                     finishPreviousCancellation = resolve;
                 })
         );
-        optimizeEquipmentDrifs.mockImplementation(() => new Promise(() => {}));
+        optimizeEquipmentDrifs.mockImplementation(
+            () =>
+                new Promise((resolve) => {
+                    finishPreviousAnalysis = resolve;
+                })
+        );
         const { result } = renderOptimization({ helmet: { itemId: 7 } });
 
         await act(async () => {
@@ -430,6 +461,10 @@ describe("useEquipmentOptimization", () => {
         await act(async () => {
             await result.current.cancelDrifOptimization();
             finishPreviousCancellation({ cancelled: true });
+            finishPreviousAnalysis({
+                summary: { success: true },
+                advisorReport: { cancelled: true, plans: [] },
+            });
         });
 
         await expect(replacement).resolves.toEqual({

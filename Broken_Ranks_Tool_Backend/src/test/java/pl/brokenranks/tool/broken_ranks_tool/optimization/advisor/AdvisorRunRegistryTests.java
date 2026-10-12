@@ -8,6 +8,31 @@ import org.junit.jupiter.api.Test;
 
 class AdvisorRunRegistryTests {
 
+    @Test
+    void cancellationBeforeRegistrationIsAppliedOnlyToMatchingSecret() {
+        assertThat(registry.cancel("pending", TOKEN)).isFalse();
+        AtomicBoolean other = registry.start("pending", "another-secret");
+        assertThat(other).isFalse();
+        registry.finish("pending", other);
+        assertThat(registry.start("pending", TOKEN)).isTrue();
+    }
+
+    @Test
+    void pendingIntentsExpireAndStayBounded() {
+        var clock = new java.util.concurrent.atomic.AtomicLong();
+        var timed = new AdvisorRunRegistry(clock::get);
+        timed.cancel("expired", TOKEN);
+        clock.set(10_000_000_001L);
+        var expired = timed.start("expired", TOKEN);
+        assertThat(expired).isFalse();
+        timed.finish("expired", expired);
+        for (int i = 0; i < 129; i++) timed.cancel("pending-" + i, TOKEN);
+        var evicted = timed.start("pending-0", TOKEN);
+        assertThat(evicted).isFalse();
+        timed.finish("pending-0", evicted);
+        assertThat(timed.start("pending-128", TOKEN)).isTrue();
+    }
+
     private static final String TOKEN = "cancel-token";
 
     private final AdvisorRunRegistry registry = new AdvisorRunRegistry();

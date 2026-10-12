@@ -11,6 +11,20 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationReques
 class SimpleProfileConfigurationResolverTests {
 
     @Test
+    void advisorDoesNotExpandOrValidateInactiveSimpleProfile() {
+        var request = simple(SimpleBuildProfile.BARBARIAN);
+        request.setMode(
+                pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationMode.ADVISOR);
+        var options = new SimpleProfileOptions();
+        options.setStyle(SimpleBuildStyle.DEFENSIVE);
+        request.setSimpleOptions(options);
+        var priorities = Map.of(DRIF_BONUS_TYPE.CRITICAL_CHANCE, 30);
+        request.setPriorities(priorities);
+        assertNull(SimpleProfileConfigurationResolver.resolve(request));
+        assertSame(priorities, request.getPriorities());
+    }
+
+    @Test
     void buildsBarbarianFromCommonCoreBalancedPackageAndPlayerCounts() {
         var request = simple(SimpleBuildProfile.BARBARIAN);
         var options = new SimpleProfileOptions();

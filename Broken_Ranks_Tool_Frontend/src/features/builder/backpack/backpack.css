@@ -1,0 +1,284 @@
+.builder-equipment-view-switch {
+    display: flex;
+    gap: 0.3rem;
+}
+.builder-equipment-view-switch button,
+.backpack-toolbar button,
+.backpack-card-actions button {
+    min-height: 44px;
+    padding: 0.45rem 0.7rem;
+    border: 1px solid var(--ui-line-bright);
+    background: rgba(4, 4, 5, 0.8);
+    color: var(--ui-text-muted);
+    font-family: var(--ui-font);
+    cursor: pointer;
+}
+.builder-equipment-view-switch button[aria-pressed="true"] {
+    color: var(--ui-gold);
+    border-color: var(--ui-gold);
+    background: rgba(115, 63, 25, 0.35);
+}
+.backpack-workbench {
+    min-height: 52rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    font-family: var(--ui-font);
+}
+.backpack-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.45rem;
+}
+.backpack-toolbar button {
+    color: var(--ui-gold);
+    font-size: 0.78rem;
+}
+.backpack-toolbar > span {
+    margin-left: auto;
+    color: var(--ui-text-muted);
+    font-size: 0.75rem;
+}
+.backpack-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+    gap: 0.75rem;
+    align-content: start;
+}
+.backpack-card {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--ui-line);
+    background: rgba(4, 4, 5, 0.78);
+}
+.backpack-card.is-selected {
+    border-color: var(--ui-gold);
+    box-shadow: 0 0 0 1px var(--ui-gold);
+}
+.backpack-card.is-invalid {
+    border-left: 3px solid #dd963d;
+}
+.backpack-card .equipment-slot-overview {
+    flex: 1;
+    width: 100%;
+    min-height: 8rem;
+    border: 0;
+}
+.backpack-stone-card {
+    flex: 1;
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    width: 100%;
+    min-height: 8rem;
+    padding: 0.9rem;
+    text-align: left;
+}
+.backpack-stone-card > img {
+    width: 2.5rem;
+    height: 2.5rem;
+    flex: 0 0 auto;
+}
+.backpack-stone-card > span:last-child {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+.backpack-stone-card strong {
+    color: var(--ui-text);
+    overflow-wrap: anywhere;
+    font-size: 0.85rem;
+}
+.backpack-stone-card small {
+    color: var(--ui-gold);
+    text-transform: uppercase;
+    font-size: 0.68rem;
+}
+.backpack-stone-card span span {
+    color: var(--ui-text-muted);
+    font-size: 0.75rem;
+}
+.backpack-card-actions {
+    display: flex;
+    border-top: 1px solid var(--ui-line);
+}
+.backpack-card-actions button {
+    flex: 1;
+    padding: 0.25rem;
+    border-width: 0 1px 0 0;
+    font-size: 0.72rem;
+}
+.backpack-card-actions button:last-child {
+    border-right: 0;
+}
+.backpack-card-actions button:disabled {
+    opacity: 0.3;
+    cursor: default;
+}
+.backpack-empty {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    border: 1px dashed var(--ui-line-bright);
+    color: var(--ui-text-muted);
+    font-size: 0.9rem;
+    text-align: center;
+}
+.backpack-editor .selected-slot-editor-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+.backpack-editor .gear-slot-editor {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+}
+.backpack-editor .selected-slot-editor-heading {
+    padding: 0.65rem 0.9rem;
+}
+.backpack-card .equipment-slot-overview {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.8rem;
+    text-align: left;
+}
+.backpack-card .equipment-slot-overview-content {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+.backpack-card .equipment-slot-drif-list {
+    display: grid;
+    gap: 0.25rem;
+}
+.mobile-backpack {
+    display: grid;
+    gap: 1rem;
+}
+.mobile-backpack .backpack-workbench {
+    min-height: 18rem;
+}
+.mobile-backpack .backpack-editor {
+    padding: 0.75rem;
+    border: 1px solid var(--ui-line-bright);
+}
+.backpack-card .equipment-slot-overview-heading {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    color: var(--ui-gold);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+}
+.backpack-editor .gear-item-preview {
+    display: grid;
+    grid-template-columns: 2.5rem minmax(0, 1fr);
+    gap: 0.6rem;
+    align-items: center;
+}
+.backpack-editor .gear-item-preview-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+}
+.backpack-editor .gear-item-preview > div {
+    display: grid;
+    gap: 0.2rem;
+    min-width: 0;
+}
+.backpack-editor .gear-item-preview strong {
+    font-size: 0.85rem;
+    overflow-wrap: anywhere;
+}
+.backpack-editor .gear-item-preview small {
+    color: var(--ui-text-muted);
+    font-size: 0.7rem;
+}
+.backpack-editor :where(select, input, button, span, strong, label, small) {
+    font-family: var(--ui-font);
+}
+.backpack-editor select {
+    min-height: 36px;
+}
+@media (max-width: 700px) {
+    .mobile-builder .mobile-sections {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .backpack-editor select {
+        min-height: 44px;
+    }
+    .backpack-editor .gear-slot-item-section .flex.justify-center {
+        flex-wrap: wrap;
+    }
+    .backpack-editor .gear-slot-item-section button {
+        min-width: 32px;
+        min-height: 44px;
+    }
+}
+.backpack-editor .selected-slot-editor-heading {
+    display: block;
+}
+.backpack-editor .selected-slot-editor-heading h3 {
+    font-family: var(--ui-font);
+    overflow-wrap: anywhere;
+    font-size: 0.88rem;
+    letter-spacing: 0.04em;
+}
+.backpack-picker {
+    display: grid;
+    width: 100%;
+    gap: 1rem;
+    font-family: var(--ui-font);
+}
+.backpack-picker label {
+    display: grid;
+    min-width: 0;
+    gap: 0.4rem;
+    color: var(--ui-gold);
+    font-size: 0.8rem;
+}
+.backpack-picker select {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    padding: 0.5rem;
+    border: 1px solid var(--ui-line-bright);
+    background: var(--ui-ink);
+    color: var(--ui-text);
+    font-family: var(--ui-font);
+}
+.backpack-warning,
+.backpack-card-warning {
+    color: #edb967;
+    background: rgba(114, 71, 19, 0.15);
+    border-left: 2px solid #c89140;
+    padding: 0.6rem;
+    font-family: var(--ui-font);
+    font-size: 0.78rem;
+    line-height: 1.5;
+}
+.backpack-card-warning {
+    border: 0;
+    font-size: 0.7rem;
+    padding: 0.3rem 0.6rem;
+}
+.backpack-editor-empty {
+    color: var(--ui-text-muted);
+    font-family: var(--ui-font);
+}
+@media (max-width: 700px) {
+    .backpack-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .backpack-workbench {
+        min-height: 24rem;
+    }
+}

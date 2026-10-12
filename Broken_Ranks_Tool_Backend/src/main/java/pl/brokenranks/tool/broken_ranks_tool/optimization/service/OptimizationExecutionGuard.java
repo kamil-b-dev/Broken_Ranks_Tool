@@ -18,6 +18,7 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRespon
 public class OptimizationExecutionGuard {
 
     private final ModsOptimizationService optimizationService;
+    private final OptimizationMemoryGuard memoryGuard;
     private final Semaphore permits;
     private final AtomicInteger activeRuns = new AtomicInteger();
     private final Counter rejectedRuns;
@@ -30,8 +31,10 @@ public class OptimizationExecutionGuard {
     public OptimizationExecutionGuard(
             ModsOptimizationService optimizationService,
             OptimizationProperties properties,
-            MeterRegistry meterRegistry) {
+            MeterRegistry meterRegistry,
+            OptimizationMemoryGuard memoryGuard) {
         this.optimizationService = optimizationService;
+        this.memoryGuard = memoryGuard;
         this.permits = new Semaphore(properties.maxConcurrentRuns(), true);
         Gauge.builder("optimizer.active", activeRuns, AtomicInteger::get).register(meterRegistry);
         this.rejectedRuns = outcomeCounter(meterRegistry, OptimizationRunOutcome.REJECTED);
@@ -52,6 +55,12 @@ public class OptimizationExecutionGuard {
         if (!permits.tryAcquire()) {
             rejectedRuns.increment();
             throw new OptimizerBusyException();
+        }
+        try {
+            memoryGuard.ensureAvailable();
+        } catch (RuntimeException ex) {
+            permits.release();
+            throw ex;
         }
         Timer.Sample sample = Timer.start();
         activeRuns.incrementAndGet();

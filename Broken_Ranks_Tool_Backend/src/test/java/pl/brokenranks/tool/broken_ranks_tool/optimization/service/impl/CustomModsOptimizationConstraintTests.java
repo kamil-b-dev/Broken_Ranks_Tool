@@ -172,7 +172,8 @@ class CustomModsOptimizationConstraintTests extends CustomModsOptimizationTestSu
         assertTrue(response.getSummary().isSuccess());
         EquipmentRequest.SlotData result = response.getOptimizedSetup().getSlots().get("helmet");
         assertEquals(List.of(criticalChance.getId()), result.getDrifIds());
-        assertEquals(16, result.getDrifLevels().get("0"));
+        assertEquals(11, result.getDrifLevels().get("0"));
+        // Both levels reach the soft target; the shared policy prefers less useless surplus.
     }
 
     @Test

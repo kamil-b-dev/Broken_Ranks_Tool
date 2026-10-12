@@ -1,0 +1,11 @@
+{
+    "format": "broken-ranks-tool-build",
+    "version": 1,
+    "build": {
+        "requestData": {
+            "slots": {
+                "helmet": { "itemId": 1, "orbIds": [null, null], "orbLevels": [null, null] }
+            }
+        }
+    }
+}

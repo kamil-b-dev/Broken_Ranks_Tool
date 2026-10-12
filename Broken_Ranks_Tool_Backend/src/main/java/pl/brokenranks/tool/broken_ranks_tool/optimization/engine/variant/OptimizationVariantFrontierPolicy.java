@@ -20,14 +20,19 @@ final class OptimizationVariantFrontierPolicy {
     boolean isEligible(BuildState state, OptimizationContext context) {
         return state != null
                 && stateEvaluator.minimumsSatisfied(state, context)
-                && forcedCapsSatisfied(state, context);
+                && resultAssembler.validateFinalResult(state, context) == null;
     }
 
     OptimizationVariantProfile profile(
             BuildState state, List<DRIF_BONUS_TYPE> trackedTypes, OptimizationContext context) {
         Map<DRIF_BONUS_TYPE, Double> values = new LinkedHashMap<>();
         for (DRIF_BONUS_TYPE type : trackedTypes) {
-            values.put(type, resultAssembler.actualValue(state, type, context));
+            values.put(
+                    type,
+                    usefulValue(
+                            type,
+                            resultAssembler.actualValue(state, type, context),
+                            context.request()));
         }
         return new OptimizationVariantProfile(state, values);
     }
@@ -55,15 +60,11 @@ final class OptimizationVariantFrontierPolicy {
         boolean noWorse =
                 focuses.stream()
                         .allMatch(
-                                type ->
-                                        left.values().get(type)
-                                                >= right.values().get(type) - TARGET_TOLERANCE);
+                                type -> left.values().get(type) >= right.values().get(type) - 1e-8);
         boolean better =
                 focuses.stream()
                         .anyMatch(
-                                type ->
-                                        left.values().get(type)
-                                                > right.values().get(type) + TARGET_TOLERANCE);
+                                type -> left.values().get(type) > right.values().get(type) + 1e-8);
         return noWorse && better;
     }
 
@@ -84,20 +85,8 @@ final class OptimizationVariantFrontierPolicy {
             if (type == focus) continue;
             double mainValue = main.values().get(type);
             double allowedLoss =
-                    Math.max(1.0, Math.abs(mainValue)) * maxVariantRelativeLoss(context.request());
-            if (candidate.values().get(type) < mainValue - allowedLoss - TARGET_TOLERANCE)
-                return false;
-        }
-        return true;
-    }
-
-    private boolean forcedCapsSatisfied(BuildState state, OptimizationContext context) {
-        for (DRIF_BONUS_TYPE type : context.request().getPriorities().keySet()) {
-            if (!isForcedTarget(type, context.request())) continue;
-            Double target = targetFor(type, context.request());
-            if (target != null
-                    && resultAssembler.actualValue(state, type, context)
-                            < target - TARGET_TOLERANCE) return false;
+                    Math.max(0.0, mainValue) * maxVariantRelativeLoss(context.request());
+            if (candidate.values().get(type) < mainValue - allowedLoss - 1e-8) return false;
         }
         return true;
     }

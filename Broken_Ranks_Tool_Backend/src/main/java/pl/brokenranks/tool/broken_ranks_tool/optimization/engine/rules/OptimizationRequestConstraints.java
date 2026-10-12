@@ -3,6 +3,7 @@ package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules;
 import java.util.Map;
 import lombok.experimental.UtilityClass;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.ModifierValueRules;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 
 /** Normalizes and evaluates user-provided optimization constraints. */
@@ -44,7 +45,10 @@ public class OptimizationRequestConstraints {
     public static Double targetFor(DRIF_BONUS_TYPE type, OptimizationRequest request) {
         if (request.getForcedPercentageTargets() != null) {
             Double target = request.getForcedPercentageTargets().get(type);
-            if (target != null) return Math.abs(target);
+            if (target != null)
+                return type.getMaxCap() == null
+                        ? Math.abs(target)
+                        : Math.min(Math.abs(target), Math.abs(type.getMaxCap()));
         }
         if (isForcedCap(type, request) && type.getMaxCap() != null) {
             return (double) Math.abs(type.getMaxCap());
@@ -70,6 +74,13 @@ public class OptimizationRequestConstraints {
         return type.getMaxCap() != null ? (double) Math.abs(type.getMaxCap()) : null;
     }
 
+    /** Utility of an already directed calculator value; surplus never invalidates a build. */
+    public static double usefulValue(
+            DRIF_BONUS_TYPE type, double value, OptimizationRequest request) {
+        Double bound = usefulTargetFor(type, request);
+        return ModifierValueRules.bounded(Math.max(0.0, value), bound);
+    }
+
     /**
      * Measures progress towards a maximization objective without rewarding values above a natural
      * game cap. Uncapped modifiers keep their full relative progress.
@@ -83,7 +94,7 @@ public class OptimizationRequestConstraints {
 
     public static double directedValue(
             DRIF_BONUS_TYPE type, double value, OptimizationRequest request) {
-        return type.getMaxCap() != null && type.getMaxCap() < 0 ? -value : value;
+        return ModifierValueRules.directed(type, value);
     }
 
     public static int clampQuantity(int value) {

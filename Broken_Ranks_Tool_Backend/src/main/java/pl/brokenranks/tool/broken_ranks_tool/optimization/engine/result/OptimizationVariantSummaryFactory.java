@@ -1,11 +1,15 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result;
 
-import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationRequestConstraints.TARGET_TOLERANCE;
+import static pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationRequestConstraints.*;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRulesRegistry;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationSummary;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.variant.GeneratedOptimizationVariant;
 
@@ -18,9 +22,21 @@ final class OptimizationVariantSummaryFactory {
     private final OptimizationVariantSelectionPolicy selectionPolicy =
             new OptimizationVariantSelectionPolicy();
     private final OptimizationVariantDiffAnalyzer diffAnalyzer;
+    private final OptimizationStateEvaluator evaluator;
 
     OptimizationVariantSummaryFactory(
             OptimizationCalculatorAdapter calculatorAdapter, OptimizationSetupMapper setupMapper) {
+        this(
+                calculatorAdapter,
+                setupMapper,
+                new OptimizationStateEvaluator(new EquipmentRulesRegistry()));
+    }
+
+    OptimizationVariantSummaryFactory(
+            OptimizationCalculatorAdapter calculatorAdapter,
+            OptimizationSetupMapper setupMapper,
+            OptimizationStateEvaluator evaluator) {
+        this.evaluator = evaluator;
         this.calculatorAdapter = calculatorAdapter;
         this.setupMapper = setupMapper;
         this.diffAnalyzer = new OptimizationVariantDiffAnalyzer(calculatorAdapter);
@@ -31,8 +47,7 @@ final class OptimizationVariantSummaryFactory {
             List<GeneratedOptimizationVariant> variants,
             OptimizationContext context) {
         OptimizationSummary.OptimizationVariant mainVariant = mainVariant(finalState, context);
-        if (context.request().getMaximizeBonuses() == null
-                || context.request().getMaximizeBonuses().isEmpty()) return List.of(mainVariant);
+        if (variants.isEmpty()) return List.of(mainVariant);
 
         List<OptimizationVariantSelectionPolicy.Candidate> candidates =
                 variantCandidates(finalState, variants, context);
@@ -72,7 +87,8 @@ final class OptimizationVariantSummaryFactory {
             DRIF_BONUS_TYPE focus = generated.focus();
             double finalValue = calculatorAdapter.actualValue(finalState, focus, context);
             double variantValue = calculatorAdapter.actualValue(variant, focus, context);
-            if (variantValue <= finalValue + TARGET_TOLERANCE) continue;
+            Map<DRIF_BONUS_TYPE, Double> deltas = usefulDeltas(finalState, variant, context);
+            if (deltas.getOrDefault(focus, 0.0) <= TARGET_TOLERANCE) continue;
             List<OptimizationSummary.PlacementChange> changes =
                     diffAnalyzer.placementChanges(finalState, variant, context);
             if (!changes.isEmpty() && changes.size() <= MAX_VARIANT_CHANGES) {
@@ -84,7 +100,14 @@ final class OptimizationVariantSummaryFactory {
                                 totalLoss(finalState, variant, focus, context),
                                 changes,
                                 variant.signature(),
-                                variant));
+                                variant,
+                                deltas,
+                                evaluator.verifiedQuality(
+                                        variant,
+                                        context,
+                                        type ->
+                                                calculatorAdapter.actualValue(
+                                                        variant, type, context))));
             }
         }
         return candidates;
@@ -109,6 +132,29 @@ final class OptimizationVariantSummaryFactory {
                 calculatorAdapter.calculationResult(candidate.state(), context));
     }
 
+    private Map<DRIF_BONUS_TYPE, Double> usefulDeltas(
+            BuildState main, BuildState variant, OptimizationContext context) {
+        Map<DRIF_BONUS_TYPE, Double> result = new LinkedHashMap<>();
+        context.request()
+                .getPriorities()
+                .keySet()
+                .forEach(
+                        type ->
+                                result.put(
+                                        type,
+                                        usefulValue(
+                                                        type,
+                                                        calculatorAdapter.actualValue(
+                                                                variant, type, context),
+                                                        context.request())
+                                                - usefulValue(
+                                                        type,
+                                                        calculatorAdapter.actualValue(
+                                                                main, type, context),
+                                                        context.request())));
+        return result;
+    }
+
     private double totalLoss(
             BuildState main,
             BuildState variant,
@@ -120,9 +166,16 @@ final class OptimizationVariantSummaryFactory {
                         type ->
                                 Math.max(
                                         0.0,
-                                        calculatorAdapter.actualValue(main, type, context)
-                                                - calculatorAdapter.actualValue(
-                                                        variant, type, context)))
+                                        usefulValue(
+                                                        type,
+                                                        calculatorAdapter.actualValue(
+                                                                main, type, context),
+                                                        context.request())
+                                                - usefulValue(
+                                                        type,
+                                                        calculatorAdapter.actualValue(
+                                                                variant, type, context),
+                                                        context.request())))
                 .sum();
     }
 }

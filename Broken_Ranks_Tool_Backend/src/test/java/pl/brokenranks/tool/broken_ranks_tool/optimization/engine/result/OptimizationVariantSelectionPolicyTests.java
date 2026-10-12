@@ -11,6 +11,93 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.BuildStat
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationVariantSelectionPolicy.Candidate;
 
 class OptimizationVariantSelectionPolicyTests {
+    @Test
+    void equivalentUsefulBonusesUseSharedQualityBeforeTheNumberOfChanges() {
+        var type = DRIF_BONUS_TYPE.CRITICAL_CHANCE;
+        var deltas = java.util.Map.of(type, 3.0);
+        var lowPenalty =
+                new pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.Quality(
+                        0, 0, 0, 0, 30, 0, 0, 0.5, 4);
+        var highPenalty =
+                new pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.Quality(
+                        0, 0, 0, 0, 30, 1, 0, 0.5, 4);
+        var better =
+                new Candidate(
+                        type,
+                        10,
+                        13,
+                        0,
+                        List.of(change("helmet", "A", "B"), change("boots", "C", "D")),
+                        "better",
+                        new BuildState(),
+                        deltas,
+                        lowPenalty);
+        var worse =
+                new Candidate(
+                        type,
+                        10,
+                        13,
+                        0,
+                        List.of(change("helmet", "A", "B")),
+                        "worse",
+                        new BuildState(),
+                        deltas,
+                        highPenalty);
+        assertEquals(List.of(better), policy.select(List.of(worse, better)));
+    }
+
+    @Test
+    void doesNotCompareGainsOfDifferentModifiersAsIfTheyWereTheSameOutcome() {
+        Candidate magic =
+                new Candidate(
+                        DRIF_BONUS_TYPE.DAMAGE_MAGIC,
+                        10,
+                        20,
+                        0,
+                        List.of(change("helmet", "A", "B")),
+                        "magic",
+                        new BuildState(),
+                        java.util.Map.of(
+                                DRIF_BONUS_TYPE.DAMAGE_MAGIC,
+                                10.0,
+                                DRIF_BONUS_TYPE.CRITICAL_CHANCE,
+                                0.0));
+        Candidate critical =
+                new Candidate(
+                        DRIF_BONUS_TYPE.CRITICAL_CHANCE,
+                        10,
+                        11,
+                        0,
+                        List.of(change("helmet", "A", "B")),
+                        "critical",
+                        new BuildState(),
+                        java.util.Map.of(
+                                DRIF_BONUS_TYPE.DAMAGE_MAGIC,
+                                0.0,
+                                DRIF_BONUS_TYPE.CRITICAL_CHANCE,
+                                1.0));
+        assertEquals(2, policy.select(List.of(magic, critical)).size());
+    }
+
+    @Test
+    void levelChangesRemainDistinctWhenTheyRequireDifferentTradeoffs() {
+        Candidate first =
+                candidate(
+                        10,
+                        15,
+                        1,
+                        new PlacementChange("helmet", "helmet", "A", 6, "A", 11),
+                        "first");
+        Candidate second =
+                candidate(
+                        10,
+                        16,
+                        3,
+                        new PlacementChange("helmet", "helmet", "A", 11, "A", 16),
+                        "second");
+        assertEquals(2, policy.select(List.of(first, second)).size());
+    }
+
     private final OptimizationVariantSelectionPolicy policy =
             new OptimizationVariantSelectionPolicy();
 

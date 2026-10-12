@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 const DEFAULT_FILTERS = {
     search: "",
@@ -15,12 +15,18 @@ export const useItemDatabaseFilters = () => {
     const [activeTab, setActiveTab] = useState("items");
     const [filters, setFilters] = useState(DEFAULT_FILTERS);
 
-    const setFilter = (name, value) => setFilters((current) => ({ ...current, [name]: value }));
-    const clearFilters = () => setFilters(DEFAULT_FILTERS);
-    const changeTab = (tab) => {
+    const setFilter = useCallback(
+        (name, value) =>
+            setFilters((current) =>
+                current[name] === value ? current : { ...current, [name]: value }
+            ),
+        []
+    );
+    const clearFilters = useCallback(() => setFilters(DEFAULT_FILTERS), []);
+    const changeTab = useCallback((tab) => {
         setActiveTab(tab);
         setFilters(DEFAULT_FILTERS);
-    };
+    }, []);
     const hasActiveFilters = Object.entries(filters).some(
         ([name, value]) => value !== DEFAULT_FILTERS[name]
     );

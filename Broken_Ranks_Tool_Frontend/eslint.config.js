@@ -6,7 +6,7 @@ import react from "eslint-plugin-react";
 import { defineConfig, globalIgnores } from "eslint/config";
 
 export default defineConfig([
-    globalIgnores(["coverage", "dist", "docs"]),
+    globalIgnores(["coverage", "dist", "docs", "performance-results", "performance-report"]),
     {
         files: ["**/*.{js,jsx,mjs}"],
         extends: [

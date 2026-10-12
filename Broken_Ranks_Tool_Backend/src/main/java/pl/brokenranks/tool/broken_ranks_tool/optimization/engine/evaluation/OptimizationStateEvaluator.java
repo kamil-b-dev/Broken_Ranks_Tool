@@ -33,27 +33,6 @@ public final class OptimizationStateEvaluator {
         return candidate.signature().compareTo(current.signature()) < 0;
     }
 
-    /** Compares only hard constraints, forced caps, and maximization objectives. */
-    public boolean isBetterMaximizationState(
-            BuildState candidate, BuildState current, OptimizationContext context) {
-        Quality candidateQuality = quality(candidate, context);
-        Quality currentQuality = quality(current, context);
-        if (candidateQuality.hardViolations() != currentQuality.hardViolations())
-            return candidateQuality.hardViolations() < currentQuality.hardViolations();
-        int comparison =
-                Double.compare(
-                        currentQuality.forcedCapDeficit(), candidateQuality.forcedCapDeficit());
-        if (comparison != 0) return comparison > 0;
-        comparison =
-                Double.compare(
-                        candidateQuality.minimumMaximizedProgress(),
-                        currentQuality.minimumMaximizedProgress());
-        if (comparison != 0) return comparison > 0;
-        return Double.compare(
-                        candidateQuality.maximizedUtility(), currentQuality.maximizedUtility())
-                > 0;
-    }
-
     public Comparator<BuildState> stateComparator(OptimizationContext context) {
         return (left, right) -> {
             int comparison =
@@ -106,8 +85,16 @@ public final class OptimizationStateEvaluator {
         return qualityCalculator.maximizationScale(type, context);
     }
 
-    private Quality quality(BuildState state, OptimizationContext context) {
+    public Quality quality(BuildState state, OptimizationContext context) {
         return qualityCalculator.quality(evaluation(state, context), context);
+    }
+
+    /** Replaces approximate objective values with calculator values; all tie-breaks stay shared. */
+    public Quality verifiedQuality(
+            BuildState state,
+            OptimizationContext context,
+            java.util.function.ToDoubleFunction<DRIF_BONUS_TYPE> values) {
+        return qualityCalculator.objectives(quality(state, context), context, values);
     }
 
     private StateEvaluation evaluation(BuildState state, OptimizationContext context) {

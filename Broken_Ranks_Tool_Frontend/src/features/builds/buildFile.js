@@ -1,13 +1,16 @@
 import { validateImportedBuild } from "./buildImportValidation";
 import { parseGameBuildPayload } from "./gameBuildFile";
+import { normalizeTrailingOrbSlots } from "../../shared/domain/equipment/orbSelectionNormalization";
+import { normalizeBackpack } from "../builder/backpack/backpackSerialization";
 import {
     normalizeCharacterConfig,
     totalPointsForLevel,
     trimSpentPoints,
 } from "../builder/character/characterDevelopmentDomain";
 
-export const BUILD_FILE_FORMAT = "broken-ranks-tool-build";
-export const BUILD_FILE_VERSION = 1;
+import { createBuildPayload } from "./buildPayload";
+export { BUILD_FILE_FORMAT, BUILD_FILE_VERSION, createBuildPayload } from "./buildPayload";
+export { downloadBuildPayload } from "./buildDownloads";
 export const MAX_BUILD_FILE_SIZE = 5 * 1024 * 1024;
 
 const isObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
@@ -26,7 +29,11 @@ const normalizeImportedCharacterConfig = (config) => {
 // Legacy files may store drif levels in arrays and orb levels in index maps.
 // Publish the container shapes expected by EquipmentRequest after validation.
 const normalizeSlotLevels = (slot) => {
-    const normalized = { ...slot };
+    const normalized = Object.fromEntries(
+        ["itemId", "itemStars", "drifIds", "drifLevels", "orbIds", "orbLevels"]
+            .filter((key) => Object.hasOwn(slot, key))
+            .map((key) => [key, slot[key]])
+    );
     if (slot.drifLevels != null) {
         normalized.drifLevels = Object.fromEntries(
             Object.entries(slot.drifLevels).map(([index, level]) => [index, Number(level)])
@@ -41,36 +48,6 @@ const normalizeSlotLevels = (slot) => {
         );
     }
     return normalized;
-};
-
-/**
- * Creates the versioned file payload used by the build export action.
- * @param {object} build Current build state.
- * @returns {object} Serializable build payload.
- */
-export const createBuildPayload = ({ requestData, characterConfig, lockedSlots, lockedDrifs }) => ({
-    format: BUILD_FILE_FORMAT,
-    version: BUILD_FILE_VERSION,
-    exportedAt: new Date().toISOString(),
-    build: {
-        requestData,
-        characterConfig,
-        lockedSlots,
-        lockedDrifs,
-    },
-});
-
-/** Downloads a serialized build payload and releases the temporary browser URL. */
-export const downloadBuildPayload = (payload, date = new Date()) => {
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `broken-ranks-build-${date.toISOString().slice(0, 10)}.json`;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 };
 
 /**
@@ -91,7 +68,7 @@ export const parseBuildFile = async (file, data = {}) => {
         throw new Error("Plik nie zawiera poprawnego JSON-a.");
     }
 
-    if (payload?.format === BUILD_FILE_FORMAT) {
+    if (BUILD_FILE_READERS.has(payload?.format)) {
         return parseBuildPayload(payload, data);
     }
     if (payload?.stats && payload?.equipped && payload?.equipmentList) {
@@ -109,13 +86,31 @@ export const parseBuildFile = async (file, data = {}) => {
  * Used by both JSON imports and the local build library.
  */
 export const parseBuildPayload = (payload, data = {}) => {
-    if (payload?.format !== BUILD_FILE_FORMAT || payload?.version !== BUILD_FILE_VERSION) {
+    const reader = BUILD_FILE_READERS.get(payload?.format)?.get(payload?.version);
+    if (!reader) {
         throw new Error("Nieobsługiwany format lub wersja pliku buildu.");
     }
+    return reader(payload.build, data);
+};
 
-    const build = payload.build;
-    const importedRequest = build?.requestData;
-    const { lockedSlots, lockedDrifs } = validateImportedBuild(build, data);
+/** v1 stays registered when the export version changes. Never reuse a version for a new shape. */
+const readVersionOneBuild = (build, data) => {
+    const originalRequest = build?.requestData;
+    const importedRequest = isObject(originalRequest?.slots)
+        ? {
+              ...originalRequest,
+              slots: Object.fromEntries(
+                  Object.entries(originalRequest.slots).map(([key, slot]) => [
+                      key,
+                      normalizeTrailingOrbSlots(slot),
+                  ])
+              ),
+          }
+        : originalRequest;
+    const { lockedSlots, lockedDrifs } = validateImportedBuild(
+        { ...build, requestData: importedRequest },
+        data
+    );
 
     return {
         requestData: cloneJson({
@@ -132,3 +127,24 @@ export const parseBuildPayload = (payload, data = {}) => {
         lockedDrifs: cloneJson(lockedDrifs),
     };
 };
+
+// Intentionally independent of BUILD_FILE_VERSION and the current export format constant.
+const BUILD_FILE_READERS = new Map([
+    [
+        "broken-ranks-tool-build",
+        new Map([
+            [1, readVersionOneBuild],
+            [
+                2,
+                (build, data) => {
+                    if (!Array.isArray(build?.backpack))
+                        throw new Error("Plik wersji 2 nie zawiera poprawnego plecaka.");
+                    return {
+                        ...readVersionOneBuild(build, data),
+                        backpack: normalizeBackpack(build.backpack),
+                    };
+                },
+            ],
+        ]),
+    ],
+]);

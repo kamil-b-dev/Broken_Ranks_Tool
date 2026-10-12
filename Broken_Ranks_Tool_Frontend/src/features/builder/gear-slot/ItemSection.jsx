@@ -23,6 +23,7 @@ const ItemSection = ({
     handleDragLeave,
     handleDrop,
     hookData,
+    allowEmptyItem = true,
 }) => {
     const {
         selectedItem,
@@ -80,7 +81,7 @@ const ItemSection = ({
                 }}
                 className={`w-full bg-black/80 text-xs font-serif border border-rose-900/70 builder-accent-frame focus:border-rose-500 builder-accent-frame p-1.5 outline-hidden text-center cursor-pointer shadow-inner ${fullSelectedItem ? getRarityColor(fullSelectedItem.rarity) : "text-stone-300"}`}
             >
-                <option value="" className="text-stone-600">
+                <option value="" className="text-stone-600" disabled={!allowEmptyItem}>
                     -- {label} --
                 </option>
                 {items.map((i) => (

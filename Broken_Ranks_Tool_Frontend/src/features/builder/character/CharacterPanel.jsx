@@ -1,5 +1,6 @@
 import { useCharacterDevelopment } from "./useCharacterDevelopment";
 import CompactCharacterPanel from "./CompactCharacterPanel";
+import { memo } from "react";
 
 /** Connects character development state to the desktop presentation. */
 const CharacterPanel = ({ onStatsChange, externalConfig, externalStats, syncTrigger }) => {
@@ -12,4 +13,4 @@ const CharacterPanel = ({ onStatsChange, externalConfig, externalStats, syncTrig
     return <CompactCharacterPanel development={development} />;
 };
 
-export default CharacterPanel;
+export default memo(CharacterPanel);

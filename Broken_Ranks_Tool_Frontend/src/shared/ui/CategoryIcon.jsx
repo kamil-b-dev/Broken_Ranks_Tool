@@ -1,9 +1,10 @@
-import drifDefensive from "../../assets/category-icons/drif-defensive.webp";
-import drifOffensive from "../../assets/category-icons/drif-offensive.webp";
-import drifUtility from "../../assets/category-icons/drif-utility.webp";
-import orbDefensive from "../../assets/category-icons/orb-defensive.webp";
-import orbOffensive from "../../assets/category-icons/orb-offensive.webp";
-import orbUtility from "../../assets/category-icons/orb-utility.webp";
+import "./category-icon.css";
+import drifDefensive from "../../assets/ui/drif-defensive.webp";
+import drifOffensive from "../../assets/ui/drif-offensive.webp";
+import drifUtility from "../../assets/ui/drif-utility.webp";
+import orbDefensive from "../../assets/ui/orb-defensive.webp";
+import orbOffensive from "../../assets/ui/orb-offensive.webp";
+import orbUtility from "../../assets/ui/orb-utility.webp";
 
 const CATEGORY_ICONS = {
     orb: {
@@ -39,6 +40,7 @@ const CategoryIcon = ({ kind, category, className = "", fallback = null }) => {
             alt=""
             aria-hidden="true"
             draggable="false"
+            decoding="async"
         />
     );
 };

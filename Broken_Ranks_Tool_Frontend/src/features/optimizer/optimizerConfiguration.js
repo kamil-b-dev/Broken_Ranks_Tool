@@ -8,6 +8,7 @@ import {
     DEFAULT_ADVISOR_CHANGES,
     DEFAULT_ADVISOR_SEARCH,
     normalizeAdvisorTimeBudget,
+    normalizeAdvisorPurchaseScope,
 } from "./advisor/advisorConfiguration";
 import {
     DEFAULT_SIMPLE_ASPECTS,
@@ -82,6 +83,7 @@ export const createOptimizerConfigPayload = (priorities, settings, exportedAt = 
         ),
         simpleAspects: normalizeSimpleAspects(settings?.simpleAspects),
         advisorProfession: settings?.advisorProfession || "AUTO",
+        advisorPurchaseScope: normalizeAdvisorPurchaseScope(settings?.advisorPurchaseScope),
         advisorGoal: settings?.advisorGoal || "",
         advisorProtectedModifiers: settings?.advisorProtectedModifiers || {},
         advisorAllowedChanges: { ...DEFAULT_ADVISOR_CHANGES, ...settings?.advisorAllowedChanges },
@@ -201,6 +203,7 @@ export const parseOptimizerConfigPayload = (payload, gameRules = {}) => {
             normalizeSimpleProfile(payload.settings?.simpleProfile)
         ),
         simpleAspects: normalizeSimpleAspects(payload.settings?.simpleAspects),
+        advisorPurchaseScope: normalizeAdvisorPurchaseScope(payload.settings?.advisorPurchaseScope),
         advisorProfession: ["AUTO", "MAGICAL", "PHYSICAL"].includes(
             payload.settings?.advisorProfession
         )
@@ -241,6 +244,8 @@ export const parseOptimizerConfigPayload = (payload, gameRules = {}) => {
                   timeBudgetMs: normalizeAdvisorTimeBudget(
                       payload.settings.advisorSearch.timeBudgetMs
                   ),
+                  limitBenefitToTarget:
+                      payload.settings.advisorSearch.limitBenefitToTarget === true,
               }
             : null,
         advisorProtectedModifiers: normalizeProtectedModifiers(
@@ -264,6 +269,7 @@ export const parseOptimizerConfigPayload = (payload, gameRules = {}) => {
 export const mergeOptimizerSettings = (previous, imported) => ({
     ...previous,
     advisorProfession: imported.advisorProfession,
+    advisorPurchaseScope: imported.advisorPurchaseScope,
     ...(imported.advisorGoal !== null ? { advisorGoal: imported.advisorGoal } : {}),
     ...(imported.advisorSearch !== null ? { advisorSearch: imported.advisorSearch } : {}),
     ...(imported.advisorProtectedModifiers !== null
@@ -315,12 +321,10 @@ export const findInvalidSizeConstraint = (priorities) =>
         if (malformed) return true;
         const ranges = Object.values(normalizeSizeRanges(bonus.sizeRanges));
         if (ranges.length === 0) return false;
-        const totalMin = Number(bonus.min);
         const totalMax = Number(bonus.max);
         const sizeMin = ranges.reduce((sum, range) => sum + range.min, 0);
-        const unrestrictedSizes = DRIF_SIZES.length - ranges.length;
-        const sizeMax = ranges.reduce((sum, range) => sum + range.max, 0) + unrestrictedSizes * 12;
-        return sizeMin > totalMax || sizeMax < totalMin;
+        // The backend checks maximum sums against catalog data, including preserved built-ins.
+        return sizeMin > totalMax;
     });
 
 /** Converts editable priority values into the backend optimization contract. */

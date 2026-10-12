@@ -131,7 +131,7 @@
     border-radius: 0.2rem;
     background:
         linear-gradient(180deg, rgba(86, 52, 19, 0.46), rgba(21, 12, 6, 0.7)),
-        url("../../assets/brushed-bronze-texture.webp") center / 11rem;
+        url("../../assets/mobile/brushed-bronze-texture.webp") center / 11rem;
     background-blend-mode: normal, multiply;
     box-shadow: inset 0 1px rgba(255, 224, 153, 0.08);
 }
@@ -248,22 +248,23 @@
         url("../../assets/dark-forged-metal-texture.webp") center / 28rem;
     --mobile-material-inset:
         linear-gradient(105deg, rgba(34, 26, 20, 0.82), rgba(5, 7, 7, 0.94) 58%),
-        url("../../assets/panel-blackened-steel-texture.webp") center / 18rem;
+        url("../../assets/mobile/panel-blackened-steel-texture.webp") center / 18rem;
     --mobile-material-control:
         linear-gradient(rgba(2, 2, 2, 0.58), rgba(2, 2, 2, 0.76)),
-        url("../../assets/panel-aged-leather-texture.webp") center / 15rem;
+        url("../../assets/mobile/panel-aged-leather-texture.webp") center / 15rem;
     --mobile-material-active:
         linear-gradient(rgba(77, 8, 15, 0.38), rgba(8, 3, 4, 0.74)),
-        url("../../assets/crimson-lacquer-texture.webp") center / 18rem;
+        url("../../assets/mobile/crimson-lacquer-texture.webp") center / 18rem;
     --mobile-material-picker:
         linear-gradient(rgba(3, 5, 5, 0.87), rgba(3, 5, 5, 0.94)),
-        url("../../assets/panel-blackened-steel-texture.webp") center / 34rem;
+        url("../../assets/mobile/panel-blackened-steel-texture.webp") center / 34rem;
     --mobile-material-result:
         linear-gradient(90deg, rgba(8, 5, 4, 0.69), rgba(1, 2, 2, 0.84)),
-        url("../../assets/smoked-parchment-texture.webp") center / 14rem;
+        url("../../assets/mobile/smoked-parchment-texture.webp") center / 14rem;
     background:
         linear-gradient(rgba(7, 7, 7, 0.48), rgba(4, 5, 5, 0.7)),
-        url("../../assets/builder-page-backdrop-texture.webp") center top / 68rem 68rem repeat;
+        url("../../assets/mobile/builder-page-backdrop-texture.webp") center top / 68rem 68rem
+            repeat;
     background-blend-mode: normal, luminosity;
 }
 

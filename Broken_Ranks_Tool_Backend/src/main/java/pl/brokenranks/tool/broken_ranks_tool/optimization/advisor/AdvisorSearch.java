@@ -7,9 +7,11 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.EQUIPMENT_SLOT;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest.SlotData;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.AdvisorAction;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.AdvisorOptions;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.AdvisorOptions.Strategy;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.AdvisorPlanKind;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.SearchStopReason;
 
 /** Bounded, deterministic beam over short action plans, including compensating moves. */
 final class AdvisorSearch {
@@ -23,7 +25,7 @@ final class AdvisorSearch {
     final AdvisorSearchControl control;
     final Comparator<Node> ranking;
     final AdvisorBeamPolicy beamPolicy = new AdvisorBeamPolicy();
-    final Set<StateKey> seen = new HashSet<>();
+    private final Map<StateKey, List<PathCost>> seen = new HashMap<>();
     final List<Node> finalists = new ArrayList<>();
     final List<Node> proofCandidates = new ArrayList<>();
     private final AdvisorActionGenerator actions;
@@ -31,6 +33,7 @@ final class AdvisorSearch {
     private boolean completed;
     private boolean searchLimited;
     private boolean runFinished;
+    private SearchStopReason stopReason;
 
     record Node(
             Map<String, SlotData> slots,
@@ -38,7 +41,18 @@ final class AdvisorSearch {
             List<String> actions,
             Set<AdvisorChangeKey> changed,
             int upgrades,
-            int effort) {
+            int effort,
+            List<AdvisorAction> actionDetails) {
+        Node(
+                Map<String, SlotData> slots,
+                double[] stats,
+                List<String> actions,
+                Set<AdvisorChangeKey> changed,
+                int upgrades,
+                int effort) {
+            this(slots, stats, actions, changed, upgrades, effort, List.of());
+        }
+
         AdvisorPlanKind kind() {
             return AdvisorPlanKind.fromUpgradeCount(upgrades);
         }
@@ -72,7 +86,8 @@ final class AdvisorSearch {
                 options.getTargetValue() != null
                         ? options.getTargetValue()
                         : options.getTargetGain() != null
-                                ? value(baseline) + options.getTargetGain()
+                                ? useful(options.getGoal(), baseline[options.getGoal().ordinal()])
+                                        + options.getTargetGain()
                                 : Double.POSITIVE_INFINITY;
         Integer cap = options.getGoal().getMaxCap();
         target = cap == null ? requestedTarget : Math.min(requestedTarget, Math.abs(cap));
@@ -86,17 +101,24 @@ final class AdvisorSearch {
 
     List<Node> run(Map<String, SlotData> slots) {
         Node initial = new Node(slots, model.evaluate(slots), List.of(), Set.of(), 0, 0);
-        seen.add(stateSignature(initial));
+        admit(initial);
         List<Node> beam = List.of(initial);
-        for (int depth = 0; depth < options.getMaxActions() && running(); depth++) {
+        // A drif can cross at most four upgrade thresholds; merged upgrades don't use another
+        // action.
+        for (int depth = 0;
+                depth < options.getMaxActions() * 4 && !beam.isEmpty() && running();
+                depth++) {
             List<Node> next = new ArrayList<>();
             for (Node node : beam) {
                 if (!running()) break;
                 actions.generate(
                         node,
                         candidate -> {
-                            if (!running() || !seen.add(stateSignature(candidate))) return;
-                            control.recordEvaluation();
+                            if (!running()) return;
+                            if (candidate.actions().size() > options.getMaxActions()) return;
+                            int uniqueStates = seen.size();
+                            if (!admit(candidate)) return;
+                            if (seen.size() > uniqueStates) control.recordEvaluation();
                             Node scored =
                                     new Node(
                                             candidate.slots(),
@@ -104,13 +126,14 @@ final class AdvisorSearch {
                                             candidate.actions(),
                                             candidate.changed(),
                                             candidate.upgrades(),
-                                            candidate.effort());
+                                            candidate.effort(),
+                                            candidate.actionDetails());
                             // Allow slightly deficient intermediate plans: another move can
                             // compensate.
                             next.add(scored);
                             if (exact) proofCandidates.add(scored);
-                            if (deficit(scored.stats()) <= 0.1 && gain(scored.stats()) > EPSILON)
-                                finalists.add(scored);
+                            if (deficit(scored.stats()) <= EPSILON
+                                    && gain(scored.stats()) > EPSILON) finalists.add(scored);
                             if (exact && next.size() > 1_500) {
                                 exact = false;
                                 proofCandidates.clear();
@@ -125,6 +148,7 @@ final class AdvisorSearch {
         }
         completed = running();
         searchLimited = control.limited();
+        stopReason = control.stopReason();
         runFinished = true;
         if (!exact) trimFinalists();
         return List.copyOf(exact ? proofCandidates : finalists);
@@ -138,12 +162,17 @@ final class AdvisorSearch {
         return runFinished ? searchLimited : control.limited();
     }
 
+    SearchStopReason stopReason() {
+        return runFinished ? stopReason : control.stopReason();
+    }
+
     boolean cancelled() {
         return control.cancelled();
     }
 
     double value(double[] stats) {
-        return useful(options.getGoal(), stats[options.getGoal().ordinal()]);
+        double value = useful(options.getGoal(), stats[options.getGoal().ordinal()]);
+        return options.isLimitBenefitToTarget() ? Math.min(value, target) : value;
     }
 
     double gain(double[] stats) {
@@ -199,10 +228,71 @@ final class AdvisorSearch {
     }
 
     private StateKey stateSignature(Node node) {
-        return new StateKey(signature(node.slots()), Set.copyOf(node.changed()));
+        AdvisorActionFactory identities = new AdvisorActionFactory();
+        String identityState =
+                node.slots().entrySet().stream()
+                        .sorted(Map.Entry.comparingByKey())
+                        .flatMap(
+                                entry ->
+                                        java.util.stream.IntStream.range(
+                                                        0, AdvisorSlotData.size(entry.getValue()))
+                                                .filter(
+                                                        index ->
+                                                                AdvisorSlotData.id(
+                                                                                entry.getValue(),
+                                                                                index)
+                                                                        != null)
+                                                .mapToObj(
+                                                        index ->
+                                                                entry.getKey()
+                                                                        + ":"
+                                                                        + index
+                                                                        + "="
+                                                                        + identities.identity(
+                                                                                node,
+                                                                                new AdvisorAction
+                                                                                        .Location(
+                                                                                        entry
+                                                                                                .getKey(),
+                                                                                        index),
+                                                                                AdvisorSlotData.id(
+                                                                                        entry
+                                                                                                .getValue(),
+                                                                                        index))))
+                        .collect(java.util.stream.Collectors.joining("|"));
+        Set<String> upgraded =
+                node.actionDetails().stream()
+                        .filter(action -> action.type() == AdvisorAction.Type.UPGRADE_DRIF)
+                        .map(action -> action.drifs().getFirst().identity())
+                        .collect(java.util.stream.Collectors.toSet());
+        return new StateKey(
+                signature(node.slots()),
+                Set.copyOf(node.changed()),
+                identityState,
+                Set.copyOf(upgraded));
     }
 
-    private record StateKey(String equipment, Set<AdvisorChangeKey> changed) {}
+    boolean admit(Node node) {
+        StateKey key = stateSignature(node);
+        PathCost cost = new PathCost(node.upgrades(), node.effort(), node.actions().size());
+        List<PathCost> known = seen.computeIfAbsent(key, ignored -> new ArrayList<>());
+        if (known.stream().anyMatch(previous -> previous.noMoreExpensiveThan(cost))) return false;
+        known.removeIf(cost::noMoreExpensiveThan);
+        known.add(cost);
+        return true;
+    }
+
+    private record PathCost(int upgrades, int effort, int actions) {
+        boolean noMoreExpensiveThan(PathCost other) {
+            return upgrades <= other.upgrades && effort <= other.effort && actions <= other.actions;
+        }
+    }
+
+    private record StateKey(
+            String equipment,
+            Set<AdvisorChangeKey> changed,
+            String identities,
+            Set<String> upgraded) {}
 
     static String slotName(String key) {
         EQUIPMENT_SLOT slot = EQUIPMENT_SLOT.fromKey(key);

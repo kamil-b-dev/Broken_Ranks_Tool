@@ -12,6 +12,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemp
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context.OptimizationInitialStateFactory;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultAssembler;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationDrifSizeConstraints;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.evaluation.OptimizationStateEvaluation;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.placement.OptimizationPlacementOperations;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.requirement.OptimizationRequirementSatisfier;
@@ -96,6 +97,9 @@ public final class OptimizationGreedySearch {
                                 < target - TARGET_TOLERANCE)
                 && !placementOperations.containsBonus(state.slots().get(slot.key()), type)
                 && globalCounts.getOrDefault(type, 0) < maxQuantity(type, context.request())
+                && stateEvaluation.sizeCount(state, type, candidate.getSize(), context)
+                        < OptimizationDrifSizeConstraints.maximum(
+                                type, candidate.getSize(), context)
                 && !placementOperations.containsAnotherElemental(state, candidate, null);
     }
 

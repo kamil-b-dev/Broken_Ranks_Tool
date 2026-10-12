@@ -1,15 +1,16 @@
 import { useState } from "react";
 import { summarizeLocalBuild } from "../comparison/buildComparisonData";
+const savedDateFormatter = new Intl.DateTimeFormat("pl-PL", {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+});
 
 const formatSavedAt = (value) => {
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return "Nieznana data";
-    return new Intl.DateTimeFormat("pl-PL", {
-        day: "2-digit",
-        month: "short",
-        hour: "2-digit",
-        minute: "2-digit",
-    }).format(date);
+    return savedDateFormatter.format(date);
 };
 
 const SavedBuildList = ({
@@ -81,8 +82,8 @@ const SavedBuildList = ({
                             <button
                                 type="button"
                                 className="is-primary"
-                                onClick={() => {
-                                    if (onLoad(build.id)) onOpenBuilder();
+                                onClick={async () => {
+                                    if (await onLoad(build.id)) onOpenBuilder();
                                 }}
                             >
                                 Wczytaj

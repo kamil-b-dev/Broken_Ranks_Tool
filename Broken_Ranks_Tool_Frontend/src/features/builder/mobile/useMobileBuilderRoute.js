@@ -3,7 +3,7 @@ import { SLOTS } from "../../../shared/domain/equipment/equipmentSlots";
 
 const readRoute = () => {
     const params = new URLSearchParams(window.location.search);
-    const section = ["character", "stats"].includes(params.get("section"))
+    const section = ["character", "stats", "backpack"].includes(params.get("section"))
         ? params.get("section")
         : "equipment";
     const slot =

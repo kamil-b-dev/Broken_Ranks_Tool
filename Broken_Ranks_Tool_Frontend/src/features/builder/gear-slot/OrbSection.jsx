@@ -28,6 +28,7 @@ const OrbSection = ({
     setOrbState,
     groupedOrbs,
     bonusTranslations,
+    showCategoryIcons = true,
 }) => {
     const currentOrbObj = groupedOrbs[orbState.type]?.find(
         (orb) => String(orb.id) === String(orbState.id)
@@ -43,12 +44,14 @@ const OrbSection = ({
             onDragLeave={handleDragLeave}
             onDrop={(e) => handleDrop(e, slotKey)}
         >
-            <CategoryIcon
-                kind="orb"
-                category={currentOrbCategory}
-                className="orb-socket-glyph"
-                fallback={<span className="orb-socket-glyph" aria-hidden="true" />}
-            />
+            {showCategoryIcons && (
+                <CategoryIcon
+                    kind="orb"
+                    category={currentOrbCategory}
+                    className="orb-socket-glyph"
+                    fallback={<span className="orb-socket-glyph" aria-hidden="true" />}
+                />
+            )}
             <select
                 value={orbState.type}
                 aria-label="Wybierz rodzaj orba"

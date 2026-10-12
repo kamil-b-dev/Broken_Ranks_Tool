@@ -1,8 +1,9 @@
-import { useState } from "react";
+import "./stats-panel.css";
+import { memo, useMemo, useState } from "react";
 import { buildStatColumns } from "./statsPanelDomain";
 import StatSummaryColumn from "./StatSummaryColumn";
 import TabList from "../../../shared/ui/TabList";
-import crest from "../../../assets/broken-ranks-crest.webp";
+import crest from "../../../assets/ui/stats-crest.webp";
 
 /** Displays calculated statistics grouped by their purpose and source. */
 const StatsPanel = ({
@@ -14,7 +15,10 @@ const StatsPanel = ({
     compact = false,
 }) => {
     const [activeResultView, setActiveResultView] = useState("all");
-    const statColumns = buildStatColumns({ stats, gameRules, statSources });
+    const statColumns = useMemo(
+        () => buildStatColumns({ stats, gameRules, statSources }),
+        [stats, gameRules, statSources]
+    );
     const visibleColumns = statColumns.filter((column) => {
         if (activeResultView === "all") return true;
         if (activeResultView === "stats") return column.title === "Statystyki podstawowe";
@@ -82,4 +86,4 @@ const StatsPanel = ({
     );
 };
 
-export default StatsPanel;
+export default memo(StatsPanel);

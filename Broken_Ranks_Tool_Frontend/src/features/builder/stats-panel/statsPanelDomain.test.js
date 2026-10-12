@@ -2,6 +2,13 @@ import { describe, expect, it } from "vitest";
 import { buildStatColumns, formatStatValue } from "./statsPanelDomain";
 
 describe("statsPanelDomain", () => {
+    it("shows intelligence as a character attribute", () => {
+        const [column] = buildStatColumns({ stats: { Inteligencja: "135" } });
+        expect(column.categories[0].category.title).toBe("Atrybuty");
+        expect(column.categories[0].values).toEqual([
+            { key: "Inteligencja", displayName: "Inteligencja", val: 135 },
+        ]);
+    });
     it("formats numeric and percentage values consistently", () => {
         expect(formatStatValue(1.236)).toBe(1.24);
         expect(formatStatValue("12,345%")).toBe("12.35%");

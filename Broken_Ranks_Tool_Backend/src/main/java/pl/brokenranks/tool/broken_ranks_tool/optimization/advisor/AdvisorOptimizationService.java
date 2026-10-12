@@ -24,6 +24,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.It
 import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.OrbTemplateRepository;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCalculatorService;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.input.EquipmentDataProvider.CalculationContext;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.input.OrbSelectionNormalizer;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.processor.ItemStatProcessor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.processor.OrbStatProcessor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentPlacementRules;
@@ -63,7 +64,8 @@ public class AdvisorOptimizationService {
                         : options.getCancellationToken().toString();
         var cancelled = runs.start(runId, cancellationToken);
         try {
-            Map<String, SlotData> slots = copySlots(request.getOriginalSlots());
+            Map<String, SlotData> slots =
+                    copySlots(OrbSelectionNormalizer.normalizeSlots(request.getOriginalSlots()));
             if (!validSlotAndLockReferences(request, slots)) {
                 return responses.failure(
                         "Popraw obecny build: pusty slot nie może zawierać kamieni, a blokady muszą wskazywać istniejące drify.",

@@ -25,7 +25,7 @@ class AdvisorCancellationControllerTests {
         when(runs.cancel(runId.toString(), TOKEN.toString())).thenReturn(true);
         AdvisorCancellationController controller = new AdvisorCancellationController(runs);
 
-        Map<String, Boolean> response = controller.cancel(runId, TOKEN);
+        Map<String, Boolean> response = controller.cancel(runId.toString(), TOKEN.toString(), null);
 
         assertThat(response).containsExactly(Map.entry("cancelled", true));
         verify(runs).cancel("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", TOKEN.toString());
@@ -36,6 +36,7 @@ class AdvisorCancellationControllerTests {
         UUID runId = UUID.fromString("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
         AdvisorCancellationController controller = new AdvisorCancellationController(runs);
 
-        assertThat(controller.cancel(runId, TOKEN)).containsExactly(Map.entry("cancelled", false));
+        assertThat(controller.cancel(runId.toString(), TOKEN.toString(), null))
+                .containsExactly(Map.entry("cancelled", false));
     }
 }

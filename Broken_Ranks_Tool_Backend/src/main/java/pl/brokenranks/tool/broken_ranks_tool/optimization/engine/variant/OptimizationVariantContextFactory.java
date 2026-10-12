@@ -6,6 +6,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.cache.BoundedSearchCache;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
 
@@ -41,7 +42,7 @@ final class OptimizationVariantContextFactory {
                 new EnumMap<>(source.calculatorBaseline()),
                 new EnumMap<>(DRIF_BONUS_TYPE.class),
                 source.calculatorCache(),
-                new HashMap<>(),
+                new BoundedSearchCache<>(BoundedSearchCache.MAX_EVALUATIONS),
                 source.drifValueCache(),
                 source.calculatorSession());
     }

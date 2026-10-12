@@ -2,7 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
     testDir: "./e2e",
-    testIgnore: "**/integration/**",
+    testIgnore: ["**/integration/**", "**/performance/**"],
     fullyParallel: true,
     forbidOnly: Boolean(process.env.CI),
     retries: process.env.CI ? 2 : 0,
@@ -16,6 +16,11 @@ export default defineConfig({
         {
             name: "chromium",
             use: { ...devices["Desktop Chrome"] },
+        },
+        {
+            name: "mobile-webkit",
+            testMatch: "**/mobile-*.spec.js",
+            use: { ...devices["Desktop Safari"] },
         },
     ],
     webServer: {

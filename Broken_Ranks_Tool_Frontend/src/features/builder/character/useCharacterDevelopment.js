@@ -1,79 +1,110 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
     calculateCharacterStats,
     clampLevel,
-    emptySpentPoints,
     normalizeCharacterConfig,
     spentPointCount,
     totalPointsForLevel,
     trimSpentPoints,
 } from "./characterDevelopmentDomain";
 
-/** Owns character point allocation and synchronization with imported builds. */
+const importedConfig = (value) => {
+    const normalized = normalizeCharacterConfig(value);
+    return {
+        ...normalized,
+        spentPoints: trimSpentPoints(normalized.spentPoints, totalPointsForLevel(normalized.level)),
+    };
+};
+const sameConfig = (left, right) =>
+    left.level === right.level &&
+    Object.keys(left.spentPoints).every((key) => left.spentPoints[key] === right.spentPoints[key]);
+
+/** Keeps provisional numeric input local; only committed edits publish character data. */
 export const useCharacterDevelopment = ({
     onStatsChange,
     externalConfig,
     externalStats,
     syncTrigger,
 }) => {
-    const [level, setLevel] = useState(() => normalizeCharacterConfig(externalConfig).level);
-    const [spentPoints, setSpentPoints] = useState(() => {
-        const imported = normalizeCharacterConfig(externalConfig);
-        return trimSpentPoints(imported.spentPoints, totalPointsForLevel(imported.level));
-    });
-    const [publishChanges, setPublishChanges] = useState(false);
+    const [config, setConfig] = useState(() => importedConfig(externalConfig));
+    const [levelInput, setLevelInput] = useState(() => String(config.level));
+    const [edited, setEdited] = useState(false);
+    const current = useRef(config);
     const previousSyncTrigger = useRef(syncTrigger);
+    const level = /^\d+$/.test(levelInput) ? clampLevel(levelInput) : config.level;
     const totalPoints = totalPointsForLevel(level);
-    const pointsLeft = totalPoints - spentPointCount(spentPoints);
+    const pointsLeft = Math.max(0, totalPoints - spentPointCount(config.spentPoints));
+    const finalStats = useMemo(() => {
+        const values = calculateCharacterStats(config.spentPoints);
+        return !externalConfig && !edited ? { ...values, ...externalStats } : values;
+    }, [config.spentPoints, edited, externalConfig, externalStats]);
 
-    useEffect(() => {
-        if (publishChanges) {
-            onStatsChange(calculateCharacterStats(spentPoints), { level, spentPoints });
-        }
-    }, [spentPoints, level, onStatsChange, publishChanges]);
     useLayoutEffect(() => {
         if (Object.is(previousSyncTrigger.current, syncTrigger)) return;
         previousSyncTrigger.current = syncTrigger;
-        setPublishChanges(false);
-        if (!externalConfig) {
-            setLevel(1);
-            setSpentPoints(emptySpentPoints());
-            return;
-        }
-        const imported = normalizeCharacterConfig(externalConfig);
-        setLevel(imported.level);
-        setSpentPoints(trimSpentPoints(imported.spentPoints, totalPointsForLevel(imported.level)));
-        // Import synchronization is intentionally driven only by syncTrigger.
+        const next = importedConfig(externalConfig);
+        current.current = next;
+        setConfig(next);
+        setLevelInput(String(next.level));
+        setEdited(false);
+        // An explicit import revision owns synchronization, not ordinary acknowledgements.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [syncTrigger]);
 
+    const publish = (next, force = false) => {
+        setLevelInput(String(next.level));
+        if (!force && sameConfig(current.current, next)) return;
+        current.current = next;
+        setConfig(next);
+        setEdited(true);
+        onStatsChange(calculateCharacterStats(next.spentPoints), next);
+    };
+    const committedDraft = () => {
+        const nextLevel = /^\d+$/.test(levelInput) ? clampLevel(levelInput) : current.current.level;
+        return {
+            level: nextLevel,
+            spentPoints: trimSpentPoints(
+                current.current.spentPoints,
+                totalPointsForLevel(nextLevel)
+            ),
+        };
+    };
     const changePoints = (name, amount) => {
-        if ((amount > 0 && pointsLeft < amount) || (amount < 0 && spentPoints[name] + amount < 0))
+        const next = committedDraft();
+        const available = totalPointsForLevel(next.level) - spentPointCount(next.spentPoints);
+        if ((amount > 0 && available < amount) || next.spentPoints[name] + amount < 0) {
+            publish(next);
             return;
-        setPublishChanges(true);
-        setSpentPoints((current) => ({ ...current, [name]: current[name] + amount }));
+        }
+        publish({
+            ...next,
+            spentPoints: { ...next.spentPoints, [name]: next.spentPoints[name] + amount },
+        });
     };
-    const changeLevel = (value) => {
-        setPublishChanges(true);
-        const nextLevel = clampLevel(value);
-        setLevel(nextLevel);
-        setSpentPoints((current) => trimSpentPoints(current, totalPointsForLevel(nextLevel)));
-    };
-
     return {
         level,
-        spentPoints,
-        finalStats:
-            !externalConfig && !publishChanges
-                ? { ...calculateCharacterStats(spentPoints), ...externalStats }
-                : calculateCharacterStats(spentPoints),
+        levelInput,
+        spentPoints: config.spentPoints,
+        finalStats,
         totalPoints,
         pointsLeft,
+        editLevel: setLevelInput,
+        commitLevel: () => publish(committedDraft()),
+        cancelLevelEdit: () => setLevelInput(String(current.current.level)),
+        changeLevel: (value) => {
+            const nextLevel = clampLevel(value);
+            publish({
+                level: nextLevel,
+                spentPoints: trimSpentPoints(
+                    current.current.spentPoints,
+                    totalPointsForLevel(nextLevel)
+                ),
+            });
+        },
         changePoints,
-        changeLevel,
         resetPoints: () => {
-            setPublishChanges(true);
-            setSpentPoints(emptySpentPoints());
+            const next = committedDraft();
+            publish({ ...next, spentPoints: normalizeCharacterConfig(null).spentPoints }, true);
         },
     };
 };

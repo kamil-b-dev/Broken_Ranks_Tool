@@ -101,6 +101,50 @@ class EquipmentPreparedCalculationTests {
     }
 
     @Test
+    void intelligenceSurvivesFreshPreparedAndNumericCalculatorsWithoutItemBonuses() {
+        request.setCharacterStats(Map.of("Inteligencja", 10, "INTELIGENCJA", 25));
+        var fresh = calculator.calculateTotalStats(request);
+        assertEquals("35", fresh.get("Inteligencja"));
+        assertFalse(fresh.containsKey("INTELIGENCJA"));
+        var orbs =
+                new EquipmentDataProvider(itemsRepository, orbsRepository, drifsRepository)
+                        .loadOrbs(request.getSlots().values());
+        assertEquals(
+                "35",
+                calculator
+                        .prepareCalculation(items, drifs, request.getSlots().values())
+                        .apply(request)
+                        .get("Inteligencja"));
+        assertEquals(
+                35.0,
+                calculator
+                        .prepareNumericCalculation(items, orbs, drifs)
+                        .apply(request)
+                        .values()
+                        .get("Inteligencja"));
+        request.getSlots().values().forEach(slot -> slot.setItemStars(9));
+        assertEquals("35", calculator.calculateTotalStats(request).get("Inteligencja"));
+        request.setCharacterStats(Map.of());
+        assertFalse(calculator.calculateTotalStats(request).containsKey("Inteligencja"));
+    }
+
+    @Test
+    void intelligenceHasTheSameCanonicalValidationLimitsAsOtherCharacterAttributes() {
+        for (Map<String, Integer> stats :
+                List.of(
+                        Map.of("Inteligencja", -1),
+                        Map.of("Inteligencja", 50_001),
+                        Map.of("Inteligencja", 50_000, "INTELIGENCJA", 1),
+                        Map.of("intelligence", 10))) {
+            request.setCharacterStats(stats);
+            assertThrows(
+                    IllegalArgumentException.class, () -> calculator.calculateTotalStats(request));
+        }
+        request.setCharacterStats(Map.of("Inteligencja", 25_000, "inteligencja", 25_000));
+        assertEquals("50000", calculator.calculateTotalStats(request).get("Inteligencja"));
+    }
+
+    @Test
     void repeatedCalculationsKeepFullCalculatorSemanticsWithoutCatalogQueries() {
         var prepared = calculator.prepareCalculation(items, drifs, request.getSlots().values());
         verify(orbsRepository).findAllById(List.of(1L));

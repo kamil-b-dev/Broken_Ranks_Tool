@@ -1,23 +1,39 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 
-export default function MobileItemPicker({ items, slotLabel, onSelect, onClose }) {
+const PAGE_SIZE = 40;
+
+export default function MobileItemPicker({ items, slotLabel, onSelect, onClose, openerRef }) {
     const dialog = useRef(null);
     const [query, setQuery] = useState("");
     const [selected, setSelected] = useState(null);
-    const visible = items.filter((item) =>
-        `${item.name} ${item.tier}`
-            .toLocaleLowerCase("pl")
-            .includes(query.trim().toLocaleLowerCase("pl"))
+    const [page, setPage] = useState(0);
+    const index = useMemo(
+        () =>
+            items.map((item) => ({
+                item,
+                text: `${item.name} ${item.tier}`.toLocaleLowerCase("pl"),
+            })),
+        [items]
     );
+    const visible = useMemo(() => {
+        const search = query.trim().toLocaleLowerCase("pl");
+        return index.filter(({ text }) => text.includes(search));
+    }, [index, query]);
+    const pageCount = Math.ceil(visible.length / PAGE_SIZE);
+    const currentPage = Math.min(page, Math.max(0, pageCount - 1));
+    const pageItems = visible.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
     useLayoutEffect(() => {
         const element = dialog.current;
-        const opener = document.activeElement;
+        const opener = openerRef?.current || document.activeElement;
         element.showModal();
         return () => {
             element.close();
             if (opener?.isConnected) opener.focus();
+            queueMicrotask(() => {
+                if (opener?.isConnected && !document.querySelector("dialog[open]")) opener.focus();
+            });
         };
-    }, []);
+    }, [openerRef]);
     return (
         <dialog
             className="mobile-item-picker"
@@ -77,15 +93,39 @@ export default function MobileItemPicker({ items, slotLabel, onSelect, onClose }
                         <input
                             type="search"
                             value={query}
-                            onChange={(event) => setQuery(event.target.value)}
+                            onChange={(event) => {
+                                setQuery(event.target.value);
+                                setPage(0);
+                            }}
                             placeholder="Nazwa lub tier"
                         />
                     </label>
                     <p className="mobile-muted" role="status">
                         {visible.length} przedmiotów
                     </p>
+                    {pageCount > 1 && (
+                        <nav className="mobile-picker-pagination" aria-label="Strony przedmiotów">
+                            <button
+                                type="button"
+                                disabled={currentPage === 0}
+                                onClick={() => setPage(currentPage - 1)}
+                            >
+                                Poprzednia
+                            </button>
+                            <span aria-live="polite">
+                                {currentPage + 1} / {pageCount}
+                            </span>
+                            <button
+                                type="button"
+                                disabled={currentPage === pageCount - 1}
+                                onClick={() => setPage(currentPage + 1)}
+                            >
+                                Następna
+                            </button>
+                        </nav>
+                    )}
                     <div className="mobile-picker-results">
-                        {visible.map((item) => (
+                        {pageItems.map(({ item }) => (
                             <button type="button" key={item.id} onClick={() => setSelected(item)}>
                                 <strong>{item.name}</strong>
                                 <span>
