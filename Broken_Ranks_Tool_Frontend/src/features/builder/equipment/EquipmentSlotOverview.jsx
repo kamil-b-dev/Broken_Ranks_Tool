@@ -18,6 +18,7 @@ const getConfiguredDrifs = (slotData, drifs, bonusTranslations) =>
                     bonusTranslations?.[drif.bonusType] ||
                     drif.bonusType,
                 level: slotData?.drifLevels?.[index],
+                position: index,
             },
         ];
     });
@@ -78,6 +79,7 @@ const EquipmentSlotOverview = ({
                     bonusTranslations[orb.bonusType] ||
                     orb.bonusType,
                 level: slotData?.orbLevels?.[index] || 1,
+                position: index,
             },
         ];
     });
@@ -144,6 +146,7 @@ const EquipmentSlotOverview = ({
                                         <span
                                             key={`${orb.id}-${index}`}
                                             className="equipment-slot-orb"
+                                            data-stone-zone={`orb${orb.position + 1}`}
                                             title={`${orb.displayName} · ${orb.size || "orb"} · poz. ${orb.level}`}
                                             aria-label={`${orb.displayName}, ${orb.size || "orb"}, poziom ${orb.level}`}
                                         >
@@ -172,6 +175,7 @@ const EquipmentSlotOverview = ({
                                         <span
                                             key={`${drif.id}-${index}`}
                                             className="equipment-slot-drif"
+                                            data-stone-zone={`drif-${drif.position}`}
                                             data-category={drif.category?.toLowerCase()}
                                             title={`${drif.displayName} · ${drif.size || "drif"}${level}`}
                                         >

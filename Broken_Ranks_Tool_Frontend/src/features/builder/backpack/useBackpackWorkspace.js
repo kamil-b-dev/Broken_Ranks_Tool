@@ -1,4 +1,5 @@
-import { useCallback, useState } from "react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import { backpackStoneDropWarning, placeBackpackStone } from "./backpackStoneTransfer";
 import {
     backpackTemplate,
     createBackpackEntry,
@@ -9,6 +10,11 @@ import {
 
 /** Selection and list editing remain independent of equipped slots and calculator requests. */
 export const useBackpackWorkspace = ({ entries, onChange, data, gameRules }) => {
+    const currentEntries = useRef(entries);
+    useLayoutEffect(() => {
+        currentEntries.current = entries;
+    }, [entries]);
+    const [editRevision, setEditRevision] = useState(0);
     const [selectedId, setSelectedId] = useState(null);
     const [creatingKind, setCreatingKind] = useState(null);
     const [notice, setNotice] = useState(null);
@@ -56,11 +62,44 @@ export const useBackpackWorkspace = ({ entries, onChange, data, gameRules }) => 
         select(copy.id);
     };
     const move = (id, targetId) => onChange(moveBackpackEntry(entries, id, targetId));
+    const placeStone = useCallback(
+        (resource, targetId, zone) => {
+            try {
+                const next = placeBackpackStone({
+                    entries: currentEntries.current,
+                    data,
+                    gameRules,
+                    resource,
+                    targetId,
+                    zone,
+                });
+                currentEntries.current = next;
+                onChange(next);
+                setEditRevision((revision) => revision + 1);
+                setSelectedId(targetId);
+                setCreatingKind(null);
+                setNotice(null);
+                return true;
+            } catch (error) {
+                setNotice(error.message);
+                return false;
+            }
+        },
+        [data, gameRules, onChange]
+    );
+    const getStoneDropWarning = useCallback(
+        (resource, targetId, zone) =>
+            backpackStoneDropWarning({ entries, data, gameRules, resource, targetId, zone }),
+        [entries, data, gameRules]
+    );
     const name = (entry) => backpackTemplate(entry, data)?.name || "Nieznany obiekt";
     return {
         activeEntry,
         creatingKind,
         notice,
+        editRevision,
+        placeStone,
+        getStoneDropWarning,
         begin,
         select,
         add,

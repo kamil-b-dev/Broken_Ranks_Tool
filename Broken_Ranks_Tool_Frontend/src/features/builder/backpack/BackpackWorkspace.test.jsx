@@ -36,6 +36,72 @@ describe("builder backpack workflow", () => {
         window.history.replaceState({}, "", "/kreator");
         server.use(http.get("*/api/initial-data", () => HttpResponse.json(builderCatalog)));
     });
+    it("moves a stone into the selected inventory item without changing equipped gear or invalidating its calculation", async () => {
+        const calculations = vi.fn();
+        server.use(
+            http.post("*/api/calculator/calculate", () => {
+                calculations();
+                return HttpResponse.json({ stats: { Siła: 15 } });
+            })
+        );
+        const ref = await start();
+        const equipment = {
+            itemId: "1",
+            itemStars: 1,
+            drifIds: ["60"],
+            drifLevels: { 0: 1 },
+            orbIds: [],
+            orbLevels: [],
+        };
+        await act(async () => {
+            ref.current.handleSlotUpdate("helmet", equipment);
+            ref.current.onBackpackChange([
+                { id: "loose", kind: "DRIF", templateId: "60", level: 6 },
+                { id: "target", kind: "ITEM", equipment },
+            ]);
+        });
+        await act(async () => ref.current.calculateStats());
+        fireEvent.click(document.querySelector(".backpack-grid .equipment-slot-overview"));
+        const before = structuredClone(ref.current.requestData);
+        const previousCalls = calculations.mock.calls.length;
+        const payload = {
+            source: "backpack",
+            entryId: "loose",
+            dragType: "drifs",
+            id: 9999,
+            level: 21,
+        };
+        fireEvent.drop(document.querySelector(".backpack-grid .equipment-slot-overview-item"), {
+            dataTransfer: {
+                types: ["application/json"],
+                getData: (mime) => (mime === "application/json" ? JSON.stringify(payload) : ""),
+            },
+        });
+        await waitFor(() =>
+            expect(
+                ref.current.backpack.find((entry) => entry.id === "target").equipment.drifLevels[0]
+            ).toBe(6)
+        );
+        expect(ref.current.backpack.find((entry) => entry.kind === "DRIF")).toMatchObject({
+            templateId: "60",
+            level: 1,
+        });
+        expect(ref.current.backpack.some((entry) => entry.id === "loose")).toBe(false);
+        expect(
+            screen
+                .getByLabelText("Edytor plecaka")
+                .querySelector('[aria-label="Wybierz poziom drifa 1"]')
+        ).toHaveValue("6");
+        expect(ref.current.requestData).toEqual(before);
+        expect(ref.current.stats).toEqual({ Siła: 15 });
+        expect(calculations).toHaveBeenCalledTimes(previousCalls);
+        const stored = structuredClone(ref.current.backpack);
+        fireEvent.drop(document.querySelector(".backpack-grid .equipment-slot-overview-item"), {
+            dataTransfer: { types: ["application/json"], getData: () => JSON.stringify(payload) },
+        });
+        expect(ref.current.backpack).toEqual(stored);
+        expect(screen.getByRole("alert")).toHaveTextContent("nie znajduje się już");
+    });
     it("swaps a configured occurrence from the sidebar and invalidates old calculations without stale editor publication", async () => {
         server.use(
             http.post("*/api/calculator/calculate", () =>

@@ -146,17 +146,16 @@ test("drags items and gems from database rows, filters and sorts without changin
         .locator("..")
         .dragTo(backpack.locator(".backpack-toolbar"));
     await expect(backpack.locator(".backpack-card")).toHaveCount(1);
-    const card = backpack.locator(".equipment-slot-overview");
     await database.getByRole("button", { name: "Orby", exact: true }).click();
     await database
         .getByRole("button", { name: "Szczegóły: Ochrona SUBORB", exact: true })
         .last()
-        .dragTo(card);
+        .dragTo(backpack.locator(".backpack-toolbar"));
     await expect(backpack.locator(".backpack-card")).toHaveCount(2);
     await database.getByRole("button", { name: "Drify", exact: true }).click();
     await database
         .getByRole("button", { name: "Szczegóły: Band ARCYDRIF", exact: true })
-        .dragTo(card);
+        .dragTo(backpack.locator(".backpack-toolbar"));
     await expect(backpack.locator(".backpack-card")).toHaveCount(3);
     await expect
         .poll(async () => (await draft(page)).backpack?.map((entry) => entry.kind))

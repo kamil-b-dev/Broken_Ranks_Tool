@@ -16,6 +16,8 @@ const setup = (items = entries, overrides = {}) => {
         duplicate: vi.fn(),
         remove: vi.fn(),
         move: vi.fn(),
+        placeStone: vi.fn(() => true),
+        getStoneDropWarning: vi.fn(() => null),
         ...overrides,
     };
     const view = render(
@@ -41,14 +43,14 @@ describe("inventory grid drag and drop", () => {
         fireEvent.change(screen.getByLabelText("Sortuj według"), { target: { value: "level" } });
         expect(container.querySelectorAll(".backpack-card")[0]).toHaveTextContent("Ochrona");
         expect(screen.getByRole("button", { name: "Przesuń później: Ochrona" })).toBeDisabled();
-        expect(container.querySelector(".backpack-card")).toHaveAttribute("draggable", "false");
+        expect(container.querySelector(".backpack-card")).toHaveAttribute("draggable", "true");
         fireEvent.click(screen.getByRole("button", { name: "Kierunek sortowania: rosnąco" }));
         expect(container.querySelectorAll(".backpack-card")[0]).toHaveTextContent("Band");
         fireEvent.change(screen.getByLabelText("Sortuj według"), { target: { value: "manual" } });
         expect(screen.getByRole("button", { name: "Przesuń później: Band" })).toBeEnabled();
         expect(model.move).not.toHaveBeenCalled();
     });
-    it("adds all catalog kinds when dropped over a configured item and reveals a hidden added kind", () => {
+    it("adds item copies over cards and routes catalog stones into the configured item", () => {
         const { container, model } = setup([
             {
                 id: "item",
@@ -81,13 +83,20 @@ describe("inventory grid drag and drop", () => {
                             : "",
                 },
             });
-            expect(model.add).toHaveBeenLastCalledWith(kind, template);
+            if (kind === "ITEM") expect(model.add).toHaveBeenLastCalledWith(kind, template);
+            else
+                expect(model.placeStone).toHaveBeenLastCalledWith(
+                    { id: template.id, dragType },
+                    "item",
+                    undefined
+                );
         }
-        expect(screen.getByRole("button", { name: "Orby", exact: true })).toHaveAttribute(
+        expect(screen.getByRole("button", { name: "Przedmioty", exact: true })).toHaveAttribute(
             "aria-pressed",
             "true"
         );
-        expect(model.add).toHaveBeenCalledTimes(3);
+        expect(model.add).toHaveBeenCalledTimes(1);
+        expect(model.placeStone).toHaveBeenCalledTimes(2);
         expect(model.move).not.toHaveBeenCalled();
     });
     it("adds catalog copies using trusted templates and ignores foreign or malformed resources", () => {

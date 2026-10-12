@@ -4,9 +4,12 @@ import EquipmentSlotOverview from "../equipment/EquipmentSlotOverview";
 import { setDraggedResource, useDraggedResource } from "../useDraggedResource";
 import { backpackSlot, backpackTemplate, backpackWarning } from "./backpackDomain";
 import { BACKPACK_FILTERS, backpackSortOptions, visibleBackpackEntries } from "./backpackView";
+import { backpackDragResource } from "./backpackEquipmentTransfer";
 
 const ENTRY_MIME = "application/x-broken-ranks-backpack-entry";
 const labels = { ITEM: "Przedmiot", ORB: "Orb", DRIF: "Drif" };
+const isStone = (resource) => ["drifs", "orbs"].includes(resource?.dragType);
+const socketAt = (event) => event.target.closest?.("[data-stone-zone]")?.dataset.stoneZone;
 
 const BackpackCard = ({ entry, entries, index, data, gameRules, model, manualOrder }) => {
     const template = backpackTemplate(entry, data);
@@ -17,31 +20,67 @@ const BackpackCard = ({ entry, entries, index, data, gameRules, model, manualOrd
     );
     const name = template?.name || "Nieznany obiekt";
     const active = model.activeEntry?.id === entry.id;
+    const draggedResource = useDraggedResource();
+    const [dropZone, setDropZone] = useState(undefined);
+    const stoneTarget = entry.kind === "ITEM" && isStone(draggedResource);
+    const eligible =
+        stoneTarget &&
+        model.getStoneDropWarning &&
+        !model.getStoneDropWarning(draggedResource, entry.id, dropZone);
+    const canDrag = manualOrder || entry.kind !== "ITEM";
     return (
         <article
-            className={`backpack-card ${active ? "is-selected" : ""} ${warning ? "is-invalid" : ""}`}
-            draggable={manualOrder}
+            className={`backpack-card ${active ? "is-selected" : ""} ${warning ? "is-invalid" : ""} ${eligible ? "equipment-drop-eligible" : ""}`}
+            draggable={canDrag}
             onDragStart={(event) => {
-                if (!manualOrder) return;
-                event.dataTransfer.setData(ENTRY_MIME, entry.id);
+                if (!canDrag) return;
+                if (manualOrder) event.dataTransfer.setData(ENTRY_MIME, entry.id);
                 event.dataTransfer.effectAllowed = "move";
-                setDraggedResource(null);
+                const resource = entry.kind !== "ITEM" ? backpackDragResource(entry, data) : null;
+                if (resource)
+                    event.dataTransfer.setData("application/json", JSON.stringify(resource));
+                setDraggedResource(resource);
             }}
             onDragOver={(event) => {
-                if (manualOrder && [...event.dataTransfer.types].includes(ENTRY_MIME)) {
+                if (stoneTarget) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    setDropZone(socketAt(event));
+                    event.dataTransfer.dropEffect =
+                        draggedResource.source === "backpack" ? "move" : "copy";
+                } else if (
+                    manualOrder &&
+                    [...(event.dataTransfer.types || [])].includes(ENTRY_MIME)
+                ) {
                     event.preventDefault();
                     event.stopPropagation();
                     event.dataTransfer.dropEffect = "move";
                 }
             }}
+            onDragLeave={(event) => {
+                if (!event.currentTarget.contains(event.relatedTarget)) setDropZone(undefined);
+            }}
             onDrop={(event) => {
-                const id = [...(event.dataTransfer.types || [])].includes("application/json")
-                    ? ""
-                    : event.dataTransfer.getData(ENTRY_MIME);
+                let resource;
+                try {
+                    resource = JSON.parse(event.dataTransfer.getData("application/json"));
+                } catch {
+                    /* Internal reordering has no JSON payload. */
+                }
+                if (entry.kind === "ITEM" && isStone(resource) && model.placeStone) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    model.placeStone(resource, entry.id, socketAt(event));
+                    setDropZone(undefined);
+                    setDraggedResource(null);
+                    return;
+                }
+                const id = event.dataTransfer.getData(ENTRY_MIME);
                 if (id && entries.some((candidate) => candidate.id === id)) {
                     event.preventDefault();
                     event.stopPropagation();
                     if (manualOrder) model.move(id, entry.id);
+                    setDraggedResource(null);
                 }
             }}
         >
@@ -55,11 +94,13 @@ const BackpackCard = ({ entry, entries, index, data, gameRules, model, manualOrd
                     orbs={data.orbs}
                     bonusTranslations={gameRules.bonusTranslations}
                     active={active}
+                    draggable={manualOrder}
                     onSelect={() => model.select(entry.id)}
                 />
             ) : (
                 <button
                     type="button"
+                    draggable={canDrag}
                     className="backpack-stone-card"
                     aria-label={`${labels[entry.kind]} ${name}, ${template?.size || "kamień"}, poziom ${entry.level}`}
                     aria-pressed={active}
@@ -121,7 +162,7 @@ const BackpackCard = ({ entry, entries, index, data, gameRules, model, manualOrd
     );
 };
 
-/** Inventory grid accepts catalog resources; equipment slots never receive these drops. */
+/** Catalog resources add occurrences; stones dropped on item cards configure that item. */
 export default function BackpackGrid({ entries, data, gameRules, model }) {
     const [filter, setFilter] = useState("ALL");
     const [sort, setSort] = useState("manual");
@@ -161,8 +202,9 @@ export default function BackpackGrid({ entries, data, gameRules, model }) {
     };
     return (
         <div
-            className={`backpack-workbench ${draggedResource ? "backpack-drop-eligible" : ""} ${dropTarget ? "backpack-drop-target" : ""}`}
+            className={`backpack-workbench ${draggedResource && draggedResource.source !== "backpack" ? "backpack-drop-eligible" : ""} ${dropTarget ? "backpack-drop-target" : ""}`}
             onDragOver={(event) => {
+                if (draggedResource?.source === "backpack") return;
                 if ([...(event.dataTransfer.types || [])].includes(ENTRY_MIME)) return;
                 event.preventDefault();
                 event.dataTransfer.dropEffect = "copy";
@@ -172,6 +214,7 @@ export default function BackpackGrid({ entries, data, gameRules, model }) {
                 if (!event.currentTarget.contains(event.relatedTarget)) setDropTarget(false);
             }}
             onDrop={drop}
+            onDragEnd={() => setDraggedResource(null)}
         >
             <div className="backpack-view-controls">
                 <div className="backpack-filters" role="group" aria-label="Pokaż w plecaku">
