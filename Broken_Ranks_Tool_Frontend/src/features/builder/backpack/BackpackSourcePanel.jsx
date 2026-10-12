@@ -101,11 +101,13 @@ export default function BackpackSourcePanel({
                                     orbs={data.orbs}
                                     bonusTranslations={gameRules.bonusTranslations}
                                     active={active}
+                                    draggable={Boolean(resource)}
                                     onSelect={select}
                                 />
                             ) : (
                                 <button
                                     type="button"
+                                    draggable={Boolean(resource)}
                                     className="backpack-source-stone"
                                     onClick={select}
                                     aria-pressed={active}

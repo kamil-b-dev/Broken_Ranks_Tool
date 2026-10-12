@@ -52,6 +52,7 @@ const EquipmentSlotOverview = ({
     onItemDrop,
     getBackpackEquipWarning,
     disabled = false,
+    draggable,
 }) => {
     const draggedResource = useDraggedResource();
     const eligible =
@@ -112,6 +113,7 @@ const EquipmentSlotOverview = ({
         <button
             type="button"
             disabled={disabled}
+            draggable={draggable}
             onClick={onSelect}
             onDragOver={onItemDrop ? handleDragOver : undefined}
             onDragLeave={onItemDrop ? () => setDropTarget(false) : undefined}
