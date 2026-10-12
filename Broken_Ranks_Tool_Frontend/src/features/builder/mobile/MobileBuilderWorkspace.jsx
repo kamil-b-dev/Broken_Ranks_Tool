@@ -91,7 +91,7 @@ export default function MobileBuilderWorkspace() {
                     <nav className="mobile-sections" aria-label="Sekcje kreatora">
                         {[
                             ["equipment", "Ekwipunek"],
-                            ["backpack", "Plecak"],
+                            ["backpack", "Plecak W.I.P"],
                             ["character", "Postać"],
                             ["stats", "Statystyki"],
                         ].map(([key, label]) => (

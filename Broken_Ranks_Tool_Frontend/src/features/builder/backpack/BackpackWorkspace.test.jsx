@@ -26,7 +26,7 @@ const start = async () => {
         </EquipmentProvider>
     );
     await waitFor(() => expect(exposeRef.current.loading).toBe(false));
-    fireEvent.click(screen.getByRole("button", { name: "Plecak", exact: true }));
+    fireEvent.click(screen.getByRole("button", { name: "Plecak W.I.P", exact: true }));
     return exposeRef;
 };
 describe("builder backpack workflow", () => {
