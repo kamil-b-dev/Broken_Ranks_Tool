@@ -20,6 +20,7 @@ import {
 } from "./storage/workingDraftStorage";
 import { equipmentRequestIdentity } from "../shared/domain/equipment/equipmentRequestIdentity";
 import { useWorkingDraftSave } from "./storage/useWorkingDraftSave";
+import { useBackpackEquipmentTransfer } from "../features/builder/backpack/useBackpackEquipmentTransfer";
 
 /**
  * Provides application state for equipment, character stats, and optimization.
@@ -77,6 +78,29 @@ export const EquipmentProvider = ({ children }) => {
         lockedDrifs,
     });
     const [characterConfig, setCharacterConfig] = useState(null);
+    const clearReplacedDrifLocks = useCallback(
+        (slotKey, zone) => {
+            if (zone !== "item" && !zone.startsWith("drif-")) return;
+            const next = { ...lockedDrifs };
+            if (zone === "item") delete next[slotKey];
+            else
+                next[slotKey] = (next[slotKey] || []).filter(
+                    (index) => index !== Number(zone.slice(5))
+                );
+            replaceLocks(lockedSlots, next);
+        },
+        [lockedDrifs, lockedSlots, replaceLocks]
+    );
+    const backpackTransfer = useBackpackEquipmentTransfer({
+        backpack,
+        requestData,
+        data,
+        gameRules: gameRules || {},
+        setBackpack,
+        setRequestData,
+        markEquipmentChanged,
+        onEquip: clearReplacedDrifLocks,
+    });
 
     useEffect(() => {
         if (draftRestored || !initialDraft || loading || initialDataError) return;
@@ -323,8 +347,8 @@ export const EquipmentProvider = ({ children }) => {
     );
 
     const backpackValue = useMemo(
-        () => ({ backpack, onBackpackChange: handleBackpackChange }),
-        [backpack, handleBackpackChange]
+        () => ({ backpack, onBackpackChange: handleBackpackChange, ...backpackTransfer }),
+        [backpack, handleBackpackChange, backpackTransfer]
     );
 
     const buildActionsValue = useMemo(

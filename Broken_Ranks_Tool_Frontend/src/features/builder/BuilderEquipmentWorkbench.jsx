@@ -8,6 +8,7 @@ const BuilderEquipmentWorkbench = ({
     requestData,
     gameRules,
     onOverviewItemDrop,
+    getBackpackEquipWarning,
     onMaximizeLevels,
     levelWarnings = [],
     children,
@@ -81,6 +82,7 @@ const BuilderEquipmentWorkbench = ({
                                             (candidate) => candidate.id
                                         )}
                                         onItemDrop={(item) => onOverviewItemDrop(slot, item)}
+                                        getBackpackEquipWarning={getBackpackEquipWarning}
                                         className={`equipment-ring-slot-${slot.key}${equipped ? " equipment-ring-slot-equipped" : ""}`}
                                     />
                                 );

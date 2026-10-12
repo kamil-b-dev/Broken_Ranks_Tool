@@ -8,6 +8,8 @@ const SelectedSlotEditor = ({
     gameRules,
     optimizationTrigger,
     onSlotUpdate,
+    onBackpackEquip,
+    getBackpackEquipWarning,
 }) => (
     <section className="selected-slot-editor" aria-label="Edytor wybranego slotu">
         <div className="selected-slot-editor-heading">
@@ -28,6 +30,8 @@ const SelectedSlotEditor = ({
                         drifs={data.drifs}
                         allSlots={requestData.slots || {}}
                         onUpdate={onSlotUpdate}
+                        onBackpackEquip={onBackpackEquip}
+                        getBackpackEquipWarning={getBackpackEquipWarning}
                         gameRules={gameRules}
                         optimizationTrigger={optimizationTrigger}
                     />

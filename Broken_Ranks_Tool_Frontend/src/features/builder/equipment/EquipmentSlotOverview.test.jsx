@@ -1,9 +1,32 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import EquipmentSlotOverview from "./EquipmentSlotOverview";
+import { setDraggedResource } from "../useDraggedResource";
 
 describe("EquipmentSlotOverview", () => {
+    it("uses move semantics for a valid backpack occurrence", () => {
+        const onItemDrop = vi.fn();
+        const warning = vi.fn(() => null);
+        render(
+            <EquipmentSlotOverview
+                label="Hełm"
+                slotKey="helmet"
+                onSelect={vi.fn()}
+                onItemDrop={onItemDrop}
+                getBackpackEquipWarning={warning}
+            />
+        );
+        const payload = { source: "backpack", entryId: "owned", id: 1, dragType: "items" };
+        act(() => setDraggedResource(payload));
+        const target = screen.getByRole("button", { name: /Hełm/ });
+        const transfer = { dropEffect: "none", getData: () => JSON.stringify(payload) };
+        fireEvent.dragOver(target, { dataTransfer: transfer });
+        expect(transfer.dropEffect).toBe("move");
+        fireEvent.drop(target, { dataTransfer: transfer });
+        expect(onItemDrop).toHaveBeenCalledWith(payload);
+        expect(warning).toHaveBeenCalledWith("owned", "helmet");
+    });
     it("shows only data that exists in the configured slot", async () => {
         const user = userEvent.setup();
         const onSelect = vi.fn();

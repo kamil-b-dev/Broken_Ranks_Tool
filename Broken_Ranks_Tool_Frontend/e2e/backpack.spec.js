@@ -134,6 +134,54 @@ test("catalog drops create separate inventory occurrences without equipping them
     await expect(page.locator(".backpack-card")).toContainText(catalog.items[1].name);
 });
 
+test("drags items and gems from database rows, filters and sorts without changing stored order", async ({
+    page,
+}) => {
+    await openDesktop(page);
+    const database = page.locator(".item-database-theme");
+    const backpack = page.locator(".backpack-workbench");
+    await database.getByRole("textbox", { name: "Wyszukaj przedmioty" }).fill("Hełm");
+    await database
+        .getByRole("button", { name: "Szczegóły: Hełm podróżnika X", exact: true })
+        .locator("..")
+        .dragTo(backpack.locator(".backpack-toolbar"));
+    await expect(backpack.locator(".backpack-card")).toHaveCount(1);
+    const card = backpack.locator(".equipment-slot-overview");
+    await database.getByRole("button", { name: "Orby", exact: true }).click();
+    await database
+        .getByRole("button", { name: "Szczegóły: Ochrona SUBORB", exact: true })
+        .last()
+        .dragTo(card);
+    await expect(backpack.locator(".backpack-card")).toHaveCount(2);
+    await database.getByRole("button", { name: "Drify", exact: true }).click();
+    await database
+        .getByRole("button", { name: "Szczegóły: Band ARCYDRIF", exact: true })
+        .dragTo(card);
+    await expect(backpack.locator(".backpack-card")).toHaveCount(3);
+    await expect
+        .poll(async () => (await draft(page)).backpack?.map((entry) => entry.kind))
+        .toEqual(["ITEM", "ORB", "DRIF"]);
+    const stored = await draft(page);
+    for (const [label, name] of [
+        ["Przedmioty", "Hełm podróżnika"],
+        ["Drify", "Band"],
+        ["Orby", "Ochrona"],
+    ]) {
+        await backpack.getByRole("button", { name: label, exact: true }).click();
+        await expect(backpack.locator(".backpack-card")).toHaveCount(1);
+        await expect(backpack.locator(".backpack-card")).toContainText(name);
+    }
+    await backpack.getByRole("button", { name: "Wszystko", exact: true }).click();
+    await backpack.getByLabel("Sortuj według").selectOption("name");
+    await expect(backpack.locator(".backpack-card").first()).toContainText("Band");
+    await backpack.getByRole("button", { name: "Kierunek sortowania: rosnąco" }).click();
+    await expect(backpack.locator(".backpack-card").first()).toContainText("Ochrona");
+    await backpack.getByLabel("Sortuj według").selectOption("manual");
+    await expect(backpack.locator(".backpack-card").first()).toContainText("Hełm podróżnika");
+    expect((await draft(page)).backpack).toEqual(stored.backpack);
+    expect((await draft(page)).requestData).toEqual(stored.requestData);
+});
+
 test.describe("mobile backpack", () => {
     test.use(mobileDevice);
     test("adds and edits at 320px without changing equipped gear", async ({ page }) => {
@@ -142,6 +190,28 @@ test.describe("mobile backpack", () => {
         await page.getByRole("button", { name: "Plecak W.I.P", exact: true }).click();
         await addItem(page);
         await expect(page.getByLabel("Edytor plecaka")).toBeVisible();
+        const editor = page.getByLabel("Edytor plecaka");
+        await editor.getByLabel("Wybierz rodzaj orba", { exact: true }).selectOption("Ochrona");
+        await editor.getByLabel("Wybierz wielkość orba").selectOption("50");
+        await editor.getByLabel("Wybierz rodzaj drifa 1").selectOption("Band");
+        await editor.getByLabel("Wybierz wielkość drifa 1").selectOption("60");
+        await editor.getByLabel("Wybierz poziom drifa 1").selectOption("6");
+        const card = page.locator(".backpack-card");
+        await expect(card.getByLabel("Umieszczone drify")).toContainText("Band");
+        await expect(card.getByLabel("Umieszczone orby")).toContainText("Ochrona");
+        const icon = await card.locator(".equipment-slot-drif-category-icon").boundingBox();
+        expect(icon.width).toBeGreaterThan(20);
+        expect(icon.width).toBeLessThan(24);
+        const editorIcon = await editor.locator(".orb-socket-glyph").boundingBox();
+        expect(editorIcon.width).toBeGreaterThan(20);
+        expect(editorIcon.width).toBeLessThan(28);
+        await page
+            .getByRole("group", { name: "Pokaż w plecaku" })
+            .getByRole("button", { name: "Orby", exact: true })
+            .click();
+        await expect(page.getByText("Brak obiektów tego rodzaju w plecaku.")).toBeVisible();
+        await page.getByRole("button", { name: "Wszystko", exact: true }).click();
+        await page.getByLabel("Sortuj według").selectOption("tier");
         expect(
             await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)
         ).toBe(true);

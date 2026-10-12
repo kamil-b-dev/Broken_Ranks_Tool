@@ -1,13 +1,14 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import CategoryIcon from "../../../shared/ui/CategoryIcon";
 import EquipmentSlotOverview from "../equipment/EquipmentSlotOverview";
-import { setDraggedResource } from "../useDraggedResource";
+import { setDraggedResource, useDraggedResource } from "../useDraggedResource";
 import { backpackSlot, backpackTemplate, backpackWarning } from "./backpackDomain";
+import { BACKPACK_FILTERS, backpackSortOptions, visibleBackpackEntries } from "./backpackView";
 
 const ENTRY_MIME = "application/x-broken-ranks-backpack-entry";
 const labels = { ITEM: "Przedmiot", ORB: "Orb", DRIF: "Drif" };
 
-const BackpackCard = ({ entry, entries, index, data, gameRules, model }) => {
+const BackpackCard = ({ entry, entries, index, data, gameRules, model, manualOrder }) => {
     const template = backpackTemplate(entry, data);
     const slot = backpackSlot(template);
     const warning = useMemo(
@@ -19,25 +20,28 @@ const BackpackCard = ({ entry, entries, index, data, gameRules, model }) => {
     return (
         <article
             className={`backpack-card ${active ? "is-selected" : ""} ${warning ? "is-invalid" : ""}`}
-            draggable
+            draggable={manualOrder}
             onDragStart={(event) => {
+                if (!manualOrder) return;
                 event.dataTransfer.setData(ENTRY_MIME, entry.id);
                 event.dataTransfer.effectAllowed = "move";
                 setDraggedResource(null);
             }}
             onDragOver={(event) => {
-                if ([...event.dataTransfer.types].includes(ENTRY_MIME)) {
+                if (manualOrder && [...event.dataTransfer.types].includes(ENTRY_MIME)) {
                     event.preventDefault();
                     event.stopPropagation();
                     event.dataTransfer.dropEffect = "move";
                 }
             }}
             onDrop={(event) => {
-                const id = event.dataTransfer.getData(ENTRY_MIME);
-                if (id) {
+                const id = [...(event.dataTransfer.types || [])].includes("application/json")
+                    ? ""
+                    : event.dataTransfer.getData(ENTRY_MIME);
+                if (id && entries.some((candidate) => candidate.id === id)) {
                     event.preventDefault();
                     event.stopPropagation();
-                    model.move(id, entry.id);
+                    if (manualOrder) model.move(id, entry.id);
                 }
             }}
         >
@@ -82,7 +86,8 @@ const BackpackCard = ({ entry, entries, index, data, gameRules, model }) => {
             <div className="backpack-card-actions">
                 <button
                     type="button"
-                    disabled={index === 0}
+                    disabled={!manualOrder || index === 0}
+                    title={manualOrder ? undefined : "Przesuwanie dostępne przy własnej kolejności"}
                     aria-label={`Przesuń wcześniej: ${name}`}
                     onClick={() => model.move(entry.id, entries[index - 1].id)}
                 >
@@ -90,7 +95,8 @@ const BackpackCard = ({ entry, entries, index, data, gameRules, model }) => {
                 </button>
                 <button
                     type="button"
-                    disabled={index === entries.length - 1}
+                    disabled={!manualOrder || index === entries.length - 1}
+                    title={manualOrder ? undefined : "Przesuwanie dostępne przy własnej kolejności"}
                     aria-label={`Przesuń później: ${name}`}
                     onClick={() => model.move(entry.id, entries[index + 1].id)}
                 >
@@ -117,16 +123,36 @@ const BackpackCard = ({ entry, entries, index, data, gameRules, model }) => {
 
 /** Inventory grid accepts catalog resources; equipment slots never receive these drops. */
 export default function BackpackGrid({ entries, data, gameRules, model }) {
+    const [filter, setFilter] = useState("ALL");
+    const [sort, setSort] = useState("manual");
+    const [direction, setDirection] = useState("asc");
+    const [dropTarget, setDropTarget] = useState(false);
+    const draggedResource = useDraggedResource();
+    const sortOptions = useMemo(() => backpackSortOptions(filter, data), [filter, data]);
+    const effectiveSort = sortOptions.some(([key]) => key === sort) ? sort : "manual";
+    const visibleEntries = useMemo(
+        () => visibleBackpackEntries(entries, data, gameRules, filter, effectiveSort, direction),
+        [entries, data, gameRules, filter, effectiveSort, direction]
+    );
+    const revealKind = (kind) => {
+        if (filter !== "ALL" && filter !== kind) setFilter(kind);
+    };
     const drop = (event) => {
         event.preventDefault();
+        setDropTarget(false);
         try {
             const resource = JSON.parse(event.dataTransfer.getData("application/json"));
+            if (!resource || typeof resource !== "object") return;
+            if (resource.source === "backpack") return;
             const kind = { items: "ITEM", orbs: "ORB", drifs: "DRIF" }[resource.dragType];
             if (!kind) return;
             const template = data[resource.dragType]?.find(
                 (candidate) => String(candidate.id) === String(resource.id)
             );
-            if (template) model.add(kind, template);
+            if (template) {
+                model.add(kind, template);
+                revealKind(kind);
+            }
         } catch {
             /* Ignore file and unrelated drag payloads. */
         } finally {
@@ -135,43 +161,101 @@ export default function BackpackGrid({ entries, data, gameRules, model }) {
     };
     return (
         <div
-            className="backpack-workbench"
+            className={`backpack-workbench ${draggedResource ? "backpack-drop-eligible" : ""} ${dropTarget ? "backpack-drop-target" : ""}`}
             onDragOver={(event) => {
+                if ([...(event.dataTransfer.types || [])].includes(ENTRY_MIME)) return;
                 event.preventDefault();
                 event.dataTransfer.dropEffect = "copy";
+                setDropTarget(true);
+            }}
+            onDragLeave={(event) => {
+                if (!event.currentTarget.contains(event.relatedTarget)) setDropTarget(false);
             }}
             onDrop={drop}
         >
+            <div className="backpack-view-controls">
+                <div className="backpack-filters" role="group" aria-label="Pokaż w plecaku">
+                    {BACKPACK_FILTERS.map(([key, label]) => (
+                        <button
+                            key={key}
+                            type="button"
+                            aria-pressed={filter === key}
+                            onClick={() => setFilter(key)}
+                        >
+                            {label}
+                        </button>
+                    ))}
+                </div>
+                <div className="backpack-sort-controls">
+                    <label>
+                        Sortuj według
+                        <select
+                            value={effectiveSort}
+                            onChange={(event) => setSort(event.target.value)}
+                        >
+                            {sortOptions.map(([key, label]) => (
+                                <option key={key} value={key}>
+                                    {label}
+                                </option>
+                            ))}
+                        </select>
+                    </label>
+                    <button
+                        type="button"
+                        disabled={effectiveSort === "manual"}
+                        onClick={() => setDirection(direction === "asc" ? "desc" : "asc")}
+                        aria-label={
+                            direction === "asc"
+                                ? "Kierunek sortowania: rosnąco"
+                                : "Kierunek sortowania: malejąco"
+                        }
+                    >
+                        {direction === "asc" ? "↑ Rosnąco" : "↓ Malejąco"}
+                    </button>
+                </div>
+            </div>
             <div className="backpack-toolbar">
                 {["ITEM", "ORB", "DRIF"].map((kind) => (
-                    <button key={kind} type="button" onClick={() => model.begin(kind)}>
+                    <button
+                        key={kind}
+                        type="button"
+                        onClick={() => {
+                            revealKind(kind);
+                            model.begin(kind);
+                        }}
+                    >
                         + Dodaj {labels[kind].toLowerCase()}
                     </button>
                 ))}
-                <span aria-live="polite">Obiekty: {entries.length}</span>
+                <span aria-live="polite">
+                    Obiekty: {visibleEntries.length}/{entries.length}
+                </span>
             </div>
             {model.notice && (
                 <p className="backpack-warning" role="alert">
                     {model.notice}
                 </p>
             )}
-            {entries.length ? (
+            {visibleEntries.length ? (
                 <div className="backpack-grid" aria-label="Zawartość plecaka">
-                    {entries.map((entry, index) => (
+                    {visibleEntries.map((entry, index) => (
                         <BackpackCard
                             key={entry.id}
                             entry={entry}
-                            entries={entries}
+                            entries={visibleEntries}
                             index={index}
                             data={data}
                             gameRules={gameRules}
                             model={model}
+                            manualOrder={effectiveSort === "manual"}
                         />
                     ))}
                 </div>
             ) : (
                 <div className="backpack-empty">
-                    Dodaj obiekt przyciskiem lub przeciągnij go z katalogu.
+                    {entries.length
+                        ? "Brak obiektów tego rodzaju w plecaku."
+                        : "Dodaj obiekt przyciskiem lub przeciągnij go z bazy danych."}
                 </div>
             )}
         </div>

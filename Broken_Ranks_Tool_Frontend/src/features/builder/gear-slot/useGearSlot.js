@@ -26,6 +26,8 @@ export const useGearSlot = ({
     gameRules,
     onUpdate,
     optimizationTrigger,
+    onBackpackEquip,
+    getBackpackEquipWarning,
 }) => {
     const slotState = useGearSlotState({
         slotKey,
@@ -86,6 +88,8 @@ export const useGearSlot = ({
     });
 
     const dragState = useGearSlotDragDrop({
+        onBackpackEquip,
+        getBackpackEquipWarning,
         itemCapacity: derivedState.itemCapacity,
         drifBasePowers: gameRules?.drifBasePowers,
         drifLevels: slotState.drifLevels,

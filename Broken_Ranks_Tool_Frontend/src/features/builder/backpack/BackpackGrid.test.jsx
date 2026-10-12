@@ -29,6 +29,67 @@ const setup = (items = entries, overrides = {}) => {
     return { ...view, model };
 };
 describe("inventory grid drag and drop", () => {
+    it("filters the view, sorts in both directions and restores manual controls", () => {
+        const { container, model } = setup();
+        fireEvent.click(screen.getByRole("button", { name: "Drify", exact: true }));
+        expect(container.querySelectorAll(".backpack-card")).toHaveLength(1);
+        expect(screen.queryByRole("button", { name: /Orb Ochrona/ })).not.toBeInTheDocument();
+        expect(screen.getByText("Obiekty: 1/2")).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "Przedmioty", exact: true }));
+        expect(screen.getByText("Brak obiektów tego rodzaju w plecaku.")).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "Wszystko", exact: true }));
+        fireEvent.change(screen.getByLabelText("Sortuj według"), { target: { value: "level" } });
+        expect(container.querySelectorAll(".backpack-card")[0]).toHaveTextContent("Ochrona");
+        expect(screen.getByRole("button", { name: "Przesuń później: Ochrona" })).toBeDisabled();
+        expect(container.querySelector(".backpack-card")).toHaveAttribute("draggable", "false");
+        fireEvent.click(screen.getByRole("button", { name: "Kierunek sortowania: rosnąco" }));
+        expect(container.querySelectorAll(".backpack-card")[0]).toHaveTextContent("Band");
+        fireEvent.change(screen.getByLabelText("Sortuj według"), { target: { value: "manual" } });
+        expect(screen.getByRole("button", { name: "Przesuń później: Band" })).toBeEnabled();
+        expect(model.move).not.toHaveBeenCalled();
+    });
+    it("adds all catalog kinds when dropped over a configured item and reveals a hidden added kind", () => {
+        const { container, model } = setup([
+            {
+                id: "item",
+                kind: "ITEM",
+                equipment: {
+                    itemId: 1,
+                    itemStars: 7,
+                    orbIds: [50],
+                    orbLevels: [1],
+                    drifIds: [60],
+                    drifLevels: { 0: 6 },
+                },
+            },
+        ]);
+        expect(screen.getByLabelText("Umieszczone orby")).toHaveTextContent("Ochrona");
+        expect(screen.getByLabelText("Umieszczone drify")).toHaveTextContent("Band");
+        fireEvent.click(screen.getByRole("button", { name: "Przedmioty", exact: true }));
+        for (const [dragType, template, kind] of [
+            ["items", builderCatalog.items[0], "ITEM"],
+            ["drifs", builderCatalog.drifs[0], "DRIF"],
+            ["orbs", builderCatalog.orbs[0], "ORB"],
+        ]) {
+            fireEvent.click(screen.getByRole("button", { name: "Przedmioty", exact: true }));
+            fireEvent.drop(container.querySelector(".equipment-slot-overview"), {
+                dataTransfer: {
+                    types: ["application/json"],
+                    getData: (mime) =>
+                        mime === "application/json"
+                            ? JSON.stringify({ id: template.id, dragType })
+                            : "",
+                },
+            });
+            expect(model.add).toHaveBeenLastCalledWith(kind, template);
+        }
+        expect(screen.getByRole("button", { name: "Orby", exact: true })).toHaveAttribute(
+            "aria-pressed",
+            "true"
+        );
+        expect(model.add).toHaveBeenCalledTimes(3);
+        expect(model.move).not.toHaveBeenCalled();
+    });
     it("adds catalog copies using trusted templates and ignores foreign or malformed resources", () => {
         const { container, model } = setup([]);
         const zone = container.querySelector(".backpack-workbench");

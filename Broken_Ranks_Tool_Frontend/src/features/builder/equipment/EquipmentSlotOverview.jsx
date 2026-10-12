@@ -2,6 +2,7 @@ import { useDraggedResource, setDraggedResource } from "../useDraggedResource";
 import { useState } from "react";
 import CategoryIcon from "../../../shared/ui/CategoryIcon";
 import { DRIF_SIZE_LABELS } from "../../../shared/domain/equipment/drifCategories";
+import "./equipment-slot-overview.css";
 
 const getConfiguredDrifs = (slotData, drifs, bonusTranslations) =>
     (slotData?.drifIds || []).flatMap((id, index) => {
@@ -49,11 +50,18 @@ const EquipmentSlotOverview = ({
     onSelect,
     acceptedItemIds = [],
     onItemDrop,
+    getBackpackEquipWarning,
+    disabled = false,
 }) => {
     const draggedResource = useDraggedResource();
     const eligible =
         draggedResource?.dragType === "items" &&
-        acceptedItemIds.some((id) => String(id) === String(draggedResource.id));
+        (draggedResource.source === "backpack"
+            ? Boolean(
+                  getBackpackEquipWarning &&
+                  !getBackpackEquipWarning(draggedResource.entryId, slotKey)
+              )
+            : acceptedItemIds.some((id) => String(id) === String(draggedResource.id)));
     const [dropTarget, setDropTarget] = useState(false);
     const stars = item ? Math.max(1, Math.min(9, Number(slotData?.itemStars) || 1)) : 0;
     const configuredOrbs = (slotData?.orbIds || []).flatMap((id, index) => {
@@ -76,7 +84,7 @@ const EquipmentSlotOverview = ({
     const handleDragOver = (event) => {
         if (draggedResource && !eligible) return;
         event.preventDefault();
-        event.dataTransfer.dropEffect = "copy";
+        event.dataTransfer.dropEffect = draggedResource?.source === "backpack" ? "move" : "copy";
         setDropTarget(true);
     };
     const handleDrop = (event) => {
@@ -85,7 +93,13 @@ const EquipmentSlotOverview = ({
         setDraggedResource(null);
         try {
             const droppedItem = JSON.parse(event.dataTransfer.getData("application/json"));
-            const accepted = acceptedItemIds.some((id) => String(id) === String(droppedItem.id));
+            const accepted =
+                droppedItem.source === "backpack"
+                    ? Boolean(
+                          getBackpackEquipWarning &&
+                          !getBackpackEquipWarning(droppedItem.entryId, slotKey)
+                      )
+                    : acceptedItemIds.some((id) => String(id) === String(droppedItem.id));
             if (droppedItem.dragType !== "items" || !accepted) return;
             onSelect?.();
             onItemDrop?.(droppedItem);
@@ -97,10 +111,11 @@ const EquipmentSlotOverview = ({
     return (
         <button
             type="button"
+            disabled={disabled}
             onClick={onSelect}
-            onDragOver={handleDragOver}
-            onDragLeave={() => setDropTarget(false)}
-            onDrop={handleDrop}
+            onDragOver={onItemDrop ? handleDragOver : undefined}
+            onDragLeave={onItemDrop ? () => setDropTarget(false) : undefined}
+            onDrop={onItemDrop ? handleDrop : undefined}
             aria-pressed={active}
             className={`${eligible ? "equipment-drop-eligible" : ""} equipment-slot-overview equipment-slot-overview-${variant} ${className} ${active ? "equipment-slot-overview-active" : ""} ${dropTarget ? "equipment-slot-overview-drop-target" : ""}`}
         >

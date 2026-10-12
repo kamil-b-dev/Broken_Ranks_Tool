@@ -1,0 +1,123 @@
+.builder-resource-switch {
+    display: flex;
+    gap: 0.4rem;
+    margin-bottom: 0.6rem;
+}
+.builder-resource-panel {
+    display: flex;
+    min-height: 0;
+    flex-direction: column;
+}
+.builder-resource-panel > :is(.backpack-source-panel, .item-database-theme) {
+    flex: 1;
+    height: auto;
+    min-height: 0;
+}
+.builder-resource-switch button,
+.backpack-source-panel button,
+.backpack-equipment-select select {
+    min-height: 44px;
+    border: 1px solid var(--ui-line-bright);
+    background: var(--ui-ink);
+    color: var(--ui-text-muted);
+    font-family: var(--ui-font);
+    font-size: 0.78rem;
+    padding: 0.45rem;
+    cursor: pointer;
+}
+.builder-resource-switch button {
+    flex: 1;
+}
+.builder-resource-switch button[aria-pressed="true"],
+.backpack-source-panel button[aria-pressed="true"] {
+    color: var(--ui-gold);
+    border-color: var(--ui-gold);
+}
+.backpack-source-panel {
+    display: flex;
+    height: 100%;
+    min-height: 0;
+    flex-direction: column;
+    gap: 0.7rem;
+    padding: 0.7rem;
+    border: 1px solid var(--ui-line-bright);
+    background: rgba(4, 4, 5, 0.8);
+    font-family: var(--ui-font);
+}
+.backpack-source-results {
+    display: grid;
+    gap: 0.65rem;
+    overflow-y: auto;
+    align-content: start;
+}
+.backpack-source-panel .backpack-filters {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.backpack-source-search,
+.backpack-source-action label,
+.backpack-equipment-select {
+    display: grid;
+    min-width: 0;
+    gap: 0.35rem;
+    color: var(--ui-text-muted);
+    font-family: var(--ui-font);
+    font-size: 0.78rem;
+}
+.backpack-source-panel :is(input, select) {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    padding: 0.4rem;
+    border: 1px solid var(--ui-line-bright);
+    background: var(--ui-ink);
+    color: var(--ui-text);
+    font-family: var(--ui-font);
+}
+.backpack-source-card > button {
+    cursor: grab;
+}
+.backpack-source-action {
+    display: grid;
+    gap: 0.5rem;
+    padding: 0.65rem;
+}
+.backpack-source-action button:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+.backpack-source-stone {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    text-align: left;
+}
+.backpack-source-stone img {
+    width: 1.8rem;
+    height: 1.8rem;
+    flex: 0 0 auto;
+}
+.backpack-source-stone span {
+    overflow-wrap: anywhere;
+}
+.backpack-equipment-select {
+    width: 100%;
+    padding-block: 0.5rem;
+}
+.backpack-equipment-select select {
+    width: 100%;
+    min-width: 0;
+}
+.backpack-source-panel :is(button, input, select):focus-visible,
+.builder-resource-switch button:focus-visible {
+    outline: 2px solid var(--ui-gold);
+    outline-offset: 2px;
+}
+.backpack-item-choices {
+    display: grid;
+    gap: 0.7rem;
+}
+.backpack-item-choices .equipment-slot-overview:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
