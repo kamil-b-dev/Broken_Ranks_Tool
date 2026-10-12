@@ -186,6 +186,8 @@ paths:
           $ref: "#/components/responses/RequestTooLarge"
         "429":
           $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/OptimizerUnavailable"
   /api/optimizer/advisor/{runId}/cancel:
     post:
       operationId: cancelAdvisorRun
@@ -247,6 +249,12 @@ components:
             $ref: "#/components/schemas/ApiError"
     RequestTooLarge:
       description: Request body exceeds the configured 256 KiB default limit.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+    OptimizerUnavailable:
+      description: New optimization or advisor search rejected because JVM heap usage reached the admission threshold. Code is OPTIMIZER_MEMORY_PRESSURE; retry later.
       content:
         application/json:
           schema:

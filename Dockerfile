@@ -26,5 +26,6 @@ RUN chmod 0555 /app /app/data \
     && chmod 0444 /app/application.jar /app/data/broken_ranks.db
 USER app
 ENV SPRING_PROFILES_ACTIVE=prod
+ENV JAVA_TOOL_OPTIONS="-Xms128m -Xmx2g -XX:MaxMetaspaceSize=256m -XX:+UseG1GC"
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "/app/application.jar"]
+ENTRYPOINT ["java", "-XX:+ExitOnOutOfMemoryError", "-jar", "/app/application.jar"]

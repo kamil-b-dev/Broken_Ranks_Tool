@@ -13,6 +13,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.Calcul
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.input.EquipmentDataProvider.CalculationContext;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.processor.*;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.*;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.cache.BoundedSearchCache;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 
 /** Request-local template and contribution caches; no catalog queries inside search. */
@@ -26,10 +27,10 @@ final class AdvisorEquipmentModel {
     private final OrbStatProcessor orbs;
     private final DrifValueCalculator values;
     private final AdvisorEquipmentValidator validator;
-    private final Map<String, Contribution> contributions = new HashMap<>();
-    private final Map<String, double[]> equipmentValues = new HashMap<>();
-    private final Map<String, Double> drifValues = new HashMap<>();
-    private final Map<String, Map<String, Double>> itemValues = new HashMap<>();
+    private final Map<String, Contribution> contributions = new BoundedSearchCache<>(2_048);
+    private final Map<String, double[]> equipmentValues = new BoundedSearchCache<>(1_024);
+    private final Map<String, Double> drifValues = new BoundedSearchCache<>(1_024);
+    private final Map<String, Map<String, Double>> itemValues = new BoundedSearchCache<>(1_024);
 
     Map<String, Double> itemValues(ItemTemplate item, int stars) {
         return itemValues.computeIfAbsent(
@@ -130,7 +131,7 @@ final class AdvisorEquipmentModel {
             counts[type]++;
         }
         Contribution result = new Contribution(base, raw, counts);
-        if (contributions.size() < 12000) contributions.put(signature, result);
+        contributions.put(signature, result);
         return result;
     }
 

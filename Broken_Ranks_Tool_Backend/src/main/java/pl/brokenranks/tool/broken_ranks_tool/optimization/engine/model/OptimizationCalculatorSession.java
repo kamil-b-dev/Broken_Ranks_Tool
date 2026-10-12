@@ -6,13 +6,15 @@ import java.util.function.Supplier;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.NumericStats;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.input.EquipmentDataProvider.CalculationContext;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.cache.BoundedSearchCache;
 
 /** Lazily prepares calculator templates for one search, shared with its focused variants. */
 public final class OptimizationCalculatorSession {
     private CalculationContext catalog;
     private Function<EquipmentRequest, NumericStats> numericCalculation;
     private boolean numericPrepared;
-    private final Map<String, NumericStats> numericCache = new java.util.HashMap<>();
+    private final Map<String, NumericStats> numericCache =
+            new BoundedSearchCache<>(BoundedSearchCache.MAX_CALCULATIONS);
 
     public void catalog(CalculationContext catalog) {
         if (this.catalog != null) throw new IllegalStateException("Catalog already prepared");

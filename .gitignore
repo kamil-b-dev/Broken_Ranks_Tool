@@ -85,3 +85,6 @@ build/
 
 # Local backend input validation comparison
 /porownanie-walidacji-backendu-2026-10-11.txt
+
+# Local memory diagnostics and audit reports
+/docs/audyt-pamieci-*.md

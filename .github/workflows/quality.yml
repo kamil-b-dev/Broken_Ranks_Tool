@@ -47,6 +47,11 @@ jobs:
           path: Broken_Ranks_Tool_Backend/target/*.jar
           if-no-files-found: error
 
+      - name: Verify repeated optimization under constrained heap
+        env:
+          JAVA_TOOL_OPTIONS: "-Xmx128m"
+        run: ./mvnw --batch-mode -Dtest=OptimizationArcherPerformanceBenchmark -Doptimizer.memory.repetitions=3 test
+
   infrastructure:
     name: Infrastructure lint and API contract checks
     runs-on: ubuntu-latest

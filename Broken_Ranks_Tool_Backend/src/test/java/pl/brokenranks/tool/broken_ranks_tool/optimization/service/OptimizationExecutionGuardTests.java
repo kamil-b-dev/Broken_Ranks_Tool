@@ -25,6 +25,34 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationSummar
 class OptimizationExecutionGuardTests {
 
     @Test
+    void rejectsMemoryPressureBeforeCallingTheServiceAndReleasesThePermit() {
+        var service = Mockito.mock(ModsOptimizationService.class);
+        var registry = new SimpleMeterRegistry();
+        var memory = Mockito.mock(OptimizationMemoryGuard.class);
+        Mockito.doThrow(new OptimizerMemoryPressureException())
+                .doNothing()
+                .when(memory)
+                .ensureAvailable();
+        var guard =
+                new OptimizationExecutionGuard(
+                        service,
+                        new OptimizationProperties(55_000, 20_000, 25_000, 1),
+                        registry,
+                        memory);
+        assertThrows(
+                OptimizerMemoryPressureException.class,
+                () -> guard.optimize(new OptimizationRequest()));
+        Mockito.verifyNoInteractions(service);
+        assertEquals(0, registry.get("optimizer.active").gauge().value());
+        assertEquals(0, registry.timer("optimizer.duration").count());
+        when(service.optimize(any())).thenReturn(new OptimizationResponse(null, null));
+        guard.optimize(new OptimizationRequest());
+        Mockito.verify(service).optimize(any());
+        assertEquals(1, registry.timer("optimizer.duration").count());
+        assertEquals(0, registry.get("optimizer.active").gauge().value());
+    }
+
+    @Test
     void recordsVerifiedBuildsWithUnmetTargetsSeparatelyFromMissingSolutions() {
         var service = Mockito.mock(ModsOptimizationService.class);
         var setup = new EquipmentRequest();
@@ -123,6 +151,9 @@ class OptimizationExecutionGuardTests {
     private OptimizationExecutionGuard guard(
             ModsOptimizationService service, SimpleMeterRegistry meterRegistry) {
         return new OptimizationExecutionGuard(
-                service, new OptimizationProperties(55_000, 20_000, 25_000, 1), meterRegistry);
+                service,
+                new OptimizationProperties(55_000, 20_000, 25_000, 1),
+                meterRegistry,
+                Mockito.mock(OptimizationMemoryGuard.class));
     }
 }

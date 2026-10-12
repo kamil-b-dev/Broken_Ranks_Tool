@@ -87,8 +87,7 @@ try {
     docker build --tag $ImageName .
     if ($LASTEXITCODE -ne 0) { throw "Docker image build failed." }
 
-    docker run --detach --name $containerName --memory 1g --cpus 1 `
-        --env "JAVA_TOOL_OPTIONS=-Xms128m -Xmx640m -XX:MaxMetaspaceSize=128m -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError" `
+    docker run --detach --name $containerName --memory 4g --cpus 1 `
         --publish "${Port}:8080" $ImageName | Out-Null
     if ($LASTEXITCODE -ne 0) { throw "Docker container did not start." }
 
