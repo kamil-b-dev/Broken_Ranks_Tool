@@ -61,6 +61,27 @@ const props = {
 };
 
 describe("ItemDatabase", () => {
+    it("finds items by boss expressions and recovers from unfinished regex input", () => {
+        render(
+            <ItemDatabase
+                {...props}
+                items={[{ ...props.items[0], boss: "Tarul" }, props.items[1]]}
+            />
+        );
+        const search = screen.getByRole("textbox", { name: "Wyszukaj przedmioty" });
+        expect(search).toHaveAttribute("placeholder", "Nazwa przedmiotu lub bossa (regex)");
+        fireEvent.change(search, { target: { value: "^TARUL$" } });
+        expect(screen.getByText("Morana")).toBeInTheDocument();
+        expect(screen.queryByText("Prosty hełm")).not.toBeInTheDocument();
+        fireEvent.change(search, { target: { value: "[" } });
+        expect(search).toHaveAttribute("aria-invalid", "true");
+        expect(screen.getByRole("status")).toHaveTextContent("Szukam dosłownie wpisanego tekstu");
+        fireEvent.change(search, { target: { value: "Morana|hełm" } });
+        expect(search).toHaveAttribute("aria-invalid", "false");
+        expect(screen.queryByRole("status")).not.toBeInTheDocument();
+        expect(screen.getByText("Morana")).toBeInTheDocument();
+        expect(screen.getByText("Prosty hełm")).toBeInTheDocument();
+    });
     it("opens details on keyboard focus and closes them with Escape or blur", async () => {
         const user = userEvent.setup();
         render(<ItemDatabase {...props} />);

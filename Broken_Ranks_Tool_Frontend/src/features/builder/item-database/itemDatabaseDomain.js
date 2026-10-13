@@ -1,5 +1,30 @@
 import { ROMAN_ORDER, SIZE_ORDER } from "../../../shared/domain/equipment/equipmentRules";
 
+/** One case-insensitive expression matches the item name or its catalog boss independently. */
+export const createItemDatabaseSearch = (query) => {
+    const search = query.trim();
+    let pattern;
+    try {
+        pattern = new RegExp(search, "iu");
+    } catch {
+        const literal = search.toLocaleLowerCase("pl");
+        return {
+            error: "Niepoprawne wyrażenie regularne. Szukam dosłownie wpisanego tekstu.",
+            matches: (item) =>
+                [item.name, item.boss].some((value) =>
+                    String(value ?? "")
+                        .toLocaleLowerCase("pl")
+                        .includes(literal)
+                ),
+        };
+    }
+    return {
+        error: null,
+        matches: (item) =>
+            [item.name, item.boss].some((value) => pattern.test(String(value ?? ""))),
+    };
+};
+
 export const deduplicateVariants = (variants) => {
     const seen = new Set();
     return variants.filter((variant) => {
@@ -65,6 +90,7 @@ export const filterItemDatabaseGroups = ({
     filters,
     bonusTranslations,
     drifBasePowers,
+    itemSearch = activeTab === "items" ? createItemDatabaseSearch(filters.search) : null,
 }) =>
     Object.entries(groupedData).reduce((filtered, [category, entries]) => {
         if (
@@ -78,7 +104,7 @@ export const filterItemDatabaseGroups = ({
         const matches = entries.filter((entry) => {
             if (activeTab === "items") {
                 return (
-                    (entry.name || "").toLowerCase().includes(search) &&
+                    itemSearch.matches(entry) &&
                     (filters.tier === "Wszystkie" || entry.tier === filters.tier) &&
                     (filters.stat === "Wszystkie" || entry.stats?.[filters.stat] !== undefined)
                 );
