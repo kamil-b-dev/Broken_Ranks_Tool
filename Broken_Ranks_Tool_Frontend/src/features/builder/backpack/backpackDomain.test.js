@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { builderCatalog } from "../../../test/fixtures/equipment/builderCatalog";
 import saved from "../../../test/fixtures/builds/compatibility/v2-backpack.json";
+import selected from "../../../test/fixtures/builds/compatibility/v3-backpack-selection.json";
 import {
     backpackWarning,
     createBackpackEntry,
@@ -11,6 +12,31 @@ import { createBuildPayload } from "../../builds/buildPayload";
 import { parseBuildPayload } from "../../builds/buildFile";
 
 describe("backpack data and saved builds", () => {
+    it("round-trips v3 per-occurrence selection while v2 imports leave all drifs unselected", () => {
+        const result = parseBuildPayload(selected, builderCatalog);
+        expect(result.backpack.find((entry) => entry.kind === "DRIF").sendToBackend).toBe(true);
+        expect(parseBuildPayload(createBuildPayload(result), builderCatalog)).toEqual(result);
+        expect(
+            parseBuildPayload(saved, builderCatalog).backpack.every(
+                (entry) => entry.sendToBackend !== true
+            )
+        ).toBe(true);
+    });
+    it("accepts 200 slots, counts configured items as one slot and rejects 201 before inspecting entries", () => {
+        const entries = Array.from({ length: 200 }, (_, index) => ({
+            ...saved.build.backpack[0],
+            id: `item-${index}`,
+        }));
+        expect(normalizeBackpack(entries)).toHaveLength(200);
+        const payload = structuredClone(saved);
+        payload.build.backpack = entries;
+        expect(parseBuildPayload(payload, builderCatalog).backpack).toHaveLength(200);
+        payload.build.backpack = [...entries, { ...entries[0], id: "overflow" }];
+        expect(() => parseBuildPayload(payload, builderCatalog)).toThrow(/maksymalnie 200/);
+        expect(() => createBuildPayload(payload.build)).toThrow(/maksymalnie 200/);
+        expect(() => normalizeBackpack(Array(201).fill(null))).toThrow(/maksymalnie 200/);
+        expect(entries).toHaveLength(200);
+    });
     it("keeps item assemblies and individual stones separate, detached and ordered in v2", () => {
         const original = structuredClone(saved);
         const result = parseBuildPayload(saved, builderCatalog);
@@ -63,6 +89,8 @@ describe("backpack data and saved builds", () => {
         [{ id: "a", kind: "DRIF", templateId: "60", level: 0 }],
         [{ id: "a", kind: "ORB", templateId: "50", level: 4 }],
         [{ id: "a", kind: "DRIF", templateId: true, level: 1 }],
+        [{ id: "a", kind: "DRIF", templateId: "60", level: 1, sendToBackend: null }],
+        [{ id: "a", kind: "DRIF", templateId: "60", level: 1, sendToBackend: "true" }],
         [saved.build.backpack[0], saved.build.backpack[0]],
         [
             {

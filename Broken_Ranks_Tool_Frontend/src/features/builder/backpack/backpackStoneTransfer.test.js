@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { builderCatalog } from "../../../test/fixtures/equipment/builderCatalog";
-import { backpackStoneDropWarning, placeBackpackStone } from "./backpackStoneTransfer";
+import {
+    backpackStoneDropWarning,
+    placeBackpackStone,
+    removeBackpackStone,
+    undoBackpackStoneRemoval,
+} from "./backpackStoneTransfer";
 
 const data = {
     ...builderCatalog,
@@ -49,6 +54,69 @@ const options = (changes = {}) => ({
 });
 
 describe("placing stones into inventory equipment", () => {
+    it("extracts and restores a leveled stone without modifying other inventory alternatives", () => {
+        const input = options();
+        const before = structuredClone(input.entries);
+        const result = removeBackpackStone({ ...input, kind: "DRIF", zone: "drif-0" });
+        expect(result.entries).toHaveLength(4);
+        expect(result.entries[3]).toMatchObject({ kind: "DRIF", templateId: "61", level: 11 });
+        expect(result.entries[1].equipment.drifIds.filter(Boolean)).toEqual([]);
+        expect(result.entries[0]).toEqual(drif);
+        expect(input.entries).toEqual(before);
+        const restored = undoBackpackStoneRemoval({
+            ...input,
+            entries: result.entries,
+            undo: result.undo,
+        });
+        expect(restored).toEqual(before);
+    });
+    it("undoes orb extraction even when another alternative contains the same orb type", () => {
+        const input = options();
+        input.entries = [
+            { ...target, equipment: { ...target.equipment, orbIds: ["51"], orbLevels: [3] } },
+            {
+                ...target,
+                id: "alternative",
+                equipment: { ...target.equipment, orbIds: ["51"], orbLevels: [3] },
+            },
+        ];
+        const result = removeBackpackStone({ ...input, kind: "ORB", zone: "orb1" });
+        expect(
+            undoBackpackStoneRemoval({ ...input, entries: result.entries, undo: result.undo })
+        ).toEqual(input.entries);
+    });
+    it("does not duplicate a stone that has already been dragged back into its item", () => {
+        const input = options();
+        const result = removeBackpackStone({ ...input, kind: "DRIF", zone: "drif-0" });
+        const placed = placeBackpackStone({
+            ...input,
+            entries: result.entries,
+            resource: { source: "backpack", entryId: result.entries[3].id },
+            zone: "drif-0",
+        });
+        expect(placed[1].equipment.drifLevels[0]).toBe(11);
+        expect(placed).toHaveLength(3);
+        expect(() =>
+            undoBackpackStoneRemoval({ ...input, entries: placed, undo: result.undo })
+        ).toThrow(/nie znajduje/);
+    });
+    it("cannot undo extraction after the loose stone has been edited or the target deleted", () => {
+        const input = options();
+        const result = removeBackpackStone({ ...input, kind: "DRIF", zone: "drif-0" });
+        const edited = result.entries.map((entry) =>
+            entry.id === result.entries[3].id ? { ...entry, level: 6 } : entry
+        );
+        expect(() =>
+            undoBackpackStoneRemoval({ ...input, entries: edited, undo: result.undo })
+        ).toThrow(/zmieniona/);
+        expect(() =>
+            undoBackpackStoneRemoval({
+                ...input,
+                entries: result.entries.filter((entry) => entry.id !== "item"),
+                undo: result.undo,
+            })
+        ).toThrow(/Wybierz przedmiot/);
+    });
     it("replaces the same bonus at its position, retains both levels and keeps item identity and list order", () => {
         const source = options();
         const before = structuredClone(source);
@@ -228,7 +296,7 @@ describe("placing stones into inventory equipment", () => {
     it("prevents adding a returned catalog replacement to a full inventory but allows conserving a moved occurrence", () => {
         const full = [
             target,
-            ...Array.from({ length: 999 }, (_, index) => ({ ...drif, id: `stone-${index}` })),
+            ...Array.from({ length: 199 }, (_, index) => ({ ...drif, id: `stone-${index}` })),
         ];
         expect(() =>
             placeBackpackStone(options({ entries: full, resource: { dragType: "drifs", id: 60 } }))
@@ -237,6 +305,6 @@ describe("placing stones into inventory equipment", () => {
             placeBackpackStone(
                 options({ entries: full, resource: { source: "backpack", entryId: "stone-0" } })
             )
-        ).toHaveLength(1000);
+        ).toHaveLength(200);
     });
 });

@@ -33,6 +33,39 @@ const start = () => {
 };
 
 describe("backpack equipment transaction", () => {
+    it("removes and undoes a transfer once even through repeated callbacks before rendering", () => {
+        const { result, refresh } = start();
+        act(() => {
+            result.current.equipBackpackEntry("owned", "helmet");
+            const removal = result.current.equipmentRemoval;
+            expect(removal.removeEquipment("ITEM")).toBe(true);
+            expect(removal.removeEquipment("ITEM")).toBe(false);
+            expect(removal.undoRemoval("all:ITEM")).toBe(true);
+            expect(removal.undoRemoval("all:ITEM")).toBe(false);
+        });
+        expect(result.current.requestData.slots.helmet.itemStars).toBe(7);
+        expect(result.current.backpack).toEqual([]);
+        expect(refresh).toHaveBeenCalledTimes(3);
+    });
+    it("exposes undo availability and clears history when a build is imported", () => {
+        const { result } = start();
+        act(() => result.current.equipBackpackEntry("owned", "helmet"));
+        act(() => result.current.equipmentRemoval.removeEquipment("ITEM"));
+        expect(result.current.equipmentRemoval.getUndoWarning("all:ITEM")).toBeNull();
+        act(() => result.current.clearRemovalHistory());
+        expect(result.current.equipmentRemoval.getUndoWarning("all:ITEM")).toMatch(/Brak operacji/);
+        expect(result.current.backpack).toHaveLength(1);
+    });
+    it("cannot undo a removal after its returned occurrence has been equipped again", () => {
+        const { result } = start();
+        act(() => result.current.equipBackpackEntry("owned", "helmet"));
+        act(() => result.current.equipmentRemoval.removeEquipment("ITEM"));
+        act(() => result.current.equipBackpackEntry(result.current.backpack[0].id, "helmet"));
+        expect(result.current.equipmentRemoval.getUndoWarning("all:ITEM")).toMatch(/nie znajduje/);
+        act(() => expect(result.current.equipmentRemoval.undoRemoval("all:ITEM")).toBe(false));
+        expect(result.current.backpack).toEqual([]);
+        expect(result.current.requestData.slots.helmet.itemId).toBe("1");
+    });
     it("consumes an occurrence once even if the same event callback is called twice before rendering", () => {
         const { result, refresh } = start();
         act(() => {

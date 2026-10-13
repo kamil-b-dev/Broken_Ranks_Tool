@@ -36,7 +36,7 @@ describe("inventory grid drag and drop", () => {
         fireEvent.click(screen.getByRole("button", { name: "Drify", exact: true }));
         expect(container.querySelectorAll(".backpack-card")).toHaveLength(1);
         expect(screen.queryByRole("button", { name: /Orb Ochrona/ })).not.toBeInTheDocument();
-        expect(screen.getByText("Obiekty: 1/2")).toBeInTheDocument();
+        expect(screen.getByText("Sloty: 2/200 · Widoczne: 1")).toBeInTheDocument();
         fireEvent.click(screen.getByRole("button", { name: "Przedmioty", exact: true }));
         expect(screen.getByText("Brak obiektów tego rodzaju w plecaku.")).toBeInTheDocument();
         fireEvent.click(screen.getByRole("button", { name: "Wszystko", exact: true }));

@@ -34,7 +34,11 @@ const canonicalSlot = (value) =>
         : null;
 const draft = (page) =>
     page.evaluate(
-        () => JSON.parse(localStorage.getItem("broken-ranks-tool.equipment-draft.v2")).value
+        () =>
+            JSON.parse(
+                localStorage.getItem("broken-ranks-tool.equipment-draft.v3") ||
+                    localStorage.getItem("broken-ranks-tool.equipment-draft.v2")
+            ).value
     );
 const statNumber = (value) => Number.parseFloat(String(value).replace(",", "."));
 const displayValue = (value) =>
@@ -274,7 +278,7 @@ test("desktop equips a configured backpack item and leveled stones accepted by t
     const download = page.waitForEvent("download");
     await page.locator(".saved-build-card").getByRole("button", { name: "Eksportuj JSON" }).click();
     const exported = JSON.parse(await readFile(await (await download).path(), "utf8"));
-    expect(exported.version).toBe(2);
+    expect(exported.version).toBe(3);
     expect(exported.build.backpack).toEqual(stored.backpack);
     const restored = page.waitForResponse(isCalculation);
     await page

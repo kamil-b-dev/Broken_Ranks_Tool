@@ -1,5 +1,12 @@
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
-import { backpackStoneDropWarning, placeBackpackStone } from "./backpackStoneTransfer";
+import {
+    backpackStoneDropWarning,
+    placeBackpackStone,
+    removeBackpackStone,
+    undoBackpackStoneRemoval,
+    backpackStoneRemovalWarning,
+    backpackStoneRemovalUndoWarning,
+} from "./backpackStoneTransfer";
 import {
     backpackTemplate,
     createBackpackEntry,
@@ -9,7 +16,13 @@ import {
 } from "./backpackDomain";
 
 /** Selection and list editing remain independent of equipped slots and calculator requests. */
-export const useBackpackWorkspace = ({ entries, onChange, data, gameRules }) => {
+export const useBackpackWorkspace = ({
+    entries,
+    onChange,
+    data,
+    gameRules,
+    importRevision = 0,
+}) => {
     const currentEntries = useRef(entries);
     useLayoutEffect(() => {
         currentEntries.current = entries;
@@ -18,6 +31,82 @@ export const useBackpackWorkspace = ({ entries, onChange, data, gameRules }) => 
     const [selectedId, setSelectedId] = useState(null);
     const [creatingKind, setCreatingKind] = useState(null);
     const [notice, setNotice] = useState(null);
+    const undos = useRef({});
+    const [removalUndos, setRemovalUndos] = useState({});
+    const [removalRevision, setRemovalRevision] = useState(importRevision);
+    if (removalRevision !== importRevision) {
+        setRemovalRevision(importRevision);
+        setRemovalUndos({});
+        setNotice(null);
+    }
+    useLayoutEffect(() => {
+        undos.current = {};
+    }, [importRevision]);
+    const commitStoneOperation = useCallback(
+        (next, targetId) => {
+            currentEntries.current = next;
+            onChange(next);
+            setEditRevision((revision) => revision + 1);
+            setSelectedId(targetId);
+            setCreatingKind(null);
+            setNotice(null);
+        },
+        [onChange]
+    );
+    const removeStone = useCallback(
+        (kind, targetId, zone) => {
+            try {
+                const next = removeBackpackStone({
+                    entries: currentEntries.current,
+                    data,
+                    kind,
+                    targetId,
+                    zone,
+                });
+                commitStoneOperation(next.entries, targetId);
+                undos.current = { ...undos.current, [next.undo.key]: next.undo };
+                setRemovalUndos(undos.current);
+                return true;
+            } catch (error) {
+                setNotice(error.message);
+                return false;
+            }
+        },
+        [data, commitStoneOperation]
+    );
+    const undoStoneRemoval = useCallback(
+        (key) => {
+            try {
+                const undo = undos.current[key];
+                const next = undoBackpackStoneRemoval({
+                    entries: currentEntries.current,
+                    data,
+                    gameRules,
+                    undo,
+                });
+                commitStoneOperation(next, undo.targetId);
+                const remaining = { ...undos.current };
+                delete remaining[key];
+                undos.current = remaining;
+                setRemovalUndos(remaining);
+                return true;
+            } catch (error) {
+                setNotice(error.message);
+                return false;
+            }
+        },
+        [data, gameRules, commitStoneOperation]
+    );
+    const getStoneRemovalWarning = useCallback(
+        (kind, targetId, zone) =>
+            backpackStoneRemovalWarning({ entries, data, kind, targetId, zone }),
+        [entries, data]
+    );
+    const getStoneRemovalUndoWarning = useCallback(
+        (key) =>
+            backpackStoneRemovalUndoWarning({ entries, data, gameRules, undo: removalUndos[key] }),
+        [entries, data, gameRules, removalUndos]
+    );
     const activeEntry = creatingKind
         ? null
         : entries.find((entry) => entry.id === selectedId) || entries[0] || null;
@@ -73,19 +162,14 @@ export const useBackpackWorkspace = ({ entries, onChange, data, gameRules }) => 
                     targetId,
                     zone,
                 });
-                currentEntries.current = next;
-                onChange(next);
-                setEditRevision((revision) => revision + 1);
-                setSelectedId(targetId);
-                setCreatingKind(null);
-                setNotice(null);
+                commitStoneOperation(next, targetId);
                 return true;
             } catch (error) {
                 setNotice(error.message);
                 return false;
             }
         },
-        [data, gameRules, onChange]
+        [data, gameRules, commitStoneOperation]
     );
     const getStoneDropWarning = useCallback(
         (resource, targetId, zone) =>
@@ -100,6 +184,10 @@ export const useBackpackWorkspace = ({ entries, onChange, data, gameRules }) => 
         editRevision,
         placeStone,
         getStoneDropWarning,
+        removeStone,
+        undoStoneRemoval,
+        getStoneRemovalWarning,
+        getStoneRemovalUndoWarning,
         begin,
         select,
         add,

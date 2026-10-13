@@ -1,5 +1,6 @@
 import { formatGroupLabel } from "./gearSlotPresentation";
 import CategoryIcon from "../../../shared/ui/CategoryIcon";
+import EquipmentRemovalAction from "../backpack/EquipmentRemovalAction";
 
 /**
  * Renders orb selection, leveling, and drag-and-drop behavior for a slot.
@@ -29,6 +30,8 @@ const OrbSection = ({
     groupedOrbs,
     bonusTranslations,
     showCategoryIcons = true,
+    removalActions,
+    equipmentSlotKey,
 }) => {
     const currentOrbObj = groupedOrbs[orbState.type]?.find(
         (orb) => String(orb.id) === String(orbState.id)
@@ -38,85 +41,101 @@ const OrbSection = ({
     const availableOrbLevels = isSubOrb ? [1] : [1, 2, 3];
 
     return (
-        <div
-            className={`${dropEligible ? "equipment-drop-eligible" : ""} orb-selector-row flex gap-1 w-full items-center mb-1 p-1.5 bg-black/60 border transition-colors shadow-[inset_0_0_15px_rgba(0,0,0,0.8)] ${dragOverZone === slotKey ? "border-amber-700/50 bg-amber-950/20" : "border-rose-900/70 builder-accent-frame"}`}
-            onDragOver={(e) => handleDragOver(e, slotKey)}
-            onDragLeave={handleDragLeave}
-            onDrop={(e) => handleDrop(e, slotKey)}
-        >
-            {showCategoryIcons && (
-                <CategoryIcon
-                    kind="orb"
-                    category={currentOrbCategory}
-                    className="orb-socket-glyph"
-                    fallback={<span className="orb-socket-glyph" aria-hidden="true" />}
-                />
-            )}
-            <select
-                value={orbState.type}
-                aria-label="Wybierz rodzaj orba"
-                onChange={(e) => setOrbState({ type: e.target.value, id: "", level: "" })}
-                disabled={!selectedItem}
-                className="flex-3 min-w-0 bg-transparent text-rose-700 builder-accent-text font-serif p-1 text-xs border-b border-rose-900/70 builder-accent-frame focus:border-rose-500 outline-hidden text-center cursor-pointer disabled:opacity-30"
+        <div className={removalActions ? "equipment-stone-row w-full" : "w-full"}>
+            <div
+                className={`${dropEligible ? "equipment-drop-eligible" : ""} orb-selector-row flex gap-1 w-full items-center mb-1 p-1.5 bg-black/60 border transition-colors shadow-[inset_0_0_15px_rgba(0,0,0,0.8)] ${dragOverZone === slotKey ? "border-amber-700/50 bg-amber-950/20" : "border-rose-900/70 builder-accent-frame"}`}
+                onDragOver={(e) => handleDragOver(e, slotKey)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, slotKey)}
             >
-                <option value="" className="bg-stone-950 text-stone-500">
-                    Rodzaj
-                </option>
-                {Object.keys(groupedOrbs).map((type) => (
-                    <option key={type} value={type} className="bg-stone-950 text-stone-300">
-                        {formatGroupLabel(type, groupedOrbs[type], bonusTranslations)}
+                {showCategoryIcons && (
+                    <CategoryIcon
+                        kind="orb"
+                        category={currentOrbCategory}
+                        className="orb-socket-glyph"
+                        fallback={<span className="orb-socket-glyph" aria-hidden="true" />}
+                    />
+                )}
+                <select
+                    value={orbState.type}
+                    aria-label="Wybierz rodzaj orba"
+                    onChange={(e) => setOrbState({ type: e.target.value, id: "", level: "" })}
+                    disabled={!selectedItem}
+                    className="flex-3 min-w-0 bg-transparent text-rose-700 builder-accent-text font-serif p-1 text-xs border-b border-rose-900/70 builder-accent-frame focus:border-rose-500 outline-hidden text-center cursor-pointer disabled:opacity-30"
+                >
+                    <option value="" className="bg-stone-950 text-stone-500">
+                        Rodzaj
                     </option>
-                ))}
-            </select>
-
-            <select
-                value={orbState.id}
-                aria-label="Wybierz wielkość orba"
-                onChange={(e) => {
-                    setOrbState((prev) => ({
-                        ...prev,
-                        id: e.target.value,
-                        level: e.target.value ? "1" : "",
-                    }));
-                }}
-                disabled={!orbState.type}
-                className="flex-3 min-w-0 bg-transparent text-stone-300 font-serif p-1 text-xs border-b border-rose-900/70 builder-accent-frame focus:border-rose-500 outline-hidden text-center disabled:opacity-30 cursor-pointer"
-            >
-                <option value="" className="bg-stone-950 text-stone-500">
-                    Wielkość
-                </option>
-                {orbState.type &&
-                    groupedOrbs[orbState.type]?.map((orb) => (
-                        <option key={orb.id} value={orb.id} className="text-stone-300 bg-stone-950">
-                            {orb.size || orb.tier}
+                    {Object.keys(groupedOrbs).map((type) => (
+                        <option key={type} value={type} className="bg-stone-950 text-stone-300">
+                            {formatGroupLabel(type, groupedOrbs[type], bonusTranslations)}
                         </option>
                     ))}
-            </select>
+                </select>
 
-            <select
-                value={orbState.level}
-                aria-label="Wybierz poziom orba"
-                onChange={(e) => setOrbState((prev) => ({ ...prev, level: e.target.value }))}
-                disabled={!orbState.id || isSubOrb}
-                className="flex-2 min-w-0 bg-transparent text-stone-300 font-serif p-1 text-xs border-b border-rose-900/70 builder-accent-frame focus:border-rose-500 outline-hidden text-center disabled:opacity-30 cursor-pointer"
-            >
-                <option
-                    value=""
-                    disabled={Boolean(orbState.id)}
-                    className="bg-stone-950 text-stone-500"
+                <select
+                    value={orbState.id}
+                    aria-label="Wybierz wielkość orba"
+                    onChange={(e) => {
+                        setOrbState((prev) => ({
+                            ...prev,
+                            id: e.target.value,
+                            level: e.target.value ? "1" : "",
+                        }));
+                    }}
+                    disabled={!orbState.type}
+                    className="flex-3 min-w-0 bg-transparent text-stone-300 font-serif p-1 text-xs border-b border-rose-900/70 builder-accent-frame focus:border-rose-500 outline-hidden text-center disabled:opacity-30 cursor-pointer"
                 >
-                    lvl
-                </option>
-                {availableOrbLevels.map((num) => (
-                    <option
-                        key={num}
-                        value={num.toString()}
-                        className="bg-stone-950 text-stone-300"
-                    >
-                        {num}
+                    <option value="" className="bg-stone-950 text-stone-500">
+                        Wielkość
                     </option>
-                ))}
-            </select>
+                    {orbState.type &&
+                        groupedOrbs[orbState.type]?.map((orb) => (
+                            <option
+                                key={orb.id}
+                                value={orb.id}
+                                className="text-stone-300 bg-stone-950"
+                            >
+                                {orb.size || orb.tier}
+                            </option>
+                        ))}
+                </select>
+
+                <select
+                    value={orbState.level}
+                    aria-label="Wybierz poziom orba"
+                    onChange={(e) => setOrbState((prev) => ({ ...prev, level: e.target.value }))}
+                    disabled={!orbState.id || isSubOrb}
+                    className="flex-2 min-w-0 bg-transparent text-stone-300 font-serif p-1 text-xs border-b border-rose-900/70 builder-accent-frame focus:border-rose-500 outline-hidden text-center disabled:opacity-30 cursor-pointer"
+                >
+                    <option
+                        value=""
+                        disabled={Boolean(orbState.id)}
+                        className="bg-stone-950 text-stone-500"
+                    >
+                        lvl
+                    </option>
+                    {availableOrbLevels.map((num) => (
+                        <option
+                            key={num}
+                            value={num.toString()}
+                            className="bg-stone-950 text-stone-300"
+                        >
+                            {num}
+                        </option>
+                    ))}
+                </select>
+            </div>
+            {removalActions && (
+                <EquipmentRemovalAction
+                    iconOnly
+                    actions={removalActions}
+                    kind="ORB"
+                    slotKey={equipmentSlotKey}
+                    zone={slotKey}
+                    label={`Zdejmij orb ${slotKey === "orb2" ? 2 : 1} do plecaka`}
+                />
+            )}
         </div>
     );
 };

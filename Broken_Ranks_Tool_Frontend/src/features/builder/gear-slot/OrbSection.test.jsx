@@ -60,7 +60,7 @@ describe("OrbSection", () => {
         const { container } = render(<Harness selectedItem="" onDragOver={onDragOver} />);
 
         expect(screen.getByLabelText("Wybierz rodzaj orba")).toBeDisabled();
-        fireEvent.dragOver(container.firstChild);
+        fireEvent.dragOver(container.querySelector(".orb-selector-row"));
         expect(onDragOver).toHaveBeenCalledWith(expect.anything(), "orb1");
     });
 });

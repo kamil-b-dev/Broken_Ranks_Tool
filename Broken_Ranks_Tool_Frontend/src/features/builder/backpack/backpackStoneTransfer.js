@@ -13,6 +13,78 @@ import {
     backpackEquipWarning,
     prepareBackpackEquip,
 } from "./backpackEquipmentTransfer";
+import { prepareEquipmentRemoval, prepareEquipmentRemovalUndo } from "./backpackEquipmentRemoval";
+
+const inventoryItem = (entries, targetId, data) => {
+    const target = entries.find((entry) => entry.id === targetId && entry.kind === "ITEM");
+    if (!target) throw new Error("Wybierz przedmiot w plecaku.");
+    const slot = backpackSlot(backpackTemplate(target, data));
+    if (!slot) throw new Error("Przedmiot nie znajduje się w aktualnym katalogu.");
+    return { target, slot, requestData: { slots: { [slot.key]: target.equipment } } };
+};
+const applyInventoryEquipment = (next, targetId, slotKey) =>
+    next.backpack.map((entry) =>
+        entry.id === targetId ? { ...entry, equipment: next.requestData.slots[slotKey] } : entry
+    );
+
+/** Extracts an owned stone without touching worn equipment or other inventory alternatives. */
+export const removeBackpackStone = ({ entries, targetId, kind, zone, data, createId }) => {
+    if (!["ORB", "DRIF"].includes(kind)) throw new Error("Można wyjąć orb albo zwykły drif.");
+    const { slot, requestData } = inventoryItem(entries, targetId, data);
+    const next = prepareEquipmentRemoval({
+        backpack: entries,
+        requestData,
+        data,
+        kind,
+        slotKey: slot.key,
+        zone,
+        createId,
+    });
+    return {
+        entries: applyInventoryEquipment(next, targetId, slot.key),
+        undo: { ...next.undo, key: `${targetId}:${zone}`, targetId },
+    };
+};
+
+export const undoBackpackStoneRemoval = ({ entries, undo, data, gameRules }) => {
+    if (!undo) throw new Error("Brak operacji do cofnięcia.");
+    const { slot, requestData } = inventoryItem(entries, undo.targetId, data);
+    const next = prepareEquipmentRemovalUndo({
+        backpack: entries,
+        requestData,
+        undo,
+        data,
+        gameRules,
+    });
+    return applyInventoryEquipment(next, undo.targetId, slot.key);
+};
+
+export const backpackStoneRemovalWarning = (input) => {
+    try {
+        let index = 0;
+        removeBackpackStone({
+            ...input,
+            createId: () => {
+                let id;
+                do {
+                    id = `preview-${++index}`;
+                } while (input.entries.some((entry) => entry.id === id));
+                return id;
+            },
+        });
+        return null;
+    } catch (error) {
+        return error.message;
+    }
+};
+export const backpackStoneRemovalUndoWarning = (input) => {
+    try {
+        undoBackpackStoneRemoval(input);
+        return null;
+    } catch (error) {
+        return error.message;
+    }
+};
 
 const placementOptions = ({ entries, data, gameRules, resource, targetId, zone }) => {
     const target = entries.find((entry) => entry.id === targetId && entry.kind === "ITEM");

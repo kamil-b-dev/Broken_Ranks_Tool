@@ -10,13 +10,19 @@ import MobileItemPicker from "./MobileItemPicker";
 import { useRef } from "react";
 import BackpackEquipmentSelect from "../backpack/BackpackEquipmentSelect";
 import BackpackItemChoices from "../backpack/BackpackItemChoices";
+import EquipmentRemovalAction from "../backpack/EquipmentRemovalAction";
 
 export default function MobileGearSlot({ slot, items, pickingItem, onPickItem, onClosePicker }) {
     const pickerOpener = useRef(null);
     const { data, gameRules } = useEquipmentCatalogState();
     const { requestData, handleSlotUpdate, optimizationTrigger } = useEquipmentSetup();
-    const { backpack, equipBackpackEntry, getBackpackEquipWarning, backpackEquipNotice } =
-        useEquipmentBackpack();
+    const {
+        backpack,
+        equipBackpackEntry,
+        getBackpackEquipWarning,
+        backpackEquipNotice,
+        equipmentRemoval,
+    } = useEquipmentBackpack();
     const model = useGearSlot({
         slotKey: slot.key,
         items,
@@ -99,6 +105,8 @@ export default function MobileGearSlot({ slot, items, pickingItem, onPickItem, o
                             <div key={key} role="group" aria-label={`Orb ${index + 1}`}>
                                 <h3>Orb {index + 1}</h3>
                                 <OrbSection
+                                    equipmentSlotKey={slot.key}
+                                    removalActions={equipmentRemoval}
                                     showCategoryIcons={false}
                                     slotKey={key}
                                     selectedItem={model.selectedItem}
@@ -143,6 +151,16 @@ export default function MobileGearSlot({ slot, items, pickingItem, onPickItem, o
                             </p>
                         )}
                         <DrifSection
+                            renderStoneActions={(index) => (
+                                <EquipmentRemovalAction
+                                    iconOnly
+                                    actions={equipmentRemoval}
+                                    kind="DRIF"
+                                    slotKey={slot.key}
+                                    zone={`drif-${index}`}
+                                    label={`Zdejmij drif ${index + 1} do plecaka`}
+                                />
+                            )}
                             showCategoryIcons={false}
                             slotKey={slot.key}
                             drifs={data.drifs}

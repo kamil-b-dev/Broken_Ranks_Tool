@@ -18,6 +18,7 @@ export const useEquipmentBuildTransfer = ({
     markEquipmentChanged,
     backpack,
     setBackpack,
+    onBuildImported,
 }) => {
     const importVersion = useRef(0);
     const snapshot = useRef({
@@ -55,6 +56,7 @@ export const useEquipmentBuildTransfer = ({
             setCharacterConfig(importedBuild.characterConfig);
             replaceLocks(importedBuild.lockedSlots, importedBuild.lockedDrifs);
             setBackpack?.(importedBuild.backpack || []);
+            onBuildImported?.();
             // Persisted statistics describe the catalogue at save time, not the current rules.
             restoreStats(null);
             markEquipmentChanged();
@@ -68,6 +70,7 @@ export const useEquipmentBuildTransfer = ({
             setCharacterConfig,
             setRequestData,
             setBackpack,
+            onBuildImported,
         ]
     );
 

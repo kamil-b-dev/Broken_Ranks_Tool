@@ -43,14 +43,21 @@ const entries = [
 ];
 const draft = (page) =>
     page.evaluate(
-        () => JSON.parse(localStorage.getItem("broken-ranks-tool.equipment-draft.v2")).value
+        () =>
+            JSON.parse(
+                localStorage.getItem("broken-ranks-tool.equipment-draft.v3") ||
+                    localStorage.getItem("broken-ranks-tool.equipment-draft.v2")
+            ).value
     );
 
 test.beforeEach(async ({ page }) => {
     await page.setViewportSize({ width: 1800, height: 1100 });
     await page.addInitScript(
         (value) => {
-            if (!localStorage.getItem("broken-ranks-tool.equipment-draft.v2"))
+            if (!(
+                localStorage.getItem("broken-ranks-tool.equipment-draft.v3") ||
+                localStorage.getItem("broken-ranks-tool.equipment-draft.v2")
+            ))
                 localStorage.setItem(
                     "broken-ranks-tool.equipment-draft.v2",
                     JSON.stringify({ version: 2, value })
@@ -90,7 +97,9 @@ test("moves stones from the left backpack source into item cards and refreshes t
         .toBe(false);
     await source
         .getByRole("button", { name: /Ochrona · SUBORB/ })
-        .dragTo(item.locator(".equipment-slot-overview-item"));
+        .dragTo(item.locator(".equipment-slot-overview-item"), {
+            targetPosition: { x: 20, y: 20 },
+        });
     await expect(item.getByLabel("Umieszczone orby")).toContainText("Ochrona");
     await expect
         .poll(async () => (await draft(page)).backpack.some((entry) => entry.id === "orb"))
@@ -158,4 +167,46 @@ test("copies a database stone directly into an inventory item instead of adding 
     expect(stored.backpack).toHaveLength(entries.length);
     expect(stored.backpack.find((entry) => entry.id === "orb")).toEqual(entries[3]);
     expect(stored.requestData.slots.helmet.orbIds).toEqual([]);
+});
+
+test("extracts inventory stones with icons, undoes them and can drag the extracted occurrence back", async ({
+    page,
+}) => {
+    const item = page.locator(".backpack-grid .equipment-slot-overview");
+    await item.click();
+    const editor = page.getByLabel("Edytor plecaka");
+    const initial = await draft(page);
+    const remove = editor.getByRole("button", { name: "Zdejmij drif 1 do plecaka", exact: true });
+    const undo = editor.getByRole("button", {
+        name: "Cofnij: Zdejmij drif 1 do plecaka",
+        exact: true,
+    });
+    await remove.click();
+    await expect(editor.getByLabel("Wybierz wielkość drifa 1")).toHaveValue("");
+    await expect.poll(async () => (await draft(page)).backpack.length).toBe(entries.length + 1);
+    await expect(undo).toBeEnabled();
+    await undo.click();
+    await expect(editor.getByLabel("Wybierz poziom drifa 1")).toHaveValue("11");
+    await expect.poll(async () => (await draft(page)).backpack.length).toBe(entries.length);
+    await remove.click();
+    await page
+        .locator(".backpack-grid")
+        .getByRole("button", { name: "Drif Band, ARCYDRIF, poziom 11", exact: true })
+        .dragTo(editor.getByLabel("Wybierz rodzaj drifa 1").locator(".."));
+    await expect(editor.getByLabel("Wybierz poziom drifa 1")).toHaveValue("11");
+    await expect(undo).toBeDisabled();
+    await expect.poll(async () => (await draft(page)).backpack.length).toBe(entries.length);
+    await page
+        .locator(".backpack-grid")
+        .getByRole("button", { name: "Orb Ochrona, SUBORB, poziom 1", exact: true })
+        .dragTo(editor.getByLabel("Wybierz rodzaj orba").locator(".."));
+    await expect(editor.getByLabel("Wybierz wielkość orba")).toHaveValue("50");
+    await editor.getByRole("button", { name: "Zdejmij orb 1 do plecaka", exact: true }).click();
+    await expect(editor.getByLabel("Wybierz wielkość orba")).toHaveValue("");
+    await editor
+        .getByRole("button", { name: "Cofnij: Zdejmij orb 1 do plecaka", exact: true })
+        .click();
+    await expect(editor.getByLabel("Wybierz wielkość orba")).toHaveValue("50");
+    await editor.screenshot({ path: "../tmp/backpack-extraction-editor.png" });
+    expect((await draft(page)).requestData).toEqual(initial.requestData);
 });

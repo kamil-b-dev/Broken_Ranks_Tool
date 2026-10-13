@@ -31,7 +31,8 @@ const draft = (page) =>
     page.evaluate(
         () =>
             JSON.parse(
-                localStorage.getItem("broken-ranks-tool.equipment-draft.v2") ||
+                localStorage.getItem("broken-ranks-tool.equipment-draft.v3") ||
+                    localStorage.getItem("broken-ranks-tool.equipment-draft.v2") ||
                     localStorage.getItem("broken-ranks-tool.equipment-draft.v1")
             ).value
     );

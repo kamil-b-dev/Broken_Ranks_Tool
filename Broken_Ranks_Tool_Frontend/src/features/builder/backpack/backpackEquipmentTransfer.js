@@ -68,6 +68,17 @@ const preparePlacement = ({
         ids[index] = entry.templateId;
         levels[index] = entry.level;
     }
+    validateBackpackEquipmentPlacement(requestData, slotKey, equipment, data, gameRules);
+    return { equipment, returned };
+};
+
+export const validateBackpackEquipmentPlacement = (
+    requestData,
+    slotKey,
+    equipment,
+    data,
+    gameRules
+) => {
     validateImportedBuild(
         { requestData: { slots: { [slotKey]: equipment } } },
         { ...data, gameRules }
@@ -89,7 +100,6 @@ const preparePlacement = ({
             }
         }
     }
-    return { equipment, returned };
 };
 
 export const prepareBackpackEquip = (options) => {

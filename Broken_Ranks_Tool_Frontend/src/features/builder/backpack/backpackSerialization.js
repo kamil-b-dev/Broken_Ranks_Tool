@@ -1,5 +1,5 @@
 export const BACKPACK_KINDS = ["ITEM", "ORB", "DRIF"];
-export const MAX_BACKPACK_ENTRIES = 1000;
+export const MAX_BACKPACK_ENTRIES = 200;
 const isObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
 const fail = () => {
     throw new Error("Plecak zawiera niepoprawne dane.");
@@ -20,7 +20,9 @@ const ids = (value, max) => {
 
 /** Wire normalization validates structure; unfinished equipment is preserved for later editing. */
 export const normalizeBackpack = (entries = []) => {
-    if (!Array.isArray(entries) || entries.length > MAX_BACKPACK_ENTRIES) fail();
+    if (!Array.isArray(entries)) fail();
+    if (entries.length > MAX_BACKPACK_ENTRIES)
+        throw new Error(`Plecak mieści maksymalnie ${MAX_BACKPACK_ENTRIES} slotów.`);
     const seen = new Set();
     return entries.map((entry) => {
         if (
@@ -33,12 +35,17 @@ export const normalizeBackpack = (entries = []) => {
             fail();
         seen.add(entry.id);
         if (!BACKPACK_KINDS.includes(entry.kind)) fail();
+        if (Object.hasOwn(entry, "sendToBackend") && typeof entry.sendToBackend !== "boolean")
+            fail();
+        const selection =
+            entry.kind === "DRIF" && entry.sendToBackend === true ? { sendToBackend: true } : {};
         if (entry.kind !== "ITEM")
             return {
                 id: entry.id,
                 kind: entry.kind,
                 templateId: identifier(entry.templateId),
                 level: integer(entry.level, entry.kind === "DRIF" ? 21 : 3),
+                ...selection,
             };
         const slot = entry.equipment;
         if (!isObject(slot) || !isObject(slot.drifLevels)) fail();

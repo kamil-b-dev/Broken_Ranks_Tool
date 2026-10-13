@@ -8,6 +8,7 @@ import {
   BUILD_FILE_VERSION,
   createBuildPayload,
   createVersionOneBuildPayload,
+  createVersionTwoBuildPayload,
 } from "../Broken_Ranks_Tool_Frontend/src/features/builds/buildPayload.js";
 
 const readJson = async (relative) =>
@@ -18,6 +19,52 @@ const ajv = new Ajv({ allErrors: true, allowUnionTypes: true });
 addFormats(ajv);
 const validate = ajv.compile(schema);
 const golden = await readJson(`${fixtures}compatibility/v1-complete.json`);
+
+test("v2 accepts 200 backpack slots and rejects 201", async () => {
+  const validateBackpack = ajv.compile(
+    await readJson("../docs/build-file-v2.schema.json"),
+  );
+  const payload = await readJson(`${fixtures}compatibility/v2-backpack.json`);
+  payload.build.backpack = Array.from({ length: 200 }, (_, index) => ({
+    id: `slot-${index}`,
+    kind: "DRIF",
+    templateId: "60",
+    level: 1,
+  }));
+  assert.equal(
+    validateBackpack(payload),
+    true,
+    JSON.stringify(validateBackpack.errors),
+  );
+  payload.build.backpack.push({
+    id: "overflow",
+    kind: "DRIF",
+    templateId: "60",
+    level: 1,
+  });
+  assert.equal(validateBackpack(payload), false);
+  assert.ok(
+    validateBackpack.errors.some(
+      (error) =>
+        error.keyword === "maxItems" &&
+        error.instancePath === "/build/backpack",
+    ),
+  );
+});
+test("v3 preserves per-occurrence drif selection and the v1/v2 equipment fields", async () => {
+  const fixture = await readJson(
+    `${fixtures}compatibility/v3-backpack-selection.json`,
+  );
+  const validateV3 = ajv.compile(
+    await readJson("../docs/build-file-v3.schema.json"),
+  );
+  const saved = createBuildPayload(fixture.build);
+  assert.deepEqual({ ...saved, exportedAt: fixture.exportedAt }, fixture);
+  assert.equal(validateV3(saved), true, JSON.stringify(validateV3.errors));
+  saved.build.backpack.find((entry) => entry.kind === "DRIF").sendToBackend =
+    "true";
+  assert.equal(validateV3(saved), false);
+});
 
 // Input is intentionally independent of the golden output and of application defaults.
 const editorState = () => ({
@@ -130,18 +177,18 @@ test("v1 structural contract rejects accidental renames or removal of required d
 
 test("v2 exports the backpack separately while retaining every frozen v1 equipment field", async () => {
   const fixture = await readJson(`${fixtures}compatibility/v2-backpack.json`);
-  const validateV2 = ajv.compile(
-    await readJson("../docs/build-file-v2.schema.json"),
-  );
+  const validateV2 =
+    ajv.getSchema("urn:broken-ranks-tool:build-file:v2") ||
+    ajv.compile(await readJson("../docs/build-file-v2.schema.json"));
   assert.equal(validateV2(fixture), true, ajv.errorsText(validateV2.errors));
   const state = structuredClone(fixture.build);
   state.backpack[0].temporaryEditorState = true;
-  const saved = createBuildPayload(state);
-  assert.equal(BUILD_FILE_VERSION, 2);
+  const saved = createVersionTwoBuildPayload(state);
+  assert.equal(BUILD_FILE_VERSION, 3);
   assert.deepEqual({ ...saved, exportedAt: fixture.exportedAt }, fixture);
   state.backpack[0].equipment.drifLevels[0] = 1;
   assert.equal(saved.build.backpack[0].equipment.drifLevels[0], 6);
-  const empty = createBuildPayload(editorState());
+  const empty = createVersionTwoBuildPayload(editorState());
   assert.deepEqual(empty.build, { ...golden.build, backpack: [] });
   assert.equal(validateV2(empty), true, ajv.errorsText(validateV2.errors));
   const renamed = structuredClone(fixture);

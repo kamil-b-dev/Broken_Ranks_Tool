@@ -1,6 +1,7 @@
 export const LEGACY_EQUIPMENT_DRAFT_STORAGE_KEY = "broken-ranks-tool.equipment-draft.v1";
-export const EQUIPMENT_DRAFT_STORAGE_KEY = "broken-ranks-tool.equipment-draft.v2";
-export const EQUIPMENT_DRAFT_VERSION = 2;
+export const VERSION_TWO_EQUIPMENT_DRAFT_STORAGE_KEY = "broken-ranks-tool.equipment-draft.v2";
+export const EQUIPMENT_DRAFT_STORAGE_KEY = "broken-ranks-tool.equipment-draft.v3";
+export const EQUIPMENT_DRAFT_VERSION = 3;
 export const EQUIPMENT_DRAFT_RECOVERY_STORAGE_KEY = `${EQUIPMENT_DRAFT_STORAGE_KEY}.recovery`;
 export const OPTIMIZER_DRAFT_STORAGE_KEY = "broken-ranks-tool.optimizer-draft.v1";
 export const WORKING_DRAFT_VERSION = 1;
@@ -38,18 +39,27 @@ export const readEquipmentDraftState = (storage) => {
         if (!storage) return { draft: null, rejected: false };
         let raw = storage.getItem(sourceKey);
         if (raw == null) {
+            sourceKey = VERSION_TWO_EQUIPMENT_DRAFT_STORAGE_KEY;
+            raw = storage.getItem(sourceKey);
+        }
+        if (raw == null) {
             sourceKey = LEGACY_EQUIPMENT_DRAFT_STORAGE_KEY;
             raw = storage.getItem(sourceKey);
         }
         if (raw == null) return { draft: null, rejected: false };
         const stored = JSON.parse(raw);
-        const expected = sourceKey === EQUIPMENT_DRAFT_STORAGE_KEY ? 2 : 1;
+        const expected =
+            sourceKey === EQUIPMENT_DRAFT_STORAGE_KEY
+                ? 3
+                : sourceKey === VERSION_TWO_EQUIPMENT_DRAFT_STORAGE_KEY
+                  ? 2
+                  : 1;
         const draft = stored?.value;
         if (
             stored?.version !== expected ||
             !isObject(draft?.requestData) ||
             !isObject(draft.requestData.slots) ||
-            (expected === 2 && !Array.isArray(draft.backpack))
+            (expected >= 2 && !Array.isArray(draft.backpack))
         )
             return { draft: null, rejected: true, sourceKey };
         return {
@@ -66,7 +76,7 @@ export const readEquipmentDraftState = (storage) => {
                 characterConfig: isObject(draft.characterConfig) ? draft.characterConfig : null,
                 lockedSlots: Array.isArray(draft.lockedSlots) ? draft.lockedSlots : [],
                 lockedDrifs: isObject(draft.lockedDrifs) ? draft.lockedDrifs : {},
-                ...(expected === 2 ? { backpack: draft.backpack } : {}),
+                ...(expected >= 2 ? { backpack: draft.backpack } : {}),
             }),
         };
     } catch {
@@ -76,7 +86,7 @@ export const readEquipmentDraftState = (storage) => {
 
 export const readEquipmentDraft = (storage) => readEquipmentDraftState(storage).draft;
 
-/** New writes go to v2; migration never overwrites the original v1 key. */
+/** New writes go to v3; migration never overwrites the original v1/v2 keys. */
 export const writeEquipmentDraft = (draft, storage) => {
     try {
         storage = storage === undefined ? globalThis.localStorage : storage;
@@ -101,7 +111,9 @@ export const preserveEquipmentDraft = (storage, sourceKey) => {
         sourceKey ??=
             storage.getItem(EQUIPMENT_DRAFT_STORAGE_KEY) != null
                 ? EQUIPMENT_DRAFT_STORAGE_KEY
-                : LEGACY_EQUIPMENT_DRAFT_STORAGE_KEY;
+                : storage.getItem(VERSION_TWO_EQUIPMENT_DRAFT_STORAGE_KEY) != null
+                  ? VERSION_TWO_EQUIPMENT_DRAFT_STORAGE_KEY
+                  : LEGACY_EQUIPMENT_DRAFT_STORAGE_KEY;
         const raw = storage.getItem(sourceKey);
         if (raw != null) storage.setItem(sourceKey + ".recovery", raw);
         return true;

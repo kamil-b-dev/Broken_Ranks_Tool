@@ -10,6 +10,7 @@ const SelectedSlotEditor = ({
     onSlotUpdate,
     onBackpackEquip,
     getBackpackEquipWarning,
+    equipmentRemoval,
 }) => (
     <section className="selected-slot-editor" aria-label="Edytor wybranego slotu">
         <div className="selected-slot-editor-heading">
@@ -32,6 +33,7 @@ const SelectedSlotEditor = ({
                         onUpdate={onSlotUpdate}
                         onBackpackEquip={onBackpackEquip}
                         getBackpackEquipWarning={getBackpackEquipWarning}
+                        equipmentRemoval={equipmentRemoval}
                         gameRules={gameRules}
                         optimizationTrigger={optimizationTrigger}
                     />

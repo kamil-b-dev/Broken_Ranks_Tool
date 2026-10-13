@@ -1,6 +1,7 @@
 import { SLOTS } from "../../shared/domain/equipment/equipmentSlots";
 import EquipmentSlotOverview from "./equipment/EquipmentSlotOverview";
 import BuilderEquipmentViewSwitch from "./BuilderEquipmentViewSwitch";
+import EquipmentRemovalActions from "./backpack/EquipmentRemovalActions";
 
 const BuilderEquipmentWorkbench = ({
     model,
@@ -15,6 +16,7 @@ const BuilderEquipmentWorkbench = ({
     equipmentView = "character",
     onEquipmentViewChange,
     backpackContent,
+    equipmentRemoval,
 }) => {
     return (
         <section className="workbench builder-equipment-column flex flex-col p-5 md:p-6">
@@ -41,6 +43,7 @@ const BuilderEquipmentWorkbench = ({
                             max lvl drify
                         </button>
                     </div>
+                    <EquipmentRemovalActions actions={equipmentRemoval} />
                     {levelWarnings.length > 0 && (
                         <div className="equipment-level-warning" role="status">
                             <span>Za mało pojemności:</span>

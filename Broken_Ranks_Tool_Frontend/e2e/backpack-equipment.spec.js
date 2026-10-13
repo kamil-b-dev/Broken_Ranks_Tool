@@ -48,13 +48,20 @@ const inventory = [
 ];
 const draft = (page) =>
     page.evaluate(
-        () => JSON.parse(localStorage.getItem("broken-ranks-tool.equipment-draft.v2")).value
+        () =>
+            JSON.parse(
+                localStorage.getItem("broken-ranks-tool.equipment-draft.v3") ||
+                    localStorage.getItem("broken-ranks-tool.equipment-draft.v2")
+            ).value
     );
 
 test.beforeEach(async ({ page }) => {
     await page.addInitScript(
         (value) => {
-            if (!localStorage.getItem("broken-ranks-tool.equipment-draft.v2"))
+            if (!(
+                localStorage.getItem("broken-ranks-tool.equipment-draft.v3") ||
+                localStorage.getItem("broken-ranks-tool.equipment-draft.v2")
+            ))
                 localStorage.setItem(
                     "broken-ranks-tool.equipment-draft.v2",
                     JSON.stringify({ version: 2, value })

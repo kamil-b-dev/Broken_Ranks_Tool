@@ -1,6 +1,6 @@
 # Zgodność zapisanych buildów JSON
 
-Plik buildu jest trwałym formatem danych, niezależnym od stanu React i od kontraktu żądania kalkulatora. Aktualny eksport ma `format: "broken-ranks-tool-build"` i `version: 2`. Import obsługuje wersje 1 i 2 poprzez jawny rejestr czytników w `features/builds/buildFile.js`; nie porównuje wersji pliku z bieżącą wersją eksportera.
+Plik buildu jest trwałym formatem danych, niezależnym od stanu React i od kontraktu żądania kalkulatora. Aktualny eksport ma `format: "broken-ranks-tool-build"` i `version: 3`. Import obsługuje wersje 1, 2 i 3 poprzez jawny rejestr czytników w `features/builds/buildFile.js`; nie porównuje wersji pliku z bieżącą wersją eksportera.
 
 ## Kontrakt wersji 1
 
@@ -39,10 +39,9 @@ Historyczny automatyczny draft ekwipunku korzysta z `broken-ranks-tool.equipment
 
 Frontendowe `buildCompatibility.test.js` sprawdza import stałych JSON-ów, domyślne wartości, historyczne kontenery poziomów, ponowny eksport, bibliotekę i odczyt v1 po symulowanej zmianie aktualnych stałych formatu i wersji. Standardowy zestaw Vitest w CI obejmuje ten plik.
 
-
 ## Wersja 2: plecak
 
-Schemat [build-file-v2.schema.json](build-file-v2.schema.json) zachowuje znaczenie pól v1 i dodaje obowiązkową listę `build.backpack` (pusta lista dla starszego buildu). Każdy wpis ma własne stabilne `id`; kolejność listy jest kolejnością w siatce. `ITEM` zawiera `equipment` z sześcioma polami slota (`itemId`, `itemStars`, `orbIds`, `orbLevels`, `drifIds`, `drifLevels`). `ORB` oraz `DRIF` zawierają `templateId` i `level`. ID wystąpienia odróżnia kopie tego samego szablonu. Rozmiar kamienia wynika z szablonu. Format i importer mają techniczny limit 1000 wpisów; nie jest to liczba pól plecaka w grze.
+Schemat [build-file-v2.schema.json](build-file-v2.schema.json) zachowuje znaczenie pól v1 i dodaje obowiązkową listę `build.backpack` (pusta lista dla starszego buildu). Każdy wpis ma własne stabilne `id`; kolejność listy jest kolejnością w siatce. `ITEM` zawiera `equipment` z sześcioma polami slota (`itemId`, `itemStars`, `orbIds`, `orbLevels`, `drifIds`, `drifLevels`). `ORB` oraz `DRIF` zawierają `templateId` i `level`. ID wystąpienia odróżnia kopie tego samego szablonu. Rozmiar kamienia wynika z szablonu. Plecak mieści maksymalnie 200 wpisów. Przedmiot wraz z osadzonymi orbami i drifami zajmuje jeden slot; każdy osobny kamień także zajmuje jeden slot. Format, importer i operacje edytora odrzucają przekroczenie limitu bez przycinania listy.
 
 Struktura plecaka jest walidowana podczas importu, lecz jego przedmioty mogą być roboczymi konfiguracjami przekraczającymi pojemność. Pozostają w zapisie i mają ostrzeżenie w UI. Zawartość plecaka jest sprawdzana niezależnie od założonego buildu oraz innych alternatyw, więc orb tego samego typu może istnieć na różnych potencjalnych zamiennikach. Nieznane już w katalogu ID są zachowane z ostrzeżeniem, a nie usuwane. Potwierdzenie poprawności potencjalnego zamiennika nie oznacza jeszcze zgodności z ograniczeniami konkretnego trybu optymalizatora.
 
@@ -50,4 +49,10 @@ Odczyt v1 nadal zwraca dotychczasowe pola i nie zależy od aktualnej wersji eksp
 
 Nowy draft ekwipunku używa `broken-ranks-tool.equipment-draft.v2`, wrappera `version: 2` i wartości rozszerzonej o `backpack`. Gdy nowy klucz nie istnieje, czytnik odczytuje stary klucz v1. Pierwszy zapis tworzy v2 i zachowuje oryginalny v1. Istniejący nieczytelny klucz v2 nie powoduje cofnięcia do starego v1; przed nadpisaniem jest zachowana dokładna kopia `.recovery`, a niemożność zapisania kopii blokuje automatyczne zapisy. Draft optymalizatora nadal używa własnej wersji 1.
 
-Plecak pozostaje osobnym stanem od `requestData`. Nie trafia do HTTP kalkulatora ani optymalizatora, nie zmienia statystyk postaci i nie jest automatycznie zakładany. Dobór zamienników i swapy są osobnym przyszłym etapem.
+Plecak pozostaje osobnym stanem od `requestData` i nie trafia do HTTP kalkulatora. Dobór przedmiotów i orbów przez optymalizator pozostaje poza zakresem integracji.
+
+## Wersja 3: wybór drifów do optymalizacji
+
+Schemat [build-file-v3.schema.json](build-file-v3.schema.json) zachowuje konfigurację v2 i dodaje opcjonalne pole boolean `sendToBackend` na osobnych wpisach `DRIF`. Brak pola oznacza brak zaznaczenia; eksporter pomija wartość false. Przedmioty, orby oraz drify osadzone w przedmiotach nie są zaznaczane. Czytnik v2 ignoruje te metadane, a import v1 nadal tworzy pusty plecak. Biblioteka zachowuje własną wersję 1 i może przechowywać payloady wszystkich trzech wersji.
+
+Aktualny draft używa `broken-ranks-tool.equipment-draft.v3` i wrappera `version: 3`. Przy braku tego klucza odczytywane są kolejno v2 i v1. Pierwszy zapis tworzy v3, zachowując wcześniejsze klucze. Nieczytelny bieżący dokument nie jest zastępowany starszym; mechanizm kopii `.recovery` nadal chroni dane przed nadpisaniem.

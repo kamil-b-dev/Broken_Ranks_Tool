@@ -36,6 +36,58 @@ describe("builder backpack workflow", () => {
         window.history.replaceState({}, "", "/kreator");
         server.use(http.get("*/api/initial-data", () => HttpResponse.json(builderCatalog)));
     });
+    it("extracts and undoes stones in the backpack editor while preserving equipped stats and refreshing its draft", async () => {
+        server.use(
+            http.post("*/api/calculator/calculate", () =>
+                HttpResponse.json({ stats: { Siła: 15 } })
+            )
+        );
+        const ref = await start();
+        const equipment = {
+            itemId: "1",
+            itemStars: 7,
+            orbIds: ["50"],
+            orbLevels: [1],
+            drifIds: ["60"],
+            drifLevels: { 0: 6 },
+        };
+        await act(async () => {
+            ref.current.handleSlotUpdate("helmet", equipment);
+            ref.current.onBackpackChange([{ id: "target", kind: "ITEM", equipment }]);
+        });
+        await act(async () => ref.current.calculateStats());
+        fireEvent.click(document.querySelector(".backpack-grid .equipment-slot-overview"));
+        const before = structuredClone(ref.current.requestData);
+        const revision = ref.current.optimizationTrigger;
+        const editor = within(screen.getByLabelText("Edytor plecaka"));
+        for (const [kind, name, field] of [
+            ["DRIF", "drif", "Wybierz wielkość drifa 1"],
+            ["ORB", "orb", "Wybierz wielkość orba"],
+        ]) {
+            const label = `Zdejmij ${name} 1 do plecaka`;
+            fireEvent.click(editor.getByRole("button", { name: label, exact: true }));
+            await waitFor(() => expect(ref.current.backpack).toHaveLength(2));
+            expect(ref.current.backpack[1]).toMatchObject({ kind, level: kind === "DRIF" ? 6 : 1 });
+            expect(editor.getByLabelText(field)).toHaveValue("");
+            fireEvent.click(editor.getByRole("button", { name: `Cofnij: ${label}`, exact: true }));
+            await waitFor(() => expect(ref.current.backpack).toHaveLength(1));
+            expect(editor.getByLabelText(field)).toHaveValue(kind === "DRIF" ? "60" : "50");
+        }
+        expect(ref.current.requestData).toEqual(before);
+        expect(ref.current.optimizationTrigger).toBe(revision);
+        expect(ref.current.stats).toEqual({ Siła: 15 });
+        fireEvent.click(
+            editor.getByRole("button", { name: "Zdejmij drif 1 do plecaka", exact: true })
+        );
+        const saved = ref.current.createBuildSnapshot();
+        expect(
+            editor.getByRole("button", { name: "Cofnij: Zdejmij drif 1 do plecaka", exact: true })
+        ).toBeEnabled();
+        await act(async () => ref.current.loadBuildSnapshot(saved));
+        expect(
+            editor.getByRole("button", { name: "Cofnij: Zdejmij drif 1 do plecaka", exact: true })
+        ).toBeDisabled();
+    });
     it("moves a stone into the selected inventory item without changing equipped gear or invalidating its calculation", async () => {
         const calculations = vi.fn();
         server.use(
@@ -234,7 +286,7 @@ describe("builder backpack workflow", () => {
         );
         expect(calculations).toHaveBeenCalledTimes(initialCalls);
         const snapshot = exposeRef.current.createBuildSnapshot();
-        expect(snapshot.payload.version).toBe(2);
+        expect(snapshot.payload.version).toBe(3);
         expect(snapshot.payload.build.backpack).toHaveLength(1);
         await act(async () => exposeRef.current.loadBuildSnapshot(snapshot));
         expect(exposeRef.current.backpack).toEqual(snapshot.payload.build.backpack);

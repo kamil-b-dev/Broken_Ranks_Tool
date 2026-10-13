@@ -42,7 +42,11 @@ test.beforeEach(async ({ page }) => {
 });
 const draft = (page) =>
     page.evaluate(
-        () => JSON.parse(localStorage.getItem("broken-ranks-tool.equipment-draft.v2")).value
+        () =>
+            JSON.parse(
+                localStorage.getItem("broken-ranks-tool.equipment-draft.v3") ||
+                    localStorage.getItem("broken-ranks-tool.equipment-draft.v2")
+            ).value
     );
 const openDesktop = async (page) => {
     await page.setViewportSize({ width: 1800, height: 1100 });
@@ -104,7 +108,7 @@ test("assembles a replacement with gems, keeps over-capacity drafts and restores
     const download = page.waitForEvent("download");
     await card.getByRole("button", { name: "Eksportuj JSON" }).click();
     const payload = JSON.parse(await readFile(await (await download).path(), "utf8"));
-    expect(payload.version).toBe(2);
+    expect(payload.version).toBe(3);
     expect(payload.build.backpack).toEqual(stored.backpack);
     await page.reload();
     await page

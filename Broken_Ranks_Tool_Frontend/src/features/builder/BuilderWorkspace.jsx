@@ -41,6 +41,8 @@ const BuilderWorkspace = ({
     equipBackpackEntry,
     getBackpackEquipWarning,
     backpackEquipNotice,
+    equipmentRemoval,
+    backpackImportRevision,
 }) => {
     const [resourceSource, setResourceSource] = useState("database");
     const [equipmentView, setEquipmentView] = useState("character");
@@ -49,6 +51,7 @@ const BuilderWorkspace = ({
         onChange: onBackpackChange,
         data,
         gameRules: gameRules || {},
+        importRevision: backpackImportRevision,
     });
     const model = useBuilderWorkspace({ items: data.items, slots: requestData.slots });
     const [levelWarnings, setLevelWarnings] = useState([]);
@@ -147,6 +150,7 @@ const BuilderWorkspace = ({
                     onOverviewItemDrop={handleOverviewItemDrop}
                     getBackpackEquipWarning={getBackpackEquipWarning}
                     onMaximizeLevels={maximizeLevels}
+                    equipmentRemoval={equipmentRemoval}
                     levelWarnings={levelWarnings}
                     equipmentView={equipmentView}
                     onEquipmentViewChange={setEquipmentView}
@@ -191,6 +195,7 @@ const BuilderWorkspace = ({
                             onSlotUpdate={onSlotUpdate}
                             onBackpackEquip={equipBackpackEntry}
                             getBackpackEquipWarning={getBackpackEquipWarning}
+                            equipmentRemoval={equipmentRemoval}
                         />
                     )}
                 </aside>

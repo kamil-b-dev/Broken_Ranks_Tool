@@ -33,6 +33,7 @@ export const EquipmentProvider = ({ children }) => {
     const [initialStorage] = useState(readEquipmentDraftState);
     const initialDraft = initialStorage.draft;
     const [backpack, setBackpack] = useState([]);
+    const [backpackImportRevision, setBackpackImportRevision] = useState(0);
     const handleBackpackChange = useCallback((entries) => setBackpack(entries), []);
     const {
         data,
@@ -76,20 +77,14 @@ export const EquipmentProvider = ({ children }) => {
         restoreStats,
         lockedSlots,
         lockedDrifs,
+        backpack,
+        setBackpack,
+        data,
     });
     const [characterConfig, setCharacterConfig] = useState(null);
-    const clearReplacedDrifLocks = useCallback(
-        (slotKey, zone) => {
-            if (zone !== "item" && !zone.startsWith("drif-")) return;
-            const next = { ...lockedDrifs };
-            if (zone === "item") delete next[slotKey];
-            else
-                next[slotKey] = (next[slotKey] || []).filter(
-                    (index) => index !== Number(zone.slice(5))
-                );
-            replaceLocks(lockedSlots, next);
-        },
-        [lockedDrifs, lockedSlots, replaceLocks]
+    const changeBackpackDrifLocks = useCallback(
+        (next) => replaceLocks(lockedSlots, next),
+        [replaceLocks, lockedSlots]
     );
     const backpackTransfer = useBackpackEquipmentTransfer({
         backpack,
@@ -99,8 +94,14 @@ export const EquipmentProvider = ({ children }) => {
         setBackpack,
         setRequestData,
         markEquipmentChanged,
-        onEquip: clearReplacedDrifLocks,
+        lockedDrifs,
+        onDrifLocksChange: changeBackpackDrifLocks,
     });
+    const clearRemovalHistory = backpackTransfer.clearRemovalHistory;
+    const handleBackpackImport = useCallback(() => {
+        clearRemovalHistory();
+        setBackpackImportRevision((revision) => revision + 1);
+    }, [clearRemovalHistory]);
 
     useEffect(() => {
         if (draftRestored || !initialDraft || loading || initialDataError) return;
@@ -216,6 +217,7 @@ export const EquipmentProvider = ({ children }) => {
             restoreStats,
             calculateStatsFor,
             markEquipmentChanged,
+            onBuildImported: handleBackpackImport,
         }
     );
 
@@ -347,8 +349,13 @@ export const EquipmentProvider = ({ children }) => {
     );
 
     const backpackValue = useMemo(
-        () => ({ backpack, onBackpackChange: handleBackpackChange, ...backpackTransfer }),
-        [backpack, handleBackpackChange, backpackTransfer]
+        () => ({
+            backpack,
+            backpackImportRevision,
+            onBackpackChange: handleBackpackChange,
+            ...backpackTransfer,
+        }),
+        [backpack, backpackImportRevision, handleBackpackChange, backpackTransfer]
     );
 
     const buildActionsValue = useMemo(

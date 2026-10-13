@@ -2,7 +2,12 @@ import { useMemo, useState } from "react";
 import CategoryIcon from "../../../shared/ui/CategoryIcon";
 import EquipmentSlotOverview from "../equipment/EquipmentSlotOverview";
 import { setDraggedResource, useDraggedResource } from "../useDraggedResource";
-import { backpackSlot, backpackTemplate, backpackWarning } from "./backpackDomain";
+import {
+    backpackSlot,
+    backpackTemplate,
+    backpackWarning,
+    MAX_BACKPACK_ENTRIES,
+} from "./backpackDomain";
 import { BACKPACK_FILTERS, backpackSortOptions, visibleBackpackEntries } from "./backpackView";
 import { backpackDragResource } from "./backpackEquipmentTransfer";
 
@@ -124,6 +129,22 @@ const BackpackCard = ({ entry, entries, index, data, gameRules, model, manualOrd
                 </button>
             )}
             {warning && <p className="backpack-card-warning">Wymaga poprawy</p>}
+            {entry.kind === "DRIF" && (
+                <label
+                    className="backpack-backend-selection"
+                    title="Udostępnij tę sztukę optymalizatorowi w trybie Użyj drifów z plecaka"
+                >
+                    <input
+                        type="checkbox"
+                        aria-label={`Drif do optymalizacji: ${name}, ${template?.size || "drif"}, poziom ${entry.level}`}
+                        checked={entry.sendToBackend === true}
+                        onChange={(event) =>
+                            model.update(entry.id, { sendToBackend: event.target.checked })
+                        }
+                    />
+                    <span>Do optymalizacji</span>
+                </label>
+            )}
             <div className="backpack-card-actions">
                 <button
                     type="button"
@@ -271,7 +292,9 @@ export default function BackpackGrid({ entries, data, gameRules, model }) {
                     </button>
                 ))}
                 <span aria-live="polite">
-                    Obiekty: {visibleEntries.length}/{entries.length}
+                    Sloty: {entries.length}/{MAX_BACKPACK_ENTRIES}
+                    {visibleEntries.length !== entries.length &&
+                        ` · Widoczne: ${visibleEntries.length}`}
                 </span>
             </div>
             {model.notice && (
