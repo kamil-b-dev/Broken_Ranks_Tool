@@ -32,6 +32,44 @@ class OptimizationControllerTests {
     @MockitoBean private OptimizationExecutionGuard executionGuard;
 
     @Test
+    void rejects201BackpackDrifsBeforeTheExecutionGuard() throws Exception {
+        String entries =
+                java.util.stream.IntStream.range(0, 201)
+                        .mapToObj(i -> "{\"id\":\"stone-" + i + "\",\"templateId\":1,\"level\":1}")
+                        .collect(java.util.stream.Collectors.joining(","));
+        mockMvc.perform(
+                        post("/api/optimizer/drifs")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        "{\"originalSlots\":{\"helmet\":{\"itemId\":1}},\"backpackOnly\":true,\"backpackDrifs\":["
+                                                + entries
+                                                + "]}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_REQUEST"))
+                .andExpect(
+                        jsonPath("$.message").value(org.hamcrest.Matchers.containsString("200")));
+        verifyNoInteractions(executionGuard);
+    }
+
+    @Test
+    void accepts200BackpackDrifsAtTheHttpBoundary() throws Exception {
+        when(executionGuard.optimize(any())).thenReturn(new OptimizationResponse(null, null));
+        String entries =
+                java.util.stream.IntStream.range(0, 200)
+                        .mapToObj(i -> "{\"id\":\"stone-" + i + "\",\"templateId\":1,\"level\":1}")
+                        .collect(java.util.stream.Collectors.joining(","));
+        mockMvc.perform(
+                        post("/api/optimizer/drifs")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        "{\"originalSlots\":{\"helmet\":{\"itemId\":1}},\"backpackOnly\":true,\"backpackDrifs\":["
+                                                + entries
+                                                + "]}"))
+                .andExpect(status().isOk());
+        verify(executionGuard).optimize(any());
+    }
+
+    @Test
     void returnsAnExpectedServiceUnavailableResponseForMemoryPressure() throws Exception {
         when(executionGuard.optimize(any())).thenThrow(new OptimizerMemoryPressureException());
         mockMvc.perform(

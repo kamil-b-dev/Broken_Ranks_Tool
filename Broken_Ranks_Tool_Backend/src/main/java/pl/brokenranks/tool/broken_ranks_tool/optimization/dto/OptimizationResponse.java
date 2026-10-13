@@ -1,5 +1,6 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.dto;
 
+import java.util.List;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.CalculationResultDto;
@@ -19,6 +20,14 @@ public class OptimizationResponse {
     private CalculationResultDto calculationResult;
 
     private AdvisorReport advisorReport;
+
+    /** Standard optimization result before the optional backpack substitutions. */
+    private EquipmentRequest targetSetup;
+
+    /** Exact inventory occurrences used by the final substitutions; null outside this option. */
+    private List<BackpackDrifUsage> backpackDrifUsages;
+
+    public record BackpackDrifUsage(String entryId, String slotKey, int drifIndex) {}
 
     public OptimizationResponse(EquipmentRequest optimizedSetup, OptimizationSummary summary) {
         this.optimizedSetup = optimizedSetup;

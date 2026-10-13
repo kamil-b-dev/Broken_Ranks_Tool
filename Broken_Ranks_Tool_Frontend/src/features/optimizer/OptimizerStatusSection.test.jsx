@@ -3,6 +3,30 @@ import { describe, expect, it } from "vitest";
 import OptimizerStatusSection from "./OptimizerStatusSection";
 
 describe("OptimizerStatusSection", () => {
+    it("shows owned levels alongside the original optimization targets without offering to apply the target", () => {
+        render(
+            <OptimizerStatusSection
+                status={{
+                    success: true,
+                    message: "Użyto drifów z plecaka.",
+                    backpackDrifTargets: [
+                        {
+                            entryId: "used",
+                            slotLabel: "Buty",
+                            drifName: "Alorn",
+                            size: "ARCYDRIF",
+                            level: 18,
+                            targetLevel: 21,
+                        },
+                    ],
+                }}
+            />
+        );
+        expect(screen.getByText("Drify z plecaka — poziomy docelowe")).toBeInTheDocument();
+        expect(screen.getByText("18")).toBeInTheDocument();
+        expect(screen.getByText("21")).toBeInTheDocument();
+        expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    });
     it.each([
         ["TIME_LIMIT", "Limit czasu"],
         ["STATE_LIMIT", "Limit liczby stanów"],

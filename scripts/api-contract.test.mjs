@@ -22,6 +22,32 @@ const response = {
   advisorReport: null,
 };
 
+test("backpack substitutions preserve the standard upgrade target and exact occurrence mappings", () => {
+  const usage = { entryId: "owned", slotKey: "boots", drifIndex: 0 };
+  validate("OptimizationResponse", {
+    ...response,
+    targetSetup: { slots: {} },
+    backpackDrifUsages: [usage],
+  });
+  validate("OptimizationResponse", {
+    ...response,
+    targetSetup: null,
+    backpackDrifUsages: null,
+  });
+  for (const invalid of [
+    { ...usage, drifIndex: -1 },
+    { ...usage, slotKey: "invalid" },
+    { ...usage, entryId: "" },
+    { slotKey: "boots", drifIndex: 0 },
+  ])
+    assert.throws(() =>
+      validate("OptimizationResponse", {
+        ...response,
+        backpackDrifUsages: [invalid],
+      }),
+    );
+});
+
 test("calculator and optimizer accept localized intelligence with the usual value bounds", () => {
   for (const characterStats of [
     null,

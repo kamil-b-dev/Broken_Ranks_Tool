@@ -82,6 +82,33 @@
     font-size: 0.58rem;
 }
 
+.optimizer-backpack-targets {
+    margin-top: 0.6rem;
+    font-family: var(--ui-font);
+    font-size: 0.7rem;
+    color: var(--ui-text-muted);
+}
+.optimizer-backpack-targets summary {
+    color: var(--ui-gold);
+    cursor: pointer;
+}
+.optimizer-backpack-targets table {
+    width: 100%;
+    margin-top: 0.5rem;
+    border-collapse: collapse;
+}
+.optimizer-backpack-targets :is(th, td) {
+    padding: 0.35rem;
+    border-bottom: 1px solid var(--ui-line);
+    text-align: left;
+    overflow-wrap: anywhere;
+    font-weight: 400;
+}
+.optimizer-backpack-targets td {
+    text-align: center;
+    color: var(--ui-text);
+}
+
 .optimizer-status-metrics {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));

@@ -139,10 +139,8 @@ public final class OptimizationSearchPipeline {
         return stage(name, context, () -> transform.apply(state));
     }
 
-    private BuildState stage(
-            String name,
-            OptimizationContext context,
-            java.util.function.Supplier<BuildState> transform) {
+    private <T> T stage(
+            String name, OptimizationContext context, java.util.function.Supplier<T> transform) {
         long start = System.nanoTime();
         try {
             return transform.get();

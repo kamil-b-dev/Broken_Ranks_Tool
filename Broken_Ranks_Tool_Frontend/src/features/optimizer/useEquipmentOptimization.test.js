@@ -30,6 +30,115 @@ const renderOptimization = (slots = {}) => {
 };
 
 describe("useEquipmentOptimization", () => {
+    it("applies a weaker final build, consumes only reported copies and retains its upgrade target", async () => {
+        const stone = { id: "used", kind: "DRIF", templateId: "60", level: 3, sendToBackend: true };
+        const original = { itemId: 1, drifIds: [60], drifLevels: { 0: 2 } };
+        const props = {
+            requestData: { slots: { helmet: original } },
+            lockedSlots: [],
+            lockedDrifs: {},
+            backpack: [{ ...stone, id: "unused" }, stone],
+            setRequestData: vi.fn(),
+            setBackpack: vi.fn(),
+            restoreStats: vi.fn(),
+        };
+        const targetSetup = {
+            slots: { helmet: { ...original, drifIds: [60, 61], drifLevels: { 0: 6, 1: 21 } } },
+        };
+        const optimizedSetup = {
+            slots: { helmet: { ...original, drifIds: [60, 61], drifLevels: { 0: 3, 1: 21 } } },
+        };
+        const calculationResult = { stats: { CRITICAL_CHANCE: "5%" } };
+        optimizeEquipmentDrifs.mockResolvedValue({
+            targetSetup,
+            optimizedSetup,
+            calculationResult,
+            backpackDrifUsages: [{ entryId: "used", slotKey: "helmet", drifIndex: 0 }],
+            summary: { success: false, outcome: "VALID_BUILD_SOFT_TARGETS_UNMET" },
+        });
+        const { result } = renderHook(() => useEquipmentOptimization(props));
+        await act(async () => {
+            expect(await result.current.runDrifOptimization({ backpackOnly: true })).toMatchObject({
+                applied: true,
+                targetSetup,
+                backpackDrifTargets: [{ level: 3, targetLevel: 6, entryId: "used" }],
+            });
+        });
+        expect(props.setRequestData).toHaveBeenCalledWith(
+            expect.objectContaining({ slots: optimizedSetup.slots })
+        );
+        expect(props.setBackpack.mock.calls[0][0]).toEqual([
+            { ...stone, id: "unused" },
+            expect.objectContaining({ templateId: "60", level: 2 }),
+        ]);
+        expect(props.restoreStats).toHaveBeenCalledWith(
+            calculationResult.stats,
+            calculationResult,
+            expect.any(Object)
+        );
+    });
+    it.each(["selection", "level", "removal"])(
+        "does not consume inventory when backpack %s changes during optimization",
+        async (change) => {
+            let finish;
+            optimizeEquipmentDrifs.mockImplementation(
+                () =>
+                    new Promise((resolve) => {
+                        finish = resolve;
+                    })
+            );
+            const entry = {
+                id: "owned",
+                kind: "DRIF",
+                templateId: "60",
+                level: 6,
+                sendToBackend: true,
+            };
+            const props = {
+                requestData: { slots: { helmet: { itemId: 1, drifIds: [], drifLevels: {} } } },
+                lockedSlots: [],
+                lockedDrifs: {},
+                backpack: [entry],
+                setRequestData: vi.fn(),
+                setBackpack: vi.fn(),
+                restoreStats: vi.fn(),
+            };
+            const { result, rerender } = renderHook((inputs) => useEquipmentOptimization(inputs), {
+                initialProps: props,
+            });
+            let pending;
+            await act(async () => {
+                pending = result.current.runDrifOptimization({
+                    configurationMode: "ADVANCED",
+                    backpackOnly: true,
+                });
+            });
+            rerender({
+                ...props,
+                backpack:
+                    change === "removal"
+                        ? []
+                        : [
+                              {
+                                  ...entry,
+                                  ...(change === "level" ? { level: 5 } : { sendToBackend: false }),
+                              },
+                          ],
+            });
+            await act(async () => {
+                finish({
+                    optimizedSetup: {
+                        slots: { helmet: { itemId: 1, drifIds: [60], drifLevels: { 0: 6 } } },
+                    },
+                    summary: { success: true, outcome: "VALID_BUILD" },
+                });
+                expect(await pending).toMatchObject({ applied: false, success: false });
+            });
+            expect(props.setBackpack).not.toHaveBeenCalled();
+            expect(props.setRequestData).not.toHaveBeenCalled();
+            expect(props.restoreStats).not.toHaveBeenCalled();
+        }
+    );
     it.each([
         ["INVALID_INPUT", false],
         ["NO_BUILD_FOUND", false],

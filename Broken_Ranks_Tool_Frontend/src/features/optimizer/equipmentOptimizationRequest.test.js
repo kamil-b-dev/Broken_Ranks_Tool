@@ -2,6 +2,41 @@ import { describe, expect, it } from "vitest";
 import { createEquipmentOptimizationRequest } from "./equipmentOptimizationRequest";
 
 describe("createEquipmentOptimizationRequest", () => {
+    it("sends selected loose drifs only in the advanced inventory mode", () => {
+        const backpack = [
+            { id: "owned", kind: "DRIF", templateId: "60", level: 6, sendToBackend: true },
+            { id: "unused", kind: "DRIF", templateId: "60", level: 2 },
+            { id: "orb", kind: "ORB", templateId: "50", level: 1 },
+        ];
+        const input = {
+            slots: { helmet: { itemId: 1 } },
+            backpack,
+            configuration: {
+                configurationMode: "ADVANCED",
+                backpackOnly: true,
+                generateVariants: true,
+            },
+            lockedSlots: [],
+            lockedDrifs: {},
+        };
+        expect(createEquipmentOptimizationRequest(input)).toMatchObject({
+            backpackOnly: true,
+            generateVariants: false,
+            backpackDrifs: [{ id: "owned", templateId: 60, level: 6 }],
+        });
+        expect(
+            createEquipmentOptimizationRequest({
+                ...input,
+                configuration: { ...input.configuration, configurationMode: "SIMPLE" },
+            })
+        ).not.toHaveProperty("backpackDrifs");
+        expect(
+            createEquipmentOptimizationRequest({
+                ...input,
+                configuration: { ...input.configuration, mode: "ADVISOR" },
+            })
+        ).not.toHaveProperty("backpackDrifs");
+    });
     it("normalizes optional optimizer fields for the backend contract", () => {
         const slots = { helmet: { itemId: 7 } };
         const request = createEquipmentOptimizationRequest({

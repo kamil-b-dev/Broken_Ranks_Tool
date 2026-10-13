@@ -2,6 +2,8 @@ import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { cancelAdvisorOptimization, optimizeEquipmentDrifs } from "../../shared/api/equipmentApi";
 import { createEquipmentOptimizationRequest } from "./equipmentOptimizationRequest";
 import { advisorBuildSignature } from "./advisor/advisorBuildSignature";
+import { applyBackpackOptimization } from "../builder/backpack/backpackOptimizationTransfer";
+import { SLOTS } from "../../shared/domain/equipment/equipmentSlots";
 
 const failureMessage = (error) =>
     error.response?.data?.summary?.message ||
@@ -24,6 +26,9 @@ export const useEquipmentOptimization = ({
     restoreStats,
     lockedSlots,
     lockedDrifs,
+    backpack = [],
+    setBackpack,
+    data,
 }) => {
     const slots = requestData?.slots;
     const [optimizationTrigger, setOptimizationTrigger] = useState(0);
@@ -34,20 +39,44 @@ export const useEquipmentOptimization = ({
     }, []);
     const currentInputSignature = useRef(null);
     useLayoutEffect(() => {
-        currentInputSignature.current = inputSignature(requestData, lockedSlots, lockedDrifs);
-    }, [requestData, lockedSlots, lockedDrifs]);
+        currentInputSignature.current = {
+            standard: inputSignature(requestData, lockedSlots, lockedDrifs),
+            inventory: JSON.stringify([
+                inputSignature(requestData, lockedSlots, lockedDrifs),
+                backpack,
+            ]),
+        };
+    }, [requestData, lockedSlots, lockedDrifs, backpack]);
     const markEquipmentChanged = useCallback(
         () => setOptimizationTrigger((previous) => previous + 1),
         []
     );
     const applyOptimizationSetup = useCallback(
-        (setup, calculationResult = null) => {
+        (setup, calculationResult = null, inventoryUsages = null) => {
             if (!setup?.slots) return false;
             const nextRequestData = {
                 ...requestData,
                 slots: setup.slots,
                 characterStats: setup.characterStats || requestData?.characterStats || {},
             };
+            if (inventoryUsages !== null) {
+                const builtIns = Object.keys(requestData.slots || {}).filter((key) => {
+                    const item = data?.items?.find(
+                        (candidate) =>
+                            String(candidate.id) === String(requestData.slots[key].itemId)
+                    );
+                    return ["EPIC", "SET"].includes(item?.rarity);
+                });
+                const nextBackpack = applyBackpackOptimization({
+                    backpack,
+                    previousSlots: requestData.slots,
+                    nextSlots: setup.slots,
+                    lockedSlots: [...(lockedSlots || []), ...builtIns],
+                    lockedDrifs,
+                    backpackDrifUsages: inventoryUsages.usages,
+                });
+                setBackpack?.(nextBackpack);
+            }
             setRequestData(nextRequestData);
             if (calculationResult?.stats) {
                 restoreStats?.(calculationResult.stats, calculationResult, nextRequestData);
@@ -55,7 +84,17 @@ export const useEquipmentOptimization = ({
             markEquipmentChanged();
             return true;
         },
-        [markEquipmentChanged, requestData, restoreStats, setRequestData]
+        [
+            markEquipmentChanged,
+            requestData,
+            restoreStats,
+            setRequestData,
+            backpack,
+            setBackpack,
+            lockedSlots,
+            lockedDrifs,
+            data,
+        ]
     );
 
     const cancelDrifOptimization = useCallback(async () => {
@@ -68,7 +107,14 @@ export const useEquipmentOptimization = ({
     const runDrifOptimization = useCallback(
         async (configuration) => {
             const runVersion = ++optimizerRunVersion.current;
-            const baselineInputSignature = inputSignature(requestData, lockedSlots, lockedDrifs);
+            const inventory =
+                configuration.mode !== "ADVISOR" &&
+                (configuration.configurationMode || "ADVANCED") === "ADVANCED" &&
+                configuration.backpackOnly === true;
+            const signatureKey = inventory ? "inventory" : "standard";
+            const baselineInputSignature = inventory
+                ? JSON.stringify([inputSignature(requestData, lockedSlots, lockedDrifs), backpack])
+                : inputSignature(requestData, lockedSlots, lockedDrifs);
             if (!slots || Object.values(slots).every((slot) => !slot?.itemId)) {
                 return {
                     success: false,
@@ -85,6 +131,7 @@ export const useEquipmentOptimization = ({
                 configuration,
                 lockedSlots,
                 lockedDrifs,
+                backpack,
             });
             if (advisory && request.advisor) {
                 previousAdvisorRun = activeAdvisor.current;
@@ -125,9 +172,15 @@ export const useEquipmentOptimization = ({
                         applied: false,
                     };
                 }
-                const { optimizedSetup, summary, advisorReport, calculationResult } =
-                    await optimizeEquipmentDrifs(request);
-                if (baselineInputSignature !== currentInputSignature.current) {
+                const {
+                    optimizedSetup,
+                    summary,
+                    advisorReport,
+                    calculationResult,
+                    targetSetup,
+                    backpackDrifUsages,
+                } = await optimizeEquipmentDrifs(request);
+                if (baselineInputSignature !== currentInputSignature.current[signatureKey]) {
                     return {
                         success: false,
                         applied: false,
@@ -170,6 +223,14 @@ export const useEquipmentOptimization = ({
                 const hasEquipment = Object.values(optimizedSetup?.slots || {}).some(
                     (slot) => slot?.itemId != null
                 );
+                if (
+                    inventory &&
+                    hasEquipment &&
+                    (!targetSetup?.slots || !Array.isArray(backpackDrifUsages))
+                )
+                    throw new Error(
+                        "Wynik nie zawiera buildu docelowego lub listy użytych drifów plecaka."
+                    );
                 const applied =
                     runVersion === optimizerRunVersion.current &&
                     hasEquipment &&
@@ -177,9 +238,44 @@ export const useEquipmentOptimization = ({
                         ["VALID_BUILD", "VALID_BUILD_SOFT_TARGETS_UNMET"].includes(
                             summary.outcome
                         )) &&
-                    applyOptimizationSetup(optimizedSetup, calculationResult);
+                    applyOptimizationSetup(
+                        optimizedSetup,
+                        calculationResult,
+                        inventory ? { usages: backpackDrifUsages } : null
+                    );
                 return {
                     ...summary,
+                    ...(inventory
+                        ? {
+                              targetSetup,
+                              backpackDrifUsages,
+                              optimizedSetup,
+                              backpackDrifTargets: (backpackDrifUsages || []).map(
+                                  ({ entryId, slotKey, drifIndex }) => {
+                                      const current = optimizedSetup.slots[slotKey];
+                                      const template = data?.drifs?.find(
+                                          (drif) =>
+                                              String(drif.id) === String(current.drifIds[drifIndex])
+                                      );
+                                      return {
+                                          entryId,
+                                          slotLabel:
+                                              SLOTS.find((slot) => slot.key === slotKey)?.label ||
+                                              slotKey,
+                                          drifName:
+                                              template?.name || String(current.drifIds[drifIndex]),
+                                          size: template?.size,
+                                          level: Number(current.drifLevels?.[drifIndex] ?? 1),
+                                          targetLevel: Number(
+                                              targetSetup?.slots?.[slotKey]?.drifLevels?.[
+                                                  drifIndex
+                                              ] ?? 1
+                                          ),
+                                      };
+                                  }
+                              ),
+                          }
+                        : {}),
                     baselineSignature: advisorBuildSignature(slots),
                     baselineConstraintsSignature: JSON.stringify({
                         characterStats: request.characterStats || {},
@@ -204,7 +300,7 @@ export const useEquipmentOptimization = ({
                 }
             }
         },
-        [slots, requestData, lockedSlots, lockedDrifs, applyOptimizationSetup]
+        [slots, requestData, lockedSlots, lockedDrifs, applyOptimizationSetup, backpack, data]
     );
 
     return {

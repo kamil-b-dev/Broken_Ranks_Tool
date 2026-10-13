@@ -138,6 +138,22 @@ describe("mobile optimizer integration", () => {
         );
     });
 
+    it("offers owned drifs in advanced mode and hides incompatible variants across sections", async () => {
+        mount({ generateVariants: true });
+        await screen.findByRole("heading", { name: "Optymalizator" });
+        expect(screen.queryByLabelText("Użyj drifów z plecaka")).not.toBeInTheDocument();
+        change("Tryb optymalizatora", "ADVANCED");
+        fireEvent.click(screen.getByText("Opcje i warianty"));
+        fireEvent.click(screen.getByLabelText("Użyj drifów z plecaka"));
+        expect(screen.queryByLabelText("Obliczaj dodatkowe warianty")).not.toBeInTheDocument();
+        section("Blokady");
+        section("Cele");
+        expect(screen.getByLabelText("Użyj drifów z plecaka")).toBeChecked();
+        fireEvent.click(screen.getByText("Opcje i warianty"));
+        fireEvent.click(screen.getByLabelText("Użyj drifów z plecaka"));
+        expect(screen.getByLabelText("Obliczaj dodatkowe warianty")).not.toBeChecked();
+    });
+
     it("cancels an advisor run from another section and protects an outdated recommendation", async () => {
         let requestBody;
         let complete;

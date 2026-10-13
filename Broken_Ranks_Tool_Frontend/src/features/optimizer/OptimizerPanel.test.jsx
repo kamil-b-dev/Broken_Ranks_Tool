@@ -236,6 +236,7 @@ describe("OptimizerPanel", () => {
         const updateSettings = onSettingsChange.mock.calls[0][0];
         expect(updateSettings(settings)).toEqual({
             ...settings,
+            backpackOnly: false,
             advisorProfession: "AUTO",
             advisorPurchaseScope: "GOAL_ONLY",
             configurationMode: "ADVANCED",

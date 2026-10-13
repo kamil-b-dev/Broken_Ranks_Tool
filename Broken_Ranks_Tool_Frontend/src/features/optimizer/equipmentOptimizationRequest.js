@@ -5,6 +5,7 @@ export const createEquipmentOptimizationRequest = ({
     configuration,
     lockedSlots,
     lockedDrifs,
+    backpack = [],
 }) => ({
     mode: configuration.mode || "BUILD_FROM_SCRATCH",
     configurationMode: configuration.configurationMode || "ADVANCED",
@@ -28,9 +29,25 @@ export const createEquipmentOptimizationRequest = ({
         : {}),
     lockedSlots,
     lockedDrifs,
+    ...((configuration.mode || "BUILD_FROM_SCRATCH") === "BUILD_FROM_SCRATCH" &&
+    (configuration.configurationMode || "ADVANCED") === "ADVANCED" &&
+    configuration.backpackOnly
+        ? {
+              backpackOnly: true,
+              generateVariants: false,
+              backpackDrifs: normalizeBackpack(backpack)
+                  .filter((entry) => entry.kind === "DRIF" && entry.sendToBackend === true)
+                  .map(({ id, templateId, level }) => ({
+                      id,
+                      templateId: Number(templateId),
+                      level,
+                  })),
+          }
+        : {}),
     ...(configuration.mode === "ADVISOR"
         ? {
               advisor: configuration.advisor,
           }
         : {}),
 });
+import { normalizeBackpack } from "../builder/backpack/backpackSerialization.js";

@@ -76,6 +76,7 @@ export const createOptimizerConfigPayload = (priorities, settings, exportedAt = 
     settings: {
         mode: settings?.mode || "BUILD_FROM_SCRATCH",
         configurationMode: settings?.configurationMode || "SIMPLE",
+        backpackOnly: Boolean(settings?.backpackOnly),
         simpleProfile: normalizeSimpleProfile(settings?.simpleProfile),
         simpleOptions: normalizeSimpleOptions(
             settings?.simpleOptions,
@@ -198,6 +199,7 @@ export const parseOptimizerConfigPayload = (payload, gameRules = {}) => {
             ? payload.settings.configurationMode
             : "ADVANCED",
         simpleProfile: normalizeSimpleProfile(payload.settings?.simpleProfile),
+        backpackOnly: payload.settings?.backpackOnly === true,
         simpleOptions: normalizeSimpleOptions(
             payload.settings?.simpleOptions,
             normalizeSimpleProfile(payload.settings?.simpleProfile)
@@ -268,6 +270,7 @@ export const parseOptimizerConfigPayload = (payload, gameRules = {}) => {
 /** Merges a validated optimizer import or browser draft into editable settings. */
 export const mergeOptimizerSettings = (previous, imported) => ({
     ...previous,
+    backpackOnly: Boolean(imported.backpackOnly),
     advisorProfession: imported.advisorProfession,
     advisorPurchaseScope: imported.advisorPurchaseScope,
     ...(imported.advisorGoal !== null ? { advisorGoal: imported.advisorGoal } : {}),
@@ -333,6 +336,7 @@ export const buildOptimizationConfig = (priorities, settings = {}) => {
     const config = {
         mode: settings.mode || "BUILD_FROM_SCRATCH",
         configurationMode: simple ? "SIMPLE" : "ADVANCED",
+        ...(!simple && settings.backpackOnly ? { backpackOnly: true } : {}),
         priorities: {},
         targetQuantities: {},
         forceCapBonuses: [],

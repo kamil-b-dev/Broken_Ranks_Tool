@@ -4,9 +4,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.AllArgsConstructor;
@@ -23,6 +26,27 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.simpleprofile.SimplePr
 /** Request DTO for drif optimization, priorities, limits, locks, and caps. */
 @Data
 public class OptimizationRequest {
+    /** Restricts ordinary unlocked drifs to the supplied owned occurrences. */
+    /** Legacy wire name for the final "use backpack drifs" substitution option. */
+    private boolean backpackOnly;
+
+    @Valid
+    @Size(max = 200, message = "Plecak mieści maksymalnie 200 drifów.")
+    private List<@NotNull BackpackDrif> backpackDrifs;
+
+    @Data
+    public static class BackpackDrif {
+        @NotBlank
+        @Size(max = 128)
+        private String id;
+
+        @NotNull @Positive private Long templateId;
+
+        @NotNull
+        @Min(1)
+        @Max(21)
+        private Integer level;
+    }
 
     /** Optimization workflow selected by the user. */
     @NotNull private OptimizationMode mode = OptimizationMode.BUILD_FROM_SCRATCH;

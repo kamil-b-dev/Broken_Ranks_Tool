@@ -125,6 +125,25 @@ const OptimizerSettingsPanel = ({ settings, onChange }) => {
                     </label>
                 )}
                 {!advisory && configurationMode === "ADVANCED" && (
+                    <label className="optimizer-settings-choice flex items-center gap-3 cursor-pointer select-none">
+                        <input
+                            type="checkbox"
+                            checked={Boolean(settings.backpackOnly)}
+                            className="h-4 w-4 accent-purple-700"
+                            onChange={(event) =>
+                                onChange({
+                                    ...settings,
+                                    backpackOnly: event.target.checked,
+                                    ...(event.target.checked ? { generateVariants: false } : {}),
+                                })
+                            }
+                        />
+                        <span className="text-[11px] text-stone-400 leading-relaxed">
+                            Użyj drifów z plecaka
+                        </span>
+                    </label>
+                )}
+                {!advisory && configurationMode === "ADVANCED" && !settings.backpackOnly && (
                     <VariantsOptions
                         settings={settings}
                         onChange={onChange}

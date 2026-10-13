@@ -450,6 +450,33 @@ components:
           maxProperties: 12
           additionalProperties:
             $ref: "#/components/schemas/SlotData"
+        backpackOnly:
+          type: boolean
+          default: false
+          description: Advanced build-from-scratch only. Run standard optimization, then substitute matching selected backpack drifs at their owned levels. Unmatched catalog drifs remain. The legacy wire name is retained; additional variants are unavailable.
+        backpackDrifs:
+          type:
+            - array
+            - "null"
+          maxItems: 200
+          description: Selected loose drif occurrences. Each id must be unique; the size bound is validated before optimizer execution.
+          items:
+            type: object
+            additionalProperties: false
+            required: [id, templateId, level]
+            properties:
+              id:
+                type: string
+                minLength: 1
+                maxLength: 128
+              templateId:
+                type: integer
+                format: int64
+                minimum: 1
+              level:
+                type: integer
+                minimum: 1
+                maximum: 21
         priorities:
           type: object
           description:
@@ -1360,6 +1387,39 @@ components:
         - calculationResult
         - advisorReport
       properties:
+        targetSetup:
+          description: Standard target setup before backpack substitutions, retained as an upgrade reference. Null outside the backpack option.
+          anyOf:
+            - $ref: "#/components/schemas/EquipmentRequest"
+            - type: "null"
+        backpackDrifUsages:
+          description: Exact selected backpack occurrences consumed by substitutions, mapped to the final sockets. Null outside the backpack option.
+          type: [array, "null"]
+          maxItems: 200
+          items:
+            type: object
+            additionalProperties: false
+            required: [entryId, slotKey, drifIndex]
+            properties:
+              entryId: { type: string, minLength: 1, maxLength: 128 }
+              slotKey:
+                type: string
+                enum:
+                  [
+                    helmet,
+                    armor,
+                    cape,
+                    legs,
+                    boots,
+                    gloves,
+                    belt,
+                    weapon,
+                    shield,
+                    ring1,
+                    ring2,
+                    necklace,
+                  ]
+              drifIndex: { type: integer, minimum: 0, maximum: 7 }
         optimizedSetup:
           anyOf:
             - $ref: "#/components/schemas/EquipmentRequest"

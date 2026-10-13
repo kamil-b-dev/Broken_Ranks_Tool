@@ -76,9 +76,38 @@ const OptimizerStatusSection = ({
                             ))}
                         </ul>
                     )}
+                    {status.backpackDrifTargets?.length > 0 && (
+                        <details className="optimizer-backpack-targets">
+                            <summary>Drify z plecaka — poziomy docelowe</summary>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Slot / drif</th>
+                                        <th scope="col">Obecny</th>
+                                        <th scope="col">Docelowy</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {status.backpackDrifTargets.map((drif) => (
+                                        <tr key={drif.entryId}>
+                                            <th scope="row">
+                                                {drif.slotLabel}
+                                                <br />
+                                                {drif.drifName} {drif.size}
+                                            </th>
+                                            <td>{drif.level}</td>
+                                            <td>{drif.targetLevel}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </details>
+                    )}
                     {status.applied && !status.success && (
                         <p className="optimizer-status-applied">
-                            Zastosowano najlepszy znaleziony układ.
+                            {status.backpackDrifTargets
+                                ? "Zastosowano układ z drifami z plecaka."
+                                : "Zastosowano najlepszy znaleziony układ."}
                         </p>
                     )}
                     {status.applied === false && status.nextVariants?.length > 0 && (

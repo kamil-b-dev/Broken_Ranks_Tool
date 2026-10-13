@@ -16,6 +16,7 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationSummar
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context.OptimizationContextFactory;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.BuildState;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationContext;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.BackpackDrifSubstitution;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultAssembler;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.pipeline.OptimizationSearchPipeline;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.validation.OptimizationInputValidator;
@@ -113,6 +114,18 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
             return failed;
         }
 
+        EquipmentRequest targetSetup = null;
+        List<OptimizationResponse.BackpackDrifUsage> backpackUsages = null;
+        if (context.request().isBackpackOnly()) {
+            targetSetup = resultAssembler.toSetup(state, context);
+            long substitutionStarted = System.nanoTime();
+            var substitution = BackpackDrifSubstitution.apply(state, context, resultAssembler);
+            state = substitution.state();
+            backpackUsages = substitution.usages();
+            context.calculatorSession()
+                    .metrics()
+                    .recordStage("backpackSubstitution", substitutionStarted, context);
+        }
         EquipmentRequest optimizedSetup = resultAssembler.toSetup(state, context);
         List<String> forcedCapWarnings = resultAssembler.forcedCapWarnings(state, context);
         long variantsStarted = System.nanoTime();
@@ -133,8 +146,22 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
                         ? OptimizationOutcome.VALID_BUILD
                         : OptimizationOutcome.VALID_BUILD_SOFT_TARGETS_UNMET);
         summary.setSearchReport(context.calculatorSession().metrics().report(context));
-        return new OptimizationResponse(
-                optimizedSetup, summary, summary.getNextVariants().getFirst().calculationResult());
+        OptimizationResponse response =
+                new OptimizationResponse(
+                        optimizedSetup,
+                        summary,
+                        summary.getNextVariants().getFirst().calculationResult());
+        response.setTargetSetup(targetSetup);
+        response.setBackpackDrifUsages(backpackUsages);
+        if (backpackUsages != null) {
+            summary.setMessage(
+                    backpackUsages.isEmpty()
+                            ? "Nie znaleziono pasujących drifów w plecaku; zachowano docelowy układ."
+                            : "Użyto "
+                                    + backpackUsages.size()
+                                    + " drifów z plecaka z zachowaniem ich poziomów. Docelowy układ wskazuje dalsze ulepszenia.");
+        }
+        return response;
     }
 
     private OptimizationResponse failedResponse(String message, double seconds) {

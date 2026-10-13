@@ -26,6 +26,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.Equipme
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationContext;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.SlotContext;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.BackpackDrifConstraints;
 
 /** Validates catalog-backed optimizer input before any invalid slot can be silently omitted. */
 @Component
@@ -38,6 +39,8 @@ public final class OptimizationInputValidator {
 
     public String validate(OptimizationContext context) {
         OptimizationRequest request = context.request();
+        String backpackError = BackpackDrifConstraints.validateCatalog(context);
+        if (backpackError != null) return backpackError;
         String catalogError = validateSelectedDrifCatalog(context);
         if (catalogError != null) return catalogError;
         Map<String, SlotContext> validSlots =
