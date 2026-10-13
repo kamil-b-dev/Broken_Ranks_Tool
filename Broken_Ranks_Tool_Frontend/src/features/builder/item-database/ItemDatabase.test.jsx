@@ -61,6 +61,27 @@ const props = {
 };
 
 describe("ItemDatabase", () => {
+    it("renders all matching items across categories without page navigation", () => {
+        const items = Array.from({ length: 125 }, (_, index) => ({
+            ...props.items[0],
+            id: index + 100,
+            name: `Przedmiot ${index}`,
+            category: index < 70 ? "HELMET" : "BOOTS",
+        }));
+        render(<ItemDatabase {...props} items={items} />);
+        expect(screen.getAllByRole("listitem")).toHaveLength(125);
+        expect(
+            screen.queryByRole("navigation", { name: "Strony bazy przedmiotów" })
+        ).not.toBeInTheDocument();
+        const dataTransfer = { setData: vi.fn() };
+        fireEvent.dragStart(screen.getByText("Przedmiot 124").closest("li"), { dataTransfer });
+        expect(JSON.parse(dataTransfer.setData.mock.calls[0][1]).id).toBe(224);
+        fireEvent.change(screen.getByRole("textbox", { name: "Wyszukaj przedmioty" }), {
+            target: { value: "^Przedmiot 124$" },
+        });
+        expect(screen.getAllByRole("listitem")).toHaveLength(1);
+        expect(screen.getByText("Przedmiot 124")).toBeInTheDocument();
+    });
     it("finds items by boss expressions and recovers from unfinished regex input", () => {
         render(
             <ItemDatabase

@@ -1,4 +1,4 @@
-import { memo, useMemo, useRef, useState } from "react";
+import { memo, useMemo } from "react";
 
 import CategoryIcon from "../../../shared/ui/CategoryIcon";
 import { getEquipmentIconClass, getRarityColor, getVariantLabel } from "./itemDatabasePresentation";
@@ -126,55 +126,10 @@ const ItemDatabaseResults = ({
     tooltipId,
     activeDetailsKey,
 }) => {
-    const [page, setPage] = useState(0);
-    const list = useRef(null);
-    const total = Object.values(groups).reduce((sum, entries) => sum + entries.length, 0);
-    const pageCount = Math.ceil(total / 60);
-    const currentPage = Math.min(page, Math.max(0, pageCount - 1));
-    const pageGroups = useMemo(() => {
-        let skip = currentPage * 60;
-        let remaining = 60;
-        const result = [];
-        for (const [category, entries] of Object.entries(groups).sort()) {
-            if (skip >= entries.length) {
-                skip -= entries.length;
-                continue;
-            }
-            const visible = entries.slice(skip, skip + remaining);
-            skip = 0;
-            remaining -= visible.length;
-            if (visible.length) result.push([category, visible]);
-        }
-        return result;
-    }, [groups, currentPage]);
-    const changePage = (next) => {
-        setPage(next);
-        list.current?.scrollTo?.({ top: 0, behavior: "instant" });
-    };
+    const sortedGroups = useMemo(() => Object.entries(groups).sort(), [groups]);
     return (
-        <div ref={list} className="min-h-0 flex-1 overflow-y-auto pr-2 space-y-4 custom-scrollbar">
-            {pageCount > 1 && (
-                <nav className="database-pagination" aria-label="Strony bazy przedmiotów">
-                    <button
-                        type="button"
-                        disabled={currentPage === 0}
-                        onClick={() => changePage(currentPage - 1)}
-                    >
-                        Poprzednia
-                    </button>
-                    <span aria-live="polite">
-                        {currentPage + 1} / {pageCount}
-                    </span>
-                    <button
-                        type="button"
-                        disabled={currentPage === pageCount - 1}
-                        onClick={() => changePage(currentPage + 1)}
-                    >
-                        Następna
-                    </button>
-                </nav>
-            )}
-            {pageGroups.map(([category, entries]) => (
+        <div className="database-results min-h-0 flex-1 overflow-y-auto pr-2 space-y-4 custom-scrollbar">
+            {sortedGroups.map(([category, entries]) => (
                 <div key={category}>
                     <h4 className="database-category-heading text-stone-500 font-serif font-bold mb-2 text-xs uppercase tracking-[0.2em]">
                         <span
