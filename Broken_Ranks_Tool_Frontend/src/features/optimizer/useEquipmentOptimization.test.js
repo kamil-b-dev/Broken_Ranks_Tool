@@ -2,6 +2,7 @@ import { act, renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cancelAdvisorOptimization, optimizeEquipmentDrifs } from "../../shared/api/equipmentApi";
 import { useEquipmentOptimization } from "./useEquipmentOptimization";
+import { builderCatalog } from "../../test/fixtures/equipment/builderCatalog";
 
 vi.mock("../../shared/api/equipmentApi", () => ({
     optimizeEquipmentDrifs: vi.fn(),
@@ -30,6 +31,89 @@ const renderOptimization = (slots = {}) => {
 };
 
 describe("useEquipmentOptimization", () => {
+    it("validates built-in stones with catalog rules while allowing their normal upgrade and keeping them out of the backpack", async () => {
+        const original = {
+            itemId: 99,
+            itemStars: 1,
+            drifIds: [61],
+            drifLevels: { 0: 2 },
+            orbIds: [],
+            orbLevels: [],
+        };
+        const setup = { slots: { helmet: { ...original, drifLevels: { 0: 16 } } } };
+        const gameRules = {
+            ...builderCatalog.gameRules,
+            epicBuiltInDrifs: { Epik: ["CRITICAL_CHANCE"] },
+        };
+        const props = {
+            requestData: { slots: { helmet: original } },
+            lockedSlots: [],
+            lockedDrifs: {},
+            backpack: [],
+            setRequestData: vi.fn(),
+            setBackpack: vi.fn(),
+            restoreStats: vi.fn(),
+            gameRules,
+            data: {
+                ...builderCatalog,
+                gameRules: undefined,
+                items: [
+                    {
+                        ...builderCatalog.items[0],
+                        id: 99,
+                        name: "Epik X",
+                        rarity: "EPIC",
+                        capacity: 0,
+                    },
+                ],
+                drifs: [{ ...builderCatalog.drifs[0], id: 61, size: "MAGNIDRIF" }],
+            },
+        };
+        optimizeEquipmentDrifs.mockResolvedValue({
+            optimizedSetup: setup,
+            targetSetup: setup,
+            backpackDrifUsages: [],
+            summary: { success: true, outcome: "VALID_BUILD" },
+        });
+        const { result } = renderHook(() => useEquipmentOptimization(props));
+        await act(async () =>
+            expect(await result.current.runDrifOptimization({ backpackOnly: true })).toMatchObject({
+                applied: true,
+            })
+        );
+        expect(props.setBackpack).toHaveBeenCalledWith([]);
+        expect(props.setRequestData.mock.lastCall[0].slots.helmet.drifLevels[0]).toBe(16);
+    });
+    it("reports unsafe selected IDs without sending a rounded template ID or changing state", async () => {
+        const props = {
+            requestData: { slots: { helmet: { itemId: 1 } } },
+            backpack: [
+                {
+                    id: "unsafe",
+                    kind: "DRIF",
+                    templateId: "9007199254740993",
+                    level: 1,
+                    sendToBackend: true,
+                },
+            ],
+            setRequestData: vi.fn(),
+            setBackpack: vi.fn(),
+            restoreStats: vi.fn(),
+            lockedSlots: [],
+            lockedDrifs: {},
+        };
+        const { result } = renderHook(() => useEquipmentOptimization(props));
+        await act(async () =>
+            expect(await result.current.runDrifOptimization({ backpackOnly: true })).toMatchObject({
+                success: false,
+                applied: false,
+                message: expect.stringContaining("bezpiecznie"),
+            })
+        );
+        expect(optimizeEquipmentDrifs).not.toHaveBeenCalled();
+        expect(props.setRequestData).not.toHaveBeenCalled();
+        expect(props.setBackpack).not.toHaveBeenCalled();
+    });
     it("applies a weaker final build, consumes only reported copies and retains its upgrade target", async () => {
         const stone = { id: "used", kind: "DRIF", templateId: "60", level: 3, sendToBackend: true };
         const original = { itemId: 1, drifIds: [60], drifLevels: { 0: 2 } };

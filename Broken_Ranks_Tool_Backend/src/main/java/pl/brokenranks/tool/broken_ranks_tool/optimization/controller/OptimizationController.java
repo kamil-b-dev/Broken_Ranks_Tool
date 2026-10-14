@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationResponse;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.BackpackDrifConstraints;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.service.OptimizationExecutionGuard;
 
 @RestController
@@ -23,6 +24,8 @@ public class OptimizationController {
     @PostMapping("/drifs")
     public ResponseEntity<OptimizationResponse> optimizeDrifs(
             @Valid @RequestBody OptimizationRequest request) {
+        String backpackError = BackpackDrifConstraints.validateRequest(request);
+        if (backpackError != null) throw new IllegalArgumentException(backpackError);
         OptimizationResponse response = executionGuard.optimize(request);
         return ResponseEntity.ok(response);
     }

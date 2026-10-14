@@ -26,13 +26,17 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.simpleprofile.SimplePr
 /** Request DTO for drif optimization, priorities, limits, locks, and caps. */
 @Data
 public class OptimizationRequest {
-    /** Restricts ordinary unlocked drifs to the supplied owned occurrences. */
     /** Legacy wire name for the final "use backpack drifs" substitution option. */
     private boolean backpackOnly;
 
     @Valid
     @Size(max = 200, message = "Plecak mieści maksymalnie 200 drifów.")
     private List<@NotNull BackpackDrif> backpackDrifs;
+
+    /** Total occupied backpack slots, including unselected items and orbs, in reorganization. */
+    @Min(0)
+    @Max(200)
+    private Integer backpackSlotCount;
 
     @Data
     public static class BackpackDrif {

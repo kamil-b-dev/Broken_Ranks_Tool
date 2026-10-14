@@ -1,3 +1,4 @@
+import ReorganizationPoolSummary from "./reorganization/ReorganizationPoolSummary";
 import { useState } from "react";
 import AppNotice from "../../shared/ui/AppNotice";
 import OptimizerMobileNavigation from "./OptimizerMobileNavigation";
@@ -62,11 +63,15 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                 settings={optimizerSettings}
                 onChange={onOptimizerSettingsChange}
             />
+            {optimizerSettings.mode === "REORGANIZE" && <ReorganizationPoolSummary />}
             <AppNotice notice={notice} onDismiss={() => setNotice(null)} />
             <OptimizerMobileNavigation
                 activeColumn={activeMobileColumn}
                 priorityCount={
-                    optimizerSettings.configurationMode === "SIMPLE" ? 1 : prioritizedBonuses.length
+                    optimizerSettings.mode === "BUILD_FROM_SCRATCH" &&
+                    optimizerSettings.configurationMode === "SIMPLE"
+                        ? 1
+                        : prioritizedBonuses.length
                 }
                 onChange={setActiveMobileColumn}
                 mode={optimizerSettings.mode}

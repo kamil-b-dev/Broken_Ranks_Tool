@@ -1,9 +1,75 @@
 import { describe, expect, it } from "vitest";
 import { applyBackpackOptimization } from "./backpackOptimizationTransfer";
+import { builderCatalog } from "../../../test/fixtures/equipment/builderCatalog";
 const slot = (id, level) => ({ itemId: 1, drifIds: [id], drifLevels: { 0: level } });
 const stone = { id: "owned", kind: "DRIF", templateId: "60", level: 6, sendToBackend: true };
 const usage = { entryId: "owned", slotKey: "helmet", drifIndex: 0 };
 describe("applying final backpack substitutions", () => {
+    it.each([
+        { helmet: { ...slot(60, 6), itemStars: 9 } },
+        { helmet: { ...slot(60, 6), orbIds: [50], orbLevels: [1] } },
+        { helmet: { ...slot(60, 6), itemId: 2 } },
+        { helmet: slot(60, 6), boots: { itemId: 5 } },
+        { helmet: slot(60, 6), unknown: { itemId: null } },
+        {},
+    ])("rejects out-of-scope changes without consuming inventory: %j", (nextSlots) => {
+        const backpack = [stone];
+        expect(() =>
+            applyBackpackOptimization({
+                backpack,
+                previousSlots: { helmet: slot(60, 2) },
+                nextSlots,
+                backpackDrifUsages: [],
+            })
+        ).toThrow();
+        expect(backpack).toEqual([stone]);
+    });
+    it("rejects changed locked levels even when no backpack usage was reported", () => {
+        const input = {
+            backpack: [stone],
+            previousSlots: { helmet: slot(60, 2) },
+            nextSlots: { helmet: slot(60, 6) },
+            backpackDrifUsages: [],
+        };
+        expect(() => applyBackpackOptimization({ ...input, lockedSlots: ["helmet"] })).toThrow(
+            /blokadę/
+        );
+        expect(() => applyBackpackOptimization({ ...input, lockedDrifs: { helmet: [0] } })).toThrow(
+            /blokadę/
+        );
+        expect(applyBackpackOptimization({ ...input, builtInSlots: ["helmet"] })).toEqual([stone]);
+    });
+    it("validates physical capacity and the target kind and size before transferring a matched stone", () => {
+        const equipment = { ...slot(60, 2), itemStars: 1, orbIds: [], orbLevels: [] };
+        const input = {
+            backpack: [stone],
+            previousSlots: { helmet: equipment },
+            nextSlots: { helmet: { ...equipment, drifLevels: { 0: 6 } } },
+            backpackDrifUsages: [usage],
+            targetSlots: { helmet: { ...equipment, drifLevels: { 0: 6 } } },
+            data: builderCatalog,
+        };
+        expect(applyBackpackOptimization(input)).toHaveLength(1);
+        expect(() =>
+            applyBackpackOptimization({
+                ...input,
+                data: {
+                    ...builderCatalog,
+                    items: builderCatalog.items.map((item) => ({ ...item, capacity: 1 })),
+                },
+            })
+        ).toThrow(/pojemność/);
+        const data = {
+            ...builderCatalog,
+            drifs: [
+                ...builderCatalog.drifs,
+                { ...builderCatalog.drifs[0], id: 61, size: "ARCYDRIF" },
+            ],
+        };
+        expect(() =>
+            applyBackpackOptimization({ ...input, data, targetSlots: { helmet: slot(61, 11) } })
+        ).toThrow(/rodzaju i rozmiaru/);
+    });
     it("consumes the explicit occurrence and keeps unmatched catalog stones and identical copies", () => {
         const backpack = [
             stone,

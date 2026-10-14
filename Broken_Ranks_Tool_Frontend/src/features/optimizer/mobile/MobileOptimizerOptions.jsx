@@ -1,5 +1,6 @@
 /** Mobile presentation of existing advanced options; values keep their shared semantics. */
 export default function MobileOptimizerOptions({ settings, onChange }) {
+    if (settings.mode === "REORGANIZE") return null;
     return (
         <details className="mobile-card mobile-optimizer-options">
             <summary>Opcje i warianty</summary>

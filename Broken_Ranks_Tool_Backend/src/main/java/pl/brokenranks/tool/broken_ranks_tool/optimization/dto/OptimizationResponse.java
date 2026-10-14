@@ -27,6 +27,16 @@ public class OptimizationResponse {
     /** Exact inventory occurrences used by the final substitutions; null outside this option. */
     private List<BackpackDrifUsage> backpackDrifUsages;
 
+    /** Sources of every movable drif in a reorganization result. */
+    private List<ReorganizationDrifUsage> reorganizationDrifUsages;
+
+    public record ReorganizationDrifUsage(
+            String entryId,
+            String sourceSlotKey,
+            Integer sourceDrifIndex,
+            String slotKey,
+            int drifIndex) {}
+
     public record BackpackDrifUsage(String entryId, String slotKey, int drifIndex) {}
 
     public OptimizationResponse(EquipmentRequest optimizedSetup, OptimizationSummary summary) {

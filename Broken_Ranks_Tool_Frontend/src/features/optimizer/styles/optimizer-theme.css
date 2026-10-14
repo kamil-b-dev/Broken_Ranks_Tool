@@ -187,7 +187,7 @@
 .optimizer-mode-navigation {
     display: grid;
     min-width: 0;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0.5rem;
     padding: 0.65rem 0.72rem;
     border-bottom: 1px solid rgba(103, 70, 39, 0.72);

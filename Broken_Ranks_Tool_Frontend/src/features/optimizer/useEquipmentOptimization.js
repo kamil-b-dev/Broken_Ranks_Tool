@@ -3,6 +3,7 @@ import { cancelAdvisorOptimization, optimizeEquipmentDrifs } from "../../shared/
 import { createEquipmentOptimizationRequest } from "./equipmentOptimizationRequest";
 import { advisorBuildSignature } from "./advisor/advisorBuildSignature";
 import { applyBackpackOptimization } from "../builder/backpack/backpackOptimizationTransfer";
+import { applyReorganization } from "../builder/backpack/backpackReorganizationTransfer";
 import { SLOTS } from "../../shared/domain/equipment/equipmentSlots";
 
 const failureMessage = (error) =>
@@ -29,6 +30,7 @@ export const useEquipmentOptimization = ({
     backpack = [],
     setBackpack,
     data,
+    gameRules,
 }) => {
     const slots = requestData?.slots;
     const [optimizationTrigger, setOptimizationTrigger] = useState(0);
@@ -67,13 +69,23 @@ export const useEquipmentOptimization = ({
                     );
                     return ["EPIC", "SET"].includes(item?.rarity);
                 });
-                const nextBackpack = applyBackpackOptimization({
+                const transfer = inventoryUsages.reorganization
+                    ? applyReorganization
+                    : applyBackpackOptimization;
+                if (inventoryUsages.reorganization && !setBackpack)
+                    throw new Error("Brak możliwości aktualizacji plecaka po reorganizacji.");
+                const nextBackpack = transfer({
                     backpack,
                     previousSlots: requestData.slots,
                     nextSlots: setup.slots,
-                    lockedSlots: [...(lockedSlots || []), ...builtIns],
+                    lockedSlots: lockedSlots || [],
+                    builtInSlots: builtIns,
                     lockedDrifs,
                     backpackDrifUsages: inventoryUsages.usages,
+                    reorganizationDrifUsages: inventoryUsages.usages,
+                    targetSlots: inventoryUsages.targetSlots,
+                    data,
+                    gameRules,
                 });
                 setBackpack?.(nextBackpack);
             }
@@ -94,6 +106,7 @@ export const useEquipmentOptimization = ({
             lockedSlots,
             lockedDrifs,
             data,
+            gameRules,
         ]
     );
 
@@ -107,10 +120,12 @@ export const useEquipmentOptimization = ({
     const runDrifOptimization = useCallback(
         async (configuration) => {
             const runVersion = ++optimizerRunVersion.current;
+            const reorganize = configuration.mode === "REORGANIZE";
             const inventory =
-                configuration.mode !== "ADVISOR" &&
-                (configuration.configurationMode || "ADVANCED") === "ADVANCED" &&
-                configuration.backpackOnly === true;
+                reorganize ||
+                (configuration.mode !== "ADVISOR" &&
+                    (configuration.configurationMode || "ADVANCED") === "ADVANCED" &&
+                    configuration.backpackOnly === true);
             const signatureKey = inventory ? "inventory" : "standard";
             const baselineInputSignature = inventory
                 ? JSON.stringify([inputSignature(requestData, lockedSlots, lockedDrifs), backpack])
@@ -125,14 +140,19 @@ export const useEquipmentOptimization = ({
             const advisory = configuration.mode === "ADVISOR";
             let advisorRun = null;
             let previousAdvisorRun = null;
-            const request = createEquipmentOptimizationRequest({
-                slots,
-                characterStats: requestData?.characterStats,
-                configuration,
-                lockedSlots,
-                lockedDrifs,
-                backpack,
-            });
+            let request;
+            try {
+                request = createEquipmentOptimizationRequest({
+                    slots,
+                    characterStats: requestData?.characterStats,
+                    configuration,
+                    lockedSlots,
+                    lockedDrifs,
+                    backpack,
+                });
+            } catch (error) {
+                return { success: false, applied: false, message: failureMessage(error) };
+            }
             if (advisory && request.advisor) {
                 previousAdvisorRun = activeAdvisor.current;
                 advisorRun = {
@@ -179,6 +199,7 @@ export const useEquipmentOptimization = ({
                     calculationResult,
                     targetSetup,
                     backpackDrifUsages,
+                    reorganizationDrifUsages,
                 } = await optimizeEquipmentDrifs(request);
                 if (baselineInputSignature !== currentInputSignature.current[signatureKey]) {
                     return {
@@ -225,12 +246,15 @@ export const useEquipmentOptimization = ({
                 );
                 if (
                     inventory &&
+                    !reorganize &&
                     hasEquipment &&
                     (!targetSetup?.slots || !Array.isArray(backpackDrifUsages))
                 )
                     throw new Error(
                         "Wynik nie zawiera buildu docelowego lub listy użytych drifów plecaka."
                     );
+                if (reorganize && hasEquipment && !Array.isArray(reorganizationDrifUsages))
+                    throw new Error("Wynik reorganizacji nie zawiera źródeł drifów.");
                 const applied =
                     runVersion === optimizerRunVersion.current &&
                     hasEquipment &&
@@ -241,11 +265,16 @@ export const useEquipmentOptimization = ({
                     applyOptimizationSetup(
                         optimizedSetup,
                         calculationResult,
-                        inventory ? { usages: backpackDrifUsages } : null
+                        reorganize
+                            ? { reorganization: true, usages: reorganizationDrifUsages }
+                            : inventory
+                              ? { usages: backpackDrifUsages, targetSlots: targetSetup.slots }
+                              : null
                     );
                 return {
                     ...summary,
-                    ...(inventory
+                    ...(reorganize ? { mode: "REORGANIZE", reorganizationDrifUsages } : {}),
+                    ...(inventory && !reorganize
                         ? {
                               targetSetup,
                               backpackDrifUsages,

@@ -57,7 +57,7 @@ const OptimizerGoalsColumn = ({
                 settings={settings}
                 onChange={onSettingsChange}
             />
-        ) : settings.configurationMode === "SIMPLE" ? (
+        ) : settings.mode !== "REORGANIZE" && settings.configurationMode === "SIMPLE" ? (
             <SimpleProfileGoalsPanel settings={settings} onChange={onSettingsChange} />
         ) : (
             <div className="optimizer-goals-workspace">
@@ -88,12 +88,16 @@ const OptimizerGoalsColumn = ({
                     <OptimizerPriorityList
                         priorities={priorities}
                         expandedPriorities={expandedPriorities}
-                        currentDetails={currentDetails}
+                        currentDetails={settings.mode === "REORGANIZE" ? [] : currentDetails}
                         maxCaps={gameRules?.drifMaxCaps}
                         onToggle={onTogglePriority}
                         onRemove={onRemovePriority}
                         onUpdate={onUpdatePriority}
-                        configurationMode={settings.configurationMode || "ADVANCED"}
+                        configurationMode={
+                            settings.mode === "REORGANIZE"
+                                ? "ADVANCED"
+                                : settings.configurationMode || "ADVANCED"
+                        }
                     />
                 </div>
             </div>
@@ -102,7 +106,7 @@ const OptimizerGoalsColumn = ({
             priorityCount={
                 settings.mode === "ADVISOR"
                     ? 1
-                    : settings.configurationMode === "SIMPLE"
+                    : settings.mode !== "REORGANIZE" && settings.configurationMode === "SIMPLE"
                       ? 1
                       : priorities.length
             }
@@ -114,7 +118,9 @@ const OptimizerGoalsColumn = ({
             onRun={onRun}
             onCancel={onCancel}
             mode={settings.mode}
-            simple={settings.mode !== "ADVISOR" && settings.configurationMode === "SIMPLE"}
+            simple={
+                settings.mode === "BUILD_FROM_SCRATCH" && settings.configurationMode === "SIMPLE"
+            }
         />
     </section>
 );

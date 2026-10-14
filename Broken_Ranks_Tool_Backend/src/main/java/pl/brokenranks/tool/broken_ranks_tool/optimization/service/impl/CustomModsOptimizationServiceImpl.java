@@ -23,6 +23,7 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.validation.Opti
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.validation.OptimizationRequestValidator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.variant.GeneratedOptimizationVariant;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.variant.OptimizationVariantGenerator;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.reorganization.ReorganizationSearch;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.service.ModsOptimizationService;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.simpleprofile.SimpleProfileConfigurationResolver;
 
@@ -38,6 +39,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
     private final OptimizationResultAssembler resultAssembler;
     private final OptimizationVariantGenerator variantGenerator;
     private final AdvisorOptimizationService advisor;
+    private final ReorganizationSearch reorganization;
 
     /**
      * Builds the best equipment configuration within the requested priorities,
@@ -63,6 +65,8 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
 
         OptimizationContext context = createContext(request);
         String inputError = inputValidator.validate(context);
+        if (inputError == null && request.getMode() == OptimizationMode.REORGANIZE)
+            inputError = reorganization.validateSupply(context);
         if (inputError != null) {
             return failedResponse(inputError, elapsedSeconds(startTime));
         }
@@ -72,7 +76,10 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
                     elapsedSeconds(startTime));
         }
 
-        OptimizationSearchPipeline.PipelineResult searchResult = searchPipeline.optimize(context);
+        OptimizationSearchPipeline.PipelineResult searchResult =
+                request.getMode() == OptimizationMode.REORGANIZE
+                        ? reorganization.optimize(context)
+                        : searchPipeline.optimize(context);
         if (searchResult == null) {
             OptimizationResponse failed =
                     failedResponse(
@@ -153,6 +160,9 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
                         summary.getNextVariants().getFirst().calculationResult());
         response.setTargetSetup(targetSetup);
         response.setBackpackDrifUsages(backpackUsages);
+        if (context.request().getMode() == OptimizationMode.REORGANIZE) {
+            response.setReorganizationDrifUsages(reorganization.usages(state, context));
+        }
         if (backpackUsages != null) {
             summary.setMessage(
                     backpackUsages.isEmpty()

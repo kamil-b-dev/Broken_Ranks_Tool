@@ -402,6 +402,7 @@ components:
           enum:
             - BUILD_FROM_SCRATCH
             - ADVISOR
+            - REORGANIZE
           default: BUILD_FROM_SCRATCH
         configurationMode:
           type: string
@@ -454,12 +455,17 @@ components:
           type: boolean
           default: false
           description: Advanced build-from-scratch only. Run standard optimization, then substitute matching selected backpack drifs at their owned levels. Unmatched catalog drifs remain. The legacy wire name is retained; additional variants are unavailable.
+        backpackSlotCount:
+          type: [integer, "null"]
+          minimum: 0
+          maximum: 200
+          description: Total occupied backpack slots in reorganization, including unselected objects. Limits how many equipped stones can be returned. May not be lower than the selected drif count.
         backpackDrifs:
           type:
             - array
             - "null"
           maxItems: 200
-          description: Selected loose drif occurrences. Each id must be unique; the size bound is validated before optimizer execution.
+          description: Selected loose drif occurrences. Size, structure, unique occurrence IDs and option compatibility are validated before acquiring the optimizer worker. Catalog existence, numeric modifier values and size-dependent level limits are validated before search.
           items:
             type: object
             additionalProperties: false
@@ -1420,6 +1426,68 @@ components:
                     necklace,
                   ]
               drifIndex: { type: integer, minimum: 0, maximum: 7 }
+        reorganizationDrifUsages:
+          description: Sources and destinations of every movable drif in a reorganization result. Null in other modes.
+          type: [array, "null"]
+          maxItems: 36
+          items:
+            type: object
+            additionalProperties: false
+            required:
+              [entryId, sourceSlotKey, sourceDrifIndex, slotKey, drifIndex]
+            properties:
+              entryId: { type: [string, "null"], minLength: 1, maxLength: 128 }
+              sourceSlotKey:
+                {
+                  type: [string, "null"],
+                  enum:
+                    [
+                      helmet,
+                      armor,
+                      cape,
+                      legs,
+                      boots,
+                      gloves,
+                      belt,
+                      weapon,
+                      shield,
+                      ring1,
+                      ring2,
+                      necklace,
+                      null,
+                    ],
+                }
+              sourceDrifIndex:
+                { type: [integer, "null"], minimum: 0, maximum: 7 }
+              slotKey:
+                {
+                  type: string,
+                  enum:
+                    [
+                      helmet,
+                      armor,
+                      cape,
+                      legs,
+                      boots,
+                      gloves,
+                      belt,
+                      weapon,
+                      shield,
+                      ring1,
+                      ring2,
+                      necklace,
+                    ],
+                }
+              drifIndex: { type: integer, minimum: 0, maximum: 7 }
+            oneOf:
+              - properties:
+                  entryId: { type: string }
+                  sourceSlotKey: { type: "null" }
+                  sourceDrifIndex: { type: "null" }
+              - properties:
+                  entryId: { type: "null" }
+                  sourceSlotKey: { type: string }
+                  sourceDrifIndex: { type: integer }
         optimizedSetup:
           anyOf:
             - $ref: "#/components/schemas/EquipmentRequest"

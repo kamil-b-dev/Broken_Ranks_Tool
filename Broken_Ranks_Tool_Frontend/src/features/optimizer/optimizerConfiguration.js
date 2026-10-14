@@ -183,7 +183,7 @@ export const parseOptimizerConfigPayload = (payload, gameRules = {}) => {
     }
 
     const importedMaxLoss = Number(payload.settings?.maxVariantLossPercent);
-    const knownModes = new Set(["BUILD_FROM_SCRATCH", "ADVISOR"]);
+    const knownModes = new Set(["BUILD_FROM_SCRATCH", "ADVISOR", "REORGANIZE"]);
     return {
         priorities,
         availableBonuses: sortBonusesByCategory(
@@ -332,19 +332,21 @@ export const findInvalidSizeConstraint = (priorities) =>
 
 /** Converts editable priority values into the backend optimization contract. */
 export const buildOptimizationConfig = (priorities, settings = {}) => {
-    const simple = (settings.configurationMode || "SIMPLE") === "SIMPLE";
+    const reorganize = settings.mode === "REORGANIZE";
+    const simple = !reorganize && (settings.configurationMode || "SIMPLE") === "SIMPLE";
     const config = {
         mode: settings.mode || "BUILD_FROM_SCRATCH",
         configurationMode: simple ? "SIMPLE" : "ADVANCED",
-        ...(!simple && settings.backpackOnly ? { backpackOnly: true } : {}),
+        ...(!simple && !reorganize && settings.backpackOnly ? { backpackOnly: true } : {}),
         priorities: {},
         targetQuantities: {},
         forceCapBonuses: [],
         forcedPercentageTargets: {},
         maximizeBonuses: [],
         drifSizeQuantities: {},
-        forceMaximizationByDrifBonus: !simple && Boolean(settings.forceMaximizationByDrifBonus),
-        generateVariants: !simple && Boolean(settings.generateVariants),
+        forceMaximizationByDrifBonus:
+            !simple && !reorganize && Boolean(settings.forceMaximizationByDrifBonus),
+        generateVariants: !simple && !reorganize && Boolean(settings.generateVariants),
         maxVariantLossPercent: clamp(Number(settings.maxVariantLossPercent) || 0, 0, 100),
         ...(simple
             ? {

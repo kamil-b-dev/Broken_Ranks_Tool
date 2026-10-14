@@ -23,7 +23,9 @@ export const useOptimizerConfigFiles = ({
     const inputRef = useRef(null);
     const importVersion = useRef(0);
     const save = () => {
-        const advanced = settings.mode !== "ADVISOR" && settings.configurationMode !== "SIMPLE";
+        const advanced =
+            settings.mode === "REORGANIZE" ||
+            (settings.mode !== "ADVISOR" && settings.configurationMode !== "SIMPLE");
         const invalid =
             advanced &&
             (findInvalidPercentageTarget(priorities) || findInvalidSizeConstraint(priorities));

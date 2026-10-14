@@ -199,9 +199,11 @@ export const useOptimizerWorkspace = ({ optimizerSettings, onOptimizerSettingsCh
             }
             return;
         }
-        const simple = optimizerSettings.configurationMode === "SIMPLE";
+        const simple =
+            optimizerSettings.mode === "BUILD_FROM_SCRATCH" &&
+            optimizerSettings.configurationMode === "SIMPLE";
         if (!simple && prioritizedBonuses.length === 0) return;
-        const advanced = optimizerSettings.configurationMode === "ADVANCED";
+        const advanced = !simple;
         const invalidPercentageTarget = advanced
             ? findInvalidPercentageTarget(prioritizedBonuses)
             : null;
@@ -228,6 +230,17 @@ export const useOptimizerWorkspace = ({ optimizerSettings, onOptimizerSettingsCh
 
     /** Applies the explicitly selected result variant to the shared equipment build. */
     const handleApplyVariant = (variant, variantIndex) => {
+        if (optimizerSettings.mode === "REORGANIZE") {
+            if (optimizationStatus?.appliedSignature !== advisorBuildSignature(requestData.slots)) {
+                setNotice({
+                    type: "error",
+                    message: "Build zmienił się. Uruchom reorganizację ponownie.",
+                });
+            } else {
+                setActiveVariantIndex(variantIndex);
+            }
+            return;
+        }
         if (optimizationStatus?.baselineSignature) {
             const current = advisorBuildSignature(requestData.slots);
             const constraints = JSON.stringify({

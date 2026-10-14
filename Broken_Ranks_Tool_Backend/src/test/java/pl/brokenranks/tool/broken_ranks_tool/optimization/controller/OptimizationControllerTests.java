@@ -9,6 +9,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -23,13 +25,57 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.service.OptimizerMemor
 
 @WebMvcTest(
         value = OptimizationController.class,
-        properties = "abuse-protection.optimizer.client-requests-per-minute=12")
+        properties = {
+            "abuse-protection.optimizer.client-requests-per-minute=100",
+            "abuse-protection.optimizer.global-requests-per-minute=100"
+        })
 @Import(SecurityConfig.class)
 class OptimizationControllerTests {
 
     @Autowired private MockMvc mockMvc;
 
     @MockitoBean private OptimizationExecutionGuard executionGuard;
+
+    @Test
+    void rejectsDuplicateOccurrencesBeforeAcquiringTheWorker() throws Exception {
+        mockMvc.perform(
+                        post("/api/optimizer/drifs")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        """
+                {"originalSlots":{"helmet":{"itemId":1}},"backpackOnly":true,
+                "backpackDrifs":[{"id":"same","templateId":1,"level":1},{"id":"same","templateId":1,"level":2}]}
+                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_REQUEST"));
+        verifyNoInteractions(executionGuard);
+    }
+
+    @ParameterizedTest
+    @ValueSource(
+            strings = {
+                "\"backpackOnly\":true,\"backpackDrifs\":null",
+                "\"backpackOnly\":true,\"configurationMode\":\"SIMPLE\",\"backpackDrifs\":[]",
+                "\"backpackOnly\":true,\"mode\":\"ADVISOR\",\"backpackDrifs\":[]",
+                "\"backpackOnly\":true,\"generateVariants\":true,\"backpackDrifs\":[]",
+                "\"backpackDrifs\":[{\"id\":\"one\",\"templateId\":1,\"level\":1}]",
+                "\"backpackOnly\":true,\"backpackDrifs\":[null]",
+                "\"backpackOnly\":true,\"backpackDrifs\":[{\"id\":\"\",\"templateId\":1,\"level\":1}]",
+                "\"backpackOnly\":true,\"backpackDrifs\":[{\"id\":\"one\",\"templateId\":0,\"level\":1}]",
+                "\"backpackOnly\":true,\"backpackDrifs\":[{\"id\":\"one\",\"templateId\":1,\"level\":22}]"
+            })
+    void rejectsInvalidBackpackRequestsBeforeAcquiringTheWorker(String fields) throws Exception {
+        mockMvc.perform(
+                        post("/api/optimizer/drifs")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        "{\"originalSlots\":{\"helmet\":{\"itemId\":1}},"
+                                                + fields
+                                                + "}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_REQUEST"));
+        verifyNoInteractions(executionGuard);
+    }
 
     @Test
     void rejects201BackpackDrifsBeforeTheExecutionGuard() throws Exception {

@@ -1,5 +1,6 @@
 const COLUMN_LABELS = {
     BUILD_FROM_SCRATCH: "Blokady",
+    REORGANIZE: "Blokady",
     ADVISOR: "Build",
 };
 

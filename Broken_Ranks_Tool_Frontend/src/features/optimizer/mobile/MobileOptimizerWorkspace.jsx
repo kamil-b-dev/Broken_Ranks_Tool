@@ -3,6 +3,7 @@ import "../styles/optimizer-goals.css";
 import "../styles/optimizer-report.css";
 import "../styles/optimizer-results.css";
 import { useEffect, useRef } from "react";
+import ReorganizationPoolSummary from "../reorganization/ReorganizationPoolSummary";
 import AppNotice from "../../../shared/ui/AppNotice";
 import { useOptimizerWorkspace } from "../useOptimizerWorkspace";
 import AdvisorGoalsPanel from "../advisor/AdvisorGoalsPanel";
@@ -23,11 +24,12 @@ export default function MobileOptimizerWorkspace({ settings, onSettingsChange, o
         onOptimizerSettingsChange: onSettingsChange,
     });
     const advisory = settings.mode === "ADVISOR";
-    const simple = !advisory && settings.configurationMode === "SIMPLE";
+    const reorganize = settings.mode === "REORGANIZE";
+    const simple = !advisory && !reorganize && settings.configurationMode === "SIMPLE";
     const navigation = useMobileOptimizerNavigation(advisory);
     const heading = useRef(null);
     const bonusOpener = useRef(null);
-    const mode = advisory ? "ADVISOR" : simple ? "SIMPLE" : "ADVANCED";
+    const mode = reorganize ? "REORGANIZE" : advisory ? "ADVISOR" : simple ? "SIMPLE" : "ADVANCED";
     const sections = [
         ["goals", advisory ? "Cel i ochrony" : simple ? "Profil" : "Cele"],
         ...(advisory ? [["changes", "Dozwolone zmiany"]] : []),
@@ -43,7 +45,7 @@ export default function MobileOptimizerWorkspace({ settings, onSettingsChange, o
             <header className="mobile-page-title">
                 <div>
                     <h1 ref={heading} tabIndex={-1}>
-                        {advisory ? "Doradca" : "Optymalizator"}
+                        {reorganize ? "Reorganizacja" : advisory ? "Doradca" : "Optymalizator"}
                     </h1>
                 </div>
             </header>
@@ -60,9 +62,12 @@ export default function MobileOptimizerWorkspace({ settings, onSettingsChange, o
                         const next = event.target.value;
                         onSettingsChange({
                             ...settings,
-                            mode: next === "ADVISOR" ? "ADVISOR" : "BUILD_FROM_SCRATCH",
-                            configurationMode:
-                                next === "ADVISOR" ? settings.configurationMode : next,
+                            mode: ["ADVISOR", "REORGANIZE"].includes(next)
+                                ? next
+                                : "BUILD_FROM_SCRATCH",
+                            configurationMode: ["ADVISOR", "REORGANIZE"].includes(next)
+                                ? settings.configurationMode
+                                : next,
                         });
                         navigation.change("goals");
                     }}
@@ -70,6 +75,7 @@ export default function MobileOptimizerWorkspace({ settings, onSettingsChange, o
                     <option value="SIMPLE">Prosty</option>
                     <option value="ADVANCED">Zaawansowany</option>
                     <option value="ADVISOR">Doradca</option>
+                    <option value="REORGANIZE">Reorganizacja</option>
                 </select>
             </label>
             <nav
@@ -129,6 +135,7 @@ export default function MobileOptimizerWorkspace({ settings, onSettingsChange, o
                     </div>
                 )}
             </div>
+            {reorganize && <ReorganizationPoolSummary />}
             <AppNotice notice={model.notice} onDismiss={() => model.setNotice(null)} />
             {navigation.section === "goals" && (
                 <section
@@ -172,7 +179,7 @@ export default function MobileOptimizerWorkspace({ settings, onSettingsChange, o
                             <OptimizerPriorityList
                                 priorities={model.prioritizedBonuses}
                                 expandedPriorities={model.expandedPriorities}
-                                currentDetails={model.currentModDetails}
+                                currentDetails={reorganize ? [] : model.currentModDetails}
                                 maxCaps={model.gameRules.drifMaxCaps}
                                 onToggle={model.toggleExpanded}
                                 onRemove={model.removeBonus}

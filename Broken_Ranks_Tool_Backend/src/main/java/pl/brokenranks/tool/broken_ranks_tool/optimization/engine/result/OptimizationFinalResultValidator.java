@@ -9,6 +9,7 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentPlacementRules;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationMode;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationDrifSizeConstraints;
@@ -108,7 +109,8 @@ final class OptimizationFinalResultValidator {
                                     .getDrifLevels()
                                     .getOrDefault(String.valueOf(index), 1);
             boolean levelLocked =
-                    !slot.special()
+                    context.request().getMode() == OptimizationMode.REORGANIZE
+                            || !slot.special()
                             || context.request().getLockedSlots() != null
                                     && context.request().getLockedSlots().contains(slot.key())
                             || slot.lockedIndices().contains(index);
