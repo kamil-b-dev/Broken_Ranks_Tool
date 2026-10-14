@@ -40,6 +40,13 @@ const undo = (start, next, options = {}) =>
     prepareEquipmentRemovalUndo({ ...start, ...next, ...options });
 
 describe("equipment removal to backpack", () => {
+    it("rejects duplicate identities before removing or undoing equipment", () => {
+        const start = initial();
+        const duplicate = { id: "duplicate", kind: "DRIF", templateId: "60", level: 1 };
+        start.backpack = [duplicate, { ...duplicate }];
+        expect(() => remove(start, { kind: "DRIF" })).toThrow(/niepoprawne dane/);
+        expect(start.backpack).toHaveLength(2);
+    });
     it("keeps complete items and restores equipment, occurrences and drif locks", () => {
         const start = initial();
         const next = remove(start, { kind: "ITEM" });

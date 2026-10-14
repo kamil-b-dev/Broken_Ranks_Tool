@@ -53,6 +53,8 @@ Plecak pozostaje osobnym stanem od `requestData` i nie trafia do HTTP kalkulator
 
 ## Wersja 3: wybór drifów do optymalizacji
 
+Walidacja plecaka odrzuca powtórzone ID wystąpień, niepełne tablice oraz poziomy przypisane do pustych lub nieistniejących gniazd. Orby nie mogą mieć luki przed zajętą pozycją; końcowe puste placeholdery są pomijane, a pominięty poziom zajętego orba oznacza 1. Puste pozycje drifów zachowują indeksy. Nieznane ID katalogowe i robocze przedmioty przekraczające pojemność pozostają w zapisie z ostrzeżeniem, ale nie mogą ominąć walidacji zakładania. W v3 zaznaczenie `sendToBackend: true` jest dozwolone tylko dla osobnego drifa; czytnik v2 nadal ignoruje te dodatkowe metadane.
+
 Schemat [build-file-v3.schema.json](build-file-v3.schema.json) zachowuje konfigurację v2 i dodaje opcjonalne pole boolean `sendToBackend` na osobnych wpisach `DRIF`. Brak pola oznacza brak zaznaczenia; eksporter pomija wartość false. Przedmioty, orby oraz drify osadzone w przedmiotach nie są zaznaczane. Czytnik v2 ignoruje te metadane, a import v1 nadal tworzy pusty plecak. Biblioteka zachowuje własną wersję 1 i może przechowywać payloady wszystkich trzech wersji.
 
 Aktualny draft używa `broken-ranks-tool.equipment-draft.v3` i wrappera `version: 3`. Przy braku tego klucza odczytywane są kolejno v2 i v1. Pierwszy zapis tworzy v3, zachowując wcześniejsze klucze. Nieczytelny bieżący dokument nie jest zastępowany starszym; mechanizm kopii `.recovery` nadal chroni dane przed nadpisaniem.

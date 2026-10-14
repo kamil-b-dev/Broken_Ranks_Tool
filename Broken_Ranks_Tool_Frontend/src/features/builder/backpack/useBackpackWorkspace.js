@@ -44,8 +44,8 @@ export const useBackpackWorkspace = ({
     }, [importRevision]);
     const commitStoneOperation = useCallback(
         (next, targetId) => {
-            currentEntries.current = next;
             onChange(next);
+            currentEntries.current = next;
             setEditRevision((revision) => revision + 1);
             setSelectedId(targetId);
             setCreatingKind(null);
@@ -120,37 +120,86 @@ export const useBackpackWorkspace = ({
         setNotice(null);
     };
     const add = (kind, template) => {
-        if (entries.length >= MAX_BACKPACK_ENTRIES) {
+        const current = currentEntries.current;
+        if (current.length >= MAX_BACKPACK_ENTRIES) {
             setNotice(`Plecak mieści do ${MAX_BACKPACK_ENTRIES} obiektów.`);
             return;
         }
-        const entry = createBackpackEntry(kind, template, data, gameRules);
-        onChange([...entries, entry]);
-        select(entry.id);
+        try {
+            const entry = createBackpackEntry(kind, template, data, gameRules);
+            const next = normalizeBackpack([...current, entry]);
+            onChange(next);
+            currentEntries.current = next;
+            select(entry.id);
+            return true;
+        } catch (error) {
+            setNotice(error.message);
+            return false;
+        }
     };
     const update = useCallback(
         (id, changes) => {
-            const next = normalizeBackpack(
-                entries.map((entry) => (entry.id === id ? { ...entry, ...changes } : entry))
-            );
-            if (JSON.stringify(next) !== JSON.stringify(entries)) onChange(next);
+            try {
+                const current = currentEntries.current;
+                const entry = current.find((candidate) => candidate.id === id);
+                if (!entry) throw new Error("Ta rzecz nie znajduje się już w plecaku.");
+                if (
+                    !changes ||
+                    typeof changes !== "object" ||
+                    Array.isArray(changes) ||
+                    (Object.hasOwn(changes, "id") && changes.id !== id) ||
+                    (Object.hasOwn(changes, "kind") && changes.kind !== entry.kind)
+                )
+                    throw new Error("Nie można zmieniać tożsamości ani rodzaju rzeczy w plecaku.");
+                const next = normalizeBackpack(
+                    current.map((candidate) =>
+                        candidate.id === id ? { ...candidate, ...changes } : candidate
+                    )
+                );
+                if (JSON.stringify(next) !== JSON.stringify(current)) {
+                    onChange(next);
+                    currentEntries.current = next;
+                }
+                setNotice(null);
+                return true;
+            } catch (error) {
+                setNotice(error.message);
+                return false;
+            }
         },
-        [entries, onChange]
+        [onChange]
     );
     const remove = (id) => {
-        onChange(entries.filter((entry) => entry.id !== id));
+        const next = currentEntries.current.filter((entry) => entry.id !== id);
+        onChange(next);
+        currentEntries.current = next;
         setNotice(null);
     };
     const duplicate = (entry) => {
-        if (entries.length >= MAX_BACKPACK_ENTRIES) {
+        const current = currentEntries.current;
+        if (current.length >= MAX_BACKPACK_ENTRIES) {
             setNotice(`Plecak mieści do ${MAX_BACKPACK_ENTRIES} obiektów.`);
             return;
         }
-        const copy = normalizeBackpack([{ ...entry, id: crypto.randomUUID() }])[0];
-        onChange([...entries, copy]);
-        select(copy.id);
+        try {
+            const source = current.find((candidate) => candidate.id === entry?.id);
+            if (!source) throw new Error("Ta rzecz nie znajduje się już w plecaku.");
+            const copy = { ...source, id: crypto.randomUUID() };
+            const next = normalizeBackpack([...current, copy]);
+            onChange(next);
+            currentEntries.current = next;
+            select(copy.id);
+            return true;
+        } catch (error) {
+            setNotice(error.message);
+            return false;
+        }
     };
-    const move = (id, targetId) => onChange(moveBackpackEntry(entries, id, targetId));
+    const move = (id, targetId) => {
+        const next = moveBackpackEntry(currentEntries.current, id, targetId);
+        onChange(next);
+        currentEntries.current = next;
+    };
     const placeStone = useCallback(
         (resource, targetId, zone) => {
             try {

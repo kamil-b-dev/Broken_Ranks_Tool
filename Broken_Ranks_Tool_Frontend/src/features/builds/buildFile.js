@@ -141,9 +141,7 @@ const BUILD_FILE_READERS = new Map([
                         throw new Error("Plik wersji 2 nie zawiera poprawnego plecaka.");
                     return {
                         ...readVersionOneBuild(build, data),
-                        backpack: normalizeBackpack(
-                            build.backpack.map(({ sendToBackend: _selection, ...entry }) => entry)
-                        ),
+                        backpack: normalizeBackpack(build.backpack, { preserveSelection: false }),
                     };
                 },
             ],

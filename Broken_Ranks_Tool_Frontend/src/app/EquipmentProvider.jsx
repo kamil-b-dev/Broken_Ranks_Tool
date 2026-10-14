@@ -21,6 +21,7 @@ import {
 import { equipmentRequestIdentity } from "../shared/domain/equipment/equipmentRequestIdentity";
 import { useWorkingDraftSave } from "./storage/useWorkingDraftSave";
 import { useBackpackEquipmentTransfer } from "../features/builder/backpack/useBackpackEquipmentTransfer";
+import { normalizeBackpack } from "../features/builder/backpack/backpackSerialization";
 
 /**
  * Provides application state for equipment, character stats, and optimization.
@@ -34,7 +35,10 @@ export const EquipmentProvider = ({ children }) => {
     const initialDraft = initialStorage.draft;
     const [backpack, setBackpack] = useState([]);
     const [backpackImportRevision, setBackpackImportRevision] = useState(0);
-    const handleBackpackChange = useCallback((entries) => setBackpack(entries), []);
+    const handleBackpackChange = useCallback(
+        (entries) => setBackpack(normalizeBackpack(entries)),
+        []
+    );
     const {
         data,
         categoryNames,
@@ -80,6 +84,7 @@ export const EquipmentProvider = ({ children }) => {
         backpack,
         setBackpack,
         data,
+        gameRules,
     });
     const [characterConfig, setCharacterConfig] = useState(null);
     const changeBackpackDrifLocks = useCallback(

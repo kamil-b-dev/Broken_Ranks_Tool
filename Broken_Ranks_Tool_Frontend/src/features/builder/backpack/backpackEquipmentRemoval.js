@@ -70,6 +70,7 @@ export const prepareEquipmentRemoval = ({
     zone,
     createId = () => crypto.randomUUID(),
 }) => {
+    normalizeBackpack(backpack);
     if (!["ITEM", "ORB", "DRIF"].includes(kind)) throw new Error("Nieznany rodzaj wyposażenia.");
     if (slotKey && !SLOTS.some((slot) => slot.key === slotKey))
         throw new Error("Nieznany slot ekwipunku.");
@@ -158,6 +159,7 @@ export const prepareEquipmentRemovalUndo = ({
     data,
     gameRules,
 }) => {
+    normalizeBackpack(backpack);
     if (!undo) throw new Error("Brak operacji do cofnięcia.");
     for (const entry of undo.entries) {
         const current = backpack.find((candidate) => candidate.id === entry.id);

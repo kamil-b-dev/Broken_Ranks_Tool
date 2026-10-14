@@ -22,7 +22,15 @@ const preparePlacement = ({
     entryId,
     slotKey,
     zone = "item",
+    transientEntryId,
 }) => {
+    if (transientEntryId) {
+        const transient = backpack.filter((entry) => entry.id === transientEntryId);
+        if (transient.length !== 1 || transientEntryId !== entryId)
+            throw new Error("Niepoprawne wystąpienie kamienia z katalogu.");
+        normalizeBackpack(backpack.filter((entry) => entry.id !== transientEntryId));
+        normalizeBackpack(transient);
+    } else normalizeBackpack(backpack);
     const storedEntry = backpack.find((candidate) => candidate.id === entryId);
     if (!storedEntry) throw new Error("Ta rzecz nie znajduje się już w plecaku.");
     const entry = normalizeBackpack([storedEntry])[0];

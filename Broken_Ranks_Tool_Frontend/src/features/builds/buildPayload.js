@@ -48,9 +48,7 @@ export const createVersionTwoBuildPayload = (state) => {
         version: 2,
         build: {
             ...previous.build,
-            backpack: normalizeBackpack(state.backpack || []).map(
-                ({ sendToBackend: _selection, ...entry }) => entry
-            ),
+            backpack: normalizeBackpack(state.backpack || [], { preserveSelection: false }),
         },
     };
 };

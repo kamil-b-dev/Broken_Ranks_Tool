@@ -12,6 +12,31 @@ import { createBuildPayload } from "../../builds/buildPayload";
 import { parseBuildPayload } from "../../builds/buildFile";
 
 describe("backpack data and saved builds", () => {
+    it("creates copies from trusted catalog data and rejects unknown catalog additions", () => {
+        const item = builderCatalog.items[0];
+        const copy = createBackpackEntry(
+            "ITEM",
+            { ...item, rarity: "EPIC" },
+            builderCatalog,
+            builderCatalog.gameRules,
+            "copy"
+        );
+        expect(copy.equipment.drifIds).toEqual([]);
+        expect(() =>
+            createBackpackEntry("DRIF", { id: 999999 }, builderCatalog, builderCatalog.gameRules)
+        ).toThrow(/katalogu/);
+    });
+    it.each([2, 3])(
+        "rejects malformed v%s occurrence data and overflow without a destructuring crash",
+        (version) => {
+            const payload = structuredClone(saved);
+            payload.version = version;
+            payload.build.backpack = [null];
+            expect(() => parseBuildPayload(payload, builderCatalog)).toThrow(/niepoprawne dane/);
+            payload.build.backpack = Array(201).fill(null);
+            expect(() => parseBuildPayload(payload, builderCatalog)).toThrow(/200/);
+        }
+    );
     it("round-trips v3 per-occurrence selection while v2 imports leave all drifs unselected", () => {
         const result = parseBuildPayload(selected, builderCatalog);
         expect(result.backpack.find((entry) => entry.kind === "DRIF").sendToBackend).toBe(true);

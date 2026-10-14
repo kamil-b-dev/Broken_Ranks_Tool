@@ -54,6 +54,22 @@ const options = (changes = {}) => ({
 });
 
 describe("placing stones into inventory equipment", () => {
+    it("can place a catalog stone into a free socket in a full backpack without persisting a 201st occurrence", () => {
+        const entries = [
+            target,
+            ...Array.from({ length: 199 }, (_, index) => ({ ...drif, id: `stone-${index}` })),
+        ];
+        const input = options({ entries, resource: { dragType: "orbs", id: 50 } });
+        const next = placeBackpackStone(input);
+        expect(next).toHaveLength(200);
+        expect(next.find((entry) => entry.id === "item").equipment.orbIds).toEqual(["50"]);
+        expect(input.entries[0].equipment.orbIds).toEqual([]);
+    });
+    it("rejects duplicate identities instead of silently consuming both copies", () => {
+        const input = options({ entries: [target, drif, { ...drif }] });
+        expect(() => placeBackpackStone(input)).toThrow(/niepoprawne dane/);
+        expect(input.entries).toHaveLength(3);
+    });
     it("extracts and restores a leveled stone without modifying other inventory alternatives", () => {
         const input = options();
         const before = structuredClone(input.entries);

@@ -235,6 +235,9 @@
                         },
                         "equipment": {
                             "$ref": "#/$defs/backpackEquipment"
+                        },
+                        "sendToBackend": {
+                            "const": false
                         }
                     }
                 },
@@ -257,6 +260,9 @@
                             "type": "integer",
                             "minimum": 1,
                             "maximum": 3
+                        },
+                        "sendToBackend": {
+                            "const": false
                         }
                     }
                 },

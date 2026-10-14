@@ -64,6 +64,12 @@ const options = (changes = {}) => ({
 });
 
 describe("equipping backpack occurrences", () => {
+    it("rejects ambiguous duplicate occurrences before their replacement can erase both copies", () => {
+        const input = options({ backpack: [item, { ...item }] });
+        const before = structuredClone(input);
+        expect(() => prepareBackpackEquip(input)).toThrow(/niepoprawne dane/);
+        expect(input).toEqual(before);
+    });
     it("swaps an entire configured item without modifying either source snapshot", () => {
         const source = options();
         const before = structuredClone(source);

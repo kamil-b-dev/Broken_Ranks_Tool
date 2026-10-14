@@ -14,15 +14,20 @@ const integer = (value, max) => {
     return value;
 };
 const ids = (value, max) => {
-    if (!Array.isArray(value) || value.length > max) fail();
+    denseArray(value, max);
     return value.map((id) => (id == null || id === "" ? null : identifier(id)));
+};
+const denseArray = (value, max) => {
+    if (!Array.isArray(value) || value.length > max) fail();
+    for (let index = 0; index < value.length; index++) if (!Object.hasOwn(value, index)) fail();
 };
 
 /** Wire normalization validates structure; unfinished equipment is preserved for later editing. */
-export const normalizeBackpack = (entries = []) => {
+export const normalizeBackpack = (entries = [], { preserveSelection = true } = {}) => {
     if (!Array.isArray(entries)) fail();
     if (entries.length > MAX_BACKPACK_ENTRIES)
         throw new Error(`Plecak mieści maksymalnie ${MAX_BACKPACK_ENTRIES} slotów.`);
+    denseArray(entries, MAX_BACKPACK_ENTRIES);
     const seen = new Set();
     return entries.map((entry) => {
         if (
@@ -35,10 +40,17 @@ export const normalizeBackpack = (entries = []) => {
             fail();
         seen.add(entry.id);
         if (!BACKPACK_KINDS.includes(entry.kind)) fail();
-        if (Object.hasOwn(entry, "sendToBackend") && typeof entry.sendToBackend !== "boolean")
+        if (
+            preserveSelection &&
+            Object.hasOwn(entry, "sendToBackend") &&
+            (typeof entry.sendToBackend !== "boolean" ||
+                (entry.kind !== "DRIF" && entry.sendToBackend))
+        )
             fail();
         const selection =
-            entry.kind === "DRIF" && entry.sendToBackend === true ? { sendToBackend: true } : {};
+            preserveSelection && entry.kind === "DRIF" && entry.sendToBackend === true
+                ? { sendToBackend: true }
+                : {};
         if (entry.kind !== "ITEM")
             return {
                 id: entry.id,
@@ -51,10 +63,19 @@ export const normalizeBackpack = (entries = []) => {
         if (!isObject(slot) || !isObject(slot.drifLevels)) fail();
         const orbIds = ids(slot.orbIds, 2);
         const drifIds = ids(slot.drifIds, 8);
-        if (!Array.isArray(slot.orbLevels) || slot.orbLevels.length > 2) fail();
+        denseArray(slot.orbLevels, 2);
+        const orbLevels = slot.orbLevels.map((level, index) => {
+            if (!orbIds[index]) {
+                if (level != null) fail();
+                return null;
+            }
+            return integer(level, 3);
+        });
+        while (orbIds.length && orbIds.at(-1) === null) orbIds.pop();
+        if (orbIds.some((id) => id === null)) fail();
         const drifLevels = Object.fromEntries(
             Object.entries(slot.drifLevels).map(([index, level]) => {
-                if (!/^[0-7]$/.test(index)) fail();
+                if (!/^[0-7]$/.test(index) || !drifIds[Number(index)]) fail();
                 return [index, integer(level, 21)];
             })
         );
@@ -65,9 +86,7 @@ export const normalizeBackpack = (entries = []) => {
                 itemId: identifier(slot.itemId),
                 itemStars: integer(slot.itemStars, 9),
                 orbIds,
-                orbLevels: slot.orbLevels.map((level) =>
-                    level == null ? null : integer(level, 3)
-                ),
+                orbLevels: orbIds.map((_id, index) => orbLevels[index] ?? 1),
                 drifIds,
                 drifLevels,
             },

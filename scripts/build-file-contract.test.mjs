@@ -64,6 +64,16 @@ test("v3 preserves per-occurrence drif selection and the v1/v2 equipment fields"
   saved.build.backpack.find((entry) => entry.kind === "DRIF").sendToBackend =
     "true";
   assert.equal(validateV3(saved), false);
+  for (const kind of ["ITEM", "ORB"]) {
+    const payload = structuredClone(fixture);
+    const entry = payload.build.backpack.find(
+      (candidate) => candidate.kind === kind,
+    );
+    entry.sendToBackend = true;
+    assert.equal(validateV3(payload), false);
+    entry.sendToBackend = false;
+    assert.equal(validateV3(payload), true, JSON.stringify(validateV3.errors));
+  }
 });
 
 // Input is intentionally independent of the golden output and of application defaults.

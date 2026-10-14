@@ -3,7 +3,7 @@ import { HttpResponse, http } from "msw";
 import { useEffect } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { EquipmentProvider } from "./EquipmentProvider";
-import { useEquipment } from "../shared/state/EquipmentContext";
+import { useEquipment, useEquipmentBackpack } from "../shared/state/EquipmentContext";
 import { server } from "../test/server";
 import {
     readEquipmentDraft,
@@ -24,13 +24,30 @@ const ContextProbe = () => {
 
 const ActionProbe = ({ exposeRef }) => {
     const equipment = useEquipment();
+    const backpack = useEquipmentBackpack();
     useEffect(() => {
-        exposeRef.current = equipment;
-    }, [equipment, exposeRef]);
+        exposeRef.current = { ...equipment, ...backpack };
+    }, [equipment, backpack, exposeRef]);
     return <p>{JSON.stringify(equipment.requestData.slots)}</p>;
 };
 
 describe("EquipmentProvider", () => {
+    it("validates every direct backpack publication and keeps the prior state on failure", async () => {
+        const exposeRef = { current: null };
+        server.use(http.get("*/api/initial-data", () => HttpResponse.json(legacyEpicCatalog)));
+        render(
+            <EquipmentProvider>
+                <ActionProbe exposeRef={exposeRef} />
+            </EquipmentProvider>
+        );
+        await waitFor(() => expect(exposeRef.current.loading).toBe(false));
+        const entry = { id: "owned", kind: "DRIF", templateId: "999999", level: 1 };
+        await act(async () => exposeRef.current.onBackpackChange([entry]));
+        for (const invalid of [[entry, entry], Array(201).fill(entry), [null]]) {
+            act(() => expect(() => exposeRef.current.onBackpackChange(invalid)).toThrow());
+            expect(exposeRef.current.backpack).toEqual([entry]);
+        }
+    });
     beforeEach(() => localStorage.clear());
 
     it.each(["file", "library"])(

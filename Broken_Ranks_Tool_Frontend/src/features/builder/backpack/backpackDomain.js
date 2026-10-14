@@ -26,6 +26,11 @@ export const backpackTemplate = (entry, data) =>
 
 export const createBackpackEntry = (kind, template, data, gameRules, id = crypto.randomUUID()) => {
     if (!BACKPACK_KINDS.includes(kind) || !template) fail();
+    template = backpackTemplate(
+        { kind, equipment: { itemId: template.id }, templateId: template.id },
+        data
+    );
+    if (!template) throw new Error("Obiekt nie znajduje się w aktualnym katalogu.");
     const entry =
         kind === "ITEM"
             ? {
@@ -54,6 +59,12 @@ export const backpackWarning = (entry, data, gameRules) => {
     const template = backpackTemplate(entry, data);
     if (!template) return "Obiekt nie znajduje się w aktualnym katalogu.";
     if (entry.kind !== "ITEM") {
+        const sizes =
+            entry.kind === "ORB"
+                ? ["SUBORB", "BIORB", "MAGNIORB", "ARCYORB"]
+                : ["SUBDRIF", "BIDRIF", "MAGNIDRIF", "ARCYDRIF"];
+        if (!sizes.includes(template.size) || !template.bonusType)
+            return "Kamień ma niepoprawny szablon w katalogu.";
         const maximum =
             entry.kind === "ORB" ? getOrbMaxLevel(template.size) : getDrifMaxLevel(template.size);
         return entry.level > maximum ? `Maksymalny poziom tego kamienia: ${maximum}.` : null;

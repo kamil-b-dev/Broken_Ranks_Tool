@@ -119,6 +119,7 @@ const placementOptions = ({ entries, data, gameRules, resource, targetId, zone }
         data,
         gameRules,
         entryId: stone.id,
+        ...(!fromBackpack ? { transientEntryId: stone.id } : {}),
         slotKey: slot.key,
     };
     const ids = stone.kind === "DRIF" ? target.equipment.drifIds : target.equipment.orbIds;
