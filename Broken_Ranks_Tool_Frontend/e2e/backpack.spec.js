@@ -224,6 +224,16 @@ test.describe("mobile backpack", () => {
         const editorIcon = await editor.locator(".orb-socket-glyph").boundingBox();
         expect(editorIcon.width).toBeGreaterThan(20);
         expect(editorIcon.width).toBeLessThan(28);
+        await expect(page.locator("html")).toHaveJSProperty("scrollWidth", 320);
+        for (const label of [
+            "Wybierz rodzaj drifa 1",
+            "Wybierz wielkość drifa 1",
+            "Wybierz poziom drifa 1",
+        ]) {
+            const box = await editor.getByLabel(label).boundingBox();
+            expect(box.width, `${label} must remain readable at 320px`).toBeGreaterThan(100);
+            expect(box.x + box.width).toBeLessThanOrEqual(320);
+        }
         await page
             .getByRole("group", { name: "Pokaż w plecaku" })
             .getByRole("button", { name: "Orby", exact: true })
@@ -231,9 +241,7 @@ test.describe("mobile backpack", () => {
         await expect(page.getByText("Brak obiektów tego rodzaju w plecaku.")).toBeVisible();
         await page.getByRole("button", { name: "Wszystko", exact: true }).click();
         await page.getByLabel("Sortuj według").selectOption("tier");
-        expect(
-            await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)
-        ).toBe(true);
+        await expect(page.locator("html")).toHaveJSProperty("scrollWidth", 320);
         await page.screenshot({ path: "../tmp/backpack-mobile-320.png", fullPage: true });
     });
 });

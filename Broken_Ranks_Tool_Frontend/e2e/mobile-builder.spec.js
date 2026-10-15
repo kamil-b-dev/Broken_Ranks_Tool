@@ -114,6 +114,20 @@ test.describe("dedicated mobile builder", () => {
         await expect(page.getByLabel("Wybierz poziom drifa 1", { exact: true })).toHaveValue("6");
         await page.setViewportSize({ width: 320, height: 740 });
         await expect(page.locator("html")).toHaveJSProperty("scrollWidth", 320);
+        const overflowingControls = await page.locator(".mobile-stones").evaluateAll((panels) =>
+            panels.flatMap((panel) => {
+                const bounds = panel.getBoundingClientRect();
+                return [...panel.querySelectorAll("select, button")].flatMap((control) => {
+                    const box = control.getBoundingClientRect();
+                    return box.width === 0 || (box.left >= bounds.left && box.right <= bounds.right)
+                        ? []
+                        : [control.getAttribute("aria-label") || control.textContent];
+                });
+            })
+        );
+        expect(overflowingControls, "Stone controls must fit after rotating back to 320px").toEqual(
+            []
+        );
         await page.screenshot({
             path: "../tmp/mobile-ui-audit/mobile-slot-320.png",
             fullPage: true,

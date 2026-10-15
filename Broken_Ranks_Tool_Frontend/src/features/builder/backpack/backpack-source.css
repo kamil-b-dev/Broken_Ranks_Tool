@@ -101,6 +101,7 @@
     overflow-wrap: anywhere;
 }
 .backpack-equipment-select {
+    grid-template-columns: minmax(0, 1fr);
     width: 100%;
     padding-block: 0.5rem;
 }

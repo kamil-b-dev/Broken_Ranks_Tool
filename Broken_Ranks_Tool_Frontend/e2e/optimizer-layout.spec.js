@@ -78,18 +78,27 @@ test("advanced goals stay readable beside an empty or populated report", async (
     const emptyWidths = new Map();
     for (const width of [1800, 1440, 1366, 1280, 1024]) {
         emptyWidths.set(width, await assertLayout(page, width));
-        const readable = await page.locator(".optimizer-priority-column").evaluate((column) => {
-            const bounds = column.getBoundingClientRect();
-            return [...column.querySelectorAll('input:not([type="file"]), button, summary')].every(
-                (control) => {
+        const overflowingControls = await page
+            .locator(".optimizer-priority-column")
+            .evaluate((column) => {
+                const bounds = column.getBoundingClientRect();
+                return [
+                    ...column.querySelectorAll('input:not([type="file"]), button, summary'),
+                ].flatMap((control) => {
                     const box = control.getBoundingClientRect();
-                    return (
-                        box.width === 0 || (box.left >= bounds.left && box.right <= bounds.right)
-                    );
-                }
-            );
-        });
-        expect(readable).toBe(true);
+                    return box.width === 0 || (box.left >= bounds.left && box.right <= bounds.right)
+                        ? []
+                        : [
+                              {
+                                  name: control.getAttribute("aria-label") || control.textContent,
+                                  left: box.left,
+                                  right: box.right,
+                                  bounds: [bounds.left, bounds.right],
+                              },
+                          ];
+                });
+            });
+        expect(overflowingControls, `Priority controls must fit at ${width}px`).toEqual([]);
     }
     await page.getByRole("button", { name: /^Uruchom optymalizację$/i }).click();
     await expect(page.locator(".optimizer-goal-row")).toBeVisible();

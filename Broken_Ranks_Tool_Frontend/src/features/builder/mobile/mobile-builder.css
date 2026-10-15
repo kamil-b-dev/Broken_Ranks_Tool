@@ -144,12 +144,20 @@
 }
 .mobile-app .mobile-slot-editor {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 1rem;
 }
 .mobile-app .mobile-stones h3 {
     color: var(--mobile-muted);
     font-size: 0.875rem;
     margin-top: 0.75rem;
+}
+.mobile-app .mobile-stones .equipment-stone-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+}
+.mobile-app .mobile-stones .equipment-stone-row > .equipment-removal-action {
+    justify-self: end;
 }
 .mobile-app .mobile-stones :is(span, div, select) {
     font-family: var(--ui-font);
@@ -182,6 +190,8 @@
 }
 .mobile-app .mobile-stones select {
     width: 100%;
+    min-width: 0;
+    max-width: 100%;
     font-size: 1rem;
     color: #e5daca;
     padding: 0.5rem 0.15rem;

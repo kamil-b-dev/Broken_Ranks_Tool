@@ -235,14 +235,36 @@
 }
 .mobile-backpack {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 1rem;
 }
 .mobile-backpack .backpack-workbench {
     min-height: 18rem;
 }
 .mobile-backpack .backpack-editor {
+    min-width: 0;
     padding: 0.75rem;
     border: 1px solid var(--ui-line-bright);
+}
+.mobile-backpack .equipment-stone-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+}
+.mobile-backpack .equipment-stone-row > .equipment-removal-action {
+    justify-self: end;
+}
+.mobile-backpack .gear-slot-drif-section .equipment-stone-row > :first-child {
+    display: grid;
+    grid-template-columns: 1.7rem minmax(0, 1fr);
+    gap: 0.3rem 0.55rem;
+}
+.mobile-backpack .gear-slot-drif-section select {
+    grid-column: 2;
+    width: 100%;
+    text-align: left;
+}
+.mobile-backpack .drif-selector-category-icon {
+    grid-row: 1 / 4;
 }
 .backpack-card .equipment-slot-overview-heading {
     display: flex;
@@ -279,6 +301,8 @@
     font-family: var(--ui-font);
 }
 .backpack-editor select {
+    min-width: 0;
+    max-width: 100%;
     min-height: 36px;
 }
 .backpack-editor :is(.orb-socket-glyph, .drif-selector-category-icon) {
