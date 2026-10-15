@@ -22,6 +22,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCalculatorService;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationOutcome;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationResponse;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
@@ -213,10 +214,15 @@ class CustomModsOptimizationConstraintTests extends CustomModsOptimizationTestSu
         OptimizationResponse response = service.optimize(request);
 
         assertFalse(response.getSummary().isSuccess());
-        assertTrue(
-                response.getSummary()
-                        .getMessage()
-                        .contains("nie osiągnięto co najmniej jednego celu miękkiego"));
+        assertEquals(
+                OptimizationOutcome.VALID_BUILD_SOFT_TARGETS_UNMET,
+                response.getSummary().getOutcome());
+        assertEquals(
+                "Znaleziono układ drifów, ale nie wszystkie cele zostały osiągnięte.",
+                response.getSummary().getMessage());
+        assertEquals(
+                List.of("Szansa kryt: 10% z 60%; brakuje 50 p.p."),
+                response.getSummary().getWarnings());
         assertNotNull(response.getOptimizedSetup());
         EquipmentRequest.SlotData result = response.getOptimizedSetup().getSlots().get("helmet");
         assertEquals(List.of(criticalChance.getId()), result.getDrifIds());
