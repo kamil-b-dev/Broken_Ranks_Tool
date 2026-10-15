@@ -202,7 +202,7 @@ describe("mobile optimizer integration", () => {
         const helmet = screen.getByText("Hełm podróżnika").closest(".optimizer-lock-card");
         fireEvent.click(within(helmet).getByRole("button", { name: "Zablokuj cały slot" }));
         section("Porady");
-        expect(screen.getByText("Analiza anulowana", { exact: true })).toBeInTheDocument();
+        expect(screen.getByText(/Wyszukiwanie zostało anulowane/)).toBeInTheDocument();
         expect(screen.getByLabelText("Plan zmian")).toHaveTextContent("Przenieś SUBDRIF Band 6");
         click("Zastosuj wybrany wariant");
         expect(screen.getByRole("alert")).toHaveTextContent("Build zmienił się od analizy");

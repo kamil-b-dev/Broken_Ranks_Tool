@@ -7,10 +7,13 @@ import OptimizerLocksColumn from "./OptimizerLocksColumn";
 import OptimizerGoalsColumn from "./OptimizerGoalsColumn";
 import OptimizerReportColumn from "./OptimizerReportColumn";
 import { useOptimizerWorkspace } from "./useOptimizerWorkspace";
+import { OptimizerLabelContext } from "./optimizerLabelContext";
+import OptimizerLabelSettings from "./OptimizerLabelSettings";
 
 /** Desktop composition retains its existing markup and navigation. */
 const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
     const {
+        labels,
         gameRules,
         drifCategories,
         requestData,
@@ -21,18 +24,25 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
         toggleDrifLock,
         stats,
         prioritizedBonuses,
+        displayedPriorities,
         availableBonuses,
         searchQuery,
         setSearchQuery,
         selectedCategory,
         setSelectedCategory,
         prioritySortDirection,
+        categorySorted,
+        hiddenPriorityCategories,
+        priorityCategoryCounts,
         expandedPriorities,
         selectBonus,
         removeBonus,
         clearAll,
         updateBonus,
         sortByPriority,
+        toggleCategorySorting,
+        togglePriorityCategory,
+        showAllPriorityCategories,
         toggleExpanded,
         toggleAllExpanded,
         isOptimizing,
@@ -40,6 +50,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
         optimizationStartedAt,
         lastOptimizationDurationSeconds,
         optimizationStatus,
+        displayedStatus,
         activeVariantIndex,
         setActiveVariantIndex,
         notice,
@@ -54,97 +65,112 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
     } = useOptimizerWorkspace({ optimizerSettings, onOptimizerSettingsChange });
     const [activeMobileColumn, setActiveMobileColumn] = useState("priorities");
     return (
-        <div className="optimizer-console">
-            <OptimizerModeNavigation
-                settings={optimizerSettings}
-                onChange={onOptimizerSettingsChange}
-            />
-            <OptimizerSettingsPanel
-                settings={optimizerSettings}
-                onChange={onOptimizerSettingsChange}
-            />
-            {optimizerSettings.mode === "REORGANIZE" && <ReorganizationPoolSummary />}
-            <AppNotice notice={notice} onDismiss={() => setNotice(null)} />
-            <OptimizerMobileNavigation
-                activeColumn={activeMobileColumn}
-                priorityCount={
-                    optimizerSettings.mode === "BUILD_FROM_SCRATCH" &&
-                    optimizerSettings.configurationMode === "SIMPLE"
-                        ? 1
-                        : prioritizedBonuses.length
-                }
-                onChange={setActiveMobileColumn}
-                mode={optimizerSettings.mode}
-                configurationMode={optimizerSettings.configurationMode}
-            />
-            <div className="optimizer-main-grid">
-                <OptimizerLocksColumn
-                    active={activeMobileColumn === "slots"}
-                    slots={requestData.slots}
-                    items={data.items}
-                    drifs={data.drifs}
-                    lockedSlots={lockedSlots}
-                    lockedDrifs={lockedDrifs}
-                    onToggleSlot={toggleSlotLock}
-                    onToggleDrif={toggleDrifLock}
-                    mode={optimizerSettings.mode}
-                />
-
-                <OptimizerGoalsColumn
-                    activeMobileColumn={activeMobileColumn}
+        <OptimizerLabelContext.Provider value={labels}>
+            <div className="optimizer-console">
+                <OptimizerModeNavigation
                     settings={optimizerSettings}
-                    onSettingsChange={onOptimizerSettingsChange}
-                    stats={stats}
-                    gameRules={gameRules}
-                    priorities={prioritizedBonuses}
-                    availableBonuses={availableBonuses}
-                    searchQuery={searchQuery}
-                    selectedCategory={selectedCategory}
-                    categoryLabels={drifCategories}
-                    onSearchChange={setSearchQuery}
-                    onCategoryChange={setSelectedCategory}
-                    onSelectBonus={(bonus) => {
-                        selectBonus(bonus);
-                        setActiveMobileColumn("priorities");
-                    }}
-                    sortDirection={prioritySortDirection}
-                    expandedPriorities={expandedPriorities}
-                    currentDetails={currentModDetails}
-                    onTogglePriority={toggleExpanded}
-                    onRemovePriority={removeBonus}
-                    onUpdatePriority={updateBonus}
-                    configFiles={configFiles}
-                    onSort={sortByPriority}
-                    onToggleExpanded={toggleAllExpanded}
-                    onClear={clearAll}
-                    isOptimizing={isOptimizing}
-                    elapsedSeconds={optimizationElapsedSeconds}
-                    startedAt={optimizationStartedAt}
-                    lastDurationSeconds={lastOptimizationDurationSeconds}
-                    hasResult={Boolean(optimizationStatus)}
-                    onRun={handleOptimizeClick}
-                    onCancel={handleCancel}
+                    onChange={onOptimizerSettingsChange}
                 />
-                <OptimizerReportColumn
-                    active={activeMobileColumn === "result"}
-                    advisory={optimizerSettings.mode === "ADVISOR"}
-                    isOptimizing={isOptimizing}
-                    elapsedSeconds={optimizationElapsedSeconds}
-                    startedAt={optimizationStartedAt}
-                    status={optimizationStatus}
-                    lastDurationSeconds={lastOptimizationDurationSeconds}
-                    currentDetails={reportModDetails}
-                    displayedVariant={displayedVariant}
-                    maxCaps={gameRules?.drifMaxCaps}
-                    translations={gameRules?.bonusTranslations}
-                    activeVariantIndex={activeVariantIndex}
-                    onSelectVariant={(_variant, variantIndex) =>
-                        setActiveVariantIndex(variantIndex)
+                <OptimizerLabelSettings />
+                <OptimizerSettingsPanel
+                    settings={optimizerSettings}
+                    onChange={onOptimizerSettingsChange}
+                />
+                {optimizerSettings.mode === "REORGANIZE" && <ReorganizationPoolSummary />}
+                <AppNotice
+                    notice={
+                        notice ? { ...notice, message: labels.formatText(notice.message) } : notice
                     }
-                    onApplyVariant={handleApplyVariant}
+                    onDismiss={() => setNotice(null)}
                 />
+                <OptimizerMobileNavigation
+                    activeColumn={activeMobileColumn}
+                    priorityCount={
+                        optimizerSettings.mode === "BUILD_FROM_SCRATCH" &&
+                        optimizerSettings.configurationMode === "SIMPLE"
+                            ? 1
+                            : prioritizedBonuses.length
+                    }
+                    onChange={setActiveMobileColumn}
+                    mode={optimizerSettings.mode}
+                    configurationMode={optimizerSettings.configurationMode}
+                />
+                <div className="optimizer-main-grid">
+                    <OptimizerLocksColumn
+                        active={activeMobileColumn === "slots"}
+                        slots={requestData.slots}
+                        items={data.items}
+                        drifs={data.drifs}
+                        lockedSlots={lockedSlots}
+                        lockedDrifs={lockedDrifs}
+                        onToggleSlot={toggleSlotLock}
+                        onToggleDrif={toggleDrifLock}
+                        mode={optimizerSettings.mode}
+                    />
+
+                    <OptimizerGoalsColumn
+                        activeMobileColumn={activeMobileColumn}
+                        settings={optimizerSettings}
+                        onSettingsChange={onOptimizerSettingsChange}
+                        stats={stats}
+                        gameRules={gameRules}
+                        priorities={displayedPriorities}
+                        priorityCount={prioritizedBonuses.length}
+                        availableBonuses={availableBonuses}
+                        searchQuery={searchQuery}
+                        selectedCategory={selectedCategory}
+                        categoryLabels={drifCategories}
+                        onSearchChange={setSearchQuery}
+                        onCategoryChange={setSelectedCategory}
+                        onSelectBonus={(bonus) => {
+                            selectBonus(bonus);
+                            setActiveMobileColumn("priorities");
+                        }}
+                        sortDirection={prioritySortDirection}
+                        categorySorted={categorySorted}
+                        hiddenPriorityCategories={hiddenPriorityCategories}
+                        priorityCategoryCounts={priorityCategoryCounts}
+                        expandedPriorities={expandedPriorities}
+                        currentDetails={currentModDetails}
+                        onTogglePriority={toggleExpanded}
+                        onRemovePriority={removeBonus}
+                        onUpdatePriority={updateBonus}
+                        configFiles={configFiles}
+                        onSort={sortByPriority}
+                        onSortCategories={toggleCategorySorting}
+                        onTogglePriorityCategory={togglePriorityCategory}
+                        onShowAllPriorityCategories={showAllPriorityCategories}
+                        onToggleExpanded={toggleAllExpanded}
+                        onClear={clearAll}
+                        isOptimizing={isOptimizing}
+                        elapsedSeconds={optimizationElapsedSeconds}
+                        startedAt={optimizationStartedAt}
+                        lastDurationSeconds={lastOptimizationDurationSeconds}
+                        hasResult={Boolean(optimizationStatus)}
+                        onRun={handleOptimizeClick}
+                        onCancel={handleCancel}
+                    />
+                    <OptimizerReportColumn
+                        active={activeMobileColumn === "result"}
+                        advisory={optimizerSettings.mode === "ADVISOR"}
+                        isOptimizing={isOptimizing}
+                        elapsedSeconds={optimizationElapsedSeconds}
+                        startedAt={optimizationStartedAt}
+                        status={displayedStatus}
+                        lastDurationSeconds={lastOptimizationDurationSeconds}
+                        currentDetails={reportModDetails}
+                        displayedVariant={displayedVariant}
+                        maxCaps={gameRules?.drifMaxCaps}
+                        translations={gameRules?.bonusTranslations}
+                        activeVariantIndex={activeVariantIndex}
+                        onSelectVariant={(_variant, variantIndex) =>
+                            setActiveVariantIndex(variantIndex)
+                        }
+                        onApplyVariant={handleApplyVariant}
+                    />
+                </div>
             </div>
-        </div>
+        </OptimizerLabelContext.Provider>
     );
 };
 

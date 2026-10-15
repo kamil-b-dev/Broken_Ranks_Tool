@@ -13,6 +13,7 @@ const OptimizerGoalsColumn = ({
     stats,
     gameRules,
     priorities,
+    priorityCount = priorities.length,
     availableBonuses,
     searchQuery,
     selectedCategory,
@@ -21,6 +22,9 @@ const OptimizerGoalsColumn = ({
     onCategoryChange,
     onSelectBonus,
     sortDirection,
+    categorySorted,
+    hiddenPriorityCategories,
+    priorityCategoryCounts,
     expandedPriorities,
     currentDetails,
     onTogglePriority,
@@ -28,6 +32,9 @@ const OptimizerGoalsColumn = ({
     onUpdatePriority,
     configFiles,
     onSort,
+    onSortCategories,
+    onTogglePriorityCategory,
+    onShowAllPriorityCategories,
     onToggleExpanded,
     onClear,
     isOptimizing,
@@ -76,17 +83,24 @@ const OptimizerGoalsColumn = ({
                 >
                     <OptimizerPriorityToolbar
                         fileInputRef={configFiles.inputRef}
-                        priorityCount={priorities.length}
+                        priorityCount={priorityCount}
                         sortDirection={sortDirection}
+                        categorySorted={categorySorted}
+                        hiddenCategories={hiddenPriorityCategories}
+                        categoryCounts={priorityCategoryCounts}
                         anyExpanded={expandedPriorities.size > 0}
                         onLoad={configFiles.load}
                         onSave={configFiles.save}
                         onSort={onSort}
+                        onSortCategories={onSortCategories}
+                        onToggleCategory={onTogglePriorityCategory}
+                        onShowAllCategories={onShowAllPriorityCategories}
                         onToggleExpanded={onToggleExpanded}
                         onClear={onClear}
                     />
                     <OptimizerPriorityList
                         priorities={priorities}
+                        hiddenCount={priorityCount - priorities.length}
                         expandedPriorities={expandedPriorities}
                         currentDetails={settings.mode === "REORGANIZE" ? [] : currentDetails}
                         maxCaps={gameRules?.drifMaxCaps}
@@ -108,7 +122,7 @@ const OptimizerGoalsColumn = ({
                     ? 1
                     : settings.mode !== "REORGANIZE" && settings.configurationMode === "SIMPLE"
                       ? 1
-                      : priorities.length
+                      : priorityCount
             }
             isOptimizing={isOptimizing}
             elapsedSeconds={elapsedSeconds}

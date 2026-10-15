@@ -13,38 +13,46 @@ import {
 } from "../../../shared/domain/equipment/drifCategories";
 import CategoryIcon from "../../../shared/ui/CategoryIcon";
 import { memo, useCallback, useLayoutEffect, useMemo, useRef } from "react";
+import { useOptimizerLabelContext } from "../optimizerLabelContext";
 
 const DEFAULT_PROTECTION = Object.freeze({ enabled: true, loss: 0 });
-const ProtectedModifierRow = memo(({ modifier, rule, onRuleChange }) => (
-    <div className="advisor-modifier-row">
-        <label>
-            <input
-                type="checkbox"
-                checked={rule.enabled !== false}
-                onChange={(event) => onRuleChange(modifier.key, { enabled: event.target.checked })}
-            />
-            <span>{modifier.label}</span>
-            <b>{modifier.value}%</b>
-        </label>
-        <label className="advisor-loss-control">
-            dopuszczalny spadek
-            <input
-                type="number"
-                min="0"
-                max={Math.abs(modifier.value)}
-                step="0.1"
-                disabled={rule.enabled === false}
-                value={rule.loss ?? 0}
-                onChange={(event) => onRuleChange(modifier.key, { loss: event.target.value })}
-                aria-label={`Dopuszczalny spadek: ${modifier.label}`}
-            />
-            p.p.
-        </label>
-    </div>
-));
+const ProtectedModifierRow = memo(({ modifier, rule, onRuleChange }) => {
+    const { getName } = useOptimizerLabelContext();
+    const name = getName(modifier.key, modifier.label);
+    return (
+        <div className="advisor-modifier-row">
+            <label>
+                <input
+                    type="checkbox"
+                    checked={rule.enabled !== false}
+                    onChange={(event) =>
+                        onRuleChange(modifier.key, { enabled: event.target.checked })
+                    }
+                />
+                <span>{name}</span>
+                <b>{modifier.value}%</b>
+            </label>
+            <label className="advisor-loss-control">
+                dopuszczalny spadek
+                <input
+                    type="number"
+                    min="0"
+                    max={Math.abs(modifier.value)}
+                    step="0.1"
+                    disabled={rule.enabled === false}
+                    value={rule.loss ?? 0}
+                    onChange={(event) => onRuleChange(modifier.key, { loss: event.target.value })}
+                    aria-label={`Dopuszczalny spadek: ${name}`}
+                />
+                p.p.
+            </label>
+        </div>
+    );
+});
 
 /** Configures advisor goals relative to the statistics of the current build. */
 const AdvisorGoalsPanel = ({ stats = {}, gameRules = {}, settings, onChange, section = "all" }) => {
+    const { getName } = useOptimizerLabelContext();
     const modifiers = useMemo(() => advisorModifiers(stats, gameRules), [stats, gameRules]);
     const goal = selectedAdvisorGoal(modifiers, settings.advisorGoal);
     const search = { ...DEFAULT_ADVISOR_SEARCH, ...settings.advisorSearch };
@@ -99,7 +107,8 @@ const AdvisorGoalsPanel = ({ stats = {}, gameRules = {}, settings, onChange, sec
                         >
                             {modifiers.map((modifier) => (
                                 <option key={modifier.key} value={modifier.key}>
-                                    Popraw: {modifier.label} (obecnie {modifier.value}%)
+                                    Popraw: {getName(modifier.key, modifier.label)} (obecnie{" "}
+                                    {modifier.value}%)
                                 </option>
                             ))}
                         </select>

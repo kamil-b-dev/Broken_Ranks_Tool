@@ -1,6 +1,7 @@
 import { memo, useCallback } from "react";
 import OptimizerPriorityCardHeader from "./OptimizerPriorityCardHeader";
 import OptimizerPriorityForm from "./OptimizerPriorityForm";
+import { useOptimizerLabelContext } from "./optimizerLabelContext";
 
 const PriorityCard = memo(function PriorityCard({
     bonus,
@@ -13,6 +14,9 @@ const PriorityCard = memo(function PriorityCard({
     onUpdate,
     configurationMode,
 }) {
+    const { getName } = useOptimizerLabelContext();
+    const name = getName(bonus.key, bonus.value);
+    const displayedBonus = { ...bonus, value: name };
     const toggle = useCallback(() => onToggle(bonus.key), [onToggle, bonus.key]);
     const remove = useCallback(() => onRemove(bonus), [onRemove, bonus]);
     const update = useCallback(
@@ -29,7 +33,7 @@ const PriorityCard = memo(function PriorityCard({
             />
             <OptimizerPriorityCardHeader
                 index={index}
-                bonus={bonus}
+                bonus={displayedBonus}
                 expanded={expanded}
                 onToggle={toggle}
                 onRemove={remove}
@@ -37,12 +41,12 @@ const PriorityCard = memo(function PriorityCard({
             />
             {expanded && (
                 <OptimizerPriorityForm
-                    bonus={bonus}
+                    bonus={displayedBonus}
                     potential={potential}
                     maxCap={maxCap}
                     onChange={update}
                     simple={configurationMode === "SIMPLE"}
-                    weightLabel={`Waga priorytetu dla ${bonus.value}`}
+                    weightLabel={`Waga priorytetu dla ${name}`}
                 />
             )}
         </div>
@@ -51,6 +55,7 @@ const PriorityCard = memo(function PriorityCard({
 
 const OptimizerPriorityList = ({
     priorities,
+    hiddenCount = 0,
     expandedPriorities,
     currentDetails,
     maxCaps,
@@ -60,6 +65,11 @@ const OptimizerPriorityList = ({
     configurationMode,
 }) => (
     <div className="optimizer-priority-list custom-scrollbar">
+        {priorities.length === 0 && hiddenCount > 0 && (
+            <p className="optimizer-priority-hidden-message" role="status">
+                Priorytety są ukryte.
+            </p>
+        )}
         {priorities.map((bonus, index) => (
             <PriorityCard
                 key={bonus.key}

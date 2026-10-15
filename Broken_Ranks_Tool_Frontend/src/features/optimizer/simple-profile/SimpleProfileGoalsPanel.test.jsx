@@ -3,8 +3,76 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import SimpleProfileGoalsPanel from "./SimpleProfileGoalsPanel";
 import { defaultSimpleOptions, normalizeSimpleOptions } from "./simpleProfileDefinitions";
+import { OptimizerLabelContext } from "../optimizerLabelContext";
+import { createOptimizerLabels } from "../optimizerLabels";
 
 describe("SimpleProfileGoalsPanel", () => {
+    it.each([
+        ["BARBARIAN", "Fizyk", "Walka"],
+        ["KNIGHT", "Fizyk", "Walka"],
+        ["ARCHER", "Fizyk", "Dystans"],
+        ["FIRE_MAGE", "Abaf", "Dystans"],
+        ["DRUID", "Abaf", "Mental"],
+        ["SHEED", "Fizyk", "Walka"],
+        ["VOODOO", "Abaf", "Mental"],
+    ])(
+        "shows the correct damage and accuracy stones for %s without renaming configuration fields",
+        (profile, damage, accuracy) => {
+            const onChange = vi.fn();
+            const settings = {
+                simpleProfile: profile,
+                simpleOptions: defaultSimpleOptions(profile),
+            };
+            const drifs = [
+                { name: "Fizyk", bonusType: "DAMAGE_PHYSICAL" },
+                { name: "Abaf", bonusType: "DAMAGE_MAGIC" },
+                { name: "Walka", bonusType: "HIT_CHANCE_MELEE" },
+                { name: "Dystans", bonusType: "HIT_CHANCE_RANGED" },
+                { name: "Mental", bonusType: "HIT_CHANCE_MENTAL" },
+            ];
+            render(
+                <OptimizerLabelContext.Provider value={createOptimizerLabels({}, drifs, "DRIFS")}>
+                    <SimpleProfileGoalsPanel settings={settings} onChange={onChange} />
+                </OptimizerLabelContext.Provider>
+            );
+            const damageField = screen.getByRole("spinbutton", {
+                name: `Drify ${damage}`,
+                exact: true,
+            });
+            expect(damageField).toHaveValue(settings.simpleOptions.damageDrifs);
+            expect(
+                screen.getByRole("spinbutton", { name: `Drify ${accuracy}`, exact: true })
+            ).toHaveValue(settings.simpleOptions.accuracyDrifs);
+            fireEvent.change(damageField, { target: { value: "3" } });
+            expect(onChange).toHaveBeenCalledWith({
+                ...settings,
+                simpleOptions: { ...settings.simpleOptions, damageDrifs: 3 },
+            });
+        }
+    );
+
+    it("keeps the same protection options when showing their stone names", () => {
+        const onChange = vi.fn();
+        const settings = { simpleProfile: "ARCHER", simpleOptions: defaultSimpleOptions("ARCHER") };
+        render(
+            <OptimizerLabelContext.Provider
+                value={createOptimizerLabels(
+                    {},
+                    [
+                        { name: "Holm", bonusType: "DAMAGE_REDUCTION_CHANCE" },
+                        { name: "Farid", bonusType: "DODGE_CHANCE" },
+                    ],
+                    "DRIFS"
+                )}
+            >
+                <SimpleProfileGoalsPanel settings={settings} onChange={onChange} />
+            </OptimizerLabelContext.Provider>
+        );
+        fireEvent.click(screen.getByRole("checkbox", { name: "Holm", exact: true }));
+        expect(onChange.mock.lastCall[0].simpleOptions.damageReductionChance).toBe(true);
+        fireEvent.click(screen.getByRole("checkbox", { name: "Farid", exact: true }));
+        expect(onChange.mock.lastCall[0].simpleOptions.dodgeChance).toBe(true);
+    });
     it.each(["KNIGHT", "DRUID"])(
         "uses defensive defaults for %s in imports and the form",
         (profile) => {

@@ -1,10 +1,12 @@
 import { useLayoutEffect, useRef } from "react";
+import { useOptimizerLabelContext } from "../optimizerLabelContext";
 import {
     DRIF_CATEGORY_LABELS,
     DRIF_CATEGORY_ORDER,
 } from "../../../shared/domain/equipment/drifCategories";
 
 export default function MobileBonusPicker({ model, onClose, openerRef }) {
+    const { getName } = useOptimizerLabelContext();
     const dialog = useRef(null);
     useLayoutEffect(() => {
         const element = dialog.current;
@@ -72,7 +74,7 @@ export default function MobileBonusPicker({ model, onClose, openerRef }) {
                             onClose();
                         }}
                     >
-                        <span>{bonus.value}</span>
+                        <span>{getName(bonus.key, bonus.value)}</span>
                         <span aria-hidden="true">＋</span>
                     </button>
                 ))}
