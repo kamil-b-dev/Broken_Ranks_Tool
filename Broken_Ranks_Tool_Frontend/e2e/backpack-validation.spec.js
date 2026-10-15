@@ -72,7 +72,11 @@ const openBackpack = async (page, layout = "desktop") => {
         layout === "mobile" ? { width: 320, height: 740 } : { width: 1800, height: 1100 }
     );
     await page.goto(`/kreator?ui=${layout}`);
-    await page.getByRole("button", { name: "Plecak W.I.P", exact: true }).click();
+    await page
+        .getByRole("group", { name: "Widok ekwipunku" })
+        .or(page.getByRole("navigation", { name: "Sekcje kreatora" }))
+        .getByRole("button", { name: "Plecak", exact: true })
+        .click();
 };
 
 for (const layout of ["desktop", "mobile"]) {
@@ -140,7 +144,11 @@ for (const layout of ["desktop", "mobile"]) {
         await expect.poll(async () => (await draft(page)).backpack.length).toBe(200);
         expect((await draft(page)).requestData.slots.helmet.itemStars).toBe(8);
         await page.reload();
-        await page.getByRole("button", { name: "Plecak W.I.P", exact: true }).click();
+        await page
+            .getByRole("group", { name: "Widok ekwipunku" })
+            .or(page.getByRole("navigation", { name: "Sekcje kreatora" }))
+            .getByRole("button", { name: "Plecak", exact: true })
+            .click();
         await expect(page.locator(".backpack-card")).toHaveCount(200);
         expect((await draft(page)).backpack.map((entry) => entry.id)).toEqual(
             inventory(200).map((entry) => entry.id)
@@ -167,7 +175,11 @@ test("the 200th slot is usable, the 201st duplicate and equipment removal are bl
     });
     await expect(removeAll).toBeDisabled();
     await expect(removeAll).toHaveAttribute("title", /200/);
-    await page.getByRole("button", { name: "Plecak W.I.P", exact: true }).click();
+    await page
+        .getByRole("group", { name: "Widok ekwipunku" })
+        .or(page.getByRole("navigation", { name: "Sekcje kreatora" }))
+        .getByRole("button", { name: "Plecak", exact: true })
+        .click();
     await page.getByRole("button", { name: "Usuń z plecaka: Band", exact: true }).first().click();
     await expect.poll(async () => (await draft(page)).backpack.length).toBe(199);
     await page.getByRole("button", { name: "Postać", exact: true }).click();
@@ -193,7 +205,11 @@ test("undo cannot consume a removed drif after its level has been edited in the 
     const remove = "Zdejmij wszystkie drify";
     await page.getByRole("button", { name: remove, exact: true }).click();
     await expect.poll(async () => (await draft(page)).backpack.length).toBe(1);
-    await page.getByRole("button", { name: "Plecak W.I.P", exact: true }).click();
+    await page
+        .getByRole("group", { name: "Widok ekwipunku" })
+        .or(page.getByRole("navigation", { name: "Sekcje kreatora" }))
+        .getByRole("button", { name: "Plecak", exact: true })
+        .click();
     await page.getByLabel("Edytor plecaka").getByLabel("Poziom", { exact: true }).selectOption("3");
     await expect.poll(async () => (await draft(page)).backpack[0].level).toBe(3);
     const edited = await draft(page);
@@ -239,7 +255,11 @@ for (const occupied of [false, true]) {
             expect(applied.backpack.slice(1)).toEqual(before.backpack.slice(1));
             expect(applied.requestData).toEqual(before.requestData);
             await page.reload();
-            await page.getByRole("button", { name: "Plecak W.I.P", exact: true }).click();
+            await page
+                .getByRole("group", { name: "Widok ekwipunku" })
+                .or(page.getByRole("navigation", { name: "Sekcje kreatora" }))
+                .getByRole("button", { name: "Plecak", exact: true })
+                .click();
             await expect(
                 page
                     .locator(".backpack-grid .equipment-slot-overview")

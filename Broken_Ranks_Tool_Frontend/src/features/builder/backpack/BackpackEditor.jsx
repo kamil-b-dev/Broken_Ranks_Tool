@@ -169,6 +169,14 @@ export default function BackpackEditor({ model, data, gameRules, syncTrigger }) 
     );
     const placeStone = model.placeStone;
     const getStoneDropWarning = model.getStoneDropWarning;
+    const onStoneDrop = useCallback(
+        (resource, zone) => placeStone(resource, entryId, zone),
+        [placeStone, entryId]
+    );
+    const stoneDropWarning = useCallback(
+        (resource, zone) => getStoneDropWarning(resource, entryId, zone),
+        [getStoneDropWarning, entryId]
+    );
     const onBackpackEquip = useCallback(
         (sourceId, _slotKey, zone) =>
             placeStone({ source: "backpack", entryId: sourceId }, entryId, zone),
@@ -225,6 +233,8 @@ export default function BackpackEditor({ model, data, gameRules, syncTrigger }) 
                         optimizationTrigger={`${syncTrigger ?? ""}:${model.editRevision}`}
                         onBackpackEquip={onBackpackEquip}
                         getBackpackEquipWarning={getBackpackEquipWarning}
+                        onStoneDrop={onStoneDrop}
+                        getStoneDropWarning={stoneDropWarning}
                         equipmentRemoval={equipmentRemoval}
                     />
                 ) : entry?.kind === "ITEM" ? (

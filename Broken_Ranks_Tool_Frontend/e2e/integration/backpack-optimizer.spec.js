@@ -148,7 +148,12 @@ for (const layout of ["desktop", "mobile"]) {
             layout === "mobile" ? { width: 320, height: 740 } : { width: 1800, height: 1100 }
         );
         await page.goto(`/kreator?ui=${layout}`);
-        await expect(page.getByRole("button", { name: "Plecak W.I.P", exact: true })).toBeVisible();
+        await expect(
+            page
+                .getByRole("group", { name: "Widok ekwipunku" })
+                .or(page.getByRole("navigation", { name: "Sekcje kreatora" }))
+                .getByRole("button", { name: "Plecak", exact: true })
+        ).toBeVisible();
         await expect(page.locator('input[type="file"]')).toHaveCount(1);
         await page.locator('input[type="file"]').setInputFiles({
             name: "real-backpack.json",
@@ -168,7 +173,11 @@ for (const layout of ["desktop", "mobile"]) {
             ),
         });
         await expect(page.getByText(/Wczytano build z pliku/)).toBeVisible();
-        await page.getByRole("button", { name: "Plecak W.I.P", exact: true }).click();
+        await page
+            .getByRole("group", { name: "Widok ekwipunku" })
+            .or(page.getByRole("navigation", { name: "Sekcje kreatora" }))
+            .getByRole("button", { name: "Plecak", exact: true })
+            .click();
         await page
             .getByRole("checkbox", {
                 name: `Drif do optymalizacji: ${drif.name}, SUBDRIF, poziom 3`,
@@ -247,7 +256,11 @@ for (const layout of ["desktop", "mobile"]) {
             String(response.targetSetup.slots.helmet.drifLevels[0])
         );
         await page.goto(`/kreator?ui=${layout}`);
-        await page.getByRole("button", { name: "Plecak W.I.P", exact: true }).click();
+        await page
+            .getByRole("group", { name: "Widok ekwipunku" })
+            .or(page.getByRole("navigation", { name: "Sekcje kreatora" }))
+            .getByRole("button", { name: "Plecak", exact: true })
+            .click();
         await expect(page.locator(".backpack-card")).toHaveCount(200);
         expect(await draft(page)).toEqual(applied);
     });

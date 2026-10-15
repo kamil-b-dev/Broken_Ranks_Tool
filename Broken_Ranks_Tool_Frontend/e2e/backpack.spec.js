@@ -51,7 +51,11 @@ const draft = (page) =>
 const openDesktop = async (page) => {
     await page.setViewportSize({ width: 1800, height: 1100 });
     await page.goto("/kreator?ui=desktop");
-    await page.getByRole("button", { name: "Plecak W.I.P", exact: true }).click();
+    await page
+        .getByRole("group", { name: "Widok ekwipunku" })
+        .or(page.getByRole("navigation", { name: "Sekcje kreatora" }))
+        .getByRole("button", { name: "Plecak", exact: true })
+        .click();
 };
 const addItem = async (page) => {
     await page.getByRole("button", { name: "+ Dodaj przedmiot" }).click();
@@ -95,7 +99,11 @@ test("assembles a replacement with gems, keeps over-capacity drafts and restores
     expect(requests.every((request) => !Object.hasOwn(request, "backpack"))).toBe(true);
     await page.getByRole("button", { name: "Postać", exact: true }).click();
     await expect(page.getByLabel("Kołowy wybór slotów ekwipunku")).toBeVisible();
-    await page.getByRole("button", { name: "Plecak W.I.P", exact: true }).click();
+    await page
+        .getByRole("group", { name: "Widok ekwipunku" })
+        .or(page.getByRole("navigation", { name: "Sekcje kreatora" }))
+        .getByRole("button", { name: "Plecak", exact: true })
+        .click();
     await page
         .locator(".backpack-card")
         .first()
@@ -134,7 +142,11 @@ test("catalog drops create separate inventory occurrences without equipping them
     await expect(page.locator(".backpack-card")).toContainText(catalog.items[1].name);
     expect((await draft(page)).requestData.slots.armor?.itemId).toBeFalsy();
     await page.reload();
-    await page.getByRole("button", { name: "Plecak W.I.P", exact: true }).click();
+    await page
+        .getByRole("group", { name: "Widok ekwipunku" })
+        .or(page.getByRole("navigation", { name: "Sekcje kreatora" }))
+        .getByRole("button", { name: "Plecak", exact: true })
+        .click();
     await expect(page.locator(".backpack-card")).toContainText(catalog.items[1].name);
 });
 
@@ -190,7 +202,11 @@ test.describe("mobile backpack", () => {
     test("adds and edits at 320px without changing equipped gear", async ({ page }) => {
         await page.setViewportSize({ width: 320, height: 844 });
         await page.goto("/kreator");
-        await page.getByRole("button", { name: "Plecak W.I.P", exact: true }).click();
+        await page
+            .getByRole("group", { name: "Widok ekwipunku" })
+            .or(page.getByRole("navigation", { name: "Sekcje kreatora" }))
+            .getByRole("button", { name: "Plecak", exact: true })
+            .click();
         await addItem(page);
         await expect(page.getByLabel("Edytor plecaka")).toBeVisible();
         const editor = page.getByLabel("Edytor plecaka");

@@ -73,7 +73,11 @@ test.beforeEach(async ({ page }) => {
     );
     await page.route("**/api/initial-data", (route) => route.fulfill({ json: catalog }));
     await page.goto("/kreator?ui=desktop");
-    await page.getByRole("button", { name: "Plecak W.I.P", exact: true }).click();
+    await page
+        .getByRole("group", { name: "Widok ekwipunku" })
+        .or(page.getByRole("navigation", { name: "Sekcje kreatora" }))
+        .getByRole("button", { name: "Plecak", exact: true })
+        .click();
 });
 
 test("moves stones from the left backpack source into item cards and refreshes their selected editor", async ({
@@ -111,7 +115,11 @@ test("moves stones from the left backpack source into item cards and refreshes t
         stored.backpack.find((entry) => entry.kind === "DRIF" && entry.templateId === "61")
     ).toMatchObject({ level: 11 });
     await page.reload();
-    await page.getByRole("button", { name: "Plecak W.I.P", exact: true }).click();
+    await page
+        .getByRole("group", { name: "Widok ekwipunku" })
+        .or(page.getByRole("navigation", { name: "Sekcje kreatora" }))
+        .getByRole("button", { name: "Plecak", exact: true })
+        .click();
     await expect(
         page.locator(".backpack-grid .equipment-slot-overview").getByLabel("Umieszczone orby")
     ).toContainText("Ochrona");
@@ -167,6 +175,34 @@ test("copies a database stone directly into an inventory item instead of adding 
     expect(stored.backpack).toHaveLength(entries.length);
     expect(stored.backpack.find((entry) => entry.id === "orb")).toEqual(entries[3]);
     expect(stored.requestData.slots.helmet.orbIds).toEqual([]);
+});
+
+test("returns the replaced stone after a catalog drop into the right backpack editor", async ({
+    page,
+}) => {
+    await page.locator(".backpack-grid .equipment-slot-overview").click();
+    const editor = page.getByLabel("Edytor plecaka");
+    const database = page.locator(".item-database-theme");
+    await database.getByRole("button", { name: "Drify", exact: true }).click();
+    await database
+        .getByRole("button", { name: "Szczegóły: Band SUBDRIF", exact: true })
+        .last()
+        .dragTo(editor.getByLabel("Wybierz rodzaj drifa 1").locator(".."));
+    await expect(editor.getByLabel("Wybierz wielkość drifa 1")).toHaveValue("60");
+    await expect(editor.getByLabel("Wybierz poziom drifa 1")).toHaveValue("1");
+    await expect.poll(async () => (await draft(page)).backpack.length).toBe(entries.length + 1);
+    const stored = await draft(page);
+    expect(
+        stored.backpack.find((entry) => entry.kind === "DRIF" && entry.templateId === "61")
+    ).toMatchObject({ level: 11 });
+    expect(stored.requestData.slots.helmet).toEqual(equipped);
+    await page.reload();
+    await page
+        .getByRole("group", { name: "Widok ekwipunku" })
+        .or(page.getByRole("navigation", { name: "Sekcje kreatora" }))
+        .getByRole("button", { name: "Plecak", exact: true })
+        .click();
+    expect((await draft(page)).backpack).toEqual(stored.backpack);
 });
 
 test("extracts inventory stones with icons, undoes them and can drag the extracted occurrence back", async ({

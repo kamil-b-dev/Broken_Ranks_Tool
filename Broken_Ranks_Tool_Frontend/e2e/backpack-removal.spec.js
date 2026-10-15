@@ -95,6 +95,26 @@ for (const [kind, label, count] of [
         if (kind === "ORB") expect(removed.backpack.map((entry) => entry.level)).toEqual([1, 3]);
         if (kind === "DRIF")
             expect(removed.backpack.map((entry) => entry.level)).toEqual([6, 4, 2]);
+        if (kind === "ITEM") {
+            await page
+                .getByRole("group", { name: "Widok ekwipunku" })
+                .or(page.getByRole("navigation", { name: "Sekcje kreatora" }))
+                .getByRole("button", { name: "Plecak", exact: true })
+                .click();
+            await page
+                .locator(".backpack-grid .equipment-slot-overview")
+                .filter({ hasText: "Buty podróżnika" })
+                .click();
+            await expect
+                .poll(
+                    async () =>
+                        (await stored(page)).backpack.find(
+                            (entry) => entry.equipment.itemId === "5"
+                        ).equipment.drifIds.length
+                )
+                .toBe(3);
+            await page.getByRole("button", { name: "Postać", exact: true }).click();
+        }
         await expect(undo).toBeEnabled();
         await undo.click();
         await expect.poll(async () => (await stored(page)).backpack.length).toBe(0);
@@ -169,6 +189,23 @@ test.describe("touch removal actions", () => {
         await page.goto("/kreator");
         await page.getByRole("button", { name: "Zdejmij wszystkie przedmioty", exact: true }).tap();
         await expect.poll(async () => (await stored(page)).backpack.length).toBe(2);
+        await page
+            .getByRole("group", { name: "Widok ekwipunku" })
+            .or(page.getByRole("navigation", { name: "Sekcje kreatora" }))
+            .getByRole("button", { name: "Plecak", exact: true })
+            .tap();
+        await page
+            .locator(".backpack-grid .equipment-slot-overview")
+            .filter({ hasText: "Buty podróżnika" })
+            .tap();
+        await expect
+            .poll(
+                async () =>
+                    (await stored(page)).backpack.find((entry) => entry.equipment.itemId === "5")
+                        .equipment.drifIds.length
+            )
+            .toBe(3);
+        await page.getByRole("button", { name: "Ekwipunek", exact: true }).tap();
         await page
             .getByRole("button", { name: "Cofnij: Zdejmij wszystkie przedmioty", exact: true })
             .tap();

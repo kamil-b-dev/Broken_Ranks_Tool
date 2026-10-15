@@ -97,7 +97,11 @@ for (const layout of ["desktop", "mobile"]) {
         await page
             .locator(".builder-equipment-column")
             .screenshot({ path: "../tmp/equipment-actions.png" });
-        await page.getByRole("button", { name: "Plecak W.I.P", exact: true }).click();
+        await page
+            .getByRole("group", { name: "Widok ekwipunku" })
+            .or(page.getByRole("navigation", { name: "Sekcje kreatora" }))
+            .getByRole("button", { name: "Plecak", exact: true })
+            .click();
         await page
             .getByRole("checkbox", {
                 name: "Drif do optymalizacji: Band, SUBDRIF, poziom 3",

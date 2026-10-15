@@ -27,7 +27,12 @@ const start = async () => {
         </EquipmentProvider>
     );
     await waitFor(() => expect(exposeRef.current.loading).toBe(false));
-    fireEvent.click(screen.getByRole("button", { name: "Plecak W.I.P", exact: true }));
+    fireEvent.click(
+        within(screen.getByRole("group", { name: "Widok ekwipunku" })).getByRole("button", {
+            name: "Plecak",
+            exact: true,
+        })
+    );
     return exposeRef;
 };
 describe("builder backpack workflow", () => {
@@ -35,6 +40,115 @@ describe("builder backpack workflow", () => {
         localStorage.clear();
         window.history.replaceState({}, "", "/kreator");
         server.use(http.get("*/api/initial-data", () => HttpResponse.json(builderCatalog)));
+    });
+    it.each(["DRIF", "ORB"])(
+        "returns the replaced %s with its level after a catalog drop into the right editor",
+        async (kind) => {
+            server.use(
+                http.get("*/api/initial-data", () =>
+                    HttpResponse.json({
+                        ...builderCatalog,
+                        orbs: builderCatalog.orbs.map((orb) => ({ ...orb, size: "BIORB" })),
+                    })
+                )
+            );
+            const ref = await start();
+            const equipment = {
+                itemId: "1",
+                itemStars: 1,
+                drifIds: kind === "DRIF" ? ["60"] : [],
+                drifLevels: kind === "DRIF" ? { 0: 6 } : {},
+                orbIds: kind === "ORB" ? ["50"] : [],
+                orbLevels: kind === "ORB" ? [3] : [],
+            };
+            await act(async () =>
+                ref.current.onBackpackChange([{ id: "target", kind: "ITEM", equipment }])
+            );
+            const before = structuredClone(ref.current.requestData);
+            const editor = screen.getByLabelText("Edytor plecaka");
+            const field = within(editor).getByLabelText(
+                kind === "DRIF" ? "Wybierz wielkość drifa 1" : "Wybierz wielkość orba"
+            );
+            fireEvent.drop(field, {
+                dataTransfer: {
+                    getData: () =>
+                        JSON.stringify({
+                            dragType: kind === "DRIF" ? "drifs" : "orbs",
+                            id: kind === "DRIF" ? 60 : 50,
+                        }),
+                },
+            });
+            await waitFor(() => expect(ref.current.backpack).toHaveLength(2));
+            expect(ref.current.backpack.find((entry) => entry.kind === kind)).toMatchObject({
+                templateId: kind === "DRIF" ? "60" : "50",
+                level: kind === "DRIF" ? 6 : 3,
+            });
+            expect(
+                within(editor).getByLabelText(
+                    kind === "DRIF" ? "Wybierz poziom drifa 1" : "Wybierz poziom orba"
+                )
+            ).toHaveValue("1");
+            expect(ref.current.requestData).toEqual(before);
+        }
+    );
+    it("rejects a catalog replacement in a full backpack while allowing a free socket", async () => {
+        const ref = await start();
+        await act(async () =>
+            ref.current.onBackpackChange([
+                {
+                    id: "target",
+                    kind: "ITEM",
+                    equipment: {
+                        itemId: "1",
+                        itemStars: 1,
+                        drifIds: ["60"],
+                        drifLevels: { 0: 6 },
+                        orbIds: [],
+                        orbLevels: [],
+                    },
+                },
+                ...Array.from({ length: 199 }, (_, index) => ({
+                    id: `loose-${index}`,
+                    kind: "DRIF",
+                    templateId: "60",
+                    level: 1,
+                })),
+            ])
+        );
+        const before = structuredClone(ref.current.backpack);
+        const editor = within(screen.getByLabelText("Edytor plecaka"));
+        fireEvent.drop(editor.getByLabelText("Wybierz wielkość drifa 1"), {
+            dataTransfer: { getData: () => JSON.stringify({ dragType: "drifs", id: 60 }) },
+        });
+        expect(ref.current.backpack).toEqual(before);
+        expect(screen.getByRole("alert")).toHaveTextContent(/200/);
+        expect(editor.getByLabelText("Wybierz poziom drifa 1")).toHaveValue("6");
+        fireEvent.drop(editor.getByLabelText("Wybierz wielkość orba"), {
+            dataTransfer: { getData: () => JSON.stringify({ dragType: "orbs", id: 50 }) },
+        });
+        await waitFor(() => expect(ref.current.backpack[0].equipment.orbIds).toEqual(["50"]));
+        expect(ref.current.backpack).toHaveLength(200);
+    });
+    it("can undo whole-item removal after viewing its normalized backpack editor", async () => {
+        const ref = await start();
+        const boots = builderCatalog.items.find((item) => item.category === "BOOTS");
+        const equipment = {
+            itemId: String(boots.id),
+            itemStars: 1,
+            drifIds: [],
+            drifLevels: {},
+            orbIds: [],
+            orbLevels: [],
+        };
+        await act(async () => ref.current.handleSlotUpdate("boots", equipment));
+        act(() => expect(ref.current.equipmentRemoval.removeEquipment("ITEM")).toBe(true));
+        await waitFor(() => expect(ref.current.backpack[0].equipment.drifIds).toHaveLength(3));
+        expect(ref.current.equipmentRemoval.getUndoWarning("all:ITEM")).toBeNull();
+        act(() => expect(ref.current.equipmentRemoval.undoRemoval("all:ITEM")).toBe(true));
+        expect(ref.current.backpack).toEqual([]);
+        expect(
+            equipmentRequestIdentity({ slots: { boots: ref.current.requestData.slots.boots } })
+        ).toBe(equipmentRequestIdentity({ slots: { boots: equipment } }));
     });
     it("extracts and undoes stones in the backpack editor while preserving equipped stats and refreshing its draft", async () => {
         server.use(

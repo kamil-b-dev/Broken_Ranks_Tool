@@ -27,6 +27,8 @@ export const useGearSlotDragDrop = ({
     setDrifLevels,
     onBackpackEquip,
     getBackpackEquipWarning,
+    onStoneDrop,
+    getStoneDropWarning,
 }) => {
     const draggedResource = useDraggedResource();
     const [dragOverZone, setDragOverZone] = useState(null);
@@ -110,6 +112,8 @@ export const useGearSlotDragDrop = ({
     };
     const canDrop = (data, zone) => {
         if (!data) return false;
+        if (onStoneDrop && ["drifs", "orbs"].includes(data.dragType))
+            return Boolean(getStoneDropWarning && !getStoneDropWarning(data, zone));
         if (data.source === BACKPACK_RESOURCE_SOURCE)
             return Boolean(
                 onBackpackEquip &&
@@ -148,6 +152,10 @@ export const useGearSlotDragDrop = ({
         setDraggedResource(null);
         try {
             const data = JSON.parse(event.dataTransfer.getData("application/json"));
+            if (onStoneDrop && ["drifs", "orbs"].includes(data?.dragType)) {
+                onStoneDrop(data, zone);
+                return;
+            }
             if (data?.source === BACKPACK_RESOURCE_SOURCE) {
                 onBackpackEquip?.(data.entryId, slotKey, zone);
                 return;

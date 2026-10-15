@@ -40,6 +40,37 @@ const undo = (start, next, options = {}) =>
     prepareEquipmentRemovalUndo({ ...start, ...next, ...options });
 
 describe("equipment removal to backpack", () => {
+    it("ignores empty socket padding, ID representation and default levels when undoing an item", () => {
+        const start = initial();
+        start.requestData.slots.helmet = { ...equipment, drifIds: ["60"], drifLevels: { 0: 1 } };
+        const next = remove(start, { kind: "ITEM" });
+        next.backpack[1] = {
+            ...next.backpack[1],
+            equipment: {
+                ...next.backpack[1].equipment,
+                itemId: 1,
+                drifIds: [60, null, null],
+                drifLevels: {},
+            },
+        };
+        expect(undo(start, next).requestData).toEqual(start.requestData);
+    });
+    it.each(["stars", "level", "position", "orb"])(
+        "still blocks whole-item undo after changing its %s",
+        (field) => {
+            const start = initial();
+            const next = remove(start, { kind: "ITEM" });
+            const changed = next.backpack[1].equipment;
+            if (field === "stars") changed.itemStars = 9;
+            if (field === "level") changed.drifLevels[0] = 5;
+            if (field === "position") {
+                changed.drifIds = [null, "60", "61"];
+                changed.drifLevels = { 1: 6, 2: 4 };
+            }
+            if (field === "orb") changed.orbLevels[1] = 2;
+            expect(() => undo(start, next)).toThrow(/została zmieniona/);
+        }
+    );
     it("rejects duplicate identities before removing or undoing equipment", () => {
         const start = initial();
         const duplicate = { id: "duplicate", kind: "DRIF", templateId: "60", level: 1 };

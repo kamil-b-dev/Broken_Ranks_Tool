@@ -58,6 +58,14 @@ const comparable = (slot, change) => {
         },
     });
 };
+const entryIdentity = (entry) =>
+    entry.kind === "ITEM"
+        ? JSON.stringify([
+              entry.id,
+              entry.kind,
+              equipmentRequestIdentity({ slots: { item: entry.equipment } }),
+          ])
+        : JSON.stringify(entry);
 
 /** Transfers owned occurrences atomically; built-in drifs remain attached to their item. */
 export const prepareEquipmentRemoval = ({
@@ -163,7 +171,7 @@ export const prepareEquipmentRemovalUndo = ({
     if (!undo) throw new Error("Brak operacji do cofnięcia.");
     for (const entry of undo.entries) {
         const current = backpack.find((candidate) => candidate.id === entry.id);
-        if (!current || JSON.stringify(normalizeBackpack([current])[0]) !== JSON.stringify(entry))
+        if (!current || entryIdentity(normalizeBackpack([current])[0]) !== entryIdentity(entry))
             throw new Error(
                 "Przeniesiona rzecz została zmieniona lub nie znajduje się już w plecaku."
             );
