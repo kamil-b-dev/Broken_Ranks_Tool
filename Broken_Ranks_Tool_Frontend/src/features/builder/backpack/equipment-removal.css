@@ -1,0 +1,95 @@
+.equipment-removal-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-block: 0.75rem;
+}
+.equipment-removal-action {
+    display: flex;
+    gap: 0.25rem;
+    min-width: 0;
+    font-family: var(--ui-font);
+    font-size: 0.75rem;
+}
+.equipment-level-actions button,
+.equipment-removal-action button {
+    min-height: 36px;
+    padding: 0.4rem 0.55rem;
+    border: 1px solid var(--ui-line-bright);
+    color: var(--ui-gold);
+    background: rgba(0, 0, 0, 0.5);
+    font-family: var(--ui-font);
+    font-size: 0.75rem;
+    font-weight: 400;
+    line-height: 1.5;
+    cursor: pointer;
+}
+.equipment-level-actions button:disabled,
+.equipment-removal-action button:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+.equipment-level-actions button:hover:not(:disabled),
+.equipment-removal-action button:hover:not(:disabled) {
+    border-color: var(--ui-gold);
+}
+.equipment-level-actions button:focus-visible,
+.equipment-removal-action button:focus-visible {
+    outline: 2px solid var(--ui-gold);
+    outline-offset: 2px;
+}
+.equipment-removal-undo {
+    flex-shrink: 0;
+    width: 36px;
+}
+.equipment-removal-action svg {
+    width: 18px;
+    height: 18px;
+    margin: auto;
+}
+.equipment-stone-row {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    width: 100%;
+    min-width: 0;
+}
+.equipment-stone-row > :first-child {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+    margin-bottom: 0;
+}
+.equipment-removal-action-icon {
+    flex: 0 0 auto;
+    align-items: center;
+}
+.equipment-removal-action-icon button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    min-height: 26px;
+    padding: 3px;
+}
+@media (max-width: 767px) {
+    .equipment-removal-actions {
+        flex-direction: column;
+    }
+    .equipment-level-actions button,
+    .equipment-removal-action button {
+        min-height: 44px;
+    }
+    .equipment-removal-action button:first-child {
+        flex: 1;
+    }
+    .equipment-removal-undo {
+        width: 44px;
+    }
+    .equipment-removal-action-icon button,
+    .equipment-removal-action-icon button:first-child {
+        flex: 0 0 44px;
+        width: 44px;
+        min-height: 44px;
+    }
+}

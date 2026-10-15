@@ -154,6 +154,39 @@ export default function BackpackEditor({ model, data, gameRules, syncTrigger }) 
         [slot, entry]
     );
     const entryId = entry?.id;
+    const { removeStone, undoStoneRemoval, getStoneRemovalWarning, getStoneRemovalUndoWarning } =
+        model;
+    const equipmentRemoval = useMemo(
+        () => ({
+            getKey: (_kind, _slotKey, zone) => `${entryId}:${zone}`,
+            removeEquipment: (kind, _slotKey, zone) => removeStone(kind, entryId, zone),
+            undoRemoval: undoStoneRemoval,
+            getRemovalWarning: (kind, _slotKey, zone) =>
+                getStoneRemovalWarning(kind, entryId, zone),
+            getUndoWarning: getStoneRemovalUndoWarning,
+        }),
+        [entryId, removeStone, undoStoneRemoval, getStoneRemovalWarning, getStoneRemovalUndoWarning]
+    );
+    const placeStone = model.placeStone;
+    const getStoneDropWarning = model.getStoneDropWarning;
+    const onStoneDrop = useCallback(
+        (resource, zone) => placeStone(resource, entryId, zone),
+        [placeStone, entryId]
+    );
+    const stoneDropWarning = useCallback(
+        (resource, zone) => getStoneDropWarning(resource, entryId, zone),
+        [getStoneDropWarning, entryId]
+    );
+    const onBackpackEquip = useCallback(
+        (sourceId, _slotKey, zone) =>
+            placeStone({ source: "backpack", entryId: sourceId }, entryId, zone),
+        [placeStone, entryId]
+    );
+    const getBackpackEquipWarning = useCallback(
+        (sourceId, _slotKey, zone) =>
+            getStoneDropWarning({ source: "backpack", entryId: sourceId }, entryId, zone),
+        [getStoneDropWarning, entryId]
+    );
     const updateEntry = model.update;
     const updateEquipment = useCallback(
         (_slotKey, equipment) => updateEntry(entryId, { equipment }),
@@ -197,7 +230,12 @@ export default function BackpackEditor({ model, data, gameRules, syncTrigger }) 
                         allSlots={allSlots}
                         gameRules={gameRules}
                         onUpdate={updateEquipment}
-                        optimizationTrigger={syncTrigger}
+                        optimizationTrigger={`${syncTrigger ?? ""}:${model.editRevision}`}
+                        onBackpackEquip={onBackpackEquip}
+                        getBackpackEquipWarning={getBackpackEquipWarning}
+                        onStoneDrop={onStoneDrop}
+                        getStoneDropWarning={stoneDropWarning}
+                        equipmentRemoval={equipmentRemoval}
                     />
                 ) : entry?.kind === "ITEM" ? (
                     <ItemPicker

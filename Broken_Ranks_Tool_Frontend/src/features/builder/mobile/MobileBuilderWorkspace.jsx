@@ -16,6 +16,7 @@ import BackpackGrid from "../backpack/BackpackGrid";
 import BackpackEditor from "../backpack/BackpackEditor";
 import { useBackpackWorkspace } from "../backpack/useBackpackWorkspace";
 import "../backpack/backpack.css";
+import EquipmentRemovalActions from "../backpack/EquipmentRemovalActions";
 
 export default function MobileBuilderWorkspace() {
     const equipment = { ...useEquipmentCatalogState(), ...useEquipmentSetup() };
@@ -26,6 +27,7 @@ export default function MobileBuilderWorkspace() {
         onChange: inventory.onBackpackChange,
         data,
         gameRules,
+        importRevision: inventory.backpackImportRevision,
     });
     const model = useBuilderWorkspace({ items: data.items, slots: requestData.slots });
     const route = useMobileBuilderRoute();
@@ -91,7 +93,7 @@ export default function MobileBuilderWorkspace() {
                     <nav className="mobile-sections" aria-label="Sekcje kreatora">
                         {[
                             ["equipment", "Ekwipunek"],
-                            ["backpack", "Plecak W.I.P"],
+                            ["backpack", "Plecak"],
                             ["character", "Postać"],
                             ["stats", "Statystyki"],
                         ].map(([key, label]) => (
@@ -157,6 +159,12 @@ export default function MobileBuilderWorkspace() {
                                     Maksymalne poziomy orbów
                                 </button>
                             </section>
+                            <EquipmentRemovalActions actions={inventory.equipmentRemoval} />
+                            {inventory.backpackEquipNotice && (
+                                <p className="mobile-error" role="alert">
+                                    {inventory.backpackEquipNotice}
+                                </p>
+                            )}
                             {warnings.length > 0 && (
                                 <div role="status" className="mobile-card">
                                     {warnings.map((warning, index) => (

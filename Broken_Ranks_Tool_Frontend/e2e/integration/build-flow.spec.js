@@ -130,12 +130,15 @@ test("runs the reported Archer 12/12 configuration through browser and backend",
     const response = await http.json();
     expect(response.summary.drifsPlaced).toBeGreaterThan(0);
     expect(response.summary.success).toBe(false);
+    expect(response.summary.outcome).toBe("VALID_BUILD_SOFT_TARGETS_UNMET");
     expect(response.summary.warnings.length).toBeGreaterThan(0);
-    expect(response.summary.message).toContain("celu miękkiego");
+    expect(response.summary.message).toBe(
+        "Znaleziono układ drifów, ale nie wszystkie cele zostały osiągnięte."
+    );
     expect(response.summary.goalResults.length).toBeGreaterThan(0);
     expect(response.summary.goalResults.every((goal) => goal.quantitySatisfied)).toBe(true);
     await assertCalculatorParity(request, response);
-    await expect(page.getByText("Zastosowano najlepszy znaleziony układ.")).toBeVisible();
+    await expect(page.getByText("Ten układ jest obecnie założony.")).toBeVisible();
     await expect(page.getByRole("button", { name: /OPTYMALIZUJ PONOWNIE/i })).toBeEnabled();
     const exported = await exportCurrent(page);
     expect(canonicalSetup(exported.build.requestData)).toEqual(

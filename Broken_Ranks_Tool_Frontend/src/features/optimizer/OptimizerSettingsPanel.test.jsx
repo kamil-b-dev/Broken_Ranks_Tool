@@ -11,7 +11,7 @@ const settings = {
 };
 
 describe("OptimizerSettingsPanel", () => {
-    it("offers only the optimizer and advisor modes", () => {
+    it("offers optimizer, advisor and reorganization modes", () => {
         render(
             <OptimizerModeNavigation
                 settings={{ ...settings, mode: "BUILD_FROM_SCRATCH" }}
@@ -21,7 +21,7 @@ describe("OptimizerSettingsPanel", () => {
 
         expect(screen.getByText("Od zera")).toBeInTheDocument();
         expect(screen.getByText("Doradca")).toBeInTheDocument();
-        expect(screen.queryByText("Reorganizacja")).not.toBeInTheDocument();
+        expect(screen.getByText("Reorganizacja")).toBeInTheDocument();
     });
 
     it("shows build-from-scratch controls only in that workspace", () => {

@@ -16,12 +16,14 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationSummar
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.context.OptimizationContextFactory;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.BuildState;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationContext;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.BackpackDrifSubstitution;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.OptimizationResultAssembler;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.pipeline.OptimizationSearchPipeline;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.validation.OptimizationInputValidator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.validation.OptimizationRequestValidator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.variant.GeneratedOptimizationVariant;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.variant.OptimizationVariantGenerator;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.reorganization.ReorganizationSearch;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.service.ModsOptimizationService;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.simpleprofile.SimpleProfileConfigurationResolver;
 
@@ -37,6 +39,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
     private final OptimizationResultAssembler resultAssembler;
     private final OptimizationVariantGenerator variantGenerator;
     private final AdvisorOptimizationService advisor;
+    private final ReorganizationSearch reorganization;
 
     /**
      * Builds the best equipment configuration within the requested priorities,
@@ -62,6 +65,8 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
 
         OptimizationContext context = createContext(request);
         String inputError = inputValidator.validate(context);
+        if (inputError == null && request.getMode() == OptimizationMode.REORGANIZE)
+            inputError = reorganization.validateSupply(context);
         if (inputError != null) {
             return failedResponse(inputError, elapsedSeconds(startTime));
         }
@@ -71,11 +76,14 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
                     elapsedSeconds(startTime));
         }
 
-        OptimizationSearchPipeline.PipelineResult searchResult = searchPipeline.optimize(context);
+        OptimizationSearchPipeline.PipelineResult searchResult =
+                request.getMode() == OptimizationMode.REORGANIZE
+                        ? reorganization.optimize(context)
+                        : searchPipeline.optimize(context);
         if (searchResult == null) {
             OptimizationResponse failed =
                     failedResponse(
-                            "Nie znaleziono poprawnego układu w dostępnym budżecie wyszukiwania. Nie oznacza to dowodu, że rozwiązanie nie istnieje.",
+                            "Nie znaleziono układu spełniającego ustawienia w tym przebiegu. Sprawdź limity liczby i rozmiarów drifów oraz blokady.",
                             elapsedSeconds(startTime));
             failed.getSummary().setOutcome(OptimizationOutcome.NO_BUILD_FOUND);
             failed.getSummary()
@@ -113,6 +121,18 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
             return failed;
         }
 
+        EquipmentRequest targetSetup = null;
+        List<OptimizationResponse.BackpackDrifUsage> backpackUsages = null;
+        if (context.request().isBackpackOnly()) {
+            targetSetup = resultAssembler.toSetup(state, context);
+            long substitutionStarted = System.nanoTime();
+            var substitution = BackpackDrifSubstitution.apply(state, context, resultAssembler);
+            state = substitution.state();
+            backpackUsages = substitution.usages();
+            context.calculatorSession()
+                    .metrics()
+                    .recordStage("backpackSubstitution", substitutionStarted, context);
+        }
         EquipmentRequest optimizedSetup = resultAssembler.toSetup(state, context);
         List<String> forcedCapWarnings = resultAssembler.forcedCapWarnings(state, context);
         long variantsStarted = System.nanoTime();
@@ -133,8 +153,25 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
                         ? OptimizationOutcome.VALID_BUILD
                         : OptimizationOutcome.VALID_BUILD_SOFT_TARGETS_UNMET);
         summary.setSearchReport(context.calculatorSession().metrics().report(context));
-        return new OptimizationResponse(
-                optimizedSetup, summary, summary.getNextVariants().getFirst().calculationResult());
+        OptimizationResponse response =
+                new OptimizationResponse(
+                        optimizedSetup,
+                        summary,
+                        summary.getNextVariants().getFirst().calculationResult());
+        response.setTargetSetup(targetSetup);
+        response.setBackpackDrifUsages(backpackUsages);
+        if (context.request().getMode() == OptimizationMode.REORGANIZE) {
+            response.setReorganizationDrifUsages(reorganization.usages(state, context));
+        }
+        if (backpackUsages != null) {
+            summary.setMessage(
+                    backpackUsages.isEmpty()
+                            ? "Nie znaleziono pasujących drifów w plecaku; zachowano docelowy układ."
+                            : "Użyto "
+                                    + backpackUsages.size()
+                                    + " drifów z plecaka z zachowaniem ich poziomów. Docelowy układ wskazuje dalsze ulepszenia.");
+        }
+        return response;
     }
 
     private OptimizationResponse failedResponse(String message, double seconds) {

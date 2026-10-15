@@ -21,6 +21,8 @@ import { buildAdvisorConfiguration } from "./advisor/advisorConfiguration";
 import { advisorBuildSignature } from "./advisor/advisorBuildSignature";
 import { readOptimizerDraft, writeOptimizerDraft } from "../../app/storage/workingDraftStorage";
 import { useWorkingDraftSave } from "../../app/storage/useWorkingDraftSave";
+import { equipmentRequestIdentity } from "../../shared/domain/equipment/equipmentRequestIdentity";
+import { useOptimizerLabels } from "./useOptimizerLabels";
 
 /** Shared optimizer workflow; presentation changes never remount the current run. */
 export const useOptimizerWorkspace = ({ optimizerSettings, onOptimizerSettingsChange }) => {
@@ -41,24 +43,32 @@ export const useOptimizerWorkspace = ({ optimizerSettings, onOptimizerSettingsCh
         calculateStats,
     } = useEquipment();
 
+    const labels = useOptimizerLabels(gameRules, data.drifs);
     const {
         prioritizedBonuses,
+        displayedPriorities,
         availableBonuses,
         searchQuery,
         setSearchQuery,
         selectedCategory,
         setSelectedCategory,
         prioritySortDirection,
+        categorySorted,
+        hiddenPriorityCategories,
+        priorityCategoryCounts,
         expandedPriorities,
         selectBonus,
         removeBonus,
         clearAll,
         updateBonus,
         sortByPriority,
+        toggleCategorySorting,
+        togglePriorityCategory,
+        showAllPriorityCategories,
         toggleExpanded,
         toggleAllExpanded,
         replaceConfiguration,
-    } = useOptimizerPriorities(gameRules);
+    } = useOptimizerPriorities(gameRules, labels);
     const {
         isOptimizing,
         elapsedSeconds: optimizationElapsedSeconds,
@@ -180,6 +190,29 @@ export const useOptimizerWorkspace = ({ optimizerSettings, onOptimizerSettingsCh
         optimizerSettings.mode,
         requestData.slots,
     ]);
+    const displayedStatus = useMemo(() => {
+        if (
+            !optimizationStatus ||
+            !activeVariant?.setup?.slots ||
+            optimizationStatus.applied == null ||
+            ["INVALID_INPUT", "NO_BUILD_FOUND"].includes(optimizationStatus.outcome)
+        )
+            return optimizationStatus;
+        return {
+            ...optimizationStatus,
+            drifsPlaced: Object.values(activeVariant.setup.slots).reduce(
+                (count, slot) => count + (slot?.drifIds || []).filter(Boolean).length,
+                0
+            ),
+            applied:
+                equipmentRequestIdentity(requestData) ===
+                equipmentRequestIdentity({
+                    slots: activeVariant.setup.slots,
+                    characterStats:
+                        activeVariant.setup.characterStats || requestData.characterStats,
+                }),
+        };
+    }, [activeVariant, optimizationStatus, requestData]);
 
     /** Builds the request and starts the backend optimization process. */
     const handleOptimizeClick = async () => {
@@ -199,9 +232,11 @@ export const useOptimizerWorkspace = ({ optimizerSettings, onOptimizerSettingsCh
             }
             return;
         }
-        const simple = optimizerSettings.configurationMode === "SIMPLE";
+        const simple =
+            optimizerSettings.mode === "BUILD_FROM_SCRATCH" &&
+            optimizerSettings.configurationMode === "SIMPLE";
         if (!simple && prioritizedBonuses.length === 0) return;
-        const advanced = optimizerSettings.configurationMode === "ADVANCED";
+        const advanced = !simple;
         const invalidPercentageTarget = advanced
             ? findInvalidPercentageTarget(prioritizedBonuses)
             : null;
@@ -228,6 +263,23 @@ export const useOptimizerWorkspace = ({ optimizerSettings, onOptimizerSettingsCh
 
     /** Applies the explicitly selected result variant to the shared equipment build. */
     const handleApplyVariant = (variant, variantIndex) => {
+        if (
+            optimizerSettings.mode === "REORGANIZE" ||
+            Array.isArray(optimizationStatus?.backpackDrifUsages)
+        ) {
+            if (optimizationStatus?.appliedSignature !== advisorBuildSignature(requestData.slots)) {
+                setNotice({
+                    type: "error",
+                    message:
+                        optimizerSettings.mode === "REORGANIZE"
+                            ? "Build zmienił się. Uruchom reorganizację ponownie."
+                            : "Build zmienił się. Uruchom optymalizację ponownie.",
+                });
+            } else {
+                setActiveVariantIndex(variantIndex);
+            }
+            return;
+        }
         if (optimizationStatus?.baselineSignature) {
             const current = advisorBuildSignature(requestData.slots);
             const constraints = JSON.stringify({
@@ -270,6 +322,7 @@ export const useOptimizerWorkspace = ({ optimizerSettings, onOptimizerSettingsCh
         }
     };
     return {
+        labels,
         gameRules,
         drifCategories,
         requestData,
@@ -280,18 +333,25 @@ export const useOptimizerWorkspace = ({ optimizerSettings, onOptimizerSettingsCh
         toggleDrifLock,
         stats,
         prioritizedBonuses,
+        displayedPriorities,
         availableBonuses,
         searchQuery,
         setSearchQuery,
         selectedCategory,
         setSelectedCategory,
         prioritySortDirection,
+        categorySorted,
+        hiddenPriorityCategories,
+        priorityCategoryCounts,
         expandedPriorities,
         selectBonus,
         removeBonus,
         clearAll,
         updateBonus,
         sortByPriority,
+        toggleCategorySorting,
+        togglePriorityCategory,
+        showAllPriorityCategories,
         toggleExpanded,
         toggleAllExpanded,
         isOptimizing,
@@ -299,6 +359,7 @@ export const useOptimizerWorkspace = ({ optimizerSettings, onOptimizerSettingsCh
         optimizationStartedAt,
         lastOptimizationDurationSeconds,
         optimizationStatus,
+        displayedStatus,
         activeVariantIndex,
         setActiveVariantIndex,
         notice,

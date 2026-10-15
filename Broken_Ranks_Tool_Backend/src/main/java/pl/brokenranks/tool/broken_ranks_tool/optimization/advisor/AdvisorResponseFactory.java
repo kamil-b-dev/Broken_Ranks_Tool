@@ -167,29 +167,20 @@ final class AdvisorResponseFactory {
             message =
                     "Znaleziono "
                             + selectedCount
-                            + " sprawdzonych planów poprawy: "
+                            + " propozycji poprawy: "
                             + search.options.getGoal().getDescription()
                             + ".";
         else if (search.reached(search.baseline))
-            message = "Obecny build już spełnia zadany cel. Nie potrzebujesz dodatkowych zmian.";
+            message =
+                    "Obecny ekwipunek już spełnia zadany cel. Nie potrzebujesz dodatkowych zmian.";
         else
             message =
-                    "Nie znaleziono poprawy w sprawdzonym zakresie przy obecnej ochronie modów i dozwolonych zmianach.";
+                    "Nie znaleziono poprawy przy wybranych ustawieniach. Sprawdź ochrony bonusów i dozwolone zmiany.";
         if (search.control.cancelled())
             message += " Analizę zatrzymano; pokazano sprawdzone wyniki.";
-        else if (search.limited() || verification.timeLimitReached())
-            message += " Osiągnięto limit wyszukiwania; wynik nie jest gwarancją optimum.";
-        else if (verification.proofComplete())
-            message +=
-                    selectedCount == 0 && !reached && Double.isFinite(search.requestedTarget)
-                            ? " W pełni sprawdzonym zakresie nie istnieje poprawny plan poprawy."
-                            : " Przeszukano cały zakres; wynik jest optymalny.";
-        else if (!(selectedCount == 0 && reached))
-            message += " Wynik jest najlepszym znalezionym planem, bez gwarancji optimum.";
         if (Double.isFinite(search.requestedTarget) && !reached)
             message += " Nie osiągnięto zadanego celu.";
-        if (search.targetClamped())
-            message += " Cel przekraczał cap i został ograniczony do jego użytecznej wartości.";
+        if (search.targetClamped()) message += " Cel obniżono do maksymalnej wartości bonusu.";
         return message;
     }
 

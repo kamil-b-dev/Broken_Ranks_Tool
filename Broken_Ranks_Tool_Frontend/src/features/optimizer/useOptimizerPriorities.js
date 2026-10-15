@@ -1,5 +1,10 @@
 import { useCallback, useMemo, useState } from "react";
-import { createBonusOption, sortBonusesByCategory } from "./optimizerDomain";
+import {
+    createBonusOption,
+    resolveDrifCategoryKey,
+    sortBonusesByCategory,
+    DRIF_CATEGORY_ORDER,
+} from "./optimizerDomain";
 
 const createPriority = (bonus) => ({
     ...bonus,
@@ -14,12 +19,55 @@ const createPriority = (bonus) => ({
 });
 
 /** Owns available modifiers, configured priorities, filtering, ordering, and card expansion. */
-export const useOptimizerPriorities = (gameRules) => {
+export const useOptimizerPriorities = (gameRules, labels) => {
     const [prioritizedBonuses, setPrioritizedBonuses] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("ALL");
     const [prioritySortDirection, setPrioritySortDirection] = useState("desc");
+    const [categorySorted, setCategorySorted] = useState(false);
+    const [hiddenPriorityCategories, setHiddenPriorityCategories] = useState(new Set());
     const [expandedPriorities, setExpandedPriorities] = useState(new Set());
+
+    const displayedPriorities = useMemo(() => {
+        const ordered = categorySorted
+            ? sortBonusesByCategory(
+                  prioritizedBonuses.map((bonus) => ({
+                      ...bonus,
+                      value: labels?.getName(bonus.key, bonus.value) || bonus.value,
+                      categoryKey: resolveDrifCategoryKey(
+                          bonus.key,
+                          gameRules?.drifBonusCategories
+                      ),
+                  }))
+              )
+            : prioritizedBonuses;
+        return ordered.filter(
+            (bonus) =>
+                !hiddenPriorityCategories.has(
+                    resolveDrifCategoryKey(bonus.key, gameRules?.drifBonusCategories)
+                )
+        );
+    }, [categorySorted, gameRules, hiddenPriorityCategories, labels, prioritizedBonuses]);
+
+    const priorityCategoryCounts = useMemo(() => {
+        const counts = Object.fromEntries(DRIF_CATEGORY_ORDER.map((category) => [category, 0]));
+        prioritizedBonuses.forEach((bonus) => {
+            const category = resolveDrifCategoryKey(bonus.key, gameRules?.drifBonusCategories);
+            if (category in counts) counts[category] += 1;
+        });
+        return counts;
+    }, [gameRules, prioritizedBonuses]);
+
+    const togglePriorityCategory = useCallback((category) => {
+        if (!DRIF_CATEGORY_ORDER.includes(category)) return;
+        setHiddenPriorityCategories((previous) => {
+            const next = new Set(previous);
+            if (next.has(category)) next.delete(category);
+            else next.add(category);
+            return next;
+        });
+    }, []);
+    const showAllPriorityCategories = useCallback(() => setHiddenPriorityCategories(new Set()), []);
 
     const allBonuses = useMemo(() => {
         if (!gameRules?.bonusTranslations) return [];
@@ -38,10 +86,13 @@ export const useOptimizerPriorities = (gameRules) => {
                 if (prioritizedBonuses.some((priority) => priority.key === bonus.key)) return false;
                 const matchesCategory =
                     selectedCategory === "ALL" || bonus.categoryKey === selectedCategory;
-                const matchesSearch = bonus.value.toLowerCase().includes(searchQuery.toLowerCase());
+                const query = searchQuery.toLocaleLowerCase("pl");
+                const matchesSearch = [bonus.value, labels?.searchName(bonus.key)].some((name) =>
+                    name?.toLocaleLowerCase("pl").includes(query)
+                );
                 return matchesCategory && matchesSearch;
             }),
-        [allBonuses, prioritizedBonuses, searchQuery, selectedCategory]
+        [allBonuses, labels, prioritizedBonuses, searchQuery, selectedCategory]
     );
 
     const selectBonus = useCallback((bonus) => {
@@ -83,6 +134,7 @@ export const useOptimizerPriorities = (gameRules) => {
     }, []);
 
     const sortByPriority = () => {
+        setCategorySorted(false);
         setPrioritizedBonuses((previous) => {
             const direction = prioritySortDirection === "desc" ? 1 : -1;
             return previous
@@ -96,6 +148,8 @@ export const useOptimizerPriorities = (gameRules) => {
         });
         setPrioritySortDirection((previous) => (previous === "desc" ? "asc" : "desc"));
     };
+
+    const toggleCategorySorting = () => setCategorySorted((previous) => !previous);
 
     const toggleExpanded = useCallback((key) => {
         setExpandedPriorities((previous) => {
@@ -119,18 +173,25 @@ export const useOptimizerPriorities = (gameRules) => {
 
     return {
         prioritizedBonuses,
+        displayedPriorities,
         availableBonuses: filteredAvailableBonuses,
         searchQuery,
         setSearchQuery,
         selectedCategory,
         setSelectedCategory,
         prioritySortDirection,
+        categorySorted,
+        hiddenPriorityCategories,
+        priorityCategoryCounts,
         expandedPriorities,
         selectBonus,
         removeBonus,
         clearAll,
         updateBonus,
         sortByPriority,
+        toggleCategorySorting,
+        togglePriorityCategory,
+        showAllPriorityCategories,
         toggleExpanded,
         toggleAllExpanded,
         replaceConfiguration,

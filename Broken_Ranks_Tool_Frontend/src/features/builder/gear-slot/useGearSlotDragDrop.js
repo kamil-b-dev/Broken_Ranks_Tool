@@ -2,6 +2,7 @@ import { useDraggedResource, setDraggedResource } from "../useDraggedResource";
 import { calculateUsedDrifPower } from "./gearSlotDomain";
 import { useState } from "react";
 import { SIZE_INDEX } from "../../../shared/domain/equipment/equipmentRules";
+import { BACKPACK_RESOURCE_SOURCE } from "../backpack/backpackEquipmentTransfer";
 
 /** Owns drag state and applies validated item, orb, and drif drops to a gear slot. */
 export const useGearSlotDragDrop = ({
@@ -24,6 +25,10 @@ export const useGearSlotDragDrop = ({
     setSelectedDrifs,
     setDrifTypes,
     setDrifLevels,
+    onBackpackEquip,
+    getBackpackEquipWarning,
+    onStoneDrop,
+    getStoneDropWarning,
 }) => {
     const draggedResource = useDraggedResource();
     const [dragOverZone, setDragOverZone] = useState(null);
@@ -35,6 +40,9 @@ export const useGearSlotDragDrop = ({
             return;
         }
         event.preventDefault();
+        if (event.dataTransfer)
+            event.dataTransfer.dropEffect =
+                draggedResource?.source === BACKPACK_RESOURCE_SOURCE ? "move" : "copy";
         setDragOverZone(zone);
     };
     const handleDragLeave = () => setDragOverZone(null);
@@ -104,6 +112,14 @@ export const useGearSlotDragDrop = ({
     };
     const canDrop = (data, zone) => {
         if (!data) return false;
+        if (onStoneDrop && ["drifs", "orbs"].includes(data.dragType))
+            return Boolean(getStoneDropWarning && !getStoneDropWarning(data, zone));
+        if (data.source === BACKPACK_RESOURCE_SOURCE)
+            return Boolean(
+                onBackpackEquip &&
+                getBackpackEquipWarning &&
+                !getBackpackEquipWarning(data.entryId, slotKey, zone)
+            );
         if (data.dragType === "items" && zone === "item")
             return items.some((item) => String(item.id) === String(data.id));
         if (data.dragType === "orbs" && ["orb1", "orb2"].includes(zone)) {
@@ -136,6 +152,14 @@ export const useGearSlotDragDrop = ({
         setDraggedResource(null);
         try {
             const data = JSON.parse(event.dataTransfer.getData("application/json"));
+            if (onStoneDrop && ["drifs", "orbs"].includes(data?.dragType)) {
+                onStoneDrop(data, zone);
+                return;
+            }
+            if (data?.source === BACKPACK_RESOURCE_SOURCE) {
+                onBackpackEquip?.(data.entryId, slotKey, zone);
+                return;
+            }
             if (data.dragType === "items" && zone === "item") applyItem(data);
             else if (data.dragType === "orbs" && ["orb1", "orb2"].includes(zone)) {
                 applyOrb(data, zone);

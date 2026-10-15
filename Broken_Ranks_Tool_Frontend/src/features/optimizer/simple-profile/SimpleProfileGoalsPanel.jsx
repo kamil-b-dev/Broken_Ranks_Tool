@@ -6,6 +6,7 @@ import {
     SIMPLE_PROFILES,
     SIMPLE_STYLES,
 } from "./simpleProfileDefinitions";
+import { useOptimizerLabelContext } from "../optimizerLabelContext";
 
 const QuantityField = ({ label, value, onChange }) => (
     <label className="simple-profile-field flex items-center justify-between gap-4 border border-purple-950/80 optimizer-accent-frame bg-black/25 p-3 text-xs text-stone-300">
@@ -35,6 +36,7 @@ const Toggle = ({ label, checked, onChange }) => (
 
 /** Exposes only the few decisions not predetermined by the selected profession. */
 const SimpleProfileGoalsPanel = ({ settings, onChange }) => {
+    const labels = useOptimizerLabelContext();
     const profile = settings.simpleProfile || "BARBARIAN";
     const options = normalizeSimpleOptions(settings.simpleOptions, profile);
     const update = (key, value) =>
@@ -42,6 +44,14 @@ const SimpleProfileGoalsPanel = ({ settings, onChange }) => {
     const styled = ["KNIGHT", "DRUID"].includes(profile);
     const elemental = ["BARBARIAN", "SHEED"].includes(profile);
     const archerLike = ["ARCHER", "SHEED", "VOODOO"].includes(profile);
+    const damageType = ["BARBARIAN", "KNIGHT", "ARCHER", "SHEED"].includes(profile)
+        ? "DAMAGE_PHYSICAL"
+        : "DAMAGE_MAGIC";
+    const accuracyType = ["BARBARIAN", "KNIGHT", "SHEED"].includes(profile)
+        ? "HIT_CHANCE_MELEE"
+        : ["ARCHER", "FIRE_MAGE"].includes(profile)
+          ? "HIT_CHANCE_RANGED"
+          : "HIT_CHANCE_MENTAL";
 
     return (
         <div className="simple-profile-panel min-h-0 flex-1 overflow-y-auto p-3 custom-scrollbar">
@@ -101,12 +111,20 @@ const SimpleProfileGoalsPanel = ({ settings, onChange }) => {
 
             <div className="grid gap-2 md:grid-cols-2">
                 <QuantityField
-                    label="Drify obrażeń"
+                    label={
+                        labels.mode === "DRIFS"
+                            ? `Drify ${labels.getName(damageType, "obrażeń")}`
+                            : "Drify obrażeń"
+                    }
                     value={options.damageDrifs || 7}
                     onChange={(value) => update("damageDrifs", value)}
                 />
                 <QuantityField
-                    label="Drify celności"
+                    label={
+                        labels.mode === "DRIFS"
+                            ? `Drify ${labels.getName(accuracyType, "celności")}`
+                            : "Drify celności"
+                    }
                     value={options.accuracyDrifs || 6}
                     onChange={(value) => update("accuracyDrifs", value)}
                 />
@@ -125,7 +143,9 @@ const SimpleProfileGoalsPanel = ({ settings, onChange }) => {
                             (element) => profile === "SHEED" || element.value !== "NONE"
                         ).map((element) => (
                             <option key={element.value} value={element.value}>
-                                {element.label}
+                                {element.value === "NONE"
+                                    ? element.label
+                                    : labels.getName(`DAMAGE_${element.value}`, element.label)}
                             </option>
                         ))}
                     </select>
@@ -134,24 +154,30 @@ const SimpleProfileGoalsPanel = ({ settings, onChange }) => {
 
             <div className="mt-3 grid gap-2 md:grid-cols-2">
                 <Toggle
-                    label="Redukcja obrażeń biernych"
+                    label={labels.getName("PASIVE_DAMAGE_REDUCTION", "Redukcja obrażeń biernych")}
                     checked={Boolean(options.passiveDamageReduction)}
                     onChange={(value) => update("passiveDamageReduction", value)}
                 />
                 <Toggle
-                    label="Redukcja obrażeń procentowych"
+                    label={labels.getName(
+                        "PERCENTAGE_DAMAGE_REDUCTION",
+                        "Redukcja obrażeń procentowych"
+                    )}
                     checked={Boolean(options.percentageDamageReduction)}
                     onChange={(value) => update("percentageDamageReduction", value)}
                 />
                 {archerLike && (
                     <>
                         <Toggle
-                            label="Holm — szansa redukcji obrażeń"
+                            label={labels.getName(
+                                "DAMAGE_REDUCTION_CHANCE",
+                                "Holm — szansa redukcji obrażeń"
+                            )}
                             checked={Boolean(options.damageReductionChance)}
                             onChange={(value) => update("damageReductionChance", value)}
                         />
                         <Toggle
-                            label="Farid — szansa uniku"
+                            label={labels.getName("DODGE_CHANCE", "Farid — szansa uniku")}
                             checked={Boolean(options.dodgeChance)}
                             onChange={(value) => update("dodgeChance", value)}
                         />

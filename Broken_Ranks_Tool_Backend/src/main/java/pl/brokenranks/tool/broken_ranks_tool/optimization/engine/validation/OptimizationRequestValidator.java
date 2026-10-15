@@ -12,6 +12,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.CharacterSta
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.BuildConfigurationMode;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationMode;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.BackpackDrifConstraints;
 
 /** Validates the optimizer API contract before search data is loaded. */
 public final class OptimizationRequestValidator {
@@ -24,6 +25,8 @@ public final class OptimizationRequestValidator {
                 || request.getOriginalSlots().isEmpty()) {
             return "Brak konfiguracji do optymalizacji.";
         }
+        String backpackError = BackpackDrifConstraints.validateRequest(request);
+        if (backpackError != null) return backpackError;
         if (request.getMode() == OptimizationMode.ADVISOR) return validateCharacterStats(request);
         if (request.getPriorities() == null || request.getPriorities().isEmpty()) {
             return "Wybierz przynajmniej jeden modyfikator i ustaw jego priorytet.";

@@ -31,6 +31,8 @@ const DrifSection = ({
     drifBasePowers,
     showOptimizationLocks = false,
     showCategoryIcons = true,
+    renderBackpackPicker,
+    renderStoneActions,
 }) => {
     const {
         isEpicOrSet,
@@ -107,34 +109,40 @@ const DrifSection = ({
 
                 {!isEpicOrSet &&
                     Array.from({ length: maxDrifs }).map((_, index) => (
-                        <StandardDrifSlot
-                            showCategoryIcons={showCategoryIcons}
-                            key={index}
-                            index={index}
-                            slotKey={slotKey}
-                            drifs={drifs}
-                            elementalTypes={hookData.elementalTypes}
-                            selectedDrifs={selectedDrifs}
-                            drifTypes={drifTypes}
-                            drifLevels={drifLevels}
-                            maxDrifIndex={maxDrifIndex}
-                            bonusTranslations={bonusTranslations}
-                            drifBasePowers={drifBasePowers}
-                            groupByType={groupByType}
-                            locked={isDrifLocked(index)}
-                            parentLocked={isParentSlotLocked}
-                            showLock={showOptimizationLocks}
-                            overCapacity={isOverCapacity}
-                            dropEligible={hookData.isDropEligible?.(`drif-${index}`)}
-                            dragActive={dragOverZone === `drif-${index}`}
-                            onDragOver={(event) => handleDragOver(event, `drif-${index}`)}
-                            onDragLeave={handleDragLeave}
-                            onDrop={(event) => handleDrop(event, `drif-${index}`)}
-                            onToggleLock={() => toggleDrifLock(slotKey, index)}
-                            setSelectedDrifs={setSelectedDrifs}
-                            setDrifTypes={setDrifTypes}
-                            setDrifLevels={setDrifLevels}
-                        />
+                        <div key={index} className="w-full">
+                            <div className={renderStoneActions ? "equipment-stone-row" : undefined}>
+                                <StandardDrifSlot
+                                    showCategoryIcons={showCategoryIcons}
+                                    key={index}
+                                    index={index}
+                                    slotKey={slotKey}
+                                    drifs={drifs}
+                                    elementalTypes={hookData.elementalTypes}
+                                    selectedDrifs={selectedDrifs}
+                                    drifTypes={drifTypes}
+                                    drifLevels={drifLevels}
+                                    maxDrifIndex={maxDrifIndex}
+                                    bonusTranslations={bonusTranslations}
+                                    drifBasePowers={drifBasePowers}
+                                    groupByType={groupByType}
+                                    locked={isDrifLocked(index)}
+                                    parentLocked={isParentSlotLocked}
+                                    showLock={showOptimizationLocks}
+                                    overCapacity={isOverCapacity}
+                                    dropEligible={hookData.isDropEligible?.(`drif-${index}`)}
+                                    dragActive={dragOverZone === `drif-${index}`}
+                                    onDragOver={(event) => handleDragOver(event, `drif-${index}`)}
+                                    onDragLeave={handleDragLeave}
+                                    onDrop={(event) => handleDrop(event, `drif-${index}`)}
+                                    onToggleLock={() => toggleDrifLock(slotKey, index)}
+                                    setSelectedDrifs={setSelectedDrifs}
+                                    setDrifTypes={setDrifTypes}
+                                    setDrifLevels={setDrifLevels}
+                                />
+                                {renderStoneActions?.(index)}
+                            </div>
+                            {renderBackpackPicker?.(index)}
+                        </div>
                     ))}
                 {!fullSelectedItem && (
                     <span className="drif-empty-state">

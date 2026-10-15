@@ -543,8 +543,10 @@
     background-blend-mode: normal, soft-light;
     box-shadow: inset 0 1px rgba(255, 210, 135, 0.12);
 }
-.mobile-app .mobile-optimizer .optimizer-priority-toggle[aria-pressed="true"] {
+.mobile-app .mobile-optimizer .optimizer-priority-toggle[aria-pressed="true"],
+.mobile-app .mobile-optimizer .optimizer-toolbar-button[aria-pressed="true"] {
     border-color: #e4ba70 !important;
+    color: #efc77e;
 }
 .mobile-app .mobile-optimizer .optimizer-priority-percentage > div > div {
     border-color: rgba(124, 88, 47, 0.78);
@@ -565,4 +567,12 @@
     border-radius: 0.2rem;
     background: var(--mobile-material-result);
     background-blend-mode: normal, soft-light;
+}
+.mobile-app .mobile-optimizer .optimizer-label-setting {
+    display: grid;
+    gap: 0.5rem;
+    margin-block: 0.75rem;
+}
+.mobile-app .mobile-optimizer .optimizer-label-setting select {
+    width: 100%;
 }

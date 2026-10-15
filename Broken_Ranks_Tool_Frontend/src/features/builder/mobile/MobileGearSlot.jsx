@@ -1,17 +1,28 @@
 import {
     useEquipmentCatalogState,
     useEquipmentSetup,
+    useEquipmentBackpack,
 } from "../../../shared/state/EquipmentContext";
 import { useGearSlot } from "../gear-slot/useGearSlot";
 import DrifSection from "../gear-slot/DrifSection";
 import OrbSection from "../gear-slot/OrbSection";
 import MobileItemPicker from "./MobileItemPicker";
 import { useRef } from "react";
+import BackpackEquipmentSelect from "../backpack/BackpackEquipmentSelect";
+import BackpackItemChoices from "../backpack/BackpackItemChoices";
+import EquipmentRemovalAction from "../backpack/EquipmentRemovalAction";
 
 export default function MobileGearSlot({ slot, items, pickingItem, onPickItem, onClosePicker }) {
     const pickerOpener = useRef(null);
     const { data, gameRules } = useEquipmentCatalogState();
     const { requestData, handleSlotUpdate, optimizationTrigger } = useEquipmentSetup();
+    const {
+        backpack,
+        equipBackpackEntry,
+        getBackpackEquipWarning,
+        backpackEquipNotice,
+        equipmentRemoval,
+    } = useEquipmentBackpack();
     const model = useGearSlot({
         slotKey: slot.key,
         items,
@@ -21,6 +32,8 @@ export default function MobileGearSlot({ slot, items, pickingItem, onPickItem, o
         gameRules,
         onUpdate: handleSlotUpdate,
         optimizationTrigger,
+        onBackpackEquip: equipBackpackEntry,
+        getBackpackEquipWarning,
     });
     const selectItem = (item) => {
         model.setSelectedItem(item ? String(item.id) : "");
@@ -36,6 +49,11 @@ export default function MobileGearSlot({ slot, items, pickingItem, onPickItem, o
     };
     return (
         <section className="mobile-slot-editor" aria-label={`Edytor slotu: ${slot.label}`}>
+            {backpackEquipNotice && (
+                <p className="mobile-error" role="alert">
+                    {backpackEquipNotice}
+                </p>
+            )}
             <div className="mobile-card">
                 <span className="mobile-eyebrow">Przedmiot</span>
                 <h2>{model.fullSelectedItem?.name || slot.label}</h2>
@@ -87,6 +105,8 @@ export default function MobileGearSlot({ slot, items, pickingItem, onPickItem, o
                             <div key={key} role="group" aria-label={`Orb ${index + 1}`}>
                                 <h3>Orb {index + 1}</h3>
                                 <OrbSection
+                                    equipmentSlotKey={slot.key}
+                                    removalActions={equipmentRemoval}
                                     showCategoryIcons={false}
                                     slotKey={key}
                                     selectedItem={model.selectedItem}
@@ -109,6 +129,16 @@ export default function MobileGearSlot({ slot, items, pickingItem, onPickItem, o
                                     }
                                     bonusTranslations={gameRules.bonusTranslations || {}}
                                 />
+                                <BackpackEquipmentSelect
+                                    entries={backpack}
+                                    data={data}
+                                    kind="ORB"
+                                    slotKey={slot.key}
+                                    zone={key}
+                                    label={`Orb ${index + 1} z plecaka`}
+                                    onEquip={equipBackpackEntry}
+                                    getWarning={getBackpackEquipWarning}
+                                />
                             </div>
                         ))}
                     </div>
@@ -121,6 +151,16 @@ export default function MobileGearSlot({ slot, items, pickingItem, onPickItem, o
                             </p>
                         )}
                         <DrifSection
+                            renderStoneActions={(index) => (
+                                <EquipmentRemovalAction
+                                    iconOnly
+                                    actions={equipmentRemoval}
+                                    kind="DRIF"
+                                    slotKey={slot.key}
+                                    zone={`drif-${index}`}
+                                    label={`Zdejmij drif ${index + 1} do plecaka`}
+                                />
+                            )}
                             showCategoryIcons={false}
                             slotKey={slot.key}
                             drifs={data.drifs}
@@ -131,6 +171,18 @@ export default function MobileGearSlot({ slot, items, pickingItem, onPickItem, o
                             handleDragOver={model.handleDragOver}
                             handleDragLeave={model.handleDragLeave}
                             handleDrop={model.handleDrop}
+                            renderBackpackPicker={(index) => (
+                                <BackpackEquipmentSelect
+                                    entries={backpack}
+                                    data={data}
+                                    kind="DRIF"
+                                    slotKey={slot.key}
+                                    zone={`drif-${index}`}
+                                    label={`Drif ${index + 1} z plecaka`}
+                                    onEquip={equipBackpackEntry}
+                                    getWarning={getBackpackEquipWarning}
+                                />
+                            )}
                         />
                     </div>
                 </>
@@ -138,6 +190,19 @@ export default function MobileGearSlot({ slot, items, pickingItem, onPickItem, o
             {pickingItem && (
                 <MobileItemPicker
                     openerRef={pickerOpener}
+                    backpackContent={
+                        <BackpackItemChoices
+                            entries={backpack}
+                            items={items}
+                            data={data}
+                            gameRules={gameRules}
+                            slotKey={slot.key}
+                            getWarning={getBackpackEquipWarning}
+                            onSelect={(entryId) => {
+                                if (equipBackpackEntry(entryId, slot.key)) onClosePicker();
+                            }}
+                        />
+                    }
                     items={items}
                     slotLabel={slot.label}
                     onClose={onClosePicker}

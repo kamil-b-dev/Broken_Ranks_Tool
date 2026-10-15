@@ -20,6 +20,8 @@ import {
 } from "./storage/workingDraftStorage";
 import { equipmentRequestIdentity } from "../shared/domain/equipment/equipmentRequestIdentity";
 import { useWorkingDraftSave } from "./storage/useWorkingDraftSave";
+import { useBackpackEquipmentTransfer } from "../features/builder/backpack/useBackpackEquipmentTransfer";
+import { normalizeBackpack } from "../features/builder/backpack/backpackSerialization";
 
 /**
  * Provides application state for equipment, character stats, and optimization.
@@ -32,7 +34,11 @@ export const EquipmentProvider = ({ children }) => {
     const [initialStorage] = useState(readEquipmentDraftState);
     const initialDraft = initialStorage.draft;
     const [backpack, setBackpack] = useState([]);
-    const handleBackpackChange = useCallback((entries) => setBackpack(entries), []);
+    const [backpackImportRevision, setBackpackImportRevision] = useState(0);
+    const handleBackpackChange = useCallback(
+        (entries) => setBackpack(normalizeBackpack(entries)),
+        []
+    );
     const {
         data,
         categoryNames,
@@ -75,8 +81,32 @@ export const EquipmentProvider = ({ children }) => {
         restoreStats,
         lockedSlots,
         lockedDrifs,
+        backpack,
+        setBackpack,
+        data,
+        gameRules,
     });
     const [characterConfig, setCharacterConfig] = useState(null);
+    const changeBackpackDrifLocks = useCallback(
+        (next) => replaceLocks(lockedSlots, next),
+        [replaceLocks, lockedSlots]
+    );
+    const backpackTransfer = useBackpackEquipmentTransfer({
+        backpack,
+        requestData,
+        data,
+        gameRules: gameRules || {},
+        setBackpack,
+        setRequestData,
+        markEquipmentChanged,
+        lockedDrifs,
+        onDrifLocksChange: changeBackpackDrifLocks,
+    });
+    const clearRemovalHistory = backpackTransfer.clearRemovalHistory;
+    const handleBackpackImport = useCallback(() => {
+        clearRemovalHistory();
+        setBackpackImportRevision((revision) => revision + 1);
+    }, [clearRemovalHistory]);
 
     useEffect(() => {
         if (draftRestored || !initialDraft || loading || initialDataError) return;
@@ -192,6 +222,7 @@ export const EquipmentProvider = ({ children }) => {
             restoreStats,
             calculateStatsFor,
             markEquipmentChanged,
+            onBuildImported: handleBackpackImport,
         }
     );
 
@@ -323,8 +354,13 @@ export const EquipmentProvider = ({ children }) => {
     );
 
     const backpackValue = useMemo(
-        () => ({ backpack, onBackpackChange: handleBackpackChange }),
-        [backpack, handleBackpackChange]
+        () => ({
+            backpack,
+            backpackImportRevision,
+            onBackpackChange: handleBackpackChange,
+            ...backpackTransfer,
+        }),
+        [backpack, backpackImportRevision, handleBackpackChange, backpackTransfer]
     );
 
     const buildActionsValue = useMemo(

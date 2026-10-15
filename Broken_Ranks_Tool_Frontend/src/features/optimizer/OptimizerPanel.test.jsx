@@ -236,6 +236,7 @@ describe("OptimizerPanel", () => {
         const updateSettings = onSettingsChange.mock.calls[0][0];
         expect(updateSettings(settings)).toEqual({
             ...settings,
+            backpackOnly: false,
             advisorProfession: "AUTO",
             advisorPurchaseScope: "GOAL_ONLY",
             configurationMode: "ADVANCED",
@@ -286,6 +287,41 @@ describe("OptimizerPanel", () => {
         await user.click(screen.getByRole("button", { name: /Zastosuj wybrany wariant/i }));
 
         expect(equipment.applyOptimizationSetup).toHaveBeenCalledWith(setup, calculationResult);
+    });
+
+    it("reports whether the displayed variant is actually equipped and counts its stones", async () => {
+        const user = userEvent.setup();
+        const original = { slots: { helmet: { itemId: 7, drifIds: [60] } }, characterStats: {} };
+        const alternative = {
+            slots: { helmet: { itemId: 7, drifIds: [60, 61] } },
+            characterStats: {},
+        };
+        const initialEquipment = { ...equipment, requestData: original };
+        useEquipment.mockReturnValue(initialEquipment);
+        equipment.applyOptimizationSetup.mockReturnValue(true);
+        equipment.runDrifOptimization.mockResolvedValue({
+            ...optimizationResult,
+            outcome: "VALID_BUILD",
+            applied: true,
+            nextVariants: [
+                { main: true, bonusName: "Główny", setup: original, changes: [], statChanges: [] },
+                { bonusName: "Dodatkowy drif", setup: alternative, changes: [], statChanges: [] },
+            ],
+        });
+        const view = renderPanel();
+        await user.click(await screen.findByText("Szansa na krytyk"));
+        await user.click(screen.getByRole("button", { name: /Uruchom optymalizację/i }));
+        expect(await screen.findByText("Ten układ jest obecnie założony.")).toBeVisible();
+        await user.click(screen.getByRole("button", { name: /Dodatkowy drif/ }));
+        expect(screen.getByText(/Ekwipunek pozostaje bez zmian/)).toBeVisible();
+        expect(screen.getByText("Drify w układzie").previousElementSibling).toHaveTextContent("2");
+        await user.click(screen.getByRole("button", { name: "Zastosuj wybrany wariant" }));
+        useEquipment.mockReturnValue({ ...initialEquipment, requestData: alternative });
+        view.rerender(
+            <OptimizerPanel optimizerSettings={settings} onOptimizerSettingsChange={vi.fn()} />
+        );
+        expect(screen.getByText("Ten układ jest obecnie założony.")).toBeVisible();
+        expect(screen.queryByText(/Ekwipunek pozostaje bez zmian/)).not.toBeInTheDocument();
     });
 
     it.each(["build", "character", "slot lock", "drif lock", "applied build", "selected variant"])(

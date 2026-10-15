@@ -1,5 +1,6 @@
 /** Mobile presentation of existing advanced options; values keep their shared semantics. */
 export default function MobileOptimizerOptions({ settings, onChange }) {
+    if (settings.mode === "REORGANIZE") return null;
     return (
         <details className="mobile-card mobile-optimizer-options">
             <summary>Opcje i warianty</summary>
@@ -19,28 +20,49 @@ export default function MobileOptimizerOptions({ settings, onChange }) {
             <label>
                 <input
                     type="checkbox"
-                    checked={settings.generateVariants}
+                    checked={Boolean(settings.backpackOnly)}
                     onChange={(event) =>
-                        onChange({ ...settings, generateVariants: event.target.checked })
+                        onChange({
+                            ...settings,
+                            backpackOnly: event.target.checked,
+                            ...(event.target.checked ? { generateVariants: false } : {}),
+                        })
                     }
                 />
-                Obliczaj dodatkowe warianty
+                Użyj drifów z plecaka
             </label>
-            <label className="mobile-field">
-                Maksymalna strata wariantu (%)
-                <input
-                    type="number"
-                    inputMode="decimal"
-                    min="0"
-                    max="100"
-                    step="1"
-                    disabled={!settings.generateVariants}
-                    value={settings.maxVariantLossPercent}
-                    onChange={(event) =>
-                        onChange({ ...settings, maxVariantLossPercent: Number(event.target.value) })
-                    }
-                />
-            </label>
+            {!settings.backpackOnly && (
+                <>
+                    <label>
+                        <input
+                            type="checkbox"
+                            checked={settings.generateVariants}
+                            onChange={(event) =>
+                                onChange({ ...settings, generateVariants: event.target.checked })
+                            }
+                        />
+                        Obliczaj dodatkowe warianty
+                    </label>
+                    <label className="mobile-field">
+                        Maksymalna strata wariantu (%)
+                        <input
+                            type="number"
+                            inputMode="decimal"
+                            min="0"
+                            max="100"
+                            step="1"
+                            disabled={!settings.generateVariants}
+                            value={settings.maxVariantLossPercent}
+                            onChange={(event) =>
+                                onChange({
+                                    ...settings,
+                                    maxVariantLossPercent: Number(event.target.value),
+                                })
+                            }
+                        />
+                    </label>
+                </>
+            )}
         </details>
     );
 }

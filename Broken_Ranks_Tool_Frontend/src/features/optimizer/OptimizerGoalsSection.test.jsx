@@ -1,6 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import OptimizerGoalsSection from "./OptimizerGoalsSection";
+import { OptimizerLabelContext } from "./optimizerLabelContext";
+import { createOptimizerLabels } from "./optimizerLabels";
 
 const goal = {
     statKey: "criticalChance",
@@ -14,6 +16,35 @@ const goal = {
 };
 
 describe("OptimizerGoalsSection", () => {
+    it("renames a missed goal while keeping its values, counts and satisfaction state", () => {
+        const original = structuredClone(goal);
+        const view = (mode) => (
+            <OptimizerLabelContext.Provider
+                value={createOptimizerLabels(
+                    { bonusTranslations: { criticalChance: "Szansa na krytyk" } },
+                    [{ name: "Band", bonusType: "criticalChance" }],
+                    mode
+                )}
+            >
+                <OptimizerGoalsSection
+                    goals={[goal]}
+                    currentDetails={[]}
+                    activeVariant={{
+                        main: false,
+                        calculationResult: { stats: { criticalChance: "8%" } },
+                    }}
+                />
+            </OptimizerLabelContext.Provider>
+        );
+        const rendered = render(view("DRIFS"));
+        expect(screen.getByRole("status")).toHaveTextContent("Band: 8% (cel 10%)");
+        expect(screen.getByText("2 / 2–4")).toBeInTheDocument();
+        expect(screen.getByText("Częściowo")).toBeInTheDocument();
+        rendered.rerender(view("MODIFIERS"));
+        expect(screen.getByRole("status")).toHaveTextContent("Szansa na krytyk: 8% (cel 10%)");
+        expect(screen.getByText("Częściowo")).toBeInTheDocument();
+        expect(goal).toEqual(original);
+    });
     it("warns that a selected tradeoff misses a goal met by the main build", () => {
         render(
             <OptimizerGoalsSection

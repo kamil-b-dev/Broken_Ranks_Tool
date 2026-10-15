@@ -31,7 +31,8 @@ const draft = (page) =>
     page.evaluate(
         () =>
             JSON.parse(
-                localStorage.getItem("broken-ranks-tool.equipment-draft.v2") ||
+                localStorage.getItem("broken-ranks-tool.equipment-draft.v3") ||
+                    localStorage.getItem("broken-ranks-tool.equipment-draft.v2") ||
                     localStorage.getItem("broken-ranks-tool.equipment-draft.v1")
             ).value
     );
@@ -173,7 +174,10 @@ test("advisor preserves settings, cancels from another section and rejects a sta
     await expect.poll(() => cancellation).toBe(request.advisor.cancellationToken);
     await section(page, "Porady").tap();
     await expect(page.getByLabel("Plan zmian")).toContainText("Przenieś SUBDRIF Band 6");
-    await expect(page.getByText("Analiza anulowana", { exact: true })).toBeVisible();
+    await page.getByText("Szczegóły obliczeń", { exact: true }).tap();
+    await expect(page.locator(".optimizer-status-details")).toContainText(
+        "Wyszukiwanie zostało anulowane."
+    );
     expect((await draft(page)).requestData.slots.helmet.drifIds).toEqual([60]);
     await accessible(page);
     await section(page, "Build i blokady").tap();

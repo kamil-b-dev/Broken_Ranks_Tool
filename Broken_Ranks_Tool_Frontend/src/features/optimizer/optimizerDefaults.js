@@ -3,6 +3,7 @@ import { defaultSimpleOptions } from "./simple-profile/simpleProfileDefinitions"
 export const DEFAULT_OPTIMIZER_SETTINGS = {
     mode: "BUILD_FROM_SCRATCH",
     configurationMode: "SIMPLE",
+    backpackOnly: false,
     simpleProfile: "BARBARIAN",
     simpleOptions: defaultSimpleOptions("BARBARIAN"),
     simpleAspects: {},

@@ -4,6 +4,7 @@
 }
 .builder-equipment-view-switch button,
 .backpack-toolbar button,
+.backpack-view-controls button,
 .backpack-card-actions button {
     min-height: 44px;
     padding: 0.45rem 0.7rem;
@@ -18,12 +19,72 @@
     border-color: var(--ui-gold);
     background: rgba(115, 63, 25, 0.35);
 }
+.backpack-view-controls {
+    display: grid;
+    min-width: 0;
+    gap: 0.65rem;
+}
+.backpack-filters,
+.backpack-sort-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    align-items: end;
+}
+.backpack-filters button {
+    flex: 1;
+    font-size: 0.78rem;
+}
+.backpack-filters button[aria-pressed="true"] {
+    color: var(--ui-gold);
+    border-color: var(--ui-gold);
+    background: rgba(115, 63, 25, 0.35);
+}
+.backpack-sort-controls label {
+    display: grid;
+    flex: 1;
+    min-width: 0;
+    gap: 0.3rem;
+    color: var(--ui-text-muted);
+    font-size: 0.75rem;
+}
+.backpack-sort-controls select {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    padding: 0.45rem;
+    border: 1px solid var(--ui-line-bright);
+    background: var(--ui-ink);
+    color: var(--ui-text);
+    font-family: var(--ui-font);
+    font-size: 0.8rem;
+}
+.backpack-sort-controls button {
+    font-size: 0.75rem;
+}
+.backpack-sort-controls button:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+.backpack-view-controls :is(button, select):focus-visible,
+.backpack-card-actions button:focus-visible {
+    outline: 2px solid var(--ui-gold);
+    outline-offset: 2px;
+}
 .backpack-workbench {
     min-height: 52rem;
     display: flex;
     flex-direction: column;
     gap: 1rem;
     font-family: var(--ui-font);
+}
+.backpack-drop-eligible {
+    outline: 1px dashed var(--ui-gold);
+    outline-offset: 4px;
+}
+.backpack-drop-target {
+    outline: 2px solid var(--ui-gold);
+    outline-offset: 4px;
 }
 .backpack-toolbar {
     display: flex;
@@ -155,21 +216,55 @@
     min-width: 0;
     flex-direction: column;
     gap: 0.25rem;
+    flex: 1;
 }
 .backpack-card .equipment-slot-drif-list {
     display: grid;
     gap: 0.25rem;
 }
+.backpack-card .equipment-slot-overview-meta {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+}
+.backpack-card .equipment-slot-orb-list {
+    justify-content: flex-start;
+}
+.backpack-card .equipment-slot-overview-item {
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
 .mobile-backpack {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 1rem;
 }
 .mobile-backpack .backpack-workbench {
     min-height: 18rem;
 }
 .mobile-backpack .backpack-editor {
+    min-width: 0;
     padding: 0.75rem;
     border: 1px solid var(--ui-line-bright);
+}
+.mobile-backpack .equipment-stone-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+}
+.mobile-backpack .equipment-stone-row > .equipment-removal-action {
+    justify-self: end;
+}
+.mobile-backpack .gear-slot-drif-section .equipment-stone-row > :first-child {
+    display: grid;
+    grid-template-columns: 1.7rem minmax(0, 1fr);
+    gap: 0.3rem 0.55rem;
+}
+.mobile-backpack .gear-slot-drif-section select {
+    grid-column: 2;
+    width: 100%;
+    text-align: left;
+}
+.mobile-backpack .drif-selector-category-icon {
+    grid-row: 1 / 4;
 }
 .backpack-card .equipment-slot-overview-heading {
     display: flex;
@@ -206,7 +301,28 @@
     font-family: var(--ui-font);
 }
 .backpack-editor select {
+    min-width: 0;
+    max-width: 100%;
     min-height: 36px;
+}
+.backpack-editor :is(.orb-socket-glyph, .drif-selector-category-icon) {
+    width: 1.55rem;
+    height: 1.55rem;
+    flex: 0 0 auto;
+}
+.backpack-editor .orb-selector-row {
+    display: grid;
+    grid-template-columns: 1.7rem minmax(0, 1fr);
+    align-items: center;
+    gap: 0.3rem 0.55rem;
+}
+.backpack-editor .orb-socket-glyph {
+    grid-row: 1 / 4;
+}
+.backpack-editor .orb-selector-row select {
+    width: 100%;
+    grid-column: 2;
+    text-align: left;
 }
 @media (max-width: 700px) {
     .mobile-builder .mobile-sections {
@@ -281,4 +397,41 @@
     .backpack-workbench {
         min-height: 24rem;
     }
+}
+.backpack-backend-selection {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.6rem;
+    font-family: var(--ui-font);
+    font-size: 0.7rem;
+    color: var(--ui-gold);
+    cursor: pointer;
+}
+.backpack-backend-selection input {
+    appearance: none;
+    flex: 0 0 0.9rem;
+    width: 0.9rem;
+    height: 0.9rem;
+    margin: 0;
+    border: 1px solid var(--ui-line-bright);
+    border-radius: 0;
+    background: var(--ui-ink);
+    cursor: pointer;
+}
+.backpack-backend-selection:hover input {
+    border-color: var(--ui-gold);
+}
+.backpack-backend-selection input:checked {
+    border-color: var(--ui-gold);
+    background-color: rgba(115, 63, 25, 0.55);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23f3d59a' d='M6.4 11.5 2.8 7.9l1.4-1.4 2.2 2.2 5.4-5.4 1.4 1.4z'/%3E%3C/svg%3E");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 0.8rem;
+    box-shadow: inset 0 0 7px rgba(212, 162, 84, 0.15);
+}
+.backpack-backend-selection input:focus-visible {
+    outline: 2px solid var(--ui-gold);
+    outline-offset: 2px;
 }

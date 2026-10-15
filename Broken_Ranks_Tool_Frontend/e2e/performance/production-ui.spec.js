@@ -50,7 +50,8 @@ test("mobile production startup obeys route budgets and defers other workspaces"
     }
 });
 
-test("desktop production keeps one editor and bounds large database results", async ({ page }) => {
+test("desktop production keeps one editor and scrolls the complete database", async ({ page }) => {
+    await page.setViewportSize({ width: 1920, height: 2200 });
     await page.route("**/api/initial-data", (route) =>
         route.fulfill({
             json: {
@@ -65,11 +66,24 @@ test("desktop production keeps one editor and bounds large database results", as
     );
     await page.goto("/kreator");
     await expect(page.locator(".gear-slot-editor")).toHaveCount(1);
-    await expect(page.locator(".database-result-row")).toHaveCount(60);
-    await page.getByRole("button", { name: "Następna", exact: true }).click();
-    await expect(page.locator(".database-result-row").first()).toContainText("0060");
+    await expect(page.locator(".database-result-row")).toHaveCount(1500);
+    await expect(page.getByRole("navigation", { name: "Strony bazy przedmiotów" })).toHaveCount(0);
+    const results = page.locator(".database-results");
+    expect(await results.evaluate((element) => element.scrollHeight > element.clientHeight)).toBe(
+        true
+    );
+    const lastItem = page.locator(".database-result-row").last();
+    await lastItem.scrollIntoViewIfNeeded();
+    await expect(lastItem).toBeInViewport({ ratio: 1 });
+    expect(await results.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+    await page.screenshot({ path: "../tmp/database-scroll-bottom.png" });
+    const helmetSlot = page.locator(".equipment-ring-slot-helmet");
+    await expect(helmetSlot).toBeInViewport({ ratio: 1 });
+    await lastItem.dragTo(helmetSlot, { sourcePosition: { x: 12, y: 12 } });
+    await expect(helmetSlot).toContainText("Hełm 1499");
     await page.getByRole("textbox", { name: "Wyszukaj przedmioty" }).fill("1499");
     await expect(page.locator(".database-result-row")).toHaveCount(1);
+    expect(await results.evaluate((element) => element.scrollTop)).toBe(0);
     await page.waitForLoadState("networkidle");
     const loaded = await resources(page);
     expect(

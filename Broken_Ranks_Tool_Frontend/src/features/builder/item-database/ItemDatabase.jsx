@@ -2,7 +2,11 @@ import { setDraggedResource } from "../useDraggedResource";
 import { memo, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { useItemDatabaseFilters } from "./useItemDatabaseFilters";
 import ItemDatabaseControls from "./ItemDatabaseControls";
-import { buildItemDatabaseGroups, filterItemDatabaseGroups } from "./itemDatabaseDomain";
+import {
+    buildItemDatabaseGroups,
+    createItemDatabaseSearch,
+    filterItemDatabaseGroups,
+} from "./itemDatabaseDomain";
 import ItemDatabaseResults from "./ItemDatabaseResults";
 import ItemDatabaseTooltip from "./ItemDatabaseTooltip";
 
@@ -31,6 +35,10 @@ const ItemDatabase = ({
         []
     );
     const { bonusTranslations = {}, drifBasePowers = {} } = gameRules;
+    const itemSearch = useMemo(
+        () => (activeTab === "items" ? createItemDatabaseSearch(filters.search) : null),
+        [activeTab, filters.search]
+    );
     const { groupedData, allCategories, allTiers, allStats } = useMemo(
         () => buildItemDatabaseGroups({ activeTab, items, orbs, drifs, categoryNames }),
         [activeTab, items, orbs, drifs, categoryNames]
@@ -43,8 +51,9 @@ const ItemDatabase = ({
                 filters,
                 bonusTranslations,
                 drifBasePowers,
+                itemSearch,
             }),
-        [groupedData, activeTab, filters, bonusTranslations, drifBasePowers]
+        [groupedData, activeTab, filters, bonusTranslations, drifBasePowers, itemSearch]
     );
     const hideTooltip = useCallback((event) => {
         if (event?.type === "mouseleave" && hovered.current?.keyboard) return;
@@ -114,6 +123,8 @@ const ItemDatabase = ({
         >
             <ItemDatabaseControls
                 activeTab={activeTab}
+                searchError={itemSearch?.error}
+                searchErrorId={`${tooltipId}-search-error`}
                 filters={filters}
                 hasActiveFilters={hasActiveFilters}
                 allCategories={allCategories}

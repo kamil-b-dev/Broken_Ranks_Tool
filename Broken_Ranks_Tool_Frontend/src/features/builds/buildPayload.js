@@ -1,6 +1,6 @@
 export const BUILD_FILE_FORMAT = "broken-ranks-tool-build";
 import { normalizeBackpack } from "../builder/backpack/backpackSerialization.js";
-export const BUILD_FILE_VERSION = 2;
+export const BUILD_FILE_VERSION = 3;
 
 const pick = (value, keys) =>
     Object.fromEntries(
@@ -40,12 +40,26 @@ export const createVersionOneBuildPayload = ({
     );
 };
 
-/** v2 extends the frozen equipment fields with an independently editable backpack. */
+/** Frozen v2 exporter; selection metadata belongs to v3. */
+export const createVersionTwoBuildPayload = (state) => {
+    const previous = createVersionOneBuildPayload(state);
+    return {
+        ...previous,
+        version: 2,
+        build: {
+            ...previous.build,
+            backpack: normalizeBackpack(state.backpack || [], { preserveSelection: false }),
+        },
+    };
+};
 export const createBuildPayload = (state) => {
     const previous = createVersionOneBuildPayload(state);
     return {
         ...previous,
         version: BUILD_FILE_VERSION,
-        build: { ...previous.build, backpack: normalizeBackpack(state.backpack || []) },
+        build: {
+            ...previous.build,
+            backpack: normalizeBackpack(state.backpack || []),
+        },
     };
 };

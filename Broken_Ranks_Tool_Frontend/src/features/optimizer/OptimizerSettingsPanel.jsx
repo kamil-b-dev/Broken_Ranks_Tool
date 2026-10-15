@@ -1,6 +1,7 @@
 const MODES = [
     ["BUILD_FROM_SCRATCH", "Od zera"],
     ["ADVISOR", "Doradca"],
+    ["REORGANIZE", "Reorganizacja"],
 ];
 
 /** Switches between the optimizer and advisor workspaces. */
@@ -63,9 +64,11 @@ const VariantsOptions = ({ settings, onChange, label }) => (
 /** Shows only settings meaningful for the currently selected workspace. */
 const OptimizerSettingsPanel = ({ settings, onChange }) => {
     const advisory = settings.mode === "ADVISOR";
+    const reorganize = settings.mode === "REORGANIZE";
     const configurationMode = settings.configurationMode || "ADVANCED";
+    if (reorganize) return null;
     return (
-        <section className="optimizer-settings-strip">
+        <section className="optimizer-settings-strip" hidden={reorganize}>
             <h3>Ustawienia</h3>
             <div className="optimizer-settings-options">
                 {advisory && (
@@ -84,7 +87,7 @@ const OptimizerSettingsPanel = ({ settings, onChange }) => {
                         </select>
                     </label>
                 )}
-                {!advisory && (
+                {!advisory && !reorganize && (
                     <div className="flex flex-wrap items-center gap-3">
                         <div className="optimizer-settings-mode flex border border-purple-900/80 optimizer-accent-frame bg-black p-0.5">
                             {[
@@ -106,7 +109,7 @@ const OptimizerSettingsPanel = ({ settings, onChange }) => {
                         </div>
                     </div>
                 )}
-                {!advisory && configurationMode === "ADVANCED" && (
+                {!advisory && !reorganize && configurationMode === "ADVANCED" && (
                     <label className="optimizer-settings-choice flex items-center gap-3 cursor-pointer select-none">
                         <input
                             type="checkbox"
@@ -124,17 +127,39 @@ const OptimizerSettingsPanel = ({ settings, onChange }) => {
                         </span>
                     </label>
                 )}
-                {!advisory && configurationMode === "ADVANCED" && (
-                    <VariantsOptions
-                        settings={settings}
-                        onChange={onChange}
-                        label={
-                            advisory
-                                ? "Pokaż alternatywne rekomendacje"
-                                : "Obliczaj dodatkowe warianty"
-                        }
-                    />
+                {!advisory && !reorganize && configurationMode === "ADVANCED" && (
+                    <label className="optimizer-settings-choice flex items-center gap-3 cursor-pointer select-none">
+                        <input
+                            type="checkbox"
+                            checked={Boolean(settings.backpackOnly)}
+                            className="h-4 w-4 accent-purple-700"
+                            onChange={(event) =>
+                                onChange({
+                                    ...settings,
+                                    backpackOnly: event.target.checked,
+                                    ...(event.target.checked ? { generateVariants: false } : {}),
+                                })
+                            }
+                        />
+                        <span className="text-[11px] text-stone-400 leading-relaxed">
+                            Użyj drifów z plecaka
+                        </span>
+                    </label>
                 )}
+                {!advisory &&
+                    !reorganize &&
+                    configurationMode === "ADVANCED" &&
+                    !settings.backpackOnly && (
+                        <VariantsOptions
+                            settings={settings}
+                            onChange={onChange}
+                            label={
+                                advisory
+                                    ? "Pokaż alternatywne rekomendacje"
+                                    : "Obliczaj dodatkowe warianty"
+                            }
+                        />
+                    )}
             </div>
         </section>
     );

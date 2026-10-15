@@ -34,6 +34,9 @@ class AdvisorOptimizationSearchTests extends AdvisorOptimizationTestSupport {
         assertTrue(result.getAdvisorReport().proofComplete());
         assertEquals(0, result.getAdvisorReport().evaluatedStates());
         assertTrue(result.getSummary().getNextVariants().isEmpty());
+        assertEquals(
+                "Obecny ekwipunek już spełnia zadany cel. Nie potrzebujesz dodatkowych zmian.",
+                result.getSummary().getMessage());
     }
 
     @Test
@@ -49,6 +52,9 @@ class AdvisorOptimizationSearchTests extends AdvisorOptimizationTestSupport {
         var result = f.service.optimize(request);
 
         assertEquals(AdvisorStatus.INFEASIBLE, result.getAdvisorReport().status());
+        assertEquals(
+                "Nie znaleziono poprawy przy wybranych ustawieniach. Sprawdź ochrony bonusów i dozwolone zmiany. Nie osiągnięto zadanego celu.",
+                result.getSummary().getMessage());
         assertTrue(result.getAdvisorReport().searchSpaceExhausted());
         assertTrue(result.getAdvisorReport().proofComplete());
         assertEquals(
@@ -70,6 +76,9 @@ class AdvisorOptimizationSearchTests extends AdvisorOptimizationTestSupport {
         assertEquals(AdvisorStatus.OPTIMAL, result.getAdvisorReport().status());
         assertTrue(result.getAdvisorReport().proofComplete());
         assertTrue(result.getAdvisorReport().plans().isEmpty());
+        assertEquals(
+                "Nie znaleziono poprawy przy wybranych ustawieniach. Sprawdź ochrony bonusów i dozwolone zmiany.",
+                result.getSummary().getMessage());
     }
 
     @Test
@@ -104,6 +113,13 @@ class AdvisorOptimizationSearchTests extends AdvisorOptimizationTestSupport {
         var result = f.service.optimize(request);
         assertTrue(result.getAdvisorReport().targetReached());
         assertNotNull(result.getCalculationResult());
+        assertEquals(
+                "Znaleziono "
+                        + result.getSummary().getNextVariants().size()
+                        + " propozycji poprawy: "
+                        + A.getDescription()
+                        + ".",
+                result.getSummary().getMessage());
         assertEquals(2, result.getAdvisorReport().plans().getFirst().actions().size());
         assertNotNull(result.getSummary().getNextVariants().getFirst().calculationResult());
         assertEquals(

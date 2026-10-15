@@ -23,9 +23,11 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemp
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.OrbTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.persistence.repository.OrbTemplateRepository;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentPlacementRules;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationMode;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.OptimizationContext;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.SlotContext;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.BackpackDrifConstraints;
 
 /** Validates catalog-backed optimizer input before any invalid slot can be silently omitted. */
 @Component
@@ -38,6 +40,8 @@ public final class OptimizationInputValidator {
 
     public String validate(OptimizationContext context) {
         OptimizationRequest request = context.request();
+        String backpackError = BackpackDrifConstraints.validateCatalog(context, placementRules);
+        if (backpackError != null) return backpackError;
         String catalogError = validateSelectedDrifCatalog(context);
         if (catalogError != null) return catalogError;
         Map<String, SlotContext> validSlots =
@@ -78,6 +82,8 @@ public final class OptimizationInputValidator {
     }
 
     private String validateSelectedDrifCatalog(OptimizationContext context) {
+        // Reorganization validates every equipped and selected backpack occurrence separately.
+        if (context.request().getMode() == OptimizationMode.REORGANIZE) return null;
         for (DrifTemplate drif : context.drifs().values()) {
             if (drif == null
                     || drif.getBonusType() == null
@@ -123,6 +129,14 @@ public final class OptimizationInputValidator {
         String orbError = validateOrbs(key, data, item, orbs, usedOrbBonuses);
         if (orbError != null) return orbError;
         Set<Integer> preserved = preservedIndexes(key, data, slot, context.request());
+        if (context.request().getMode() == OptimizationMode.REORGANIZE) {
+            preserved = new HashSet<>(preserved);
+            for (int index = 0;
+                    index < (data.getDrifIds() == null ? 0 : data.getDrifIds().size());
+                    index++) {
+                if (data.getDrifIds().get(index) != null) preserved.add(index);
+            }
+        }
         String drifError = validatePreservedDrifs(key, data, slot, context, preserved);
         if (drifError != null) return drifError;
         return slot.special() ? validateBuiltInDrifs(key, data, item, context) : null;
@@ -295,7 +309,8 @@ public final class OptimizationInputValidator {
             return "Slot " + key + ": zablokowane drify przekraczają pojemność przedmiotu.";
         }
         boolean entireSlotPreserved =
-                slot.special()
+                context.request().getMode() == OptimizationMode.REORGANIZE
+                        || slot.special()
                         || context.request().getLockedSlots() != null
                                 && context.request().getLockedSlots().contains(key);
         return validatePreservedLevelKeys(key, data, preserved, entireSlotPreserved);

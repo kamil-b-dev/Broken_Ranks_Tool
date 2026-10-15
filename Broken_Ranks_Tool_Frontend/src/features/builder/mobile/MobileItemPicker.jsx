@@ -2,7 +2,15 @@ import { useLayoutEffect, useMemo, useRef, useState } from "react";
 
 const PAGE_SIZE = 40;
 
-export default function MobileItemPicker({ items, slotLabel, onSelect, onClose, openerRef }) {
+export default function MobileItemPicker({
+    items,
+    slotLabel,
+    onSelect,
+    onClose,
+    openerRef,
+    backpackContent,
+}) {
+    const [source, setSource] = useState("database");
     const dialog = useRef(null);
     const [query, setQuery] = useState("");
     const [selected, setSelected] = useState(null);
@@ -56,7 +64,31 @@ export default function MobileItemPicker({ items, slotLabel, onSelect, onClose, 
                     ✕
                 </button>
             </header>
-            {selected ? (
+            {backpackContent && (
+                <div
+                    className="builder-resource-switch"
+                    role="group"
+                    aria-label="Źródło przedmiotu"
+                >
+                    <button
+                        type="button"
+                        aria-pressed={source === "database"}
+                        onClick={() => setSource("database")}
+                    >
+                        Baza danych
+                    </button>
+                    <button
+                        type="button"
+                        aria-pressed={source === "backpack"}
+                        onClick={() => setSource("backpack")}
+                    >
+                        Plecak
+                    </button>
+                </div>
+            )}
+            {source === "backpack" ? (
+                backpackContent
+            ) : selected ? (
                 <div className="mobile-picker-detail">
                     <button type="button" className="mobile-back" onClick={() => setSelected(null)}>
                         ← Wyniki wyszukiwania

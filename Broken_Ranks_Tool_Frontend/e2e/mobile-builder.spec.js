@@ -86,6 +86,92 @@ test.describe("dedicated mobile builder", () => {
         expect(requestedScripts.some((url) => url.includes("DesktopApp"))).toBe(false);
     });
 
+    for (const [name, backpack] of [
+        ["empty", []],
+        [
+            "owned stones",
+            [
+                { id: "owned-drif", kind: "DRIF", templateId: "60", level: 6 },
+                { id: "owned-orb", kind: "ORB", templateId: "50", level: 1 },
+            ],
+        ],
+    ]) {
+        test(`keeps native backpack selectors within 320px with ${name} before and after rotation`, async ({
+            page,
+        }) => {
+            await mockCatalog(page);
+            await page.addInitScript(
+                (backpack) =>
+                    localStorage.setItem(
+                        "broken-ranks-tool.equipment-draft.v3",
+                        JSON.stringify({
+                            version: 3,
+                            value: {
+                                requestData: {
+                                    slots: {
+                                        helmet: {
+                                            itemId: "1",
+                                            itemStars: 9,
+                                            drifIds: backpack.length ? [] : [60],
+                                            drifLevels: backpack.length ? {} : { 0: 6 },
+                                            orbIds: [50],
+                                            orbLevels: [1],
+                                        },
+                                    },
+                                    characterStats: {},
+                                },
+                                backpack,
+                                characterConfig: null,
+                                lockedSlots: [],
+                                lockedDrifs: {},
+                            },
+                        })
+                    ),
+                backpack
+            );
+            await page.goto("/kreator?slot=helmet");
+            await expect(page.getByLabel("Gwiazdki", { exact: true })).toHaveValue("9");
+            for (const width of [320, 844, 320]) {
+                await page.setViewportSize({ width, height: width === 844 ? 390 : 740 });
+                const overflowingPickers = await page
+                    .locator(".backpack-equipment-select")
+                    .evaluateAll((pickers) =>
+                        pickers
+                            .filter((picker) => picker.scrollWidth > picker.clientWidth + 1)
+                            .map((picker) => ({
+                                label: picker.textContent,
+                                width: picker.clientWidth,
+                                scrollWidth: picker.scrollWidth,
+                            }))
+                    );
+                expect(
+                    overflowingPickers,
+                    `Native selector contents must fit at ${width}px`
+                ).toEqual([]);
+                await expect(page.locator("html")).toHaveJSProperty("scrollWidth", width);
+            }
+            const drifPicker = page.getByLabel("Drif 1 z plecaka");
+            if (backpack.length) {
+                await expect(drifPicker.getByRole("option", { name: /Band/ })).toBeEnabled();
+                await drifPicker.selectOption("owned-drif");
+                await expect
+                    .poll(async () =>
+                        page.evaluate(() => {
+                            const draft = JSON.parse(
+                                localStorage.getItem("broken-ranks-tool.equipment-draft.v3")
+                            );
+                            return draft.value.backpack.some((entry) => entry.id === "owned-drif");
+                        })
+                    )
+                    .toBe(false);
+            }
+            await expect(drifPicker.getByRole("option")).toHaveText(
+                "Brak kamieni tego rodzaju w plecaku"
+            );
+            await expect(page.locator("html")).toHaveJSProperty("scrollWidth", 320);
+        });
+    }
+
     test("edits every slot by touch and preserves equipment through history, rotation and reload", async ({
         page,
     }) => {
@@ -114,6 +200,20 @@ test.describe("dedicated mobile builder", () => {
         await expect(page.getByLabel("Wybierz poziom drifa 1", { exact: true })).toHaveValue("6");
         await page.setViewportSize({ width: 320, height: 740 });
         await expect(page.locator("html")).toHaveJSProperty("scrollWidth", 320);
+        const overflowingControls = await page.locator(".mobile-stones").evaluateAll((panels) =>
+            panels.flatMap((panel) => {
+                const bounds = panel.getBoundingClientRect();
+                return [...panel.querySelectorAll("select, button")].flatMap((control) => {
+                    const box = control.getBoundingClientRect();
+                    return box.width === 0 || (box.left >= bounds.left && box.right <= bounds.right)
+                        ? []
+                        : [control.getAttribute("aria-label") || control.textContent];
+                });
+            })
+        );
+        expect(overflowingControls, "Stone controls must fit after rotating back to 320px").toEqual(
+            []
+        );
         await page.screenshot({
             path: "../tmp/mobile-ui-audit/mobile-slot-320.png",
             fullPage: true,

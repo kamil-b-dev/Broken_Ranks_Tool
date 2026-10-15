@@ -399,6 +399,8 @@
 
 .optimizer-priority-toolbar > div {
     display: flex;
+    min-width: 0;
+    max-width: 100%;
     flex-wrap: wrap;
     align-items: center;
     justify-content: flex-end;
@@ -416,9 +418,43 @@
     background: rgba(3, 4, 4, 0.76);
 }
 
+.optimizer-priority-toolbar {
+    flex-wrap: wrap;
+}
+.optimizer-priority-toolbar > .optimizer-priority-category-visibility {
+    flex: 0 0 auto;
+    width: 100%;
+    justify-content: flex-start;
+    gap: 0.4rem;
+}
+.optimizer-priority-category-visibility > span,
+.optimizer-priority-hidden-message {
+    color: var(--ui-text-muted);
+    font-family: var(--ui-font);
+    font-size: 0.8rem;
+}
+.optimizer-priority-category-visibility .optimizer-toolbar-button {
+    font-size: 0.75rem;
+    letter-spacing: normal;
+    text-transform: none;
+}
+.optimizer-priority-category-visibility .optimizer-toolbar-button[aria-pressed="false"] {
+    color: var(--ui-text-muted);
+    border-style: dashed;
+}
+.optimizer-priority-hidden-message {
+    padding: 0.75rem;
+}
+
 .optimizer-toolbar-button:hover:not(:disabled) {
     border-color: rgba(170, 111, 50, 0.88);
     color: #ddb269;
+}
+
+.optimizer-toolbar-button[aria-pressed="true"] {
+    border-color: #e4ba70;
+    color: #efc77e;
+    background: rgba(115, 63, 25, 0.35);
 }
 
 .optimizer-toolbar-button:disabled {
@@ -855,4 +891,23 @@
     .optimizer-priority-options {
         grid-template-columns: minmax(0, 1fr);
     }
+}
+.optimizer-label-setting {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    padding: 0.5rem 0;
+    color: var(--ui-text);
+    font-family: var(--ui-font);
+    font-size: 0.85rem;
+}
+.optimizer-label-setting select {
+    min-width: 0;
+    max-width: 100%;
+    padding: 0.5rem 0.65rem;
+    border: 1px solid var(--ui-line-bright);
+    background: var(--ui-ink);
+    color: var(--ui-text);
+    font-family: var(--ui-font);
 }

@@ -1,4 +1,5 @@
 import { numericStatValue } from "./optimizerDomain";
+import { useOptimizerLabelContext } from "./optimizerLabelContext";
 
 const evaluateGoal = (goal, current, activeVariant, maxCap, advisory) => {
     const variantChange = activeVariant?.statChanges?.find(
@@ -34,12 +35,13 @@ const evaluateGoal = (goal, current, activeVariant, maxCap, advisory) => {
 };
 
 const GoalCard = ({ goal, current, activeVariant, maxCap, showTargetLabel, advisory }) => {
+    const { getName } = useOptimizerLabelContext();
     const result = evaluateGoal(goal, current, activeVariant, maxCap, advisory);
 
     return (
         <div className={`optimizer-goal-row ${result.complete ? "is-complete" : "is-partial"}`}>
             <div className="optimizer-goal-name">
-                <strong>{goal.bonusName}</strong>
+                <strong>{getName(goal.statKey, goal.bonusName)}</strong>
                 <small>Priorytet {goal.priority}</small>
             </div>
             <div className="optimizer-goal-value">
@@ -81,6 +83,7 @@ const OptimizerGoalsSection = ({
     showTargetLabel = false,
     advisory = false,
 }) => {
+    const { formatText } = useOptimizerLabelContext();
     const missed =
         activeVariant && !activeVariant.main
             ? (goals || []).flatMap((goal) => {
@@ -104,7 +107,7 @@ const OptimizerGoalsSection = ({
             {missed.length > 0 && (
                 <div className="is-warning">
                     <p className="optimizer-status-message" role="status">
-                        Wybrany wariant nie osiąga celu: {missed.join("; ")}.
+                        Wybrany wariant nie osiąga celu: {formatText(missed.join("; "))}.
                     </p>
                 </div>
             )}

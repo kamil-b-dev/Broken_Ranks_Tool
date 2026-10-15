@@ -17,6 +17,7 @@ import BackpackGrid from "./backpack/BackpackGrid";
 import BackpackEditor from "./backpack/BackpackEditor";
 import { useBackpackWorkspace } from "./backpack/useBackpackWorkspace";
 import "./backpack/backpack.css";
+import BackpackSourcePanel from "./backpack/BackpackSourcePanel";
 
 /** Composes the manual equipment builder workflow. */
 const BuilderWorkspace = ({
@@ -37,13 +38,20 @@ const BuilderWorkspace = ({
     onCalculateStats,
     backpack = [],
     onBackpackChange,
+    equipBackpackEntry,
+    getBackpackEquipWarning,
+    backpackEquipNotice,
+    equipmentRemoval,
+    backpackImportRevision,
 }) => {
+    const [resourceSource, setResourceSource] = useState("database");
     const [equipmentView, setEquipmentView] = useState("character");
     const backpackModel = useBackpackWorkspace({
         entries: backpack,
         onChange: onBackpackChange,
         data,
         gameRules: gameRules || {},
+        importRevision: backpackImportRevision,
     });
     const model = useBuilderWorkspace({ items: data.items, slots: requestData.slots });
     const [levelWarnings, setLevelWarnings] = useState([]);
@@ -60,6 +68,10 @@ const BuilderWorkspace = ({
     };
     const [slotDropRevision, setSlotDropRevision] = useState(0);
     const handleOverviewItemDrop = (slot, item) => {
+        if (item.source === "backpack") {
+            if (equipBackpackEntry?.(item.entryId, slot.key)) model.selectSlot(slot);
+            return;
+        }
         onSlotUpdate(slot.key, {
             itemId: String(item.id),
             itemStars: 1,
@@ -87,15 +99,48 @@ const BuilderWorkspace = ({
             />
             <div className="builder-workspace-grid">
                 <aside className="builder-database-column">
-                    <ItemDatabase
-                        items={data.items}
-                        orbs={data.orbs}
-                        drifs={data.drifs}
-                        categoryNames={categoryNames}
-                        orbCategories={orbCategories}
-                        drifCategories={drifCategories}
-                        gameRules={gameRules || {}}
-                    />
+                    <div className="builder-resource-panel">
+                        <div
+                            className="builder-resource-switch"
+                            role="group"
+                            aria-label="Źródło wyposażenia"
+                        >
+                            <button
+                                type="button"
+                                aria-pressed={resourceSource === "database"}
+                                onClick={() => setResourceSource("database")}
+                            >
+                                Baza danych
+                            </button>
+                            <button
+                                type="button"
+                                aria-pressed={resourceSource === "backpack"}
+                                onClick={() => setResourceSource("backpack")}
+                            >
+                                Plecak
+                            </button>
+                        </div>
+                        {resourceSource === "backpack" ? (
+                            <BackpackSourcePanel
+                                entries={backpack}
+                                data={data}
+                                gameRules={gameRules || {}}
+                                activeSlot={model.activeSlot}
+                                onEquip={equipBackpackEntry}
+                                getWarning={getBackpackEquipWarning}
+                            />
+                        ) : (
+                            <ItemDatabase
+                                items={data.items}
+                                orbs={data.orbs}
+                                drifs={data.drifs}
+                                categoryNames={categoryNames}
+                                orbCategories={orbCategories}
+                                drifCategories={drifCategories}
+                                gameRules={gameRules || {}}
+                            />
+                        )}
+                    </div>
                 </aside>
                 <BuilderEquipmentWorkbench
                     model={model}
@@ -103,7 +148,9 @@ const BuilderWorkspace = ({
                     requestData={requestData}
                     gameRules={gameRules}
                     onOverviewItemDrop={handleOverviewItemDrop}
+                    getBackpackEquipWarning={getBackpackEquipWarning}
                     onMaximizeLevels={maximizeLevels}
+                    equipmentRemoval={equipmentRemoval}
                     levelWarnings={levelWarnings}
                     equipmentView={equipmentView}
                     onEquipmentViewChange={setEquipmentView}
@@ -116,6 +163,11 @@ const BuilderWorkspace = ({
                         />
                     }
                 >
+                    {backpackEquipNotice && (
+                        <p className="backpack-warning" role="alert">
+                            {backpackEquipNotice}
+                        </p>
+                    )}
                     <StatsPanel
                         compact
                         stats={stats}
@@ -141,6 +193,9 @@ const BuilderWorkspace = ({
                             gameRules={gameRules}
                             optimizationTrigger={slotEditorSyncTrigger}
                             onSlotUpdate={onSlotUpdate}
+                            onBackpackEquip={equipBackpackEntry}
+                            getBackpackEquipWarning={getBackpackEquipWarning}
+                            equipmentRemoval={equipmentRemoval}
                         />
                     )}
                 </aside>

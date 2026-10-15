@@ -13,6 +13,7 @@ const OptimizerGoalsColumn = ({
     stats,
     gameRules,
     priorities,
+    priorityCount = priorities.length,
     availableBonuses,
     searchQuery,
     selectedCategory,
@@ -21,6 +22,9 @@ const OptimizerGoalsColumn = ({
     onCategoryChange,
     onSelectBonus,
     sortDirection,
+    categorySorted,
+    hiddenPriorityCategories,
+    priorityCategoryCounts,
     expandedPriorities,
     currentDetails,
     onTogglePriority,
@@ -28,6 +32,9 @@ const OptimizerGoalsColumn = ({
     onUpdatePriority,
     configFiles,
     onSort,
+    onSortCategories,
+    onTogglePriorityCategory,
+    onShowAllPriorityCategories,
     onToggleExpanded,
     onClear,
     isOptimizing,
@@ -57,7 +64,7 @@ const OptimizerGoalsColumn = ({
                 settings={settings}
                 onChange={onSettingsChange}
             />
-        ) : settings.configurationMode === "SIMPLE" ? (
+        ) : settings.mode !== "REORGANIZE" && settings.configurationMode === "SIMPLE" ? (
             <SimpleProfileGoalsPanel settings={settings} onChange={onSettingsChange} />
         ) : (
             <div className="optimizer-goals-workspace">
@@ -76,24 +83,35 @@ const OptimizerGoalsColumn = ({
                 >
                     <OptimizerPriorityToolbar
                         fileInputRef={configFiles.inputRef}
-                        priorityCount={priorities.length}
+                        priorityCount={priorityCount}
                         sortDirection={sortDirection}
+                        categorySorted={categorySorted}
+                        hiddenCategories={hiddenPriorityCategories}
+                        categoryCounts={priorityCategoryCounts}
                         anyExpanded={expandedPriorities.size > 0}
                         onLoad={configFiles.load}
                         onSave={configFiles.save}
                         onSort={onSort}
+                        onSortCategories={onSortCategories}
+                        onToggleCategory={onTogglePriorityCategory}
+                        onShowAllCategories={onShowAllPriorityCategories}
                         onToggleExpanded={onToggleExpanded}
                         onClear={onClear}
                     />
                     <OptimizerPriorityList
                         priorities={priorities}
+                        hiddenCount={priorityCount - priorities.length}
                         expandedPriorities={expandedPriorities}
-                        currentDetails={currentDetails}
+                        currentDetails={settings.mode === "REORGANIZE" ? [] : currentDetails}
                         maxCaps={gameRules?.drifMaxCaps}
                         onToggle={onTogglePriority}
                         onRemove={onRemovePriority}
                         onUpdate={onUpdatePriority}
-                        configurationMode={settings.configurationMode || "ADVANCED"}
+                        configurationMode={
+                            settings.mode === "REORGANIZE"
+                                ? "ADVANCED"
+                                : settings.configurationMode || "ADVANCED"
+                        }
                     />
                 </div>
             </div>
@@ -102,9 +120,9 @@ const OptimizerGoalsColumn = ({
             priorityCount={
                 settings.mode === "ADVISOR"
                     ? 1
-                    : settings.configurationMode === "SIMPLE"
+                    : settings.mode !== "REORGANIZE" && settings.configurationMode === "SIMPLE"
                       ? 1
-                      : priorities.length
+                      : priorityCount
             }
             isOptimizing={isOptimizing}
             elapsedSeconds={elapsedSeconds}
@@ -114,7 +132,9 @@ const OptimizerGoalsColumn = ({
             onRun={onRun}
             onCancel={onCancel}
             mode={settings.mode}
-            simple={settings.mode !== "ADVISOR" && settings.configurationMode === "SIMPLE"}
+            simple={
+                settings.mode === "BUILD_FROM_SCRATCH" && settings.configurationMode === "SIMPLE"
+            }
         />
     </section>
 );

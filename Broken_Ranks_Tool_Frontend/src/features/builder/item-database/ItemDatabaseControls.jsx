@@ -15,6 +15,8 @@ const ItemDatabaseControls = ({
     onTabChange,
     onFilterChange,
     onClearFilters,
+    searchError,
+    searchErrorId,
 }) => (
     <>
         <div className="flex justify-between items-end border-b-4 border-double border-rose-900/70 builder-accent-frame pb-3 mb-4 shrink-0">
@@ -57,11 +59,32 @@ const ItemDatabaseControls = ({
             <input
                 type="text"
                 aria-label={`Wyszukaj ${activeTab === "items" ? "przedmioty" : activeTab === "orbs" ? "orby" : "drify"}`}
-                placeholder={`Wyszukaj ${activeTab === "items" ? "(np. Morana)" : activeTab === "orbs" ? "orba" : "drifa"}...`}
+                placeholder={
+                    activeTab === "items"
+                        ? "Nazwa przedmiotu lub bossa (regex)"
+                        : `Wyszukaj ${activeTab === "orbs" ? "orba" : "drifa"}...`
+                }
+                title={
+                    activeTab === "items"
+                        ? "Wyrażenie regularne, np. ^Morana$ lub Morana|Tarul. Wielkość liter nie ma znaczenia."
+                        : undefined
+                }
+                aria-invalid={Boolean(searchError)}
+                aria-describedby={searchError ? searchErrorId : undefined}
                 value={filters.search}
                 onChange={(event) => onFilterChange("search", event.target.value)}
                 className="w-full bg-black/60 text-stone-300 font-serif p-2 text-sm border border-stone-800 optimizer-info-divider focus:border-rose-900 builder-accent-frame outline-hidden transition-colors shadow-[inset_0_0_10px_rgba(0,0,0,1)]"
             />
+            {searchError && (
+                <p
+                    id={searchErrorId}
+                    role="status"
+                    className="text-xs text-amber-400"
+                    style={{ fontFamily: "var(--ui-font)" }}
+                >
+                    {searchError}
+                </p>
+            )}
             <div className="flex gap-2">
                 {activeTab === "items" && (
                     <>

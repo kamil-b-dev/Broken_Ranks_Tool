@@ -163,7 +163,7 @@ describe("saved build compatibility contract", () => {
 
     it("keeps the automatic equipment draft key and document readable", () => {
         expect(LEGACY_EQUIPMENT_DRAFT_STORAGE_KEY).toBe("broken-ranks-tool.equipment-draft.v1");
-        expect(EQUIPMENT_DRAFT_STORAGE_KEY).toBe("broken-ranks-tool.equipment-draft.v2");
+        expect(EQUIPMENT_DRAFT_STORAGE_KEY).toBe("broken-ranks-tool.equipment-draft.v3");
         expect(WORKING_DRAFT_VERSION).toBe(1);
         const values = new Map([
             ["broken-ranks-tool.equipment-draft.v1", JSON.stringify(savedDraft)],
@@ -186,7 +186,7 @@ describe("saved build compatibility contract", () => {
         });
     });
 
-    it.each([0, 3, 999, "1", null])(
+    it.each([0, 4, 999, "1", null])(
         "rejects unsupported version %s rather than guessing a migration",
         (version) => {
             expect(() => parseBuildPayload({ ...complete, version }, builderCatalog)).toThrow(

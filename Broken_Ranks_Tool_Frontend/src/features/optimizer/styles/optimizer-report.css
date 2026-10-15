@@ -48,10 +48,10 @@
     gap: 0.5rem;
     color: #87c963;
     font-family: var(--ui-font);
-    font-size: 0.68rem;
+    font-size: 0.88rem;
     font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    line-height: 1.5;
+    letter-spacing: normal;
 }
 
 .optimizer-status-message > span {
@@ -62,6 +62,7 @@
     justify-content: center;
     border: 1px solid currentColor;
     border-radius: 50%;
+    flex-shrink: 0;
 }
 
 .is-warning .optimizer-status-message {
@@ -73,13 +74,61 @@
     padding-left: 0.7rem;
     border-left: 2px solid rgba(186, 128, 43, 0.72);
     color: #c89b58;
-    font-size: 0.58rem;
+    font-family: var(--ui-font);
+    font-size: 0.8rem;
+    line-height: 1.6;
 }
 
 .optimizer-status-applied {
     margin-top: 0.4rem;
-    color: #847a71;
-    font-size: 0.58rem;
+    color: #c5b9ad;
+    font-family: var(--ui-font);
+    font-size: 0.8rem;
+    line-height: 1.5;
+}
+
+.optimizer-status-details {
+    margin-top: 0.8rem;
+    font-family: var(--ui-font);
+    font-size: 0.8rem;
+    color: #c5b9ad;
+}
+
+.optimizer-status-details > summary {
+    cursor: pointer;
+    color: #cfa45e;
+}
+
+.optimizer-status-scope {
+    margin-top: 0.6rem;
+    line-height: 1.5;
+}
+
+.optimizer-backpack-targets {
+    margin-top: 0.6rem;
+    font-family: var(--ui-font);
+    font-size: 0.7rem;
+    color: var(--ui-text-muted);
+}
+.optimizer-backpack-targets summary {
+    color: var(--ui-gold);
+    cursor: pointer;
+}
+.optimizer-backpack-targets table {
+    width: 100%;
+    margin-top: 0.5rem;
+    border-collapse: collapse;
+}
+.optimizer-backpack-targets :is(th, td) {
+    padding: 0.35rem;
+    border-bottom: 1px solid var(--ui-line);
+    text-align: left;
+    overflow-wrap: anywhere;
+    font-weight: 400;
+}
+.optimizer-backpack-targets td {
+    text-align: center;
+    color: var(--ui-text);
 }
 
 .optimizer-status-metrics {
@@ -102,6 +151,14 @@
     border-right: 0;
 }
 
+.optimizer-result-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.optimizer-result-metrics > div:only-child {
+    grid-column: 1 / -1;
+}
+
 .optimizer-status-metrics dd {
     color: #d6c4b1;
     font-family: var(--ui-font);
@@ -113,10 +170,9 @@
 .optimizer-status-metrics dt {
     margin-top: 0.12rem;
     color: #71685f;
-    font-size: 0.48rem;
-    letter-spacing: 0.07em;
+    font-family: var(--ui-font);
+    font-size: 0.68rem;
     text-align: center;
-    text-transform: uppercase;
 }
 
 .optimizer-status-progress,

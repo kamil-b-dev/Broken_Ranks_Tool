@@ -76,6 +76,7 @@ export const createOptimizerConfigPayload = (priorities, settings, exportedAt = 
     settings: {
         mode: settings?.mode || "BUILD_FROM_SCRATCH",
         configurationMode: settings?.configurationMode || "SIMPLE",
+        backpackOnly: Boolean(settings?.backpackOnly),
         simpleProfile: normalizeSimpleProfile(settings?.simpleProfile),
         simpleOptions: normalizeSimpleOptions(
             settings?.simpleOptions,
@@ -182,7 +183,7 @@ export const parseOptimizerConfigPayload = (payload, gameRules = {}) => {
     }
 
     const importedMaxLoss = Number(payload.settings?.maxVariantLossPercent);
-    const knownModes = new Set(["BUILD_FROM_SCRATCH", "ADVISOR"]);
+    const knownModes = new Set(["BUILD_FROM_SCRATCH", "ADVISOR", "REORGANIZE"]);
     return {
         priorities,
         availableBonuses: sortBonusesByCategory(
@@ -198,6 +199,7 @@ export const parseOptimizerConfigPayload = (payload, gameRules = {}) => {
             ? payload.settings.configurationMode
             : "ADVANCED",
         simpleProfile: normalizeSimpleProfile(payload.settings?.simpleProfile),
+        backpackOnly: payload.settings?.backpackOnly === true,
         simpleOptions: normalizeSimpleOptions(
             payload.settings?.simpleOptions,
             normalizeSimpleProfile(payload.settings?.simpleProfile)
@@ -268,6 +270,7 @@ export const parseOptimizerConfigPayload = (payload, gameRules = {}) => {
 /** Merges a validated optimizer import or browser draft into editable settings. */
 export const mergeOptimizerSettings = (previous, imported) => ({
     ...previous,
+    backpackOnly: Boolean(imported.backpackOnly),
     advisorProfession: imported.advisorProfession,
     advisorPurchaseScope: imported.advisorPurchaseScope,
     ...(imported.advisorGoal !== null ? { advisorGoal: imported.advisorGoal } : {}),
@@ -329,18 +332,21 @@ export const findInvalidSizeConstraint = (priorities) =>
 
 /** Converts editable priority values into the backend optimization contract. */
 export const buildOptimizationConfig = (priorities, settings = {}) => {
-    const simple = (settings.configurationMode || "SIMPLE") === "SIMPLE";
+    const reorganize = settings.mode === "REORGANIZE";
+    const simple = !reorganize && (settings.configurationMode || "SIMPLE") === "SIMPLE";
     const config = {
         mode: settings.mode || "BUILD_FROM_SCRATCH",
         configurationMode: simple ? "SIMPLE" : "ADVANCED",
+        ...(!simple && !reorganize && settings.backpackOnly ? { backpackOnly: true } : {}),
         priorities: {},
         targetQuantities: {},
         forceCapBonuses: [],
         forcedPercentageTargets: {},
         maximizeBonuses: [],
         drifSizeQuantities: {},
-        forceMaximizationByDrifBonus: !simple && Boolean(settings.forceMaximizationByDrifBonus),
-        generateVariants: !simple && Boolean(settings.generateVariants),
+        forceMaximizationByDrifBonus:
+            !simple && !reorganize && Boolean(settings.forceMaximizationByDrifBonus),
+        generateVariants: !simple && !reorganize && Boolean(settings.generateVariants),
         maxVariantLossPercent: clamp(Number(settings.maxVariantLossPercent) || 0, 0, 100),
         ...(simple
             ? {

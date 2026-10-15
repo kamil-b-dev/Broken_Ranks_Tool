@@ -180,6 +180,20 @@
     min-height: 44px;
     font-family: var(--ui-font);
 }
+.mobile-app select {
+    color-scheme: dark;
+}
+.mobile-app select :is(option, optgroup) {
+    background-color: var(--mobile-surface);
+    color: #f0e9df;
+}
+.mobile-app select option:checked {
+    background-color: #4c321d;
+    color: #fff4dc;
+}
+.mobile-app select option:disabled {
+    color: var(--mobile-muted);
+}
 .mobile-app :is(button, a, summary):focus-visible {
     outline: 2px solid var(--mobile-gold);
     outline-offset: 3px;

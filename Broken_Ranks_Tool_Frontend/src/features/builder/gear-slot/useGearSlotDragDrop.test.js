@@ -33,6 +33,35 @@ const createProps = (overrides = {}) => ({
 
 describe("useGearSlotDragDrop", () => {
     beforeEach(() => setDraggedResource(null));
+    it("routes backpack stones by occurrence ID and keeps their level out of untrusted drag data", () => {
+        const onBackpackEquip = vi.fn();
+        const getBackpackEquipWarning = vi.fn(() => null);
+        const props = createProps({ onBackpackEquip, getBackpackEquipWarning });
+        const { result } = renderHook(() => useGearSlotDragDrop(props));
+        const payload = {
+            source: "backpack",
+            entryId: "owned",
+            dragType: "drifs",
+            id: 999,
+            level: 21,
+        };
+        act(() => setDraggedResource(payload));
+        expect(result.current.isDropEligible("drif-0")).toBe(true);
+        expect(getBackpackEquipWarning).toHaveBeenCalledWith("owned", "weapon", "drif-0");
+        act(() => result.current.handleDrop(eventFor(payload), "drif-0"));
+        expect(onBackpackEquip).toHaveBeenCalledWith("owned", "weapon", "drif-0");
+        expect(props.setSelectedDrifs).not.toHaveBeenCalled();
+        expect(props.setDrifLevels).not.toHaveBeenCalled();
+    });
+    it("does not interpret a backpack resource as a database template inside an isolated backpack editor", () => {
+        const props = createProps();
+        const { result } = renderHook(() => useGearSlotDragDrop(props));
+        const payload = { source: "backpack", entryId: "owned", dragType: "items", id: 9 };
+        act(() => setDraggedResource(payload));
+        expect(result.current.isDropEligible("item")).toBe(false);
+        act(() => result.current.handleDrop(eventFor(payload), "item"));
+        expect(props.setSelectedItem).not.toHaveBeenCalled();
+    });
 
     it("rejects an over-capacity drif both when highlighting and when dropping", () => {
         const props = createProps({

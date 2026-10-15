@@ -5,7 +5,7 @@ import OptimizerChangesSection from "../OptimizerChangesSection";
 import OptimizerItemsByBonusSection from "../OptimizerItemsByBonusSection";
 
 export default function MobileOptimizerReport({ model, advisory }) {
-    const status = model.optimizationStatus;
+    const status = model.displayedStatus ?? model.optimizationStatus;
     return (
         <section
             className="mobile-optimizer-report"

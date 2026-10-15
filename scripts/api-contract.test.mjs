@@ -22,6 +22,68 @@ const response = {
   advisorReport: null,
 };
 
+test("reorganization accepts exact equipped or backpack sources, never both", () => {
+  validate("OptimizationRequest", {
+    mode: "REORGANIZE",
+    configurationMode: "ADVANCED",
+    originalSlots: { helmet: { itemId: 1 } },
+    backpackDrifs: [],
+  });
+  const usage = {
+    entryId: null,
+    sourceSlotKey: "armor",
+    sourceDrifIndex: 0,
+    slotKey: "helmet",
+    drifIndex: 1,
+  };
+  for (const valid of [
+    usage,
+    { ...usage, entryId: "owned", sourceSlotKey: null, sourceDrifIndex: null },
+  ])
+    validate("OptimizationResponse", {
+      ...response,
+      reorganizationDrifUsages: [valid],
+    });
+  for (const invalid of [
+    { ...usage, entryId: "owned" },
+    { ...usage, sourceDrifIndex: null },
+    { ...usage, slotKey: "unknown" },
+    { ...usage, drifIndex: -1 },
+  ])
+    assert.throws(() =>
+      validate("OptimizationResponse", {
+        ...response,
+        reorganizationDrifUsages: [invalid],
+      }),
+    );
+});
+
+test("backpack substitutions preserve the standard upgrade target and exact occurrence mappings", () => {
+  const usage = { entryId: "owned", slotKey: "boots", drifIndex: 0 };
+  validate("OptimizationResponse", {
+    ...response,
+    targetSetup: { slots: {} },
+    backpackDrifUsages: [usage],
+  });
+  validate("OptimizationResponse", {
+    ...response,
+    targetSetup: null,
+    backpackDrifUsages: null,
+  });
+  for (const invalid of [
+    { ...usage, drifIndex: -1 },
+    { ...usage, slotKey: "invalid" },
+    { ...usage, entryId: "" },
+    { slotKey: "boots", drifIndex: 0 },
+  ])
+    assert.throws(() =>
+      validate("OptimizationResponse", {
+        ...response,
+        backpackDrifUsages: [invalid],
+      }),
+    );
+});
+
 test("calculator and optimizer accept localized intelligence with the usual value bounds", () => {
   for (const characterStats of [
     null,

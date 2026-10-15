@@ -57,6 +57,7 @@ class OptimizationOutcomeTests {
                         mock(OptimizationSearchPipeline.class),
                         mock(OptimizationResultAssembler.class),
                         mock(OptimizationVariantGenerator.class),
+                        null,
                         null);
         var result = service.optimize(request);
         assertEquals(OptimizationOutcome.NO_BUILD_FOUND, result.getSummary().getOutcome());

@@ -4,6 +4,7 @@ import { useEquipmentLocksState } from "../../../shared/state/EquipmentContext";
 import ItemSection from "./ItemSection.jsx";
 import OrbSection from "./OrbSection.jsx";
 import DrifSection from "./DrifSection.jsx";
+import EquipmentRemovalAction from "../backpack/EquipmentRemovalAction";
 
 /**
  * Renders one equipment slot with item, orb, and drif sections.
@@ -123,6 +124,8 @@ const GearSlot = (props) => {
                 </span>
                 <OrbSection
                     slotKey="orb1"
+                    equipmentSlotKey={slotKey}
+                    removalActions={props.equipmentRemoval}
                     dropEligible={hookData.isDropEligible?.("orb1")}
                     selectedItem={selectedItem}
                     dragOverZone={dragOverZone}
@@ -142,6 +145,8 @@ const GearSlot = (props) => {
                 {isLegendary && (
                     <OrbSection
                         slotKey="orb2"
+                        equipmentSlotKey={slotKey}
+                        removalActions={props.equipmentRemoval}
                         dropEligible={hookData.isDropEligible?.("orb2")}
                         selectedItem={selectedItem}
                         dragOverZone={dragOverZone}
@@ -174,6 +179,16 @@ const GearSlot = (props) => {
                     bonusTranslations={bonusTranslations}
                     drifBasePowers={drifBasePowers}
                     showOptimizationLocks={showOptimizationLocks}
+                    renderStoneActions={(index) => (
+                        <EquipmentRemovalAction
+                            iconOnly
+                            actions={props.equipmentRemoval}
+                            kind="DRIF"
+                            slotKey={slotKey}
+                            zone={`drif-${index}`}
+                            label={`Zdejmij drif ${index + 1} do plecaka`}
+                        />
+                    )}
                 />
             </div>
         </div>
