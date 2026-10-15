@@ -83,7 +83,7 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
         if (searchResult == null) {
             OptimizationResponse failed =
                     failedResponse(
-                            "Nie znaleziono poprawnego układu w dostępnym budżecie wyszukiwania. Nie oznacza to dowodu, że rozwiązanie nie istnieje.",
+                            "Nie znaleziono układu spełniającego ustawienia w tym przebiegu. Sprawdź limity liczby i rozmiarów drifów oraz blokady.",
                             elapsedSeconds(startTime));
             failed.getSummary().setOutcome(OptimizationOutcome.NO_BUILD_FOUND);
             failed.getSummary()

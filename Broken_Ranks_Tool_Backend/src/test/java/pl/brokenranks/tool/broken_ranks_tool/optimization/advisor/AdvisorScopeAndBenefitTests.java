@@ -17,6 +17,29 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.*;
 
 class AdvisorScopeAndBenefitTests extends AdvisorOptimizationTestSupport {
     @Test
+    void reportsClampingAnUnattainableTargetWithoutChangingTheProofStatus() {
+        var f =
+                fixture(
+                        List.of(item(1, ITEM_CATEGORY.HELMET, "I", 10, 0)),
+                        List.of(drif(10, A, "10%")));
+        var request = request(A, Map.of("helmet", slot(1, 1, 10L)));
+        request.getAdvisor().setTargetValue(100.0);
+        var response = f.service.optimize(request);
+        assertEquals(AdvisorStatus.INFEASIBLE, response.getAdvisorReport().status());
+        assertTrue(response.getAdvisorReport().proofComplete());
+        assertEquals(
+                "Nie znaleziono poprawy przy wybranych ustawieniach. Sprawdź ochrony bonusów i dozwolone zmiany. Nie osiągnięto zadanego celu. Cel obniżono do maksymalnej wartości bonusu.",
+                response.getSummary().getMessage());
+        assertEquals(
+                "60.00%",
+                response.getSummary().getGoalResults().stream()
+                        .filter(goal -> goal.statKey().equals(A.name()))
+                        .findFirst()
+                        .orElseThrow()
+                        .targetLabel());
+    }
+
+    @Test
     void advisorAcceptsAnEmptyOrbSelectionWithTrailingPaddingWithoutMutatingTheBuild() {
         var original = slot(1, 1);
         original.setOrbIds(Arrays.asList(null, null));

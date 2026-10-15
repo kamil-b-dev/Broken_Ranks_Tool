@@ -117,8 +117,8 @@ final class OptimizationSummaryFactory {
 
     private String resultMessage(List<String> warnings) {
         return warnings.isEmpty()
-                ? "Znaleziono najlepszy sprawdzony poprawny układ; heurystyka nie dowodzi globalnego optimum."
-                : "Zwrócono najlepszy sprawdzony poprawny układ, ale nie osiągnięto co najmniej jednego celu miękkiego; heurystyka nie dowodzi globalnego optimum.";
+                ? "Znaleziono poprawny układ drifów."
+                : "Znaleziono układ drifów, ale nie wszystkie cele zostały osiągnięte.";
     }
 
     private int totalDrifCount(Metrics metrics) {
@@ -209,17 +209,26 @@ final class OptimizationSummaryFactory {
         double value =
                 directedValue(type, calculatorAdapter.parseValue(actualValue), context.request());
         if (value >= target - TARGET_TOLERANCE) return;
-        String targetLabel =
-                isForcedCap(type, context.request()) ? "docelowego capa" : "wymuszonego procentu";
         warnings.add(
-                "Nie udało się osiągnąć "
-                        + targetLabel
-                        + " dla "
-                        + type.getDescription()
-                        + " ("
-                        + String.format(java.util.Locale.ROOT, "%.2f", value)
-                        + "/"
-                        + String.format(java.util.Locale.ROOT, "%.2f", target)
-                        + ").");
+                switch (type) {
+                            case MANA_USAGE_REDUCTION -> "Redukcja zużycia many";
+                            case STAMINA_USAGE_REDUCTION -> "Redukcja zużycia kondycji";
+                            default -> type.getDescription();
+                        }
+                        + ": "
+                        + formatPercentage(value)
+                        + "% z "
+                        + formatPercentage(target)
+                        + "%; brakuje "
+                        + formatPercentage(target - value)
+                        + " p.p.");
+    }
+
+    private String formatPercentage(double value) {
+        java.text.NumberFormat format =
+                java.text.NumberFormat.getNumberInstance(java.util.Locale.forLanguageTag("pl-PL"));
+        format.setMaximumFractionDigits(2);
+        format.setGroupingUsed(false);
+        return format.format(value);
     }
 }

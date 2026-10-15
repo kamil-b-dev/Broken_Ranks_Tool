@@ -15,6 +15,62 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.simpleprofile.*;
 
 class OptimizationCalculatorIntegrationTests {
     @Test
+    void reportsTheResultTargetAndMissingPercentageInPlainPolish() {
+        var type = DRIF_BONUS_TYPE.CRITICAL_CHANCE;
+        var fixture =
+                create(
+                        List.of(item(1, ITEM_CATEGORY.HELMET, "I", 4)),
+                        List.of(drif(10, type, DRIF_SIZE.SUBDRIF, "57.45%", "0%")),
+                        List.of());
+        var request = request(Map.of("helmet", slot(1)), Map.of(type, 15));
+        request.setForceCapBonuses(Set.of(type));
+        var response = fixture.service().optimize(request);
+        assertEquals(
+                OptimizationOutcome.VALID_BUILD_SOFT_TARGETS_UNMET,
+                response.getSummary().getOutcome());
+        assertEquals(
+                List.of("Szansa kryt: 59,45% z 60%; brakuje 0,55 p.p."),
+                response.getSummary().getWarnings());
+        assertEquals(
+                "Znaleziono układ drifów, ale nie wszystkie cele zostały osiągnięte.",
+                response.getSummary().getMessage());
+        assertFalse(response.getSummary().getSearchReport().proofComplete());
+    }
+
+    @Test
+    void keepsTheExistingTargetToleranceAndDoesNotInventAMissingGoalWarning() {
+        var type = DRIF_BONUS_TYPE.CRITICAL_CHANCE;
+        var fixture =
+                create(
+                        List.of(item(1, ITEM_CATEGORY.HELMET, "I", 4)),
+                        List.of(drif(10, type, DRIF_SIZE.SUBDRIF, "57.75%", "0%")),
+                        List.of());
+        var request = request(Map.of("helmet", slot(1)), Map.of(type, 15));
+        request.setForceCapBonuses(Set.of(type));
+        var response = fixture.service().optimize(request);
+        assertTrue(response.getSummary().getWarnings().isEmpty());
+        assertEquals(OptimizationOutcome.VALID_BUILD, response.getSummary().getOutcome());
+        assertEquals("Znaleziono poprawny układ drifów.", response.getSummary().getMessage());
+    }
+
+    @Test
+    void describesNegativeModifiersAsTheAchievedReduction() {
+        var type = DRIF_BONUS_TYPE.MANA_USAGE_REDUCTION;
+        var fixture =
+                create(
+                        List.of(item(1, ITEM_CATEGORY.HELMET, "I", 4)),
+                        List.of(drif(10, type, DRIF_SIZE.SUBDRIF, "-50%", "0%")),
+                        List.of());
+        var request = request(Map.of("helmet", slot(1)), Map.of(type, 15));
+        request.setForceCapBonuses(Set.of(type));
+        var response = fixture.service().optimize(request);
+        assertEquals(
+                List.of("Redukcja zużycia many: 50% z 60%; brakuje 10 p.p."),
+                response.getSummary().getWarnings());
+        assertEquals("-50%", response.getCalculationResult().stats().get(type.name()));
+    }
+
+    @Test
     void simpleProfileIsOnlyAnAdvancedConfigurationOverlay() {
         var damage = drif(10, DRIF_BONUS_TYPE.DAMAGE_PHYSICAL, DRIF_SIZE.SUBDRIF, "5%", "1%");
         var reduction = drif(11, DRIF_BONUS_TYPE.DAMAGE_REDUCTION, DRIF_SIZE.SUBDRIF, "5%", "1%");
