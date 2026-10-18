@@ -24,6 +24,7 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.validation.Opti
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.variant.GeneratedOptimizationVariant;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.variant.OptimizationVariantGenerator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.reorganization.ReorganizationSearch;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.reorganization.ReorganizationTaskRules;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.service.ModsOptimizationService;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.simpleprofile.SimpleProfileConfigurationResolver;
 
@@ -50,6 +51,8 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
     @Override
     public OptimizationResponse optimize(OptimizationRequest request) {
         long startTime = System.nanoTime();
+        String taskError = ReorganizationTaskRules.configure(request);
+        if (taskError != null) return failedResponse(taskError, elapsedSeconds(startTime));
         String profileError =
                 request == null ? null : SimpleProfileConfigurationResolver.resolve(request);
         if (profileError != null) {
@@ -83,7 +86,9 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
         if (searchResult == null) {
             OptimizationResponse failed =
                     failedResponse(
-                            "Nie znaleziono układu spełniającego ustawienia w tym przebiegu. Sprawdź limity liczby i rozmiarów drifów oraz blokady.",
+                            request.getMode() == OptimizationMode.REORGANIZE
+                                    ? "Nie znaleziono układu spełniającego zadanie, ochrony i blokady w dostępnym zakresie wyszukiwania. Nie oznacza to, że taki układ nie istnieje."
+                                    : "Nie znaleziono układu spełniającego ustawienia w tym przebiegu. Sprawdź limity liczby i rozmiarów drifów oraz blokady.",
                             elapsedSeconds(startTime));
             failed.getSummary().setOutcome(OptimizationOutcome.NO_BUILD_FOUND);
             failed.getSummary()
@@ -161,7 +166,13 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
         response.setTargetSetup(targetSetup);
         response.setBackpackDrifUsages(backpackUsages);
         if (context.request().getMode() == OptimizationMode.REORGANIZE) {
+            long reportStarted = System.nanoTime();
             response.setReorganizationDrifUsages(reorganization.usages(state, context));
+            response.setReorganizationStatChanges(reorganization.statChanges(state, context));
+            context.calculatorSession()
+                    .metrics()
+                    .recordStage("reorganizationReport", reportStarted, context);
+            summary.setSearchReport(context.calculatorSession().metrics().report(context));
         }
         if (backpackUsages != null) {
             summary.setMessage(

@@ -30,6 +30,8 @@ public class OptimizationResponse {
     /** Sources of every movable drif in a reorganization result. */
     private List<ReorganizationDrifUsage> reorganizationDrifUsages;
 
+    private List<OptimizationSummary.StatChange> reorganizationStatChanges;
+
     public record ReorganizationDrifUsage(
             String entryId,
             String sourceSlotKey,

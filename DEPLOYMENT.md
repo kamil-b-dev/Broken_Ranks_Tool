@@ -147,7 +147,7 @@ Remove-Item Env:JAVA_TOOL_OPTIONS
 
 Public calculation endpoints are protected by per-client and whole-instance, one-minute request
 limits. The checked-in Railway configuration initially uses the global allowance as the client
-allowance: 12 optimizer requests, 600 calculator requests, 300 control requests, and 3000 public
+allowance: 20 optimizer requests, 600 calculator requests, 300 control requests, and 3000 public
 API reads per minute. This keeps the process-wide boundary effective while forwarded client
 addresses remain disabled. Requests larger than 256 KiB are rejected before JSON parsing, including requests
 streamed without a `Content-Length` header. Tune these values with

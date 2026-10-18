@@ -15,9 +15,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import pl.brokenranks.tool.broken_ranks_tool.core.execution.HeavyCalculationGate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.CalculationResultDto;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.config.OptimizationProperties;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationResponse;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationSummary;
@@ -35,10 +35,7 @@ class OptimizationExecutionGuardTests {
                 .ensureAvailable();
         var guard =
                 new OptimizationExecutionGuard(
-                        service,
-                        new OptimizationProperties(55_000, 20_000, 25_000, 1),
-                        registry,
-                        memory);
+                        service, new HeavyCalculationGate(1, 85), registry, memory);
         assertThrows(
                 OptimizerMemoryPressureException.class,
                 () -> guard.optimize(new OptimizationRequest()));
@@ -152,7 +149,7 @@ class OptimizationExecutionGuardTests {
             ModsOptimizationService service, SimpleMeterRegistry meterRegistry) {
         return new OptimizationExecutionGuard(
                 service,
-                new OptimizationProperties(55_000, 20_000, 25_000, 1),
+                new HeavyCalculationGate(1, 85),
                 meterRegistry,
                 Mockito.mock(OptimizationMemoryGuard.class));
     }

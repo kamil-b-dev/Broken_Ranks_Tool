@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -18,6 +19,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import pl.brokenranks.tool.broken_ranks_tool.core.config.SecurityConfig;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationResponse;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.service.OptimizationExecutionGuard;
@@ -35,6 +37,144 @@ class OptimizationControllerTests {
     @Autowired private MockMvc mockMvc;
 
     @MockitoBean private OptimizationExecutionGuard executionGuard;
+
+    @ParameterizedTest
+    @ValueSource(strings = {"0", "51", "null"})
+    void rejectsMoveLimitsOutsideThePlayerRangeBeforeAcquiringTheWorker(String limit)
+            throws Exception {
+        mockMvc.perform(
+                        post("/api/optimizer/drifs")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        """
+                {"mode":"REORGANIZE","originalSlots":{"helmet":{"itemId":1}},
+                 "reorganization":{"task":"UPGRADE","maxMoves":%s}}
+                """
+                                                .formatted(limit)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_REQUEST"));
+        verifyNoInteractions(executionGuard);
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {1, 50})
+    void acceptsMoveLimitsAtBothEndsOfThePlayerRange(int limit) throws Exception {
+        when(executionGuard.optimize(any())).thenReturn(new OptimizationResponse(null, null));
+        mockMvc.perform(
+                        post("/api/optimizer/drifs")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        """
+                {"mode":"REORGANIZE","originalSlots":{"helmet":{"itemId":1}},
+                 "reorganization":{"task":"UPGRADE","maxMoves":%d}}
+                """
+                                                .formatted(limit)))
+                .andExpect(status().isOk());
+        var captured = ArgumentCaptor.forClass(OptimizationRequest.class);
+        verify(executionGuard).optimize(captured.capture());
+        org.junit.jupiter.api.Assertions.assertEquals(
+                limit, captured.getValue().getReorganization().getMaxMoves());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"UPGRADE", "RESERVE"})
+    void rejectsBackpackSupplyInEquippedOnlyTasksBeforeAcquiringTheWorker(String task)
+            throws Exception {
+        mockMvc.perform(
+                        post("/api/optimizer/drifs")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        """
+                {"mode":"REORGANIZE","originalSlots":{"helmet":{"itemId":1}},
+                 "reorganization":{"task":"%s"},
+                 "backpackDrifs":[{"id":"other","templateId":12,"level":6}]}
+                """
+                                                .formatted(task)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_REQUEST"))
+                .andExpect(
+                        jsonPath("$.message")
+                                .value("To zadanie korzysta wyłącznie z założonych drifów."));
+        verifyNoInteractions(executionGuard);
+    }
+
+    @ParameterizedTest
+    @ValueSource(
+            strings = {
+                "[]",
+                "[{\"id\":\"other\",\"templateId\":12,\"level\":6}]",
+                "[{\"id\":\"chosen\",\"templateId\":12,\"level\":6},{\"id\":\"other\",\"templateId\":12,\"level\":6}]"
+            })
+    void insertionRejectsMissingDifferentAndAdditionalBackpackOccurrences(String entries)
+            throws Exception {
+        mockMvc.perform(
+                        post("/api/optimizer/drifs")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        """
+                {"mode":"REORGANIZE","originalSlots":{"helmet":{"itemId":1}},
+                 "reorganization":{"task":"INSERT","insertEntryId":"chosen"},"backpackDrifs":%s}
+                """
+                                                .formatted(entries)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_REQUEST"));
+        verifyNoInteractions(executionGuard);
+    }
+
+    @Test
+    void insertionAcceptsOnlyTheSpecificallyChosenBackpackOccurrence() throws Exception {
+        when(executionGuard.optimize(any())).thenReturn(new OptimizationResponse(null, null));
+        mockMvc.perform(
+                        post("/api/optimizer/drifs")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        """
+                {"mode":"REORGANIZE","originalSlots":{"helmet":{"itemId":1}},
+                 "reorganization":{"task":"INSERT","insertEntryId":"chosen"},
+                 "backpackDrifs":[{"id":"chosen","templateId":12,"level":6}]}
+                """))
+                .andExpect(status().isOk());
+        verify(executionGuard).optimize(any());
+    }
+
+    @Test
+    void acceptsHighestLevelReorganizationWithDisabledProtectionsAndLargeAllowedLoss()
+            throws Exception {
+        when(executionGuard.optimize(any())).thenReturn(new OptimizationResponse(null, null));
+        mockMvc.perform(
+                        post("/api/optimizer/drifs")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        """
+                                {
+                                  "mode": "REORGANIZE", "configurationMode": "ADVANCED",
+                                  "originalSlots": {"boots": {"itemId": 19, "drifIds": [76,52,108], "drifLevels": {"0":21,"1":6,"2":11}}},
+                                  "priorities": {}, "backpackDrifs": [], "backpackSlotCount": 0,
+                                  "reorganization": {
+                                    "task": "UPGRADE", "allowUnequip": true, "preferFewestMoves": true,
+                                    "upgrades": [{"sourceSlotKey":"boots","sourceDrifIndex":1,"targetTemplateId":52,"targetLevel":21,"maximizeLevel":true}],
+                                    "protectedModifiers": {
+                                      "DOUBLE_HIT_ROLL_CHANCE": {"enabled":false,"loss":0},
+                                      "CRITICAL_DAMAGE_CHANCE_REDUCTION": {"enabled":false,"loss":0},
+                                      "DAMAGE_MAGIC": {"enabled":true,"loss":121},
+                                      "DAMAGE_REDUCTION": {"enabled":true,"loss":0}
+                                    }
+                                  }
+                                }
+                                """))
+                .andExpect(status().isOk());
+        var captured = ArgumentCaptor.forClass(OptimizationRequest.class);
+        verify(executionGuard).optimize(captured.capture());
+        var options = captured.getValue().getReorganization();
+        org.junit.jupiter.api.Assertions.assertTrue(
+                options.getUpgrades().getFirst().isMaximizeLevel());
+        org.junit.jupiter.api.Assertions.assertFalse(
+                options.getProtectedModifiers()
+                        .get(DRIF_BONUS_TYPE.DOUBLE_HIT_ROLL_CHANCE)
+                        .isEnabled());
+        org.junit.jupiter.api.Assertions.assertEquals(
+                121, options.getProtectedModifiers().get(DRIF_BONUS_TYPE.DAMAGE_MAGIC).getLoss());
+    }
 
     @Test
     void rejectsDuplicateOccurrencesBeforeAcquiringTheWorker() throws Exception {

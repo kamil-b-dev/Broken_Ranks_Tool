@@ -24,7 +24,7 @@ public final class BackpackDrifConstraints {
                         || request.getConfigurationMode() != BuildConfigurationMode.ADVANCED
                         || request.isGenerateVariants()
                         || request.isForceMaximizationByDrifBonus()))
-            return "Reorganizacja używa posiadanych drifów bez ulepszeń i dodatkowych wariantów.";
+            return "Reorganizacja używa posiadanej puli bez opcji trybu od zera i dodatkowych wariantów.";
         if (!request.isBackpackOnly() && !reorganize)
             return entries != null && !entries.isEmpty()
                     ? "Drify plecaka wymagają opcji Użyj drifów z plecaka."
@@ -35,6 +35,21 @@ public final class BackpackDrifConstraints {
             return "Opcja Użyj drifów z plecaka jest dostępna w zaawansowanym trybie od zera.";
         if (request.isGenerateVariants())
             return "Tryb drifów z plecaka nie obsługuje dodatkowych wariantów.";
+        var task = reorganize ? request.getReorganization() : null;
+        if (task != null) {
+            if (task.getTask() == ReorganizationOptions.Task.INSERT) {
+                if (entries == null
+                        || entries.size() != 1
+                        || entries.getFirst() == null
+                        || !java.util.Objects.equals(
+                                task.getInsertEntryId(), entries.getFirst().getId()))
+                    return "Wstawianie wymaga jednej wskazanej sztuki z plecaka.";
+            } else if ((task.getTask() == ReorganizationOptions.Task.UPGRADE
+                            || task.getTask() == ReorganizationOptions.Task.RESERVE)
+                    && entries != null
+                    && !entries.isEmpty())
+                return "To zadanie korzysta wyłącznie z założonych drifów.";
+        }
         if (entries == null) return reorganize ? null : "Brak listy drifów plecaka.";
         var ids = new HashSet<String>();
         for (var entry : entries) {

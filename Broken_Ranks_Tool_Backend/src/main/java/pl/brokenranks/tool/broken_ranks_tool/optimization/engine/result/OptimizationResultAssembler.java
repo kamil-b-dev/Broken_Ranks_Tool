@@ -1,6 +1,7 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result;
 
 import java.util.List;
+import java.util.Map;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationSummary;
@@ -54,5 +55,9 @@ public final class OptimizationResultAssembler {
 
     public double actualValue(BuildState state, DRIF_BONUS_TYPE type, OptimizationContext context) {
         return calculatorAdapter.actualValue(state, type, context);
+    }
+
+    public Map<String, String> actualStats(BuildState state, OptimizationContext context) {
+        return calculatorAdapter.actualStats(state, context);
     }
 }
