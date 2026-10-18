@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n/useTranslation";
 import { useEffect, useRef, useState } from "react";
 import {
     useEquipmentCatalogState,
@@ -19,6 +20,8 @@ import "../backpack/backpack.css";
 import EquipmentRemovalActions from "../backpack/EquipmentRemovalActions";
 
 export default function MobileBuilderWorkspace() {
+    const { t } = useTranslation();
+
     const equipment = { ...useEquipmentCatalogState(), ...useEquipmentSetup() };
     const { data, requestData, gameRules, handleSlotUpdate } = equipment;
     const inventory = useEquipmentBackpack();
@@ -60,24 +63,24 @@ export default function MobileBuilderWorkspace() {
         <main id="workspace-content" className="mobile-builder">
             <div className="mobile-page-title">
                 <div>
-                    <span className="mobile-eyebrow">Kreator ekwipunku</span>
+                    <span className="mobile-eyebrow">{t("Kreator ekwipunku")}</span>
                     {route.slot ? (
                         <h1 ref={heading} tabIndex={-1}>
-                            {route.slot.label}
+                            {t(route.slot.label)}
                         </h1>
                     ) : (
-                        <h1 className="sr-only">Kreator ekwipunku</h1>
+                        <h1 className="sr-only">{t("Kreator ekwipunku")}</h1>
                     )}
                 </div>
                 <span className="mobile-count">
-                    {model.equippedSlotCount}
+                    {t(model.equippedSlotCount)}
                     <small> / 12</small>
                 </span>
             </div>
             {route.slot ? (
                 <>
                     <button type="button" className="mobile-back" onClick={route.back}>
-                        ← Wszystkie sloty
+                        {t("← Wszystkie sloty")}
                     </button>
                     <MobileGearSlot
                         key={`${route.slot.key}:${equipment.optimizationTrigger}:${revision}`}
@@ -90,7 +93,7 @@ export default function MobileBuilderWorkspace() {
                 </>
             ) : (
                 <>
-                    <nav className="mobile-sections" aria-label="Sekcje kreatora">
+                    <nav className="mobile-sections" aria-label={t("Sekcje kreatora")}>
                         {[
                             ["equipment", "Ekwipunek"],
                             ["backpack", "Plecak"],
@@ -103,13 +106,13 @@ export default function MobileBuilderWorkspace() {
                                 aria-current={route.section === key ? "page" : undefined}
                                 onClick={() => route.change({ section: key })}
                             >
-                                {label}
+                                {t(label)}
                             </button>
                         ))}
                     </nav>
                     {route.section === "equipment" ? (
                         <>
-                            <div className="mobile-slot-list" aria-label="Sloty ekwipunku">
+                            <div className="mobile-slot-list" aria-label={t("Sloty ekwipunku")}>
                                 {SLOTS.map((slot) => {
                                     const item = model.itemForSlot(slot);
                                     const current = requestData.slots[slot.key];
@@ -123,23 +126,32 @@ export default function MobileBuilderWorkspace() {
                                                 listScrollPosition.current = window.scrollY;
                                                 route.change({ slot: slot.key });
                                             }}
-                                            aria-label={`Edytuj slot: ${slot.label}`}
+                                            aria-label={t("Edytuj slot: {0}", [t(slot.label)])}
                                         >
                                             <span
                                                 className={`equipment-slot-icon equipment-slot-icon-${slot.key}`}
                                                 aria-hidden="true"
                                             />
                                             <span className="mobile-slot-copy">
-                                                <strong>{slot.label}</strong>
+                                                <strong>{t(slot.label)}</strong>
                                                 <span>{item?.name || "Wybierz przedmiot"}</span>
                                                 {item && (
                                                     <small>
-                                                        {current.itemStars || 1} ★ · Drify:{" "}
-                                                        {current.drifIds?.filter(Boolean).length ||
-                                                            0}{" "}
-                                                        · Orby:{" "}
-                                                        {current.orbIds?.filter(Boolean).length ||
-                                                            0}{" "}
+                                                        {t(current.itemStars || 1)}
+                                                        {t(" ★ · Drify:")}
+                                                        {t(" ")}
+                                                        {t(
+                                                            current.drifIds?.filter(Boolean)
+                                                                .length || 0
+                                                        )}
+                                                        {t(" ")}
+                                                        {t("· Orby:")}
+                                                        {t(" ")}
+                                                        {t(
+                                                            current.orbIds?.filter(Boolean)
+                                                                .length || 0
+                                                        )}
+                                                        {t(" ")}
                                                     </small>
                                                 )}
                                             </span>
@@ -150,25 +162,25 @@ export default function MobileBuilderWorkspace() {
                             </div>
                             <section
                                 className="mobile-card mobile-bulk-actions"
-                                aria-label="Poziomy wszystkich kamieni"
+                                aria-label={t("Poziomy wszystkich kamieni")}
                             >
                                 <button type="button" onClick={() => maximize("drifs")}>
-                                    Maksymalne poziomy drifów
+                                    {t("Maksymalne poziomy drifów")}
                                 </button>
                                 <button type="button" onClick={() => maximize("orbs")}>
-                                    Maksymalne poziomy orbów
+                                    {t("Maksymalne poziomy orbów")}
                                 </button>
                             </section>
                             <EquipmentRemovalActions actions={inventory.equipmentRemoval} />
                             {inventory.backpackEquipNotice && (
                                 <p className="mobile-error" role="alert">
-                                    {inventory.backpackEquipNotice}
+                                    {t(inventory.backpackEquipNotice)}
                                 </p>
                             )}
                             {warnings.length > 0 && (
                                 <div role="status" className="mobile-card">
                                     {warnings.map((warning, index) => (
-                                        <p key={index}>{warning}</p>
+                                        <p key={index}>{t(warning)}</p>
                                     ))}
                                 </div>
                             )}
@@ -177,7 +189,8 @@ export default function MobileBuilderWorkspace() {
                                 className="mobile-primary"
                                 onClick={() => route.change({ section: "stats" })}
                             >
-                                Statystyki buildu <span aria-hidden="true">→</span>
+                                {t("Statystyki buildu ")}
+                                <span aria-hidden="true">→</span>
                             </button>
                         </>
                     ) : route.section === "backpack" ? (

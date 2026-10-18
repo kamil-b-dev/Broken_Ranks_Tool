@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n/useTranslation";
 import { useMemo, useState } from "react";
 import EquipmentSlotOverview from "../equipment/EquipmentSlotOverview";
 import CategoryIcon from "../../../shared/ui/CategoryIcon";
@@ -15,6 +16,8 @@ export default function BackpackSourcePanel({
     onEquip,
     getWarning,
 }) {
+    const { t } = useTranslation();
+
     const [filter, setFilter] = useState("ALL");
     const [query, setQuery] = useState("");
     const [selectedId, setSelectedId] = useState(null);
@@ -32,13 +35,13 @@ export default function BackpackSourcePanel({
     return (
         <section
             className="backpack-source-panel"
-            aria-label="Plecak do wyposażenia"
+            aria-label={t("Plecak do wyposażenia")}
             onDragEnd={() => setDraggedResource(null)}
         >
             <div
                 className="backpack-filters"
                 role="group"
-                aria-label="Rodzaj rzeczy do wyposażenia"
+                aria-label={t("Rodzaj rzeczy do wyposażenia")}
             >
                 {BACKPACK_FILTERS.map(([key, label]) => (
                     <button
@@ -47,12 +50,12 @@ export default function BackpackSourcePanel({
                         aria-pressed={filter === key}
                         onClick={() => setFilter(key)}
                     >
-                        {label}
+                        {t(label)}
                     </button>
                 ))}
             </div>
             <label className="backpack-source-search">
-                Szukaj w plecaku
+                {t("Szukaj w plecaku")}
                 <input
                     type="search"
                     value={query}
@@ -94,7 +97,7 @@ export default function BackpackSourcePanel({
                             {entry.kind === "ITEM" ? (
                                 <EquipmentSlotOverview
                                     slotKey={backpackSlot(template)?.key}
-                                    label="Przedmiot"
+                                    label={t("Przedmiot")}
                                     item={template}
                                     slotData={entry.equipment}
                                     drifs={data.drifs}
@@ -116,14 +119,15 @@ export default function BackpackSourcePanel({
                                         kind={entry.kind.toLowerCase()}
                                         category={template?.category}
                                     />
-                                    <span>{backpackEntryLabel(entry, data)}</span>
+                                    <span>{t(backpackEntryLabel(entry, data))}</span>
                                 </button>
                             )}
                             {active && (
                                 <div className="backpack-source-action">
                                     {entry.kind !== "ITEM" && (
                                         <label>
-                                            Gniazdo w slocie {activeSlot.label}
+                                            {t("Gniazdo w slocie ")}
+                                            {t(activeSlot.label)}
                                             <select
                                                 value={zone}
                                                 onChange={(event) => setZone(event.target.value)}
@@ -133,8 +137,9 @@ export default function BackpackSourcePanel({
                                                     : ["drif-0", "drif-1", "drif-2"]
                                                 ).map((key, index) => (
                                                     <option key={key} value={key}>
-                                                        {entry.kind === "ORB" ? "Orb" : "Drif"}{" "}
-                                                        {index + 1}
+                                                        {t(entry.kind === "ORB" ? "Orb" : "Drif")}
+                                                        {t(" ")}
+                                                        {t(index + 1)}
                                                     </option>
                                                 ))}
                                             </select>
@@ -142,7 +147,7 @@ export default function BackpackSourcePanel({
                                     )}
                                     {warning && (
                                         <p className="backpack-warning" role="status">
-                                            {warning}
+                                            {t(warning)}
                                         </p>
                                     )}
                                     <button
@@ -150,7 +155,8 @@ export default function BackpackSourcePanel({
                                         disabled={Boolean(warning)}
                                         onClick={() => onEquip(entry.id, activeSlot.key, target)}
                                     >
-                                        Załóż w slocie {activeSlot.label}
+                                        {t("Załóż w slocie ")}
+                                        {t(activeSlot.label)}
                                     </button>
                                 </div>
                             )}
@@ -159,7 +165,7 @@ export default function BackpackSourcePanel({
                 })}
             </div>
             {!filtered.length && (
-                <p className="backpack-editor-empty">Brak pasujących rzeczy w plecaku.</p>
+                <p className="backpack-editor-empty">{t("Brak pasujących rzeczy w plecaku.")}</p>
             )}
         </section>
     );

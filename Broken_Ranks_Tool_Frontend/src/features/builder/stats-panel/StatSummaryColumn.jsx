@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n/useTranslation";
 const ACCENT_CLASSES = {
     stone: {
         card: "border-stone-800 optimizer-info-divider",
@@ -44,6 +45,8 @@ const ACCENT_CLASSES = {
 };
 
 const StatCategoryCard = ({ category, values, accent, colorLabels }) => {
+    const { t } = useTranslation();
+
     const styles = ACCENT_CLASSES[accent || category.accent];
     return (
         <section
@@ -53,7 +56,7 @@ const StatCategoryCard = ({ category, values, accent, colorLabels }) => {
                 className={`flex items-center justify-between border-b pb-2 mb-2 ${styles.heading}`}
             >
                 <h4 className="font-serif font-bold uppercase tracking-[0.16em] text-xs">
-                    {category.title}
+                    {t(category.title)}
                 </h4>
             </div>
             <div className="flex flex-col gap-1">
@@ -65,10 +68,10 @@ const StatCategoryCard = ({ category, values, accent, colorLabels }) => {
                         <span
                             className={`min-w-0 text-xs font-serif uppercase tracking-wide ${colorLabels ? styles.value : "text-stone-400"}`}
                         >
-                            {displayName}
+                            {t(displayName)}
                         </span>
                         <span className={`shrink-0 font-bold font-serif ${styles.value}`}>
-                            {val}
+                            {t(val)}
                         </span>
                     </div>
                 ))}
@@ -78,6 +81,8 @@ const StatCategoryCard = ({ category, values, accent, colorLabels }) => {
 };
 
 const StatSummaryColumn = ({ title, accent, categories, categoryAccents = false }) => {
+    const { t } = useTranslation();
+
     const styles = ACCENT_CLASSES[accent];
     return (
         <section
@@ -87,7 +92,7 @@ const StatSummaryColumn = ({ title, accent, categories, categoryAccents = false 
                 className={`flex items-center justify-between border-b pb-3 mb-3 ${styles.heading}`}
             >
                 <h4 className="font-serif font-bold uppercase tracking-[0.18em] text-sm">
-                    {title}
+                    {t(title)}
                 </h4>
             </div>
             <div className="space-y-3">

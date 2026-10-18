@@ -4,10 +4,10 @@ export const CATEGORY_DESCRIPTIONS = {
     UTILITY: "Zasoby, regeneracja i kontrola",
 };
 
-export const formatAverage = (value) =>
+export const formatAverage = (value, locale = "pl-PL") =>
     value == null
         ? "—"
-        : value.toLocaleString("pl-PL", {
+        : value.toLocaleString(locale, {
               minimumFractionDigits: value % 1 ? 1 : 0,
               maximumFractionDigits: 1,
           });

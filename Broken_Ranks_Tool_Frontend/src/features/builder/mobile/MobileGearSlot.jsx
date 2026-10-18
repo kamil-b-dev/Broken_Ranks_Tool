@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n/useTranslation";
 import {
     useEquipmentCatalogState,
     useEquipmentSetup,
@@ -13,6 +14,8 @@ import BackpackItemChoices from "../backpack/BackpackItemChoices";
 import EquipmentRemovalAction from "../backpack/EquipmentRemovalAction";
 
 export default function MobileGearSlot({ slot, items, pickingItem, onPickItem, onClosePicker }) {
+    const { t } = useTranslation();
+
     const pickerOpener = useRef(null);
     const { data, gameRules } = useEquipmentCatalogState();
     const { requestData, handleSlotUpdate, optimizationTrigger } = useEquipmentSetup();
@@ -48,19 +51,25 @@ export default function MobileGearSlot({ slot, items, pickingItem, onPickItem, o
         model.setDrifLevels({});
     };
     return (
-        <section className="mobile-slot-editor" aria-label={`Edytor slotu: ${slot.label}`}>
+        <section
+            className="mobile-slot-editor"
+            aria-label={t("Edytor slotu: {0}", [t(slot.label)])}
+        >
             {backpackEquipNotice && (
                 <p className="mobile-error" role="alert">
-                    {backpackEquipNotice}
+                    {t(backpackEquipNotice)}
                 </p>
             )}
             <div className="mobile-card">
-                <span className="mobile-eyebrow">Przedmiot</span>
+                <span className="mobile-eyebrow">{t("Przedmiot")}</span>
                 <h2>{model.fullSelectedItem?.name || slot.label}</h2>
                 {model.fullSelectedItem && (
                     <p className="mobile-muted">
-                        Tier {model.fullSelectedItem.tier} · poziom{" "}
-                        {model.fullSelectedItem.reqLevel || "—"}
+                        {t("Tier ")}
+                        {t(model.fullSelectedItem.tier)}
+                        {t(" · poziom")}
+                        {t(" ")}
+                        {t(model.fullSelectedItem.reqLevel || "—")}
                     </p>
                 )}
                 <button
@@ -69,12 +78,12 @@ export default function MobileGearSlot({ slot, items, pickingItem, onPickItem, o
                     className="mobile-primary"
                     onClick={onPickItem}
                 >
-                    {model.selectedItem ? "Zmień przedmiot" : "Wybierz przedmiot"}
+                    {t(model.selectedItem ? "Zmień przedmiot" : "Wybierz przedmiot")}
                 </button>
                 {model.selectedItem && (
                     <>
                         <div className="mobile-field">
-                            <label htmlFor={`mobile-stars-${slot.key}`}>Gwiazdki</label>
+                            <label htmlFor={`mobile-stars-${slot.key}`}>{t("Gwiazdki")}</label>
                             <select
                                 id={`mobile-stars-${slot.key}`}
                                 value={model.itemStars}
@@ -82,7 +91,7 @@ export default function MobileGearSlot({ slot, items, pickingItem, onPickItem, o
                             >
                                 {Array.from({ length: 9 }, (_, index) => (
                                     <option key={index} value={index + 1}>
-                                        {index + 1} ★
+                                        {t(index + 1)} ★
                                     </option>
                                 ))}
                             </select>
@@ -92,7 +101,7 @@ export default function MobileGearSlot({ slot, items, pickingItem, onPickItem, o
                             type="button"
                             onClick={() => selectItem(null)}
                         >
-                            Usuń przedmiot ze slotu
+                            {t("Usuń przedmiot ze slotu")}
                         </button>
                     </>
                 )}
@@ -100,10 +109,13 @@ export default function MobileGearSlot({ slot, items, pickingItem, onPickItem, o
             {model.selectedItem && (
                 <>
                     <div className="mobile-card mobile-stones">
-                        <h2>Orby</h2>
+                        <h2>{t("Orby")}</h2>
                         {(model.isLegendary ? ["orb1", "orb2"] : ["orb1"]).map((key, index) => (
-                            <div key={key} role="group" aria-label={`Orb ${index + 1}`}>
-                                <h3>Orb {index + 1}</h3>
+                            <div key={key} role="group" aria-label={t("Orb {0}", [t(index + 1)])}>
+                                <h3>
+                                    {t("Orb ")}
+                                    {t(index + 1)}
+                                </h3>
                                 <OrbSection
                                     equipmentSlotKey={slot.key}
                                     removalActions={equipmentRemoval}
@@ -135,7 +147,7 @@ export default function MobileGearSlot({ slot, items, pickingItem, onPickItem, o
                                     kind="ORB"
                                     slotKey={slot.key}
                                     zone={key}
-                                    label={`Orb ${index + 1} z plecaka`}
+                                    label={t("Orb {0} z plecaka", [t(index + 1)])}
                                     onEquip={equipBackpackEntry}
                                     getWarning={getBackpackEquipWarning}
                                 />
@@ -143,11 +155,12 @@ export default function MobileGearSlot({ slot, items, pickingItem, onPickItem, o
                         ))}
                     </div>
                     <div className="mobile-card mobile-stones">
-                        <h2>Drify</h2>
+                        <h2>{t("Drify")}</h2>
                         {model.isOverCapacity && (
                             <p role="alert" className="mobile-error">
-                                Przekroczona pojemność: {model.currentPowerUsed}/
-                                {model.itemCapacity}. Obniż poziomy lub usuń drif.
+                                {t("Przekroczona pojemność: ")}
+                                {t(model.currentPowerUsed)}/{t(model.itemCapacity)}
+                                {t(". Obniż poziomy lub usuń drif.")}
                             </p>
                         )}
                         <DrifSection
@@ -158,7 +171,7 @@ export default function MobileGearSlot({ slot, items, pickingItem, onPickItem, o
                                     kind="DRIF"
                                     slotKey={slot.key}
                                     zone={`drif-${index}`}
-                                    label={`Zdejmij drif ${index + 1} do plecaka`}
+                                    label={t("Zdejmij drif {0} do plecaka", [t(index + 1)])}
                                 />
                             )}
                             showCategoryIcons={false}
@@ -178,7 +191,7 @@ export default function MobileGearSlot({ slot, items, pickingItem, onPickItem, o
                                     kind="DRIF"
                                     slotKey={slot.key}
                                     zone={`drif-${index}`}
-                                    label={`Drif ${index + 1} z plecaka`}
+                                    label={t("Drif {0} z plecaka", [t(index + 1)])}
                                     onEquip={equipBackpackEntry}
                                     getWarning={getBackpackEquipWarning}
                                 />

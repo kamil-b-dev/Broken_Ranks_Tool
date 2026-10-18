@@ -1,7 +1,10 @@
+import { useTranslation } from "../i18n/useTranslation";
 import { useRef } from "react";
 
 /** WAI-ARIA tabs with roving focus and keyboard navigation. */
 const TabList = ({ label, tabs, active, onChange, idPrefix, panelId, className }) => {
+    const { t } = useTranslation();
+
     const refs = useRef([]);
     const selectAt = (index) => {
         const normalized = (index + tabs.length) % tabs.length;
@@ -20,7 +23,7 @@ const TabList = ({ label, tabs, active, onChange, idPrefix, panelId, className }
     };
 
     return (
-        <div className={className} role="tablist" aria-label={label}>
+        <div className={className} role="tablist" aria-label={t(label)}>
             {tabs.map((tab, index) => (
                 <button
                     key={tab.value}
@@ -36,7 +39,7 @@ const TabList = ({ label, tabs, active, onChange, idPrefix, panelId, className }
                     onClick={() => onChange(tab.value)}
                     onKeyDown={(event) => onKeyDown(event, index)}
                 >
-                    {tab.label}
+                    {t(tab.label)}
                 </button>
             ))}
         </div>

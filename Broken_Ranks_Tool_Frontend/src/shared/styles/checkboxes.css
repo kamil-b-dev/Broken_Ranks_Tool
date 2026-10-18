@@ -1,0 +1,76 @@
+:is(.reorganization-goals, .progression-workspace) input[type="checkbox"] {
+    appearance: none;
+    display: inline-grid;
+    place-content: center;
+    flex: 0 0 18px;
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    min-height: 18px;
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--ui-line-bright);
+    border-radius: 2px;
+    background: linear-gradient(180deg, #211a12, var(--ui-ink));
+    box-shadow: inset 0 1px rgb(255 224 169 / 7%);
+    vertical-align: middle;
+    cursor: pointer;
+}
+
+:is(.reorganization-goals, .progression-workspace) input[type="checkbox"]::before {
+    content: "";
+    width: 12px;
+    height: 12px;
+    background: var(--ui-gold-soft);
+    clip-path: polygon(0 45%, 17% 30%, 40% 55%, 84% 5%, 100% 20%, 42% 91%);
+    transform: scale(0);
+}
+
+:is(.reorganization-goals, .progression-workspace) input[type="checkbox"]:checked {
+    border-color: var(--ui-gold);
+    background: linear-gradient(180deg, #594020, #2b1e11);
+    box-shadow: inset 0 1px rgb(255 224 169 / 12%);
+}
+
+:is(.reorganization-goals, .progression-workspace) input[type="checkbox"]:checked::before {
+    transform: scale(1);
+}
+
+:is(.reorganization-goals, .progression-workspace) input[type="checkbox"]:hover:not(:disabled) {
+    border-color: var(--ui-gold-soft);
+}
+
+:is(.reorganization-goals, .progression-workspace) input[type="checkbox"]:focus-visible {
+    outline: 2px solid var(--ui-gold-soft);
+    outline-offset: 3px;
+}
+
+:is(.reorganization-goals, .progression-workspace) input[type="checkbox"]:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.mobile-app :is(.reorganization-goals, .progression-workspace) input[type="checkbox"] {
+    flex-basis: 24px;
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    min-height: 24px;
+}
+
+.mobile-app :is(.reorganization-goals, .progression-workspace) input[type="checkbox"]::before {
+    width: 14px;
+    height: 14px;
+}
+
+@media (forced-colors: active) {
+    :is(.reorganization-goals, .progression-workspace) input[type="checkbox"] {
+        appearance: auto;
+        background: none;
+        box-shadow: none;
+    }
+
+    :is(.reorganization-goals, .progression-workspace) input[type="checkbox"]::before {
+        content: none;
+    }
+}

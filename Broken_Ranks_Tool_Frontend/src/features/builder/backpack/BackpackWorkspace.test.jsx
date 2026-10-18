@@ -38,7 +38,7 @@ const start = async () => {
 describe("builder backpack workflow", () => {
     beforeEach(() => {
         localStorage.clear();
-        window.history.replaceState({}, "", "/kreator");
+        window.history.replaceState({}, "", "/builder");
         server.use(http.get("*/api/initial-data", () => HttpResponse.json(builderCatalog)));
     });
     it.each(["DRIF", "ORB"])(

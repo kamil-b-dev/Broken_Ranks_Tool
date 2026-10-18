@@ -43,10 +43,17 @@ const classifyBasicStat = (name) => {
 };
 const classifyOrb = (key) =>
     /DMG_|DEFENSE|DODGE|HIT|ATTACK|CRIT|STEAL|FARID/.test(key) ? "combat" : "utility";
-const sortByDisplayName = (left, right) => left.displayName.localeCompare(right.displayName, "pl");
 
 /** Converts a calculation response into presentation-ready statistic columns. */
-export const buildStatColumns = ({ stats, gameRules = {}, statSources = {} }) => {
+export const buildStatColumns = ({
+    stats,
+    gameRules = {},
+    statSources = {},
+    translateLabel = (value) => value,
+    locale = "pl",
+}) => {
+    const sortByDisplayName = (left, right) =>
+        left.displayName.localeCompare(right.displayName, locale);
     const groups = { attributes: [], offense: [], defense: [], other: [], combat: [], utility: [] };
     const drifCategories = statSources.drifCategories || {};
     const orbBonusTypes = new Set(statSources.orbBonusTypes || []);
@@ -62,7 +69,7 @@ export const buildStatColumns = ({ stats, gameRules = {}, statSources = {} }) =>
     const toStat = ([key, rawValue]) => ({
         key,
         val: formatStatValue(rawValue),
-        displayName: gameRules.bonusTranslations?.[key] || key,
+        displayName: translateLabel(gameRules.bonusTranslations?.[key] || key),
     });
 
     Object.entries(stats || {}).forEach((entry) => {

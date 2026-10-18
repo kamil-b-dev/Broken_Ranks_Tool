@@ -1,0 +1,46 @@
+.interface-preferences {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    font-family: var(--ui-font);
+}
+.interface-preferences .optimizer-label-setting {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--ui-text-muted);
+    font: 12px var(--ui-font);
+}
+.interface-preferences .optimizer-label-setting select {
+    min-width: 0;
+    max-width: 100%;
+    min-height: 36px;
+    padding: 0.45rem 0.55rem;
+    border: 1px solid var(--ui-line-bright);
+    background: var(--ui-ink);
+    color: var(--ui-text);
+    font: inherit;
+    color-scheme: dark;
+}
+.interface-preferences select:focus-visible {
+    outline: 2px solid var(--ui-gold-soft);
+    outline-offset: 2px;
+}
+.mobile-app header.mobile-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+}
+.mobile-app .mobile-header .interface-preferences {
+    grid-row: 2;
+    grid-column: 1 / -1;
+    justify-content: space-between;
+}
+.mobile-app .mobile-header .mobile-build-actions {
+    grid-row: 1;
+    grid-column: 2;
+}
+.mobile-app .interface-preferences .optimizer-label-setting select {
+    min-height: 44px;
+}

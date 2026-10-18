@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum DRIF_BONUS_TYPE {
-    // Defensywne
+    // Defensive
     CC_PROTECTION("Odpornosc cc", 1, 60),
     CRITICAL_DAMAGE_CHANCE_REDUCTION("Odpornosc kryt", 2, 60),
     CRITICAL_DAMAGE_REDUCTION("Redukcja obrazen kryt", 1, 60),
@@ -21,7 +21,7 @@ public enum DRIF_BONUS_TYPE {
     PASIVE_DAMAGE_REDUCTION("Redukcja obrazen biernych", 3, 80),
     PERCENTAGE_DAMAGE_REDUCTION("Redukcja obrazen procentowych", 1, 60),
 
-    // Ofensywne
+    // Offensive
     CRITICAL_CHANCE("Szansa kryt", 4, 60),
     DAMAGE_ENERGY("Obrazenia energia", 3, null),
     DAMAGE_FIRE("Obrazenia ogien", 3, null),
@@ -35,7 +35,7 @@ public enum DRIF_BONUS_TYPE {
     HIT_CHANCE_RANGED("Mod trafienia dystansowego", 3, null),
     MENTAL_DEFENSE_REDUCTION("Przelamanie odpornosci uroki", 2, 60),
 
-    // Użytkowe
+    // Utility
     DISPELL_CHANCE("Szansa odczarowanie", 2, 60),
     MANA_REGEN("Regen mana", 1, 80),
     MANA_STEAL("Wyssanie many", 3, 40),

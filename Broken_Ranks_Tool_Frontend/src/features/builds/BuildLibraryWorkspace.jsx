@@ -1,3 +1,4 @@
+import { useTranslation } from "../../shared/i18n/useTranslation";
 import "./styles/build-library.css";
 import "./styles/build-comparison.css";
 import "./styles/build-comparison-responsive.css";
@@ -19,6 +20,8 @@ const BuildLibraryWorkspace = ({
     onRemove,
     onOpenBuilder,
 }) => {
+    const { t } = useTranslation();
+
     const [selectedIds, setSelectedIds] = useState([]);
     const availableSelectedIds = useMemo(() => {
         const knownIds = new Set(builds.map((build) => build.id));
@@ -47,7 +50,7 @@ const BuildLibraryWorkspace = ({
         >
             <section className="build-library-heading workbench">
                 <div>
-                    <h2>Buildy lokalne</h2>
+                    <h2>{t("Buildy lokalne")}</h2>
                 </div>
                 <BuildRenameForm builds={builds} onRename={onRename} />
             </section>
@@ -55,7 +58,7 @@ const BuildLibraryWorkspace = ({
                 <aside className="build-library-list-panel workbench">
                     <div className="build-library-panel-heading">
                         <div>
-                            <h3>Zapisane buildy</h3>
+                            <h3>{t("Zapisane buildy")}</h3>
                         </div>
                     </div>
                     <SavedBuildList
@@ -75,11 +78,11 @@ const BuildLibraryWorkspace = ({
                 >
                     <div className="build-library-panel-heading">
                         <div>
-                            <h3 id="comparison-heading">Porównywarka buildów</h3>
+                            <h3 id="comparison-heading">{t("Porównywarka buildów")}</h3>
                         </div>
                         {availableSelectedIds.length > 0 && (
                             <button type="button" onClick={() => setSelectedIds([])}>
-                                Wyczyść wybór
+                                {t("Wyczyść wybór")}
                             </button>
                         )}
                     </div>

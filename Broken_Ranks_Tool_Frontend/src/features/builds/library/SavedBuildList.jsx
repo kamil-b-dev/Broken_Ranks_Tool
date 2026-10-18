@@ -1,16 +1,18 @@
+import { useTranslation } from "../../../shared/i18n/useTranslation";
 import { useState } from "react";
 import { summarizeLocalBuild } from "../comparison/buildComparisonData";
-const savedDateFormatter = new Intl.DateTimeFormat("pl-PL", {
-    day: "2-digit",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-});
+const savedDateFormatter = (locale) =>
+    new Intl.DateTimeFormat(locale, {
+        day: "2-digit",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+    });
 
-const formatSavedAt = (value) => {
+const formatSavedAt = (value, locale) => {
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return "Nieznana data";
-    return savedDateFormatter.format(date);
+    return savedDateFormatter(locale).format(date);
 };
 
 const SavedBuildList = ({
@@ -23,6 +25,8 @@ const SavedBuildList = ({
     onOverwrite,
     onRemove,
 }) => {
+    const { t, locale } = useTranslation();
+
     const [pendingAction, setPendingAction] = useState(null);
 
     const runPendingAction = (type, id, action) => {
@@ -38,7 +42,7 @@ const SavedBuildList = ({
     if (builds.length === 0)
         return (
             <div className="build-library-empty">
-                <strong>Brak lokalnych buildów</strong>
+                <strong>{t("Brak lokalnych buildów")}</strong>
             </div>
         );
 
@@ -60,23 +64,29 @@ const SavedBuildList = ({
                                 disabled={comparisonLimitReached}
                                 onChange={() => onToggleComparison(build.id)}
                             />
-                            Porównaj
+                            {t("Porównaj")}
                         </label>
                         <span className="saved-build-index">
-                            {String(index + 1).padStart(2, "0")}
+                            {t(String(index + 1).padStart(2, "0"))}
                         </span>
                         <div className="saved-build-copy">
                             <strong>{build.name}</strong>
                             <small>
-                                Poziom {summary.level} · {summary.equipped}/12 przedmiotów
+                                {t("Poziom ")}
+                                {t(summary.level)} · {t(summary.equipped)}
+                                {t("/12 przedmiotów")}
                             </small>
                             <span>
-                                {summary.drifs} drifów · {summary.orbs} orbów ·{" "}
-                                {summary.hasStats ? "statystyki zapisane" : "bez statystyk"}
+                                {t(summary.drifs)}
+                                {t(" drifów · ")}
+                                {t(summary.orbs)}
+                                {t(" orbów ·")}
+                                {t(" ")}
+                                {t(summary.hasStats ? "statystyki zapisane" : "bez statystyk")}
                             </span>
                         </div>
                         <time dateTime={build.updatedAt || build.savedAt}>
-                            {formatSavedAt(build.updatedAt || build.savedAt)}
+                            {t(formatSavedAt(build.updatedAt || build.savedAt, locale))}
                         </time>
                         <div className="saved-build-actions">
                             <button
@@ -86,27 +96,31 @@ const SavedBuildList = ({
                                     if (await onLoad(build.id)) onOpenBuilder();
                                 }}
                             >
-                                Wczytaj
+                                {t("Wczytaj")}
                             </button>
                             <button type="button" onClick={() => onExport(build.id)}>
-                                Eksportuj JSON
+                                {t("Eksportuj JSON")}
                             </button>
                             <button
                                 type="button"
                                 onClick={() => runPendingAction("overwrite", build.id, onOverwrite)}
                             >
-                                {pendingAction === `overwrite:${build.id}`
-                                    ? "Potwierdź nadpisanie"
-                                    : "Nadpisz"}
+                                {t(
+                                    pendingAction === `overwrite:${build.id}`
+                                        ? "Potwierdź nadpisanie"
+                                        : "Nadpisz"
+                                )}
                             </button>
                             <button
                                 type="button"
                                 className="is-danger"
                                 onClick={() => runPendingAction("remove", build.id, onRemove)}
                             >
-                                {pendingAction === `remove:${build.id}`
-                                    ? "Potwierdź usunięcie"
-                                    : "Usuń"}
+                                {t(
+                                    pendingAction === `remove:${build.id}`
+                                        ? "Potwierdź usunięcie"
+                                        : "Usuń"
+                                )}
                             </button>
                         </div>
                     </article>

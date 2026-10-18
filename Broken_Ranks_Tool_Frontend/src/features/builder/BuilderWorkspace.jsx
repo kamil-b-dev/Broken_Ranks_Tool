@@ -1,3 +1,4 @@
+import { useTranslation } from "../../shared/i18n/useTranslation";
 import "./styles/builder-layout.css";
 import "./styles/equipment-figure.css";
 import "./styles/builder-controls.css";
@@ -44,6 +45,8 @@ const BuilderWorkspace = ({
     equipmentRemoval,
     backpackImportRevision,
 }) => {
+    const { t } = useTranslation();
+
     const [resourceSource, setResourceSource] = useState("database");
     const [equipmentView, setEquipmentView] = useState("character");
     const backpackModel = useBackpackWorkspace({
@@ -103,21 +106,21 @@ const BuilderWorkspace = ({
                         <div
                             className="builder-resource-switch"
                             role="group"
-                            aria-label="Źródło wyposażenia"
+                            aria-label={t("Źródło wyposażenia")}
                         >
                             <button
                                 type="button"
                                 aria-pressed={resourceSource === "database"}
                                 onClick={() => setResourceSource("database")}
                             >
-                                Baza danych
+                                {t("Baza danych")}
                             </button>
                             <button
                                 type="button"
                                 aria-pressed={resourceSource === "backpack"}
                                 onClick={() => setResourceSource("backpack")}
                             >
-                                Plecak
+                                {t("Plecak")}
                             </button>
                         </div>
                         {resourceSource === "backpack" ? (
@@ -165,7 +168,7 @@ const BuilderWorkspace = ({
                 >
                     {backpackEquipNotice && (
                         <p className="backpack-warning" role="alert">
-                            {backpackEquipNotice}
+                            {t(backpackEquipNotice)}
                         </p>
                     )}
                     <StatsPanel

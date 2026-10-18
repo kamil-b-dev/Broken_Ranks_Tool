@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n/useTranslation";
 import { removalKey } from "./backpackEquipmentRemoval";
 import "./equipment-removal.css";
 
@@ -10,6 +11,8 @@ export default function EquipmentRemovalAction({
     label,
     iconOnly = false,
 }) {
+    const { t } = useTranslation();
+
     if (!actions) return null;
     const key = actions.getKey?.(kind, slotKey, zone) || removalKey(kind, slotKey, zone);
     const warning = actions.getRemovalWarning(kind, slotKey, zone);
@@ -18,13 +21,13 @@ export default function EquipmentRemovalAction({
         <div
             className={`equipment-removal-action${iconOnly ? " equipment-removal-action-icon" : ""}`}
             role="group"
-            aria-label={label}
+            aria-label={t(label)}
         >
             <button
                 type="button"
-                aria-label={label}
+                aria-label={t(label)}
                 disabled={Boolean(warning)}
-                title={warning || label}
+                title={t(warning || label)}
                 onClick={() => actions.removeEquipment(kind, slotKey, zone)}
             >
                 {iconOnly ? (
@@ -53,8 +56,8 @@ export default function EquipmentRemovalAction({
             <button
                 type="button"
                 className="equipment-removal-undo"
-                aria-label={`Cofnij: ${label}`}
-                title={undoWarning || `Cofnij: ${label}`}
+                aria-label={t("Cofnij: {0}", [t(label)])}
+                title={t(undoWarning || `Cofnij: ${label}`)}
                 disabled={Boolean(undoWarning)}
                 onClick={() => actions.undoRemoval(key)}
             >

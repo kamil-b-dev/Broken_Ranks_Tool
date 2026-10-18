@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n/useTranslation";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 
 const PAGE_SIZE = 40;
@@ -10,6 +11,8 @@ export default function MobileItemPicker({
     openerRef,
     backpackContent,
 }) {
+    const { t } = useTranslation();
+
     const [source, setSource] = useState("database");
     const dialog = useRef(null);
     const [query, setQuery] = useState("");
@@ -59,8 +62,11 @@ export default function MobileItemPicker({
             }}
         >
             <header>
-                <h2 id="mobile-picker-title">{slotLabel}: wybór przedmiotu</h2>
-                <button type="button" onClick={onClose} aria-label="Zamknij wybór przedmiotu">
+                <h2 id="mobile-picker-title">
+                    {t(slotLabel)}
+                    {t(": wybór przedmiotu")}
+                </h2>
+                <button type="button" onClick={onClose} aria-label={t("Zamknij wybór przedmiotu")}>
                     ✕
                 </button>
             </header>
@@ -68,21 +74,21 @@ export default function MobileItemPicker({
                 <div
                     className="builder-resource-switch"
                     role="group"
-                    aria-label="Źródło przedmiotu"
+                    aria-label={t("Źródło przedmiotu")}
                 >
                     <button
                         type="button"
                         aria-pressed={source === "database"}
                         onClick={() => setSource("database")}
                     >
-                        Baza danych
+                        {t("Baza danych")}
                     </button>
                     <button
                         type="button"
                         aria-pressed={source === "backpack"}
                         onClick={() => setSource("backpack")}
                     >
-                        Plecak
+                        {t("Plecak")}
                     </button>
                 </div>
             )}
@@ -91,22 +97,22 @@ export default function MobileItemPicker({
             ) : selected ? (
                 <div className="mobile-picker-detail">
                     <button type="button" className="mobile-back" onClick={() => setSelected(null)}>
-                        ← Wyniki wyszukiwania
+                        {t("← Wyniki wyszukiwania")}
                     </button>
                     <h3>{selected.name}</h3>
                     <dl>
                         <div>
-                            <dt>Tier</dt>
-                            <dd>{selected.tier}</dd>
+                            <dt>{t("Tier")}</dt>
+                            <dd>{t(selected.tier)}</dd>
                         </div>
                         <div>
-                            <dt>Pojemność</dt>
-                            <dd>{selected.capacity || 0}</dd>
+                            <dt>{t("Pojemność")}</dt>
+                            <dd>{t(selected.capacity || 0)}</dd>
                         </div>
                         {Object.entries(selected.stats || {}).map(([name, value]) => (
                             <div key={name}>
-                                <dt>{name}</dt>
-                                <dd>{value}</dd>
+                                <dt>{t(name)}</dt>
+                                <dd>{t(value)}</dd>
                             </div>
                         ))}
                     </dl>
@@ -115,13 +121,13 @@ export default function MobileItemPicker({
                         className="mobile-primary"
                         onClick={() => onSelect(selected)}
                     >
-                        Wybierz przedmiot
+                        {t("Wybierz przedmiot")}
                     </button>
                 </div>
             ) : (
                 <>
                     <label className="mobile-field">
-                        Szukaj przedmiotu
+                        {t("Szukaj przedmiotu")}
                         <input
                             type="search"
                             value={query}
@@ -129,30 +135,34 @@ export default function MobileItemPicker({
                                 setQuery(event.target.value);
                                 setPage(0);
                             }}
-                            placeholder="Nazwa lub tier"
+                            placeholder={t("Nazwa lub tier")}
                         />
                     </label>
                     <p className="mobile-muted" role="status">
-                        {visible.length} przedmiotów
+                        {t(visible.length)}
+                        {t(" przedmiotów")}
                     </p>
                     {pageCount > 1 && (
-                        <nav className="mobile-picker-pagination" aria-label="Strony przedmiotów">
+                        <nav
+                            className="mobile-picker-pagination"
+                            aria-label={t("Strony przedmiotów")}
+                        >
                             <button
                                 type="button"
                                 disabled={currentPage === 0}
                                 onClick={() => setPage(currentPage - 1)}
                             >
-                                Poprzednia
+                                {t("Poprzednia")}
                             </button>
                             <span aria-live="polite">
-                                {currentPage + 1} / {pageCount}
+                                {t(currentPage + 1)} / {t(pageCount)}
                             </span>
                             <button
                                 type="button"
                                 disabled={currentPage === pageCount - 1}
                                 onClick={() => setPage(currentPage + 1)}
                             >
-                                Następna
+                                {t("Następna")}
                             </button>
                         </nav>
                     )}
@@ -161,12 +171,15 @@ export default function MobileItemPicker({
                             <button type="button" key={item.id} onClick={() => setSelected(item)}>
                                 <strong>{item.name}</strong>
                                 <span>
-                                    Tier {item.tier} · pojemność {item.capacity || 0}
+                                    {t("Tier ")}
+                                    {t(item.tier)}
+                                    {t(" · pojemność ")}
+                                    {t(item.capacity || 0)}
                                 </span>
                             </button>
                         ))}
                     </div>
-                    {!visible.length && <p>Brak pasujących przedmiotów.</p>}
+                    {!visible.length && <p>{t("Brak pasujących przedmiotów.")}</p>}
                 </>
             )}
         </dialog>
