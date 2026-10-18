@@ -13,7 +13,17 @@ class SpaForwardingFilterTests {
 
     @Test
     void forwardsBrowserRoutesToTheFrontendEntryPoint() throws Exception {
-        for (String route : new String[] {"/kreator", "/optymalizator", "/buildy"}) {
+        for (String route :
+                new String[] {
+                    "/builder",
+                    "/optimizer",
+                    "/builds",
+                    "/progression-path",
+                    "/kreator",
+                    "/optymalizator",
+                    "/buildy",
+                    "/sciezka-rozwoju"
+                }) {
             MockHttpServletRequest request = request(route, "text/html");
             MockHttpServletResponse response = new MockHttpServletResponse();
 

@@ -10,6 +10,31 @@ servers:
   - url: /
 security: []
 paths:
+  /api/progression-path/plan:
+    post:
+      operationId: planProgressionPath
+      summary: Generate an equipment path from level one to a supplied target build.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProgressionPlanRequest"
+      responses:
+        "200":
+          description: Complete verified path or no complete path found; no economic or optimality claim.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProgressionPlanResponse"
+        "400":
+          $ref: "#/components/responses/ApiFailure"
+        "413":
+          $ref: "#/components/responses/ApiFailure"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/ApiFailure"
   /api/initial-data:
     get:
       operationId: getInitialData
@@ -271,6 +296,112 @@ components:
           schema:
             $ref: "#/components/schemas/ApiError"
   schemas:
+    DrifBonusType:
+      type: string
+      enum: [CC_PROTECTION, CRITICAL_DAMAGE_CHANCE_REDUCTION, CRITICAL_DAMAGE_REDUCTION, DAMAGE_REDUCTION, DAMAGE_REDUCTION_CHANCE, DEFENSE_MELEE, DEFENSE_MENTAL, DEFENSE_RANGE, DODGE_CHANCE, DOUBLE_DEFENSE_ROLL_CHANCE, PASIVE_DAMAGE_REDUCTION, PERCENTAGE_DAMAGE_REDUCTION, CRITICAL_CHANCE, DAMAGE_ENERGY, DAMAGE_FIRE, DAMAGE_FROST, DAMAGE_MAGIC, DAMAGE_PHYSICAL, DOUBLE_ATTACK_CHANCE, DOUBLE_HIT_ROLL_CHANCE, HIT_CHANCE_MELEE, HIT_CHANCE_MENTAL, HIT_CHANCE_RANGED, MENTAL_DEFENSE_REDUCTION, DISPELL_CHANCE, MANA_REGEN, MANA_STEAL, MANA_USAGE_REDUCTION, STAMINA_REGEN, STAMINA_USAGE_REDUCTION]
+    ProgressionPlanRequest:
+      type: object
+      additionalProperties: false
+      required: [characterClass, targetLevel, targetEquipment]
+      properties:
+        characterClass:
+          type: string
+          enum: [BARBARIAN, KNIGHT, ARCHER, FIRE_MAGE, DRUID, SHEED, VOODOO]
+        targetLevel: {type: integer, minimum: 1, maximum: 140}
+        targetEquipment: {$ref: "#/components/schemas/EquipmentRequest"}
+        balanceStats:
+          type: [boolean, "null"]
+          default: false
+          description: Wyrównuj postęp bonusów drifów względem dokładnego celu na etapach pośrednich.
+        minItemLevelGap:
+          type: [integer, "null"]
+          minimum: 0
+          maximum: 140
+          default: 0
+          description: Minimalna liczba poziomów używania przedmiotu przejściowego w tym samym slocie. 0 zachowuje dotychczasową ścieżkę; cel i epik prowadzący do legendy nie są pomijane.
+        resSlots:
+          type: [array, "null"]
+          maxItems: 3
+          uniqueItems: true
+          items: {type: string, enum: [ring1, ring2, necklace]}
+    ProgressionPosition:
+      type: [object, "null"]
+      additionalProperties: false
+      required: [slot, socketIndex]
+      properties:
+        slot: {type: string, enum: [helmet, armor, cape, legs, boots, gloves, belt, necklace, ring1, ring2, weapon, shield]}
+        socketIndex: {type: integer, minimum: 0, maximum: 2}
+    ProgressionDrif:
+      type: object
+      additionalProperties: false
+      required: [instanceId, templateId, level, position]
+      properties:
+        instanceId: {type: string, minLength: 1, maxLength: 160}
+        templateId: {type: integer, minimum: 1}
+        level: {type: integer, minimum: 1, maximum: 21}
+        position: {$ref: "#/components/schemas/ProgressionPosition"}
+    ProgressionAction:
+      type: object
+      additionalProperties: false
+      required: [type, instanceId, from, to, beforeTemplateId, beforeLevel, templateId, level]
+      properties:
+        type: {type: string, enum: [MOVE, ACQUIRE, UPGRADE]}
+        instanceId: {type: string}
+        from: {$ref: "#/components/schemas/ProgressionPosition"}
+        to: {$ref: "#/components/schemas/ProgressionPosition"}
+        beforeTemplateId: {type: [integer, "null"], minimum: 1}
+        beforeLevel: {type: [integer, "null"], minimum: 1, maximum: 21}
+        templateId: {type: integer, minimum: 1}
+        level: {type: integer, minimum: 1, maximum: 21}
+    ProgressionPlanResponse:
+      type: object
+      additionalProperties: false
+      required: [outcome, stages, remainingDrifs, warnings, searchReport, resSlots]
+      properties:
+        outcome: {type: string, enum: [VALID_PATH, VALID_PATH_SOFT_TARGETS_UNMET, NO_PATH_FOUND]}
+        stages:
+          type: array
+          maxItems: 160
+          items:
+            type: object
+            additionalProperties: false
+            required: [stage, calculation, actions, equipmentChanges, orbActions]
+            properties:
+              stage:
+                type: object
+                additionalProperties: false
+                required: [id, characterLevel, equipment]
+                properties:
+                  id: {type: string}
+                  characterLevel: {type: integer, minimum: 1, maximum: 140}
+                  equipment: {$ref: "#/components/schemas/EquipmentRequest"}
+              calculation: {$ref: "#/components/schemas/CalculationResult"}
+              actions:
+                type: array
+                items: {$ref: "#/components/schemas/ProgressionAction"}
+              equipmentChanges: {type: array, items: {type: string}}
+              orbActions:
+                type: array
+                items: {$ref: "#/components/schemas/ProgressionAction"}
+        remainingDrifs:
+          type: array
+          items: {$ref: "#/components/schemas/ProgressionDrif"}
+        warnings: {type: array, items: {type: string}}
+        resSlots:
+          type: array
+          maxItems: 3
+          uniqueItems: true
+          items: {type: string, enum: [ring1, ring2, necklace]}
+        searchReport:
+          type: object
+          additionalProperties: false
+          required: [stopReason, evaluatedCandidates, beamWidth, elapsedMillis, proofComplete]
+          properties:
+            stopReason: {type: string, enum: [BACKWARD_PROJECTION, BALANCED_BACKWARD_PROJECTION]}
+            evaluatedCandidates: {type: integer, minimum: 0}
+            beamWidth: {type: integer, minimum: 1}
+            elapsedMillis: {type: integer, minimum: 0}
+            proofComplete: {const: false}
     ApiError:
       type: object
       required:
@@ -574,6 +705,10 @@ components:
           type: integer
           minimum: 0
           maximum: 100
+        reorganization:
+          anyOf:
+            - $ref: "#/components/schemas/ReorganizationOptions"
+            - type: "null"
         advisor:
           oneOf:
             - $ref: "#/components/schemas/AdvisorOptions"
@@ -1049,6 +1184,126 @@ components:
           type:
             - integer
             - "null"
+    ReorganizationOptions:
+      type: object
+      additionalProperties: false
+      description: Owned-pool task. Upgrade explicit equipped occurrences together, insert one exact loose backpack occurrence, or reserve sockets and capacity on one item. UPGRADE and RESERVE accept no backpack drifs. INSERT accepts only the single backpack occurrence identified by insertEntryId. Equipped stones and useful current modifiers are preserved by default. Only explicitly selected stones may be upgraded. Missing options retain legacy reorganization semantics.
+      properties:
+        task:
+          type: string
+          enum: [ARRANGE, UPGRADE, INSERT, RESERVE]
+          default: ARRANGE
+        goal:
+          $ref: "#/components/schemas/DrifBonusType"
+        allowUnequip:
+          type: boolean
+          default: false
+        upgrade:
+          anyOf:
+            - type: "null"
+            - type: object
+              additionalProperties: false
+              required: [sourceSlotKey, targetTemplateId, targetLevel]
+              properties:
+                sourceSlotKey:
+                  type: string
+                  enum: [helmet, armor, cape, legs, boots, gloves, belt, weapon, shield, ring1, ring2, necklace]
+                sourceDrifIndex:
+                  type: integer
+                  minimum: 0
+                  maximum: 7
+                  default: 0
+                targetTemplateId:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                targetLevel:
+                  type: integer
+                  minimum: 1
+                  maximum: 21
+                maximizeLevel:
+                  type: boolean
+                  default: false
+        preferFewestMoves:
+          type: boolean
+          default: true
+          deprecated: true
+          description: Legacy ranking preference. Current UI prefers fewer moves within maxMoves.
+        maxMoves:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 50
+          description: Hard limit for operational tasks. Counts each relocated equipped occurrence, inserted backpack occurrence and returned equipped occurrence once. Swapping two stones counts as two. Upgrading in place costs zero moves.
+        upgrades:
+          type: [array, "null"]
+          maxItems: 36
+          items:
+            $ref: "#/components/schemas/ReorganizationUpgrade"
+        insertEntryId:
+          type: [string, "null"]
+          minLength: 1
+          maxLength: 128
+        reservation:
+          anyOf:
+            - type: "null"
+            - type: object
+              additionalProperties: false
+              required: [slotKey]
+              properties:
+                slotKey:
+                  type: string
+                  enum: [helmet, armor, cape, legs, boots, gloves, belt, weapon, shield, ring1, ring2, necklace]
+                freeSockets:
+                  type: integer
+                  minimum: 0
+                  maximum: 3
+                  default: 0
+                freeCapacity:
+                  type: integer
+                  minimum: 0
+                  maximum: 1000
+                  default: 0
+        protectedModifiers:
+          type: [object, "null"]
+          maxProperties: 32
+          propertyNames:
+            $ref: "#/components/schemas/DrifBonusType"
+          additionalProperties:
+            type: object
+            additionalProperties: false
+            properties:
+              enabled:
+                type: boolean
+                default: true
+              loss:
+                type: number
+                minimum: 0
+                default: 0
+    ReorganizationUpgrade:
+      type: object
+      additionalProperties: false
+      required: [sourceSlotKey, targetTemplateId, targetLevel]
+      properties:
+        sourceSlotKey:
+          type: string
+          enum: [helmet, armor, cape, legs, boots, gloves, belt, weapon, shield, ring1, ring2, necklace]
+        sourceDrifIndex:
+          type: integer
+          minimum: 0
+          maximum: 7
+          default: 0
+        targetTemplateId:
+          type: integer
+          format: int64
+          minimum: 1
+        targetLevel:
+          type: integer
+          minimum: 1
+          maximum: 21
+        maximizeLevel:
+          type: boolean
+          default: false
     StatChange:
       type: object
       additionalProperties: false
@@ -1426,6 +1681,10 @@ components:
                     necklace,
                   ]
               drifIndex: { type: integer, minimum: 0, maximum: 7 }
+        reorganizationStatChanges:
+          type: [array, "null"]
+          items:
+            $ref: "#/components/schemas/StatChange"
         reorganizationDrifUsages:
           description: Sources and destinations of every movable drif in a reorganization result. Null in other modes.
           type: [array, "null"]

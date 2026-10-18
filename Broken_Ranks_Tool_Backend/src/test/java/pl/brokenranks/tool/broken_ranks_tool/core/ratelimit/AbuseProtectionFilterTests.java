@@ -29,6 +29,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import pl.brokenranks.tool.broken_ranks_tool.core.config.SecurityConfig;
+import pl.brokenranks.tool.broken_ranks_tool.core.execution.HeavyCalculationGate;
 import pl.brokenranks.tool.broken_ranks_tool.core.web.filter.RequestTracingFilter;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.controller.CalculatorController;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.CalculationResultDto;
@@ -40,11 +41,14 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.controller.Optimizatio
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationResponse;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.service.OptimizationExecutionGuard;
+import pl.brokenranks.tool.broken_ranks_tool.progressionpath.controller.ProgressionPathController;
+import pl.brokenranks.tool.broken_ranks_tool.progressionpath.service.ProgressionTargetPlanningService;
 
 @WebMvcTest({
     OptimizationController.class,
     CalculatorController.class,
-    AdvisorCancellationController.class
+    AdvisorCancellationController.class,
+    ProgressionPathController.class
 })
 @Import({SecurityConfig.class, RequestTracingFilter.class, AbuseProtectionFilter.class})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
@@ -77,6 +81,35 @@ class AbuseProtectionFilterTests {
     @MockitoBean private EquipmentStatsCalculatorService calculatorService;
 
     @MockitoBean private AdvisorRunRegistry advisorRunRegistry;
+    @MockitoBean private ProgressionTargetPlanningService progression;
+    @MockitoBean private HeavyCalculationGate gate;
+
+    @Test
+    void progressionUsesTheHeavyRequestRateAndBodyLimits() throws Exception {
+        when(gate.tryAcquire()).thenReturn(true);
+        String input =
+                """
+            {"characterClass":"ARCHER","targetLevel":140,"targetEquipment":{"slots":{}}}
+            """;
+        for (int i = 0; i < 2; i++)
+            mockMvc.perform(
+                            post("/api/progression-path/plan")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(input))
+                    .andExpect(status().isOk());
+        mockMvc.perform(
+                        post("/api/progression-path/plan")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(input))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(jsonPath("$.code").value("RATE_LIMITED"));
+        mockMvc.perform(
+                        post("/api/progression-path/plan")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(" ".repeat(257)))
+                .andExpect(status().isPayloadTooLarge());
+        verify(progression, times(2)).plan(any());
+    }
 
     @Test
     void rejectsRequestsAboveTheConfiguredBodySize() throws Exception {

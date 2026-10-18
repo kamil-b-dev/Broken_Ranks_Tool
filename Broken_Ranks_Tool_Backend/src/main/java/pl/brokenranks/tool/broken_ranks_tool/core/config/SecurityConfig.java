@@ -50,6 +50,7 @@ public class SecurityConfig {
                                                 HttpMethod.POST,
                                                 "/api/calculator/calculate",
                                                 "/api/optimizer/drifs",
+                                                "/api/progression-path/plan",
                                                 "/api/optimizer/advisor/*/cancel")
                                         .permitAll()
                                         .anyRequest()
