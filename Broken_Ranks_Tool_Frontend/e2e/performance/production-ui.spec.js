@@ -21,8 +21,8 @@ test("mobile production startup obeys route budgets and defers other workspaces"
 }) => {
     for (const [route, maximum] of [
         ["/", 650_000],
-        ["/kreator", 1_000_000],
-        ["/optymalizator", 1_100_000],
+        ["/builder", 1_000_000],
+        ["/optimizer", 1_100_000],
     ]) {
         const context = await browser.newContext(devices["Pixel 7"]);
         const page = await context.newPage();
@@ -64,7 +64,7 @@ test("desktop production keeps one editor and scrolls the complete database", as
             },
         })
     );
-    await page.goto("/kreator");
+    await page.goto("/builder");
     await expect(page.locator(".gear-slot-editor")).toHaveCount(1);
     await expect(page.locator(".database-result-row")).toHaveCount(1500);
     await expect(page.getByRole("navigation", { name: "Strony bazy przedmiotów" })).toHaveCount(0);
@@ -101,7 +101,7 @@ test("mobile editor preserves import calculations and provisional level edits", 
     const context = await browser.newContext(devices["Pixel 7"]);
     const page = await context.newPage();
     await mockData(page);
-    await page.goto("/kreator?slot=helmet");
+    await page.goto("/builder?slot=helmet");
     await expect(
         page.getByRole("button", { name: "Wybierz przedmiot", exact: true })
     ).toBeVisible();
@@ -153,7 +153,7 @@ test("mobile stone controls never fetch hidden category artwork", async ({ brows
     const context = await browser.newContext(devices["Pixel 7"]);
     const page = await context.newPage();
     await mockData(page);
-    await page.goto("/kreator?slot=helmet");
+    await page.goto("/builder?slot=helmet");
     await page.getByRole("button", { name: "Wybierz przedmiot", exact: true }).tap();
     await page.getByRole("button", { name: /Hełm podróżnika/ }).tap();
     await page

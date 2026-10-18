@@ -80,7 +80,7 @@ for (const [kind, label, count] of [
     }) => {
         await setup(page);
         await page.setViewportSize({ width: 1800, height: 1100 });
-        await page.goto("/kreator?ui=desktop");
+        await page.goto("/builder?ui=desktop");
         await expect(page.locator(".equipment-ring-slot-helmet")).toBeVisible({ timeout: 20000 });
         const undo = page.getByRole("button", { name: `Cofnij: ${label}`, exact: true });
         await expect(undo).toBeDisabled();
@@ -130,7 +130,7 @@ test("desktop removes individual gems and keeps undo available after editor sync
 }) => {
     await setup(page);
     await page.setViewportSize({ width: 1800, height: 1100 });
-    await page.goto("/kreator?ui=desktop");
+    await page.goto("/builder?ui=desktop");
     await page.locator(".equipment-ring-slot-helmet").click();
     await expect(
         page.getByRole("button", { name: "Zdejmij orb 1 do plecaka", exact: true })
@@ -186,7 +186,7 @@ test.describe("touch removal actions", () => {
     test("moves gems and complete equipment with guarded arrow undo", async ({ page }) => {
         await setup(page);
         await page.setViewportSize({ width: 320, height: 740 });
-        await page.goto("/kreator");
+        await page.goto("/builder");
         await page.getByRole("button", { name: "Zdejmij wszystkie przedmioty", exact: true }).tap();
         await expect.poll(async () => (await stored(page)).backpack.length).toBe(2);
         await page

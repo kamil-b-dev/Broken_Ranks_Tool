@@ -1,6 +1,8 @@
+import { useTranslation } from "../../shared/i18n/useTranslation";
 import { useOptimizerLabelContext } from "./optimizerLabelContext";
 
-const formatNumber = (value) => Number(value).toLocaleString("pl-PL", { maximumFractionDigits: 2 });
+const formatNumber = (value, locale) =>
+    Number(value).toLocaleString(locale, { maximumFractionDigits: 2 });
 
 /** Presents alternative optimization setups and delegates selection to the workflow owner. */
 const OptimizerVariantsSection = ({
@@ -10,10 +12,12 @@ const OptimizerVariantsSection = ({
     onApply,
     advisory = false,
 }) => {
+    const { t, locale } = useTranslation();
+
     const { formatText } = useOptimizerLabelContext();
     return (
         <section className="optimizer-report-section optimizer-variants-section">
-            <h5>Warianty</h5>
+            <h5>{t("Warianty")}</h5>
             {variants?.length > 0 ? (
                 <>
                     <div className="optimizer-variant-list">
@@ -27,34 +31,45 @@ const OptimizerVariantsSection = ({
                                 <span className="optimizer-variant-radio" aria-hidden="true" />
                                 <span className="optimizer-variant-copy">
                                     <strong>
-                                        {advisory
-                                            ? formatText(variant.bonusName)
-                                            : variant.main
-                                              ? "Wynik główny"
-                                              : formatText(variant.bonusName)}
+                                        {t(
+                                            advisory
+                                                ? formatText(variant.bonusName)
+                                                : variant.main
+                                                  ? "Wynik główny"
+                                                  : formatText(variant.bonusName)
+                                        )}
                                     </strong>
                                     <small>
-                                        {advisory
-                                            ? `${formatNumber(variant.finalValue)}% → ${formatNumber(variant.variantValue)}% · poprawa +${formatNumber(variant.advisorGain ?? variant.gain)} p.p.`
-                                            : variant.main
-                                              ? "Konfiguracja bazowa optymalizatora"
-                                              : `Zysk +${formatNumber(variant.gain)} · strata ${formatNumber(variant.totalLoss)}`}
+                                        {t(
+                                            advisory
+                                                ? `${formatNumber(variant.finalValue, locale)}% → ${formatNumber(variant.variantValue, locale)}% · poprawa +${formatNumber(variant.advisorGain ?? variant.gain, locale)} p.p.`
+                                                : variant.main
+                                                  ? "Konfiguracja bazowa optymalizatora"
+                                                  : `Zysk +${formatNumber(variant.gain, locale)} · strata ${formatNumber(variant.totalLoss, locale)}`
+                                        )}
                                     </small>
                                 </span>
                                 <span className="optimizer-variant-score">
                                     {advisory ? (
-                                        <strong>{variant.changeCount} działań</strong>
+                                        <strong>
+                                            {t(variant.changeCount)}
+                                            {t(" działań")}
+                                        </strong>
                                     ) : variant.main ? (
                                         <strong>
-                                            {activeIndex === variantIndex ? "Wybrany" : "Główny"}
+                                            {t(activeIndex === variantIndex ? "Wybrany" : "Główny")}
                                         </strong>
                                     ) : (
                                         <>
                                             <strong>
-                                                {formatNumber(variant.finalValue)}% →{" "}
-                                                {formatNumber(variant.variantValue)}%
+                                                {formatNumber(variant.finalValue, locale)}% →
+                                                {t(" ")}
+                                                {formatNumber(variant.variantValue, locale)}%
                                             </strong>
-                                            <small>{variant.changeCount} zmiany</small>
+                                            <small>
+                                                {t(variant.changeCount)}
+                                                {t(" zmiany")}
+                                            </small>
                                         </>
                                     )}
                                 </span>
@@ -66,7 +81,7 @@ const OptimizerVariantsSection = ({
                         className="optimizer-apply-variant"
                         onClick={() => onApply(variants[activeIndex], activeIndex)}
                     >
-                        Zastosuj wybrany wariant
+                        {t("Zastosuj wybrany wariant")}
                     </button>
                 </>
             ) : null}

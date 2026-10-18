@@ -1,3 +1,4 @@
+import { buildReorganizationConfiguration } from "./reorganization/reorganizationConfiguration";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useEquipment } from "../../shared/state/EquipmentContext";
 import {
@@ -33,6 +34,7 @@ export const useOptimizerWorkspace = ({ optimizerSettings, onOptimizerSettingsCh
         cancelDrifOptimization,
         invalidateDrifOptimization,
         requestData,
+        backpack,
         data,
         lockedSlots,
         lockedDrifs,
@@ -120,7 +122,12 @@ export const useOptimizerWorkspace = ({ optimizerSettings, onOptimizerSettingsCh
     useWorkingDraftSave(writeOptimizerDraft, workingDraft, draftReady);
     useLayoutEffect(
         () => resetOptimization(),
-        [optimizerSettings.mode, optimizerSettings.configurationMode, resetOptimization]
+        [
+            optimizerSettings.mode,
+            optimizerSettings.configurationMode,
+            optimizerSettings.reorganization,
+            resetOptimization,
+        ]
     );
     useEffect(() => {
         if (optimizerSettings.mode === "ADVISOR" && !stats && calculateStats) calculateStats();
@@ -226,6 +233,22 @@ export const useOptimizerWorkspace = ({ optimizerSettings, onOptimizerSettingsCh
                         gameRules,
                         requestData.characterStats
                     )
+                );
+            } catch (error) {
+                setNotice({ type: "error", message: error.message });
+            }
+            return;
+        }
+        if (optimizerSettings.mode === "REORGANIZE") {
+            try {
+                await runOptimization(
+                    buildReorganizationConfiguration(optimizerSettings, {
+                        slots: requestData.slots,
+                        data,
+                        lockedSlots,
+                        lockedDrifs,
+                        backpack,
+                    })
                 );
             } catch (error) {
                 setNotice({ type: "error", message: error.message });

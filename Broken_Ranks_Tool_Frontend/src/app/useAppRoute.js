@@ -3,30 +3,49 @@ import { useCallback, useEffect, useState } from "react";
 
 export const APP_ROUTES = {
     home: "/",
-    builder: "/kreator",
-    optimizer: "/optymalizator",
-    builds: "/buildy",
+    builder: "/builder",
+    optimizer: "/optimizer",
+    builds: "/builds",
+    progression: "/progression-path",
 };
 
-const routeForPath = (pathname) =>
-    Object.entries(APP_ROUTES).find(([, path]) => path === pathname)?.[0] ?? "home";
+const LEGACY_ROUTES = {
+    "/kreator": APP_ROUTES.builder,
+    "/optymalizator": APP_ROUTES.optimizer,
+    "/buildy": APP_ROUTES.builds,
+    "/sciezka-rozwoju": APP_ROUTES.progression,
+};
 
 const canonicalPath = (pathname) =>
-    Object.values(APP_ROUTES).includes(pathname) ? pathname : APP_ROUTES.home;
+    Object.hasOwn(LEGACY_ROUTES, pathname)
+        ? LEGACY_ROUTES[pathname]
+        : Object.values(APP_ROUTES).includes(pathname)
+          ? pathname
+          : APP_ROUTES.home;
+
+const routeForPath = (pathname) =>
+    Object.entries(APP_ROUTES).find(([, path]) => path === canonicalPath(pathname))?.[0] ?? "home";
+
+const canonicalizeLocation = () => {
+    const path = canonicalPath(window.location.pathname);
+    if (path !== window.location.pathname)
+        window.history.replaceState(
+            window.history.state,
+            "",
+            `${path}${window.location.search}${window.location.hash}`
+        );
+    return path;
+};
 
 /** Keeps application navigation in sync with the browser History API. */
 export const useAppRoute = () => {
     const [activeView, setActiveView] = useState(() => routeForPath(window.location.pathname));
 
     useEffect(() => {
-        const path = canonicalPath(window.location.pathname);
-        if (path !== window.location.pathname) window.history.replaceState(null, "", path);
+        canonicalizeLocation();
 
         const handlePopState = () => {
-            const nextPath = canonicalPath(window.location.pathname);
-            if (nextPath !== window.location.pathname) {
-                window.history.replaceState(null, "", nextPath);
-            }
+            const nextPath = canonicalizeLocation();
             setActiveView(routeForPath(nextPath));
         };
         window.addEventListener("popstate", handlePopState);

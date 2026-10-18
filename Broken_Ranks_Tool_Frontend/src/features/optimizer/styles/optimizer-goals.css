@@ -892,22 +892,3 @@
         grid-template-columns: minmax(0, 1fr);
     }
 }
-.optimizer-label-setting {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0.65rem;
-    padding: 0.5rem 0;
-    color: var(--ui-text);
-    font-family: var(--ui-font);
-    font-size: 0.85rem;
-}
-.optimizer-label-setting select {
-    min-width: 0;
-    max-width: 100%;
-    padding: 0.5rem 0.65rem;
-    border: 1px solid var(--ui-line-bright);
-    background: var(--ui-ink);
-    color: var(--ui-text);
-    font-family: var(--ui-font);
-}

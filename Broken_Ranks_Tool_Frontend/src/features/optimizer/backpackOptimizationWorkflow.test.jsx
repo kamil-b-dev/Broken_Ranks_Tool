@@ -45,7 +45,7 @@ function Probe({ exposeRef, optimizerRef, settings }) {
 describe("applying an owned backpack optimizer result", () => {
     beforeEach(() => {
         localStorage.clear();
-        window.history.replaceState({}, "", "/optymalizator");
+        window.history.replaceState({}, "", "/optimizer");
         server.use(
             http.get("*/api/initial-data", () => HttpResponse.json(builderCatalog)),
             http.post("*/api/optimizer/drifs", () =>

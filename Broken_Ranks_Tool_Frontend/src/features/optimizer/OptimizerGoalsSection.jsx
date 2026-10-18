@@ -1,3 +1,4 @@
+import { useTranslation } from "../../shared/i18n/useTranslation";
 import { numericStatValue } from "./optimizerDomain";
 import { useOptimizerLabelContext } from "./optimizerLabelContext";
 
@@ -35,40 +36,47 @@ const evaluateGoal = (goal, current, activeVariant, maxCap, advisory) => {
 };
 
 const GoalCard = ({ goal, current, activeVariant, maxCap, showTargetLabel, advisory }) => {
+    const { t } = useTranslation();
+
     const { getName } = useOptimizerLabelContext();
     const result = evaluateGoal(goal, current, activeVariant, maxCap, advisory);
 
     return (
         <div className={`optimizer-goal-row ${result.complete ? "is-complete" : "is-partial"}`}>
             <div className="optimizer-goal-name">
-                <strong>{getName(goal.statKey, goal.bonusName)}</strong>
-                <small>Priorytet {goal.priority}</small>
+                <strong>{t(getName(goal.statKey, goal.bonusName))}</strong>
+                <small>
+                    {t("Priorytet ")}
+                    {t(goal.priority)}
+                </small>
             </div>
             <div className="optimizer-goal-value">
-                <span>{result.calculatorValue ?? "—"}</span>
-                <small>Wynik</small>
+                <span>{t(result.calculatorValue ?? "—")}</span>
+                <small>{t("Wynik")}</small>
             </div>
             <div className="optimizer-goal-count">
                 <span>
-                    {result.displayedCount} / {goal.minimumCount}–{result.maximumLabel}
+                    {t(result.displayedCount)} / {t(goal.minimumCount)}–{t(result.maximumLabel)}
                 </span>
-                <small>Liczba drifów</small>
+                <small>{t("Liczba drifów")}</small>
             </div>
             <div className="optimizer-goal-target">
-                {showTargetLabel && <small>Cel</small>}
-                <span>{goal.targetLabel || "Maksimum"}</span>
+                {showTargetLabel && <small>{t("Cel")}</small>}
+                <span>{t(goal.targetLabel || "Maksimum")}</span>
                 <small>
-                    {current?.penaltyPercent > 0
-                        ? `−${current.penaltyPercent.toFixed(0)}%`
-                        : "Bez kary"}
+                    {t(
+                        current?.penaltyPercent > 0
+                            ? `−${current.penaltyPercent.toFixed(0)}%`
+                            : "Bez kary"
+                    )}
                 </small>
             </div>
             <span
                 className="optimizer-goal-status"
-                title={result.complete ? "Osiągnięty" : "Częściowo"}
+                title={t(result.complete ? "Osiągnięty" : "Częściowo")}
             >
-                <i aria-hidden="true">{result.complete ? "✓" : "!"}</i>
-                <span>{result.complete ? "Osiągnięty" : "Częściowo"}</span>
+                <i aria-hidden="true">{t(result.complete ? "✓" : "!")}</i>
+                <span>{t(result.complete ? "Osiągnięty" : "Częściowo")}</span>
             </span>
         </div>
     );
@@ -83,6 +91,8 @@ const OptimizerGoalsSection = ({
     showTargetLabel = false,
     advisory = false,
 }) => {
+    const { t } = useTranslation();
+
     const { formatText } = useOptimizerLabelContext();
     const missed =
         activeVariant && !activeVariant.main
@@ -103,11 +113,12 @@ const OptimizerGoalsSection = ({
             : [];
     return (
         <section className="optimizer-report-section optimizer-goals-section">
-            <h5>Realizacja celów</h5>
+            <h5>{t("Realizacja celów")}</h5>
             {missed.length > 0 && (
                 <div className="is-warning">
                     <p className="optimizer-status-message" role="status">
-                        Wybrany wariant nie osiąga celu: {formatText(missed.join("; "))}.
+                        {t("Wybrany wariant nie osiąga celu: ")}
+                        {t(formatText(missed.join("; ")))}.
                     </p>
                 </div>
             )}

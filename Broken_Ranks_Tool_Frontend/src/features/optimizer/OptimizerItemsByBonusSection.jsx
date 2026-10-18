@@ -1,12 +1,15 @@
+import { useTranslation } from "../../shared/i18n/useTranslation";
 import { SLOTS } from "../../shared/domain/equipment/equipmentSlots";
 
-const formatBonus = (bonus) =>
-    (Number(bonus) * 100).toLocaleString("pl-PL", { maximumFractionDigits: 2 });
+const formatBonus = (bonus, locale) =>
+    (Number(bonus) * 100).toLocaleString(locale, { maximumFractionDigits: 2 });
 
 const getSlotLabel = (slotKey) => SLOTS.find((slot) => slot.key === slotKey)?.label || slotKey;
 
 /** Lists optimized items grouped by their item-level drif bonus. */
 const OptimizerItemsByBonusSection = ({ itemsByBonus }) => {
+    const { t, locale } = useTranslation();
+
     const bonusGroups = Object.entries(itemsByBonus || {}).sort(
         ([left], [right]) => Number(right) - Number(left)
     );
@@ -14,11 +17,11 @@ const OptimizerItemsByBonusSection = ({ itemsByBonus }) => {
     return (
         <section className="bg-black/40 border border-stone-800 optimizer-info-divider rounded-xs p-3">
             <h5 className="text-[10px] text-stone-400 uppercase tracking-widest font-semibold mb-3">
-                Bonus do drifów na przedmiotach
+                {t("Bonus do drifów na przedmiotach")}
             </h5>
             {bonusGroups.length === 0 ? (
                 <p className="text-xs text-stone-600 italic leading-relaxed">
-                    Mapa przedmiotów pojawi się po optymalizacji.
+                    {t("Mapa przedmiotów pojawi się po optymalizacji.")}
                 </p>
             ) : (
                 <div className="space-y-2">
@@ -29,10 +32,10 @@ const OptimizerItemsByBonusSection = ({ itemsByBonus }) => {
                         >
                             <div className="flex items-center justify-between gap-2 mb-1.5">
                                 <span className="text-[10px] text-stone-500 uppercase tracking-wide">
-                                    Bonus do drifów
+                                    {t("Bonus do drifów")}
                                 </span>
                                 <span className="text-purple-300 optimizer-accent-text font-bold text-xs tabular-nums">
-                                    +{formatBonus(bonus)}%
+                                    +{formatBonus(bonus, locale)}%
                                 </span>
                             </div>
                             <ul className="space-y-1">
@@ -42,10 +45,10 @@ const OptimizerItemsByBonusSection = ({ itemsByBonus }) => {
                                         className="flex items-start justify-between gap-2 text-xs"
                                     >
                                         <span className="text-stone-300 leading-tight">
-                                            {item.itemName}
+                                            {t(item.itemName)}
                                         </span>
                                         <span className="text-stone-600 text-[10px] uppercase tracking-wide shrink-0">
-                                            {getSlotLabel(item.slotKey)}
+                                            {t(getSlotLabel(item.slotKey))}
                                         </span>
                                     </li>
                                 ))}

@@ -34,7 +34,7 @@ test.beforeEach(async ({ page }) => {
         return route.fulfill({ json: result });
     });
     await page.setViewportSize({ width: 1800, height: 1000 });
-    await page.goto("/optymalizator?ui=desktop");
+    await page.goto("/optimizer?ui=desktop");
 });
 
 const assertLayout = async (page, width) => {

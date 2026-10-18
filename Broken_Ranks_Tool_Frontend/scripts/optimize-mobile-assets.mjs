@@ -19,11 +19,9 @@ const variants = [
         "crimson-lacquer-texture",
         "smoked-parchment-texture",
     ].map((name) => [`${name}.webp`, `${name}.webp`, 512]),
-    ...["home", "equipment-builder", "drif-optimizer", "local-builds"].map((name) => [
-        `navigation-icons/${name}.png`,
-        `${name}.webp`,
-        72,
-    ]),
+    ...["home", "equipment-builder", "drif-optimizer", "local-builds", "progression-path"].map(
+        (name) => [`navigation-icons/${name}.png`, `${name}.webp`, 72]
+    ),
 ];
 
 for (const [source, target, width] of variants) {

@@ -1,3 +1,4 @@
+import { useTranslation } from "../../shared/i18n/useTranslation";
 import React from "react";
 import { formatPotentialValue } from "./optimizerDomain";
 import { DRIF_SIZE_LABELS, DRIF_SIZE_ORDER } from "../../shared/domain/equipment/drifCategories";
@@ -14,6 +15,8 @@ const Checkmark = () => (
 
 /** Controls the optimization targets for one prioritized modifier. */
 const SizeConstraints = ({ bonus, onChange }) => {
+    const { t } = useTranslation();
+
     const ranges = bonus.sizeRanges || {};
     const update = (size, field, value) =>
         onChange("sizeRanges", {
@@ -30,9 +33,9 @@ const SizeConstraints = ({ bonus, onChange }) => {
     return (
         <details className="optimizer-priority-sizes border-t border-stone-800/50 optimizer-info-divider pt-2">
             <summary className="cursor-pointer text-[10px] uppercase tracking-wider text-stone-400">
-                Rozmiary drifów
+                {t("Rozmiary drifów")}
             </summary>
-            <div className="mt-2 grid gap-1.5" aria-label={`Rozmiary dla ${bonus.value}`}>
+            <div className="mt-2 grid gap-1.5" aria-label={t("Rozmiary dla {0}", [t(bonus.value)])}>
                 {DRIF_SIZE_ORDER.map((size) => (
                     <div key={size} className="flex items-center justify-between gap-2">
                         <label className="flex items-center gap-2 text-[10px] text-stone-400">
@@ -40,9 +43,9 @@ const SizeConstraints = ({ bonus, onChange }) => {
                                 type="checkbox"
                                 checked={Boolean(ranges[size])}
                                 onChange={() => toggle(size)}
-                                aria-label={`Ogranicz ${size} dla ${bonus.value}`}
+                                aria-label={t("Ogranicz {0} dla {1}", [t(size), t(bonus.value)])}
                             />
-                            {DRIF_SIZE_LABELS[size]} — {size}
+                            {t(DRIF_SIZE_LABELS[size])} — {t(size)}
                         </label>
                         {ranges[size] ? (
                             <div className="flex items-center gap-1 text-[10px] text-stone-500">
@@ -52,7 +55,7 @@ const SizeConstraints = ({ bonus, onChange }) => {
                                     max="12"
                                     value={ranges[size].min}
                                     onChange={(event) => update(size, "min", event.target.value)}
-                                    aria-label={`Minimum ${size} dla ${bonus.value}`}
+                                    aria-label={t("Minimum {0} dla {1}", [t(size), t(bonus.value)])}
                                     className="w-10 border border-stone-700 bg-stone-950 px-1 py-0.5 text-center text-stone-200"
                                 />
                                 –
@@ -62,13 +65,16 @@ const SizeConstraints = ({ bonus, onChange }) => {
                                     max="12"
                                     value={ranges[size].max}
                                     onChange={(event) => update(size, "max", event.target.value)}
-                                    aria-label={`Maksimum ${size} dla ${bonus.value}`}
+                                    aria-label={t("Maksimum {0} dla {1}", [
+                                        t(size),
+                                        t(bonus.value),
+                                    ])}
                                     className="w-10 border border-stone-700 bg-stone-950 px-1 py-0.5 text-center text-stone-200"
                                 />
                             </div>
                         ) : (
                             <span className="text-[9px] uppercase tracking-wider text-stone-600">
-                                Dowolnie
+                                {t("Dowolnie")}
                             </span>
                         )}
                     </div>
@@ -86,6 +92,8 @@ const OptimizerPriorityForm = ({
     simple = false,
     weightLabel,
 }) => {
+    const { t, locale } = useTranslation();
+
     const hasCap = maxCap !== null && maxCap !== undefined;
     const weightProgress = Math.min(100, Math.max(0, ((Number(bonus.weight) - 1) / 29) * 100));
     const toggleClass = (active, color = "purple") =>
@@ -96,11 +104,11 @@ const OptimizerPriorityForm = ({
             {potential && (
                 <div className="optimizer-priority-potential flex flex-wrap items-center justify-between gap-2 border border-sky-950/80 bg-sky-950/20 px-2 py-1.5">
                     <div className="text-[9px] uppercase tracking-wider text-sky-500">
-                        Potencjalny zakres
+                        {t("Potencjalny zakres")}
                     </div>
                     <span className="shrink-0 text-xs font-bold text-sky-300 tabular-nums">
-                        {formatPotentialValue(potential.potentialMinimum)}–
-                        {formatPotentialValue(potential.potentialMaximum)}
+                        {formatPotentialValue(potential.potentialMinimum, locale)}–
+                        {formatPotentialValue(potential.potentialMaximum, locale)}
                     </span>
                 </div>
             )}
@@ -109,16 +117,17 @@ const OptimizerPriorityForm = ({
                     <div className="optimizer-priority-option optimizer-priority-weight flex flex-col gap-1">
                         <div className="flex justify-between items-end">
                             <span className="text-[10px] text-stone-400 uppercase tracking-wider font-semibold">
-                                Waga priorytetu
+                                {t("Waga priorytetu")}
                             </span>
                             <span className="text-xs text-purple-400 optimizer-accent-text font-bold">
-                                {bonus.weight}{" "}
+                                {t(bonus.weight)}
+                                {t(" ")}
                                 <span className="text-stone-600 text-[9px] font-normal">/ 30</span>
                             </span>
                         </div>
                         <input
                             type="range"
-                            aria-label={weightLabel}
+                            aria-label={t(weightLabel)}
                             min="1"
                             max="30"
                             value={bonus.weight}
@@ -131,7 +140,7 @@ const OptimizerPriorityForm = ({
                 {!simple && (
                     <div className="optimizer-priority-option optimizer-priority-quantity flex items-center justify-between gap-3">
                         <span className="text-[10px] text-stone-500 uppercase tracking-wider whitespace-nowrap">
-                            Limit Ilości:
+                            {t("Limit Ilości:")}
                         </span>
                         <div className="flex items-center gap-2">
                             {["min", "max"].map((field, index) => (
@@ -139,7 +148,7 @@ const OptimizerPriorityForm = ({
                                     {index > 0 && <span className="text-stone-700">-</span>}
                                     <div className="flex items-center gap-1.5 bg-stone-950 border border-stone-700 rounded-xs px-1.5 py-0.5 focus-within:border-purple-600 optimizer-accent-active transition-colors">
                                         <span className="text-[9px] text-stone-500">
-                                            {field.toUpperCase()}
+                                            {t(field.toUpperCase())}
                                         </span>
                                         <input
                                             type="number"
@@ -149,7 +158,10 @@ const OptimizerPriorityForm = ({
                                             onChange={(event) =>
                                                 onChange(field, event.target.value)
                                             }
-                                            aria-label={`${field === "min" ? "Minimalna" : "Maksymalna"} liczba drifów dla ${bonus.value}`}
+                                            aria-label={t("{0} liczba drifów dla {1}", [
+                                                t(field === "min" ? "Minimalna" : "Maksymalna"),
+                                                t(bonus.value),
+                                            ])}
                                             className="w-7 bg-transparent text-stone-200 text-xs outline-hidden text-center font-bold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                         />
                                     </div>
@@ -160,15 +172,17 @@ const OptimizerPriorityForm = ({
                 )}
                 <div className="optimizer-priority-option flex items-center justify-between gap-3 pt-2 border-t border-stone-800/50 optimizer-info-divider">
                     <span className="text-[10px] text-stone-500 uppercase tracking-wider whitespace-nowrap">
-                        {hasCap
-                            ? `Dąż do capa (${maxCap > 0 ? "+" : ""}${maxCap}%):`
-                            : "Dąż do capa:"}
+                        {t(
+                            hasCap
+                                ? `Dąż do capa (${maxCap > 0 ? "+" : ""}${maxCap}%):`
+                                : "Dąż do capa:"
+                        )}
                     </span>
                     {hasCap ? (
                         <button
                             type="button"
                             onClick={() => onChange("forceCap", !bonus.forceCap)}
-                            aria-label={`Dąż do capa dla ${bonus.value}`}
+                            aria-label={t("Dąż do capa dla {0}", [t(bonus.value)])}
                             aria-pressed={bonus.forceCap}
                             className={toggleClass(bonus.forceCap)}
                         >
@@ -176,14 +190,14 @@ const OptimizerPriorityForm = ({
                         </button>
                     ) : (
                         <span className="text-[9px] text-stone-600 uppercase tracking-widest italic">
-                            Brak limitu
+                            {t("Brak limitu")}
                         </span>
                     )}
                 </div>
                 {!simple && (
                     <div className="optimizer-priority-option optimizer-priority-percentage flex items-center justify-between gap-3 pt-2 border-t border-stone-800/50 optimizer-info-divider">
                         <span className="text-[10px] text-stone-500 uppercase tracking-wider whitespace-nowrap">
-                            Wymuś %:
+                            {t("Wymuś %:")}
                         </span>
                         <div className="flex items-center gap-2">
                             <div
@@ -198,7 +212,7 @@ const OptimizerPriorityForm = ({
                                     onChange={(event) =>
                                         onChange("forcedPercentage", event.target.value)
                                     }
-                                    aria-label={`Wymuszony procent dla ${bonus.value}`}
+                                    aria-label={t("Wymuszony procent dla {0}", [t(bonus.value)])}
                                     className="w-14 bg-transparent text-stone-200 text-xs outline-hidden text-center font-bold disabled:text-stone-600 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                 />
                                 <span className="text-[10px] text-stone-500">%</span>
@@ -206,7 +220,7 @@ const OptimizerPriorityForm = ({
                             <button
                                 type="button"
                                 onClick={() => onChange("forcePercentage", !bonus.forcePercentage)}
-                                aria-label={`Wymuś konkretny procent dla ${bonus.value}`}
+                                aria-label={t("Wymuś konkretny procent dla {0}", [t(bonus.value)])}
                                 aria-pressed={bonus.forcePercentage}
                                 className={toggleClass(bonus.forcePercentage)}
                             >
@@ -219,14 +233,18 @@ const OptimizerPriorityForm = ({
                     <div className="optimizer-priority-option flex items-center justify-between gap-3 pt-2 border-t border-stone-800/50 optimizer-info-divider">
                         <span
                             className="text-[10px] text-stone-500 uppercase tracking-wider whitespace-nowrap"
-                            title="Algorytm będzie dążył do najwyższej możliwej wartości tego modyfikatora, po spełnieniu limitów ilościowych i celów capa."
+                            title={t(
+                                "Algorytm będzie dążył do najwyższej możliwej wartości tego modyfikatora, po spełnieniu limitów ilościowych i celów capa."
+                            )}
                         >
-                            Maksymalizuj mod:
+                            {t("Maksymalizuj mod:")}
                         </span>
                         <button
                             type="button"
                             onClick={() => onChange("maximize", !bonus.maximize)}
-                            title="Maksymalizuj wartość moda, wykorzystując najpierw przedmioty z najwyższym bonusem do drifów"
+                            title={t(
+                                "Maksymalizuj wartość moda, wykorzystując najpierw przedmioty z najwyższym bonusem do drifów"
+                            )}
                             aria-pressed={bonus.maximize}
                             className={toggleClass(bonus.maximize, "amber")}
                         >

@@ -6,6 +6,17 @@ Kod w `src/features` jest grupowany według funkcji aplikacji (`builder`, `build
 `equipment`, `optimizer`). Elementy współdzielone znajdują się w `src/shared`,
 kompozycja aplikacji w `src/app`, a arkusze stylów w `src/styles`.
 
+Adresy widoków są anglojęzyczne: `/` (start), `/builder` (kreator), `/optimizer`
+(optymalizator), `/builds` (zapisane buildy) i `/progression-path` (ścieżka rozwoju).
+Stare adresy `/kreator`, `/optymalizator`, `/buildy` i `/sciezka-rozwoju` są
+zamieniane na odpowiadające im adresy angielskie przez `replaceState`, bez
+dodatkowego wpisu w historii i z zachowaniem parametrów oraz fragmentu URL.
+Interfejs obsługuje polski (domyślny) i angielski. Przełącznik PL/EN w nagłówku
+zapamiętuje wybór w przeglądarce; działa również na telefonie. Zmiana języka
+zachowuje build, wynik optymalizacji i postęp odhaczania etapów ścieżki.
+API używa angielskich adresów opisanych w [OpenAPI](../docs/openapi.yaml).
+Zasady dodawania tłumaczeń opisuje [lokalizacja interfejsu](../docs/i18n.md).
+
 Najważniejsze polecenia:
 
 ```powershell

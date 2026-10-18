@@ -22,11 +22,11 @@ describe("mobile presentation selection", () => {
     });
 
     it("preserves a preview across navigation and allows returning to desktop", () => {
-        window.history.replaceState(null, "", "/kreator?ui=mobile");
+        window.history.replaceState(null, "", "/builder?ui=mobile");
         expect(getPresentation()).toBe("mobile");
-        window.history.replaceState(null, "", "/buildy");
+        window.history.replaceState(null, "", "/builds");
         expect(getPresentation()).toBe("mobile");
-        window.history.replaceState(null, "", "/kreator?ui=desktop");
+        window.history.replaceState(null, "", "/builder?ui=desktop");
         expect(getPresentation()).toBe("desktop");
     });
 
@@ -34,7 +34,7 @@ describe("mobile presentation selection", () => {
         vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
             throw new Error("blocked");
         });
-        window.history.replaceState(null, "", "/kreator?ui=mobile");
+        window.history.replaceState(null, "", "/builder?ui=mobile");
         expect(getPresentation()).toBe("mobile");
     });
 });

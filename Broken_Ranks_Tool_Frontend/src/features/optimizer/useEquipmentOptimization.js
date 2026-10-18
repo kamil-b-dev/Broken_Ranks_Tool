@@ -1,3 +1,4 @@
+import { createReorganizationReport } from "./reorganization/reorganizationReportData";
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { cancelAdvisorOptimization, optimizeEquipmentDrifs } from "../../shared/api/equipmentApi";
 import { createEquipmentOptimizationRequest } from "./equipmentOptimizationRequest";
@@ -6,11 +7,17 @@ import { applyBackpackOptimization } from "../builder/backpack/backpackOptimizat
 import { applyReorganization } from "../builder/backpack/backpackReorganizationTransfer";
 import { SLOTS } from "../../shared/domain/equipment/equipmentSlots";
 
-const failureMessage = (error) =>
-    error.response?.data?.summary?.message ||
-    error.response?.data?.message ||
-    error.response?.data?.error ||
-    (error.code === "ECONNABORTED" ? "Przekroczono limit czasu optymalizacji." : error.message);
+const failureMessage = (error) => {
+    const retryAfter = Number(error.response?.headers?.["retry-after"]);
+    if (error.response?.status === 429 && Number.isFinite(retryAfter) && retryAfter > 0)
+        return `Przekroczono limit żądań. Spróbuj ponownie za ${Math.ceil(retryAfter)} s.`;
+    return (
+        error.response?.data?.summary?.message ||
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        (error.code === "ECONNABORTED" ? "Przekroczono limit czasu optymalizacji." : error.message)
+    );
+};
 
 const cancellationCredentials = ({ runId, cancellationToken }) => ({
     runId,
@@ -84,6 +91,8 @@ export const useEquipmentOptimization = ({
                     backpackDrifUsages: inventoryUsages.usages,
                     reorganizationDrifUsages: inventoryUsages.usages,
                     targetSlots: inventoryUsages.targetSlots,
+                    reorganizationOptions: inventoryUsages.options,
+                    allowedBackpackIds: inventoryUsages.allowedBackpackIds,
                     data,
                     gameRules,
                 });
@@ -121,6 +130,14 @@ export const useEquipmentOptimization = ({
         async (configuration) => {
             const runVersion = ++optimizerRunVersion.current;
             const reorganize = configuration.mode === "REORGANIZE";
+            const failure = (message) => ({
+                success: false,
+                applied: false,
+                message,
+                ...(reorganize
+                    ? { mode: "REORGANIZE", reorganizationOptions: configuration.reorganization }
+                    : {}),
+            });
             const inventory =
                 reorganize ||
                 (configuration.mode !== "ADVISOR" &&
@@ -131,11 +148,9 @@ export const useEquipmentOptimization = ({
                 ? JSON.stringify([inputSignature(requestData, lockedSlots, lockedDrifs), backpack])
                 : inputSignature(requestData, lockedSlots, lockedDrifs);
             if (!slots || Object.values(slots).every((slot) => !slot?.itemId)) {
-                return {
-                    success: false,
-                    message: "Wybierz przynajmniej jeden przedmiot, aby uruchomić optymalizację.",
-                    applied: false,
-                };
+                return failure(
+                    "Wybierz przynajmniej jeden przedmiot, aby uruchomić optymalizację."
+                );
             }
             const advisory = configuration.mode === "ADVISOR";
             let advisorRun = null;
@@ -151,7 +166,7 @@ export const useEquipmentOptimization = ({
                     backpack,
                 });
             } catch (error) {
-                return { success: false, applied: false, message: failureMessage(error) };
+                return failure(failureMessage(error));
             }
             if (advisory && request.advisor) {
                 previousAdvisorRun = activeAdvisor.current;
@@ -200,14 +215,14 @@ export const useEquipmentOptimization = ({
                     targetSetup,
                     backpackDrifUsages,
                     reorganizationDrifUsages,
+                    reorganizationStatChanges,
                 } = await optimizeEquipmentDrifs(request);
                 if (baselineInputSignature !== currentInputSignature.current[signatureKey]) {
                     return {
-                        success: false,
-                        applied: false,
+                        ...failure(
+                            "Build lub blokady zmieniły się podczas obliczeń. Uruchom optymalizację ponownie."
+                        ),
                         nextVariants: [],
-                        message:
-                            "Build lub blokady zmieniły się podczas obliczeń. Uruchom optymalizację ponownie.",
                     };
                 }
                 if (advisory) {
@@ -255,6 +270,22 @@ export const useEquipmentOptimization = ({
                     );
                 if (reorganize && hasEquipment && !Array.isArray(reorganizationDrifUsages))
                     throw new Error("Wynik reorganizacji nie zawiera źródeł drifów.");
+                const reorganizationReport =
+                    hasEquipment && Array.isArray(reorganizationDrifUsages)
+                        ? createReorganizationReport({
+                              before: slots,
+                              after: optimizedSetup.slots,
+                              usages: reorganizationDrifUsages,
+                              options: {
+                                  ...request.reorganization,
+                                  lockedSlots,
+                                  lockedDrifs,
+                              },
+                              backpack,
+                              data,
+                              gameRules,
+                          })
+                        : null;
                 const applied =
                     runVersion === optimizerRunVersion.current &&
                     hasEquipment &&
@@ -266,14 +297,29 @@ export const useEquipmentOptimization = ({
                         optimizedSetup,
                         calculationResult,
                         reorganize
-                            ? { reorganization: true, usages: reorganizationDrifUsages }
+                            ? {
+                                  reorganization: true,
+                                  usages: reorganizationDrifUsages,
+                                  options: request.reorganization,
+                                  allowedBackpackIds: request.backpackDrifs.map(
+                                      (entry) => entry.id
+                                  ),
+                              }
                             : inventory
                               ? { usages: backpackDrifUsages, targetSlots: targetSetup.slots }
                               : null
                     );
                 return {
                     ...summary,
-                    ...(reorganize ? { mode: "REORGANIZE", reorganizationDrifUsages } : {}),
+                    ...(reorganize
+                        ? {
+                              mode: "REORGANIZE",
+                              reorganizationOptions: request.reorganization,
+                              reorganizationDrifUsages,
+                              reorganizationStatChanges,
+                              reorganizationReport,
+                          }
+                        : {}),
                     ...(inventory && !reorganize
                         ? {
                               targetSetup,
@@ -316,7 +362,7 @@ export const useEquipmentOptimization = ({
                 };
             } catch (error) {
                 console.error("Błąd optymalizacji drifów:", error);
-                return { success: false, message: failureMessage(error), applied: false };
+                return failure(failureMessage(error));
             } finally {
                 if (advisorRun) {
                     advisorRun.finished = true;
@@ -329,7 +375,16 @@ export const useEquipmentOptimization = ({
                 }
             }
         },
-        [slots, requestData, lockedSlots, lockedDrifs, applyOptimizationSetup, backpack, data]
+        [
+            slots,
+            requestData,
+            lockedSlots,
+            lockedDrifs,
+            applyOptimizationSetup,
+            backpack,
+            data,
+            gameRules,
+        ]
     );
 
     return {

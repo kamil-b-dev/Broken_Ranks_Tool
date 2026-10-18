@@ -1,3 +1,4 @@
+import { normalizeReorganization } from "./reorganization/reorganizationConfiguration";
 import {
     createBonusOption,
     OPTIMIZER_CONFIG_FORMAT,
@@ -77,6 +78,7 @@ export const createOptimizerConfigPayload = (priorities, settings, exportedAt = 
         mode: settings?.mode || "BUILD_FROM_SCRATCH",
         configurationMode: settings?.configurationMode || "SIMPLE",
         backpackOnly: Boolean(settings?.backpackOnly),
+        reorganization: normalizeReorganization(settings?.reorganization),
         simpleProfile: normalizeSimpleProfile(settings?.simpleProfile),
         simpleOptions: normalizeSimpleOptions(
             settings?.simpleOptions,
@@ -200,6 +202,17 @@ export const parseOptimizerConfigPayload = (payload, gameRules = {}) => {
             : "ADVANCED",
         simpleProfile: normalizeSimpleProfile(payload.settings?.simpleProfile),
         backpackOnly: payload.settings?.backpackOnly === true,
+        reorganization:
+            payload.settings?.reorganization || payload.settings?.mode === "REORGANIZE"
+                ? {
+                      ...normalizeReorganization(payload.settings?.reorganization),
+                      protectedModifiers:
+                          normalizeProtectedModifiers(
+                              payload.settings?.reorganization?.protectedModifiers,
+                              knownBonuses
+                          ) || {},
+                  }
+                : null,
         simpleOptions: normalizeSimpleOptions(
             payload.settings?.simpleOptions,
             normalizeSimpleProfile(payload.settings?.simpleProfile)
@@ -271,6 +284,7 @@ export const parseOptimizerConfigPayload = (payload, gameRules = {}) => {
 export const mergeOptimizerSettings = (previous, imported) => ({
     ...previous,
     backpackOnly: Boolean(imported.backpackOnly),
+    ...(imported.reorganization ? { reorganization: imported.reorganization } : {}),
     advisorProfession: imported.advisorProfession,
     advisorPurchaseScope: imported.advisorPurchaseScope,
     ...(imported.advisorGoal !== null ? { advisorGoal: imported.advisorGoal } : {}),

@@ -1,9 +1,12 @@
+import { useTranslation } from "../../../shared/i18n/useTranslation";
 /** Mobile presentation of existing advanced options; values keep their shared semantics. */
 export default function MobileOptimizerOptions({ settings, onChange }) {
+    const { t } = useTranslation();
+
     if (settings.mode === "REORGANIZE") return null;
     return (
         <details className="mobile-card mobile-optimizer-options">
-            <summary>Opcje i warianty</summary>
+            <summary>{t("Opcje i warianty")}</summary>
             <label>
                 <input
                     type="checkbox"
@@ -15,7 +18,7 @@ export default function MobileOptimizerOptions({ settings, onChange }) {
                         })
                     }
                 />
-                Wymuś maksymalizację według bonusów do drifów
+                {t("Wymuś maksymalizację według bonusów do drifów")}
             </label>
             <label>
                 <input
@@ -29,7 +32,7 @@ export default function MobileOptimizerOptions({ settings, onChange }) {
                         })
                     }
                 />
-                Użyj drifów z plecaka
+                {t("Użyj drifów z plecaka")}
             </label>
             {!settings.backpackOnly && (
                 <>
@@ -38,13 +41,16 @@ export default function MobileOptimizerOptions({ settings, onChange }) {
                             type="checkbox"
                             checked={settings.generateVariants}
                             onChange={(event) =>
-                                onChange({ ...settings, generateVariants: event.target.checked })
+                                onChange({
+                                    ...settings,
+                                    generateVariants: event.target.checked,
+                                })
                             }
                         />
-                        Obliczaj dodatkowe warianty
+                        {t("Obliczaj dodatkowe warianty")}
                     </label>
                     <label className="mobile-field">
-                        Maksymalna strata wariantu (%)
+                        {t("Maksymalna strata wariantu (%)")}
                         <input
                             type="number"
                             inputMode="decimal"

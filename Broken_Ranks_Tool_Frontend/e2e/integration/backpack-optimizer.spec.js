@@ -147,7 +147,7 @@ for (const layout of ["desktop", "mobile"]) {
         await page.setViewportSize(
             layout === "mobile" ? { width: 320, height: 740 } : { width: 1800, height: 1100 }
         );
-        await page.goto(`/kreator?ui=${layout}`);
+        await page.goto(`/builder?ui=${layout}`);
         await expect(
             page
                 .getByRole("group", { name: "Widok ekwipunku" })
@@ -191,7 +191,7 @@ for (const layout of ["desktop", "mobile"]) {
                         .sendToBackend
             )
             .toBe(true);
-        await page.goto(`/optymalizator?ui=${layout}`);
+        await page.goto(`/optimizer?ui=${layout}`);
         const label = catalog.gameRules.bonusTranslations.CRITICAL_CHANCE;
         if (layout === "mobile") {
             await page.getByLabel("Tryb optymalizatora").selectOption("ADVANCED");
@@ -255,7 +255,7 @@ for (const layout of ["desktop", "mobile"]) {
         await expect(page.locator(".optimizer-backpack-targets tbody tr")).toContainText(
             String(response.targetSetup.slots.helmet.drifLevels[0])
         );
-        await page.goto(`/kreator?ui=${layout}`);
+        await page.goto(`/builder?ui=${layout}`);
         await page
             .getByRole("group", { name: "Widok ekwipunku" })
             .or(page.getByRole("navigation", { name: "Sekcje kreatora" }))

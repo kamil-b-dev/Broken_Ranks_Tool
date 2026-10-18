@@ -15,6 +15,15 @@ const drifs = [
 ];
 describe("optimizer naming preference", () => {
     beforeEach(() => localStorage.clear());
+    it("synchronizes the header selector with an already mounted workspace", () => {
+        const header = renderHook(() => useOptimizerLabels());
+        const workspace = renderHook(() => useOptimizerLabels(rules, drifs));
+        act(() => header.result.current.changeMode("DRIFS"));
+        expect(workspace.result.current.mode).toBe("DRIFS");
+        expect(workspace.result.current.getName("DAMAGE_MAGIC")).toBe("Abaf");
+        act(() => workspace.result.current.changeMode("MODIFIERS"));
+        expect(header.result.current.mode).toBe("MODIFIERS");
+    });
     it("updates category ordering to displayed stone names without changing visibility or canonical data", () => {
         const catalog = [
             { name: "Zaf", bonusType: "DAMAGE_MAGIC" },

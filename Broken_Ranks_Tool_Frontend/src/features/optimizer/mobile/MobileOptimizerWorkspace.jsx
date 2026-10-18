@@ -1,9 +1,10 @@
+import ReorganizationGoalsPanel from "../reorganization/ReorganizationGoalsPanel";
+import { useTranslation } from "../../../shared/i18n/useTranslation";
 import "../styles/optimizer-shell.css";
 import "../styles/optimizer-goals.css";
 import "../styles/optimizer-report.css";
 import "../styles/optimizer-results.css";
 import { useEffect, useRef } from "react";
-import ReorganizationPoolSummary from "../reorganization/ReorganizationPoolSummary";
 import AppNotice from "../../../shared/ui/AppNotice";
 import { useOptimizerWorkspace } from "../useOptimizerWorkspace";
 import AdvisorGoalsPanel from "../advisor/AdvisorGoalsPanel";
@@ -18,9 +19,10 @@ import { useMobileOptimizerNavigation } from "./useMobileOptimizerNavigation";
 import "./mobile-optimizer.css";
 import OptimizationElapsedTime from "../OptimizationElapsedTime";
 import { OptimizerLabelContext } from "../optimizerLabelContext";
-import OptimizerLabelSettings from "../OptimizerLabelSettings";
 
 export default function MobileOptimizerWorkspace({ settings, onSettingsChange, onBackToBuilder }) {
+    const { t } = useTranslation();
+
     const model = useOptimizerWorkspace({
         optimizerSettings: settings,
         onOptimizerSettingsChange: onSettingsChange,
@@ -48,17 +50,23 @@ export default function MobileOptimizerWorkspace({ settings, onSettingsChange, o
                 <header className="mobile-page-title">
                     <div>
                         <h1 ref={heading} tabIndex={-1}>
-                            {reorganize ? "Reorganizacja" : advisory ? "Doradca" : "Optymalizator"}
+                            {t(
+                                reorganize
+                                    ? "Reorganizacja"
+                                    : advisory
+                                      ? "Doradca"
+                                      : "Optymalizator"
+                            )}
                         </h1>
                     </div>
                 </header>
                 <button type="button" className="mobile-back" onClick={onBackToBuilder}>
-                    ← Edytuj ekwipunek
+                    {t("← Edytuj ekwipunek")}
                 </button>
                 <label className="mobile-field">
-                    Tryb
+                    {t("Tryb")}
                     <select
-                        aria-label="Tryb optymalizatora"
+                        aria-label={t("Tryb optymalizatora")}
                         disabled={model.isOptimizing}
                         value={mode}
                         onChange={(event) => {
@@ -75,16 +83,15 @@ export default function MobileOptimizerWorkspace({ settings, onSettingsChange, o
                             navigation.change("goals");
                         }}
                     >
-                        <option value="SIMPLE">Prosty</option>
-                        <option value="ADVANCED">Zaawansowany</option>
-                        <option value="ADVISOR">Doradca</option>
-                        <option value="REORGANIZE">Reorganizacja</option>
+                        <option value="SIMPLE">{t("Prosty")}</option>
+                        <option value="ADVANCED">{t("Zaawansowany")}</option>
+                        <option value="ADVISOR">{t("Doradca")}</option>
+                        <option value="REORGANIZE">{t("Reorganizacja")}</option>
                     </select>
                 </label>
-                <OptimizerLabelSettings />
                 <nav
                     className={`mobile-optimizer-sections ${advisory ? "is-advisor" : ""}`}
-                    aria-label="Sekcje optymalizatora"
+                    aria-label={t("Sekcje optymalizatora")}
                 >
                     {sections.map(([key, label]) => (
                         <button
@@ -93,7 +100,7 @@ export default function MobileOptimizerWorkspace({ settings, onSettingsChange, o
                             aria-current={navigation.section === key ? "page" : undefined}
                             onClick={() => navigation.change(key)}
                         >
-                            {label}
+                            {t(label)}
                         </button>
                     ))}
                 </nav>
@@ -103,19 +110,26 @@ export default function MobileOptimizerWorkspace({ settings, onSettingsChange, o
                         className="mobile-primary"
                         disabled={
                             model.isOptimizing ||
-                            (!advisory && !simple && !model.prioritizedBonuses.length) ||
+                            (reorganize &&
+                                model.displayedStatus?.applied &&
+                                model.displayedStatus.reorganizationOptions?.task !== "ARRANGE") ||
+                            (!advisory &&
+                                !reorganize &&
+                                !simple &&
+                                !model.prioritizedBonuses.length) ||
                             (advisory && !model.stats)
                         }
                         onClick={model.handleOptimizeClick}
                     >
                         {model.isOptimizing ? (
                             <>
-                                Analiza trwa (
+                                {t("Analiza trwa (")}
                                 <OptimizationElapsedTime
                                     startedAt={model.optimizationStartedAt}
                                     elapsedSeconds={model.optimizationElapsedSeconds}
-                                />{" "}
-                                s)
+                                />
+                                {t(" ")}
+                                {t("s)")}
                             </>
                         ) : advisory ? (
                             "Analizuj build"
@@ -125,21 +139,20 @@ export default function MobileOptimizerWorkspace({ settings, onSettingsChange, o
                     </button>
                     {model.isOptimizing && advisory && (
                         <button type="button" onClick={model.handleCancel}>
-                            Zatrzymaj i pokaż znalezione plany
+                            {t("Zatrzymaj i pokaż znalezione plany")}
                         </button>
                     )}
                     {!model.isOptimizing && model.optimizationStatus && (
                         <div role="status">
-                            <span>Obliczenia zakończone.</span>
+                            <span>{t("Obliczenia zakończone.")}</span>
                             {navigation.section !== "result" && (
                                 <button type="button" onClick={() => navigation.change("result")}>
-                                    Pokaż wynik →
+                                    {t("Pokaż wynik →")}
                                 </button>
                             )}
                         </div>
                     )}
                 </div>
-                {reorganize && <ReorganizationPoolSummary />}
                 <AppNotice
                     notice={
                         model.notice
@@ -154,7 +167,7 @@ export default function MobileOptimizerWorkspace({ settings, onSettingsChange, o
                 {navigation.section === "goals" && (
                     <section
                         className="mobile-optimizer-goals"
-                        aria-label={advisory ? "Cel i ochrony" : "Konfiguracja celów"}
+                        aria-label={t(advisory ? "Cel i ochrony" : "Konfiguracja celów")}
                     >
                         {advisory ? (
                             <AdvisorGoalsPanel
@@ -163,6 +176,13 @@ export default function MobileOptimizerWorkspace({ settings, onSettingsChange, o
                                 gameRules={model.gameRules}
                                 settings={settings}
                                 onChange={onSettingsChange}
+                            />
+                        ) : reorganize ? (
+                            <ReorganizationGoalsPanel
+                                settings={settings}
+                                onChange={onSettingsChange}
+                                disabled={model.isOptimizing}
+                                result={model.displayedStatus}
                             />
                         ) : simple ? (
                             <SimpleProfileGoalsPanel
@@ -177,7 +197,7 @@ export default function MobileOptimizerWorkspace({ settings, onSettingsChange, o
                                     type="button"
                                     onClick={() => navigation.change("goals", true)}
                                 >
-                                    ＋ Dodaj cel
+                                    {t("＋ Dodaj cel")}
                                 </button>
                                 <OptimizerPriorityToolbar
                                     fileInputRef={model.configFiles.inputRef}
@@ -198,7 +218,7 @@ export default function MobileOptimizerWorkspace({ settings, onSettingsChange, o
                                 />
                                 {!model.prioritizedBonuses.length && (
                                     <p className="mobile-muted">
-                                        Dodaj bonus, który chcesz poprawić.
+                                        {t("Dodaj bonus, który chcesz poprawić.")}
                                     </p>
                                 )}
                                 <OptimizerPriorityList
@@ -224,9 +244,9 @@ export default function MobileOptimizerWorkspace({ settings, onSettingsChange, o
                     </section>
                 )}
                 {navigation.section === "changes" && advisory && (
-                    <section aria-label="Dozwolone zmiany">
+                    <section aria-label={t("Dozwolone zmiany")}>
                         <label className="mobile-field">
-                            Profil buildu
+                            {t("Profil buildu")}
                             <select
                                 value={settings.advisorProfession || "AUTO"}
                                 onChange={(event) =>
@@ -236,9 +256,9 @@ export default function MobileOptimizerWorkspace({ settings, onSettingsChange, o
                                     })
                                 }
                             >
-                                <option value="AUTO">Automatyczny</option>
-                                <option value="MAGICAL">Magiczny (Moc/Wiedza)</option>
-                                <option value="PHYSICAL">Fizyczny (Siła/Zręczność)</option>
+                                <option value="AUTO">{t("Automatyczny")}</option>
+                                <option value="MAGICAL">{t("Magiczny (Moc/Wiedza)")}</option>
+                                <option value="PHYSICAL">{t("Fizyczny (Siła/Zręczność)")}</option>
                             </select>
                         </label>
                         <AdvisorGoalsPanel

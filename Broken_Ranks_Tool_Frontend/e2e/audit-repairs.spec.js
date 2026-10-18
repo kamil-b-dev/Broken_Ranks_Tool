@@ -10,7 +10,7 @@ test("desktop slot controls remain visible at narrow widths and character reset 
 }) => {
     for (const width of [1440, 690, 390]) {
         await page.setViewportSize({ width, height: 1000 });
-        await page.goto("/kreator?ui=desktop");
+        await page.goto("/builder?ui=desktop");
         const slots = page.locator("button.equipment-slot-overview");
         await expect(slots).toHaveCount(12);
         for (const slot of await slots.all()) await expect(slot).toBeVisible();
@@ -23,7 +23,7 @@ test("desktop slot controls remain visible at narrow widths and character reset 
 });
 
 test("catalog details support Tab focus, Escape and keyboard activation", async ({ page }) => {
-    await page.goto("/kreator?ui=desktop");
+    await page.goto("/builder?ui=desktop");
     const details = page.getByRole("button", { name: /Szczegóły: Hełm podróżnika/ });
     await expect(details).toBeVisible();
     await details.focus();
@@ -45,19 +45,19 @@ test("simultaneous saves in two tabs preserve both records and refresh the libra
     context,
 }) => {
     const second = await context.newPage();
-    await Promise.all([page.goto("/kreator?ui=desktop"), second.goto("/kreator?ui=desktop")]);
+    await Promise.all([page.goto("/builder?ui=desktop"), second.goto("/builder?ui=desktop")]);
     const save = (tab) => tab.getByRole("button", { name: /Zapisz lokalnie/ });
     await expect(save(page)).toBeEnabled();
     await expect(save(second)).toBeEnabled();
     await Promise.all([save(page).click(), save(second).click()]);
-    await expect(page.getByRole("status")).toContainText("Zapisano lokalnie");
-    await expect(second.getByRole("status")).toContainText("Zapisano lokalnie");
+    await expect(page.getByRole("status").filter({ hasText: "Zapisano lokalnie" })).toBeVisible();
+    await expect(second.getByRole("status").filter({ hasText: "Zapisano lokalnie" })).toBeVisible();
     const records = await page.evaluate(
         () => JSON.parse(localStorage.getItem("broken-ranks-tool.build-library.v1")).builds
     );
     expect(records).toHaveLength(2);
     expect(new Set(records.map(({ id }) => id)).size).toBe(2);
-    await page.goto("/buildy?ui=desktop");
+    await page.goto("/builds?ui=desktop");
     await expect(page.locator(".saved-build-card")).toHaveCount(2);
     await save(second).click();
     await expect(page.locator(".saved-build-card")).toHaveCount(3);

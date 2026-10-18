@@ -1,3 +1,4 @@
+import { useTranslation } from "../../shared/i18n/useTranslation";
 import { useMemo, useState } from "react";
 import { SLOTS } from "../../shared/domain/equipment/equipmentSlots";
 import CategoryIcon from "../../shared/ui/CategoryIcon";
@@ -35,6 +36,8 @@ const OptimizerLocksColumn = ({
     onToggleDrif,
     mode,
 }) => {
+    const { t } = useTranslation();
+
     const equippedSlots = useMemo(
         () =>
             SLOTS.map((slot) => {
@@ -65,23 +68,23 @@ const OptimizerLocksColumn = ({
                     <span className="optimizer-heading-icon" aria-hidden="true">
                         ◈
                     </span>
-                    <h3 id="optimizer-locks-heading">{heading}</h3>
+                    <h3 id="optimizer-locks-heading">{t(heading)}</h3>
                 </div>
             </header>
-            <div className="optimizer-lock-filters" role="group" aria-label="Filtr blokad">
+            <div className="optimizer-lock-filters" role="group" aria-label={t("Filtr blokad")}>
                 <button
                     type="button"
                     aria-pressed={filter === "all"}
                     onClick={() => setFilter("all")}
                 >
-                    Wszystkie
+                    {t("Wszystkie")}
                 </button>
                 <button
                     type="button"
                     aria-pressed={filter === "locked"}
                     onClick={() => setFilter("locked")}
                 >
-                    Zablokowane
+                    {t("Zablokowane")}
                 </button>
             </div>
             <div className="optimizer-lock-list custom-scrollbar">
@@ -105,16 +108,25 @@ const OptimizerLocksColumn = ({
                                         aria-hidden="true"
                                     />
                                     <span className="optimizer-lock-copy">
-                                        <span className="optimizer-lock-label">{slot.label}</span>
+                                        <span className="optimizer-lock-label">
+                                            {t(slot.label)}
+                                        </span>
                                         <strong>{item?.name || "Brak przedmiotu"}</strong>
                                     </span>
-                                    {item?.tier && <small>Tier {item.tier}</small>}
+                                    {item?.tier && (
+                                        <small>
+                                            {t("Tier ")}
+                                            {t(item.tier)}
+                                        </small>
+                                    )}
                                 </button>
                                 {item && (
                                     <button
                                         type="button"
                                         onClick={() => onToggleSlot(slot.key)}
-                                        title={slotLocked ? "Odblokuj slot" : "Zablokuj cały slot"}
+                                        title={t(
+                                            slotLocked ? "Odblokuj slot" : "Zablokuj cały slot"
+                                        )}
                                         className="optimizer-lock-button"
                                     >
                                         <LockIcon locked={slotLocked} />
@@ -154,11 +166,11 @@ const OptimizerLocksColumn = ({
                                                             onToggleDrif(slot.key, index)
                                                         }
                                                         disabled={slotLocked}
-                                                        title={
+                                                        title={t(
                                                             drifLocked
                                                                 ? "Odblokuj drif"
                                                                 : "Zablokuj drif"
-                                                        }
+                                                        )}
                                                     >
                                                         <LockIcon locked={drifLocked} small />
                                                     </button>
@@ -167,7 +179,9 @@ const OptimizerLocksColumn = ({
                                         );
                                     })}
                                     {!slotData?.drifIds?.length && (
-                                        <span className="optimizer-lock-empty">Brak drifów</span>
+                                        <span className="optimizer-lock-empty">
+                                            {t("Brak drifów")}
+                                        </span>
                                     )}
                                 </div>
                             )}
@@ -175,7 +189,9 @@ const OptimizerLocksColumn = ({
                     );
                 })}
                 {visibleSlots.length === 0 && (
-                    <p className="optimizer-lock-empty">Nie zablokowano jeszcze żadnego slotu.</p>
+                    <p className="optimizer-lock-empty">
+                        {t("Nie zablokowano jeszcze żadnego slotu.")}
+                    </p>
                 )}
             </div>
         </section>

@@ -71,7 +71,7 @@ const openBackpack = async (page, layout = "desktop") => {
     await page.setViewportSize(
         layout === "mobile" ? { width: 320, height: 740 } : { width: 1800, height: 1100 }
     );
-    await page.goto(`/kreator?ui=${layout}`);
+    await page.goto(`/builder?ui=${layout}`);
     await page
         .getByRole("group", { name: "Widok ekwipunku" })
         .or(page.getByRole("navigation", { name: "Sekcje kreatora" }))
@@ -201,7 +201,7 @@ test("undo cannot consume a removed drif after its level has been edited in the 
 }) => {
     await initialize(page, []);
     await page.setViewportSize({ width: 1800, height: 1100 });
-    await page.goto("/kreator?ui=desktop");
+    await page.goto("/builder?ui=desktop");
     const remove = "Zdejmij wszystkie drify";
     await page.getByRole("button", { name: remove, exact: true }).click();
     await expect.poll(async () => (await draft(page)).backpack.length).toBe(1);
@@ -286,7 +286,7 @@ const configureOptimizer = async (page, layout) => {
     await page.setViewportSize(
         layout === "mobile" ? { width: 320, height: 740 } : { width: 1800, height: 1100 }
     );
-    await page.goto(`/optymalizator?ui=${layout}`);
+    await page.goto(`/optimizer?ui=${layout}`);
     if (layout === "mobile") {
         await page.getByLabel("Tryb optymalizatora").selectOption("ADVANCED");
         await page.getByText("Opcje i warianty", { exact: true }).click();

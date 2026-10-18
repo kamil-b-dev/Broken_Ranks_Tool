@@ -15,7 +15,7 @@ test("orders character attributes, loads intelligence artwork and keeps controls
         })
     );
     await page.setViewportSize({ width: 1824, height: 1000 });
-    await page.goto("/kreator?ui=desktop");
+    await page.goto("/builder?ui=desktop");
     const controls = page.locator(".character-stat-control");
     await expect(controls).toHaveCount(8);
     expect(

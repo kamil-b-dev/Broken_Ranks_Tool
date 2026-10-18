@@ -1,3 +1,4 @@
+import { useTranslation } from "../../shared/i18n/useTranslation";
 const COLUMN_LABELS = {
     BUILD_FROM_SCRATCH: "Blokady",
     REORGANIZE: "Blokady",
@@ -6,12 +7,14 @@ const COLUMN_LABELS = {
 
 /** Switches between optimizer columns on narrow screens. */
 const OptimizerMobileNavigation = (props) => {
+    const { t } = useTranslation();
+
     const { activeColumn, priorityCount, onChange, mode, configurationMode } = props;
     const simple = mode === "BUILD_FROM_SCRATCH" && configurationMode === "SIMPLE";
     return (
         <nav
             className="lg:hidden grid grid-cols-4 gap-1 mb-3 shrink-0"
-            aria-label="Sekcje optymalizatora"
+            aria-label={t("Sekcje optymalizatora")}
         >
             {[
                 ["slots", COLUMN_LABELS[mode] || "Build"],
@@ -30,7 +33,7 @@ const OptimizerMobileNavigation = (props) => {
                             : "border-stone-800 optimizer-info-divider bg-black/30 text-stone-500"
                     }`}
                 >
-                    {key === "priorities" ? `${label} (${priorityCount})` : label}
+                    {t(key === "priorities" ? `${label} (${priorityCount})` : label)}
                 </button>
             ))}
         </nav>

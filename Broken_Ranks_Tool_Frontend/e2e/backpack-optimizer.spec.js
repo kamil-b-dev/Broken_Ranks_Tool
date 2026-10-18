@@ -72,7 +72,7 @@ for (const layout of ["desktop", "mobile"]) {
             page.evaluate(
                 () => JSON.parse(localStorage.getItem("broken-ranks-tool.equipment-draft.v3")).value
             );
-        await page.goto("/kreator?ui=desktop");
+        await page.goto("/builder?ui=desktop");
         const buttonStyle = (element) => {
             const style = getComputedStyle(element);
             return [
@@ -117,7 +117,7 @@ for (const layout of ["desktop", "mobile"]) {
             .toBe(true);
         await page.screenshot({ path: "../tmp/backpack-optimizer-selection.png" });
         if (layout === "mobile") await page.setViewportSize({ width: 320, height: 740 });
-        await page.goto(`/optymalizator?ui=${layout}`);
+        await page.goto(`/optimizer?ui=${layout}`);
         if (layout === "mobile") {
             await page.getByLabel("Tryb optymalizatora").selectOption("ADVANCED");
             await page.getByText("Opcje i warianty", { exact: true }).click();

@@ -80,7 +80,7 @@ for (const layout of ["desktop", "mobile"]) {
                 },
             })
         );
-        await page.goto(`/optymalizator?ui=${layout}`);
+        await page.goto(`/optimizer?ui=${layout}`);
         await page.getByRole("button", { name: /Uruchom optymalizację/i }).click();
         if (layout === "mobile") await page.getByRole("button", { name: "Pokaż wynik →" }).click();
         const report = page.locator(".optimizer-status-section");

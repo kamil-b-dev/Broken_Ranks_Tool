@@ -1,0 +1,6 @@
+Generator: built-in image_gen tool (imagegen skill).
+Source: progression-path.png (256 px, transparent alpha).
+UI variants: ../ui/progression-path.webp (96 px), ../mobile/progression-path.webp (72 px).
+
+Prompt:
+Use case: stylized-concept. Asset type: a single square navigation icon for an existing dark fantasy RPG equipment planning web app, displayed at 24–36 pixels. Create a compact weathered parchment scroll with an unmistakable ascending progression route: three large gold waypoints joined by one bold dark red winding path, ending at a small gold arrow at the upper right. Style: hand-painted semi-realistic fantasy RPG inventory icon, worn bronze fittings, rich amber parchment, dark outlines, crisp beveled edges, directional upper-left highlights, matching classic game icons of a purple hammer with sword and a leather-bound tome. Strong simple silhouette readable at tiny sizes. Three-quarter view, centered, fills about 85 percent of square. Transparent background with actual alpha. No letters, words, numbers, watermark, surrounding frame, landscape, characters, extra objects, glow cloud or background shadow. This is a standalone production icon, not an interface mockup.

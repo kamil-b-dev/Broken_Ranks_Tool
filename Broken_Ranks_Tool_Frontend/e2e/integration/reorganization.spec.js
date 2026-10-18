@@ -119,7 +119,7 @@ for (const layout of ["desktop", "mobile"]) {
         page,
         request,
     }) => {
-        const { catalog, helmet, drif, orb } = await scenario(request);
+        const { helmet, drif, orb } = await scenario(request);
         const backpack = [
             { id: "selected", kind: "DRIF", templateId: drif.id, level: 6, sendToBackend: true },
             { id: "unselected", kind: "DRIF", templateId: drif.id, level: 6 },
@@ -133,7 +133,7 @@ for (const layout of ["desktop", "mobile"]) {
         await page.setViewportSize(
             layout === "desktop" ? { width: 1800, height: 1100 } : { width: 390, height: 844 }
         );
-        await page.goto(`/kreator?ui=${layout}`);
+        await page.goto(`/builder?ui=${layout}`);
         await expect(page.locator('input[type="file"]')).toHaveCount(1);
         await page.locator('input[type="file"]').setInputFiles({
             name: "reorganization.json",
@@ -153,18 +153,14 @@ for (const layout of ["desktop", "mobile"]) {
             ),
         });
         await expect(page.getByText(/Wczytano build z pliku/)).toBeVisible();
-        await page.goto(`/optymalizator?ui=${layout}`);
+        await page.goto(`/optimizer?ui=${layout}`);
         if (layout === "mobile")
             await page.getByLabel("Tryb optymalizatora").selectOption("REORGANIZE");
         else await page.getByRole("button", { name: "Reorganizacja", exact: true }).click();
-        await expect(page.getByText("Ekwipunek: 1 · Zaznaczone w plecaku: 1")).toBeVisible();
-        const label = catalog.gameRules.bonusTranslations.CRITICAL_CHANCE;
-        if (layout === "mobile") {
-            await page.getByRole("button", { name: "＋ Dodaj cel", exact: true }).click();
-            await page.getByRole("button", { name: label, exact: true }).click();
-        } else await page.locator(".optimizer-bonus-card").filter({ hasText: label }).click();
-        await page.getByLabel(`Maksymalna liczba drifów dla ${label}`, { exact: true }).fill("1");
-        await page.getByLabel(`Minimalna liczba drifów dla ${label}`, { exact: true }).fill("1");
+        await page.getByRole("button", { name: "Wstaw drif", exact: true }).click();
+        await page.getByLabel("Drif z plecaka").selectOption("selected");
+        await page.getByText("Ustawienia zaawansowane", { exact: true }).click();
+        await page.getByLabel("Pozwól odkładać założone drify do plecaka").check();
         const pending = page.waitForResponse(
             (response) =>
                 response.url().endsWith(optimizerPath) && response.request().method() === "POST"
@@ -213,10 +209,14 @@ for (const layout of ["desktop", "mobile"]) {
         ).toEqual([expect.objectContaining({ templateId: String(drif.id) })]);
         if (layout === "mobile")
             await page.getByRole("button", { name: "Pokaż wynik →", exact: true }).click();
-        await page.getByRole("button", { name: "Zastosuj wybrany wariant", exact: true }).click();
+        await expect(
+            page.getByRole("button", { name: "Zastosuj wybrany wariant", exact: true })
+        ).toHaveCount(0);
         expect(await draft(page)).toEqual(applied);
         await page.reload();
-        await expect(page.getByRole("heading", { name: "Pula drifów" })).toBeVisible();
+        await expect(
+            page.getByRole("group", { name: "Zadanie reorganizacji", exact: true })
+        ).toBeVisible();
         expect(await draft(page)).toEqual(applied);
     });
 }

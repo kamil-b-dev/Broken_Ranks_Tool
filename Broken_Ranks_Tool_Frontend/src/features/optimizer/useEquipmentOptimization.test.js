@@ -31,6 +31,63 @@ const renderOptimization = (slots = {}) => {
 };
 
 describe("useEquipmentOptimization", () => {
+    it("preserves the reorganization task on HTTP 429 and reports the server retry delay without changing inventory", async () => {
+        const { result, setRequestData, restoreStats } = renderOptimization({
+            boots: { itemId: 19 },
+        });
+        const reorganization = {
+            task: "UPGRADE",
+            upgrades: [
+                {
+                    sourceSlotKey: "boots",
+                    sourceDrifIndex: 1,
+                    targetTemplateId: 52,
+                    targetLevel: 11,
+                },
+            ],
+        };
+        vi.spyOn(console, "error").mockImplementation(() => {});
+        optimizeEquipmentDrifs.mockRejectedValue({
+            response: {
+                status: 429,
+                headers: { "retry-after": "37" },
+                data: { message: "Przekroczono limit żądań. Spróbuj ponownie później." },
+            },
+        });
+        await act(async () => {
+            expect(
+                await result.current.runDrifOptimization({ mode: "REORGANIZE", reorganization })
+            ).toEqual({
+                success: false,
+                applied: false,
+                mode: "REORGANIZE",
+                reorganizationOptions: reorganization,
+                message: "Przekroczono limit żądań. Spróbuj ponownie za 37 s.",
+            });
+        });
+        expect(optimizeEquipmentDrifs).toHaveBeenCalledTimes(1);
+        expect(setRequestData).not.toHaveBeenCalled();
+        expect(restoreStats).not.toHaveBeenCalled();
+    });
+
+    it("keeps the server message when Retry-After is unavailable", async () => {
+        const { result } = renderOptimization({ boots: { itemId: 19 } });
+        vi.spyOn(console, "error").mockImplementation(() => {});
+        optimizeEquipmentDrifs.mockRejectedValue({
+            response: {
+                status: 429,
+                headers: {},
+                data: { message: "Przekroczono limit żądań. Spróbuj ponownie później." },
+            },
+        });
+        await act(async () => {
+            expect(await result.current.runDrifOptimization({ mode: "REORGANIZE" })).toMatchObject({
+                mode: "REORGANIZE",
+                message: "Przekroczono limit żądań. Spróbuj ponownie później.",
+            });
+        });
+    });
+
     it("validates built-in stones with catalog rules while allowing their normal upgrade and keeping them out of the backpack", async () => {
         const original = {
             itemId: 99,

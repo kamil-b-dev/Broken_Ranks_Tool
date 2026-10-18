@@ -35,7 +35,20 @@ async function initialize(page, layout, changes = {}) {
                         value: {
                             format: "broken-ranks-tool-optimizer-config",
                             version: 1,
-                            settings: { mode: "REORGANIZE", configurationMode: "ADVANCED" },
+                            settings: {
+                                mode: "REORGANIZE",
+                                configurationMode: "ADVANCED",
+                                reorganization: {
+                                    task: "RESERVE",
+                                    reservation: {
+                                        slotKey: "helmet",
+                                        freeSockets: 1,
+                                        freeCapacity: 0,
+                                    },
+                                    includeBackpack: true,
+                                    allowUnequip: true,
+                                },
+                            },
                             priorities: [{ key: "CRITICAL_CHANCE", weight: 15, min: 0, max: 12 }],
                         },
                     })
@@ -54,8 +67,10 @@ async function initialize(page, layout, changes = {}) {
     await page.route("**/api/calculator/calculate", (route) =>
         route.fulfill({ json: { stats: { CRITICAL_CHANCE: "4%" } } })
     );
-    await page.goto(`/optymalizator?ui=${layout}`);
-    await expect(page.getByRole("heading", { name: "Pula drifów" })).toBeVisible({
+    await page.goto(`/optimizer?ui=${layout}`);
+    await expect(
+        page.getByRole("group", { name: "Zadanie reorganizacji", exact: true })
+    ).toBeVisible({
         timeout: 15000,
     });
 }
@@ -112,7 +127,9 @@ for (const layout of ["desktop", "mobile"]) {
         expect(applied.requestData.slots.armor.drifLevels[0]).toBe(2);
         expect(applied.backpack).toEqual(before.backpack);
         await page.reload();
-        await expect(page.getByRole("heading", { name: "Pula drifów" })).toBeVisible();
+        await expect(
+            page.getByRole("group", { name: "Zadanie reorganizacji", exact: true })
+        ).toBeVisible();
         expect(await draft(page)).toEqual(applied);
         if (layout === "mobile")
             await expect(page.getByLabel("Tryb optymalizatora")).toHaveValue("REORGANIZE");

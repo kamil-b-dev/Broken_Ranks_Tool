@@ -58,7 +58,7 @@ describe("mobile application integration", () => {
     beforeEach(() => {
         localStorage.clear();
         sessionStorage.clear();
-        window.history.replaceState(null, "", "/kreator?ui=mobile");
+        window.history.replaceState(null, "", "/builder?ui=mobile");
         vi.spyOn(window, "scrollTo").mockImplementation(() => {});
         // jsdom does not implement native modal opening; browser E2E covers focus/inert behavior.
         HTMLDialogElement.prototype.showModal = vi.fn(function () {
@@ -192,7 +192,7 @@ describe("mobile application integration", () => {
     });
 
     it("replaces an open slot on import, rejects a bad import and preserves data after remount", async () => {
-        window.history.replaceState(null, "", "/kreator?ui=mobile&slot=helmet");
+        window.history.replaceState(null, "", "/builder?ui=mobile&slot=helmet");
         const app = mountApp();
         await screen.findByRole("heading", { name: "Hełm", level: 1 }, { timeout: 10000 });
         importFile(app.container, savedBuild());

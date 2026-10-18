@@ -1,3 +1,4 @@
+import { useTranslation } from "../shared/i18n/useTranslation";
 import "./desktop-app.css";
 import "./desktop-theme.css";
 import "../styles/home.css";
@@ -8,6 +9,9 @@ import WorkspaceState from "./components/WorkspaceState";
 const BuilderWorkspace = lazy(() => import("../features/builder/ConnectedBuilderWorkspace"));
 const BuildLibraryWorkspace = lazy(() => import("../features/builds/BuildLibraryWorkspace"));
 const OptimizerWorkspace = lazy(() => import("../features/optimizer/OptimizerWorkspace"));
+const ProgressionWorkspace = lazy(
+    () => import("../features/progression-path/ProgressionWorkspace")
+);
 import { DEFAULT_OPTIMIZER_SETTINGS } from "../features/optimizer/optimizerDefaults";
 import {
     useEquipmentCatalogState,
@@ -21,6 +25,8 @@ import HomeWorkspace from "./components/HomeWorkspace";
 
 /** Desktop composition is loaded only for the desktop presentation. */
 export default function DesktopApp() {
+    const { t } = useTranslation();
+
     const { activeView: mainView, navigate } = useAppRoute();
     const [optimizerSettings, setOptimizerSettings] = useState(DEFAULT_OPTIMIZER_SETTINGS);
     const equipment = { ...useEquipmentCatalogState(), ...useEquipmentBuildActions() };
@@ -36,7 +42,7 @@ export default function DesktopApp() {
             className={`app-shell app-shell-${mainView} flex min-h-screen w-full max-w-none flex-col gap-4 p-4 md:p-6 xl:gap-5 xl:p-8`}
         >
             <a className="skip-link" href="#workspace-content">
-                Przejdź do głównej treści
+                {t("Przejdź do głównej treści")}
             </a>
             <AppHeader
                 activeView={mainView}
@@ -61,6 +67,14 @@ export default function DesktopApp() {
             )}
             <Suspense fallback={<WorkspaceState loading />}>
                 {mainView === "home" && <HomeWorkspace />}
+                {!unavailable && mainView === "progression" && (
+                    <ProgressionWorkspace
+                        builds={buildLibrary.builds}
+                        data={equipment.data}
+                        createSnapshot={equipment.createBuildSnapshot}
+                        gameRules={equipment.gameRules}
+                    />
+                )}
                 {!unavailable && mainView === "builder" && <BuilderWorkspace />}
                 {!unavailable && mainView === "optimizer" && (
                     <OptimizerWorkspace
