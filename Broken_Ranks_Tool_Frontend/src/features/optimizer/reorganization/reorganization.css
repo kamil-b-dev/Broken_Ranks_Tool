@@ -146,8 +146,8 @@
     color: var(--ui-text-muted);
     font-size: 0.75rem;
 }
-.reorganization-report,
-.reorganization-report h5,
+.optimizer-report-section.reorganization-report,
+.optimizer-report-section.reorganization-report h5,
 .is-reorganization .optimizer-column-heading h3 {
     font-family: var(--ui-font);
 }
@@ -155,10 +155,53 @@
     font-size: 0.8rem;
     overflow-wrap: anywhere;
 }
+.optimizer-report-section.reorganization-report h5 {
+    font-family: var(--ui-font) !important;
+    font-size: 0.85rem !important;
+    letter-spacing: normal !important;
+    text-transform: none;
+    line-height: 1.4;
+    margin-bottom: 0.65rem;
+}
+.optimizer-report-section.reorganization-report h5:not(:first-child) {
+    margin-top: 1rem;
+}
 .reorganization-report ul {
     display: grid;
     gap: 0.6rem;
     margin: 0.75rem 0;
+}
+.reorganization-item-space,
+.reorganization-protection-values {
+    color: var(--ui-text-muted);
+    font-size: 0.75rem;
+}
+.reorganization-protection-values {
+    display: block;
+    margin-top: 0.35rem;
+}
+.reorganization-item-space ul {
+    display: grid;
+    gap: 0.3rem;
+    margin-top: 0.5rem;
+}
+.reorganization-preflight {
+    color: var(--ui-gold);
+    font-size: 0.8rem;
+}
+.reorganization-operations {
+    display: grid;
+    gap: 0.8rem;
+    padding-left: 1.2rem;
+    list-style: decimal;
+}
+.reorganization-undo {
+    font-family: var(--ui-font);
+    font-size: 0.8rem;
+}
+.reorganization-undo p {
+    margin-top: 0.5rem;
+    color: var(--ui-text-muted);
 }
 @media (min-width: 1024px) {
     .is-reorganization .optimizer-main-grid {

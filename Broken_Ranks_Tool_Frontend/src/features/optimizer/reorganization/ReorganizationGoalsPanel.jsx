@@ -7,9 +7,16 @@ import {
     upgradeSelection,
     upgradeRows,
     reservationItems,
+    insertionRows,
     LEVEL_LIMITS,
 } from "./reorganizationConfiguration";
 import "./reorganization.css";
+import {
+    reorganizationItemSpace,
+    reorganizationPreflight,
+    reorganizationProtection,
+} from "./reorganizationPreflight";
+import { formatPotentialValue } from "../optimizerDomain";
 
 const TASKS = [
     ["UPGRADE", "Ulepsz drify"],
@@ -18,7 +25,7 @@ const TASKS = [
 ];
 
 export default function ReorganizationGoalsPanel({ settings, onChange, disabled = false, result }) {
-    const { t } = useTranslation();
+    const { t, locale } = useTranslation();
     const { getName } = useOptimizerLabelContext();
     const {
         requestData,
@@ -27,6 +34,7 @@ export default function ReorganizationGoalsPanel({ settings, onChange, disabled 
         lockedDrifs = {},
         backpack = [],
         gameRules,
+        stats,
     } = useEquipment();
     const completed = Boolean(
         result?.applied &&
@@ -44,7 +52,7 @@ export default function ReorganizationGoalsPanel({ settings, onChange, disabled 
         const requested =
             result?.reorganizationOptions?.upgrades?.[index] ||
             result?.reorganizationOptions?.upgrade;
-        if (!completed || options.task !== "UPGRADE" || !requested) return row;
+        if (!completed || !requested) return row;
         const destination = result.reorganizationDrifUsages?.find(
             (usage) =>
                 usage.sourceSlotKey === requested.sourceSlotKey &&
@@ -69,6 +77,12 @@ export default function ReorganizationGoalsPanel({ settings, onChange, disabled 
     const reserved =
         itemChoices.find((item) => item.slotKey === options.reservation.slotKey) || itemChoices[0];
     const loose = backpack.filter((entry) => entry.kind === "DRIF");
+    const inserts = insertionRows(options);
+    const input = { slots: requestData.slots, data, lockedSlots, lockedDrifs, backpack, gameRules };
+    const preflight = reorganizationPreflight(settings, input);
+    const space = reserved ? reorganizationItemSpace(reserved, stones, gameRules) : null;
+    const updateInsertion = (index, patch) =>
+        update({ insertions: inserts.map((row, i) => (i === index ? { ...row, ...patch } : row)) });
     const name = (key) => getName(key, gameRules?.bonusTranslations?.[key] || key);
     const updateProtection = (key, patch) =>
         update({
@@ -101,7 +115,8 @@ export default function ReorganizationGoalsPanel({ settings, onChange, disabled 
                     {t("Zastosowano. Wybierz kolejne zadanie lub kamienie.")}
                 </p>
             )}
-            {options.task === "UPGRADE" && (
+            {(options.task === "UPGRADE" ||
+                (options.task === "INSERT" && options.includeUpgrades)) && (
                 <div className="reorganization-upgrades">
                     {rows.map((row, index) => {
                         const selection = upgradeSelection(row, stones, data.drifs);
@@ -122,7 +137,7 @@ export default function ReorganizationGoalsPanel({ settings, onChange, disabled 
                             >
                                 <div className="reorganization-stone-heading">
                                     <span>{t("Drif {0}", [index + 1])}</span>
-                                    {rows.length > 1 && (
+                                    {(rows.length > 1 || options.task === "INSERT") && (
                                         <button
                                             type="button"
                                             className="reorganization-remove"
@@ -130,6 +145,10 @@ export default function ReorganizationGoalsPanel({ settings, onChange, disabled 
                                             onClick={() =>
                                                 update({
                                                     upgrades: rows.filter((_, i) => i !== index),
+                                                    ...(rows.length === 1 &&
+                                                    options.task === "INSERT"
+                                                        ? { includeUpgrades: false }
+                                                        : {}),
                                                 })
                                             }
                                         >
@@ -263,33 +282,123 @@ export default function ReorganizationGoalsPanel({ settings, onChange, disabled 
                 </div>
             )}
             {options.task === "INSERT" && (
-                <label>
-                    {t("Drif z plecaka")}
-                    <select
-                        value={options.insertEntryId}
-                        onChange={(event) => update({ insertEntryId: event.target.value })}
+                <div className="reorganization-upgrades">
+                    {inserts.map((row, index) => (
+                        <section
+                            key={index}
+                            className="reorganization-stone"
+                            aria-label={t("Wstawienie {0}", [index + 1])}
+                        >
+                            <div className="reorganization-stone-heading">
+                                <span>{t("Drif {0}", [index + 1])}</span>
+                                {inserts.length > 1 && (
+                                    <button
+                                        type="button"
+                                        className="reorganization-remove"
+                                        aria-label={t("Usuń wstawienie {0}", [index + 1])}
+                                        onClick={() =>
+                                            update({
+                                                insertions: inserts.filter((_, i) => i !== index),
+                                            })
+                                        }
+                                    >
+                                        ×
+                                    </button>
+                                )}
+                            </div>
+                            <label>
+                                {t("Drif z plecaka")}
+                                <select
+                                    value={row.entryId}
+                                    onChange={(event) =>
+                                        inserts.length === 1 && !options.insertions.length
+                                            ? update({ insertEntryId: event.target.value })
+                                            : updateInsertion(index, {
+                                                  entryId: event.target.value,
+                                              })
+                                    }
+                                >
+                                    <option value="" disabled>
+                                        {t("Wybierz drif")}
+                                    </option>
+                                    {loose
+                                        .filter(
+                                            (entry) =>
+                                                !inserts.some(
+                                                    (other, i) =>
+                                                        i !== index && other.entryId === entry.id
+                                                )
+                                        )
+                                        .map((entry) => {
+                                            const drif = data.drifs.find(
+                                                (drif) =>
+                                                    String(drif.id) === String(entry.templateId)
+                                            );
+                                            return (
+                                                <option key={entry.id} value={entry.id}>
+                                                    {drif?.name || entry.templateId} · {entry.level}{" "}
+                                                    lvl · #{loose.indexOf(entry) + 1}
+                                                </option>
+                                            );
+                                        })}
+                                </select>
+                                {!loose.length && (
+                                    <span className="reorganization-empty">
+                                        {t("Brak osobnych drifów w plecaku.")}
+                                    </span>
+                                )}
+                            </label>
+                            <label>
+                                {t("Przedmiot docelowy")}
+                                <select
+                                    value={row.targetSlotKey}
+                                    onChange={(event) =>
+                                        updateInsertion(index, {
+                                            targetSlotKey: event.target.value,
+                                        })
+                                    }
+                                >
+                                    <option value="">{t("Dowolny pasujący przedmiot")}</option>
+                                    {itemChoices.map((item) => (
+                                        <option key={item.slotKey} value={item.slotKey}>
+                                            {t(item.label)} · {item.item.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
+                        </section>
+                    ))}
+                    <button
+                        type="button"
+                        className="reorganization-add"
+                        disabled={completed || inserts.length >= Math.min(36, loose.length)}
+                        onClick={() =>
+                            update({
+                                insertions: [
+                                    ...inserts,
+                                    {
+                                        entryId:
+                                            loose.find(
+                                                (entry) =>
+                                                    !inserts.some((row) => row.entryId === entry.id)
+                                            )?.id || "",
+                                        targetSlotKey: "",
+                                    },
+                                ],
+                            })
+                        }
                     >
-                        <option value="" disabled>
-                            {t("Wybierz drif")}
-                        </option>
-                        {loose.map((entry, index) => {
-                            const drif = data.drifs.find(
-                                (drif) => String(drif.id) === String(entry.templateId)
-                            );
-                            return (
-                                <option key={entry.id} value={entry.id}>
-                                    {drif?.name || entry.templateId} · {entry.level} lvl · #
-                                    {index + 1}
-                                </option>
-                            );
-                        })}
-                    </select>
-                    {!loose.length && (
-                        <span className="reorganization-empty">
-                            {t("Brak osobnych drifów w plecaku.")}
-                        </span>
-                    )}
-                </label>
+                        {t("+ Dodaj wstawienie")}
+                    </button>
+                    <label className="reorganization-checkbox">
+                        <input
+                            type="checkbox"
+                            checked={options.includeUpgrades}
+                            onChange={(event) => update({ includeUpgrades: event.target.checked })}
+                        />
+                        {t("Ulepsz również założone drify")}
+                    </label>
+                </div>
             )}
             {options.task === "RESERVE" && (
                 <div className="reorganization-stone">
@@ -318,7 +427,7 @@ export default function ReorganizationGoalsPanel({ settings, onChange, disabled 
                     </label>
                     <div className="reorganization-target-fields">
                         <label>
-                            {t("Wolne gniazda")}
+                            {t("Wymagane wolne gniazda")}
                             <input
                                 type="number"
                                 min="0"
@@ -335,7 +444,7 @@ export default function ReorganizationGoalsPanel({ settings, onChange, disabled 
                             />
                         </label>
                         <label>
-                            {t("Wolna pojemność")}
+                            {t("Wymagana wolna pojemność")}
                             <input
                                 type="number"
                                 min="0"
@@ -352,7 +461,38 @@ export default function ReorganizationGoalsPanel({ settings, onChange, disabled 
                             />
                         </label>
                     </div>
+                    {space && (
+                        <div
+                            className="reorganization-item-space"
+                            aria-label={t("Obecne miejsce w przedmiocie")}
+                        >
+                            <p>
+                                {t("Obecnie wolne: {0} z {1} gniazd, {2} z {3} pojemności.", [
+                                    space.freeSockets,
+                                    reserved.sockets,
+                                    space.freeCapacity ?? "—",
+                                    reserved.capacity,
+                                ])}
+                            </p>
+                            {space.stones.length > 0 && (
+                                <ul>
+                                    {space.stones.map((stone) => (
+                                        <li key={stone.key}>
+                                            {t(stone.drif.name)} · {t(stone.drif.size)} ·{" "}
+                                            {stone.level} lvl
+                                            {!stone.movable && <> · {t("zablokowany")}</>}
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </div>
+                    )}
                 </div>
+            )}
+            {!completed && preflight.message && (
+                <p role="status" className="reorganization-preflight">
+                    {t(preflight.message)}
+                </p>
             )}
             <details className="reorganization-advanced">
                 <summary>{t("Ustawienia zaawansowane")}</summary>
@@ -408,6 +548,53 @@ export default function ReorganizationGoalsPanel({ settings, onChange, disabled 
                                             />
                                             {t(name(key))}
                                         </label>
+                                        {stats &&
+                                            (() => {
+                                                const protection = reorganizationProtection(
+                                                    key,
+                                                    stats[key] ?? 0,
+                                                    gameRules?.drifMaxCaps?.[key],
+                                                    rule.loss
+                                                );
+                                                return (
+                                                    protection && (
+                                                        <small className="reorganization-protection-values">
+                                                            {t("Obecnie: {0}", [
+                                                                formatPotentialValue(
+                                                                    protection.value,
+                                                                    locale
+                                                                ),
+                                                            ])}
+                                                            {protection.cap != null && (
+                                                                <>
+                                                                    {" "}
+                                                                    ·{" "}
+                                                                    {t("Cap: {0}", [
+                                                                        formatPotentialValue(
+                                                                            protection.cap,
+                                                                            locale
+                                                                        ),
+                                                                    ])}
+                                                                </>
+                                                            )}
+                                                            {rule.enabled !== false && (
+                                                                <>
+                                                                    {" "}
+                                                                    ·{" "}
+                                                                    {t("Minimum: {0}", [
+                                                                        protection.minimum == null
+                                                                            ? "—"
+                                                                            : formatPotentialValue(
+                                                                                  protection.minimum,
+                                                                                  locale
+                                                                              ),
+                                                                    ])}
+                                                                </>
+                                                            )}
+                                                        </small>
+                                                    )
+                                                );
+                                            })()}
                                     </th>
                                     <td>
                                         <input

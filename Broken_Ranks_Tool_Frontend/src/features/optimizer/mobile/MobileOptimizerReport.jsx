@@ -1,4 +1,5 @@
 import ReorganizationReport from "../reorganization/ReorganizationReport.jsx";
+import ReorganizationUndo from "../reorganization/ReorganizationUndo.jsx";
 import { useTranslation } from "../../../shared/i18n/useTranslation";
 import OptimizerStatusSection from "../OptimizerStatusSection";
 import OptimizerGoalsSection from "../OptimizerGoalsSection";
@@ -15,6 +16,12 @@ export default function MobileOptimizerReport({ model, advisory }) {
             className="mobile-optimizer-report"
             aria-label={t(advisory ? "Porady Doradcy" : "Wynik optymalizacji")}
         >
+            <ReorganizationUndo
+                available={model.canUndoReorganization}
+                warning={model.reorganizationUndoWarning}
+                disabled={model.isOptimizing}
+                onUndo={model.handleUndoReorganization}
+            />
             {!status && !model.isOptimizing && (
                 <p className="mobile-muted">
                     {t(

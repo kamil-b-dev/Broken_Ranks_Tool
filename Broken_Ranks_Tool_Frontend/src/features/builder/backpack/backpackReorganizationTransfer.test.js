@@ -34,6 +34,46 @@ const input = () => ({
 });
 
 describe("reorganization inventory transfer", () => {
+    it("validates every targeted insertion and combines it with an authorized equipped upgrade atomically", () => {
+        const source = input();
+        source.previousSlots.armor = slot(2);
+        source.previousSlots.boots = slot(5);
+        source.nextSlots = {
+            helmet: slot(1, [60], { 0: 6 }),
+            armor: slot(2, [60], { 0: 6 }),
+            boots: slot(5, [60], { 0: 1 }),
+        };
+        source.reorganizationOptions = {
+            task: "INSERT",
+            allowUnequip: false,
+            insertions: [
+                { entryId: "selected", targetSlotKey: "armor" },
+                { entryId: "unused", targetSlotKey: "boots" },
+            ],
+            upgrades: [
+                {
+                    sourceSlotKey: "helmet",
+                    sourceDrifIndex: 0,
+                    targetTemplateId: 60,
+                    targetLevel: 6,
+                },
+            ],
+        };
+        source.reorganizationDrifUsages = [
+            { sourceSlotKey: "helmet", sourceDrifIndex: 0, slotKey: "helmet", drifIndex: 0 },
+            { entryId: "selected", slotKey: "armor", drifIndex: 0 },
+            { entryId: "unused", slotKey: "boots", drifIndex: 0 },
+        ];
+        expect(applyReorganization(source)).toEqual([]);
+        const previous = structuredClone(source);
+        source.reorganizationOptions.insertions[1].targetSlotKey = "armor";
+        expect(() => applyReorganization(source)).toThrow(/nie pozwala/);
+        expect(source.backpack).toEqual(previous.backpack);
+        expect(source.previousSlots).toEqual(previous.previousSlots);
+        source.reorganizationOptions.insertions[1].targetSlotKey = "boots";
+        source.reorganizationOptions.insertions.push({ entryId: "missing" });
+        expect(() => applyReorganization(source)).toThrow(/pomija/);
+    });
     it("counts insertion and returning the replaced stone separately against the selected limit", () => {
         const source = input();
         source.reorganizationOptions = {

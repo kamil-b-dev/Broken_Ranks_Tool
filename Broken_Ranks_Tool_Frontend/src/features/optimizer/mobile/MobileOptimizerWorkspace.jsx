@@ -111,6 +111,9 @@ export default function MobileOptimizerWorkspace({ settings, onSettingsChange, o
                         disabled={
                             model.isOptimizing ||
                             (reorganize &&
+                                (model.reorganizationCheck?.blocked ||
+                                    model.reorganizationCheck?.alreadySatisfied)) ||
+                            (reorganize &&
                                 model.displayedStatus?.applied &&
                                 model.displayedStatus.reorganizationOptions?.task !== "ARRANGE") ||
                             (!advisory &&

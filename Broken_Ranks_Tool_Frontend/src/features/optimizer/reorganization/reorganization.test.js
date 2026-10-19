@@ -87,6 +87,35 @@ describe("reorganization workflow", () => {
         calculationResult: { stats: { CRITICAL_CHANCE: "9%" } },
     });
 
+    it("undoes equipment and backpack together and refuses to overwrite later edits", async () => {
+        const input = props();
+        optimizeEquipmentDrifs.mockResolvedValue(response());
+        const { result, rerender } = renderHook((value) => useEquipmentOptimization(value), {
+            initialProps: input,
+        });
+        await act(async () => result.current.runDrifOptimization(config));
+        const applied = {
+            ...input,
+            requestData: input.setRequestData.mock.calls.at(-1)[0],
+            backpack: input.setBackpack.mock.calls.at(-1)[0],
+        };
+        rerender(applied);
+        expect(result.current.canUndoReorganization).toBe(true);
+        expect(result.current.reorganizationUndoWarning).toBeNull();
+        rerender({ ...applied, backpack: [] });
+        expect(result.current.reorganizationUndoWarning).toMatch(/Cofnięcie/);
+        const beforeCalls = input.setBackpack.mock.calls.length;
+        expect(() => result.current.undoReorganization()).toThrow(/nadpisałoby/);
+        expect(input.setBackpack).toHaveBeenCalledTimes(beforeCalls);
+        rerender(applied);
+        act(() => expect(result.current.undoReorganization()).toBe(true));
+        expect(input.setRequestData).toHaveBeenLastCalledWith(input.requestData);
+        expect(input.setBackpack).toHaveBeenLastCalledWith(input.backpack);
+        expect(input.restoreStats).toHaveBeenLastCalledWith(null);
+        expect(result.current.canUndoReorganization).toBe(false);
+        expect(result.current.undoReorganization()).toBe(false);
+    });
+
     it("applies a verified pool result and returns the unused equipped stone", async () => {
         const input = props();
         optimizeEquipmentDrifs.mockResolvedValue(response());

@@ -26,6 +26,8 @@ const cancellationCredentials = ({ runId, cancellationToken }) => ({
 
 const inputSignature = (requestData, lockedSlots, lockedDrifs) =>
     JSON.stringify({ requestData, lockedSlots, lockedDrifs });
+const inventorySignature = (requestData, backpack, lockedSlots, lockedDrifs) =>
+    JSON.stringify([inputSignature(requestData, lockedSlots, lockedDrifs), backpack]);
 
 /** Owns a single optimizer request and explicit application of advisor recommendations. */
 export const useEquipmentOptimization = ({
@@ -41,6 +43,15 @@ export const useEquipmentOptimization = ({
 }) => {
     const slots = requestData?.slots;
     const [optimizationTrigger, setOptimizationTrigger] = useState(0);
+    const [reorganizationUndo, setReorganizationUndo] = useState(null);
+    const reorganizationUndoWarning =
+        reorganizationUndo &&
+        (inventorySignature(requestData, backpack, lockedSlots, lockedDrifs) !==
+            reorganizationUndo.afterSignature ||
+            data !== reorganizationUndo.data ||
+            gameRules !== reorganizationUndo.gameRules)
+            ? "Ekwipunek, plecak, blokady lub katalog zmieniły się. Cofnięcie nadpisałoby późniejsze zmiany."
+            : null;
     const activeAdvisor = useRef(null);
     const optimizerRunVersion = useRef(0);
     const invalidateDrifOptimization = useCallback(() => {
@@ -96,6 +107,18 @@ export const useEquipmentOptimization = ({
                     data,
                     gameRules,
                 });
+                if (inventoryUsages.reorganization)
+                    setReorganizationUndo({
+                        before: structuredClone({ requestData, backpack }),
+                        afterSignature: inventorySignature(
+                            nextRequestData,
+                            nextBackpack,
+                            lockedSlots,
+                            lockedDrifs
+                        ),
+                        data,
+                        gameRules,
+                    });
                 setBackpack?.(nextBackpack);
             }
             setRequestData(nextRequestData);
@@ -118,6 +141,18 @@ export const useEquipmentOptimization = ({
             gameRules,
         ]
     );
+
+    const undoReorganization = () => {
+        if (!reorganizationUndo) return false;
+        if (reorganizationUndoWarning) throw new Error(reorganizationUndoWarning);
+        invalidateDrifOptimization();
+        setRequestData(structuredClone(reorganizationUndo.before.requestData));
+        setBackpack(structuredClone(reorganizationUndo.before.backpack));
+        restoreStats?.(null);
+        setReorganizationUndo(null);
+        markEquipmentChanged();
+        return true;
+    };
 
     const cancelDrifOptimization = useCallback(async () => {
         const advisorRun = activeAdvisor.current;
@@ -394,5 +429,8 @@ export const useEquipmentOptimization = ({
         applyOptimizationSetup,
         runDrifOptimization,
         cancelDrifOptimization,
+        canUndoReorganization: Boolean(reorganizationUndo),
+        reorganizationUndoWarning,
+        undoReorganization,
     };
 };

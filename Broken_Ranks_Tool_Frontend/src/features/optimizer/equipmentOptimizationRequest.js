@@ -4,7 +4,10 @@ const isBackpackSource = (entry, configuration) => {
     if (entry.kind !== "DRIF") return false;
     const task = configuration.mode === "REORGANIZE" ? configuration.reorganization?.task : null;
     if (task === "UPGRADE" || task === "RESERVE") return false;
-    if (task === "INSERT") return entry.id === configuration.reorganization.insertEntryId;
+    if (task === "INSERT")
+        return configuration.reorganization.insertions
+            ? configuration.reorganization.insertions.some((row) => row.entryId === entry.id)
+            : entry.id === configuration.reorganization.insertEntryId;
     return entry.sendToBackend === true;
 };
 

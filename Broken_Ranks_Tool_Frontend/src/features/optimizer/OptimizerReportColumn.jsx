@@ -1,4 +1,5 @@
 import ReorganizationReport from "./reorganization/ReorganizationReport.jsx";
+import ReorganizationUndo from "./reorganization/ReorganizationUndo.jsx";
 import { useTranslation } from "../../shared/i18n/useTranslation";
 import OptimizerChangesSection from "./OptimizerChangesSection";
 import OptimizerGoalsSection from "./OptimizerGoalsSection";
@@ -22,6 +23,9 @@ const OptimizerReportColumn = ({
     activeVariantIndex,
     onSelectVariant,
     onApplyVariant,
+    canUndoReorganization,
+    reorganizationUndoWarning,
+    onUndoReorganization,
 }) => {
     const { t } = useTranslation();
     return (
@@ -37,6 +41,12 @@ const OptimizerReportColumn = ({
                 </div>
             </header>
             <div className="optimizer-report-scroll custom-scrollbar">
+                <ReorganizationUndo
+                    available={canUndoReorganization}
+                    warning={reorganizationUndoWarning}
+                    disabled={isOptimizing}
+                    onUndo={onUndoReorganization}
+                />
                 {(isOptimizing || status) && (
                     <>
                         <OptimizerStatusSection

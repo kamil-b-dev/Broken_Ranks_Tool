@@ -25,6 +25,45 @@ const input = () => ({
 });
 
 describe("owned-pool task configuration", () => {
+    it("serializes exact insertion occurrences with optional destinations and combined upgrades", () => {
+        const state = input();
+        state.slots.armor = { itemId: 2, drifIds: [] };
+        state.backpack.push({ ...state.backpack[0], id: "second" });
+        const settings = {
+            reorganization: {
+                task: "INSERT",
+                includeUpgrades: true,
+                upgrades: [{ source: "helmet:0", targetTemplateId: 62, targetLevel: 21 }],
+                insertions: [
+                    { entryId: "owned", targetSlotKey: "helmet" },
+                    { entryId: "second", targetSlotKey: "armor" },
+                ],
+            },
+        };
+        const config = buildReorganizationConfiguration(settings, state);
+        expect(config.reorganization).toMatchObject({
+            insertions: settings.reorganization.insertions,
+            upgrades: [
+                {
+                    sourceSlotKey: "helmet",
+                    sourceDrifIndex: 0,
+                    targetTemplateId: 62,
+                    targetLevel: 21,
+                },
+            ],
+        });
+        expect(
+            createEquipmentOptimizationRequest({
+                ...state,
+                configuration: config,
+            }).backpackDrifs.map((entry) => entry.id)
+        ).toEqual(["owned", "second"]);
+        const saved = createOptimizerConfigPayload([], { mode: "REORGANIZE", ...settings });
+        const restored = parseOptimizerConfigPayload(saved, builderCatalog.gameRules);
+        expect(restored.reorganization).toMatchObject(settings.reorganization);
+        settings.reorganization.insertions[1].entryId = "owned";
+        expect(() => buildReorganizationConfiguration(settings, state)).toThrow(/różne/);
+    });
     it("uses the pool goal and excludes catalog-building preferences and backpack by default", () => {
         const state = input();
         const config = buildReorganizationConfiguration(

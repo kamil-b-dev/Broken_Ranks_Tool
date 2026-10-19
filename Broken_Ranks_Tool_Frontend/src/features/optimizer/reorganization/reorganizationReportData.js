@@ -5,6 +5,7 @@ import {
     ROMAN_TO_INT,
 } from "../../../shared/domain/equipment/equipmentRules";
 import { SLOTS } from "../../../shared/domain/equipment/equipmentSlots";
+import { createReorganizationSequence } from "./reorganizationSequence";
 
 export const createReorganizationReport = ({
     before,
@@ -131,5 +132,20 @@ export const createReorganizationReport = ({
         upgrade: upgrades[0],
         reservation: options?.reservation,
         reservationSummary,
+        sequence: createReorganizationSequence({
+            before,
+            after,
+            usages: usages || [],
+            options,
+            backpack,
+            data,
+            gameRules,
+        }),
+        itemNames: Object.fromEntries(
+            Object.entries(before).map(([key, slot]) => [
+                key,
+                data.items?.find((item) => String(item.id) === String(slot.itemId))?.name,
+            ])
+        ),
     };
 };

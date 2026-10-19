@@ -40,10 +40,9 @@ export const applyReorganization = ({ reorganizationDrifUsages, ...input }) => {
     const maxMoves = options?.maxMoves ?? 50;
     if (operational && (!Number.isInteger(maxMoves) || maxMoves < 1 || maxMoves > 50))
         throw new Error("Limit przełożeń musi być liczbą całkowitą od 1 do 50.");
-    const upgrades =
-        options?.task === "UPGRADE"
-            ? options.upgrades || (options.upgrade ? [options.upgrade] : [])
-            : [];
+    const upgrades = ["UPGRADE", "INSERT"].includes(options?.task)
+        ? options.upgrades || (options.upgrade ? [options.upgrade] : [])
+        : [];
     const upgradeMap = new Map();
     for (const upgrade of upgrades) {
         const upgradeKey = upgrade.sourceSlotKey + ":" + upgrade.sourceDrifIndex;
@@ -75,6 +74,14 @@ export const applyReorganization = ({ reorganizationDrifUsages, ...input }) => {
         throw new Error("Brak kamieni do ulepszenia.");
     const destinations = new Set();
     const backpackUsages = [];
+    const insertions =
+        options?.insertions || (options?.insertEntryId ? [{ entryId: options.insertEntryId }] : []);
+    const inserted = new Map();
+    for (const row of insertions) {
+        if (!row?.entryId || inserted.has(row.entryId))
+            throw new Error("Wybierz różne konkretne osobne drify z plecaka.");
+        inserted.set(row.entryId, row);
+    }
     for (const usage of reorganizationDrifUsages) {
         const { entryId, sourceSlotKey, sourceDrifIndex, slotKey, drifIndex } = usage || {};
         const position = `${slotKey}:${drifIndex}`;
@@ -94,7 +101,10 @@ export const applyReorganization = ({ reorganizationDrifUsages, ...input }) => {
                 throw new Error("Drif reorganizacji ma niejednoznaczne źródło.");
             if (
                 ["UPGRADE", "RESERVE"].includes(options?.task) ||
-                (options?.task === "INSERT" && entryId !== options.insertEntryId)
+                (options?.task === "INSERT" &&
+                    (!inserted.has(entryId) ||
+                        (inserted.get(entryId).targetSlotKey &&
+                            inserted.get(entryId).targetSlotKey !== slotKey)))
             )
                 throw new Error("To zadanie nie pozwala użyć tego drifa z plecaka.");
             if (input.allowedBackpackIds && !input.allowedBackpackIds.includes(entryId))
@@ -141,7 +151,10 @@ export const applyReorganization = ({ reorganizationDrifUsages, ...input }) => {
         throw new Error("Wynik pomija wskazany drif do ulepszenia.");
     if (
         options?.task === "INSERT" &&
-        !backpackUsages.some((usage) => usage.entryId === options.insertEntryId)
+        (!insertions.length ||
+            insertions.some(
+                (row) => !backpackUsages.some((usage) => usage.entryId === row.entryId)
+            ))
     )
         throw new Error("Wynik pomija wybrany drif z plecaka.");
     if (options?.task === "RESERVE") {
@@ -204,7 +217,7 @@ export const applyReorganization = ({ reorganizationDrifUsages, ...input }) => {
     const next = applyBackpackOptimization({
         ...input,
         backpack: backpack.map((entry) =>
-            options?.task === "INSERT" && entry.id === options.insertEntryId
+            options?.task === "INSERT" && inserted.has(entry.id)
                 ? { ...entry, sendToBackend: true }
                 : entry
         ),

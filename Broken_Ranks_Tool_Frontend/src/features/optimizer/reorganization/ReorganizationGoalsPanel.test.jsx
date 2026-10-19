@@ -14,6 +14,7 @@ vi.mock("../../../shared/state/EquipmentContext", () => ({
         },
         data: builderCatalog,
         gameRules: builderCatalog.gameRules,
+        stats: { CRITICAL_CHANCE: "62%" },
         backpack: [{ id: "chosen", kind: "DRIF", templateId: 60, level: 6 }],
         lockedSlots: [],
         lockedDrifs: {},
@@ -72,8 +73,25 @@ describe("operational reorganization goals", () => {
         fireEvent.change(screen.getByLabelText("Drif z plecaka"), { target: { value: "chosen" } });
         expect(screen.getByLabelText("Drif z plecaka")).toHaveValue("chosen");
         fireEvent.click(screen.getByRole("button", { name: "Zwolnij miejsce" }));
-        expect(screen.getByLabelText("Wolne gniazda")).toHaveValue(1);
-        expect(screen.getByLabelText("Wolna pojemność")).toHaveValue(0);
+        expect(screen.getByLabelText("Wymagane wolne gniazda")).toHaveValue(1);
+        expect(screen.getByLabelText("Wymagana wolna pojemność")).toHaveValue(0);
+        expect(
+            screen.getByText("Obecnie wolne: 2 z 3 gniazd, 8 z 12 pojemności.")
+        ).toBeInTheDocument();
+    });
+    it("shows calculator-based capped protection minima and supports targeted insertion with upgrades", () => {
+        render(<View />);
+        fireEvent.change(screen.getByRole("spinbutton", { name: /Dopuszczalny spadek dla:/ }), {
+            target: { value: "3" },
+        });
+        expect(screen.getByText(/Obecnie: 62%/)).toHaveTextContent("Minimum: 57%");
+        fireEvent.click(screen.getByRole("button", { name: "Wstaw drif" }));
+        fireEvent.change(screen.getByLabelText("Przedmiot docelowy"), {
+            target: { value: "armor" },
+        });
+        expect(screen.getByLabelText("Przedmiot docelowy")).toHaveValue("armor");
+        fireEvent.click(screen.getByLabelText("Ulepsz również założone drify"));
+        expect(screen.getByLabelText("Kamień do ulepszenia")).toBeInTheDocument();
     });
     it("lets the player edit a move limit from 1 to 50 without resetting an incomplete value", () => {
         render(<View />);

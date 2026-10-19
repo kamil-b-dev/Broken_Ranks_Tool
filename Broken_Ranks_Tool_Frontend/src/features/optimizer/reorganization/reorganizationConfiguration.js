@@ -17,6 +17,8 @@ export const DEFAULT_REORGANIZATION = {
     maximizeLevel: false,
     upgrades: [],
     insertEntryId: "",
+    insertions: [],
+    includeUpgrades: false,
     reservation: { slotKey: "", freeSockets: 1, freeCapacity: 0 },
     protectedModifiers: {},
 };
@@ -41,6 +43,16 @@ export const normalizeReorganization = (value = {}) => ({
               }))
         : [],
     insertEntryId: typeof value?.insertEntryId === "string" ? value.insertEntryId : "",
+    insertions: Array.isArray(value?.insertions)
+        ? value.insertions
+              .slice(0, 36)
+              .filter((row) => row && typeof row === "object")
+              .map((row) => ({
+                  entryId: typeof row.entryId === "string" ? row.entryId : "",
+                  targetSlotKey: typeof row.targetSlotKey === "string" ? row.targetSlotKey : "",
+              }))
+        : [],
+    includeUpgrades: value?.includeUpgrades === true,
     reservation: {
         ...DEFAULT_REORGANIZATION.reservation,
         ...(value?.reservation && typeof value.reservation === "object" ? value.reservation : {}),
@@ -52,6 +64,10 @@ export const normalizeReorganization = (value = {}) => ({
             ? value.protectedModifiers
             : {},
 });
+export const insertionRows = (options) =>
+    options.insertions.length
+        ? options.insertions
+        : [{ entryId: options.insertEntryId, targetSlotKey: "" }];
 export const upgradeRows = (options) =>
     options.upgrades.length
         ? options.upgrades
@@ -167,7 +183,7 @@ export const buildReorganizationConfiguration = (settings, input) => {
         maxMoves,
         protectedModifiers,
     };
-    if (options.task === "UPGRADE") {
+    if (options.task === "UPGRADE" || (options.task === "INSERT" && options.includeUpgrades)) {
         const used = new Set();
         reorganization.upgrades = upgradeRows(options).map((row) => {
             const { source, target, level } = upgradeSelection(row, stones, input.data.drifs);
@@ -195,13 +211,28 @@ export const buildReorganizationConfiguration = (settings, input) => {
             reorganization.upgrades.some((row) => row.maximizeLevel)
         )
             throw new Error("Szukanie najwyższego poziomu dotyczy jednego kamienia.");
-    } else if (options.task === "INSERT") {
-        const entry = input.backpack?.find(
-            (entry) => entry.kind === "DRIF" && entry.id === options.insertEntryId
-        );
-        if (!entry) throw new Error("Wybierz konkretny osobny drif z plecaka.");
-        reorganization.insertEntryId = entry.id;
-    } else {
+    }
+    if (options.task === "INSERT") {
+        const used = new Set();
+        const available = reservationItems(input);
+        const insertions = insertionRows(options).map((row) => {
+            const entry = input.backpack?.find(
+                (entry) => entry.kind === "DRIF" && entry.id === row.entryId
+            );
+            if (!entry || used.has(entry.id))
+                throw new Error("Wybierz różne konkretne osobne drify z plecaka.");
+            used.add(entry.id);
+            if (row.targetSlotKey && !available.some((item) => item.slotKey === row.targetSlotKey))
+                throw new Error("Przedmiot docelowy wstawianego drifa musi mieć zwykłe gniazda.");
+            return {
+                entryId: entry.id,
+                ...(row.targetSlotKey ? { targetSlotKey: row.targetSlotKey } : {}),
+            };
+        });
+        if (!options.insertions.length && !insertions[0].targetSlotKey)
+            reorganization.insertEntryId = insertions[0].entryId;
+        else reorganization.insertions = insertions;
+    } else if (options.task === "RESERVE") {
         const available = reservationItems(input);
         const chosen =
             available.find((item) => item.slotKey === options.reservation.slotKey) ||

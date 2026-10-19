@@ -57,6 +57,220 @@ async function assertCalculatorParity(request, response) {
     expect(await http.json()).toEqual(response.calculationResult);
 }
 
+async function importReorganizationBuild(
+    page,
+    layout,
+    slots,
+    backpack = [],
+    locks = { lockedSlots: [], lockedDrifs: {} }
+) {
+    await page.setViewportSize(
+        layout === "desktop" ? { width: 1800, height: 1100 } : { width: 390, height: 844 }
+    );
+    await page.goto(`/builder?ui=${layout}`);
+    await page.locator('input[type="file"]').setInputFiles({
+        name: "reorganization-scenario.json",
+        mimeType: "application/json",
+        buffer: Buffer.from(
+            JSON.stringify({
+                format: "broken-ranks-tool-build",
+                version: 3,
+                build: {
+                    requestData: { slots, characterStats: {} },
+                    backpack,
+                    ...locks,
+                    characterConfig: null,
+                },
+            })
+        ),
+    });
+    await expect(page.getByText(/Wczytano build z pliku/)).toBeVisible();
+    await page.goto(`/optimizer?ui=${layout}`);
+    if (layout === "mobile")
+        await page.getByLabel("Tryb optymalizatora").selectOption("REORGANIZE");
+    else await page.getByRole("button", { name: "Reorganizacja", exact: true }).click();
+    return draft(page);
+}
+
+for (const layout of ["desktop", "mobile"]) {
+    test(`${layout} explains locked reservations before sending an optimization request`, async ({
+        page,
+        request,
+    }) => {
+        const { helmet } = await scenario(request);
+        const initial = await importReorganizationBuild(page, layout, { helmet }, [], {
+            lockedSlots: ["helmet"],
+            lockedDrifs: {},
+        });
+        let optimizerCalls = 0;
+        page.on("request", (http) => {
+            if (http.url().endsWith(optimizerPath) && http.method() === "POST") optimizerCalls++;
+        });
+        await page.getByRole("button", { name: "Zwolnij miejsce", exact: true }).click();
+        await page.getByLabel("Wymagane wolne gniazda").fill("3");
+        await expect(
+            page.getByText(
+                "Blokady w wybranym przedmiocie nie pozwalają zwolnić wymaganego miejsca.",
+                { exact: true }
+            )
+        ).toBeVisible();
+        await expect(page.getByRole("button", { name: /Uruchom optymalizację/i })).toBeDisabled();
+        expect(optimizerCalls).toBe(0);
+        expect((await draft(page)).requestData).toEqual(initial.requestData);
+        await page.screenshot({
+            path: `../tmp/reorganization-real-preflight-${layout}.png`,
+            fullPage: true,
+        });
+    });
+    for (const task of ["UPGRADE", "RESERVE"]) {
+        test(`${layout} runs real ${task}, verifies calculator values and undoes both inventories`, async ({
+            page,
+            request,
+        }) => {
+            const { helmet, armor, catalog } = await scenario(request);
+            const initial = await importReorganizationBuild(page, layout, {
+                helmet,
+                armor: { ...armor, drifIds: [], drifLevels: {} },
+            });
+            if (task === "RESERVE") {
+                await page.getByRole("button", { name: "Zwolnij miejsce", exact: true }).click();
+                await page
+                    .getByRole("combobox", { name: "Przedmiot", exact: true })
+                    .selectOption("helmet");
+                await expect(page.getByLabel("Obecne miejsce w przedmiocie")).toContainText(
+                    "2 z 3 gniazd"
+                );
+                await page.getByLabel("Wymagane wolne gniazda").fill("3");
+                await page
+                    .getByLabel("Wymagana wolna pojemność")
+                    .fill(String(catalog.items.find((item) => item.id === helmet.itemId).capacity));
+                await page.getByText("Ustawienia zaawansowane", { exact: true }).click();
+                await page.getByLabel(/Dopuszczalny spadek dla:/).fill("100");
+            }
+            const pending = page.waitForResponse(
+                (response) =>
+                    response.url().endsWith(optimizerPath) && response.request().method() === "POST"
+            );
+            await page.getByRole("button", { name: /Uruchom optymalizację/i }).click();
+            const http = await pending;
+            expect(http.status()).toBe(200);
+            expect(http.request().postDataJSON().reorganization.task).toBe(task);
+            const response = await http.json();
+            expect(response.summary.outcome, response.summary.message).toBe("VALID_BUILD");
+            await assertCalculatorParity(request, response);
+            if (task === "UPGRADE")
+                expect(Object.values(response.optimizedSetup.slots.helmet.drifLevels)).toContain(6);
+            else
+                expect(response.optimizedSetup.slots.helmet.drifIds.filter(Boolean)).toHaveLength(
+                    0
+                );
+            if (layout === "mobile")
+                await page.getByRole("button", { name: "Pokaż wynik →" }).click();
+            await expect(page.getByText("Instrukcja wykonania", { exact: true })).toBeVisible();
+            await expect(
+                page.getByRole("heading", { name: "Instrukcja wykonania", exact: true })
+            ).toHaveCSS("font-family", /Inter/);
+            expect(
+                await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)
+            ).toBe(true);
+            await page.screenshot({
+                path: `../tmp/reorganization-real-${task.toLowerCase()}-${layout}.png`,
+                fullPage: true,
+            });
+            await page.getByRole("button", { name: "Cofnij reorganizację", exact: true }).click();
+            await expect
+                .poll(async () => (await draft(page)).requestData)
+                .toEqual(initial.requestData);
+            expect((await draft(page)).backpack).toEqual(initial.backpack);
+            await expect(
+                page.getByRole("button", { name: "Cofnij reorganizację", exact: true })
+            ).toHaveCount(0);
+        });
+    }
+    test(`${layout} inserts two exact targeted copies and upgrades an equipped stone with the real API`, async ({
+        page,
+        request,
+    }) => {
+        const { catalog, helmet, armor, drif } = await scenario(request);
+        const boots = catalog.items.find(
+            (item) =>
+                item.category === "BOOTS" &&
+                item.rarity === "RARE" &&
+                ["X", "XI", "XII"].includes(item.tier) &&
+                item.capacity >= 12
+        );
+        expect(boots).toBeTruthy();
+        const empty = (itemId) => ({
+            itemId,
+            itemStars: 1,
+            drifIds: [],
+            drifLevels: {},
+            orbIds: [],
+            orbLevels: [],
+        });
+        const backpack = ["one", "two", "unselected"].map((id) => ({
+            id,
+            kind: "DRIF",
+            templateId: drif.id,
+            level: 6,
+            sendToBackend: false,
+        }));
+        const initial = await importReorganizationBuild(
+            page,
+            layout,
+            { helmet, armor: empty(armor.itemId), boots: empty(boots.id) },
+            backpack
+        );
+        await page.getByRole("button", { name: "Wstaw drif", exact: true }).click();
+        await page
+            .getByRole("combobox", { name: "Drif z plecaka", exact: true })
+            .selectOption("one");
+        await page
+            .getByRole("combobox", { name: "Przedmiot docelowy", exact: true })
+            .selectOption("armor");
+        await page.getByRole("button", { name: "+ Dodaj wstawienie", exact: true }).click();
+        await page
+            .getByRole("combobox", { name: "Przedmiot docelowy", exact: true })
+            .nth(1)
+            .selectOption("boots");
+        await page.getByLabel("Ulepsz również założone drify").check();
+        const pending = page.waitForResponse(
+            (response) =>
+                response.url().endsWith(optimizerPath) && response.request().method() === "POST"
+        );
+        await page.getByRole("button", { name: /Uruchom optymalizację/i }).click();
+        const http = await pending;
+        const sent = http.request().postDataJSON();
+        expect(sent.reorganization.insertions).toEqual([
+            { entryId: "one", targetSlotKey: "armor" },
+            { entryId: "two", targetSlotKey: "boots" },
+        ]);
+        expect(sent.reorganization.upgrades).toHaveLength(1);
+        expect(sent.backpackDrifs.map((entry) => entry.id)).toEqual(["one", "two"]);
+        const response = await http.json();
+        expect(response.summary.outcome, response.summary.message).toBe("VALID_BUILD");
+        expect(response.reorganizationDrifUsages).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({ entryId: "one", slotKey: "armor" }),
+                expect.objectContaining({ entryId: "two", slotKey: "boots" }),
+            ])
+        );
+        await assertCalculatorParity(request, response);
+        await expect
+            .poll(async () => (await draft(page)).backpack.map((entry) => entry.id))
+            .toEqual(["unselected"]);
+        if (layout === "mobile") await page.getByRole("button", { name: "Pokaż wynik →" }).click();
+        await expect(page.getByText("Instrukcja wykonania", { exact: true })).toBeVisible();
+        await page.screenshot({
+            path: `../tmp/reorganization-real-combined-${layout}.png`,
+            fullPage: true,
+        });
+        await page.getByRole("button", { name: "Cofnij reorganizację", exact: true }).click();
+        await expect.poll(async () => (await draft(page)).backpack).toEqual(initial.backpack);
+        expect((await draft(page)).requestData).toEqual(initial.requestData);
+    });
+}
+
 test("real reorganization API keeps locked sources and reports unmet soft targets", async ({
     request,
 }) => {
@@ -214,6 +428,8 @@ for (const layout of ["desktop", "mobile"]) {
         ).toHaveCount(0);
         expect(await draft(page)).toEqual(applied);
         await page.reload();
+        if (layout === "mobile")
+            await page.getByRole("button", { name: "Cele", exact: true }).click();
         await expect(
             page.getByRole("group", { name: "Zadanie reorganizacji", exact: true })
         ).toBeVisible();

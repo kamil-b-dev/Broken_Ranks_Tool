@@ -47,6 +47,7 @@ const OptimizerGoalsColumn = ({
     onRun,
     onCancel,
     reorganizationStatus,
+    reorganizationCheck,
 }) => {
     const { t } = useTranslation();
     return (
@@ -141,9 +142,11 @@ const OptimizerGoalsColumn = ({
                 isOptimizing={isOptimizing}
                 disabled={Boolean(
                     settings.mode === "REORGANIZE" &&
-                    reorganizationStatus?.applied &&
-                    reorganizationStatus.reorganizationOptions &&
-                    reorganizationStatus.reorganizationOptions.task !== "ARRANGE"
+                    (reorganizationCheck?.blocked ||
+                        reorganizationCheck?.alreadySatisfied ||
+                        (reorganizationStatus?.applied &&
+                            reorganizationStatus.reorganizationOptions &&
+                            reorganizationStatus.reorganizationOptions.task !== "ARRANGE"))
                 )}
                 elapsedSeconds={elapsedSeconds}
                 startedAt={startedAt}

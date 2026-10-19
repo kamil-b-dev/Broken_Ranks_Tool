@@ -60,6 +60,10 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
         handleOptimizeClick,
         handleApplyVariant,
         handleCancel,
+        reorganizationCheck,
+        canUndoReorganization,
+        reorganizationUndoWarning,
+        handleUndoReorganization,
     } = useOptimizerWorkspace({ optimizerSettings, onOptimizerSettingsChange });
     const [activeMobileColumn, setActiveMobileColumn] = useState("priorities");
     return (
@@ -146,6 +150,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                         lastDurationSeconds={lastOptimizationDurationSeconds}
                         hasResult={Boolean(optimizationStatus)}
                         reorganizationStatus={displayedStatus}
+                        reorganizationCheck={reorganizationCheck}
                         onRun={handleOptimizeClick}
                         onCancel={handleCancel}
                     />
@@ -166,6 +171,9 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                             setActiveVariantIndex(variantIndex)
                         }
                         onApplyVariant={handleApplyVariant}
+                        canUndoReorganization={canUndoReorganization}
+                        reorganizationUndoWarning={reorganizationUndoWarning}
+                        onUndoReorganization={handleUndoReorganization}
                     />
                 </div>
             </div>
