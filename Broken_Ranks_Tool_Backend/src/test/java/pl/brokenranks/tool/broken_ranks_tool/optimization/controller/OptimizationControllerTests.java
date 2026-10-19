@@ -138,6 +138,49 @@ class OptimizationControllerTests {
     }
 
     @Test
+    void acceptsSeveralExactInsertionsWithTargetsAndAnEquippedUpgrade() throws Exception {
+        when(executionGuard.optimize(any())).thenReturn(new OptimizationResponse(null, null));
+        mockMvc.perform(
+                        post("/api/optimizer/drifs")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        """
+                {"mode":"REORGANIZE","originalSlots":{"helmet":{"itemId":1}},
+                 "reorganization":{"task":"INSERT","insertions":[{"entryId":"one","targetSlotKey":"armor"},{"entryId":"two"}],
+                   "upgrades":[{"sourceSlotKey":"helmet","sourceDrifIndex":0,"targetTemplateId":12,"targetLevel":6}]},
+                 "backpackDrifs":[{"id":"one","templateId":12,"level":6},{"id":"two","templateId":12,"level":6}]}
+                """))
+                .andExpect(status().isOk());
+        var captured = ArgumentCaptor.forClass(OptimizationRequest.class);
+        verify(executionGuard).optimize(captured.capture());
+        org.junit.jupiter.api.Assertions.assertEquals(
+                2, captured.getValue().getReorganization().requestedInsertions().size());
+    }
+
+    @ParameterizedTest
+    @ValueSource(
+            strings = {
+                "[]",
+                "[{\"entryId\":\"one\"},{\"entryId\":\"one\"}]",
+                "[{\"entryId\":\"missing\"}]"
+            })
+    void rejectsEmptyDuplicateAndMissingInsertionListsBeforeTheWorker(String insertions)
+            throws Exception {
+        mockMvc.perform(
+                        post("/api/optimizer/drifs")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        """
+                {"mode":"REORGANIZE","originalSlots":{"helmet":{"itemId":1}},
+                 "reorganization":{"task":"INSERT","insertions":%s},
+                 "backpackDrifs":[{"id":"one","templateId":12,"level":6}]}
+                """
+                                                .formatted(insertions)))
+                .andExpect(status().isBadRequest());
+        verifyNoInteractions(executionGuard);
+    }
+
+    @Test
     void acceptsHighestLevelReorganizationWithDisabledProtectionsAndLargeAllowedLoss()
             throws Exception {
         when(executionGuard.optimize(any())).thenReturn(new OptimizationResponse(null, null));

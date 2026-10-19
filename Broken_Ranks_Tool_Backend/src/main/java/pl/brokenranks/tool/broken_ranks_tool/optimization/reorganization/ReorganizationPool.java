@@ -26,6 +26,7 @@ final class ReorganizationPool {
     final BuildState baseline;
     final Map<Stone, Integer> required = new LinkedHashMap<>();
     final List<Source> mandatory = new ArrayList<>();
+    final Map<Source, String> targetSlots = new LinkedHashMap<>();
     final Map<DRIF_BONUS_TYPE, Double> minimums = new EnumMap<>(DRIF_BONUS_TYPE.class);
 
     ReorganizationPool(OptimizationContext context) {
@@ -107,13 +108,21 @@ final class ReorganizationPool {
                                                     null,
                                                     null)));
         }
-        if (options != null && options.getInsertEntryId() != null)
+        for (var insertion :
+                options == null
+                        ? List
+                                .<pl.brokenranks.tool.broken_ranks_tool.optimization.dto
+                                                .ReorganizationOptions.Insertion>
+                                        of()
+                        : options.requestedInsertions())
             sources.stream()
-                    .filter(source -> options.getInsertEntryId().equals(source.entryId()))
+                    .filter(source -> insertion.getEntryId().equals(source.entryId()))
                     .findFirst()
                     .ifPresent(
                             source -> {
                                 mandatory.add(source);
+                                if (insertion.getTargetSlotKey() != null)
+                                    targetSlots.put(source, insertion.getTargetSlotKey());
                                 if (!options.isAllowUnequip())
                                     required.merge(source.stone(), 1, Integer::sum);
                             });
@@ -159,14 +168,47 @@ final class ReorganizationPool {
         return remaining;
     }
 
+    int missingTargeted(BuildState state) {
+        Map<String, Map<Stone, Integer>> needed = new LinkedHashMap<>();
+        targetSlots.forEach(
+                (source, slot) ->
+                        needed.computeIfAbsent(slot, key -> new LinkedHashMap<>())
+                                .merge(source.stone(), 1, Integer::sum));
+        int missing = 0;
+        for (var entry : needed.entrySet()) {
+            Map<Stone, Integer> placed = new HashMap<>();
+            positions.stream()
+                    .filter(position -> position.slot().key().equals(entry.getKey()))
+                    .map(position -> state.slots().get(entry.getKey()).get(position.index()))
+                    .filter(Objects::nonNull)
+                    .forEach(placement -> placed.merge(Stone.of(placement), 1, Integer::sum));
+            for (var count : entry.getValue().entrySet())
+                missing += Math.max(0, count.getValue() - placed.getOrDefault(count.getKey(), 0));
+        }
+        return missing;
+    }
+
     /** Retains occurrences already in their destination before assigning identical spare copies. */
     List<ReorganizationDrifUsage> usages(BuildState state) {
         Map<Position, Source> assigned = new LinkedHashMap<>();
         Set<Source> used = new HashSet<>();
-        for (Source requiredSource : mandatory) {
+        for (Source requiredSource :
+                mandatory.stream()
+                        .sorted(
+                                Comparator.comparingInt(
+                                        source -> targetSlots.containsKey(source) ? 0 : 1))
+                        .toList()) {
             Position destination =
                     positions.stream()
                             .filter(position -> !assigned.containsKey(position))
+                            .filter(
+                                    position ->
+                                            !targetSlots.containsKey(requiredSource)
+                                                    || position.slot()
+                                                            .key()
+                                                            .equals(
+                                                                    targetSlots.get(
+                                                                            requiredSource)))
                             .filter(
                                     position -> {
                                         Placement placement =

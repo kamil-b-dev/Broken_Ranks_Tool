@@ -38,12 +38,24 @@ public final class BackpackDrifConstraints {
         var task = reorganize ? request.getReorganization() : null;
         if (task != null) {
             if (task.getTask() == ReorganizationOptions.Task.INSERT) {
+                var chosen = task.requestedInsertions();
+                var chosenIds = new HashSet<String>();
+                for (var insertion : chosen) {
+                    if (insertion == null
+                            || insertion.getEntryId() == null
+                            || insertion.getEntryId().isBlank()
+                            || !chosenIds.add(insertion.getEntryId()))
+                        return "Wybierz różne konkretne osobne drify z plecaka.";
+                }
                 if (entries == null
-                        || entries.size() != 1
-                        || entries.getFirst() == null
-                        || !java.util.Objects.equals(
-                                task.getInsertEntryId(), entries.getFirst().getId()))
-                    return "Wstawianie wymaga jednej wskazanej sztuki z plecaka.";
+                        || chosenIds.isEmpty()
+                        || entries.size() != chosenIds.size()
+                        || entries.stream()
+                                .anyMatch(
+                                        entry ->
+                                                entry == null
+                                                        || !chosenIds.contains(entry.getId())))
+                    return "Wstawianie wymaga dokładnie wskazanych sztuk z plecaka.";
             } else if ((task.getTask() == ReorganizationOptions.Task.UPGRADE
                             || task.getTask() == ReorganizationOptions.Task.RESERVE)
                     && entries != null

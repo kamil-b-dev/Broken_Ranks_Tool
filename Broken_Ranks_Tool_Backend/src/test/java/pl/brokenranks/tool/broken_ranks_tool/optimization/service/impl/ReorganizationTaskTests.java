@@ -12,6 +12,101 @@ class ReorganizationTaskTests {
     private static final DRIF_BONUS_TYPE CRIT = DRIF_BONUS_TYPE.CRITICAL_CHANCE;
     private static final DRIF_BONUS_TYPE MANA = DRIF_BONUS_TYPE.MANA_REGEN;
 
+    private ReorganizationOptions.Insertion insertion(String id, String target) {
+        var row = new ReorganizationOptions.Insertion();
+        row.setEntryId(id);
+        row.setTargetSlotKey(target);
+        return row;
+    }
+
+    @Test
+    void insertsSeveralIdenticalOccurrencesIntoTheirRequestedItemsAndUpgradesAnEquippedStone() {
+        var fixture =
+                create(
+                        List.of(
+                                item(1, ITEM_CATEGORY.HELMET, "X", 12),
+                                item(2, ITEM_CATEGORY.ARMOR, "X", 16),
+                                item(3, ITEM_CATEGORY.BOOTS, "X", 12)),
+                        List.of(drif(12, CRIT, DRIF_SIZE.ARCYDRIF, "3%", "1%")),
+                        List.of());
+        var request = upgradeRequest();
+        request.setOriginalSlots(
+                Map.of(
+                        "helmet",
+                        request.getOriginalSlots().get("helmet"),
+                        "armor",
+                        slot(2),
+                        "boots",
+                        slot(3)));
+        var first = new OptimizationRequest.BackpackDrif();
+        first.setId("one");
+        first.setTemplateId(12L);
+        first.setLevel(6);
+        var second = new OptimizationRequest.BackpackDrif();
+        second.setId("two");
+        second.setTemplateId(12L);
+        second.setLevel(6);
+        request.setBackpackDrifs(List.of(first, second));
+        request.setBackpackSlotCount(2);
+        var options = request.getReorganization();
+        options.setTask(ReorganizationOptions.Task.INSERT);
+        options.setInsertions(List.of(insertion("one", "helmet"), insertion("two", "boots")));
+        var result = fixture.service().optimize(request);
+        assertEquals(
+                OptimizationOutcome.VALID_BUILD,
+                result.getSummary().getOutcome(),
+                result.getSummary().getMessage());
+        assertEquals(3, result.getReorganizationDrifUsages().size());
+        assertTrue(
+                result.getReorganizationDrifUsages().stream()
+                        .anyMatch(
+                                usage ->
+                                        "one".equals(usage.entryId())
+                                                && usage.slotKey().equals("helmet")));
+        assertTrue(
+                result.getReorganizationDrifUsages().stream()
+                        .anyMatch(
+                                usage ->
+                                        "two".equals(usage.entryId())
+                                                && usage.slotKey().equals("boots")));
+        assertTrue(
+                result.getOptimizedSetup()
+                        .getSlots()
+                        .get("armor")
+                        .getDrifLevels()
+                        .containsValue(21));
+        assertEquals(
+                fixture.calculator().calculateTotalStats(result.getOptimizedSetup()),
+                result.getCalculationResult().stats());
+        options.setInsertions(List.of(insertion("one", "helmet"), insertion("one", "boots")));
+        assertEquals(
+                OptimizationOutcome.INVALID_INPUT,
+                fixture.service().optimize(request).getSummary().getOutcome());
+    }
+
+    @Test
+    void reportsProvenPhysicalObstructionsWithoutClaimingAnExhaustiveSearch() {
+        var request = upgradeRequest();
+        request.getOriginalSlots().get("helmet").setDrifLevels(Map.of("0", 6));
+        var options = request.getReorganization();
+        options.setTask(ReorganizationOptions.Task.INSERT);
+        options.setUpgrade(null);
+        var chosen = new OptimizationRequest.BackpackDrif();
+        chosen.setId("chosen");
+        chosen.setTemplateId(12L);
+        chosen.setLevel(21);
+        request.setBackpackDrifs(List.of(chosen));
+        options.setInsertions(List.of(insertion("chosen", "helmet")));
+        var result = fixture(16, false).service().optimize(request);
+        assertEquals(OptimizationOutcome.NO_BUILD_FOUND, result.getSummary().getOutcome());
+        assertTrue(result.getSummary().getMessage().contains("tierze, pojemności i blokadach"));
+        assertFalse(result.getSummary().getSearchReport().proofComplete());
+        options.setInsertEntryId("chosen");
+        assertEquals(
+                OptimizationOutcome.INVALID_INPUT,
+                fixture(16, false).service().optimize(request).getSummary().getOutcome());
+    }
+
     private OptimizationCalculatorFixture fixture(int armorCapacity, boolean armorBonus) {
         var armor = item(2, ITEM_CATEGORY.ARMOR, "X", armorCapacity);
         if (armorBonus) armor.setStats(Map.of("Bonus drify", 20.0));

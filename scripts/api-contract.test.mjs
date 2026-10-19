@@ -15,6 +15,10 @@ test("reorganization tasks type the selected upgrade and relative modifier prote
   validate("OptimizationRequest", { mode: "REORGANIZE", originalSlots: { helmet: { itemId: 1 } }, reorganization: options });
   validate("ReorganizationOptions", { task: "UPGRADE", upgrades: [{ ...options.upgrade, maximizeLevel: true }], preferFewestMoves: true });
   validate("ReorganizationOptions", { task: "INSERT", insertEntryId: "chosen" });
+  validate("ReorganizationOptions", { task: "INSERT", insertions: [{ entryId: "one", targetSlotKey: "armor" }, { entryId: "two", targetSlotKey: null }], upgrades: [options.upgrade] });
+  assert.throws(() => validate("ReorganizationOptions", { task: "INSERT", insertions: [{ entryId: "one", targetSlotKey: "unknown" }] }));
+  assert.throws(() => validate("ReorganizationOptions", { task: "INSERT", insertions: [{ entryId: "" }] }));
+  assert.throws(() => validate("ReorganizationOptions", { task: "INSERT", insertions: Array.from({ length: 37 }, () => ({ entryId: "one" })) }));
   validate("ReorganizationOptions", { task: "RESERVE", reservation: { slotKey: "armor", freeSockets: 1, freeCapacity: 8 } });
   assert.throws(() => validate("ReorganizationOptions", { task: "RESERVE", reservation: { slotKey: "armor", freeSockets: 4 } }));
   assert.throws(() => validate("ReorganizationOptions", { task: "UPGRADE", upgrades: [{ ...options.upgrade, targetLevel: 22 }] }));

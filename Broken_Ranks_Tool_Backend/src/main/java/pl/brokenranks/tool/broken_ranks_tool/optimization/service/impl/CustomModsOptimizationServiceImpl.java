@@ -79,6 +79,17 @@ public class CustomModsOptimizationServiceImpl implements ModsOptimizationServic
                     elapsedSeconds(startTime));
         }
 
+        String obstruction =
+                request.getMode() == OptimizationMode.REORGANIZE
+                        ? reorganization.blockingReason(context)
+                        : null;
+        if (obstruction != null) {
+            var failed = failedResponse(obstruction, elapsedSeconds(startTime));
+            failed.getSummary().setOutcome(OptimizationOutcome.NO_BUILD_FOUND);
+            failed.getSummary()
+                    .setSearchReport(context.calculatorSession().metrics().report(context));
+            return failed;
+        }
         OptimizationSearchPipeline.PipelineResult searchResult =
                 request.getMode() == OptimizationMode.REORGANIZE
                         ? reorganization.optimize(context)

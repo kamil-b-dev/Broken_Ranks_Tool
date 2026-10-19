@@ -30,6 +30,10 @@ public final class ReorganizationSearch {
     private final OptimizationStateEvaluator evaluator;
     private final OptimizationResultAssembler assembler;
 
+    public String blockingReason(OptimizationContext context) {
+        return ReorganizationTaskPreflight.blockingReason(context, placementRules);
+    }
+
     public String validateSupply(OptimizationContext context) {
         String upgradeError = ReorganizationTaskRules.validateUpgrade(context, placementRules);
         if (upgradeError != null) return upgradeError;
@@ -411,6 +415,7 @@ public final class ReorganizationSearch {
 
     private boolean valid(BuildState state, ReorganizationPool pool, OptimizationContext context) {
         if (missingRequired(state, pool) != 0
+                || pool.missingTargeted(state) != 0
                 || pool.available(state).values().stream().anyMatch(count -> count < 0)
                 || !inventoryFits(state, context)
                 || assembler.validateFinalResult(state, context) != null
@@ -464,6 +469,7 @@ public final class ReorganizationSearch {
     private Comparator<BuildState> partialComparator(
             ReorganizationPool pool, OptimizationContext context) {
         return Comparator.comparingInt((BuildState state) -> missingRequired(state, pool))
+                .thenComparingInt(pool::missingTargeted)
                 .thenComparingInt(
                         state -> preferMoves(context) ? pool.partialMovementCost(state) : 0)
                 .thenComparing(evaluator.stateComparator(context));

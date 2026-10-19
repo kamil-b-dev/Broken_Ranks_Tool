@@ -1187,7 +1187,7 @@ components:
     ReorganizationOptions:
       type: object
       additionalProperties: false
-      description: Owned-pool task. Upgrade explicit equipped occurrences together, insert one exact loose backpack occurrence, or reserve sockets and capacity on one item. UPGRADE and RESERVE accept no backpack drifs. INSERT accepts only the single backpack occurrence identified by insertEntryId. Equipped stones and useful current modifiers are preserved by default. Only explicitly selected stones may be upgraded. Missing options retain legacy reorganization semantics.
+      description: Owned-pool task. Upgrade equipped occurrences, insert exact loose backpack occurrences with optional target items and equipped upgrades, or reserve sockets and capacity on one item. UPGRADE and RESERVE accept no backpack drifs. INSERT accepts exactly the occurrences listed in insertions, or the legacy single insertEntryId. The two insertion formats are mutually exclusive. Equipped stones and useful current modifiers are preserved by default. Missing options retain legacy semantics.
       properties:
         task:
           type: string
@@ -1244,6 +1244,14 @@ components:
           type: [string, "null"]
           minLength: 1
           maxLength: 128
+          description: Legacy single insertion. Must not be combined with insertions.
+        insertions:
+          type: [array, "null"]
+          minItems: 1
+          maxItems: 36
+          description: Distinct backpack occurrence IDs. Every selected occurrence must be equipped, including when allowUnequip is true. May be combined with upgrades of equipped stones.
+          items:
+            $ref: "#/components/schemas/ReorganizationInsertion"
         reservation:
           anyOf:
             - type: "null"
@@ -1280,6 +1288,19 @@ components:
                 type: number
                 minimum: 0
                 default: 0
+    ReorganizationInsertion:
+      type: object
+      additionalProperties: false
+      required: [entryId]
+      properties:
+        entryId:
+          type: string
+          minLength: 1
+          maxLength: 128
+        targetSlotKey:
+          type: [string, "null"]
+          enum: [helmet, armor, cape, legs, boots, gloves, belt, weapon, shield, ring1, ring2, necklace, null]
+          description: Optional equipped item destination. Missing or null allows any legal ordinary socket.
     ReorganizationUpgrade:
       type: object
       additionalProperties: false

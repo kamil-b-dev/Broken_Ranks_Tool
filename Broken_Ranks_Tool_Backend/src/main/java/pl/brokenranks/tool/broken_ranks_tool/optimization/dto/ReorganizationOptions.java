@@ -29,6 +29,28 @@ public class ReorganizationOptions {
     @Size(max = 128)
     private String insertEntryId;
 
+    @Valid
+    @Size(min = 1, max = 36)
+    private List<@NotNull Insertion> insertions;
+
+    public List<Insertion> requestedInsertions() {
+        if (insertions != null) return insertions;
+        if (insertEntryId == null) return List.of();
+        var insertion = new Insertion();
+        insertion.setEntryId(insertEntryId);
+        return List.of(insertion);
+    }
+
+    @Data
+    public static class Insertion {
+        @NotBlank
+        @Size(max = 128)
+        private String entryId;
+
+        @Size(max = 32)
+        private String targetSlotKey;
+    }
+
     @Valid private Reservation reservation;
 
     @NotNull

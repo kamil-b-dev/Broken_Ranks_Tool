@@ -28,12 +28,21 @@ public final class ReorganizationTaskRules {
             return "Limit przełożeń musi być liczbą całkowitą od 1 do 50.";
         if (options.getUpgrade() != null && options.getUpgrades() != null)
             return "Ulepszenia muszą być przekazane jako jedna lista.";
+        if (options.getInsertEntryId() != null && options.getInsertions() != null)
+            return "Wstawiane drify muszą być przekazane jako jedna lista.";
         var upgrades = options.requestedUpgrades();
+        var insertions = options.requestedInsertions();
+        if (options.getInsertions() != null && insertions.isEmpty())
+            return "Wybierz różne konkretne osobne drify z plecaka.";
         if (upgrades.size() > 36
                 || upgrades.stream().anyMatch(Objects::isNull)
-                || (options.getTask() == ReorganizationOptions.Task.UPGRADE) != !upgrades.isEmpty()
-                || (options.getTask() == ReorganizationOptions.Task.INSERT)
-                        != (options.getInsertEntryId() != null)
+                || options.getTask() == ReorganizationOptions.Task.UPGRADE && upgrades.isEmpty()
+                || !upgrades.isEmpty()
+                        && options.getTask() != ReorganizationOptions.Task.UPGRADE
+                        && options.getTask() != ReorganizationOptions.Task.INSERT
+                || insertions.size() > 36
+                || insertions.stream().anyMatch(Objects::isNull)
+                || (options.getTask() == ReorganizationOptions.Task.INSERT) != !insertions.isEmpty()
                 || (options.getTask() == ReorganizationOptions.Task.RESERVE)
                         != (options.getReservation() != null))
             return "Uzupełnij wyłącznie parametry wybranego zadania.";
@@ -104,12 +113,23 @@ public final class ReorganizationTaskRules {
                             && target.getSize() == source.getSize())
                 return "Ulepszenie musi zachować typ drifa i zwiększyć poziom lub rozmiar, bez ich obniżania.";
         }
-        if (options.getTask() == ReorganizationOptions.Task.INSERT
-                && (context.request().getBackpackDrifs() == null
-                        || context.request().getBackpackDrifs().stream()
-                                .noneMatch(
-                                        entry -> entry.getId().equals(options.getInsertEntryId()))))
-            return "Wybierz konkretny osobny drif z plecaka.";
+        Set<String> entries = new HashSet<>();
+        for (var insertion : options.requestedInsertions()) {
+            if (insertion.getEntryId() == null
+                    || insertion.getEntryId().isBlank()
+                    || !entries.add(insertion.getEntryId())
+                    || context.request().getBackpackDrifs() == null
+                    || context.request().getBackpackDrifs().stream()
+                            .noneMatch(entry -> entry.getId().equals(insertion.getEntryId())))
+                return "Wybierz różne konkretne osobne drify z plecaka.";
+            if (insertion.getTargetSlotKey() != null
+                    && context.slots().stream()
+                            .noneMatch(
+                                    slot ->
+                                            slot.key().equals(insertion.getTargetSlotKey())
+                                                    && !slot.special()))
+                return "Przedmiot docelowy wstawianego drifa musi mieć zwykłe gniazda.";
+        }
         var reservation = options.getReservation();
         if (reservation != null) {
             var slot =
