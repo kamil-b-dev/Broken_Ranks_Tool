@@ -31,3 +31,20 @@ Nie wyłączaj ścisłej walidacji nieznanych pól w celu obejścia różnicy we
 ./mvnw spring-boot:run
 ./mvnw clean verify
 ```
+
+Podczas pracy nad jednym obszarem uruchamiaj jego testy bez `clean`, aby Maven
+mógł zachować skompilowane klasy:
+
+```powershell
+./mvnw "-Dtest=ReorganizationTaskPreflightTests,ReorganizationTaskTests" test
+./mvnw "-Dtest=AbuseProtectionFilterTests,RequestRateLimiterTests" test
+```
+
+Takie uruchomienie nie zastępuje `clean verify` przed pełną weryfikacją pokrycia.
+JaCoCo dopisuje wykonania do lokalnego pliku, więc raport po wybranych testach
+może zawierać dane z wcześniejszych uruchomień.
+
+Testy Maven domyślnie nie wypisują SQL. W testach bez własnego nadpisania można
+włączyć go diagnostycznie przez `-Dspring.jpa.show-sql=true`. Wspólne ustawienie pozwala zwykłym testom
+`@SpringBootTest` korzystać z tego samego kontekstu zamiast tworzyć osobny
+wyłącznie dla wyciszenia SQL.

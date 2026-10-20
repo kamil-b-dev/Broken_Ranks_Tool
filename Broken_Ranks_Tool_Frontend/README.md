@@ -41,4 +41,22 @@ Profil `test:performance` buduje produkcję i uruchamia ją przez `vite preview`
 kontrolując zasoby konkretnych widoków oraz regresje krytycznych interakcji.
 Raporty funkcjonalne i wydajnościowe są rozdzielone, a CI instaluje oba silniki
 i uruchamia oba profile przeglądarkowe.
-Czyste testy domenowe używają Node; komponenty i hooki pozostają w jsdom.
+Czyste testy domenowe używają Node i puli wątków; komponenty i hooki pozostają
+w jsdom. Pliki testowe zachowują izolację. MSW uruchamia się tylko w testach
+importujących `src/test/server.js`, z odrzucaniem nieobsłużonych żądań.
+
+Przy pracy nad pojedynczą funkcją można uruchamiać powiązane testy bez zbierania
+pełnego pokrycia:
+
+```powershell
+npm run test:watch
+npm run test:domain
+npm run test:ui
+npm run test:related -- src/features/optimizer/reorganization/reorganizationPreflight.js
+npm test -- src/features/optimizer/reorganization
+```
+
+`test:related` wybiera testy po zależnościach importów. Zmiany konfiguracji, fixture'ów
+wczytywanych z dysku i wspólnego setupu wymagają szerszego uruchomienia. Przed
+integracją zmian nadal obowiązuje `npm run test:coverage`: uruchamia oba projekty
+i sprawdza dotychczasowe progi globalne oraz progi dla poszczególnych plików.

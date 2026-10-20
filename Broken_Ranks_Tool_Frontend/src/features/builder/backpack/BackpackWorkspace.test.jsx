@@ -93,6 +93,13 @@ describe("builder backpack workflow", () => {
     );
     it("rejects a catalog replacement in a full backpack while allowing a free socket", async () => {
         const ref = await start();
+        // The loose stones fill capacity; this scenario operates on the item only.
+        fireEvent.click(
+            within(screen.getByRole("group", { name: "Pokaż w plecaku" })).getByRole("button", {
+                name: "Przedmioty",
+                exact: true,
+            })
+        );
         await act(async () =>
             ref.current.onBackpackChange([
                 {
@@ -116,6 +123,8 @@ describe("builder backpack workflow", () => {
             ])
         );
         const before = structuredClone(ref.current.backpack);
+        expect(before).toHaveLength(200);
+        expect(screen.getByText("Sloty: 200/200 · Widoczne: 1")).toBeInTheDocument();
         const editor = within(screen.getByLabelText("Edytor plecaka"));
         fireEvent.drop(editor.getByLabelText("Wybierz wielkość drifa 1"), {
             dataTransfer: { getData: () => JSON.stringify({ dragType: "drifs", id: 60 }) },

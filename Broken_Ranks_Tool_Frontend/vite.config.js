@@ -5,7 +5,10 @@ import { env } from "node:process";
 
 const domainTests = [
     "src/shared/domain/**/*.test.js",
+    "src/shared/api/equipmentApi.test.js",
     "src/shared/api/openApiContract.test.js",
+    "src/shared/i18n/translation.test.js",
+    "src/features/builder/backpack/backpack*.test.js",
     "src/features/builder/builderWorkspaceDomain.test.js",
     "src/features/builder/character/characterDevelopmentDomain.test.js",
     "src/features/builder/gear-slot/gearSlotDomain.test.js",
@@ -15,13 +18,24 @@ const domainTests = [
     "src/features/builder/maximizeStoneLevels.test.js",
     "src/features/builder/stats-panel/statsPanelDomain.test.js",
     "src/features/builds/comparison/*.test.js",
+    "src/features/builds/buildCompatibility.test.js",
+    "src/features/builds/gameBuildFile.test.js",
     "src/features/optimizer/optimizerDomain.test.js",
     "src/features/optimizer/optimizerConfiguration.test.js",
+    "src/features/optimizer/optimizerLabels.test.js",
+    "src/features/optimizer/reorganization/reorganizationConfiguration.test.js",
+    "src/features/optimizer/reorganization/reorganizationPreflight.test.js",
+    "src/features/optimizer/reorganization/reorganizationReportData.test.js",
+    "src/features/optimizer/reorganization/reorganizationSequence.test.js",
     "src/features/optimizer/equipmentOptimizationRequest.test.js",
     "src/features/optimizer/advisor/advisorBuildSignature.test.js",
     "src/features/optimizer/advisor/advisorConfiguration.test.js",
     "src/features/optimizer/advisor/optimizerRecommendation.test.js",
+    "src/features/progression-path/progressionProject.test.js",
+    "src/features/progression-path/progressionReport.test.js",
+    "src/features/progression-path/progressionStoneActions.test.js",
     "src/test/bundleSize.test.js",
+    "src/test/coverageFloor.test.js",
 ];
 // https://vite.dev/config/
 export default defineConfig({
@@ -36,7 +50,13 @@ export default defineConfig({
         projects: [
             {
                 extends: true,
-                test: { name: "domain", environment: "node", setupFiles: [], include: domainTests },
+                test: {
+                    name: "domain",
+                    environment: "node",
+                    pool: "threads",
+                    setupFiles: [],
+                    include: domainTests,
+                },
             },
             {
                 extends: true,

@@ -11,7 +11,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCal
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.*;
 import tools.jackson.databind.ObjectMapper;
 
-@SpringBootTest(properties = "spring.jpa.show-sql=false")
+@SpringBootTest
 class ReorganizationRealBuildTests {
     @Autowired private ObjectMapper mapper;
     @Autowired private CustomModsOptimizationServiceImpl optimizer;
