@@ -20,6 +20,28 @@ const gameRules = {
     drifBasePowers: { CRITICAL_CHANCE: 4, MANA_REGEN: 1 },
 };
 describe("executable reorganization instructions", () => {
+    it.each([
+        { reason: "unknown power", powers: { MANA_REGEN: 1 }, peer: 61, moved: 60 },
+        { reason: "duplicate modifier", powers: gameRules.drifBasePowers, peer: 60, moved: 60 },
+        {
+            reason: "capacity exceeded",
+            powers: { CRITICAL_CHANCE: 12, MANA_REGEN: 1 },
+            peer: 61,
+            moved: 60,
+        },
+    ])("does not promise executable instructions with $reason", ({ powers, peer, moved }) => {
+        const result = createReorganizationSequence({
+            before: { helmet: stone(1, moved), armor: stone(2, peer) },
+            after: { helmet: stone(1), armor: { ...stone(2, peer), drifIds: [peer, moved] } },
+            usages: [
+                { sourceSlotKey: "helmet", sourceDrifIndex: 0, slotKey: "armor", drifIndex: 1 },
+                { sourceSlotKey: "armor", sourceDrifIndex: 0, slotKey: "armor", drifIndex: 0 },
+            ],
+            data,
+            gameRules: { ...gameRules, drifBasePowers: powers },
+        });
+        expect(result).toEqual({ operations: [], unavailable: true, extraSlotsNeeded: 0 });
+    });
     it("breaks a swap through temporary storage, never overwrites a socket and preserves the stone levels", () => {
         const before = { helmet: stone(1, 60, 2), armor: stone(2, 61, 6) };
         const after = { helmet: stone(1, 61, 6), armor: stone(2, 60, 2) };

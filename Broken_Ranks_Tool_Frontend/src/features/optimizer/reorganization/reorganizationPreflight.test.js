@@ -25,6 +25,48 @@ const reserve = (freeSockets, freeCapacity) => ({
     },
 });
 describe("reorganization preflight", () => {
+    it("counts every insertion against the move limit", () => {
+        const state = input();
+        state.backpack.push({ ...state.backpack[0], id: "second" });
+        const settings = {
+            reorganization: {
+                task: "INSERT",
+                maxMoves: 1,
+                insertions: [{ entryId: "chosen" }, { entryId: "second" }],
+            },
+        };
+        expect(reorganizationPreflight(settings, state)).toMatchObject({
+            blocked: true,
+            message: expect.stringMatching(/Zwiększ limit przełożeń/),
+        });
+        settings.reorganization.maxMoves = 2;
+        expect(reorganizationPreflight(settings, state).blocked).toBe(false);
+    });
+    it("requires permission to unequip when reservation consumes the remaining sockets", () => {
+        const state = input();
+        delete state.slots.armor;
+        const settings = reserve(3, 12);
+        expect(reorganizationPreflight(settings, state)).toMatchObject({
+            blocked: true,
+            message: expect.stringMatching(/Za mało gniazd/),
+        });
+        settings.reorganization.allowUnequip = true;
+        expect(reorganizationPreflight(settings, state).blocked).toBe(false);
+    });
+    it("does not declare missing catalog power as zero capacity use", () => {
+        const state = input();
+        state.gameRules = { ...state.gameRules, drifBasePowers: {} };
+        const space = reorganizationItemSpace(
+            reservationItems(state)[0],
+            reorganizationStones(state),
+            state.gameRules
+        );
+        expect(space.freeCapacity).toBeNull();
+        expect(reorganizationPreflight(reserve(1, 0), state)).not.toHaveProperty(
+            "alreadySatisfied",
+            true
+        );
+    });
     it("reports sockets and capacity independently and detects an already satisfied reservation", () => {
         const state = input();
         const space = reorganizationItemSpace(

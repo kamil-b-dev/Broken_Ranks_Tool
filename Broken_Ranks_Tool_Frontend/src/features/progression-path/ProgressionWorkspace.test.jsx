@@ -4,7 +4,12 @@ import { beforeEach, expect, it, vi } from "vitest";
 import apiClient from "../../shared/api/axiosConfig";
 import { createBuildPayload } from "../builds/buildPayload";
 import ProgressionWorkspace from "./ProgressionWorkspace";
-import { PROJECT_STORAGE_KEY } from "./progressionProject";
+import {
+    PROJECT_STORAGE_KEY,
+    PROJECT_FORMAT,
+    projectPayload,
+    newProject,
+} from "./progressionProject";
 import epicTarget from "../../test/fixtures/builds/progression-epic-target.json";
 
 vi.mock("../../shared/api/axiosConfig", () => ({ default: { post: vi.fn() } }));
@@ -20,6 +25,109 @@ const createSnapshot = () => ({ payload });
 beforeEach(() => {
     localStorage.clear();
     vi.clearAllMocks();
+});
+
+const uploadedFile = (name, content) => ({ name, size: content.length, text: async () => content });
+
+it("imports a target file and preserves the previous target after an invalid import", async () => {
+    const user = userEvent.setup();
+    const { container } = render(
+        <ProgressionWorkspace data={data} createSnapshot={createSnapshot} />
+    );
+    const input = container.querySelector('input[accept=".json,.txt"]');
+    fireEvent.change(input, {
+        target: { files: [uploadedFile("Mag.json", JSON.stringify(payload))] },
+    });
+    await waitFor(() => expect(screen.getByLabelText("Docelowy build")).toHaveDisplayValue("Mag"));
+    fireEvent.change(input, { target: { files: [uploadedFile("invalid.json", "{broken")] } });
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+        "Plik nie zawiera poprawnego JSON-a."
+    );
+    expect(screen.getByLabelText("Docelowy build")).toHaveDisplayValue("Mag");
+    // A delayed import must not overwrite a later explicit source selection.
+    let resolve;
+    fireEvent.change(input, {
+        target: {
+            files: [
+                {
+                    name: "delayed.json",
+                    size: 10,
+                    text: () =>
+                        new Promise((done) => {
+                            resolve = done;
+                        }),
+                },
+            ],
+        },
+    });
+    await user.selectOptions(screen.getByLabelText("Docelowy build"), "current");
+    await act(async () => resolve(JSON.stringify(payload)));
+    expect(screen.getByLabelText("Docelowy build")).toHaveDisplayValue("Aktualny build");
+});
+
+it("loads a project and rejects oversized or invalid replacements without losing it", async () => {
+    const { container } = render(
+        <ProgressionWorkspace data={data} createSnapshot={createSnapshot} />
+    );
+    const input = container.querySelector('input[accept=".json"]');
+    const saved = projectPayload({ ...newProject(), characterClass: "DRUID", minItemLevelGap: 20 });
+    fireEvent.change(input, {
+        target: { files: [uploadedFile("project.json", JSON.stringify(saved))] },
+    });
+    await waitFor(() => expect(screen.getByLabelText("Profesja")).toHaveValue("DRUID"));
+    expect(screen.getByLabelText("Pomijaj zmianę ekwipunku co X poziom")).toHaveValue(20);
+    fireEvent.change(input, {
+        target: { files: [{ name: "large.json", size: 5 * 1024 * 1024 + 1 }] },
+    });
+    expect(await screen.findByRole("alert")).toHaveTextContent("Plik projektu jest zbyt duży.");
+    expect(screen.getByLabelText("Profesja")).toHaveValue("DRUID");
+    fireEvent.change(input, { target: { files: [uploadedFile("wrong.json", "{}")] } });
+    await waitFor(() =>
+        expect(screen.getByRole("alert")).toHaveTextContent(
+            "Nieobsługiwany lub niepoprawny projekt ścieżki."
+        )
+    );
+    expect(screen.getByLabelText("Pomijaj zmianę ekwipunku co X poziom")).toHaveValue(20);
+});
+
+it("warns when migrating a legacy project and regenerates its report", async () => {
+    const { container } = render(
+        <ProgressionWorkspace data={data} createSnapshot={createSnapshot} />
+    );
+    const legacy = {
+        format: PROJECT_FORMAT,
+        version: 1,
+        project: {
+            characterClass: "ARCHER",
+            stages: [{ name: "Cel ze starego pliku", characterLevel: 140, payload }],
+        },
+    };
+    fireEvent.change(container.querySelector('input[accept=".json"]'), {
+        target: { files: [uploadedFile("legacy.json", JSON.stringify(legacy))] },
+    });
+    expect(await screen.findByRole("status")).toHaveTextContent(
+        /Ze starszego projektu przyjęto ostatni etap jako cel/
+    );
+    expect(screen.getByLabelText("Docelowy build")).toHaveDisplayValue("Cel ze starego pliku");
+    expect(screen.queryByRole("heading", { name: "Brak pełnej ścieżki" })).not.toBeInTheDocument();
+});
+
+it("reports server failures and allows retrying without losing the target", async () => {
+    const user = userEvent.setup();
+    apiClient.post.mockRejectedValueOnce({
+        response: { data: { message: "Serwer jest zajęty." } },
+    });
+    render(<ProgressionWorkspace data={data} createSnapshot={createSnapshot} />);
+    await user.selectOptions(screen.getByLabelText("Docelowy build"), "current");
+    await user.click(screen.getByText("Zaplanuj ścieżkę"));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Serwer jest zajęty.");
+    expect(screen.getByLabelText("Docelowy build")).toHaveDisplayValue("Aktualny build");
+    apiClient.post.mockResolvedValueOnce({
+        data: { stages: [], warnings: [], remainingDrifs: [] },
+    });
+    await user.click(screen.getByText("Zaplanuj ścieżkę"));
+    await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
+    expect(apiClient.post).toHaveBeenCalledTimes(2);
 });
 
 it("uses separately provided game rules when capturing and restoring an epic target", async () => {

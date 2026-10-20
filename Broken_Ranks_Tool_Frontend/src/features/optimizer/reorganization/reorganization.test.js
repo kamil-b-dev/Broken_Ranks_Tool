@@ -116,6 +116,104 @@ describe("reorganization workflow", () => {
         expect(result.current.undoReorganization()).toBe(false);
     });
 
+    it.each([
+        [
+            "equipment",
+            (applied) => ({ requestData: { ...applied.requestData, characterStats: { Moc: 42 } } }),
+        ],
+        ["item locks", () => ({ lockedSlots: ["helmet"] })],
+        ["stone locks", () => ({ lockedDrifs: { helmet: [0] } })],
+        ["catalog", (applied) => ({ data: { ...applied.data } })],
+        ["game rules", (applied) => ({ gameRules: { ...applied.gameRules } })],
+    ])("refuses undo after changing %s without updating either inventory", async (_, change) => {
+        const input = props();
+        optimizeEquipmentDrifs.mockResolvedValue(response());
+        const { result, rerender } = renderHook((value) => useEquipmentOptimization(value), {
+            initialProps: input,
+        });
+        await act(async () => result.current.runDrifOptimization(config));
+        const applied = {
+            ...input,
+            requestData: input.setRequestData.mock.calls.at(-1)[0],
+            backpack: input.setBackpack.mock.calls.at(-1)[0],
+        };
+        rerender(applied);
+        expect(result.current.reorganizationUndoWarning).toBeNull();
+        input.setRequestData.mockClear();
+        input.setBackpack.mockClear();
+        input.restoreStats.mockClear();
+        rerender({ ...applied, ...change(applied) });
+        expect(result.current.reorganizationUndoWarning).toMatch(/Cofnięcie nadpisałoby/);
+        expect(() => result.current.undoReorganization()).toThrow(/Cofnięcie nadpisałoby/);
+        expect(input.setRequestData).not.toHaveBeenCalled();
+        expect(input.setBackpack).not.toHaveBeenCalled();
+        expect(input.restoreStats).not.toHaveBeenCalled();
+    });
+
+    it("invalidates an in-flight response when undo is used before React publishes the restored input", async () => {
+        const input = props();
+        optimizeEquipmentDrifs.mockResolvedValueOnce(response());
+        const { result, rerender } = renderHook((value) => useEquipmentOptimization(value), {
+            initialProps: input,
+        });
+        await act(async () => result.current.runDrifOptimization(config));
+        rerender({
+            ...input,
+            requestData: input.setRequestData.mock.calls.at(-1)[0],
+            backpack: input.setBackpack.mock.calls.at(-1)[0],
+        });
+        let resolve;
+        optimizeEquipmentDrifs.mockReturnValueOnce(
+            new Promise((done) => {
+                resolve = done;
+            })
+        );
+        let pending;
+        act(() => {
+            pending = result.current.runDrifOptimization(config);
+        });
+        input.setRequestData.mockClear();
+        input.setBackpack.mockClear();
+        act(() => expect(result.current.undoReorganization()).toBe(true));
+        // Keep the old props until the pending callback returns: the run token must protect undo too.
+        const stale = {
+            ...response(),
+            reorganizationDrifUsages: [
+                { sourceSlotKey: "helmet", sourceDrifIndex: 0, slotKey: "helmet", drifIndex: 0 },
+            ],
+        };
+        await act(async () => {
+            resolve(stale);
+            expect(await pending).toMatchObject({ applied: false });
+        });
+        expect(input.setRequestData).toHaveBeenCalledExactlyOnceWith(input.requestData);
+        expect(input.setBackpack).toHaveBeenCalledExactlyOnceWith(input.backpack);
+    });
+
+    it("restores a detached snapshot even if the old input objects are subsequently mutated", async () => {
+        const input = props();
+        const original = structuredClone({
+            requestData: input.requestData,
+            backpack: input.backpack,
+        });
+        optimizeEquipmentDrifs.mockResolvedValueOnce(response());
+        const { result, rerender } = renderHook((value) => useEquipmentOptimization(value), {
+            initialProps: input,
+        });
+        await act(async () => result.current.runDrifOptimization(config));
+        rerender({
+            ...input,
+            requestData: input.setRequestData.mock.calls.at(-1)[0],
+            backpack: input.setBackpack.mock.calls.at(-1)[0],
+        });
+        input.requestData.slots.helmet.drifLevels[0] = 1;
+        input.backpack[0] = { ...stone, level: 1 };
+        act(() => expect(result.current.undoReorganization()).toBe(true));
+        expect(input.setRequestData).toHaveBeenLastCalledWith(original.requestData);
+        expect(input.setBackpack).toHaveBeenLastCalledWith(original.backpack);
+        expect(input.setRequestData.mock.calls.at(-1)[0]).not.toBe(original.requestData);
+    });
+
     it("applies a verified pool result and returns the unused equipped stone", async () => {
         const input = props();
         optimizeEquipmentDrifs.mockResolvedValue(response());

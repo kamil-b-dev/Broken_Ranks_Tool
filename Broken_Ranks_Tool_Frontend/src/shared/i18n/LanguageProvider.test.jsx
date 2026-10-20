@@ -12,9 +12,51 @@ import {
 import CompactCharacterPanel from "../../features/builder/character/CompactCharacterPanel";
 import ProgressionWorkspace from "../../features/progression-path/ProgressionWorkspace";
 import { createBuildPayload } from "../../features/builds/buildPayload";
+import { useTranslation } from "./useTranslation";
 
 beforeEach(() => localStorage.clear());
 afterEach(() => vi.restoreAllMocks());
+
+it("provides Polish translation defaults outside the optional language provider", () => {
+    function Consumer() {
+        const { t, language, setLanguage } = useTranslation();
+        return (
+            <button onClick={() => setLanguage("en")}>
+                {language}: {t("Hełm")}
+            </button>
+        );
+    }
+    render(<Consumer />);
+    fireEvent.click(screen.getByRole("button", { name: "pl: Hełm" }));
+    expect(screen.getByRole("button", { name: "pl: Hełm" })).toBeVisible();
+});
+
+it("updates translated page metadata and ignores unrelated storage events", async () => {
+    const description = document.createElement("meta");
+    description.name = "description";
+    const locale = document.createElement("meta");
+    locale.setAttribute("property", "og:locale");
+    document.head.append(description, locale);
+    try {
+        render(
+            <LanguageProvider>
+                <LanguageSwitcher />
+            </LanguageProvider>
+        );
+        expect(description.content).toMatch(/Kalkulator ekwipunku/);
+        expect(locale.content).toBe("pl_PL");
+        act(() =>
+            window.dispatchEvent(new StorageEvent("storage", { key: "other", newValue: "en" }))
+        );
+        expect(document.documentElement.lang).toBe("pl");
+        await userEvent.click(screen.getByRole("button", { name: "English" }));
+        expect(description.content).toMatch(/Equipment calculator/);
+        expect(locale.content).toBe("en_GB");
+    } finally {
+        description.remove();
+        locale.remove();
+    }
+});
 
 it("switches an open progression report without resetting completed stages", async () => {
     const user = userEvent.setup();
