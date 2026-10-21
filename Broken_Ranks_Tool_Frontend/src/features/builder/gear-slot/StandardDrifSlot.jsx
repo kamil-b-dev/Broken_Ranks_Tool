@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n/useTranslation";
 import {
     DRIF_MULTIPLIERS,
     getDrifMaxLevel,
@@ -54,6 +55,8 @@ const StandardDrifSlot = ({
     setDrifTypes,
     setDrifLevels,
 }) => {
+    const { t } = useTranslation();
+
     const drifId = selectedDrifs[index] || "";
     const currentType = drifTypes[index] || "";
     const usedTypes = selectedDrifs
@@ -107,7 +110,7 @@ const StandardDrifSlot = ({
             )}
             <select
                 value={currentType}
-                aria-label={`Wybierz rodzaj drifa ${index + 1}`}
+                aria-label={t("Wybierz rodzaj drifa {0}", [t(index + 1)])}
                 disabled={locked}
                 onChange={(event) => {
                     setDrifTypes((previous) => ({ ...previous, [index]: event.target.value }));
@@ -121,17 +124,17 @@ const StandardDrifSlot = ({
                 className={`flex-3 min-w-0 bg-transparent text-amber-600 font-serif p-1 text-xs border-b outline-hidden text-center ${selectClass}`}
             >
                 <option value="" className="bg-stone-950 text-stone-500">
-                    Rodzaj
+                    {t("Rodzaj")}
                 </option>
                 {Object.keys(grouped).map((type) => (
                     <option key={type} value={type} className="bg-stone-950 text-stone-300">
-                        {formatGroupLabel(type, grouped[type], bonusTranslations)}
+                        {t(formatGroupLabel(type, grouped[type], bonusTranslations))}
                     </option>
                 ))}
             </select>
             <select
                 value={drifId}
-                aria-label={`Wybierz wielkość drifa ${index + 1}`}
+                aria-label={t("Wybierz wielkość drifa {0}", [t(index + 1)])}
                 disabled={!currentType || locked}
                 onChange={(event) => {
                     setSelectedDrifs((previous) => {
@@ -144,7 +147,7 @@ const StandardDrifSlot = ({
                 className={`flex-3 min-w-0 bg-transparent text-stone-300 font-serif p-1 text-xs border-b outline-hidden text-center disabled:opacity-30 ${selectClass}`}
             >
                 <option value="" className="bg-stone-950 text-stone-500">
-                    Wielkość
+                    {t("Wielkość")}
                 </option>
                 {currentType &&
                     grouped[currentType]?.map((drif) => {
@@ -161,14 +164,14 @@ const StandardDrifSlot = ({
                                 value={drif.id}
                                 className="bg-stone-950 text-stone-300"
                             >
-                                {drif.size || drif.tier} ({power})
+                                {t(drif.size || drif.tier)} ({t(power)})
                             </option>
                         );
                     })}
             </select>
             <select
                 value={drifLevels[index] || ""}
-                aria-label={`Wybierz poziom drifa ${index + 1}`}
+                aria-label={t("Wybierz poziom drifa {0}", [t(index + 1)])}
                 disabled={!drifId || locked}
                 onChange={(event) =>
                     setDrifLevels((previous) => ({
@@ -179,7 +182,7 @@ const StandardDrifSlot = ({
                 className={`flex-2 min-w-0 bg-transparent text-stone-300 font-serif p-1 text-xs border-b outline-hidden text-center disabled:opacity-30 ${selectClass}`}
             >
                 <option value="" className="bg-stone-950 text-stone-500">
-                    lvl
+                    {t("lvl")}
                 </option>
                 {Array.from({ length: maximumLevel }, (_, level) => level + 1).map((level) => (
                     <option
@@ -187,7 +190,7 @@ const StandardDrifSlot = ({
                         value={String(level)}
                         className="bg-stone-950 text-stone-300"
                     >
-                        {level}
+                        {t(level)}
                     </option>
                 ))}
             </select>
@@ -197,7 +200,7 @@ const StandardDrifSlot = ({
                     type="button"
                     disabled={parentLocked || !drifId}
                     className={`p-1 flex-[0.5] flex justify-center items-center transition-colors ${locked ? "text-red-500 optimizer-lock-text hover:text-red-400 " : "text-stone-700 hover:text-stone-400"} ${parentLocked || !drifId ? "opacity-30 cursor-not-allowed" : "cursor-pointer"}`}
-                    title={locked ? "Odblokuj drif" : "Zablokuj drif w optymalizatorze"}
+                    title={t(locked ? "Odblokuj drif" : "Zablokuj drif w optymalizatorze")}
                 >
                     <LockIcon locked={locked} />
                 </button>

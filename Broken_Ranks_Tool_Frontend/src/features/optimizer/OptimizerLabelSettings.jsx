@@ -1,17 +1,20 @@
-import { useOptimizerLabelContext } from "./optimizerLabelContext";
+import { useTranslation } from "../../shared/i18n/useTranslation";
+import { useOptimizerLabels } from "./useOptimizerLabels";
 
 export default function OptimizerLabelSettings() {
-    const labels = useOptimizerLabelContext();
+    const { t } = useTranslation();
+
+    const labels = useOptimizerLabels();
     return (
         <label className="optimizer-label-setting">
-            Nazwy modów
+            {t("Nazwy modów")}
             <select
-                aria-label="Nazwy modów"
+                aria-label={t("Nazwy modów")}
                 value={labels.mode}
                 onChange={(event) => labels.changeMode(event.target.value)}
             >
-                <option value="MODIFIERS">Opis bonusu</option>
-                <option value="DRIFS">Nazwa drifa</option>
+                <option value="MODIFIERS">{t("Opis bonusu")}</option>
+                <option value="DRIFS">{t("Nazwa drifa")}</option>
             </select>
         </label>
     );

@@ -24,7 +24,7 @@ public final class BackpackDrifConstraints {
                         || request.getConfigurationMode() != BuildConfigurationMode.ADVANCED
                         || request.isGenerateVariants()
                         || request.isForceMaximizationByDrifBonus()))
-            return "Reorganizacja używa posiadanych drifów bez ulepszeń i dodatkowych wariantów.";
+            return "Reorganizacja używa posiadanej puli bez opcji trybu od zera i dodatkowych wariantów.";
         if (!request.isBackpackOnly() && !reorganize)
             return entries != null && !entries.isEmpty()
                     ? "Drify plecaka wymagają opcji Użyj drifów z plecaka."
@@ -35,6 +35,33 @@ public final class BackpackDrifConstraints {
             return "Opcja Użyj drifów z plecaka jest dostępna w zaawansowanym trybie od zera.";
         if (request.isGenerateVariants())
             return "Tryb drifów z plecaka nie obsługuje dodatkowych wariantów.";
+        var task = reorganize ? request.getReorganization() : null;
+        if (task != null) {
+            if (task.getTask() == ReorganizationOptions.Task.INSERT) {
+                var chosen = task.requestedInsertions();
+                var chosenIds = new HashSet<String>();
+                for (var insertion : chosen) {
+                    if (insertion == null
+                            || insertion.getEntryId() == null
+                            || insertion.getEntryId().isBlank()
+                            || !chosenIds.add(insertion.getEntryId()))
+                        return "Wybierz różne konkretne osobne drify z plecaka.";
+                }
+                if (entries == null
+                        || chosenIds.isEmpty()
+                        || entries.size() != chosenIds.size()
+                        || entries.stream()
+                                .anyMatch(
+                                        entry ->
+                                                entry == null
+                                                        || !chosenIds.contains(entry.getId())))
+                    return "Wstawianie wymaga dokładnie wskazanych sztuk z plecaka.";
+            } else if ((task.getTask() == ReorganizationOptions.Task.UPGRADE
+                            || task.getTask() == ReorganizationOptions.Task.RESERVE)
+                    && entries != null
+                    && !entries.isEmpty())
+                return "To zadanie korzysta wyłącznie z założonych drifów.";
+        }
         if (entries == null) return reorganize ? null : "Brak listy drifów plecaka.";
         var ids = new HashSet<String>();
         for (var entry : entries) {

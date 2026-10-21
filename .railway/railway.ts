@@ -12,8 +12,8 @@ export default defineRailway(() => {
             OPTIMIZER_MAX_CONCURRENT_RUNS: "1",
             // Forwarded addresses are ignored until TRUSTED_PROXY_REGEX is set to exact proxy IPs.
             // Equal client/global values keep the process-wide protection effective meanwhile.
-            OPTIMIZER_CLIENT_REQUESTS_PER_MINUTE: "12",
-            OPTIMIZER_GLOBAL_REQUESTS_PER_MINUTE: "12",
+            OPTIMIZER_CLIENT_REQUESTS_PER_MINUTE: "20",
+            OPTIMIZER_GLOBAL_REQUESTS_PER_MINUTE: "20",
             CALCULATOR_CLIENT_REQUESTS_PER_MINUTE: "600",
             CALCULATOR_GLOBAL_REQUESTS_PER_MINUTE: "600",
             CONTROL_CLIENT_REQUESTS_PER_MINUTE: "300",

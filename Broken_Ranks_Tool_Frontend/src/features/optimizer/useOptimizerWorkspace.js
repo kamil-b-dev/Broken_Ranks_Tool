@@ -1,3 +1,4 @@
+import { buildReorganizationConfiguration } from "./reorganization/reorganizationConfiguration";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useEquipment } from "../../shared/state/EquipmentContext";
 import {
@@ -23,6 +24,7 @@ import { readOptimizerDraft, writeOptimizerDraft } from "../../app/storage/worki
 import { useWorkingDraftSave } from "../../app/storage/useWorkingDraftSave";
 import { equipmentRequestIdentity } from "../../shared/domain/equipment/equipmentRequestIdentity";
 import { useOptimizerLabels } from "./useOptimizerLabels";
+import { reorganizationPreflight } from "./reorganization/reorganizationPreflight";
 
 /** Shared optimizer workflow; presentation changes never remount the current run. */
 export const useOptimizerWorkspace = ({ optimizerSettings, onOptimizerSettingsChange }) => {
@@ -33,6 +35,7 @@ export const useOptimizerWorkspace = ({ optimizerSettings, onOptimizerSettingsCh
         cancelDrifOptimization,
         invalidateDrifOptimization,
         requestData,
+        backpack,
         data,
         lockedSlots,
         lockedDrifs,
@@ -41,6 +44,9 @@ export const useOptimizerWorkspace = ({ optimizerSettings, onOptimizerSettingsCh
         applyOptimizationSetup,
         stats,
         calculateStats,
+        canUndoReorganization,
+        reorganizationUndoWarning,
+        undoReorganization,
     } = useEquipment();
 
     const labels = useOptimizerLabels(gameRules, data.drifs);
@@ -120,10 +126,16 @@ export const useOptimizerWorkspace = ({ optimizerSettings, onOptimizerSettingsCh
     useWorkingDraftSave(writeOptimizerDraft, workingDraft, draftReady);
     useLayoutEffect(
         () => resetOptimization(),
-        [optimizerSettings.mode, optimizerSettings.configurationMode, resetOptimization]
+        [
+            optimizerSettings.mode,
+            optimizerSettings.configurationMode,
+            optimizerSettings.reorganization,
+            resetOptimization,
+        ]
     );
     useEffect(() => {
-        if (optimizerSettings.mode === "ADVISOR" && !stats && calculateStats) calculateStats();
+        if (["ADVISOR", "REORGANIZE"].includes(optimizerSettings.mode) && !stats && calculateStats)
+            calculateStats();
     }, [calculateStats, optimizerSettings.mode, stats]);
     const configFiles = useOptimizerConfigFiles({
         priorities: prioritizedBonuses,
@@ -232,6 +244,30 @@ export const useOptimizerWorkspace = ({ optimizerSettings, onOptimizerSettingsCh
             }
             return;
         }
+        if (optimizerSettings.mode === "REORGANIZE") {
+            try {
+                if (reorganizationCheck.blocked || reorganizationCheck.alreadySatisfied) {
+                    setNotice({
+                        type: reorganizationCheck.blocked ? "error" : "success",
+                        message: reorganizationCheck.message,
+                    });
+                    return;
+                }
+                await runOptimization(
+                    buildReorganizationConfiguration(optimizerSettings, {
+                        slots: requestData.slots,
+                        data,
+                        lockedSlots,
+                        lockedDrifs,
+                        backpack,
+                        gameRules,
+                    })
+                );
+            } catch (error) {
+                setNotice({ type: "error", message: error.message });
+            }
+            return;
+        }
         const simple =
             optimizerSettings.mode === "BUILD_FROM_SCRATCH" &&
             optimizerSettings.configurationMode === "SIMPLE";
@@ -321,7 +357,35 @@ export const useOptimizerWorkspace = ({ optimizerSettings, onOptimizerSettingsCh
             });
         }
     };
+    const reorganizationCheck =
+        optimizerSettings.mode === "REORGANIZE"
+            ? reorganizationPreflight(optimizerSettings, {
+                  slots: requestData.slots,
+                  data,
+                  lockedSlots,
+                  lockedDrifs,
+                  backpack,
+                  gameRules,
+              })
+            : {};
+    const handleUndoReorganization = () => {
+        try {
+            if (undoReorganization?.()) {
+                resetOptimization();
+                setNotice({
+                    type: "success",
+                    message: "Cofnięto reorganizację ekwipunku i plecaka.",
+                });
+            }
+        } catch (error) {
+            setNotice({ type: "error", message: error.message });
+        }
+    };
     return {
+        reorganizationCheck,
+        canUndoReorganization,
+        reorganizationUndoWarning,
+        handleUndoReorganization,
         labels,
         gameRules,
         drifCategories,

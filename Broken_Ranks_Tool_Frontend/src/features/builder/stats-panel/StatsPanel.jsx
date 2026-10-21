@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n/useTranslation";
 import "./stats-panel.css";
 import { memo, useMemo, useState } from "react";
 import { buildStatColumns } from "./statsPanelDomain";
@@ -14,10 +15,12 @@ const StatsPanel = ({
     statSources = {},
     compact = false,
 }) => {
+    const { t, locale } = useTranslation();
+
     const [activeResultView, setActiveResultView] = useState("all");
     const statColumns = useMemo(
-        () => buildStatColumns({ stats, gameRules, statSources }),
-        [stats, gameRules, statSources]
+        () => buildStatColumns({ stats, gameRules, statSources, translateLabel: t, locale }),
+        [stats, gameRules, statSources, t, locale]
     );
     const visibleColumns = statColumns.filter((column) => {
         if (activeResultView === "all") return true;
@@ -37,7 +40,7 @@ const StatsPanel = ({
                     <h3
                         className={`${compact ? "text-lg" : "text-xl md:text-2xl"} font-serif font-bold text-stone-200 uppercase tracking-[0.18em] drop-shadow-[0_2px_5px_rgba(0,0,0,1)]`}
                     >
-                        {compact ? "Wynik buildu" : "Podsumowanie statystyk"}
+                        {t(compact ? "Wynik buildu" : "Podsumowanie statystyk")}
                     </h3>
                 </div>
                 <button
@@ -46,7 +49,7 @@ const StatsPanel = ({
                     onClick={onCalculate}
                     disabled={isCalculating}
                 >
-                    {isCalculating ? "Przeliczanie..." : "Przelicz statystyki"}
+                    {t(isCalculating ? "Przeliczanie..." : "Przelicz statystyki")}
                 </button>
             </div>
             {statColumns.length === 0 ? (
@@ -57,7 +60,7 @@ const StatsPanel = ({
                 <>
                     <TabList
                         className="stats-result-tabs"
-                        label="Zakres wyniku"
+                        label={t("Zakres wyniku")}
                         idPrefix="stats-result"
                         panelId="stats-result-panel"
                         active={activeResultView}

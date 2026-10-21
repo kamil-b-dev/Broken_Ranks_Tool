@@ -1,8 +1,11 @@
+import { useTranslation } from "../../../shared/i18n/useTranslation";
 import { useEquipmentSetup } from "../../../shared/state/EquipmentContext";
 import { useCharacterDevelopment } from "../character/useCharacterDevelopment";
 import { STAT_CONFIG } from "../character/characterConstants";
 
 export default function MobileCharacterPanel() {
+    const { t } = useTranslation();
+
     const equipment = useEquipmentSetup();
     const model = useCharacterDevelopment({
         onStatsChange: equipment.handleCharacterStatsUpdate,
@@ -11,9 +14,9 @@ export default function MobileCharacterPanel() {
         syncTrigger: equipment.optimizationTrigger,
     });
     return (
-        <section className="mobile-card" aria-label="Rozwój postaci">
+        <section className="mobile-card" aria-label={t("Rozwój postaci")}>
             <label className="mobile-field">
-                Poziom postaci
+                {t("Poziom postaci")}
                 <input
                     type="number"
                     inputMode="numeric"
@@ -36,21 +39,25 @@ export default function MobileCharacterPanel() {
                 />
             </label>
             <p className="mobile-points">
-                Dostępne punkty{" "}
+                {t("Dostępne punkty")}
+                {t(" ")}
                 <strong>
-                    {model.pointsLeft} / {model.totalPoints}
+                    {t(model.pointsLeft)} / {t(model.totalPoints)}
                 </strong>
             </p>
             {Object.keys(STAT_CONFIG).map((name) => (
                 <div key={name} className="mobile-character-stat">
                     <span>
-                        {STAT_CONFIG[name].label || name}
-                        <strong>{model.finalStats[name]}</strong>
-                        <small>{model.spentPoints[name]} pkt</small>
+                        {t(STAT_CONFIG[name].label || name)}
+                        <strong>{t(model.finalStats[name])}</strong>
+                        <small>
+                            {t(model.spentPoints[name])}
+                            {t(" pkt")}
+                        </small>
                     </span>
                     <button
                         type="button"
-                        aria-label={`Odejmij punkt: ${name}`}
+                        aria-label={t("Odejmij punkt: {0}", [t(name)])}
                         disabled={model.spentPoints[name] <= 0}
                         onClick={() => model.changePoints(name, -1)}
                     >
@@ -58,7 +65,7 @@ export default function MobileCharacterPanel() {
                     </button>
                     <button
                         type="button"
-                        aria-label={`Dodaj punkt: ${name}`}
+                        aria-label={t("Dodaj punkt: {0}", [t(name)])}
                         disabled={model.pointsLeft <= 0}
                         onClick={() => model.changePoints(name, 1)}
                     >
@@ -67,7 +74,7 @@ export default function MobileCharacterPanel() {
                 </div>
             ))}
             <button type="button" className="mobile-back" onClick={model.resetPoints}>
-                Zresetuj punkty
+                {t("Zresetuj punkty")}
             </button>
         </section>
     );

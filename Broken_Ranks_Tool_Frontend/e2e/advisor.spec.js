@@ -144,7 +144,7 @@ test("analyzes the current build once, displays a plan and applies it explicitly
         });
     });
     page.on("dialog", (dialog) => dialog.dismiss());
-    await page.goto("/kreator");
+    await page.goto("/builder");
     await expect(page.getByRole("button", { name: /Wczytaj build/ })).toBeEnabled();
     await page
         .locator('input[type="file"]')

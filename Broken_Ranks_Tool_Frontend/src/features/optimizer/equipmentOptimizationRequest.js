@@ -1,3 +1,16 @@
+import { normalizeBackpack } from "../builder/backpack/backpackSerialization.js";
+
+const isBackpackSource = (entry, configuration) => {
+    if (entry.kind !== "DRIF") return false;
+    const task = configuration.mode === "REORGANIZE" ? configuration.reorganization?.task : null;
+    if (task === "UPGRADE" || task === "RESERVE") return false;
+    if (task === "INSERT")
+        return configuration.reorganization.insertions
+            ? configuration.reorganization.insertions.some((row) => row.entryId === entry.id)
+            : entry.id === configuration.reorganization.insertEntryId;
+    return entry.sendToBackend === true;
+};
+
 /** Maps optimizer UI configuration and equipment locks to the backend request contract. */
 export const createEquipmentOptimizationRequest = ({
     slots,
@@ -12,6 +25,9 @@ export const createEquipmentOptimizationRequest = ({
         configuration.mode === "REORGANIZE"
             ? "ADVANCED"
             : configuration.configurationMode || "ADVANCED",
+    ...(configuration.mode === "REORGANIZE" && configuration.reorganization
+        ? { reorganization: configuration.reorganization }
+        : {}),
     originalSlots: slots,
     characterStats: characterStats || {},
     priorities: configuration.priorities || {},
@@ -44,7 +60,7 @@ export const createEquipmentOptimizationRequest = ({
                   : { backpackOnly: true }),
               generateVariants: false,
               backpackDrifs: normalizeBackpack(backpack)
-                  .filter((entry) => entry.kind === "DRIF" && entry.sendToBackend === true)
+                  .filter((entry) => isBackpackSource(entry, configuration))
                   .map(({ id, templateId, level }) => {
                       const numericId = Number(templateId);
                       if (!Number.isSafeInteger(numericId) || numericId < 1)
@@ -61,4 +77,3 @@ export const createEquipmentOptimizationRequest = ({
           }
         : {}),
 });
-import { normalizeBackpack } from "../builder/backpack/backpackSerialization.js";

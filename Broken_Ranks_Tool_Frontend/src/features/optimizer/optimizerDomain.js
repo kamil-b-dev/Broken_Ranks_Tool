@@ -39,7 +39,7 @@ export const createBonusOption = ([key, value], drifBonusCategories = {}) => ({
     categoryKey: resolveDrifCategoryKey(key, drifBonusCategories),
 });
 
-export const sortBonusesByCategory = (bonuses) =>
+export const sortBonusesByCategory = (bonuses, locale = "pl", translateLabel = (value) => value) =>
     [...bonuses].sort((left, right) => {
         const categoryIndex = (categoryKey) => {
             const index = DRIF_CATEGORY_ORDER.indexOf(categoryKey);
@@ -47,7 +47,7 @@ export const sortBonusesByCategory = (bonuses) =>
         };
         return (
             categoryIndex(left.categoryKey) - categoryIndex(right.categoryKey) ||
-            left.value.localeCompare(right.value, "pl")
+            translateLabel(left.value).localeCompare(translateLabel(right.value), locale)
         );
     });
 
@@ -94,8 +94,8 @@ export const highestLevelForCapacity = (drif, capacity, basePower) => {
     return sizeMaxLevel;
 };
 
-export const formatPotentialValue = (value) =>
-    `${Number(value).toLocaleString("pl-PL", { maximumFractionDigits: 2 })}%`;
+export const formatPotentialValue = (value, locale = "pl-PL") =>
+    `${Number(value).toLocaleString(locale, { maximumFractionDigits: 2 })}%`;
 
 /** Calculates current counts, penalties, and achievable ranges for prioritized modifiers. */
 export const calculatePlacedDrifCounts = (slots, drifs) => {

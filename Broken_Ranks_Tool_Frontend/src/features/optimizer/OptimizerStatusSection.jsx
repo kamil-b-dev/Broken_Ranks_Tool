@@ -1,8 +1,9 @@
+import { useTranslation } from "../../shared/i18n/useTranslation";
 import OptimizationElapsedTime from "./OptimizationElapsedTime";
 import { useOptimizerLabelContext } from "./optimizerLabelContext";
-const formatDuration = (duration) =>
+const formatDuration = (duration, locale) =>
     typeof duration === "number"
-        ? duration.toLocaleString("pl-PL", { maximumFractionDigits: 2 })
+        ? duration.toLocaleString(locale, { maximumFractionDigits: 2 })
         : duration;
 
 /** Presents progress and the latest outcome of an optimization run. */
@@ -13,6 +14,8 @@ const OptimizerStatusSection = ({
     status,
     lastDurationSeconds,
 }) => {
+    const { t, locale } = useTranslation();
+
     const { formatText } = useOptimizerLabelContext();
     const duration = status?.executionTimeSeconds ?? lastDurationSeconds;
     const advisor = status?.advisorReport;
@@ -68,48 +71,49 @@ const OptimizerStatusSection = ({
                         />
                     </svg>
                     <span>
-                        Optymalizacja trwa (
+                        {t("Optymalizacja trwa (")}
                         <OptimizationElapsedTime
                             startedAt={startedAt}
                             elapsedSeconds={elapsedSeconds}
-                        />{" "}
-                        s).
+                        />
+                        {t(" ")}
+                        {t("s).")}
                     </span>
                 </div>
             ) : status ? (
                 <div className={successful ? "is-success" : "is-warning"}>
                     <p className="optimizer-status-message">
-                        <span aria-hidden="true">{successful ? "✓" : "!"}</span>
-                        {formatText(headline)}
+                        <span aria-hidden="true">{t(successful ? "✓" : "!")}</span>
+                        {t(formatText(headline))}
                     </p>
                     {status.warnings?.length > 0 && (
                         <ul className="optimizer-status-warnings">
                             {status.warnings.map((warning, index) => (
-                                <li key={`${warning}-${index}`}>{formatText(warning)}</li>
+                                <li key={`${warning}-${index}`}>{t(formatText(warning))}</li>
                             ))}
                         </ul>
                     )}
                     {status.backpackDrifTargets?.length > 0 && (
                         <details className="optimizer-backpack-targets">
-                            <summary>Drify z plecaka — poziomy docelowe</summary>
+                            <summary>{t("Drify z plecaka — poziomy docelowe")}</summary>
                             <table>
                                 <thead>
                                     <tr>
-                                        <th scope="col">Slot / drif</th>
-                                        <th scope="col">Obecny</th>
-                                        <th scope="col">Docelowy</th>
+                                        <th scope="col">{t("Slot / drif")}</th>
+                                        <th scope="col">{t("Obecny")}</th>
+                                        <th scope="col">{t("Docelowy")}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {status.backpackDrifTargets.map((drif) => (
                                         <tr key={drif.entryId}>
                                             <th scope="row">
-                                                {drif.slotLabel}
+                                                {t(drif.slotLabel)}
                                                 <br />
-                                                {drif.drifName} {drif.size}
+                                                {t(drif.drifName)} {t(drif.size)}
                                             </th>
-                                            <td>{drif.level}</td>
-                                            <td>{drif.targetLevel}</td>
+                                            <td>{t(drif.level)}</td>
+                                            <td>{t(drif.targetLevel)}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -118,26 +122,30 @@ const OptimizerStatusSection = ({
                     )}
                     {status.applied && (
                         <p className="optimizer-status-applied">
-                            {status.backpackDrifTargets
-                                ? "Drify z plecaka zostały założone."
-                                : "Ten układ jest obecnie założony."}
+                            {t(
+                                status.backpackDrifTargets
+                                    ? "Drify z plecaka zostały założone."
+                                    : "Ten układ jest obecnie założony."
+                            )}
                         </p>
                     )}
                     {status.applied === false && (
                         <p className="optimizer-status-applied">
-                            {!status.nextVariants?.length
-                                ? "Ekwipunek nie został zmieniony."
-                                : status.mode === "REORGANIZE" ||
-                                    Array.isArray(status.backpackDrifUsages)
-                                  ? "Wynik nie został zastosowany. Uruchom optymalizację ponownie."
-                                  : "Ekwipunek pozostaje bez zmian. Aby użyć propozycji, kliknij „Zastosuj wybrany wariant”."}
+                            {t(
+                                !status.nextVariants?.length
+                                    ? "Ekwipunek nie został zmieniony."
+                                    : status.mode === "REORGANIZE" ||
+                                        Array.isArray(status.backpackDrifUsages)
+                                      ? "Wynik nie został zastosowany. Uruchom optymalizację ponownie."
+                                      : "Ekwipunek pozostaje bez zmian. Aby użyć propozycji, kliknij „Zastosuj wybrany wariant”."
+                            )}
                         </p>
                     )}
                     <dl className="optimizer-status-metrics optimizer-result-metrics">
                         {advisor && status.nextVariants && (
                             <div>
-                                <dd>{status.nextVariants.length}</dd>
-                                <dt>Propozycje zmian</dt>
+                                <dd>{t(status.nextVariants.length)}</dd>
+                                <dt>{t("Propozycje zmian")}</dt>
                             </div>
                         )}
                         {!advisor &&
@@ -148,31 +156,37 @@ const OptimizerStatusSection = ({
                                     status.outcome
                                 )) && (
                                 <div>
-                                    <dd>{status.drifsPlaced}</dd>
-                                    <dt>Drify w układzie</dt>
+                                    <dd>{t(status.drifsPlaced)}</dd>
+                                    <dt>{t("Drify w układzie")}</dt>
                                 </div>
                             )}
                         {duration !== null && duration !== undefined && (
                             <div>
-                                <dd>{formatDuration(duration)} s</dd>
-                                <dt>Czas obliczeń</dt>
+                                <dd>
+                                    {formatDuration(duration, locale)}
+                                    {t(" s")}
+                                </dd>
+                                <dt>{t("Czas obliczeń")}</dt>
                             </div>
                         )}
                     </dl>
                     {(search || advisor || status.totalPowerUsed !== undefined) && (
                         <details className="optimizer-status-details">
-                            <summary>Szczegóły obliczeń</summary>
+                            <summary>{t("Szczegóły obliczeń")}</summary>
                             {(search || advisor) && (
                                 <p className="optimizer-status-scope">
-                                    {stopMessage && `${stopMessage} `}
-                                    {(advisor ?? search).proofComplete
-                                        ? "Sprawdzono wszystkie możliwości w wybranym zakresie."
-                                        : "Lepszy układ może jeszcze istnieć."}
+                                    {t(stopMessage && `${stopMessage} `)}
+                                    {t(
+                                        (advisor ?? search).proofComplete
+                                            ? "Sprawdzono wszystkie możliwości w wybranym zakresie."
+                                            : "Lepszy układ może jeszcze istnieć."
+                                    )}
                                 </p>
                             )}
                             {status.totalPowerUsed !== undefined && (
                                 <p className="optimizer-status-scope">
-                                    Zajęta pojemność: <strong>{status.totalPowerUsed}</strong>.
+                                    {t("Zajęta pojemność: ")}
+                                    <strong>{t(status.totalPowerUsed)}</strong>.
                                 </p>
                             )}
                         </details>

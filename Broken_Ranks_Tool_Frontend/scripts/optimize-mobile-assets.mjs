@@ -12,18 +12,17 @@ const variants = [
     ["broken-ranks-crest.webp", "broken-ranks-crest.webp", 120],
     ["equipment-slot-icons.webp", "equipment-slot-icons.webp", 576],
     ["builder-page-backdrop-texture.webp", "builder-page-backdrop-texture.webp", 768],
+    // A subtle navigation texture; 256 px covers its small repeated background.
+    ["brushed-bronze-texture.webp", "brushed-bronze-texture.webp", 256],
     ...[
-        "brushed-bronze-texture",
         "panel-blackened-steel-texture",
         "panel-aged-leather-texture",
         "crimson-lacquer-texture",
         "smoked-parchment-texture",
     ].map((name) => [`${name}.webp`, `${name}.webp`, 512]),
-    ...["home", "equipment-builder", "drif-optimizer", "local-builds"].map((name) => [
-        `navigation-icons/${name}.png`,
-        `${name}.webp`,
-        72,
-    ]),
+    ...["home", "equipment-builder", "drif-optimizer", "local-builds", "progression-path"].map(
+        (name) => [`navigation-icons/${name}.png`, `${name}.webp`, 72]
+    ),
 ];
 
 for (const [source, target, width] of variants) {

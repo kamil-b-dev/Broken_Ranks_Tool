@@ -59,7 +59,7 @@ test("simple optimization keeps its run between sections and shows unmet target 
         });
         await route.fulfill({ json: optimizerResponse() });
     });
-    await page.goto("/optymalizator");
+    await page.goto("/optimizer");
     await page.getByLabel("Profil prostego optymalizatora").selectOption("DRUID");
     await page.getByLabel("Styl buildu").selectOption("DEFENSIVE");
     await page.setViewportSize({ width: 320, height: 740 });
@@ -87,7 +87,7 @@ test("simple optimization keeps its run between sections and shows unmet target 
 test("advanced goals are searchable and all constraints stay editable at phone widths", async ({
     page,
 }) => {
-    await page.goto("/optymalizator");
+    await page.goto("/optimizer");
     await page.getByLabel("Tryb optymalizatora").selectOption("ADVANCED");
     await page.getByRole("button", { name: "＋ Dodaj cel" }).tap();
     await page.getByRole("searchbox", { name: "Szukaj bonusu" }).fill("brak");
@@ -148,7 +148,7 @@ test("advisor preserves settings, cancels from another section and rejects a sta
         await route.fulfill({ json: { cancelled: true } });
         finish();
     });
-    await page.goto("/optymalizator");
+    await page.goto("/optimizer");
     await page.getByLabel("Tryb optymalizatora").selectOption("ADVISOR");
     await page.getByLabel("Główny cel").selectOption("CRITICAL_CHANCE");
     await page.getByLabel("Oczekiwany efekt").selectOption("VALUE");

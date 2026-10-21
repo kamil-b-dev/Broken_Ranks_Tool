@@ -4,6 +4,86 @@ import { createContractValidator, loadApiContract } from "./api-contract.mjs";
 
 const document = await loadApiContract();
 const validate = createContractValidator(document);
+test("reorganization tasks type the selected upgrade and relative modifier protections", () => {
+  const options = {
+    task: "UPGRADE",
+    goal: "CRITICAL_CHANCE",
+    allowUnequip: false,
+    upgrade: { sourceSlotKey: "helmet", sourceDrifIndex: 0, targetTemplateId: 12, targetLevel: 21 },
+    protectedModifiers: { MANA_REGEN: { enabled: true, loss: 1.5 } },
+  };
+  validate("OptimizationRequest", { mode: "REORGANIZE", originalSlots: { helmet: { itemId: 1 } }, reorganization: options });
+  validate("ReorganizationOptions", { task: "UPGRADE", upgrades: [{ ...options.upgrade, maximizeLevel: true }], preferFewestMoves: true });
+  validate("ReorganizationOptions", { task: "INSERT", insertEntryId: "chosen" });
+  validate("ReorganizationOptions", { task: "INSERT", insertions: [{ entryId: "one", targetSlotKey: "armor" }, { entryId: "two", targetSlotKey: null }], upgrades: [options.upgrade] });
+  assert.throws(() => validate("ReorganizationOptions", { task: "INSERT", insertions: [{ entryId: "one", targetSlotKey: "unknown" }] }));
+  assert.throws(() => validate("ReorganizationOptions", { task: "INSERT", insertions: [{ entryId: "" }] }));
+  assert.throws(() => validate("ReorganizationOptions", { task: "INSERT", insertions: Array.from({ length: 37 }, () => ({ entryId: "one" })) }));
+  validate("ReorganizationOptions", { task: "RESERVE", reservation: { slotKey: "armor", freeSockets: 1, freeCapacity: 8 } });
+  assert.throws(() => validate("ReorganizationOptions", { task: "RESERVE", reservation: { slotKey: "armor", freeSockets: 4 } }));
+  assert.throws(() => validate("ReorganizationOptions", { task: "UPGRADE", upgrades: [{ ...options.upgrade, targetLevel: 22 }] }));
+  for (const invalid of [
+    { ...options, task: "UNKNOWN" },
+    { ...options, upgrade: { ...options.upgrade, sourceSlotKey: "unknown" } },
+    { ...options, upgrade: { ...options.upgrade, targetLevel: 22 } },
+    { ...options, upgrade: { ...options.upgrade, sourceDrifIndex: -1 } },
+    { ...options, upgrade: { ...options.upgrade, otherStone: true } },
+    { ...options, protectedModifiers: { MANA_REGEN: { enabled: true, loss: -1 } } },
+    { ...options, protectedModifiers: { UNKNOWN: { enabled: true, loss: 0 } } },
+  ]) assert.throws(() => validate("ReorganizationOptions", invalid));
+});
+test("progression accepts one target, restricts res slots, and keeps search claims explicit", () => {
+  const request = {
+    characterClass: "ARCHER",
+    targetLevel: 140,
+    targetEquipment: { slots: {} },
+    resSlots: ["ring1"],
+  };
+  validate("ProgressionPlanRequest", request);
+  validate("ProgressionPlanRequest", { ...request, balanceStats: true });
+  validate("ProgressionPlanRequest", { ...request, balanceStats: false });
+  validate("ProgressionPlanRequest", { ...request, minItemLevelGap: 20 });
+  validate("ProgressionPlanRequest", { ...request, minItemLevelGap: 0 });
+  validate("ProgressionPlanRequest", { ...request, minItemLevelGap: 140 });
+  for (const invalid of [
+    { ...request, targetLevel: 0 },
+    { ...request, balanceStats: "true" },
+    { ...request, minItemLevelGap: -1 },
+    { ...request, minItemLevelGap: 141 },
+    { ...request, minItemLevelGap: 1.5 },
+    { ...request, targetLevel: 141 },
+    { ...request, stages: [] },
+    { ...request, resSlots: ["weapon"] },
+    { ...request, resSlots: ["ring1", "ring1"] },
+    { ...request, targetEquipment: { slots: {}, unexpected: true } },
+  ])
+    assert.throws(() => validate("ProgressionPlanRequest", invalid));
+  const result = {
+    outcome: "NO_PATH_FOUND",
+    stages: [],
+    remainingDrifs: [],
+    warnings: [],
+    resSlots: [],
+    searchReport: {
+      stopReason: "BACKWARD_PROJECTION",
+      evaluatedCandidates: 0,
+      beamWidth: 6,
+      elapsedMillis: 1,
+      proofComplete: false,
+    },
+  };
+  validate("ProgressionPlanResponse", result);
+  validate("ProgressionPlanResponse", {
+    ...result,
+    searchReport: { ...result.searchReport, stopReason: "BALANCED_BACKWARD_PROJECTION" },
+  });
+  assert.throws(() =>
+    validate("ProgressionPlanResponse", {
+      ...result,
+      searchReport: { ...result.searchReport, proofComplete: true },
+    }),
+  );
+});
 const summary = {
   success: false,
   message: "Invalid constraints",

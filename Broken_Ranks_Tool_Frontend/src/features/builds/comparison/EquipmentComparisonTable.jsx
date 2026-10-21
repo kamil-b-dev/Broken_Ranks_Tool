@@ -1,4 +1,7 @@
+import { useTranslation } from "../../../shared/i18n/useTranslation";
 const EquipmentComparisonTable = ({ active, builds, rows, onlyDifferences, comparisonStyle }) => {
+    const { t } = useTranslation();
+
     const visibleRows = rows.filter((row) => !onlyDifferences || row.differs);
 
     return (
@@ -12,7 +15,7 @@ const EquipmentComparisonTable = ({ active, builds, rows, onlyDifferences, compa
             style={comparisonStyle}
         >
             <div className="build-comparison-row build-comparison-header">
-                <span>Slot</span>
+                <span>{t("Slot")}</span>
                 {builds.map((build) => (
                     <strong key={build.id}>{build.name}</strong>
                 ))}
@@ -20,18 +23,21 @@ const EquipmentComparisonTable = ({ active, builds, rows, onlyDifferences, compa
             {visibleRows.length ? (
                 visibleRows.map((row) => (
                     <div className="build-comparison-row" key={row.key}>
-                        <span className="build-comparison-label">{row.label}</span>
+                        <span className="build-comparison-label">{t(row.label)}</span>
                         {row.values.map((value, index) => (
                             <div
                                 key={`${builds[index].id}-${row.key}`}
                                 className={row.differs ? "is-different" : ""}
                             >
-                                <strong>{value.itemName}</strong>
+                                <strong>{t(value.itemName)}</strong>
                                 {value.itemName !== "Pusty slot" && (
                                     <small>
-                                        {value.tier ? `Tier ${value.tier} · ` : ""}
-                                        {value.stars > 0 ? `${value.stars}★ · ` : ""}
-                                        {value.drifCount} drif · {value.orbCount} orb
+                                        {t(value.tier ? `Tier ${value.tier} · ` : "")}
+                                        {t(value.stars > 0 ? `${value.stars}★ · ` : "")}
+                                        {t(value.drifCount)}
+                                        {t(" drif · ")}
+                                        {t(value.orbCount)}
+                                        {t(" orb")}
                                     </small>
                                 )}
                             </div>
@@ -39,7 +45,9 @@ const EquipmentComparisonTable = ({ active, builds, rows, onlyDifferences, compa
                     </div>
                 ))
             ) : (
-                <p className="build-comparison-no-differences">Brak różnic w wybranym zakresie.</p>
+                <p className="build-comparison-no-differences">
+                    {t("Brak różnic w wybranym zakresie.")}
+                </p>
             )}
         </div>
     );

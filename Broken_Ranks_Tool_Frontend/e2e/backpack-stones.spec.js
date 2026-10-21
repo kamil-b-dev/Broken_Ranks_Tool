@@ -72,7 +72,7 @@ test.beforeEach(async ({ page }) => {
         }
     );
     await page.route("**/api/initial-data", (route) => route.fulfill({ json: catalog }));
-    await page.goto("/kreator?ui=desktop");
+    await page.goto("/builder?ui=desktop");
     await page
         .getByRole("group", { name: "Widok ekwipunku" })
         .or(page.getByRole("navigation", { name: "Sekcje kreatora" }))

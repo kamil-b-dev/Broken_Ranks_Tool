@@ -89,7 +89,9 @@
     right: 0;
     z-index: 15;
     display: grid;
-    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr) minmax(0, 1.6fr) minmax(0, 0.9fr);
+    grid-template-columns:
+        minmax(0, 0.75fr) minmax(0, 0.95fr) minmax(0, 1.65fr) minmax(0, 0.8fr)
+        minmax(0, 0.95fr);
     border-top: 1px solid rgba(166, 116, 55, 0.78);
     background:
         linear-gradient(rgba(18, 16, 15, 0.96), rgba(4, 4, 5, 0.98)),

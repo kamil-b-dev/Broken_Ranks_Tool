@@ -1,3 +1,6 @@
+import { useTranslation } from "../../shared/i18n/useTranslation";
+import LanguageSwitcher from "../../shared/i18n/LanguageSwitcher";
+import OptimizerLabelSettings from "../../features/optimizer/OptimizerLabelSettings";
 import "./mobile-workspace.css";
 import "../../shared/styles/equipment-icons.css";
 import { lazy, Suspense, useCallback, useState } from "react";
@@ -21,10 +24,14 @@ import homeIcon from "../../assets/mobile/home.webp";
 import equipmentBuilderIcon from "../../assets/mobile/equipment-builder.webp";
 import drifOptimizerIcon from "../../assets/mobile/drif-optimizer.webp";
 import localBuildsIcon from "../../assets/mobile/local-builds.webp";
+import progressionPathIcon from "../../assets/mobile/progression-path.webp";
 import "./mobile-app.css";
 
 const MobileOptimizerWorkspace = lazy(
     () => import("../../features/optimizer/mobile/MobileOptimizerWorkspace")
+);
+const ProgressionWorkspace = lazy(
+    () => import("../../features/progression-path/ProgressionWorkspace")
 );
 const BuildLibraryWorkspace = lazy(
     () => import("../../features/builds/mobile/MobileBuildLibraryWorkspace")
@@ -34,11 +41,14 @@ const destinations = [
     { key: "home", label: "Start", icon: homeIcon },
     { key: "builder", label: "Kreator", icon: equipmentBuilderIcon },
     { key: "optimizer", label: "Optymalizator", icon: drifOptimizerIcon },
+    { key: "progression", label: "Rozwój", icon: progressionPathIcon },
     { key: "builds", label: "Buildy", icon: localBuildsIcon },
 ];
 
 /** Mobile composition shares data and actions with the unchanged desktop app. */
 export default function MobileApp() {
+    const { t } = useTranslation();
+
     const { activeView, navigate } = useAppRoute();
     const equipment = { ...useEquipmentCatalogState(), ...useEquipmentBuildActions() };
     const {
@@ -68,7 +78,7 @@ export default function MobileApp() {
     return (
         <div className="mobile-app">
             <a className="skip-link" href="#workspace-content">
-                Przejdź do głównej treści
+                {t("Przejdź do głównej treści")}
             </a>
             <header className="mobile-header">
                 <a
@@ -81,12 +91,18 @@ export default function MobileApp() {
                 >
                     <img src={crest} alt="" />
                     <span>
-                        Broken Ranks <strong>Tool</strong>
+                        {t("Broken Ranks ")}
+                        <strong>{t("Tool")}</strong>
                     </span>
                 </a>
+                <div className="interface-preferences">
+                    <OptimizerLabelSettings />
+                    <LanguageSwitcher />
+                </div>
                 <details className="mobile-build-actions" key={activeView}>
                     <summary>
-                        Build <span aria-hidden="true">⋮</span>
+                        {t("Build ")}
+                        <span aria-hidden="true">⋮</span>
                     </summary>
                     <div>
                         <button
@@ -98,7 +114,8 @@ export default function MobileApp() {
                                 event.currentTarget.closest("details").open = false;
                             }}
                         >
-                            Zapisz lokalnie ({library.builds.length}/{MAX_SAVED_BUILDS})
+                            {t("Zapisz lokalnie (")}
+                            {t(library.builds.length)}/{t(MAX_SAVED_BUILDS)})
                         </button>
                         <button
                             type="button"
@@ -109,7 +126,7 @@ export default function MobileApp() {
                                 event.currentTarget.closest("details").open = false;
                             }}
                         >
-                            Wczytaj plik buildu
+                            {t("Wczytaj plik buildu")}
                         </button>
                     </div>
                 </details>
@@ -130,7 +147,7 @@ export default function MobileApp() {
                 <Suspense fallback={<WorkspaceState loading />}>
                     {activeView === "home" ? (
                         <main id="workspace-content" className="mobile-home">
-                            <h1>Broken Ranks Tool</h1>
+                            <h1>{t("Broken Ranks Tool")}</h1>
                         </main>
                     ) : unavailable ? (
                         <main>
@@ -141,6 +158,14 @@ export default function MobileApp() {
                         </main>
                     ) : activeView === "builder" ? (
                         <MobileBuilderWorkspace />
+                    ) : activeView === "progression" ? (
+                        <ProgressionWorkspace
+                            mobile
+                            builds={library.builds}
+                            data={equipment.data}
+                            createSnapshot={equipment.createBuildSnapshot}
+                            gameRules={equipment.gameRules}
+                        />
                     ) : activeView === "optimizer" ? (
                         <MobileOptimizerWorkspace
                             settings={settings}
@@ -162,11 +187,12 @@ export default function MobileApp() {
                     )}
                 </Suspense>
             </div>
-            <nav className="mobile-navigation" aria-label="Główne widoki aplikacji">
+            <nav className="mobile-navigation" aria-label={t("Główne widoki aplikacji")}>
                 {destinations.map(({ key, label, icon }) => (
                     <a
                         key={key}
                         href={APP_ROUTES[key]}
+                        aria-label={t(key === "progression" ? "Ścieżka rozwoju" : undefined)}
                         aria-current={activeView === key ? "page" : undefined}
                         onClick={(event) => {
                             event.preventDefault();
@@ -176,7 +202,7 @@ export default function MobileApp() {
                         <span aria-hidden="true">
                             <img src={icon} alt="" draggable="false" />
                         </span>
-                        {label}
+                        {t(label)}
                     </a>
                 ))}
             </nav>

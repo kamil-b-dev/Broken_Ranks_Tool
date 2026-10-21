@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n/useTranslation";
 import {
     defaultSimpleOptions,
     changeSimpleStyle,
@@ -8,34 +9,44 @@ import {
 } from "./simpleProfileDefinitions";
 import { useOptimizerLabelContext } from "../optimizerLabelContext";
 
-const QuantityField = ({ label, value, onChange }) => (
-    <label className="simple-profile-field flex items-center justify-between gap-4 border border-purple-950/80 optimizer-accent-frame bg-black/25 p-3 text-xs text-stone-300">
-        <span>{label}</span>
-        <input
-            type="number"
-            min="1"
-            max="12"
-            value={value}
-            onChange={(event) => onChange(Math.max(1, Math.min(12, Number(event.target.value))))}
-            className="w-16 border border-purple-900/80 optimizer-accent-frame bg-black px-2 py-1 text-center text-stone-100"
-        />
-    </label>
-);
+const QuantityField = ({ label, value, onChange }) => {
+    const { t } = useTranslation();
+    return (
+        <label className="simple-profile-field flex items-center justify-between gap-4 border border-purple-950/80 optimizer-accent-frame bg-black/25 p-3 text-xs text-stone-300">
+            <span>{t(label)}</span>
+            <input
+                type="number"
+                min="1"
+                max="12"
+                value={value}
+                onChange={(event) =>
+                    onChange(Math.max(1, Math.min(12, Number(event.target.value))))
+                }
+                className="w-16 border border-purple-900/80 optimizer-accent-frame bg-black px-2 py-1 text-center text-stone-100"
+            />
+        </label>
+    );
+};
 
-const Toggle = ({ label, checked, onChange }) => (
-    <label className="simple-profile-toggle flex cursor-pointer items-center gap-2 border border-stone-800 optimizer-info-divider bg-black/25 p-3 text-xs text-stone-300">
-        <input
-            type="checkbox"
-            checked={checked}
-            onChange={(event) => onChange(event.target.checked)}
-            className="h-4 w-4 accent-purple-700"
-        />
-        {label}
-    </label>
-);
+const Toggle = ({ label, checked, onChange }) => {
+    const { t } = useTranslation();
+    return (
+        <label className="simple-profile-toggle flex cursor-pointer items-center gap-2 border border-stone-800 optimizer-info-divider bg-black/25 p-3 text-xs text-stone-300">
+            <input
+                type="checkbox"
+                checked={checked}
+                onChange={(event) => onChange(event.target.checked)}
+                className="h-4 w-4 accent-purple-700"
+            />
+            {t(label)}
+        </label>
+    );
+};
 
 /** Exposes only the few decisions not predetermined by the selected profession. */
 const SimpleProfileGoalsPanel = ({ settings, onChange }) => {
+    const { t } = useTranslation();
+
     const labels = useOptimizerLabelContext();
     const profile = settings.simpleProfile || "BARBARIAN";
     const options = normalizeSimpleOptions(settings.simpleOptions, profile);
@@ -57,12 +68,12 @@ const SimpleProfileGoalsPanel = ({ settings, onChange }) => {
         <div className="simple-profile-panel min-h-0 flex-1 overflow-y-auto p-3 custom-scrollbar">
             <div className="simple-profile-header mb-3 flex flex-wrap items-center justify-between gap-3 border border-purple-950/80 optimizer-accent-frame bg-black/30 p-3">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-purple-200 optimizer-accent-text">
-                    Konfiguracja profilu profesji
+                    {t("Konfiguracja profilu profesji")}
                 </h4>
                 <label className="flex items-center gap-3 text-xs text-stone-300">
-                    Profil profesji
+                    {t("Profil profesji")}
                     <select
-                        aria-label="Profil prostego optymalizatora"
+                        aria-label={t("Profil prostego optymalizatora")}
                         value={profile}
                         onChange={(event) =>
                             onChange({
@@ -75,7 +86,7 @@ const SimpleProfileGoalsPanel = ({ settings, onChange }) => {
                     >
                         {SIMPLE_PROFILES.map((option) => (
                             <option key={option.value} value={option.value}>
-                                {option.label}
+                                {t(option.label)}
                             </option>
                         ))}
                     </select>
@@ -84,9 +95,9 @@ const SimpleProfileGoalsPanel = ({ settings, onChange }) => {
 
             {styled && (
                 <label className="simple-profile-field mb-3 flex items-center justify-between border border-purple-950/80 optimizer-accent-frame bg-black/25 p-3 text-xs text-stone-300">
-                    Styl buildu
+                    {t("Styl buildu")}
                     <select
-                        aria-label="Styl buildu"
+                        aria-label={t("Styl buildu")}
                         value={options.style || "OFFENSIVE"}
                         onChange={(event) =>
                             onChange({
@@ -102,7 +113,7 @@ const SimpleProfileGoalsPanel = ({ settings, onChange }) => {
                     >
                         {SIMPLE_STYLES.map((style) => (
                             <option key={style.value} value={style.value}>
-                                {style.label}
+                                {t(style.label)}
                             </option>
                         ))}
                     </select>
@@ -111,20 +122,20 @@ const SimpleProfileGoalsPanel = ({ settings, onChange }) => {
 
             <div className="grid gap-2 md:grid-cols-2">
                 <QuantityField
-                    label={
+                    label={t(
                         labels.mode === "DRIFS"
                             ? `Drify ${labels.getName(damageType, "obrażeń")}`
                             : "Drify obrażeń"
-                    }
+                    )}
                     value={options.damageDrifs || 7}
                     onChange={(value) => update("damageDrifs", value)}
                 />
                 <QuantityField
-                    label={
+                    label={t(
                         labels.mode === "DRIFS"
                             ? `Drify ${labels.getName(accuracyType, "celności")}`
                             : "Drify celności"
-                    }
+                    )}
                     value={options.accuracyDrifs || 6}
                     onChange={(value) => update("accuracyDrifs", value)}
                 />
@@ -132,9 +143,9 @@ const SimpleProfileGoalsPanel = ({ settings, onChange }) => {
 
             {elemental && (
                 <label className="simple-profile-field mt-2 flex items-center justify-between border border-purple-950/80 optimizer-accent-frame bg-black/25 p-3 text-xs text-stone-300">
-                    Drif żywiołowy w broni
+                    {t("Drif żywiołowy w broni")}
                     <select
-                        aria-label="Żywioł broni"
+                        aria-label={t("Żywioł broni")}
                         value={options.element || (profile === "SHEED" ? "NONE" : "FIRE")}
                         onChange={(event) => update("element", event.target.value)}
                         className="border border-purple-900/80 optimizer-accent-frame bg-black px-2 py-1 text-stone-100"
@@ -143,9 +154,11 @@ const SimpleProfileGoalsPanel = ({ settings, onChange }) => {
                             (element) => profile === "SHEED" || element.value !== "NONE"
                         ).map((element) => (
                             <option key={element.value} value={element.value}>
-                                {element.value === "NONE"
-                                    ? element.label
-                                    : labels.getName(`DAMAGE_${element.value}`, element.label)}
+                                {t(
+                                    element.value === "NONE"
+                                        ? element.label
+                                        : labels.getName(`DAMAGE_${element.value}`, element.label)
+                                )}
                             </option>
                         ))}
                     </select>
@@ -154,14 +167,18 @@ const SimpleProfileGoalsPanel = ({ settings, onChange }) => {
 
             <div className="mt-3 grid gap-2 md:grid-cols-2">
                 <Toggle
-                    label={labels.getName("PASIVE_DAMAGE_REDUCTION", "Redukcja obrażeń biernych")}
+                    label={t(
+                        labels.getName("PASIVE_DAMAGE_REDUCTION", "Redukcja obrażeń biernych")
+                    )}
                     checked={Boolean(options.passiveDamageReduction)}
                     onChange={(value) => update("passiveDamageReduction", value)}
                 />
                 <Toggle
-                    label={labels.getName(
-                        "PERCENTAGE_DAMAGE_REDUCTION",
-                        "Redukcja obrażeń procentowych"
+                    label={t(
+                        labels.getName(
+                            "PERCENTAGE_DAMAGE_REDUCTION",
+                            "Redukcja obrażeń procentowych"
+                        )
                     )}
                     checked={Boolean(options.percentageDamageReduction)}
                     onChange={(value) => update("percentageDamageReduction", value)}
@@ -169,15 +186,17 @@ const SimpleProfileGoalsPanel = ({ settings, onChange }) => {
                 {archerLike && (
                     <>
                         <Toggle
-                            label={labels.getName(
-                                "DAMAGE_REDUCTION_CHANCE",
-                                "Holm — szansa redukcji obrażeń"
+                            label={t(
+                                labels.getName(
+                                    "DAMAGE_REDUCTION_CHANCE",
+                                    "Holm — szansa redukcji obrażeń"
+                                )
                             )}
                             checked={Boolean(options.damageReductionChance)}
                             onChange={(value) => update("damageReductionChance", value)}
                         />
                         <Toggle
-                            label={labels.getName("DODGE_CHANCE", "Farid — szansa uniku")}
+                            label={t(labels.getName("DODGE_CHANCE", "Farid — szansa uniku"))}
                             checked={Boolean(options.dodgeChance)}
                             onChange={(value) => update("dodgeChance", value)}
                         />

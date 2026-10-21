@@ -1,0 +1,291 @@
+.progression-workspace {
+    width: 100%;
+    max-width: 1280px;
+    min-width: 0;
+    margin: 0 auto;
+    padding: 20px;
+    color: var(--ui-text);
+    font-family: var(--ui-font);
+    --display-font: var(--ui-font);
+}
+.progression-workspace *,
+.progression-workspace *::before {
+    box-sizing: border-box;
+}
+.progression-workspace
+    :is(
+        h1,
+        h2,
+        h3,
+        h4,
+        legend,
+        p,
+        li,
+        strong,
+        small,
+        label,
+        summary,
+        dt,
+        dd,
+        button,
+        input,
+        select,
+        option,
+        span,
+        div,
+        th,
+        td
+    ) {
+    font-family: var(--ui-font);
+}
+.progression-workspace :is(h1, h2, h3) {
+    margin: 0;
+    color: var(--ui-gold);
+}
+.progression-workspace h1 {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+.progression-workspace h2 {
+    font-size: 16px;
+    font-weight: 600;
+}
+.progression-workspace p {
+    margin: 8px 0 16px;
+    color: var(--ui-text-muted);
+    font-size: 13px;
+    line-height: 1.5;
+}
+.progression-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--ui-line);
+}
+.progression-actions,
+.progression-source {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: 8px;
+}
+.progression-workspace button {
+    min-height: 44px;
+    padding: 10px 14px;
+    border: 1px solid rgba(145, 98, 45, 0.74);
+    border-radius: 0;
+    color: var(--ui-gold);
+    background: linear-gradient(180deg, rgba(56, 35, 17, 0.8), rgba(13, 10, 8, 0.96));
+    box-shadow: inset 0 1px rgba(255, 224, 169, 0.04);
+    cursor: pointer;
+    font: 600 12px var(--ui-font);
+    transition:
+        border-color 150ms ease,
+        background-color 150ms ease,
+        color 150ms ease;
+}
+.progression-workspace button:hover:not(:disabled) {
+    border-color: var(--ui-line-bright);
+    color: #edc57d;
+    background: linear-gradient(180deg, rgba(76, 46, 21, 0.9), rgba(24, 16, 10, 0.98));
+}
+.progression-workspace button:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+.progression-workspace :focus-visible {
+    outline: 2px solid var(--ui-gold);
+    outline-offset: 3px;
+}
+.progression-workspace label {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+    color: var(--ui-text-muted);
+    font-size: 12px;
+}
+.progression-workspace select,
+.progression-workspace input:not([type="checkbox"]) {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    min-height: 44px;
+    padding: 10px;
+    border: 1px solid var(--ui-line);
+    border-radius: 0;
+    color: var(--ui-text);
+    background: rgba(2, 3, 3, 0.82);
+    font: 13px var(--ui-font);
+    color-scheme: dark;
+}
+.progression-controls {
+    display: flex;
+    align-items: end;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--ui-line);
+}
+.progression-controls label {
+    flex: 0 1 190px;
+}
+.progression-controls label:has(input) {
+    flex-basis: 100px;
+}
+.progression-controls label.progression-gap {
+    flex: 0 1 270px;
+}
+.progression-checkbox {
+    display: flex !important;
+    align-items: center;
+    gap: 8px !important;
+    min-height: 44px;
+    cursor: pointer;
+}
+.progression-balance {
+    margin-top: 8px;
+}
+.progression-source {
+    padding: 16px 0;
+}
+.progression-source label {
+    flex: 1 1 250px;
+}
+.progression-res {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 24px;
+    min-width: 0;
+    margin: 16px 0;
+    padding: 4px 12px 12px;
+    border: 1px solid var(--ui-line);
+    background: rgba(0, 0, 0, 0.16);
+}
+.progression-res legend {
+    padding: 0 6px;
+    color: var(--ui-gold);
+    font-size: 12px;
+}
+.progression-res p {
+    flex-basis: 100%;
+    margin: 0;
+    font-size: 12px;
+}
+.progression-workspace summary {
+    cursor: pointer;
+    padding: 12px 0;
+    font-size: 13px;
+    color: var(--ui-gold);
+}
+.progression-workspace .progression-run {
+    width: 100%;
+    border-color: rgba(197, 48, 62, 0.96);
+    color: var(--ui-text);
+    background: linear-gradient(180deg, rgba(93, 10, 20, 0.9), rgba(26, 4, 8, 0.98));
+    box-shadow:
+        inset 0 1px rgba(255, 224, 169, 0.08),
+        0 0 22px rgba(143, 20, 40, 0.12);
+    font-size: 13px;
+}
+.progression-workspace .progression-run:hover:not(:disabled) {
+    border-color: #cf3e50;
+    color: var(--ui-text);
+    background: linear-gradient(180deg, rgba(121, 15, 27, 0.94), rgba(31, 4, 9, 0.99));
+}
+.progression-workspace .progression-error {
+    border: 1px solid #ac6159;
+    background: rgba(73, 27, 25, 0.7);
+    color: #ffe4df;
+    padding: 12px;
+}
+.progression-report {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--ui-line-bright);
+}
+.progression-timeline {
+    display: grid;
+    gap: 10px;
+    list-style: none;
+    border-left: 1px solid var(--ui-line-bright);
+    padding: 0 0 0 20px;
+    margin: 20px 0;
+}
+.progression-timeline > li {
+    position: relative;
+    min-width: 0;
+    border: 1px solid var(--ui-line);
+    background: linear-gradient(145deg, rgba(27, 22, 19, 0.94), rgba(8, 8, 9, 0.98));
+    box-shadow: inset 0 1px rgba(255, 224, 169, 0.03);
+}
+.progression-timeline > li::before {
+    content: "";
+    position: absolute;
+    width: 7px;
+    height: 7px;
+    border: 1px solid var(--ui-gold-soft);
+    background: var(--ui-surface);
+    left: -24px;
+    top: 32px;
+    transform: rotate(45deg);
+}
+.progression-timeline ol {
+    padding-left: 22px;
+    line-height: 1.6;
+}
+.progression-timeline ol li {
+    margin: 8px 0;
+    overflow-wrap: anywhere;
+}
+.progression-statistics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+    gap: 8px 20px;
+    font-size: 13px;
+}
+.progression-statistics > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px solid var(--ui-line);
+    padding: 8px 0;
+}
+.progression-statistics dd {
+    margin: 0;
+    color: var(--ui-gold);
+    white-space: nowrap;
+}
+@media (max-width: 600px) {
+    .progression-workspace {
+        padding: 16px 12px;
+    }
+    .progression-workspace h1 {
+        font-size: 17px;
+    }
+    .progression-heading .progression-actions {
+        width: 100%;
+    }
+    .progression-timeline {
+        padding-left: 12px;
+    }
+    .progression-timeline > li::before {
+        left: -16px;
+    }
+    .progression-source label {
+        flex-basis: 100%;
+    }
+    .progression-actions button {
+        flex: 1 1 auto;
+    }
+    .progression-controls label {
+        flex: 1 1 130px;
+    }
+    .progression-controls label:has(input) {
+        flex: 0 1 90px;
+    }
+}

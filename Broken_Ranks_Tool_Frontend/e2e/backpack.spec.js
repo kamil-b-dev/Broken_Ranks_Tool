@@ -50,7 +50,7 @@ const draft = (page) =>
     );
 const openDesktop = async (page) => {
     await page.setViewportSize({ width: 1800, height: 1100 });
-    await page.goto("/kreator?ui=desktop");
+    await page.goto("/builder?ui=desktop");
     await page
         .getByRole("group", { name: "Widok ekwipunku" })
         .or(page.getByRole("navigation", { name: "Sekcje kreatora" }))
@@ -201,7 +201,7 @@ test.describe("mobile backpack", () => {
     test.use(mobileDevice);
     test("adds and edits at 320px without changing equipped gear", async ({ page }) => {
         await page.setViewportSize({ width: 320, height: 844 });
-        await page.goto("/kreator");
+        await page.goto("/builder");
         await page
             .getByRole("group", { name: "Widok ekwipunku" })
             .or(page.getByRole("navigation", { name: "Sekcje kreatora" }))

@@ -1,0 +1,129 @@
+{
+    "mode": "REORGANIZE",
+    "configurationMode": "ADVANCED",
+    "originalSlots": {
+        "armor": {
+            "itemId": 2,
+            "itemStars": 5,
+            "orbIds": [],
+            "orbLevels": [],
+            "drifIds": [104, 92, 108],
+            "drifLevels": { "0": 11, "1": 21, "2": 21 }
+        },
+        "belt": {
+            "itemId": 6,
+            "itemStars": 4,
+            "orbIds": [],
+            "orbLevels": [],
+            "drifIds": [108, 84, 36],
+            "drifLevels": { "0": 21, "1": 21, "2": 11 }
+        },
+        "boots": {
+            "itemId": 19,
+            "itemStars": 4,
+            "orbIds": [],
+            "orbLevels": [],
+            "drifIds": [76, 52, 108],
+            "drifLevels": { "0": 21, "1": 6, "2": 11 }
+        },
+        "cape": {
+            "itemId": 7,
+            "itemStars": 4,
+            "orbIds": [],
+            "orbLevels": [],
+            "drifIds": [108, 28, 84],
+            "drifLevels": { "0": 21, "1": 11, "2": 16 }
+        },
+        "gloves": {
+            "itemId": 5,
+            "itemStars": 4,
+            "orbIds": [],
+            "orbLevels": [],
+            "drifIds": [76, 84, 56],
+            "drifLevels": { "0": 21, "1": 21, "2": 21 }
+        },
+        "helmet": {
+            "itemId": 13,
+            "itemStars": 4,
+            "orbIds": [],
+            "orbLevels": [],
+            "drifIds": [108, 72, 76],
+            "drifLevels": { "0": 16, "1": 16, "2": 21 }
+        },
+        "legs": {
+            "itemId": 12,
+            "itemStars": 4,
+            "orbIds": [],
+            "orbLevels": [],
+            "drifIds": [76, 104, 52],
+            "drifLevels": { "0": 21, "1": 21, "2": 11 }
+        },
+        "necklace": {
+            "itemId": 11,
+            "itemStars": 4,
+            "orbIds": [],
+            "orbLevels": [],
+            "drifIds": [104, 52, 40],
+            "drifLevels": { "0": 21, "1": 21, "2": 21 }
+        },
+        "ring1": {
+            "itemId": 160,
+            "itemStars": 4,
+            "orbIds": [],
+            "orbLevels": [],
+            "drifIds": [76, 68, 92],
+            "drifLevels": { "0": 21, "1": 6, "2": 21 }
+        },
+        "ring2": {
+            "itemId": 21,
+            "itemStars": 4,
+            "orbIds": [],
+            "orbLevels": [],
+            "drifIds": [52, 104],
+            "drifLevels": { "0": 21, "1": 21 }
+        },
+        "shield": {
+            "itemId": 27,
+            "itemStars": 4,
+            "orbIds": [],
+            "orbLevels": [],
+            "drifIds": [92, 104],
+            "drifLevels": { "0": 21, "1": 21 }
+        },
+        "weapon": {
+            "itemId": 174,
+            "itemStars": 9,
+            "orbIds": [],
+            "orbLevels": [],
+            "drifIds": [83, 91],
+            "drifLevels": { "0": 16, "1": 16 }
+        }
+    },
+    "characterStats": {
+        "Moc": 135,
+        "Kondycja": 200,
+        "Siła": 10,
+        "Zręczność": 10,
+        "Mana": 200,
+        "Wiedza": 135,
+        "PŻ": 610
+    },
+    "lockedSlots": [],
+    "lockedDrifs": { "ring1": [0] },
+    "priorities": {},
+    "backpackDrifs": [],
+    "backpackSlotCount": 0,
+    "reorganization": {
+        "task": "UPGRADE",
+        "allowUnequip": true,
+        "preferFewestMoves": true,
+        "upgrades": [
+            {
+                "sourceSlotKey": "boots",
+                "sourceDrifIndex": 1,
+                "targetTemplateId": 52,
+                "targetLevel": 11
+            }
+        ]
+    }
+}

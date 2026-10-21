@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n/useTranslation";
 import { useMemo, useState } from "react";
 import CategoryIcon from "../../../shared/ui/CategoryIcon";
 import EquipmentSlotOverview from "../equipment/EquipmentSlotOverview";
@@ -17,6 +18,8 @@ const isStone = (resource) => ["drifs", "orbs"].includes(resource?.dragType);
 const socketAt = (event) => event.target.closest?.("[data-stone-zone]")?.dataset.stoneZone;
 
 const BackpackCard = ({ entry, entries, index, data, gameRules, model, manualOrder }) => {
+    const { t } = useTranslation();
+
     const template = backpackTemplate(entry, data);
     const slot = backpackSlot(template);
     const warning = useMemo(
@@ -92,7 +95,7 @@ const BackpackCard = ({ entry, entries, index, data, gameRules, model, manualOrd
             {entry.kind === "ITEM" ? (
                 <EquipmentSlotOverview
                     slotKey={slot?.key}
-                    label="Przedmiot"
+                    label={t("Przedmiot")}
                     item={template}
                     slotData={entry.equipment}
                     drifs={data.drifs}
@@ -107,7 +110,12 @@ const BackpackCard = ({ entry, entries, index, data, gameRules, model, manualOrd
                     type="button"
                     draggable={canDrag}
                     className="backpack-stone-card"
-                    aria-label={`${labels[entry.kind]} ${name}, ${template?.size || "kamień"}, poziom ${entry.level}`}
+                    aria-label={t("{0} {1}, {2}, poziom {3}", [
+                        t(labels[entry.kind]),
+                        t(name),
+                        t(template?.size || "kamień"),
+                        t(entry.level),
+                    ])}
                     aria-pressed={active}
                     onClick={() => model.select(entry.id)}
                 >
@@ -120,37 +128,47 @@ const BackpackCard = ({ entry, entries, index, data, gameRules, model, manualOrd
                         fallback={<span aria-hidden="true">◇</span>}
                     />
                     <span>
-                        <small>{labels[entry.kind]}</small>
-                        <strong>{name}</strong>
+                        <small>{t(labels[entry.kind])}</small>
+                        <strong>{t(name)}</strong>
                         <span>
-                            {template?.size} · poz. {entry.level}
+                            {t(template?.size)}
+                            {t(" · poz. ")}
+                            {t(entry.level)}
                         </span>
                     </span>
                 </button>
             )}
-            {warning && <p className="backpack-card-warning">Wymaga poprawy</p>}
+            {warning && <p className="backpack-card-warning">{t("Wymaga poprawy")}</p>}
             {entry.kind === "DRIF" && (
                 <label
                     className="backpack-backend-selection"
-                    title="Udostępnij tę sztukę optymalizatorowi w trybie Użyj drifów z plecaka"
+                    title={t(
+                        "Udostępnij tę sztukę optymalizatorowi w trybie Użyj drifów z plecaka"
+                    )}
                 >
                     <input
                         type="checkbox"
-                        aria-label={`Drif do optymalizacji: ${name}, ${template?.size || "drif"}, poziom ${entry.level}`}
+                        aria-label={t("Drif do optymalizacji: {0}, {1}, poziom {2}", [
+                            t(name),
+                            t(template?.size || "drif"),
+                            t(entry.level),
+                        ])}
                         checked={entry.sendToBackend === true}
                         onChange={(event) =>
                             model.update(entry.id, { sendToBackend: event.target.checked })
                         }
                     />
-                    <span>Do optymalizacji</span>
+                    <span>{t("Do optymalizacji")}</span>
                 </label>
             )}
             <div className="backpack-card-actions">
                 <button
                     type="button"
                     disabled={!manualOrder || index === 0}
-                    title={manualOrder ? undefined : "Przesuwanie dostępne przy własnej kolejności"}
-                    aria-label={`Przesuń wcześniej: ${name}`}
+                    title={t(
+                        manualOrder ? undefined : "Przesuwanie dostępne przy własnej kolejności"
+                    )}
+                    aria-label={t("Przesuń wcześniej: {0}", [t(name)])}
                     onClick={() => model.move(entry.id, entries[index - 1].id)}
                 >
                     ←
@@ -158,22 +176,24 @@ const BackpackCard = ({ entry, entries, index, data, gameRules, model, manualOrd
                 <button
                     type="button"
                     disabled={!manualOrder || index === entries.length - 1}
-                    title={manualOrder ? undefined : "Przesuwanie dostępne przy własnej kolejności"}
-                    aria-label={`Przesuń później: ${name}`}
+                    title={t(
+                        manualOrder ? undefined : "Przesuwanie dostępne przy własnej kolejności"
+                    )}
+                    aria-label={t("Przesuń później: {0}", [t(name)])}
                     onClick={() => model.move(entry.id, entries[index + 1].id)}
                 >
                     →
                 </button>
                 <button
                     type="button"
-                    aria-label={`Duplikuj: ${name}`}
+                    aria-label={t("Duplikuj: {0}", [t(name)])}
                     onClick={() => model.duplicate(entry)}
                 >
-                    Duplikuj
+                    {t("Duplikuj")}
                 </button>
                 <button
                     type="button"
-                    aria-label={`Usuń z plecaka: ${name}`}
+                    aria-label={t("Usuń z plecaka: {0}", [t(name)])}
                     onClick={() => model.remove(entry.id)}
                 >
                     ×
@@ -185,6 +205,8 @@ const BackpackCard = ({ entry, entries, index, data, gameRules, model, manualOrd
 
 /** Catalog resources add occurrences; stones dropped on item cards configure that item. */
 export default function BackpackGrid({ entries, data, gameRules, model }) {
+    const { t } = useTranslation();
+
     const [filter, setFilter] = useState("ALL");
     const [sort, setSort] = useState("manual");
     const [direction, setDirection] = useState("asc");
@@ -238,7 +260,7 @@ export default function BackpackGrid({ entries, data, gameRules, model }) {
             onDragEnd={() => setDraggedResource(null)}
         >
             <div className="backpack-view-controls">
-                <div className="backpack-filters" role="group" aria-label="Pokaż w plecaku">
+                <div className="backpack-filters" role="group" aria-label={t("Pokaż w plecaku")}>
                     {BACKPACK_FILTERS.map(([key, label]) => (
                         <button
                             key={key}
@@ -246,20 +268,20 @@ export default function BackpackGrid({ entries, data, gameRules, model }) {
                             aria-pressed={filter === key}
                             onClick={() => setFilter(key)}
                         >
-                            {label}
+                            {t(label)}
                         </button>
                     ))}
                 </div>
                 <div className="backpack-sort-controls">
                     <label>
-                        Sortuj według
+                        {t("Sortuj według")}
                         <select
                             value={effectiveSort}
                             onChange={(event) => setSort(event.target.value)}
                         >
                             {sortOptions.map(([key, label]) => (
                                 <option key={key} value={key}>
-                                    {label}
+                                    {t(label)}
                                 </option>
                             ))}
                         </select>
@@ -268,13 +290,13 @@ export default function BackpackGrid({ entries, data, gameRules, model }) {
                         type="button"
                         disabled={effectiveSort === "manual"}
                         onClick={() => setDirection(direction === "asc" ? "desc" : "asc")}
-                        aria-label={
+                        aria-label={t(
                             direction === "asc"
                                 ? "Kierunek sortowania: rosnąco"
                                 : "Kierunek sortowania: malejąco"
-                        }
+                        )}
                     >
-                        {direction === "asc" ? "↑ Rosnąco" : "↓ Malejąco"}
+                        {t(direction === "asc" ? "↑ Rosnąco" : "↓ Malejąco")}
                     </button>
                 </div>
             </div>
@@ -288,22 +310,26 @@ export default function BackpackGrid({ entries, data, gameRules, model }) {
                             model.begin(kind);
                         }}
                     >
-                        + Dodaj {labels[kind].toLowerCase()}
+                        {t("+ Dodaj ")}
+                        {t(labels[kind].toLowerCase())}
                     </button>
                 ))}
                 <span aria-live="polite">
-                    Sloty: {entries.length}/{MAX_BACKPACK_ENTRIES}
-                    {visibleEntries.length !== entries.length &&
-                        ` · Widoczne: ${visibleEntries.length}`}
+                    {t("Sloty: ")}
+                    {t(entries.length)}/{t(MAX_BACKPACK_ENTRIES)}
+                    {t(
+                        visibleEntries.length !== entries.length &&
+                            ` · Widoczne: ${visibleEntries.length}`
+                    )}
                 </span>
             </div>
             {model.notice && (
                 <p className="backpack-warning" role="alert">
-                    {model.notice}
+                    {t(model.notice)}
                 </p>
             )}
             {visibleEntries.length ? (
-                <div className="backpack-grid" aria-label="Zawartość plecaka">
+                <div className="backpack-grid" aria-label={t("Zawartość plecaka")}>
                     {visibleEntries.map((entry, index) => (
                         <BackpackCard
                             key={entry.id}
@@ -319,9 +345,11 @@ export default function BackpackGrid({ entries, data, gameRules, model }) {
                 </div>
             ) : (
                 <div className="backpack-empty">
-                    {entries.length
-                        ? "Brak obiektów tego rodzaju w plecaku."
-                        : "Dodaj obiekt przyciskiem lub przeciągnij go z bazy danych."}
+                    {t(
+                        entries.length
+                            ? "Brak obiektów tego rodzaju w plecaku."
+                            : "Dodaj obiekt przyciskiem lub przeciągnij go z bazy danych."
+                    )}
                 </div>
             )}
         </div>

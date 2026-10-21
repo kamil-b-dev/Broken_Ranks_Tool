@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n/useTranslation";
 import { useEquipmentLocksState } from "../../../shared/state/EquipmentContext";
 import BuiltInDrifSlots from "./BuiltInDrifSlots";
 import StandardDrifSlot from "./StandardDrifSlot";
@@ -34,6 +35,8 @@ const DrifSection = ({
     renderBackpackPicker,
     renderStoneActions,
 }) => {
+    const { t } = useTranslation();
+
     const {
         isEpicOrSet,
         builtInDrifs,
@@ -75,13 +78,14 @@ const DrifSection = ({
         <div className="w-full flex flex-col items-center mt-1">
             <div className="w-full flex justify-between items-center mb-1">
                 <span className="text-[10px] font-serif font-bold text-amber-800/80 uppercase tracking-widest pointer-events-none drop-shadow-md">
-                    Drify
+                    {t("Drify")}
                 </span>
                 {fullSelectedItem && itemCapacity > 0 && (
                     <span
                         className={`text-[10px] font-serif font-bold uppercase tracking-wider ${isOverCapacity ? "text-red-500 optimizer-lock-text animate-pulse" : isAtMaxCapacity ? "text-amber-500" : "text-stone-500"}`}
                     >
-                        Pojemność: {currentPowerUsed}/{itemCapacity}
+                        {t("Pojemność: ")}
+                        {t(currentPowerUsed)}/{t(itemCapacity)}
                     </span>
                 )}
             </div>
@@ -139,15 +143,15 @@ const DrifSection = ({
                                     setDrifTypes={setDrifTypes}
                                     setDrifLevels={setDrifLevels}
                                 />
-                                {renderStoneActions?.(index)}
+                                {t(renderStoneActions?.(index))}
                             </div>
-                            {renderBackpackPicker?.(index)}
+                            {t(renderBackpackPicker?.(index))}
                         </div>
                     ))}
                 {!fullSelectedItem && (
                     <span className="drif-empty-state">
                         <i aria-hidden="true">◇</i>
-                        <span>Wybierz przedmiot, aby odblokować gniazda</span>
+                        <span>{t("Wybierz przedmiot, aby odblokować gniazda")}</span>
                     </span>
                 )}
             </div>

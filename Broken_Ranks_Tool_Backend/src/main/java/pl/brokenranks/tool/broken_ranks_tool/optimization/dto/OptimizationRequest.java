@@ -73,6 +73,8 @@ public class OptimizationRequest {
 
     @Valid private AdvisorOptions advisor;
 
+    @Valid private ReorganizationOptions reorganization;
+
     @Size(max = 32)
     private Map<String, @Min(0) @Max(50_000) Integer> characterStats;
 

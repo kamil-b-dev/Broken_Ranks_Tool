@@ -6,9 +6,12 @@ import java.util.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_SIZE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.DrifPowerRules;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentPlacementRules;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationResponse.ReorganizationDrifUsage;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationSummary.StatChange;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.ReorganizationOptions.Upgrade;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationQualityComparator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation.OptimizationStateEvaluator;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
@@ -27,8 +30,28 @@ public final class ReorganizationSearch {
     private final OptimizationStateEvaluator evaluator;
     private final OptimizationResultAssembler assembler;
 
+    public String blockingReason(OptimizationContext context) {
+        return ReorganizationTaskPreflight.blockingReason(context, placementRules);
+    }
+
     public String validateSupply(OptimizationContext context) {
+        String upgradeError = ReorganizationTaskRules.validateUpgrade(context, placementRules);
+        if (upgradeError != null) return upgradeError;
         ReorganizationPool pool = new ReorganizationPool(context);
+        var options = context.request().getReorganization();
+        if (options != null
+                && options.getTask()
+                        == pl.brokenranks.tool.broken_ranks_tool.optimization.dto
+                                .ReorganizationOptions.Task.ARRANGE
+                && evaluator.globalCount(pool.fixed, options.getGoal(), context) == 0
+                && pool.sources.stream()
+                        .noneMatch(
+                                source ->
+                                        context.drifs()
+                                                        .get(source.stone().templateId())
+                                                        .getBonusType()
+                                                == options.getGoal()))
+            return "Wybierz mod z posiadanej puli drifów.";
         for (var entry :
                 OptimizationRequestConstraints.safeQuantities(context.request()).entrySet()) {
             int count =
@@ -83,9 +106,35 @@ public final class ReorganizationSearch {
     }
 
     public PipelineResult optimize(OptimizationContext context) {
+        var options = context.request().getReorganization();
+        var upgrades = options == null ? List.<Upgrade>of() : options.requestedUpgrades();
+        if (upgrades.size() != 1 || !upgrades.getFirst().isMaximizeLevel())
+            return optimizeLevel(context);
+        var upgrade = upgrades.getFirst();
+        var slot = context.request().getOriginalSlots().get(upgrade.getSourceSlotKey());
+        int initial =
+                slot.getDrifLevels() == null
+                        ? 1
+                        : slot.getDrifLevels()
+                                .getOrDefault(String.valueOf(upgrade.getSourceDrifIndex()), 1);
+        int requested = upgrade.getTargetLevel();
+        for (int level = requested; level >= initial; level--) {
+            if (level != requested
+                    && level != initial
+                    && !DRIF_SIZE.meaningfulLevels().contains(level)) continue;
+            upgrade.setTargetLevel(level);
+            PipelineResult result = optimizeLevel(context);
+            if (result != null) return result;
+        }
+        upgrade.setTargetLevel(requested);
+        return null;
+    }
+
+    private PipelineResult optimizeLevel(OptimizationContext context) {
         long started = System.nanoTime();
         ReorganizationPool pool = new ReorganizationPool(context);
         assembler.calibrateCalculatorBaseline(pool.fixed, context);
+        prepareProtections(pool, context);
         Map<Position, List<Stone>> choices = new LinkedHashMap<>();
         for (Position position : pool.positions) {
             choices.put(
@@ -104,8 +153,10 @@ public final class ReorganizationSearch {
                                         .thenComparingInt(Position::index))
                         .toList();
         List<BuildState> candidates = new ArrayList<>();
-        if (valid(pool.original, context)) candidates.add(pool.original.copy());
-        if (valid(pool.fixed, context)) candidates.add(pool.fixed.copy());
+        if (valid(pool.original, pool, context)) candidates.add(pool.original.copy());
+        if (valid(pool.fixed, pool, context)) candidates.add(pool.fixed.copy());
+        seedUnequipping(pool, context, candidates);
+        seedSwaps(pool, context, candidates);
         long upperBound = 1;
         for (Position position : ordered) {
             upperBound *= choices.get(position).size() + 1L;
@@ -116,15 +167,15 @@ public final class ReorganizationSearch {
         } else {
             beam(ordered, choices, pool, context, candidates);
         }
-        candidates.sort(evaluator.stateComparator(context));
+        candidates.sort(stateComparator(pool, context));
         BuildState best = candidates.isEmpty() ? null : candidates.getFirst();
         if (best != null) best = refine(best, pool, context);
         if (best != null) candidates.add(best);
         // Verify finalists with the shared calculator and retain the baseline as a competitor.
         List<BuildState> finalists =
                 candidates.stream()
-                        .sorted(evaluator.stateComparator(context))
-                        .filter(state -> valid(state, context))
+                        .sorted(stateComparator(pool, context))
+                        .filter(state -> valid(state, pool, context))
                         .collect(
                                 java.util.stream.Collectors.toMap(
                                         BuildState::signature,
@@ -135,7 +186,7 @@ public final class ReorganizationSearch {
                         .stream()
                         .limit(16)
                         .collect(java.util.stream.Collectors.toCollection(ArrayList::new));
-        if (valid(pool.original, context)
+        if (valid(pool.original, pool, context)
                 && finalists.stream()
                         .noneMatch(s -> s.signature().equals(pool.original.signature())))
             finalists.add(pool.original);
@@ -146,10 +197,16 @@ public final class ReorganizationSearch {
             Quality quality =
                     evaluator.verifiedQuality(
                             state, context, type -> assembler.actualValue(state, type, context));
+            int moves =
+                    best == null || !preferMoves(context)
+                            ? 0
+                            : Integer.compare(pool.movementCost(best), pool.movementCost(state));
             if (best == null
-                    || comparator.compare(quality, bestQuality) > 0
-                    || comparator.compare(quality, bestQuality) == 0
-                            && state.signature().compareTo(best.signature()) < 0) {
+                    || moves > 0
+                    || moves == 0
+                            && (comparator.compare(quality, bestQuality) > 0
+                                    || comparator.compare(quality, bestQuality) == 0
+                                            && state.signature().compareTo(best.signature()) < 0)) {
                 best = state.copy();
                 bestQuality = quality;
             }
@@ -162,6 +219,27 @@ public final class ReorganizationSearch {
         return new ReorganizationPool(context).usages(state);
     }
 
+    public List<StatChange> statChanges(BuildState state, OptimizationContext context) {
+        BuildState baseline = new ReorganizationPool(context).baseline;
+        var before = assembler.actualStats(baseline, context);
+        var after = assembler.actualStats(state, context);
+        return Arrays.stream(DRIF_BONUS_TYPE.values())
+                .filter(
+                        type ->
+                                Math.abs(
+                                                assembler.actualValue(state, type, context)
+                                                        - assembler.actualValue(
+                                                                baseline, type, context))
+                                        > 0.000001)
+                .map(
+                        type ->
+                                new StatChange(
+                                        type.name(),
+                                        before.getOrDefault(type.name(), "0"),
+                                        after.getOrDefault(type.name(), "0")))
+                .toList();
+    }
+
     private void enumerate(
             BuildState state,
             int depth,
@@ -171,18 +249,18 @@ public final class ReorganizationSearch {
             OptimizationContext context,
             List<BuildState> candidates) {
         if (!context.beamSearchBudget().tryConsume()) return;
+        if (missingRequired(state, pool) > positions.size() - depth) return;
         if (depth == positions.size()) {
-            if (valid(state, context)) {
+            if (valid(state, pool, context)) {
                 candidates.add(state.copy());
                 if (candidates.size() > 128) {
-                    candidates.sort(evaluator.stateComparator(context));
+                    candidates.sort(stateComparator(pool, context));
                     candidates.subList(64, candidates.size()).clear();
                 }
             }
             return;
         }
         Position position = positions.get(depth);
-        enumerate(state, depth + 1, positions, choices, pool, context, candidates);
         Map<Stone, Integer> available = pool.available(state);
         for (Stone stone : choices.get(position)) {
             if (available.getOrDefault(stone, 0) <= 0) continue;
@@ -191,6 +269,7 @@ public final class ReorganizationSearch {
                 enumerate(state, depth + 1, positions, choices, pool, context, candidates);
             state.setPlacement(position.slot().key(), position.index(), null);
         }
+        enumerate(state, depth + 1, positions, choices, pool, context, candidates);
     }
 
     private void beam(
@@ -228,13 +307,15 @@ public final class ReorganizationSearch {
                         next.putIfAbsent(candidate.signature(), candidate);
                 }
             }
+            int remainingPositions = positions.size() - depth - 1;
             beam =
                     next.values().stream()
-                            .sorted(evaluator.stateComparator(context))
+                            .filter(state -> missingRequired(state, pool) <= remainingPositions)
+                            .sorted(partialComparator(pool, context))
                             .limit(BEAM_WIDTH)
                             .toList();
         }
-        beam.stream().filter(state -> valid(state, context)).forEach(candidates::add);
+        beam.stream().filter(state -> valid(state, pool, context)).forEach(candidates::add);
     }
 
     private BuildState refine(
@@ -253,13 +334,15 @@ public final class ReorganizationSearch {
                     if (!context.refinementSearchBudget().tryConsume()) break;
                     BuildState candidate = best.copy();
                     candidate.setPlacement(a.slot().key(), a.index(), placement(stone, context));
-                    if (valid(candidate, context)
-                            && evaluator.isBetterState(candidate, next, context)) next = candidate;
+                    if (valid(candidate, pool, context)
+                            && stateComparator(pool, context).compare(candidate, next) < 0)
+                        next = candidate;
                 }
                 if (!context.refinementSearchBudget().tryConsume()) break;
                 BuildState removed = best.copy();
                 removed.setPlacement(a.slot().key(), a.index(), null);
-                if (valid(removed, context) && evaluator.isBetterState(removed, next, context))
+                if (valid(removed, pool, context)
+                        && stateComparator(pool, context).compare(removed, next) < 0)
                     next = removed;
                 for (int second = first + 1; second < pool.positions.size(); second++) {
                     if (!context.refinementSearchBudget().tryConsume()) break;
@@ -269,8 +352,9 @@ public final class ReorganizationSearch {
                     Placement right = best.slots().get(b.slot().key()).get(b.index());
                     candidate.setPlacement(a.slot().key(), a.index(), right);
                     candidate.setPlacement(b.slot().key(), b.index(), left);
-                    if (valid(candidate, context)
-                            && evaluator.isBetterState(candidate, next, context)) next = candidate;
+                    if (valid(candidate, pool, context)
+                            && stateComparator(pool, context).compare(candidate, next) < 0)
+                        next = candidate;
                 }
             }
             improved = next != best;
@@ -284,7 +368,7 @@ public final class ReorganizationSearch {
         return placementRules.isValidDrifSizeForTier(drif, slot.item())
                 && placementRules.isElementalDrifPositionValid(drif, slot.key())
                 && DrifPowerRules.power(drif.getBonusType().getBasePower(), stone.level())
-                        <= slot.capacity();
+                        <= availableCapacity(slot, context);
     }
 
     private Placement placement(Stone stone, OptimizationContext context) {
@@ -294,7 +378,15 @@ public final class ReorganizationSearch {
     private boolean validSlot(BuildState state, SlotContext slot, OptimizationContext context) {
         if (slot.special()) return true;
         List<Placement> placements = state.slots().get(slot.key());
-        if (usedPower(placements) > slot.capacity()) return false;
+        if (usedPower(placements) > availableCapacity(slot, context)) return false;
+        var reservation =
+                context.request().getReorganization() == null
+                        ? null
+                        : context.request().getReorganization().getReservation();
+        if (reservation != null
+                && slot.key().equals(reservation.getSlotKey())
+                && placements.stream().filter(Objects::nonNull).count()
+                        > slot.maxDrifs() - reservation.getFreeSockets()) return false;
         Set<DRIF_BONUS_TYPE> bonuses = new HashSet<>();
         int elemental = 0;
         for (Placement placement : placements) {
@@ -321,9 +413,127 @@ public final class ReorganizationSearch {
         return true;
     }
 
-    private boolean valid(BuildState state, OptimizationContext context) {
-        return inventoryFits(state, context)
-                && assembler.validateFinalResult(state, context) == null;
+    private boolean valid(BuildState state, ReorganizationPool pool, OptimizationContext context) {
+        if (missingRequired(state, pool) != 0
+                || pool.missingTargeted(state) != 0
+                || pool.available(state).values().stream().anyMatch(count -> count < 0)
+                || !inventoryFits(state, context)
+                || assembler.validateFinalResult(state, context) != null
+                || context.slots().stream().anyMatch(slot -> !validSlot(state, slot, context)))
+            return false;
+        var options = context.request().getReorganization();
+        if (ReorganizationTaskRules.operational(options)
+                && pool.movementCost(state) > options.getMaxMoves()) return false;
+        for (var entry : pool.minimums.entrySet())
+            if (assembler.actualValue(state, entry.getKey(), context) + 0.000001 < entry.getValue())
+                return false;
+        return true;
+    }
+
+    private int availableCapacity(SlotContext slot, OptimizationContext context) {
+        var options = context.request().getReorganization();
+        var reservation = options == null ? null : options.getReservation();
+        return slot.capacity()
+                - (reservation != null && slot.key().equals(reservation.getSlotKey())
+                        ? reservation.getFreeCapacity()
+                        : 0);
+    }
+
+    private boolean preferMoves(OptimizationContext context) {
+        var options = context.request().getReorganization();
+        return ReorganizationTaskRules.operational(options) && options.isPreferFewestMoves();
+    }
+
+    private Comparator<BuildState> stateComparator(
+            ReorganizationPool pool, OptimizationContext context) {
+        var quality = evaluator.stateComparator(context);
+        return preferMoves(context)
+                ? Comparator.comparingInt((BuildState state) -> pool.movementCost(state))
+                        .thenComparing(quality)
+                : quality;
+    }
+
+    private int missingRequired(BuildState state, ReorganizationPool pool) {
+        Map<Stone, Integer> remaining = pool.available(state);
+        return pool.required.entrySet().stream()
+                .mapToInt(
+                        entry ->
+                                Math.max(
+                                        0,
+                                        entry.getValue()
+                                                - pool.supply.get(entry.getKey())
+                                                + remaining.getOrDefault(entry.getKey(), 0)))
+                .sum();
+    }
+
+    private Comparator<BuildState> partialComparator(
+            ReorganizationPool pool, OptimizationContext context) {
+        return Comparator.comparingInt((BuildState state) -> missingRequired(state, pool))
+                .thenComparingInt(pool::missingTargeted)
+                .thenComparingInt(
+                        state -> preferMoves(context) ? pool.partialMovementCost(state) : 0)
+                .thenComparing(evaluator.stateComparator(context));
+    }
+
+    private void prepareProtections(ReorganizationPool pool, OptimizationContext context) {
+        var options = context.request().getReorganization();
+        if (options == null) return;
+        Set<DRIF_BONUS_TYPE> present = EnumSet.noneOf(DRIF_BONUS_TYPE.class);
+        pool.baseline
+                .slots()
+                .values()
+                .forEach(
+                        placements ->
+                                placements.forEach(
+                                        placement -> {
+                                            if (placement != null)
+                                                present.add(placement.drif().getBonusType());
+                                        }));
+        if (options.getProtectedModifiers() != null)
+            present.addAll(options.getProtectedModifiers().keySet());
+        for (DRIF_BONUS_TYPE type : present) {
+            if (type == options.getGoal() && !ReorganizationTaskRules.operational(options))
+                continue;
+            var protection =
+                    options.getProtectedModifiers() == null
+                            ? null
+                            : options.getProtectedModifiers().get(type);
+            if (protection != null && !protection.isEnabled()) continue;
+            double value = assembler.actualValue(pool.baseline, type, context);
+            if (type.getMaxCap() != null) value = Math.min(value, Math.abs(type.getMaxCap()));
+            pool.minimums.put(
+                    type, Math.max(0, value - (protection == null ? 0 : protection.getLoss())));
+        }
+    }
+
+    private void seedUnequipping(
+            ReorganizationPool pool, OptimizationContext context, List<BuildState> candidates) {
+        var options = context.request().getReorganization();
+        if (options == null || !options.isAllowUnequip()) return;
+        for (Position position : pool.positions) {
+            if (pool.original.slots().get(position.slot().key()).get(position.index()) == null)
+                continue;
+            if (!context.refinementSearchBudget().tryConsume()) return;
+            BuildState candidate = pool.original.copy();
+            candidate.setPlacement(position.slot().key(), position.index(), null);
+            if (valid(candidate, pool, context)) candidates.add(candidate);
+        }
+    }
+
+    private void seedSwaps(
+            ReorganizationPool pool, OptimizationContext context, List<BuildState> candidates) {
+        for (int i = 0; i < pool.positions.size(); i++) {
+            for (int j = i + 1; j < pool.positions.size(); j++) {
+                if (!context.refinementSearchBudget().tryConsume()) return;
+                Position a = pool.positions.get(i), b = pool.positions.get(j);
+                BuildState candidate = pool.original.copy();
+                Placement left = candidate.slots().get(a.slot().key()).get(a.index());
+                Placement right = candidate.slots().get(b.slot().key()).get(b.index());
+                candidate.setPlacement(a.slot().key(), a.index(), right);
+                candidate.setPlacement(b.slot().key(), b.index(), left);
+                if (valid(candidate, pool, context)) candidates.add(candidate);
+            }
+        }
     }
 
     private boolean inventoryFits(BuildState state, OptimizationContext context) {

@@ -85,7 +85,7 @@ for (const layout of ["desktop", "mobile"]) {
                 },
             })
         );
-        await page.goto(`/optymalizator?ui=${layout}`);
+        await page.goto(`/optimizer?ui=${layout}`);
         await page.getByRole("button", { name: /Uruchom optymalizację/i }).click();
         await expect.poll(async () => (await draft(page)).backpack.length).toBe(0);
         if (layout === "mobile")

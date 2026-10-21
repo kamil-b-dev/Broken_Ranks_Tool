@@ -1,3 +1,4 @@
+import { useTranslation } from "../../shared/i18n/useTranslation";
 import CategoryIcon from "../../shared/ui/CategoryIcon";
 import { useOptimizerLabelContext } from "./optimizerLabelContext";
 import {
@@ -17,6 +18,8 @@ const OptimizerBonusColumn = ({
     onCategoryChange,
     onSelect,
 }) => {
+    const { t } = useTranslation();
+
     const { getName } = useOptimizerLabelContext();
     return (
         <section
@@ -24,13 +27,13 @@ const OptimizerBonusColumn = ({
             aria-labelledby="optimizer-bonuses-heading"
         >
             <header className="optimizer-subcolumn-heading">
-                <h4 id="optimizer-bonuses-heading">Dostępne bonusy</h4>
+                <h4 id="optimizer-bonuses-heading">{t("Dostępne bonusy")}</h4>
             </header>
             <div className="optimizer-bonus-search">
                 <input
                     type="text"
-                    aria-label="Szukaj statystyki do optymalizacji"
-                    placeholder="Szukaj statystyki..."
+                    aria-label={t("Szukaj statystyki do optymalizacji")}
+                    placeholder={t("Szukaj statystyki...")}
                     value={searchQuery}
                     onChange={(event) => onSearchChange(event.target.value)}
                     className="w-full"
@@ -40,7 +43,7 @@ const OptimizerBonusColumn = ({
             <div
                 className="optimizer-bonus-filters"
                 role="group"
-                aria-label="Filtruj bonusy według kategorii"
+                aria-label={t("Filtruj bonusy według kategorii")}
             >
                 {["ALL", ...DRIF_CATEGORY_ORDER].map((categoryKey) => {
                     const selected = selectedCategory === categoryKey;
@@ -62,7 +65,7 @@ const OptimizerBonusColumn = ({
                                     className="optimizer-filter-category-icon"
                                 />
                             )}
-                            {label}
+                            {t(label)}
                         </button>
                     );
                 })}
@@ -70,7 +73,7 @@ const OptimizerBonusColumn = ({
             <div className="optimizer-bonus-list custom-scrollbar">
                 {bonuses.length === 0 ? (
                     <p className="text-center text-stone-600 italic mt-4 text-xs font-serif">
-                        Brak wyników...
+                        {t("Brak wyników...")}
                     </p>
                 ) : (
                     bonuses.map((bonus) => (
@@ -97,7 +100,7 @@ const OptimizerBonusColumn = ({
                             <span
                                 className={`${DRIF_CATEGORY_TEXT_CLASSES[bonus.categoryKey] || "text-stone-400 group-hover:text-stone-200"}`}
                             >
-                                {getName(bonus.key, bonus.value)}
+                                {t(getName(bonus.key, bonus.value))}
                             </span>
                             <span className="optimizer-bonus-add" aria-hidden="true">
                                 +

@@ -1,0 +1,37 @@
+.language-switcher {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    justify-self: end;
+    flex-shrink: 0;
+    padding: 3px;
+    border: 1px solid #635239;
+    background: #100e0c;
+    font-family: Inter, system-ui, sans-serif;
+}
+.language-switcher button {
+    min-width: 36px;
+    min-height: 36px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: #b6afa3;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+.language-switcher button[aria-pressed="true"] {
+    border-color: #8d6730;
+    background: #322719;
+    color: #f2d69c;
+}
+.language-switcher button:focus-visible {
+    outline: 2px solid #e9c887;
+    outline-offset: 2px;
+}
+
+.app-shell-home .app-masthead .header-actions {
+    display: flex;
+}
+.app-shell-home .header-actions > .header-action {
+    display: none;
+}

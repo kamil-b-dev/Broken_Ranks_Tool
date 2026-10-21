@@ -4,11 +4,10 @@ import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.config.OptimizationProperties;
+import pl.brokenranks.tool.broken_ranks_tool.core.execution.HeavyCalculationGate;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationResponse;
 
@@ -19,7 +18,7 @@ public class OptimizationExecutionGuard {
 
     private final ModsOptimizationService optimizationService;
     private final OptimizationMemoryGuard memoryGuard;
-    private final Semaphore permits;
+    private final HeavyCalculationGate permits;
     private final AtomicInteger activeRuns = new AtomicInteger();
     private final Counter rejectedRuns;
     private final Counter successfulRuns;
@@ -30,12 +29,12 @@ public class OptimizationExecutionGuard {
 
     public OptimizationExecutionGuard(
             ModsOptimizationService optimizationService,
-            OptimizationProperties properties,
+            HeavyCalculationGate permits,
             MeterRegistry meterRegistry,
             OptimizationMemoryGuard memoryGuard) {
         this.optimizationService = optimizationService;
         this.memoryGuard = memoryGuard;
-        this.permits = new Semaphore(properties.maxConcurrentRuns(), true);
+        this.permits = permits;
         Gauge.builder("optimizer.active", activeRuns, AtomicInteger::get).register(meterRegistry);
         this.rejectedRuns = outcomeCounter(meterRegistry, OptimizationRunOutcome.REJECTED);
         this.successfulRuns = outcomeCounter(meterRegistry, OptimizationRunOutcome.SUCCESS);

@@ -37,14 +37,14 @@ test("mobile dropdown options stay readable and selectable in every optimizer mo
     await page.route("**/api/calculator/calculate", (route) =>
         route.fulfill({ json: { stats: { CRITICAL_CHANCE: "12%", MANA_USAGE_REDUCTION: "-10%" } } })
     );
-    await page.goto("/optymalizator?ui=mobile");
+    await page.goto("/optimizer?ui=mobile");
     const mode = page.getByLabel("Tryb optymalizatora", { exact: true });
     await mode.waitFor();
     for (const value of ["SIMPLE", "ADVANCED", "REORGANIZE", "ADVISOR"]) {
         await mode.selectOption(value);
         await expect(mode).toHaveValue(value);
         const options = await page
-            .locator(".mobile-optimizer select option")
+            .locator(".mobile-header select option, .mobile-optimizer select option")
             .evaluateAll((elements) =>
                 elements.map((element) => {
                     const style = getComputedStyle(element);

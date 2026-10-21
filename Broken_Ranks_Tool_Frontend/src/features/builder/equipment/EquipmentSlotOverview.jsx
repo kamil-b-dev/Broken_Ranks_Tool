@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n/useTranslation";
 import { useDraggedResource, setDraggedResource } from "../useDraggedResource";
 import { useState } from "react";
 import CategoryIcon from "../../../shared/ui/CategoryIcon";
@@ -55,6 +56,8 @@ const EquipmentSlotOverview = ({
     disabled = false,
     draggable,
 }) => {
+    const { t } = useTranslation();
+
     const draggedResource = useDraggedResource();
     const eligible =
         draggedResource?.dragType === "items" &&
@@ -129,26 +132,41 @@ const EquipmentSlotOverview = ({
             />
             <span className="equipment-slot-overview-content">
                 <span className="equipment-slot-overview-heading">
-                    <span className="equipment-slot-overview-label">{label}</span>
-                    {item?.tier ? <small>Tier {item.tier}</small> : null}
+                    <span className="equipment-slot-overview-label">{t(label)}</span>
+                    {item?.tier ? (
+                        <small>
+                            {t("Tier ")}
+                            {t(item.tier)}
+                        </small>
+                    ) : null}
                 </span>
                 {item ? (
                     <>
                         <span className="equipment-slot-overview-item">{item.name}</span>
                         <span className="equipment-slot-overview-meta">
-                            <span aria-label={`${stars} z 9 gwiazdek`}>{"★".repeat(stars)}</span>
+                            <span aria-label={t("{0} z 9 gwiazdek", [t(stars)])}>
+                                {t("★".repeat(stars))}
+                            </span>
                             {configuredOrbs.length ? (
                                 <span
                                     className="equipment-slot-orb-list"
-                                    aria-label="Umieszczone orby"
+                                    aria-label={t("Umieszczone orby")}
                                 >
                                     {configuredOrbs.map((orb, index) => (
                                         <span
                                             key={`${orb.id}-${index}`}
                                             className="equipment-slot-orb"
                                             data-stone-zone={`orb${orb.position + 1}`}
-                                            title={`${orb.displayName} · ${orb.size || "orb"} · poz. ${orb.level}`}
-                                            aria-label={`${orb.displayName}, ${orb.size || "orb"}, poziom ${orb.level}`}
+                                            title={t("{0} · {1} · poz. {2}", [
+                                                t(orb.displayName),
+                                                t(orb.size || "orb"),
+                                                t(orb.level),
+                                            ])}
+                                            aria-label={t("{0}, {1}, poziom {2}", [
+                                                t(orb.displayName),
+                                                t(orb.size || "orb"),
+                                                t(orb.level),
+                                            ])}
                                         >
                                             <CategoryIcon
                                                 kind="orb"
@@ -156,8 +174,8 @@ const EquipmentSlotOverview = ({
                                                 className="equipment-slot-orb-icon"
                                                 fallback={<span aria-hidden="true">◇</span>}
                                             />
-                                            <span>{orb.displayName}</span>
-                                            <small>{orb.level}</small>
+                                            <span>{t(orb.displayName)}</span>
+                                            <small>{t(orb.level)}</small>
                                         </span>
                                     ))}
                                 </span>
@@ -166,7 +184,7 @@ const EquipmentSlotOverview = ({
                         {configuredDrifs.length ? (
                             <span
                                 className="equipment-slot-drif-list"
-                                aria-label="Umieszczone drify"
+                                aria-label={t("Umieszczone drify")}
                             >
                                 {configuredDrifs.map((drif, index) => {
                                     const size = DRIF_SIZE_LABELS[drif.size?.toUpperCase()] || "D";
@@ -177,16 +195,20 @@ const EquipmentSlotOverview = ({
                                             className="equipment-slot-drif"
                                             data-stone-zone={`drif-${drif.position}`}
                                             data-category={drif.category?.toLowerCase()}
-                                            title={`${drif.displayName} · ${drif.size || "drif"}${level}`}
+                                            title={t("{0} · {1}{2}", [
+                                                t(drif.displayName),
+                                                t(drif.size || "drif"),
+                                                t(level),
+                                            ])}
                                         >
                                             <CategoryIcon
                                                 kind="drif"
                                                 category={drif.category}
                                                 className="equipment-slot-drif-category-icon"
                                             />
-                                            <i aria-hidden="true">{size}</i>
-                                            <span>{drif.displayName}</span>
-                                            {drif.level ? <small>{drif.level}</small> : null}
+                                            <i aria-hidden="true">{t(size)}</i>
+                                            <span>{t(drif.displayName)}</span>
+                                            {drif.level ? <small>{t(drif.level)}</small> : null}
                                         </span>
                                     );
                                 })}
@@ -194,7 +216,7 @@ const EquipmentSlotOverview = ({
                         ) : null}
                     </>
                 ) : (
-                    <span className="equipment-slot-overview-empty">Wybierz przedmiot</span>
+                    <span className="equipment-slot-overview-empty">{t("Wybierz przedmiot")}</span>
                 )}
             </span>
         </button>

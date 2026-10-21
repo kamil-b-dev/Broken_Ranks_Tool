@@ -1,3 +1,6 @@
+import ReorganizationReport from "../reorganization/ReorganizationReport.jsx";
+import ReorganizationUndo from "../reorganization/ReorganizationUndo.jsx";
+import { useTranslation } from "../../../shared/i18n/useTranslation";
 import OptimizerStatusSection from "../OptimizerStatusSection";
 import OptimizerGoalsSection from "../OptimizerGoalsSection";
 import OptimizerVariantsSection from "../OptimizerVariantsSection";
@@ -5,17 +8,27 @@ import OptimizerChangesSection from "../OptimizerChangesSection";
 import OptimizerItemsByBonusSection from "../OptimizerItemsByBonusSection";
 
 export default function MobileOptimizerReport({ model, advisory }) {
+    const { t } = useTranslation();
+
     const status = model.displayedStatus ?? model.optimizationStatus;
     return (
         <section
             className="mobile-optimizer-report"
-            aria-label={advisory ? "Porady Doradcy" : "Wynik optymalizacji"}
+            aria-label={t(advisory ? "Porady Doradcy" : "Wynik optymalizacji")}
         >
+            <ReorganizationUndo
+                available={model.canUndoReorganization}
+                warning={model.reorganizationUndoWarning}
+                disabled={model.isOptimizing}
+                onUndo={model.handleUndoReorganization}
+            />
             {!status && !model.isOptimizing && (
                 <p className="mobile-muted">
-                    {advisory
-                        ? "Uruchom analizę, aby zobaczyć propozycje zmian buildu."
-                        : "Uruchom optymalizację, aby zobaczyć wynik i realizację celów."}
+                    {t(
+                        advisory
+                            ? "Uruchom analizę, aby zobaczyć propozycje zmian buildu."
+                            : "Uruchom optymalizację, aby zobaczyć wynik i realizację celów."
+                    )}
                 </p>
             )}
             <OptimizerStatusSection
@@ -27,35 +40,51 @@ export default function MobileOptimizerReport({ model, advisory }) {
             />
             {status && (
                 <>
-                    <OptimizerGoalsSection
-                        goals={status.goalResults}
-                        currentDetails={model.reportModDetails}
-                        activeVariant={model.displayedVariant}
-                        maxCaps={model.gameRules.drifMaxCaps}
-                        showTargetLabel
-                        advisory={advisory}
+                    {status.mode !== "REORGANIZE" && !status.reorganizationOptions && (
+                        <>
+                            <OptimizerGoalsSection
+                                goals={status.goalResults}
+                                currentDetails={model.reportModDetails}
+                                activeVariant={model.displayedVariant}
+                                maxCaps={model.gameRules.drifMaxCaps}
+                                showTargetLabel
+                                advisory={advisory}
+                            />
+                            <fieldset
+                                disabled={model.isOptimizing}
+                                aria-label={t("Wybór wariantu")}
+                            >
+                                <OptimizerVariantsSection
+                                    variants={status.nextVariants}
+                                    activeIndex={model.activeVariantIndex}
+                                    onSelect={(_variant, index) =>
+                                        model.setActiveVariantIndex(index)
+                                    }
+                                    onApply={(variant, index) => {
+                                        model.setNotice(null);
+                                        model.handleApplyVariant(variant, index);
+                                    }}
+                                    advisory={advisory}
+                                />
+                            </fieldset>
+                        </>
+                    )}
+                    <ReorganizationReport
+                        report={status.reorganizationReport}
+                        statChanges={status.reorganizationStatChanges}
+                        translations={model.gameRules.bonusTranslations}
                     />
-                    <fieldset disabled={model.isOptimizing} aria-label="Wybór wariantu">
-                        <OptimizerVariantsSection
-                            variants={status.nextVariants}
-                            activeIndex={model.activeVariantIndex}
-                            onSelect={(_variant, index) => model.setActiveVariantIndex(index)}
-                            onApply={(variant, index) => {
-                                model.setNotice(null);
-                                model.handleApplyVariant(variant, index);
-                            }}
+                    {status.mode !== "REORGANIZE" && !status.reorganizationOptions && (
+                        <OptimizerChangesSection
+                            variant={model.displayedVariant}
+                            maxCaps={model.gameRules.drifMaxCaps}
+                            translations={model.gameRules.bonusTranslations}
                             advisory={advisory}
                         />
-                    </fieldset>
-                    <OptimizerChangesSection
-                        variant={model.displayedVariant}
-                        maxCaps={model.gameRules.drifMaxCaps}
-                        translations={model.gameRules.bonusTranslations}
-                        advisory={advisory}
-                    />
+                    )}
                     {Object.keys(status.itemsByDrifBonus || {}).length > 0 && (
                         <details className="mobile-card">
-                            <summary>Rozmieszczenie drifów</summary>
+                            <summary>{t("Rozmieszczenie drifów")}</summary>
                             <OptimizerItemsByBonusSection itemsByBonus={status.itemsByDrifBonus} />
                         </details>
                     )}

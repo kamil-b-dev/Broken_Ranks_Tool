@@ -1,3 +1,4 @@
+import { useTranslation } from "../../shared/i18n/useTranslation";
 import { useMemo, useState } from "react";
 import {
     DRIF_CATEGORY_LABELS,
@@ -22,6 +23,8 @@ const COMPARISON_TABS = [
 ];
 
 const BuildComparison = ({ builds, items = [], drifs = [], gameRules = {} }) => {
+    const { t } = useTranslation();
+
     const [activeSection, setActiveSection] = useState("equipment");
     const [onlyDifferences, setOnlyDifferences] = useState(true);
     const equipmentRows = useMemo(
@@ -41,7 +44,7 @@ const BuildComparison = ({ builds, items = [], drifs = [], gameRules = {} }) => 
     if (builds.length < 2)
         return (
             <div className="build-comparison-empty">
-                <strong>Wybierz co najmniej dwa buildy</strong>
+                <strong>{t("Wybierz co najmniej dwa buildy")}</strong>
             </div>
         );
 
@@ -77,11 +80,18 @@ const BuildComparison = ({ builds, items = [], drifs = [], gameRules = {} }) => 
                             key={build.id}
                             className={`build-comparison-hero tone-${index + 1}`}
                         >
-                            <span>Build {index + 1}</span>
+                            <span>
+                                {t("Build ")}
+                                {t(index + 1)}
+                            </span>
                             <strong>{build.name}</strong>
                             <small>
-                                Poziom {summary.level} · {summary.equipped}/12 przedmiotów ·{" "}
-                                {summary.drifs} drifów
+                                {t("Poziom ")}
+                                {t(summary.level)} · {t(summary.equipped)}
+                                {t("/12 przedmiotów ·")}
+                                {t(" ")}
+                                {t(summary.drifs)}
+                                {t(" drifów")}
                             </small>
                         </article>
                     );
@@ -89,24 +99,28 @@ const BuildComparison = ({ builds, items = [], drifs = [], gameRules = {} }) => 
             </div>
             <div className="build-comparison-difference-strip">
                 <span>
-                    <strong>{equipmentDifferenceCount}</strong> różnych slotów
+                    <strong>{t(equipmentDifferenceCount)}</strong>
+                    {t(" różnych slotów")}
                 </span>
                 <span>
-                    <strong>{characterDifferenceCount}</strong> różnic postaci
+                    <strong>{t(characterDifferenceCount)}</strong>
+                    {t(" różnic postaci")}
                 </span>
                 <span>
-                    <strong>{drifDifferenceCount}</strong> różnic bonusów drifów
+                    <strong>{t(drifDifferenceCount)}</strong>
+                    {t(" różnic bonusów drifów")}
                 </span>
                 <span>
                     <strong>
-                        {drifAnalysis.common.reduce((sum, entry) => sum + entry.count, 0)}
-                    </strong>{" "}
-                    wspólnych drifów
+                        {t(drifAnalysis.common.reduce((sum, entry) => sum + entry.count, 0))}
+                    </strong>
+                    {t(" ")}
+                    {t("wspólnych drifów")}
                 </span>
             </div>
             <div className="build-comparison-toolbar">
                 <TabList
-                    label="Zakres porównania buildów"
+                    label={t("Zakres porównania buildów")}
                     idPrefix="build-comparison"
                     tabs={COMPARISON_TABS}
                     active={activeSection}
@@ -118,7 +132,7 @@ const BuildComparison = ({ builds, items = [], drifs = [], gameRules = {} }) => 
                         checked={onlyDifferences}
                         onChange={(event) => setOnlyDifferences(event.target.checked)}
                     />
-                    W tabelach: tylko różnice
+                    {t("W tabelach: tylko różnice")}
                 </label>
             </div>
 
@@ -164,7 +178,7 @@ const BuildComparison = ({ builds, items = [], drifs = [], gameRules = {} }) => 
                             comparisonStyle={comparisonStyle}
                         />
                         <div className="build-drif-result-heading">
-                            <strong>Różnica w statystykach</strong>
+                            <strong>{t("Różnica w statystykach")}</strong>
                         </div>
                         <StatComparisonTable
                             builds={builds}
@@ -178,7 +192,7 @@ const BuildComparison = ({ builds, items = [], drifs = [], gameRules = {} }) => 
 
             {activeSection !== "equipment" && builds.some((build) => !build.stats) && (
                 <p className="build-comparison-hint">
-                    „—” oznacza, że build zapisano bez wcześniejszego przeliczenia statystyk.
+                    {t("„—” oznacza, że build zapisano bez wcześniejszego przeliczenia statystyk.")}
                 </p>
             )}
         </div>

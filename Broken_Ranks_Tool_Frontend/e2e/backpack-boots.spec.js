@@ -93,7 +93,7 @@ for (const [name, selector] of [
             }
         );
         await page.route("**/api/initial-data", (route) => route.fulfill({ json: catalog }));
-        await page.goto("/kreator?ui=desktop");
+        await page.goto("/builder?ui=desktop");
         await page.locator(".equipment-ring-slot-boots").click();
         await page
             .getByRole("group", { name: "Źródło wyposażenia" })

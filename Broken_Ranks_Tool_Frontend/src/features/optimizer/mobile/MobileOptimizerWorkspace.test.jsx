@@ -50,7 +50,7 @@ describe("mobile optimizer integration", () => {
     beforeEach(() => {
         localStorage.clear();
         writeEquipmentDraft(optimizerBuild);
-        window.history.replaceState(null, "", "/optymalizator?ui=mobile");
+        window.history.replaceState(null, "", "/optimizer?ui=mobile");
         vi.spyOn(window, "scrollTo").mockImplementation(() => {});
         back.mockClear();
         HTMLDialogElement.prototype.showModal = vi.fn(function () {
@@ -217,7 +217,7 @@ describe("mobile optimizer integration", () => {
     });
 
     it("closes a directly linked picker, handles browser Back and keeps simple profile settings", async () => {
-        window.history.replaceState(null, "", "/optymalizator?section=invalid&pick=bonus");
+        window.history.replaceState(null, "", "/optimizer?section=invalid&pick=bonus");
         mount({ configurationMode: "ADVANCED" });
         await screen.findByRole("dialog");
         click("Zamknij wybór celu");

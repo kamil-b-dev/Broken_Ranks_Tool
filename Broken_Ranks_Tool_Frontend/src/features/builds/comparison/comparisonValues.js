@@ -8,9 +8,9 @@ export const toFiniteNumber = (value) => {
     return Number.isFinite(parsed) ? parsed : null;
 };
 
-export const formatComparisonValue = (value) => {
+export const formatComparisonValue = (value, locale = "pl-PL") => {
     if (value == null || value === "") return "—";
     if (typeof value === "number")
-        return value.toLocaleString("pl-PL", { maximumFractionDigits: 2 });
+        return value.toLocaleString(locale, { maximumFractionDigits: 2 });
     return String(value);
 };

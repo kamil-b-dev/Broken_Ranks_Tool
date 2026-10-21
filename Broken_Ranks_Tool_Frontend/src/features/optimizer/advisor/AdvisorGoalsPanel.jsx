@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n/useTranslation";
 import {
     ADVISOR_TIME_BUDGETS,
     advisorModifiers,
@@ -17,6 +18,7 @@ import { useOptimizerLabelContext } from "../optimizerLabelContext";
 
 const DEFAULT_PROTECTION = Object.freeze({ enabled: true, loss: 0 });
 const ProtectedModifierRow = memo(({ modifier, rule, onRuleChange }) => {
+    const { t } = useTranslation();
     const { getName } = useOptimizerLabelContext();
     const name = getName(modifier.key, modifier.label);
     return (
@@ -29,11 +31,11 @@ const ProtectedModifierRow = memo(({ modifier, rule, onRuleChange }) => {
                         onRuleChange(modifier.key, { enabled: event.target.checked })
                     }
                 />
-                <span>{name}</span>
+                <span>{t(name)}</span>
                 <b>{modifier.value}%</b>
             </label>
             <label className="advisor-loss-control">
-                dopuszczalny spadek
+                {t("dopuszczalny spadek")}
                 <input
                     type="number"
                     min="0"
@@ -42,9 +44,9 @@ const ProtectedModifierRow = memo(({ modifier, rule, onRuleChange }) => {
                     disabled={rule.enabled === false}
                     value={rule.loss ?? 0}
                     onChange={(event) => onRuleChange(modifier.key, { loss: event.target.value })}
-                    aria-label={`Dopuszczalny spadek: ${name}`}
+                    aria-label={t("Dopuszczalny spadek: {0}", [t(name)])}
                 />
-                p.p.
+                {t("p.p.")}
             </label>
         </div>
     );
@@ -52,6 +54,8 @@ const ProtectedModifierRow = memo(({ modifier, rule, onRuleChange }) => {
 
 /** Configures advisor goals relative to the statistics of the current build. */
 const AdvisorGoalsPanel = ({ stats = {}, gameRules = {}, settings, onChange, section = "all" }) => {
+    const { t } = useTranslation();
+
     const { getName } = useOptimizerLabelContext();
     const modifiers = useMemo(() => advisorModifiers(stats, gameRules), [stats, gameRules]);
     const goal = selectedAdvisorGoal(modifiers, settings.advisorGoal);
@@ -99,7 +103,7 @@ const AdvisorGoalsPanel = ({ stats = {}, gameRules = {}, settings, onChange, sec
             {section !== "changes" && (
                 <>
                     <section className="advisor-goal-card">
-                        <label htmlFor="advisor-main-goal">Główny cel</label>
+                        <label htmlFor="advisor-main-goal">{t("Główny cel")}</label>
                         <select
                             id="advisor-main-goal"
                             value={goal}
@@ -107,31 +111,39 @@ const AdvisorGoalsPanel = ({ stats = {}, gameRules = {}, settings, onChange, sec
                         >
                             {modifiers.map((modifier) => (
                                 <option key={modifier.key} value={modifier.key}>
-                                    Popraw: {getName(modifier.key, modifier.label)} (obecnie{" "}
-                                    {modifier.value}%)
+                                    {t("Popraw: ")}
+                                    {t(getName(modifier.key, modifier.label))}
+                                    {t(" (obecnie")}
+                                    {t(" ")}
+                                    {t(modifier.value)}%)
                                 </option>
                             ))}
                         </select>
-                        <label htmlFor="advisor-target-mode">Oczekiwany efekt</label>
+                        <label htmlFor="advisor-target-mode">{t("Oczekiwany efekt")}</label>
                         <select
                             id="advisor-target-mode"
                             value={search.targetMode}
                             onChange={(event) =>
                                 update({
-                                    advisorSearch: { ...search, targetMode: event.target.value },
+                                    advisorSearch: {
+                                        ...search,
+                                        targetMode: event.target.value,
+                                    },
                                 })
                             }
                         >
-                            <option value="MAXIMIZE">Największa poprawa</option>
-                            <option value="VALUE">Osiągnij wartość</option>
-                            <option value="GAIN">Zyskaj określoną liczbę p.p.</option>
+                            <option value="MAXIMIZE">{t("Największa poprawa")}</option>
+                            <option value="VALUE">{t("Osiągnij wartość")}</option>
+                            <option value="GAIN">{t("Zyskaj określoną liczbę p.p.")}</option>
                         </select>
                         {search.targetMode !== "MAXIMIZE" && (
                             <>
                                 <label className="advisor-loss-control">
-                                    {search.targetMode === "VALUE"
-                                        ? "Wartość celu (%)"
-                                        : "Przyrost (p.p.)"}
+                                    {t(
+                                        search.targetMode === "VALUE"
+                                            ? "Wartość celu (%)"
+                                            : "Przyrost (p.p.)"
+                                    )}
                                     <input
                                         type="number"
                                         min="0"
@@ -160,14 +172,14 @@ const AdvisorGoalsPanel = ({ stats = {}, gameRules = {}, settings, onChange, sec
                                             })
                                         }
                                     />
-                                    Nie premiuj wzrostu ponad zadany cel
+                                    {t("Nie premiuj wzrostu ponad zadany cel")}
                                 </label>
                             </>
                         )}
                     </section>
 
                     <section className="advisor-goal-card">
-                        <label htmlFor="advisor-strategy">Strategia planu</label>
+                        <label htmlFor="advisor-strategy">{t("Strategia planu")}</label>
                         <select
                             id="advisor-strategy"
                             value={search.strategy}
@@ -177,14 +189,14 @@ const AdvisorGoalsPanel = ({ stats = {}, gameRules = {}, settings, onChange, sec
                                 })
                             }
                         >
-                            <option value="MINIMUM_CHANGE">Najmniejsza ingerencja</option>
-                            <option value="BEST_RESULT">Najlepszy wynik</option>
+                            <option value="MINIMUM_CHANGE">{t("Najmniejsza ingerencja")}</option>
+                            <option value="BEST_RESULT">{t("Najlepszy wynik")}</option>
                         </select>
                     </section>
 
                     <section className="advisor-goal-card">
                         <div className="advisor-goal-card-heading">
-                            <strong>Chronione modyfikatory</strong>
+                            <strong>{t("Chronione modyfikatory")}</strong>
                         </div>
                         <div className="advisor-modifier-list">
                             {protectedGroups.map(({ category, modifiers: groupedModifiers }) => (
@@ -195,7 +207,7 @@ const AdvisorGoalsPanel = ({ stats = {}, gameRules = {}, settings, onChange, sec
                                 >
                                     <h5>
                                         <CategoryIcon kind="drif" category={category} />
-                                        {DRIF_CATEGORY_LABELS[category]}
+                                        {t(DRIF_CATEGORY_LABELS[category])}
                                     </h5>
                                     {groupedModifiers.map((modifier) => (
                                         <ProtectedModifierRow
@@ -217,7 +229,7 @@ const AdvisorGoalsPanel = ({ stats = {}, gameRules = {}, settings, onChange, sec
             {section !== "goals" && (
                 <>
                     <section className="advisor-goal-card">
-                        <strong>Dozwolone ulepszenia</strong>
+                        <strong>{t("Dozwolone ulepszenia")}</strong>
                         <div className="advisor-change-options">
                             {[
                                 ["stars", "Gwiazdki"],
@@ -242,14 +254,16 @@ const AdvisorGoalsPanel = ({ stats = {}, gameRules = {}, settings, onChange, sec
                                             })
                                         }
                                     />
-                                    <span>{label}</span>
+                                    <span>{t(label)}</span>
                                 </label>
                             ))}
                         </div>
                     </section>
                     {(settings.advisorAllowedChanges?.drifs ?? DEFAULT_ADVISOR_CHANGES.drifs) && (
                         <section className="advisor-goal-card">
-                            <label htmlFor="advisor-purchase-scope">Zakres zakupów drifów</label>
+                            <label htmlFor="advisor-purchase-scope">
+                                {t("Zakres zakupów drifów")}
+                            </label>
                             <select
                                 id="advisor-purchase-scope"
                                 value={normalizeAdvisorPurchaseScope(settings.advisorPurchaseScope)}
@@ -259,7 +273,7 @@ const AdvisorGoalsPanel = ({ stats = {}, gameRules = {}, settings, onChange, sec
                             >
                                 {ADVISOR_PURCHASE_SCOPES.map(([value, label]) => (
                                     <option key={value} value={value}>
-                                        {label}
+                                        {t(label)}
                                     </option>
                                 ))}
                             </select>
@@ -267,7 +281,7 @@ const AdvisorGoalsPanel = ({ stats = {}, gameRules = {}, settings, onChange, sec
                     )}
                     <section className="advisor-goal-card advisor-search-limits">
                         <label className="advisor-search-field" htmlFor="advisor-actions">
-                            <span>Maksymalna liczba działań w planie</span>
+                            <span>{t("Maksymalna liczba działań w planie")}</span>
                             <select
                                 id="advisor-actions"
                                 value={search.maxActions}
@@ -283,14 +297,14 @@ const AdvisorGoalsPanel = ({ stats = {}, gameRules = {}, settings, onChange, sec
                                 {Array.from({ length: 10 }, (_, index) => index + 1).map(
                                     (count) => (
                                         <option key={count} value={count}>
-                                            {count} {count === 1 ? "działanie" : "działań"}
+                                            {t(count)} {t(count === 1 ? "działanie" : "działań")}
                                         </option>
                                     )
                                 )}
                             </select>
                         </label>
                         <label className="advisor-search-field" htmlFor="advisor-speed">
-                            <span>Budżet czasu analizy</span>
+                            <span>{t("Budżet czasu analizy")}</span>
                             <select
                                 id="advisor-speed"
                                 value={search.timeBudgetMs}
@@ -305,7 +319,8 @@ const AdvisorGoalsPanel = ({ stats = {}, gameRules = {}, settings, onChange, sec
                             >
                                 {ADVISOR_TIME_BUDGETS.map((budget) => (
                                     <option key={budget} value={budget}>
-                                        {budget / 1000} sekund
+                                        {t(budget / 1000)}
+                                        {t(" sekund")}
                                     </option>
                                 ))}
                             </select>

@@ -51,7 +51,7 @@ test.describe("dedicated mobile builder", () => {
             })),
         };
         await page.route("**/api/initial-data", (route) => route.fulfill({ json: largeCatalog }));
-        await page.goto("/kreator");
+        await page.goto("/builder");
         await page.getByRole("button", { name: "Edytuj slot: Hełm", exact: true }).tap();
         await page.getByRole("button", { name: "Wybierz przedmiot", exact: true }).tap();
         await expect(page.locator(".mobile-picker-results button")).toHaveCount(40);
@@ -129,7 +129,7 @@ test.describe("dedicated mobile builder", () => {
                     ),
                 backpack
             );
-            await page.goto("/kreator?slot=helmet");
+            await page.goto("/builder?slot=helmet");
             await expect(page.getByLabel("Gwiazdki", { exact: true })).toHaveValue("9");
             for (const width of [320, 844, 320]) {
                 await page.setViewportSize({ width, height: width === 844 ? 390 : 740 });
@@ -176,7 +176,7 @@ test.describe("dedicated mobile builder", () => {
         page,
     }) => {
         await mockCatalog(page);
-        await page.goto("/kreator");
+        await page.goto("/builder");
         await expect(page.locator(".mobile-app")).toBeVisible();
         await expect(page.locator(".app-masthead")).toHaveCount(0);
         await expect(page.locator(".mobile-slot-card")).toHaveCount(12);
@@ -266,7 +266,7 @@ test.describe("dedicated mobile builder", () => {
         page,
     }) => {
         await mockCatalog(page);
-        await page.goto("/kreator");
+        await page.goto("/builder");
         await page.getByRole("button", { name: "Edytuj slot: Hełm", exact: true }).tap();
         await page.getByRole("button", { name: "Wybierz przedmiot", exact: true }).tap();
         await page.getByRole("searchbox", { name: "Szukaj przedmiotu" }).fill("nieistniejący");
@@ -289,7 +289,7 @@ test.describe("dedicated mobile builder", () => {
 
     test("audits the visible mobile builder actions by their effects", async ({ page }) => {
         await mockCatalog(page);
-        await page.goto("/kreator");
+        await page.goto("/builder");
 
         await page.getByRole("button", { name: "Edytuj slot: Hełm", exact: true }).tap();
         await page.getByRole("button", { name: "Wybierz przedmiot", exact: true }).tap();
@@ -350,7 +350,7 @@ test.describe("dedicated mobile builder", () => {
 
     test("keeps mobile navigation and the focused field reachable", async ({ page }) => {
         await mockCatalog(page);
-        await page.goto("/kreator");
+        await page.goto("/builder");
         await page.locator(".mobile-build-actions summary").tap();
         await page.getByRole("button", { name: /Zapisz lokalnie/ }).tap();
         await expect(page.getByRole("status")).toContainText("Zapisano lokalnie");
@@ -395,7 +395,7 @@ test.describe("dedicated mobile builder", () => {
         page,
     }) => {
         await mockCatalog(page);
-        await page.goto("/kreator?slot=helmet");
+        await page.goto("/builder?slot=helmet");
         const payload = {
             format: "broken-ranks-tool-build",
             version: 1,
@@ -456,15 +456,15 @@ test("narrow touch desktop retains its current UI and supports an explicit previ
     });
     const page = await context.newPage();
     await mockCatalog(page);
-    await page.goto("/kreator");
+    await page.goto("/builder");
     await expect(page.locator(".app-masthead")).toBeVisible();
     await expect(page.locator(".mobile-app")).toHaveCount(0);
-    await page.goto("/kreator?ui=mobile");
+    await page.goto("/builder?ui=mobile");
     await expect(page.locator(".mobile-app")).toBeVisible();
     await page.getByRole("link", { name: "Start", exact: true }).tap();
     await page.reload();
     await expect(page.locator(".mobile-app")).toBeVisible();
-    await page.goto("/kreator?ui=desktop");
+    await page.goto("/builder?ui=desktop");
     await expect(page.locator(".app-masthead")).toBeVisible();
     await context.close();
 });

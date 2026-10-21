@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
+import { useTranslation } from "../../shared/i18n/useTranslation";
 import {
     createBonusOption,
     resolveDrifCategoryKey,
@@ -20,6 +21,7 @@ const createPriority = (bonus) => ({
 
 /** Owns available modifiers, configured priorities, filtering, ordering, and card expansion. */
 export const useOptimizerPriorities = (gameRules, labels) => {
+    const { t, locale } = useTranslation();
     const [prioritizedBonuses, setPrioritizedBonuses] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("ALL");
@@ -38,7 +40,9 @@ export const useOptimizerPriorities = (gameRules, labels) => {
                           bonus.key,
                           gameRules?.drifBonusCategories
                       ),
-                  }))
+                  })),
+                  locale,
+                  t
               )
             : prioritizedBonuses;
         return ordered.filter(
@@ -47,7 +51,15 @@ export const useOptimizerPriorities = (gameRules, labels) => {
                     resolveDrifCategoryKey(bonus.key, gameRules?.drifBonusCategories)
                 )
         );
-    }, [categorySorted, gameRules, hiddenPriorityCategories, labels, prioritizedBonuses]);
+    }, [
+        categorySorted,
+        gameRules,
+        hiddenPriorityCategories,
+        labels,
+        prioritizedBonuses,
+        locale,
+        t,
+    ]);
 
     const priorityCategoryCounts = useMemo(() => {
         const counts = Object.fromEntries(DRIF_CATEGORY_ORDER.map((category) => [category, 0]));
@@ -76,9 +88,11 @@ export const useOptimizerPriorities = (gameRules, labels) => {
                 .map(([key, value]) =>
                     createBonusOption([key, value], gameRules.drifBonusCategories)
                 )
-                .filter((bonus) => gameRules.drifBasePowers[bonus.key] !== undefined)
+                .filter((bonus) => gameRules.drifBasePowers[bonus.key] !== undefined),
+            locale,
+            t
         );
-    }, [gameRules]);
+    }, [gameRules, locale, t]);
 
     const filteredAvailableBonuses = useMemo(
         () =>
@@ -86,13 +100,15 @@ export const useOptimizerPriorities = (gameRules, labels) => {
                 if (prioritizedBonuses.some((priority) => priority.key === bonus.key)) return false;
                 const matchesCategory =
                     selectedCategory === "ALL" || bonus.categoryKey === selectedCategory;
-                const query = searchQuery.toLocaleLowerCase("pl");
-                const matchesSearch = [bonus.value, labels?.searchName(bonus.key)].some((name) =>
-                    name?.toLocaleLowerCase("pl").includes(query)
-                );
+                const query = searchQuery.toLocaleLowerCase(locale);
+                const matchesSearch = [
+                    bonus.value,
+                    t(bonus.value),
+                    labels?.searchName(bonus.key),
+                ].some((name) => name?.toLocaleLowerCase(locale).includes(query));
                 return matchesCategory && matchesSearch;
             }),
-        [allBonuses, labels, prioritizedBonuses, searchQuery, selectedCategory]
+        [allBonuses, labels, prioritizedBonuses, searchQuery, selectedCategory, t, locale]
     );
 
     const selectBonus = useCallback((bonus) => {

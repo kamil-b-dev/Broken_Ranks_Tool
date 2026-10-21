@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n/useTranslation";
 import React from "react";
 import { useGearSlot } from "./useGearSlot.js";
 import { useEquipmentLocksState } from "../../../shared/state/EquipmentContext";
@@ -20,6 +21,8 @@ import EquipmentRemovalAction from "../backpack/EquipmentRemovalAction";
  * @returns {JSX.Element} The rendered equipment slot.
  */
 const GearSlot = (props) => {
+    const { t } = useTranslation();
+
     const {
         label,
         items,
@@ -54,7 +57,7 @@ const GearSlot = (props) => {
     if (!gameRules)
         return (
             <div className="w-64 p-3 text-xs text-stone-500 font-serif text-center border border-stone-800 optimizer-info-divider bg-black">
-                Ładowanie reguł...
+                {t("Ładowanie reguł...")}
             </div>
         );
 
@@ -66,7 +69,7 @@ const GearSlot = (props) => {
         <div className={slotClasses}>
             <div className="flex w-full justify-between items-center px-1 mb-1 relative z-10">
                 <span className="text-xs font-serif font-bold text-stone-400 uppercase tracking-[0.2em] pointer-events-none drop-shadow-[0_2px_2px_rgba(0,0,0,1)]">
-                    {label}
+                    {t(label)}
                 </span>
 
                 {showOptimizationLocks && fullSelectedItem && (
@@ -74,7 +77,9 @@ const GearSlot = (props) => {
                         onClick={() => toggleSlotLock(slotKey)}
                         type="button"
                         className={`transition-colors p-1 rounded-xs ${isSlotLocked ? "text-red-500 optimizer-lock-text hover:text-red-400 bg-red-950/40 optimizer-lock-surface border border-red-900/50 optimizer-lock-frame" : "text-stone-600 hover:text-stone-300"}`}
-                        title={isSlotLocked ? "Odblokuj slot" : "Zablokuj slot w optymalizatorze"}
+                        title={t(
+                            isSlotLocked ? "Odblokuj slot" : "Zablokuj slot w optymalizatorze"
+                        )}
                     >
                         {isSlotLocked ? (
                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -106,7 +111,7 @@ const GearSlot = (props) => {
             <div className="gear-slot-item-section w-full">
                 <ItemSection
                     slotKey={slotKey}
-                    label={label}
+                    label={t(label)}
                     items={items}
                     fullSelectedItem={fullSelectedItem}
                     dragOverZone={dragOverZone}
@@ -120,7 +125,7 @@ const GearSlot = (props) => {
 
             <div className="gear-slot-orb-section w-full flex flex-col items-center mt-1">
                 <span className="text-[10px] font-serif font-bold text-rose-800/80 builder-accent-text uppercase tracking-widest mb-1 pointer-events-none drop-shadow-md">
-                    Orb
+                    {t("Orb")}
                 </span>
                 <OrbSection
                     slotKey="orb1"
@@ -186,7 +191,7 @@ const GearSlot = (props) => {
                             kind="DRIF"
                             slotKey={slotKey}
                             zone={`drif-${index}`}
-                            label={`Zdejmij drif ${index + 1} do plecaka`}
+                            label={t("Zdejmij drif {0} do plecaka", [t(index + 1)])}
                         />
                     )}
                 />

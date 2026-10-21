@@ -29,6 +29,7 @@ import tools.jackson.databind.ObjectMapper;
 public class AbuseProtectionFilter extends OncePerRequestFilter {
 
     private static final String OPTIMIZER_PATH = "/api/optimizer/drifs";
+    private static final String PROGRESSION_PATH = "/api/progression-path/plan";
     private static final String CALCULATOR_PATH = "/api/calculator/calculate";
     private static final String ADVISOR_PATH_PREFIX = "/api/optimizer/advisor/";
     private static final String CANCELLATION_PATH_SUFFIX = "/cancel";
@@ -58,6 +59,7 @@ public class AbuseProtectionFilter extends OncePerRequestFilter {
         if (HttpMethod.GET.matches(request.getMethod())) return !path.startsWith(API_PATH_PREFIX);
         if (!HttpMethod.POST.matches(request.getMethod())) return true;
         return !OPTIMIZER_PATH.equals(path)
+                && !PROGRESSION_PATH.equals(path)
                 && !CALCULATOR_PATH.equals(path)
                 && !isCancellationPath(path);
     }
@@ -82,7 +84,8 @@ public class AbuseProtectionFilter extends OncePerRequestFilter {
         if (publicDataRequest) {
             policy = RateLimitPolicy.PUBLIC_DATA;
             limit = properties.publicData();
-        } else if (OPTIMIZER_PATH.equals(request.getRequestURI())) {
+        } else if (OPTIMIZER_PATH.equals(request.getRequestURI())
+                || PROGRESSION_PATH.equals(request.getRequestURI())) {
             policy = RateLimitPolicy.OPTIMIZER;
             limit = properties.optimizer();
         } else if (CALCULATOR_PATH.equals(request.getRequestURI())) {

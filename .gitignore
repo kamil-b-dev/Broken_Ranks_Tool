@@ -30,6 +30,7 @@ AGENTS.md
 /docs/reguly-*.md
 /docs/plan-frontendu-mobilnego.md
 /docs/checklista-mobilnego-kreatora.md
+/docs/plan-kreatora-sciezki-rozwoju.md
 
 # Local environment and secrets
 node_modules/
@@ -57,6 +58,7 @@ node_modules/
 /Merch_Showcase/
 
 # Operating system files
+/test-results/
 .DS_Store
 Thumbs.db
 

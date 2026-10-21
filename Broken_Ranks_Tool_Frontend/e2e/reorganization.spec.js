@@ -91,15 +91,14 @@ for (const layout of ["desktop", "mobile"]) {
                 },
             });
         });
-        await page.goto(`/optymalizator?ui=${layout}`);
+        await page.goto(`/optimizer?ui=${layout}`);
         if (layout === "mobile")
             await page.getByLabel("Tryb optymalizatora").selectOption("REORGANIZE");
         else await page.getByRole("button", { name: "Reorganizacja", exact: true }).click();
-        await expect(page.getByText("Ekwipunek: 1 · Zaznaczone w plecaku: 1")).toBeVisible();
-        await expect(page.getByRole("heading", { name: "Pula drifów" })).toHaveCSS(
-            "font-family",
-            /Inter/
-        );
+        await page.getByRole("button", { name: "Wstaw drif", exact: true }).click();
+        await page.getByLabel("Drif z plecaka").selectOption("selected");
+        await page.getByText("Ustawienia zaawansowane", { exact: true }).click();
+        await page.getByLabel("Pozwól odkładać założone drify do plecaka").check();
         await expect(page.getByRole("checkbox", { name: "Użyj drifów z plecaka" })).toHaveCount(0);
         await expect(page.getByText("Potencjalny zakres", { exact: true })).toHaveCount(0);
         await page.screenshot({ path: `../tmp/reorganization-${layout}.png`, fullPage: true });
@@ -120,7 +119,7 @@ for (const layout of ["desktop", "mobile"]) {
         expect(stored.backpack.find((entry) => entry.id === "unselected").level).toBe(1);
         expect(stored.backpack.find((entry) => entry.level === 2).sendToBackend).toBeFalsy();
         if (layout === "mobile") await page.getByRole("button", { name: "Pokaż wynik →" }).click();
-        await page.getByRole("button", { name: "Zastosuj wybrany wariant" }).click();
+        await expect(page.getByRole("button", { name: "Zastosuj wybrany wariant" })).toHaveCount(0);
         expect((await draft()).backpack).toEqual(stored.backpack);
         expect(
             await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)

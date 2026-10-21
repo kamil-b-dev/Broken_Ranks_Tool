@@ -37,7 +37,7 @@ const canonicalSetup = ({ slots, characterStats = {} }) => ({
 
 async function importBuild(page, name, suppliedPayload) {
     const payload = suppliedPayload || JSON.parse(await readFile(fixtureUrl(name), "utf8"));
-    await page.goto("/kreator");
+    await page.goto("/builder");
     await expect(page.getByRole("button", { name: /Wczytaj build/ })).toBeEnabled();
     await page
         .locator('input[type="file"]')

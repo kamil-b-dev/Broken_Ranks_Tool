@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n/useTranslation";
 import { useState } from "react";
 import EquipmentSlotOverview from "../equipment/EquipmentSlotOverview";
 import { backpackTemplate } from "./backpackDomain";
@@ -11,6 +12,8 @@ export default function BackpackItemChoices({
     onSelect,
     getWarning,
 }) {
+    const { t } = useTranslation();
+
     const [query, setQuery] = useState("");
     const [count, setCount] = useState(40);
     const compatible = new Set(items.map((item) => String(item.id)));
@@ -25,7 +28,7 @@ export default function BackpackItemChoices({
     return (
         <div className="backpack-item-choices">
             <label className="mobile-field">
-                Szukaj w plecaku
+                {t("Szukaj w plecaku")}
                 <input
                     type="search"
                     value={query}
@@ -41,7 +44,7 @@ export default function BackpackItemChoices({
                     <article key={entry.id} className="backpack-card">
                         <EquipmentSlotOverview
                             slotKey={slotKey}
-                            label={`Przedmiot ${index + 1} z plecaka`}
+                            label={t("Przedmiot {0} z plecaka", [t(index + 1)])}
                             item={backpackTemplate(entry, data)}
                             slotData={entry.equipment}
                             drifs={data.drifs}
@@ -50,14 +53,14 @@ export default function BackpackItemChoices({
                             disabled={Boolean(warning)}
                             onSelect={() => onSelect(entry.id)}
                         />
-                        {warning && <p className="backpack-warning">{warning}</p>}
+                        {warning && <p className="backpack-warning">{t(warning)}</p>}
                     </article>
                 );
             })}
-            {!choices.length && <p>Brak pasujących przedmiotów w plecaku.</p>}
+            {!choices.length && <p>{t("Brak pasujących przedmiotów w plecaku.")}</p>}
             {choices.length > count && (
                 <button type="button" onClick={() => setCount(count + 40)}>
-                    Pokaż kolejne przedmioty
+                    {t("Pokaż kolejne przedmioty")}
                 </button>
             )}
         </div>

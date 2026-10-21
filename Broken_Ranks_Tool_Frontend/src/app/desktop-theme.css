@@ -2,6 +2,17 @@
 
 /* The optimizer shares the creator's forged-metal, gold and crimson palette. */
 
+@media (min-width: 701px) and (max-width: 1440px) {
+    .app-masthead {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .main-switch {
+        grid-column: 1 / -1;
+        grid-row: 2;
+    }
+}
+
 @media (max-width: 700px) {
     .workbench-heading {
         align-items: flex-start;

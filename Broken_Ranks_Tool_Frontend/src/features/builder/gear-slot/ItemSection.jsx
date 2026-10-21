@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n/useTranslation";
 import { getRarityColor, getStarColor } from "./gearSlotPresentation";
 
 /**
@@ -25,6 +26,8 @@ const ItemSection = ({
     hookData,
     allowEmptyItem = true,
 }) => {
+    const { t } = useTranslation();
+
     const {
         selectedItem,
         setSelectedItem,
@@ -53,19 +56,21 @@ const ItemSection = ({
                 />
                 <div>
                     <span className="text-[10px] font-serif font-bold text-stone-600 uppercase tracking-[0.18em]">
-                        Przedmiot
+                        {t("Przedmiot")}
                     </span>
                     <strong>{fullSelectedItem?.name || label}</strong>
                     <small>
-                        {fullSelectedItem
-                            ? `${fullSelectedItem.tier || ""} · poziom ${fullSelectedItem.reqLevel || "?"}`
-                            : "Brak wybranego przedmiotu"}
+                        {t(
+                            fullSelectedItem
+                                ? `${fullSelectedItem.tier || ""} · poziom ${fullSelectedItem.reqLevel || "?"}`
+                                : "Brak wybranego przedmiotu"
+                        )}
                     </small>
                 </div>
             </div>
             <select
                 value={selectedItem}
-                aria-label={`Wybierz przedmiot dla slotu ${label}`}
+                aria-label={t("Wybierz przedmiot dla slotu {0}", [t(label)])}
                 onChange={(e) => {
                     setSelectedItem(e.target.value);
                     setItemStars(1);
@@ -82,7 +87,7 @@ const ItemSection = ({
                 className={`w-full bg-black/80 text-xs font-serif border border-rose-900/70 builder-accent-frame focus:border-rose-500 builder-accent-frame p-1.5 outline-hidden text-center cursor-pointer shadow-inner ${fullSelectedItem ? getRarityColor(fullSelectedItem.rarity) : "text-stone-300"}`}
             >
                 <option value="" className="text-stone-600" disabled={!allowEmptyItem}>
-                    -- {label} --
+                    -- {t(label)} --
                 </option>
                 {items.map((i) => (
                     <option
@@ -90,7 +95,7 @@ const ItemSection = ({
                         value={i.id}
                         className={`bg-stone-950 ${getRarityColor(i.rarity)}`}
                     >
-                        {i.name} {i.tier ? i.tier : ""}
+                        {i.name} {t(i.tier ? i.tier : "")}
                     </option>
                 ))}
             </select>
@@ -106,7 +111,7 @@ const ItemSection = ({
                             key={starValue}
                             type="button"
                             disabled={!selectedItem}
-                            aria-label={`Ustaw ${starValue} gwiazdek: ${label}`}
+                            aria-label={t("Ustaw {0} gwiazdek: {1}", [t(starValue), t(label)])}
                             aria-pressed={itemStars === starValue}
                             className={`cursor-pointer border-0 bg-transparent p-0 text-lg leading-none transition-all duration-150 transform hover:scale-125 drop-shadow-[0_1px_1px_rgba(0,0,0,1)] ${getStarColor(starValue, isFilled)}`}
                             onMouseEnter={() => setHoverStars(starValue)}
@@ -114,7 +119,7 @@ const ItemSection = ({
                             onFocus={() => setHoverStars(starValue)}
                             onBlur={() => setHoverStars(0)}
                             onClick={() => setItemStars(starValue)}
-                            title={`Wzmocnienie: ${starValue}★`}
+                            title={t("Wzmocnienie: {0}★", [t(starValue)])}
                         >
                             ★
                         </button>

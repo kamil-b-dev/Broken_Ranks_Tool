@@ -132,7 +132,7 @@ function createScenario(catalog) {
 }
 
 async function importScenario(page, scenario, mobile = false) {
-    await page.goto(mobile ? "/kreator" : "/kreator?ui=desktop");
+    await page.goto(mobile ? "/builder" : "/builder?ui=desktop");
     const calculated = page.waitForResponse(isCalculation);
     if (mobile) {
         await page.locator(".mobile-build-actions > summary").click();

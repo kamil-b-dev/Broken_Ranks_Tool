@@ -79,7 +79,7 @@ const renderApp = async () => {
         !useEquipment.mock.results.at(-1).value.initialDataError
     ) {
         const heading =
-            window.location.pathname === "/optymalizator"
+            window.location.pathname === "/optimizer"
                 ? "Ustawienia"
                 : window.location.pathname === "/"
                   ? "Broken Ranks Tool"
@@ -96,7 +96,7 @@ describe("App", () => {
     beforeEach(() => {
         vi.clearAllMocks();
         localStorage.clear();
-        window.history.replaceState(null, "", "/kreator");
+        window.history.replaceState(null, "", "/builder");
         useEquipment.mockReturnValue(equipment);
     });
 
@@ -145,7 +145,7 @@ describe("App", () => {
         expect(equipment.calculateStats).toHaveBeenCalledOnce();
 
         await user.click(screen.getByRole("link", { name: /Optymalizator drifów/i }));
-        expect(window.location.pathname).toBe("/optymalizator");
+        expect(window.location.pathname).toBe("/optimizer");
     }, 20000);
 
     it("reports a successful build import", async () => {
@@ -240,7 +240,7 @@ describe("App", () => {
     });
 
     it("supports direct routes and browser history", async () => {
-        window.history.replaceState(null, "", "/optymalizator");
+        window.history.replaceState(null, "", "/optimizer");
         const user = userEvent.setup();
         await renderApp();
 
@@ -250,7 +250,7 @@ describe("App", () => {
         expect(screen.queryByRole("heading", { name: "Ekwipunek" })).not.toBeInTheDocument();
 
         await user.click(screen.getByRole("link", { name: /Buildy lokalne/i }));
-        expect(window.location.pathname).toBe("/buildy");
+        expect(window.location.pathname).toBe("/builds");
         window.history.back();
         window.dispatchEvent(new PopStateEvent("popstate"));
         expect(await screen.findByRole("heading", { name: "Ustawienia" })).toBeInTheDocument();
@@ -265,7 +265,7 @@ describe("App", () => {
         expect(screen.queryByText("Warsztat świadomych wyborów")).not.toBeInTheDocument();
         await user.click(screen.getByRole("link", { name: /Kreator ekwipunku/i }));
 
-        expect(window.location.pathname).toBe("/kreator");
+        expect(window.location.pathname).toBe("/builder");
         expect(
             await screen.findByRole("heading", { name: "Ekwipunek" }, { timeout: 10000 })
         ).toBeVisible();

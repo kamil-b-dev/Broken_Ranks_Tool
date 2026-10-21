@@ -1,4 +1,3 @@
-import ReorganizationPoolSummary from "./reorganization/ReorganizationPoolSummary";
 import { useState } from "react";
 import AppNotice from "../../shared/ui/AppNotice";
 import OptimizerMobileNavigation from "./OptimizerMobileNavigation";
@@ -8,7 +7,6 @@ import OptimizerGoalsColumn from "./OptimizerGoalsColumn";
 import OptimizerReportColumn from "./OptimizerReportColumn";
 import { useOptimizerWorkspace } from "./useOptimizerWorkspace";
 import { OptimizerLabelContext } from "./optimizerLabelContext";
-import OptimizerLabelSettings from "./OptimizerLabelSettings";
 
 /** Desktop composition retains its existing markup and navigation. */
 const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
@@ -62,21 +60,25 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
         handleOptimizeClick,
         handleApplyVariant,
         handleCancel,
+        reorganizationCheck,
+        canUndoReorganization,
+        reorganizationUndoWarning,
+        handleUndoReorganization,
     } = useOptimizerWorkspace({ optimizerSettings, onOptimizerSettingsChange });
     const [activeMobileColumn, setActiveMobileColumn] = useState("priorities");
     return (
         <OptimizerLabelContext.Provider value={labels}>
-            <div className="optimizer-console">
+            <div
+                className={`optimizer-console ${optimizerSettings.mode === "REORGANIZE" ? "is-reorganization" : ""}`}
+            >
                 <OptimizerModeNavigation
                     settings={optimizerSettings}
                     onChange={onOptimizerSettingsChange}
                 />
-                <OptimizerLabelSettings />
                 <OptimizerSettingsPanel
                     settings={optimizerSettings}
                     onChange={onOptimizerSettingsChange}
                 />
-                {optimizerSettings.mode === "REORGANIZE" && <ReorganizationPoolSummary />}
                 <AppNotice
                     notice={
                         notice ? { ...notice, message: labels.formatText(notice.message) } : notice
@@ -147,6 +149,8 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                         startedAt={optimizationStartedAt}
                         lastDurationSeconds={lastOptimizationDurationSeconds}
                         hasResult={Boolean(optimizationStatus)}
+                        reorganizationStatus={displayedStatus}
+                        reorganizationCheck={reorganizationCheck}
                         onRun={handleOptimizeClick}
                         onCancel={handleCancel}
                     />
@@ -167,6 +171,9 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                             setActiveVariantIndex(variantIndex)
                         }
                         onApplyVariant={handleApplyVariant}
+                        canUndoReorganization={canUndoReorganization}
+                        reorganizationUndoWarning={reorganizationUndoWarning}
+                        onUndoReorganization={handleUndoReorganization}
                     />
                 </div>
             </div>

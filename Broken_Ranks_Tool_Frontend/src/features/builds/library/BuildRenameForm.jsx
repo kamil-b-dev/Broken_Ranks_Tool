@@ -1,6 +1,9 @@
+import { useTranslation } from "../../../shared/i18n/useTranslation";
 import { useState } from "react";
 
 const BuildRenameForm = ({ builds, onRename }) => {
+    const { t } = useTranslation();
+
     const [name, setName] = useState(null);
     const [targetId, setTargetId] = useState("");
     const target = builds.find((build) => build.id === targetId) || builds[0] || null;
@@ -20,10 +23,10 @@ const BuildRenameForm = ({ builds, onRename }) => {
 
     return (
         <form onSubmit={renameBuild} className="build-library-save-form">
-            <label htmlFor="local-build-name">Zmień nazwę lokalnego buildu</label>
+            <label htmlFor="local-build-name">{t("Zmień nazwę lokalnego buildu")}</label>
             <div>
                 <select
-                    aria-label="Wybierz build do zmiany nazwy"
+                    aria-label={t("Wybierz build do zmiany nazwy")}
                     value={target?.id || ""}
                     disabled={!builds.length}
                     onChange={selectBuild}
@@ -35,7 +38,7 @@ const BuildRenameForm = ({ builds, onRename }) => {
                             </option>
                         ))
                     ) : (
-                        <option value="">Brak zapisanych buildów</option>
+                        <option value="">{t("Brak zapisanych buildów")}</option>
                     )}
                 </select>
                 <input
@@ -46,7 +49,7 @@ const BuildRenameForm = ({ builds, onRename }) => {
                     onChange={(event) => setName(event.target.value)}
                 />
                 <button type="submit" disabled={!target || !editedName.trim()}>
-                    Zmień nazwę
+                    {t("Zmień nazwę")}
                 </button>
             </div>
         </form>

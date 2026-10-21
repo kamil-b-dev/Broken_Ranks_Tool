@@ -65,28 +65,30 @@ for (const layout of ["desktop", "mobile"]) {
                         "broken-ranks-tool.equipment-draft.v3",
                         JSON.stringify({ version: 3, value: { ...build, backpack: [] } })
                     );
-                    localStorage.setItem(
-                        "broken-ranks-tool.optimizer-draft.v1",
-                        JSON.stringify({
-                            version: 1,
-                            value: {
-                                format: "broken-ranks-tool-optimizer-config",
+                    if (!localStorage.getItem("broken-ranks-tool.optimizer-draft.v1"))
+                        localStorage.setItem(
+                            "broken-ranks-tool.optimizer-draft.v1",
+                            JSON.stringify({
                                 version: 1,
-                                settings: {
-                                    mode: ["REORGANIZE", "ADVISOR"].includes(mode)
-                                        ? mode
-                                        : "BUILD_FROM_SCRATCH",
-                                    configurationMode: mode === "SIMPLE" ? "SIMPLE" : "ADVANCED",
-                                    simpleProfile: "FIRE_MAGE",
-                                    advisorGoal: "DAMAGE_MAGIC",
+                                value: {
+                                    format: "broken-ranks-tool-optimizer-config",
+                                    version: 1,
+                                    settings: {
+                                        mode: ["REORGANIZE", "ADVISOR"].includes(mode)
+                                            ? mode
+                                            : "BUILD_FROM_SCRATCH",
+                                        configurationMode:
+                                            mode === "SIMPLE" ? "SIMPLE" : "ADVANCED",
+                                        simpleProfile: "FIRE_MAGE",
+                                        advisorGoal: "DAMAGE_MAGIC",
+                                    },
+                                    priorities: [
+                                        { key: "DAMAGE_MAGIC", weight: 15, min: 0, max: 12 },
+                                        { key: "CRITICAL_CHANCE", weight: 5, min: 0, max: 12 },
+                                    ],
                                 },
-                                priorities: [
-                                    { key: "DAMAGE_MAGIC", weight: 15, min: 0, max: 12 },
-                                    { key: "CRITICAL_CHANCE", weight: 5, min: 0, max: 12 },
-                                ],
-                            },
-                        })
-                    );
+                            })
+                        );
                 },
                 { build: optimizerBuild, mode }
             );
@@ -135,7 +137,7 @@ for (const layout of ["desktop", "mobile"]) {
                     ];
                 return route.fulfill({ json: response });
             });
-            await page.goto(`/optymalizator?ui=${layout}`);
+            await page.goto(`/optimizer?ui=${layout}`);
             const naming = page.getByLabel("Nazwy modów", { exact: true });
             await expect(naming).toHaveValue("MODIFIERS");
             await naming.selectOption("DRIFS");
@@ -144,6 +146,44 @@ for (const layout of ["desktop", "mobile"]) {
             else if (mode === "ADVISOR") {
                 await expect(page.getByLabel("Główny cel")).toContainText("Popraw: Abaf");
                 await expect(page.getByLabel("Dopuszczalny spadek: Band")).toBeVisible();
+            } else if (mode === "REORGANIZE") {
+                await page.getByText("Ustawienia zaawansowane", { exact: true }).click();
+                await expect(
+                    page.getByRole("checkbox", { name: "Band", exact: true })
+                ).toBeVisible();
+                await expect(
+                    page.getByRole("spinbutton", {
+                        name: "Dopuszczalny spadek dla: Band",
+                        exact: true,
+                    })
+                ).toBeVisible();
+                await page.getByLabel("Maksymalna liczba przełożeń").fill("7");
+                await naming.selectOption("MODIFIERS");
+                await expect(
+                    page.getByRole("checkbox", { name: "Szansa na krytyk", exact: true })
+                ).toBeVisible();
+                await expect(page.getByLabel("Maksymalna liczba przełożeń")).toHaveValue("7");
+                expect(requests).toHaveLength(0);
+                await naming.selectOption("DRIFS");
+                await expect
+                    .poll(() =>
+                        page.evaluate(() =>
+                            Number(
+                                JSON.parse(
+                                    localStorage.getItem("broken-ranks-tool.optimizer-draft.v1")
+                                ).value.settings.reorganization?.maxMoves
+                            )
+                        )
+                    )
+                    .toBe(7);
+                await page.reload();
+                await expect(naming).toHaveValue("DRIFS");
+                await page.getByText("Ustawienia zaawansowane", { exact: true }).click();
+                await expect(
+                    page.getByRole("checkbox", { name: "Band", exact: true })
+                ).toBeVisible();
+                await expect(page.getByLabel("Maksymalna liczba przełożeń")).toHaveValue("7");
+                return;
             } else {
                 await expect(page.locator(".optimizer-priority-name").first()).toHaveText("Abaf");
                 if (layout === "mobile") {

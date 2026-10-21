@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n/useTranslation";
 import { useLayoutEffect, useRef } from "react";
 import { useOptimizerLabelContext } from "../optimizerLabelContext";
 import {
@@ -6,6 +7,8 @@ import {
 } from "../../../shared/domain/equipment/drifCategories";
 
 export default function MobileBonusPicker({ model, onClose, openerRef }) {
+    const { t } = useTranslation();
+
     const { getName } = useOptimizerLabelContext();
     const dialog = useRef(null);
     useLayoutEffect(() => {
@@ -37,13 +40,13 @@ export default function MobileBonusPicker({ model, onClose, openerRef }) {
             }}
         >
             <header>
-                <h2 id="mobile-bonus-title">Dodaj cel</h2>
-                <button type="button" onClick={onClose} aria-label="Zamknij wybór celu">
+                <h2 id="mobile-bonus-title">{t("Dodaj cel")}</h2>
+                <button type="button" onClick={onClose} aria-label={t("Zamknij wybór celu")}>
                     ✕
                 </button>
             </header>
             <label className="mobile-field">
-                Szukaj bonusu
+                {t("Szukaj bonusu")}
                 <input
                     type="search"
                     value={model.searchQuery}
@@ -51,15 +54,15 @@ export default function MobileBonusPicker({ model, onClose, openerRef }) {
                 />
             </label>
             <label className="mobile-field">
-                Kategoria
+                {t("Kategoria")}
                 <select
                     value={model.selectedCategory}
                     onChange={(event) => model.setSelectedCategory(event.target.value)}
                 >
-                    <option value="ALL">Wszystkie</option>
+                    <option value="ALL">{t("Wszystkie")}</option>
                     {DRIF_CATEGORY_ORDER.map((key) => (
                         <option key={key} value={key}>
-                            {model.drifCategories?.[key] || DRIF_CATEGORY_LABELS[key]}
+                            {t(model.drifCategories?.[key] || DRIF_CATEGORY_LABELS[key])}
                         </option>
                     ))}
                 </select>
@@ -74,13 +77,13 @@ export default function MobileBonusPicker({ model, onClose, openerRef }) {
                             onClose();
                         }}
                     >
-                        <span>{getName(bonus.key, bonus.value)}</span>
+                        <span>{t(getName(bonus.key, bonus.value))}</span>
                         <span aria-hidden="true">＋</span>
                     </button>
                 ))}
             </div>
             {!model.availableBonuses.length && (
-                <p role="status">Brak pasujących bonusów do dodania.</p>
+                <p role="status">{t("Brak pasujących bonusów do dodania.")}</p>
             )}
         </dialog>
     );

@@ -4,6 +4,7 @@ export const DEFAULT_OPTIMIZER_SETTINGS = {
     mode: "BUILD_FROM_SCRATCH",
     configurationMode: "SIMPLE",
     backpackOnly: false,
+    reorganization: { task: "UPGRADE", allowUnequip: false },
     simpleProfile: "BARBARIAN",
     simpleOptions: defaultSimpleOptions("BARBARIAN"),
     simpleAspects: {},

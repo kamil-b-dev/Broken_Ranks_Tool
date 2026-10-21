@@ -1,11 +1,12 @@
+import { useTranslation } from "../../shared/i18n/useTranslation";
 import { SLOTS } from "../../shared/domain/equipment/equipmentSlots";
 import { numericStatValue } from "./optimizerDomain";
 import { useOptimizerLabelContext } from "./optimizerLabelContext";
 
 const getSlot = (slotKey) => SLOTS.find((slot) => slot.key === slotKey);
 
-const formatPlacement = (modifier, level) =>
-    modifier ? `${modifier}${level ? ` ${level}` : ""}` : "Puste miejsce";
+const formatPlacement = (modifier, level, t) =>
+    modifier ? `${t(modifier)}${level ? ` ${level}` : ""}` : t("Puste miejsce");
 
 /** Summarizes the most important placement and calculator changes for a selected variant. */
 const OptimizerChangesSection = ({
@@ -14,16 +15,18 @@ const OptimizerChangesSection = ({
     translations = {},
     advisory = false,
 }) => {
+    const { t } = useTranslation();
+
     const { getName, formatText } = useOptimizerLabelContext();
     return (
         <section className="optimizer-report-section optimizer-changes-section">
-            <h5>{advisory ? "Rekomendowane zakupy i zmiany" : "Najważniejsze zmiany"}</h5>
+            <h5>{t(advisory ? "Rekomendowane zakupy i zmiany" : "Najważniejsze zmiany")}</h5>
             {variant?.changes?.length > 0 || variant?.advisorActions?.length > 0 ? (
                 <>
                     {advisory && variant.advisorActions?.length > 0 && (
-                        <ol className="advisor-action-list" aria-label="Plan zmian">
+                        <ol className="advisor-action-list" aria-label={t("Plan zmian")}>
                             {variant.advisorActions.map((action, index) => (
-                                <li key={index}>{formatText(action)}</li>
+                                <li key={index}>{t(formatText(action))}</li>
                             ))}
                         </ol>
                     )}
@@ -41,31 +44,35 @@ const OptimizerChangesSection = ({
                                             aria-hidden="true"
                                         />
                                         <span className="optimizer-change-item">
-                                            <strong>{slot?.label || change.slotKey}</strong>
-                                            <small>{change.itemName}</small>
+                                            <strong>{t(slot?.label || change.slotKey)}</strong>
+                                            <small>{t(change.itemName)}</small>
                                             {advisory && (
                                                 <small>
-                                                    {change.fromModifier
-                                                        ? "Zamiana drifa"
-                                                        : "Nowy drif"}
+                                                    {t(
+                                                        change.fromModifier
+                                                            ? "Zamiana drifa"
+                                                            : "Nowy drif"
+                                                    )}
                                                 </small>
                                             )}
                                         </span>
                                         <span className="optimizer-change-placement">
                                             <span>
-                                                {formatText(
+                                                {t(
                                                     formatPlacement(
-                                                        change.fromModifier,
-                                                        change.fromLevel
+                                                        formatText(change.fromModifier),
+                                                        change.fromLevel,
+                                                        t
                                                     )
                                                 )}
                                             </span>
                                             <i aria-hidden="true">→</i>
                                             <strong>
-                                                {formatText(
+                                                {t(
                                                     formatPlacement(
-                                                        change.toModifier,
-                                                        change.toLevel
+                                                        formatText(change.toModifier),
+                                                        change.toLevel,
+                                                        t
                                                     )
                                                 )}
                                             </strong>
@@ -76,7 +83,10 @@ const OptimizerChangesSection = ({
                         </div>
                     )}
                     {variant.statChanges?.length > 0 && (
-                        <div className="optimizer-stat-change-list" aria-label="Zmiany statystyk">
+                        <div
+                            className="optimizer-stat-change-list"
+                            aria-label={t("Zmiany statystyk")}
+                        >
                             {(advisory
                                 ? variant.statChanges.filter(
                                       (change) =>
@@ -96,13 +106,15 @@ const OptimizerChangesSection = ({
                                         key={change.statKey}
                                         className={improves ? "is-positive" : "is-negative"}
                                     >
-                                        {getName(
-                                            change.statKey,
-                                            translations?.[change.statKey] || change.statKey
+                                        {t(
+                                            getName(
+                                                change.statKey,
+                                                translations?.[change.statKey] || change.statKey
+                                            )
                                         )}
-                                        :{" "}
+                                        :{t(" ")}
                                         <strong>
-                                            {change.finalValue} → {change.variantValue}
+                                            {t(change.finalValue)} → {t(change.variantValue)}
                                         </strong>
                                     </span>
                                 );

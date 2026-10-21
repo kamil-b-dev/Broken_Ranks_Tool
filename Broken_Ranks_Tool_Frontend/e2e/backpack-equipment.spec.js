@@ -85,7 +85,7 @@ test("desktop drags configured items and leveled gems from the backpack and retu
     page,
 }) => {
     await page.setViewportSize({ width: 1800, height: 1100 });
-    await page.goto("/kreator?ui=desktop");
+    await page.goto("/builder?ui=desktop");
     await page
         .getByRole("group", { name: "Źródło wyposażenia" })
         .getByRole("button", { name: "Plecak", exact: true })
@@ -140,7 +140,7 @@ test.describe("mobile backpack equipment", () => {
         page,
     }) => {
         await page.setViewportSize({ width: 320, height: 844 });
-        await page.goto("/kreator");
+        await page.goto("/builder");
         await page.getByRole("button", { name: "Edytuj slot: Hełm", exact: true }).click();
         await page.getByRole("button", { name: "Zmień przedmiot", exact: true }).click();
         const dialog = page.getByRole("dialog");

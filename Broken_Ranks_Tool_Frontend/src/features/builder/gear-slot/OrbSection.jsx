@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n/useTranslation";
 import { formatGroupLabel } from "./gearSlotPresentation";
 import CategoryIcon from "../../../shared/ui/CategoryIcon";
 import EquipmentRemovalAction from "../backpack/EquipmentRemovalAction";
@@ -33,6 +34,8 @@ const OrbSection = ({
     removalActions,
     equipmentSlotKey,
 }) => {
+    const { t } = useTranslation();
+
     const currentOrbObj = groupedOrbs[orbState.type]?.find(
         (orb) => String(orb.id) === String(orbState.id)
     );
@@ -58,24 +61,24 @@ const OrbSection = ({
                 )}
                 <select
                     value={orbState.type}
-                    aria-label="Wybierz rodzaj orba"
+                    aria-label={t("Wybierz rodzaj orba")}
                     onChange={(e) => setOrbState({ type: e.target.value, id: "", level: "" })}
                     disabled={!selectedItem}
                     className="flex-3 min-w-0 bg-transparent text-rose-700 builder-accent-text font-serif p-1 text-xs border-b border-rose-900/70 builder-accent-frame focus:border-rose-500 outline-hidden text-center cursor-pointer disabled:opacity-30"
                 >
                     <option value="" className="bg-stone-950 text-stone-500">
-                        Rodzaj
+                        {t("Rodzaj")}
                     </option>
                     {Object.keys(groupedOrbs).map((type) => (
                         <option key={type} value={type} className="bg-stone-950 text-stone-300">
-                            {formatGroupLabel(type, groupedOrbs[type], bonusTranslations)}
+                            {t(formatGroupLabel(type, groupedOrbs[type], bonusTranslations))}
                         </option>
                     ))}
                 </select>
 
                 <select
                     value={orbState.id}
-                    aria-label="Wybierz wielkość orba"
+                    aria-label={t("Wybierz wielkość orba")}
                     onChange={(e) => {
                         setOrbState((prev) => ({
                             ...prev,
@@ -87,7 +90,7 @@ const OrbSection = ({
                     className="flex-3 min-w-0 bg-transparent text-stone-300 font-serif p-1 text-xs border-b border-rose-900/70 builder-accent-frame focus:border-rose-500 outline-hidden text-center disabled:opacity-30 cursor-pointer"
                 >
                     <option value="" className="bg-stone-950 text-stone-500">
-                        Wielkość
+                        {t("Wielkość")}
                     </option>
                     {orbState.type &&
                         groupedOrbs[orbState.type]?.map((orb) => (
@@ -96,14 +99,14 @@ const OrbSection = ({
                                 value={orb.id}
                                 className="text-stone-300 bg-stone-950"
                             >
-                                {orb.size || orb.tier}
+                                {t(orb.size || orb.tier)}
                             </option>
                         ))}
                 </select>
 
                 <select
                     value={orbState.level}
-                    aria-label="Wybierz poziom orba"
+                    aria-label={t("Wybierz poziom orba")}
                     onChange={(e) => setOrbState((prev) => ({ ...prev, level: e.target.value }))}
                     disabled={!orbState.id || isSubOrb}
                     className="flex-2 min-w-0 bg-transparent text-stone-300 font-serif p-1 text-xs border-b border-rose-900/70 builder-accent-frame focus:border-rose-500 outline-hidden text-center disabled:opacity-30 cursor-pointer"
@@ -113,7 +116,7 @@ const OrbSection = ({
                         disabled={Boolean(orbState.id)}
                         className="bg-stone-950 text-stone-500"
                     >
-                        lvl
+                        {t("lvl")}
                     </option>
                     {availableOrbLevels.map((num) => (
                         <option
@@ -121,7 +124,7 @@ const OrbSection = ({
                             value={num.toString()}
                             className="bg-stone-950 text-stone-300"
                         >
-                            {num}
+                            {t(num)}
                         </option>
                     ))}
                 </select>
@@ -133,7 +136,7 @@ const OrbSection = ({
                     kind="ORB"
                     slotKey={equipmentSlotKey}
                     zone={slotKey}
-                    label={`Zdejmij orb ${slotKey === "orb2" ? 2 : 1} do plecaka`}
+                    label={t("Zdejmij orb {0} do plecaka", [t(slotKey === "orb2" ? 2 : 1)])}
                 />
             )}
         </div>

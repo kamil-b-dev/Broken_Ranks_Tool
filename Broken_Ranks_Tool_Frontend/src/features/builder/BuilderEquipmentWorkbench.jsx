@@ -1,3 +1,4 @@
+import { useTranslation } from "../../shared/i18n/useTranslation";
 import { SLOTS } from "../../shared/domain/equipment/equipmentSlots";
 import EquipmentSlotOverview from "./equipment/EquipmentSlotOverview";
 import BuilderEquipmentViewSwitch from "./BuilderEquipmentViewSwitch";
@@ -18,11 +19,13 @@ const BuilderEquipmentWorkbench = ({
     backpackContent,
     equipmentRemoval,
 }) => {
+    const { t } = useTranslation();
+
     return (
         <section className="workbench builder-equipment-column flex flex-col p-5 md:p-6">
             <div className="workbench-heading">
                 <div>
-                    <h2>Ekwipunek</h2>
+                    <h2>{t("Ekwipunek")}</h2>
                 </div>
                 {onEquipmentViewChange && (
                     <BuilderEquipmentViewSwitch
@@ -37,31 +40,31 @@ const BuilderEquipmentWorkbench = ({
                 <>
                     <div className="equipment-level-actions">
                         <button type="button" onClick={() => onMaximizeLevels("orbs")}>
-                            max lvl orby
+                            {t("max lvl orby")}
                         </button>
                         <button type="button" onClick={() => onMaximizeLevels("drifs")}>
-                            max lvl drify
+                            {t("max lvl drify")}
                         </button>
                     </div>
                     <EquipmentRemovalActions actions={equipmentRemoval} />
                     {levelWarnings.length > 0 && (
                         <div className="equipment-level-warning" role="status">
-                            <span>Za mało pojemności:</span>
+                            <span>{t("Za mało pojemności:")}</span>
                             {levelWarnings.map((warning, index) => (
-                                <div key={index}>{warning}</div>
+                                <div key={index}>{t(warning)}</div>
                             ))}
                         </div>
                     )}
                     <span className="equipment-ornament-divider" aria-hidden="true" />
                     <div className="equipment-figure-heading" aria-live="polite">
                         <strong>
-                            {model.equippedSlotCount}/{SLOTS.length}
+                            {t(model.equippedSlotCount)}/{t(SLOTS.length)}
                         </strong>
                     </div>
                     <div className="equipment-figure-layout">
                         <div
                             className="equipment-character-figure"
-                            aria-label="Kołowy wybór slotów ekwipunku"
+                            aria-label={t("Kołowy wybór slotów ekwipunku")}
                         >
                             <span className="equipment-figure-aura" />
                             <span className="equipment-center-silhouette" aria-hidden="true" />
@@ -73,7 +76,7 @@ const BuilderEquipmentWorkbench = ({
                                         key={slot.key}
                                         variant="ring"
                                         slotKey={slot.key}
-                                        label={slot.label}
+                                        label={t(slot.label)}
                                         slotData={requestData.slots?.[slot.key]}
                                         item={model.itemForSlot(slot)}
                                         drifs={data.drifs}

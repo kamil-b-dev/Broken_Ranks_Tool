@@ -34,6 +34,222 @@ const input = () => ({
 });
 
 describe("reorganization inventory transfer", () => {
+    it("validates every targeted insertion and combines it with an authorized equipped upgrade atomically", () => {
+        const source = input();
+        source.previousSlots.armor = slot(2);
+        source.previousSlots.boots = slot(5);
+        source.nextSlots = {
+            helmet: slot(1, [60], { 0: 6 }),
+            armor: slot(2, [60], { 0: 6 }),
+            boots: slot(5, [60], { 0: 1 }),
+        };
+        source.reorganizationOptions = {
+            task: "INSERT",
+            allowUnequip: false,
+            insertions: [
+                { entryId: "selected", targetSlotKey: "armor" },
+                { entryId: "unused", targetSlotKey: "boots" },
+            ],
+            upgrades: [
+                {
+                    sourceSlotKey: "helmet",
+                    sourceDrifIndex: 0,
+                    targetTemplateId: 60,
+                    targetLevel: 6,
+                },
+            ],
+        };
+        source.reorganizationDrifUsages = [
+            { sourceSlotKey: "helmet", sourceDrifIndex: 0, slotKey: "helmet", drifIndex: 0 },
+            { entryId: "selected", slotKey: "armor", drifIndex: 0 },
+            { entryId: "unused", slotKey: "boots", drifIndex: 0 },
+        ];
+        expect(applyReorganization(source)).toEqual([]);
+        const previous = structuredClone(source);
+        source.reorganizationOptions.insertions[1].targetSlotKey = "armor";
+        expect(() => applyReorganization(source)).toThrow(/nie pozwala/);
+        expect(source.backpack).toEqual(previous.backpack);
+        expect(source.previousSlots).toEqual(previous.previousSlots);
+        source.reorganizationOptions.insertions[1].targetSlotKey = "boots";
+        source.reorganizationOptions.insertions.push({ entryId: "missing" });
+        expect(() => applyReorganization(source)).toThrow(/pomija/);
+    });
+    it("counts insertion and returning the replaced stone separately against the selected limit", () => {
+        const source = input();
+        source.reorganizationOptions = {
+            task: "INSERT",
+            insertEntryId: "selected",
+            allowUnequip: true,
+            maxMoves: 1,
+        };
+        const initial = structuredClone(source.backpack);
+        expect(() => applyReorganization(source)).toThrow(/limit przełożeń/);
+        expect(source.backpack).toEqual(initial);
+        source.reorganizationOptions.maxMoves = 2;
+        expect(applyReorganization(source).some((entry) => entry.id === "selected")).toBe(false);
+    });
+    it("counts swapping two equipped stones as two moves", () => {
+        const source = input();
+        source.previousSlots.armor = slot(2, [60], { 0: 6 });
+        source.nextSlots = { helmet: slot(1, [60], { 0: 6 }), armor: slot(2, [60], { 0: 2 }) };
+        source.reorganizationDrifUsages = [
+            {
+                entryId: null,
+                sourceSlotKey: "armor",
+                sourceDrifIndex: 0,
+                slotKey: "helmet",
+                drifIndex: 0,
+            },
+            {
+                entryId: null,
+                sourceSlotKey: "helmet",
+                sourceDrifIndex: 0,
+                slotKey: "armor",
+                drifIndex: 0,
+            },
+        ];
+        source.reorganizationOptions = {
+            task: "RESERVE",
+            maxMoves: 1,
+            reservation: { slotKey: "helmet", freeSockets: 1, freeCapacity: 0 },
+        };
+        expect(() => applyReorganization(source)).toThrow(/limit przełożeń/);
+        source.reorganizationOptions.maxMoves = 2;
+        expect(applyReorganization(source)).toEqual(source.backpack);
+    });
+    it("consumes an explicitly chosen loose stone without requiring its general pool checkbox", () => {
+        const source = input();
+        source.backpack[0].sendToBackend = false;
+        source.reorganizationOptions = {
+            task: "INSERT",
+            insertEntryId: "selected",
+            allowUnequip: true,
+        };
+        source.allowedBackpackIds = ["selected"];
+        const next = applyReorganization(source);
+        expect(next.some((entry) => entry.id === "selected")).toBe(false);
+        expect(source.backpack[0].sendToBackend).toBe(false);
+        expect(next.some((entry) => entry.level === 2)).toBe(true);
+    });
+    it("checks every requested upgrade and rejects unrequested level changes", () => {
+        const source = input();
+        source.previousSlots.armor = slot(2, [60], { 0: 1 });
+        source.nextSlots = { helmet: slot(1, [60], { 0: 6 }), armor: slot(2, [60], { 0: 5 }) };
+        source.reorganizationOptions = {
+            task: "UPGRADE",
+            upgrades: [
+                {
+                    sourceSlotKey: "helmet",
+                    sourceDrifIndex: 0,
+                    targetTemplateId: 60,
+                    targetLevel: 6,
+                },
+                {
+                    sourceSlotKey: "armor",
+                    sourceDrifIndex: 0,
+                    targetTemplateId: 60,
+                    targetLevel: 5,
+                },
+            ],
+        };
+        source.reorganizationDrifUsages = ["helmet", "armor"].map((slotKey) => ({
+            entryId: null,
+            sourceSlotKey: slotKey,
+            sourceDrifIndex: 0,
+            slotKey,
+            drifIndex: 0,
+        }));
+        expect(applyReorganization(source)).toEqual(source.backpack);
+        source.nextSlots.armor.drifLevels[0] = 6;
+        expect(() => applyReorganization(source)).toThrow();
+    });
+    it("requires the chosen backpack occurrence and the requested reserve", () => {
+        const source = input();
+        source.nextSlots.helmet = slot(1);
+        source.reorganizationDrifUsages = [];
+        source.reorganizationOptions = {
+            task: "INSERT",
+            insertEntryId: "unused",
+            allowUnequip: true,
+        };
+        expect(() => applyReorganization(source)).toThrow(/wybrany drif/);
+        source.nextSlots.helmet = slot(1, [60], { 0: 2 });
+        source.reorganizationDrifUsages = [
+            {
+                entryId: null,
+                sourceSlotKey: "helmet",
+                sourceDrifIndex: 0,
+                slotKey: "helmet",
+                drifIndex: 0,
+            },
+        ];
+        source.reorganizationOptions = {
+            task: "RESERVE",
+            allowUnequip: true,
+            reservation: { slotKey: "helmet", freeSockets: 3, freeCapacity: 12 },
+        };
+        expect(() => applyReorganization(source)).toThrow(/wymaganego miejsca/);
+    });
+    it.each(["UPGRADE", "RESERVE", "INSERT"])(
+        "rejects an unrequested backpack source during %s before publishing inventory",
+        (task) => {
+            const source = input();
+            source.reorganizationOptions = {
+                task,
+                insertEntryId: "unused",
+                upgrades:
+                    task === "UPGRADE"
+                        ? [
+                              {
+                                  sourceSlotKey: "helmet",
+                                  sourceDrifIndex: 0,
+                                  targetTemplateId: 60,
+                                  targetLevel: 6,
+                              },
+                          ]
+                        : undefined,
+            };
+            source.allowedBackpackIds = ["selected", "unused"];
+            const original = structuredClone(source.backpack);
+            expect(() => applyReorganization(source)).toThrow(/nie pozwala użyć/);
+            expect(source.backpack).toEqual(original);
+        }
+    );
+    it("upgrades only the explicitly selected equipped occurrence without duplicating it", () => {
+        const source = input();
+        source.reorganizationOptions = {
+            task: "UPGRADE",
+            maxMoves: 1,
+            goal: "CRITICAL_CHANCE",
+            allowUnequip: false,
+            upgrade: {
+                sourceSlotKey: "helmet",
+                sourceDrifIndex: 0,
+                targetTemplateId: 60,
+                targetLevel: 6,
+            },
+        };
+        source.reorganizationDrifUsages = [
+            {
+                entryId: null,
+                sourceSlotKey: "helmet",
+                sourceDrifIndex: 0,
+                slotKey: "helmet",
+                drifIndex: 0,
+            },
+        ];
+        expect(applyReorganization(source)).toEqual(source.backpack);
+        source.nextSlots.helmet.drifLevels[0] = 5;
+        expect(() => applyReorganization(source)).toThrow(/nieposiadanego/);
+    });
+    it("rejects silently returning an equipped stone and using an excluded backpack occurrence", () => {
+        const source = input();
+        source.reorganizationOptions = { task: "ARRANGE", allowUnequip: false };
+        expect(() => applyReorganization(source)).toThrow(/bez zgody/);
+        source.reorganizationOptions.allowUnequip = true;
+        source.allowedBackpackIds = [];
+        expect(() => applyReorganization(source)).toThrow(/wybranej puli/);
+    });
     it("swaps equipped occurrences between slots while preserving sparse socket indexes", () => {
         const source = input();
         source.previousSlots.armor = slot(2, [60], { 0: 6 });

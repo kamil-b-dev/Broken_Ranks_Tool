@@ -35,7 +35,20 @@ async function initialize(page, layout, changes = {}) {
                         value: {
                             format: "broken-ranks-tool-optimizer-config",
                             version: 1,
-                            settings: { mode: "REORGANIZE", configurationMode: "ADVANCED" },
+                            settings: {
+                                mode: "REORGANIZE",
+                                configurationMode: "ADVANCED",
+                                reorganization: {
+                                    task: "RESERVE",
+                                    reservation: {
+                                        slotKey: "helmet",
+                                        freeSockets: 3,
+                                        freeCapacity: 0,
+                                    },
+                                    includeBackpack: true,
+                                    allowUnequip: true,
+                                },
+                            },
                             priorities: [{ key: "CRITICAL_CHANCE", weight: 15, min: 0, max: 12 }],
                         },
                     })
@@ -54,8 +67,10 @@ async function initialize(page, layout, changes = {}) {
     await page.route("**/api/calculator/calculate", (route) =>
         route.fulfill({ json: { stats: { CRITICAL_CHANCE: "4%" } } })
     );
-    await page.goto(`/optymalizator?ui=${layout}`);
-    await expect(page.getByRole("heading", { name: "Pula drifów" })).toBeVisible({
+    await page.goto(`/optimizer?ui=${layout}`);
+    await expect(
+        page.getByRole("group", { name: "Zadanie reorganizacji", exact: true })
+    ).toBeVisible({
         timeout: 15000,
     });
 }
@@ -77,42 +92,58 @@ async function showResult(page, layout) {
 }
 
 for (const layout of ["desktop", "mobile"]) {
-    test(`${layout} swaps equipped stones between slots and preserves the change after reload`, async ({
+    test(`${layout} relocates equipped stones between slots and preserves the change after reload`, async ({
         page,
     }) => {
         await initialize(page, layout, {
-            requestData: { slots: { helmet, armor: slot(2, 6) }, characterStats: {} },
+            requestData: {
+                slots: {
+                    helmet,
+                    armor: slot(2, 6),
+                    boots: { ...slot(5, 1), drifIds: [], drifLevels: {} },
+                },
+                characterStats: {},
+            },
         });
         await page.route("**/api/optimizer/drifs", (route) =>
             route.fulfill({
-                json: successful({ helmet: slot(1, 6), armor: slot(2, 2) }, [
+                json: successful(
                     {
-                        entryId: null,
-                        sourceSlotKey: "armor",
-                        sourceDrifIndex: 0,
-                        slotKey: "helmet",
-                        drifIndex: 0,
+                        helmet: { ...helmet, drifIds: [], drifLevels: {} },
+                        armor: slot(2, 2),
+                        boots: slot(5, 6),
                     },
-                    {
-                        entryId: null,
-                        sourceSlotKey: "helmet",
-                        sourceDrifIndex: 0,
-                        slotKey: "armor",
-                        drifIndex: 0,
-                    },
-                ]),
+                    [
+                        {
+                            entryId: null,
+                            sourceSlotKey: "armor",
+                            sourceDrifIndex: 0,
+                            slotKey: "boots",
+                            drifIndex: 0,
+                        },
+                        {
+                            entryId: null,
+                            sourceSlotKey: "helmet",
+                            sourceDrifIndex: 0,
+                            slotKey: "armor",
+                            drifIndex: 0,
+                        },
+                    ]
+                ),
             })
         );
         const before = await draft(page);
         await page.getByRole("button", { name: /Uruchom optymalizację/i }).click();
         await expect
-            .poll(async () => (await draft(page)).requestData.slots.helmet.drifLevels[0])
+            .poll(async () => (await draft(page)).requestData.slots.boots.drifLevels[0])
             .toBe(6);
         const applied = await draft(page);
         expect(applied.requestData.slots.armor.drifLevels[0]).toBe(2);
         expect(applied.backpack).toEqual(before.backpack);
         await page.reload();
-        await expect(page.getByRole("heading", { name: "Pula drifów" })).toBeVisible();
+        await expect(
+            page.getByRole("group", { name: "Zadanie reorganizacji", exact: true })
+        ).toBeVisible();
         expect(await draft(page)).toEqual(applied);
         if (layout === "mobile")
             await expect(page.getByLabel("Tryb optymalizatora")).toHaveValue("REORGANIZE");

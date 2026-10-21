@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n/useTranslation";
 import { useCallback, useMemo, useState } from "react";
 import { SLOTS } from "../../../shared/domain/equipment/equipmentSlots";
 import { getDrifMaxLevel, getOrbMaxLevel } from "../../../shared/domain/equipment/equipmentRules";
@@ -11,35 +12,37 @@ import {
 } from "./backpackDomain";
 
 function ItemPicker({ data, onSelect }) {
+    const { t } = useTranslation();
+
     const [category, setCategory] = useState("helmet");
     const slot = SLOTS.find((slot) => slot.key === category);
     const allowed = Array.isArray(slot.cat) ? slot.cat : [slot.cat];
     return (
         <div className="backpack-picker">
             <label>
-                Kategoria
+                {t("Kategoria")}
                 <select value={category} onChange={(event) => setCategory(event.target.value)}>
                     {SLOTS.filter((slot) => slot.key !== "ring2").map((slot) => (
                         <option key={slot.key} value={slot.key}>
-                            {slot.label}
+                            {t(slot.label)}
                         </option>
                     ))}
                 </select>
             </label>
             <label>
-                Przedmiot do plecaka
+                {t("Przedmiot do plecaka")}
                 <select
                     value=""
                     onChange={(event) =>
                         onSelect(data.items.find((item) => String(item.id) === event.target.value))
                     }
                 >
-                    <option value="">Wybierz przedmiot</option>
+                    <option value="">{t("Wybierz przedmiot")}</option>
                     {data.items
                         .filter((item) => allowed.includes(item.category))
                         .map((item) => (
                             <option key={item.id} value={item.id}>
-                                {item.name} · {item.tier}
+                                {item.name} · {t(item.tier)}
                             </option>
                         ))}
                 </select>
@@ -49,6 +52,8 @@ function ItemPicker({ data, onSelect }) {
 }
 
 function StoneEditor({ kind, entry, data, onCreate, onUpdate }) {
+    const { t } = useTranslation();
+
     const stones = kind === "ORB" ? data.orbs : data.drifs;
     const groups = useMemo(() => groupGearOptionsByType(stones), [stones]);
     const template = entry && backpackTemplate(entry, data);
@@ -75,7 +80,8 @@ function StoneEditor({ kind, entry, data, onCreate, onUpdate }) {
     return (
         <div className="backpack-picker">
             <label>
-                Rodzaj {kind === "ORB" ? "orba" : "drifa"}
+                {t("Rodzaj ")}
+                {t(kind === "ORB" ? "orba" : "drifa")}
                 <select
                     value={type}
                     onChange={(event) => {
@@ -84,40 +90,40 @@ function StoneEditor({ kind, entry, data, onCreate, onUpdate }) {
                     }}
                 >
                     <option value="" disabled>
-                        Wybierz rodzaj
+                        {t("Wybierz rodzaj")}
                     </option>
                     {Object.keys(groups)
                         .sort((a, b) => a.localeCompare(b, "pl"))
                         .map((name) => (
                             <option key={name} value={name}>
-                                {name}
+                                {t(name)}
                             </option>
                         ))}
                 </select>
             </label>
             <label>
-                Rozmiar
+                {t("Rozmiar")}
                 <select
                     value={entry?.templateId || ""}
                     disabled={!type}
                     onChange={(event) => choose(event.target.value)}
                 >
                     <option value="" disabled>
-                        Wybierz rozmiar
+                        {t("Wybierz rozmiar")}
                     </option>
                     {options.map((stone) => (
                         <option key={stone.id} value={stone.id}>
-                            {stone.size}
+                            {t(stone.size)}
                         </option>
                     ))}
                 </select>
             </label>
             {entry && (
                 <label>
-                    Poziom
+                    {t("Poziom")}
                     <select
                         value={entry.level}
-                        aria-label="Poziom"
+                        aria-label={t("Poziom")}
                         onChange={(event) => onUpdate({ level: Number(event.target.value) })}
                     >
                         {Array.from(
@@ -125,7 +131,7 @@ function StoneEditor({ kind, entry, data, onCreate, onUpdate }) {
                             (_, index) => index + 1
                         ).map((level) => (
                             <option key={level} value={level} disabled={level > maximum}>
-                                {level}
+                                {t(level)}
                             </option>
                         ))}
                     </select>
@@ -137,6 +143,8 @@ function StoneEditor({ kind, entry, data, onCreate, onUpdate }) {
 
 /** Selected backpack objects reuse the domain equipment editor in an isolated one-item context. */
 export default function BackpackEditor({ model, data, gameRules, syncTrigger }) {
+    const { t } = useTranslation();
+
     const entry = model.activeEntry;
     const template = entry && backpackTemplate(entry, data);
     const slot = entry?.kind === "ITEM" ? backpackSlot(template) : null;
@@ -195,15 +203,15 @@ export default function BackpackEditor({ model, data, gameRules, syncTrigger }) 
     const kind = model.creatingKind || entry?.kind;
     const warning = entry && backpackWarning(entry, data, gameRules);
     return (
-        <section className="selected-slot-editor backpack-editor" aria-label="Edytor plecaka">
+        <section className="selected-slot-editor backpack-editor" aria-label={t("Edytor plecaka")}>
             <div className="selected-slot-editor-heading">
-                <p className="section-kicker">Plecak</p>
+                <p className="section-kicker">{t("Plecak")}</p>
                 <h3>{model.creatingKind ? "Nowy obiekt" : template?.name || "Wybierz obiekt"}</h3>
             </div>
             <div className="selected-slot-editor-content">
                 {warning && (
                     <p role="status" className="backpack-warning">
-                        {warning}
+                        {t(warning)}
                     </p>
                 )}
                 {model.creatingKind === "ITEM" ? (
@@ -223,7 +231,7 @@ export default function BackpackEditor({ model, data, gameRules, syncTrigger }) 
                         expanded
                         allowEmptyItem={false}
                         slotKey={slot.key}
-                        label="Przedmiot w plecaku"
+                        label={t("Przedmiot w plecaku")}
                         items={items}
                         drifs={data.drifs}
                         orbs={data.orbs}
@@ -248,7 +256,7 @@ export default function BackpackEditor({ model, data, gameRules, syncTrigger }) 
                         }
                     />
                 ) : (
-                    <p className="backpack-editor-empty">Wybierz obiekt lub dodaj nowy.</p>
+                    <p className="backpack-editor-empty">{t("Wybierz obiekt lub dodaj nowy.")}</p>
                 )}
             </div>
         </section>

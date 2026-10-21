@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../shared/i18n/useTranslation";
 import "../stats-panel/stats-panel.css";
 import { memo, useMemo, useState } from "react";
 import {
@@ -8,11 +9,13 @@ import TabList from "../../../shared/ui/TabList";
 import { buildStatColumns } from "../stats-panel/statsPanelDomain";
 
 function MobileStatsPanel() {
+    const { t, locale } = useTranslation();
+
     const equipment = { ...useEquipmentCalculation(), ...useEquipmentCatalogState() };
     const { stats, gameRules, statSources } = equipment;
     const columns = useMemo(
-        () => buildStatColumns({ stats, gameRules, statSources }),
-        [stats, gameRules, statSources]
+        () => buildStatColumns({ stats, gameRules, statSources, translateLabel: t, locale }),
+        [stats, gameRules, statSources, t, locale]
     );
     const [activeView, setActiveView] = useState("all");
     const visibleColumns = columns.filter((column) => {
@@ -22,23 +25,25 @@ function MobileStatsPanel() {
         return column.title === "Drify";
     });
     return (
-        <section className="mobile-stats" aria-label="Statystyki buildu">
+        <section className="mobile-stats" aria-label={t("Statystyki buildu")}>
             <button
                 type="button"
                 className="mobile-primary"
                 disabled={equipment.isCalculatingStats}
                 onClick={equipment.calculateStats}
             >
-                {equipment.isCalculatingStats ? "Przeliczanie…" : "Przelicz statystyki"}
+                {t(equipment.isCalculatingStats ? "Przeliczanie…" : "Przelicz statystyki")}
             </button>
             {!equipment.stats && (
-                <p className="mobile-muted">Przelicz statystyki aktualnego ekwipunku i postaci.</p>
+                <p className="mobile-muted">
+                    {t("Przelicz statystyki aktualnego ekwipunku i postaci.")}
+                </p>
             )}
             {columns.length > 0 && (
                 <>
                     <TabList
                         className="stats-result-tabs"
-                        label="Zakres wyświetlanych statystyk"
+                        label={t("Zakres wyświetlanych statystyk")}
                         idPrefix="mobile-stats-result"
                         panelId="mobile-stats-result-panel"
                         active={activeView}
@@ -58,15 +63,15 @@ function MobileStatsPanel() {
                     >
                         {visibleColumns.map((column) => (
                             <section className="mobile-card" key={column.title}>
-                                <h2>{column.title}</h2>
+                                <h2>{t(column.title)}</h2>
                                 {column.categories.map(({ category, values }) => (
                                     <div key={category.title}>
-                                        <h3>{category.title}</h3>
+                                        <h3>{t(category.title)}</h3>
                                         <dl>
                                             {values.map(({ key, val, displayName }) => (
                                                 <div key={key}>
-                                                    <dt>{displayName}</dt>
-                                                    <dd>{val}</dd>
+                                                    <dt>{t(displayName)}</dt>
+                                                    <dd>{t(val)}</dd>
                                                 </div>
                                             ))}
                                         </dl>
