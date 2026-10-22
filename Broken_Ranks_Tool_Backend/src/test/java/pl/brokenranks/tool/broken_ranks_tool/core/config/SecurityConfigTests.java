@@ -1,16 +1,19 @@
 package pl.brokenranks.tool.broken_ranks_tool.core.config;
 
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import pl.brokenranks.tool.broken_ranks_tool.catalog.controller.InitialDataController;
@@ -55,8 +58,21 @@ class SecurityConfigTests {
     }
 
     @Test
+    void enablesCsrfByDefaultForFutureAuthenticatedRoutes() throws Exception {
+        mockMvc.perform(get("/api/initial-data"))
+                .andExpect(
+                        request()
+                                .attribute(
+                                        "_csrf",
+                                        org.hamcrest.Matchers.instanceOf(CsrfToken.class)));
+    }
+
+    @Test
     void rejectsUndeclaredWriteEndpointsWithStandardError() throws Exception {
-        mockMvc.perform(post("/api/undeclared").header("X-Request-ID", "security-test"))
+        mockMvc.perform(
+                        post("/api/undeclared")
+                                .with(csrf())
+                                .header("X-Request-ID", "security-test"))
                 .andExpect(status().isForbidden())
                 .andExpect(header().string("X-Request-ID", "security-test"))
                 .andExpect(jsonPath("$.code").value("FORBIDDEN"))

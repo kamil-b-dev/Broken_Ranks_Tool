@@ -9,7 +9,7 @@ export default function LanguageSwitcher() {
                     key={option}
                     type="button"
                     lang={option}
-                    aria-label={option === "pl" ? "Polski" : "English"}
+                    aria-label={option === "pl" ? "PL — Polski" : "EN — English"}
                     aria-pressed={language === option}
                     onClick={() => setLanguage(option)}
                 >

@@ -54,7 +54,7 @@ export const sortBonusesByCategory = (bonuses, locale = "pl", translateLabel = (
 export const numericStatValue = (value) =>
     Number.parseFloat(
         String(value ?? "0")
-            .replace("%", "")
+            .replaceAll("%", "")
             .replace(",", ".")
             .replace("+", "")
             .trim()
@@ -63,7 +63,7 @@ export const numericStatValue = (value) =>
 export const parsePercentage = (value) => {
     const parsed = Number.parseFloat(
         String(value ?? "0")
-            .replace("%", "")
+            .replaceAll("%", "")
             .replace(",", ".")
             .trim()
     );

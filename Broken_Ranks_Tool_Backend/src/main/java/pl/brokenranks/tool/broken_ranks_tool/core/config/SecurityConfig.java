@@ -30,7 +30,15 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, ObjectMapper objectMapper)
             throws Exception {
-        return http.csrf(csrf -> csrf.disable())
+        // Public calculation endpoints do not use browser credentials. Keep CSRF enabled
+        // by default so future authenticated routes do not inherit a blanket exemption.
+        return http.csrf(
+                        csrf ->
+                                csrf.ignoringRequestMatchers(
+                                        "/api/calculator/calculate",
+                                        "/api/optimizer/drifs",
+                                        "/api/progression-path/plan",
+                                        "/api/optimizer/advisor/*/cancel"))
                 .cors(cors -> cors.disable())
                 .httpBasic(httpBasic -> httpBasic.disable())
                 .formLogin(formLogin -> formLogin.disable())

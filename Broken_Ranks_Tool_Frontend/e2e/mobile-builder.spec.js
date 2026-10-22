@@ -172,24 +172,38 @@ test.describe("dedicated mobile builder", () => {
         });
     }
 
-    test("edits every slot by touch and preserves equipment through history, rotation and reload", async ({
-        page,
-    }) => {
+    for (let offset = 0; offset < SLOTS.length; offset += 4) {
+        const slots = SLOTS.slice(offset, offset + 4);
+        test(`edits and persists touch slots ${slots.map(({ key }) => key).join(", ")}`, async ({
+            page,
+        }) => {
+            await mockCatalog(page);
+            await page.goto("/builder");
+            for (const slot of slots) {
+                await equip(page, slot.label);
+                await page.getByLabel("Gwiazdki", { exact: true }).selectOption("9");
+                await page.getByRole("button", { name: "Wszystkie sloty", exact: false }).tap();
+                await expect(page.locator(`#mobile-slot-${slot.key}`)).toContainText(
+                    `${slot.label} podróżnika`
+                );
+            }
+            await page.reload();
+            for (const slot of slots)
+                await expect(page.locator(`#mobile-slot-${slot.key}`)).toContainText(
+                    `${slot.label} podróżnika`
+                );
+            await expect(page.locator(".mobile-count")).toHaveText("4 / 12");
+        });
+    }
+
+    test("preserves stone edits through history, rotation and reload", async ({ page }) => {
         await mockCatalog(page);
         await page.goto("/builder");
         await expect(page.locator(".mobile-app")).toBeVisible();
         await expect(page.locator(".app-masthead")).toHaveCount(0);
         await expect(page.locator(".mobile-slot-card")).toHaveCount(12);
-        for (const slot of SLOTS) {
-            // Rings share a category, so choose the matching named item explicitly.
-            await equip(page, slot.label);
-            await page.getByLabel("Gwiazdki", { exact: true }).selectOption("9");
-            await page.getByRole("button", { name: "Wszystkie sloty", exact: false }).tap();
-            await expect(page.locator(`#mobile-slot-${slot.key}`)).toContainText(
-                `${slot.label} podróżnika`
-            );
-        }
-        await page.getByRole("button", { name: "Edytuj slot: Hełm", exact: true }).tap();
+        await equip(page, "Hełm");
+        await page.getByLabel("Gwiazdki", { exact: true }).selectOption("9");
         await expect(page.getByLabel("Gwiazdki", { exact: true })).toHaveValue("9");
         await page.getByLabel("Wybierz rodzaj drifa 1", { exact: true }).selectOption("Band");
         await page.getByLabel("Wybierz wielkość drifa 1", { exact: true }).selectOption("60");
@@ -226,7 +240,7 @@ test.describe("dedicated mobile builder", () => {
         await expect(page.getByRole("dialog")).toHaveCount(0);
         await expect(page.getByLabel("Gwiazdki", { exact: true })).toHaveValue("9");
         await page.getByRole("button", { name: "Wszystkie sloty", exact: false }).tap();
-        await expect(page.locator(".mobile-count")).toHaveText("12 / 12");
+        await expect(page.locator(".mobile-count")).toHaveText("1 / 12");
         await page.screenshot({
             path: "../tmp/mobile-ui-audit/mobile-build-320.png",
             fullPage: true,

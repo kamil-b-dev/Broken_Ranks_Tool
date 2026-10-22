@@ -5,13 +5,16 @@ RUN npm ci
 COPY Broken_Ranks_Tool_Frontend/ ./
 RUN npm run build && npm run check:bundle-size
 
-FROM maven:3.9.12-eclipse-temurin-21 AS backend-build
+FROM eclipse-temurin:21-jdk-alpine AS backend-build
+RUN apk add --no-cache unzip
 WORKDIR /workspace/backend
 COPY Broken_Ranks_Tool_Backend/pom.xml ./
-RUN mvn -B dependency:go-offline
+COPY Broken_Ranks_Tool_Backend/mvnw ./
+COPY Broken_Ranks_Tool_Backend/.mvn ./.mvn
+RUN chmod +x mvnw && ./mvnw -B dependency:go-offline
 COPY Broken_Ranks_Tool_Backend/src ./src
 COPY --from=frontend-build /workspace/frontend/dist ./src/main/resources/static
-RUN mvn -B -DskipTests package
+RUN ./mvnw -B -DskipTests package
 
 FROM eclipse-temurin:21-jre-jammy@sha256:e9aaf73145bbd1f9f6ec7f6867dd75a44f34b1a6c32a813504bf4129be2d09d7 AS runtime
 WORKDIR /app

@@ -27,7 +27,7 @@ export const ADVISOR_TIME_BUDGETS = [3000, 6000];
 export const advisorNumber = (value) =>
     Number.parseFloat(
         String(value ?? 0)
-            .replace("%", "")
+            .replaceAll("%", "")
             .replace(",", ".")
     ) || 0;
 

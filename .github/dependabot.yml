@@ -3,6 +3,10 @@ updates:
   - package-ecosystem: maven
     directory: /Broken_Ranks_Tool_Backend
     target-branch: dev
+    ignore:
+      # Regression reproduced by OptimizationExhaustiveSearchTests; google/or-tools#5003.
+      - dependency-name: com.google.ortools:ortools-java
+        versions: ["[9.15,9.16)"]
     schedule:
       interval: daily
       time: "05:00"
@@ -16,6 +20,9 @@ updates:
   # Security updates target the default branch; maintain it as well as dev.
   - package-ecosystem: maven
     directory: /Broken_Ranks_Tool_Backend
+    ignore:
+      - dependency-name: com.google.ortools:ortools-java
+        versions: ["[9.15,9.16)"]
     schedule:
       interval: daily
       time: "05:00"
@@ -31,6 +38,16 @@ updates:
 
   - package-ecosystem: npm
     directory: /Broken_Ranks_Tool_Frontend
+    ignore:
+      # React 19.3 exceeds the unchanged mobile startup budget; retain patched 19.2.
+      - dependency-name: react
+        versions: ["19.3.x"]
+      - dependency-name: react-dom
+        versions: ["19.3.x"]
+      - dependency-name: "@types/react"
+        versions: ["19.3.x"]
+      - dependency-name: "@types/react-dom"
+        versions: ["19.3.x"]
     schedule:
       interval: daily
     groups:
@@ -59,6 +76,12 @@ updates:
     directory: /
     schedule:
       interval: daily
+    # Keep the supported runtime lines; continue receiving patch and digest updates.
+    ignore:
+      - dependency-name: node
+        update-types: [version-update:semver-major]
+      - dependency-name: eclipse-temurin
+        update-types: [version-update:semver-major]
 
   - package-ecosystem: github-actions
     directory: /
