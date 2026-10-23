@@ -4,6 +4,12 @@ Aplikacja webowa do budowania ekwipunku, obliczania statystyk i optymalizacji bu
 w Broken Ranks. Repozytorium zawiera frontend React/Vite, backend Spring Boot oraz
 wersjonowany, tylko-do-odczytu katalog SQLite.
 
+Strona startowa udostępnia kontynuowanie roboczego buildu, szybki import i trzy
+ostatnio zapisane konfiguracje. Biblioteka pozwala wykonać zbiorczą
+[kopię i import buildów](docs/kopia-biblioteki.md) z podglądem konfliktów.
+[Ścieżka rozwoju](docs/sciezka-rozwoju.md) zapamiętuje lokalnie poziom i wykonane
+etapy; odtwarza je po wygenerowaniu zgodnego planu z aktualnego API.
+
 ## Struktura
 
 - `Broken_Ranks_Tool_Frontend/` — interfejs użytkownika pogrupowany według funkcji:

@@ -173,8 +173,16 @@ bez numerowanych etykiet „Drif 1” lub „Orb 1” w interfejsie.
 
 Pole „Twój poziom” wskazuje najbliższy nieodhaczony próg na tym lub wyższym
 poziomie; nie odhacza automatycznie wcześniejszych etapów. Checklista dotyczy
-aktualnie wyświetlanego raportu i resetuje się przy nowym planowaniu lub
-odświeżeniu. Nie jest częścią zapisu projektu v2. Eksport karty obejmuje końcową
+konkretnego celu i wygenerowanych instrukcji. Poziom i odhaczenia są zapisywane
+lokalnie, osobno od projektu v2. Po ponownym otwarciu „Odtwórz plan” generuje
+świeży raport z API; aplikacja nie przywraca historycznego raportu jako aktualnego.
+Przy identycznym wejściu i instrukcjach odtwarza poziom i checklistę. Zmiana celu,
+profesji, rezerwacji, opcji planowania albo instrukcji usuwa odhaczenia z widoku
+z komunikatem o konieczności ponownego sprawdzenia etapów. Poziom postaci pozostaje
+zachowany w granicach nowego celu. Przechowywany jest ostatni checkpoint; samo
+planowanie innego celu nie nadpisuje go, dopóki użytkownik nie zmieni poziomu
+lub odhaczenia. Błąd zapisu pozostawia stan w karcie i udostępnia ponowienie.
+Checklista nie jest częścią eksportowanego projektu v2. Eksport karty obejmuje końcową
 konfigurację danego poziomu, po wszystkich jego działaniach.
 
 ## API, zapis i eksport
