@@ -98,7 +98,7 @@
             <groupId>com.google.ortools</groupId>
             <artifactId>ortools-java</artifactId>
             <!-- 9.15 reports false INFEASIBLE for our independently enumerated oracle. -->
-            <version>9.14.6206</version>
+            <version>9.15.6755</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
