@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
 import { parse } from "yaml";
 
@@ -121,5 +121,13 @@ test("CodeQL includes test compilation and hidden Railway infrastructure", () =>
   );
   const configuration = readYaml("codeql-config.yml");
   assert.ok(configuration.paths.includes(".railway"));
-  assert.ok(configuration.paths.includes("**"));
+  assert.ok(configuration.paths.includes("."));
+  for (const path of configuration.paths) {
+    assert.doesNotMatch(
+      path,
+      /[*?]/,
+      "CodeQL include paths must name directories",
+    );
+    assert.ok(existsSync(new URL(`../${path}`, import.meta.url)), path);
+  }
 });
