@@ -180,11 +180,11 @@ jobs:
         timeout-minutes: 1
         run: |
           # Prefer the Ubuntu archive; the Azure mirror has stalled dependency downloads.
-          sudo tee /etc/apt/apt-mirrors.txt > /dev/null <<'EOF'
-          https://archive.ubuntu.com/ubuntu/ priority:1
-          https://security.ubuntu.com/ubuntu/ priority:2
-          http://azure.archive.ubuntu.com/ubuntu/ priority:3
-          EOF
+          printf '%s\tpriority:%s\n' \
+            'https://archive.ubuntu.com/ubuntu/' 1 \
+            'https://security.ubuntu.com/ubuntu/' 2 \
+            'http://azure.archive.ubuntu.com/ubuntu/' 3 \
+            | sudo tee /etc/apt/apt-mirrors.txt > /dev/null
           sudo tee /etc/apt/apt.conf.d/zz-playwright-downloads > /dev/null <<'EOF'
           Acquire::Retries "1";
           Acquire::http::Timeout "15";
