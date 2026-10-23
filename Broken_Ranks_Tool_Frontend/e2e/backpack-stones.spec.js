@@ -90,9 +90,17 @@ test("moves stones from the left backpack source into item cards and refreshes t
     const source = page.getByRole("region", { name: "Plecak do wyposażenia" });
     const item = page.locator(".backpack-grid .equipment-slot-overview");
     await item.click();
-    await source
-        .getByRole("button", { name: /Band · SUBDRIF/ })
-        .dragTo(item.locator(".equipment-slot-overview-item"));
+    const stone = source.getByRole("button", { name: /Band · SUBDRIF/ });
+    await stone.hover();
+    const bounds = await stone.boundingBox();
+    // Start dragging before scrolling the destination, so Chrome keeps the selected source.
+    await page.mouse.down();
+    await page.mouse.move(bounds.x + bounds.width / 2 + 8, bounds.y + bounds.height / 2, {
+        steps: 3,
+    });
+    await item.locator(".equipment-slot-overview-item").hover();
+    await item.locator(".equipment-slot-overview-item").hover();
+    await page.mouse.up();
     await expect(
         page.getByLabel("Edytor plecaka").getByLabel("Wybierz poziom drifa 1")
     ).toHaveValue("6");

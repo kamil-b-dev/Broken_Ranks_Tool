@@ -25,7 +25,7 @@ export const formatStatValue = (value) => {
     if (typeof value === "number")
         return Number.isInteger(value) ? value : Number.parseFloat(value.toFixed(2));
     if (typeof value === "string") {
-        const parsed = Number.parseFloat(value.replace(",", ".").replace("%", "").trim());
+        const parsed = Number.parseFloat(value.replace(",", ".").replaceAll("%", "").trim());
         if (!Number.isNaN(parsed)) {
             const rounded = Number.parseFloat(parsed.toFixed(2));
             return value.includes("%") ? `${rounded}%` : rounded;

@@ -12,16 +12,15 @@ import {
     clone,
     PROFESSIONS,
     RES_SLOTS,
-    PROJECT_STORAGE_KEY,
     readProjectDraft,
     parseProject,
-    projectPayload,
     stageFromPayload,
     planningRequest,
     downloadProject,
 } from "./progressionProject";
 import ProgressionNumberInput from "./ProgressionNumberInput";
 import ProgressionResult from "./ProgressionResult";
+import useProgressionProjectStorage from "./useProgressionProjectStorage";
 import "../../shared/styles/workbench.css";
 import "./progression-path.css";
 
@@ -41,24 +40,24 @@ export default function ProgressionWorkspace({
     const [initial] = useState(() => readProjectDraft(data));
     const [project, setProject] = useState(initial.project);
     const persistAllowed = useRef(initial.warning == null);
-    const [report, setReport] = useState(null);
+    const [reportState, setReportState] = useState(null);
+    const report = reportState?.data === data ? reportState.value : null;
+    const setReport = (value) => setReportState(value == null ? null : { data, value });
     const [error, setError] = useState(null);
-    const [storageError, setStorageError] = useState(initial.warning);
-    const [running, setRunning] = useState(false);
+    const [storageError, setStorageError] = useProgressionProjectStorage(
+        project,
+        initial.warning,
+        persistAllowed
+    );
+    const [runningData, setRunningData] = useState(null);
+    const running = runningData === data;
+    const setRunning = (value) => setRunningData(value ? data : null);
     const revision = useRef(0);
     const transport = useRef(null);
     const importRevision = useRef(0);
     const fileInput = useRef(null);
     const projectInput = useRef(null);
 
-    useEffect(() => {
-        if (!persistAllowed.current) return;
-        try {
-            localStorage.setItem(PROJECT_STORAGE_KEY, JSON.stringify(projectPayload(project)));
-        } catch {
-            setStorageError("Nie udało się zapisać projektu lokalnie. Możesz pobrać go do pliku.");
-        }
-    }, [project]);
     useEffect(
         () => () => {
             revision.current++;
@@ -70,8 +69,6 @@ export default function ProgressionWorkspace({
     useEffect(() => {
         revision.current++;
         transport.current?.abort();
-        setReport(null);
-        setRunning(false);
     }, [data]);
 
     const update = (change) => {
