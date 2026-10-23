@@ -143,7 +143,7 @@ jobs:
 
   frontend:
     name: Frontend checks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: Broken_Ranks_Tool_Frontend
@@ -176,8 +176,29 @@ jobs:
       - name: Check frontend bundle size
         run: npm run check:bundle-size
 
-      - name: Install Playwright browser
-        run: npx playwright install --with-deps chromium webkit
+      - name: Configure Ubuntu package downloads
+        timeout-minutes: 1
+        run: |
+          # Prefer the Ubuntu archive; the Azure mirror has stalled dependency downloads.
+          sudo tee /etc/apt/apt-mirrors.txt > /dev/null <<'EOF'
+          https://archive.ubuntu.com/ubuntu/ priority:1
+          https://security.ubuntu.com/ubuntu/ priority:2
+          http://azure.archive.ubuntu.com/ubuntu/ priority:3
+          EOF
+          sudo tee /etc/apt/apt.conf.d/zz-playwright-downloads > /dev/null <<'EOF'
+          Acquire::Retries "1";
+          Acquire::http::Timeout "15";
+          Acquire::https::Timeout "15";
+          EOF
+          apt-config dump Acquire::Retries Acquire::http::Timeout Acquire::https::Timeout
+
+      - name: Install Playwright system dependencies
+        timeout-minutes: 10
+        run: npx playwright install-deps chromium webkit
+
+      - name: Install Playwright browsers
+        timeout-minutes: 5
+        run: npx playwright install chromium webkit
 
       - name: Run browser tests
         run: npm run test:e2e
