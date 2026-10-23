@@ -192,7 +192,11 @@ export default function MobileApp() {
                     <a
                         key={key}
                         href={APP_ROUTES[key]}
-                        aria-label={t(key === "progression" ? "Ścieżka rozwoju" : undefined)}
+                        aria-label={
+                            key === "progression"
+                                ? `${t(label)} — ${t("Ścieżka rozwoju")}`
+                                : undefined
+                        }
                         aria-current={activeView === key ? "page" : undefined}
                         onClick={(event) => {
                             event.preventDefault();

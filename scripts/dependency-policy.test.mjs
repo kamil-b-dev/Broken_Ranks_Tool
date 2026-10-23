@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
 import { parse } from "yaml";
 
@@ -88,5 +88,46 @@ test("Maven updates cover dev and the default branch daily without bundling majo
         assert.deepEqual([...group["update-types"]].sort(), ["minor", "patch"]);
       }
     }
+  }
+});
+
+test("Docker updates preserve Java 21 and Node 22 and use the project Maven wrapper", () => {
+  const dockerfile = readFileSync(
+    new URL("../Dockerfile", import.meta.url),
+    "utf8",
+  );
+  assert.match(dockerfile, /^FROM node:22-/m);
+  assert.match(dockerfile, /^FROM eclipse-temurin:21-jdk-/m);
+  assert.match(dockerfile, /^FROM eclipse-temurin:21-jre-/m);
+  assert.doesNotMatch(dockerfile, /^FROM maven:/m);
+  assert.match(dockerfile, /RUN .*\.\/mvnw -B dependency:go-offline/);
+  const updates = readYaml("dependabot.yml").updates.find(
+    (entry) => entry["package-ecosystem"] === "docker",
+  );
+  for (const name of ["node", "eclipse-temurin"]) {
+    const ignored = updates.ignore.find(
+      (entry) => entry["dependency-name"] === name,
+    );
+    assert.deepEqual(ignored["update-types"], ["version-update:semver-major"]);
+  }
+});
+
+test("CodeQL includes test compilation and hidden Railway infrastructure", () => {
+  const workflow = readYaml("workflows/codeql.yml");
+  assert.ok(
+    workflow.jobs.analyze.steps.some(({ run }) =>
+      run?.includes("clean test-compile"),
+    ),
+  );
+  const configuration = readYaml("codeql-config.yml");
+  assert.ok(configuration.paths.includes(".railway"));
+  assert.ok(configuration.paths.includes("."));
+  for (const path of configuration.paths) {
+    assert.doesNotMatch(
+      path,
+      /[*?]/,
+      "CodeQL include paths must name directories",
+    );
+    assert.ok(existsSync(new URL(`../${path}`, import.meta.url)), path);
   }
 });

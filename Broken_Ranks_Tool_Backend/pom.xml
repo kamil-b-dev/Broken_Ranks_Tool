@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.0.8</version>
+        <version>4.1.1</version>
         <relativePath/>
     </parent>
 
@@ -19,8 +19,8 @@
     <properties>
         <java.version>21</java.version>
         <!-- Remove when the Boot BOM includes this security patch or newer. -->
-        <tomcat.version>11.0.26</tomcat.version>
-        <jackson-bom.version>3.1.7</jackson-bom.version>
+        <tomcat.version>11.0.27</tomcat.version>
+        <jackson-bom.version>3.2.4</jackson-bom.version>
     </properties>
 
     <dependencyManagement>
@@ -97,7 +97,8 @@
         <dependency>
             <groupId>com.google.ortools</groupId>
             <artifactId>ortools-java</artifactId>
-            <version>9.12.4544</version>
+            <!-- 9.15 reports false INFEASIBLE for our independently enumerated oracle. -->
+            <version>9.14.6206</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -119,7 +120,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.6.3</version>
+                <version>3.12.0</version>
                 <configuration>
                     <source>21</source>
                 </configuration>
@@ -127,7 +128,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.13</version>
+                <version>0.8.15</version>
                 <executions>
                     <execution>
                         <goals>
@@ -212,7 +213,7 @@
             <plugin>
                 <groupId>com.diffplug.spotless</groupId>
                 <artifactId>spotless-maven-plugin</artifactId>
-                <version>3.9.0</version>
+                <version>3.10.4</version>
                 <configuration>
                     <java>
                         <includes>

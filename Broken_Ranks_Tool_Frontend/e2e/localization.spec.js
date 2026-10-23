@@ -22,8 +22,8 @@ test("changes all desktop workspaces and persists English without changing chara
     page,
 }) => {
     await page.goto("/");
-    await expect(page.getByRole("button", { name: "Polski" })).toBeVisible();
-    await page.getByRole("button", { name: "English" }).click();
+    await expect(page.getByRole("button", { name: "PL — Polski" })).toBeVisible();
+    await page.getByRole("button", { name: "EN — English" }).click();
     await expect(page.locator("html")).toHaveAttribute("lang", "en");
     await page.getByRole("link", { name: "Equipment builder", exact: true }).click();
     await expect(page.getByRole("heading", { name: "Equipment", exact: true })).toBeVisible();
@@ -31,12 +31,12 @@ test("changes all desktop workspaces and persists English without changing chara
     await level.fill("20");
     await level.press("Enter");
     await page.getByRole("button", { name: "Add point: Strength", exact: true }).click();
-    await page.getByRole("button", { name: "Polski" }).click();
+    await page.getByRole("button", { name: "PL — Polski" }).click();
     await expect(page.getByRole("spinbutton", { name: "Poziom postaci", exact: true })).toHaveValue(
         "20"
     );
     await expect(page.locator('[data-stat="Siła"] strong')).toHaveText("11");
-    await page.getByRole("button", { name: "English" }).click();
+    await page.getByRole("button", { name: "EN — English" }).click();
     await page.getByRole("link", { name: "Drif optimizer", exact: true }).click();
     await expect(page.getByRole("button", { name: "Advanced", exact: true })).toBeVisible();
     await page.getByRole("button", { name: "Advanced", exact: true }).click();
@@ -44,7 +44,7 @@ test("changes all desktop workspaces and persists English without changing chara
     await expect(page.getByRole("button", { name: /Critical hit chance/ }).first()).toBeVisible();
     await page.getByRole("link", { name: /Local builds/ }).click();
     await expect(page.getByText("No local builds", { exact: true })).toBeVisible();
-    await page.getByRole("link", { name: "Progression path", exact: true }).click();
+    await page.getByRole("link", { name: /Progression path/ }).click();
     await expect(page.getByRole("combobox", { name: "Target build", exact: true })).toBeVisible();
     await page.getByRole("combobox", { name: "Target build", exact: true }).selectOption("current");
     await expect(page.getByRole("combobox", { name: "Target build", exact: true })).toHaveText(
@@ -63,7 +63,7 @@ test.describe("mobile localization", () => {
     test.use(mobileDevice);
     test("changes navigation, item picker, library and progression controls", async ({ page }) => {
         await page.goto("/builder");
-        await page.getByRole("button", { name: "English" }).click();
+        await page.getByRole("button", { name: "EN — English" }).click();
         await page.getByRole("button", { name: "Edit slot: Helmet", exact: true }).click();
         await page.getByRole("button", { name: "Choose item", exact: true }).click();
         await expect(page.getByRole("dialog")).toBeVisible();
@@ -71,7 +71,7 @@ test.describe("mobile localization", () => {
         await page.getByRole("button", { name: "Close item selection" }).click();
         await page.getByRole("link", { name: /Builds/ }).click();
         await expect(page.getByText("No local builds", { exact: true })).toBeVisible();
-        await page.getByRole("link", { name: "Progression path", exact: true }).click();
+        await page.getByRole("link", { name: /Progression path/ }).click();
         await expect(
             page.getByRole("combobox", { name: "Target build", exact: true })
         ).toBeVisible();

@@ -92,6 +92,21 @@ Ten sam zestaw uruchamia zadanie `Real frontend-backend integration` w GitHub Ac
 
 ## Przepływ zmian
 
+Obrazy aplikacji pozostają na Java 21 i Node 22. Dependabot aktualizuje poprawki
+tych linii; zmiany wersji głównych wymagają osobnej migracji. Backend w Dockerze
+korzysta z wrappera Maven projektu, dzięki czemu aktualizacja Maven nie przełącza JDK.
+
+React i React DOM pozostają na aktualizowanej linii 19.2 (obecnie 19.2.9).
+Wersja 19.3.1 zwiększyła startowy JavaScript przed kompresją o około 29 kB i przekroczyła
+budżet startu mobilnego. Propozycje 19.3 są pomijane wraz z odpowiadającymi typami;
+limity wydajności pozostają bez zmian.
+
+Testowy oracle CP-SAT korzysta z OR-Tools 9.14.6206. Wersja 9.15 zwraca
+`INFEASIBLE` dla rozwiązywalnego modelu z `OptimizationExhaustiveSearchTests`,
+dlatego ta linia jest wyłączona z propozycji Dependabota. Niezależne porównanie
+z pełnym przeszukaniem nadal wymaga statusu `OPTIMAL` i zgodności wyniku.
+Podobna regresja jest opisana w [google/or-tools#5003](https://github.com/google/or-tools/issues/5003).
+
 Zmiany trafiają na gałąź `dev`. Po testach i przeglądzie pull request scala `dev`
 do `master`; `master` jest źródłem wdrożenia produkcyjnego. GitHub Actions uruchamia
 testy jakości dla obu gałęzi, audyt zależności dla pull requestów i pełny smoke test

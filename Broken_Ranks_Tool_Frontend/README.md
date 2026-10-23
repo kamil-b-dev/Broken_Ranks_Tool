@@ -37,8 +37,11 @@ podmieniony źródłowy PNG wymieniony w `scripts/optimize-assets.mjs`.
 `npm run assets:optimize:mobile` i `npm run assets:optimize:ui` odtwarzają mniejsze
 warianty grafik do kontrolek. Oryginalne grafiki pozostają źródłami tych wariantów.
 E2E obejmuje Chromium oraz mobilny WebKit (`npx playwright install webkit`).
-Profil `test:performance` buduje produkcję i uruchamia ją przez `vite preview`,
-kontrolując zasoby konkretnych widoków oraz regresje krytycznych interakcji.
+Profile E2E i `test:performance` budują produkcję i uruchamiają ją przez `vite preview`.
+Drugi profil kontroluje zasoby konkretnych widoków oraz regresje krytycznych interakcji.
+CI przekazuje `PLAYWRIGHT_USE_EXISTING_BUILD=1` po udanym buildzie, aby oba profile
+korzystały z tego samego artefaktu bez ponownego budowania. Lokalnie domyślnie
+powstaje świeży build. Mobilny WebKit uruchamia scenariusze pojedynczo.
 Raporty funkcjonalne i wydajnościowe są rozdzielone, a CI instaluje oba silniki
 i uruchamia oba profile przeglądarkowe.
 Czyste testy domenowe używają Node i puli wątków; komponenty i hooki pozostają

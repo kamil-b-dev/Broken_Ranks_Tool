@@ -49,7 +49,7 @@ it("updates translated page metadata and ignores unrelated storage events", asyn
             window.dispatchEvent(new StorageEvent("storage", { key: "other", newValue: "en" }))
         );
         expect(document.documentElement.lang).toBe("pl");
-        await userEvent.click(screen.getByRole("button", { name: "English" }));
+        await userEvent.click(screen.getByRole("button", { name: "EN — English" }));
         expect(description.content).toMatch(/Equipment calculator/);
         expect(locale.content).toBe("en_GB");
     } finally {
@@ -70,7 +70,7 @@ it("switches an open progression report without resetting completed stages", asy
     );
     expect(document.documentElement.lang).toBe("pl");
     await user.click(screen.getByRole("checkbox", { name: "Poziom 60 wykonany" }));
-    await user.click(screen.getByRole("button", { name: "English" }));
+    await user.click(screen.getByRole("button", { name: "EN — English" }));
     expect(document.documentElement.lang).toBe("en");
     expect(localStorage.getItem(LANGUAGE_STORAGE_KEY)).toBe("en");
     expect(screen.getByRole("status")).toHaveTextContent("Completed stages: 1 of 3");
@@ -89,7 +89,7 @@ it("switches an open progression report without resetting completed stages", asy
     ).toHaveClass("is-before");
     expect(screen.queryByText("Step-by-step instructions")).not.toBeInTheDocument();
     expect(report).toEqual(original);
-    await user.click(screen.getByRole("button", { name: "Polski" }));
+    await user.click(screen.getByRole("button", { name: "PL — Polski" }));
     expect(screen.getByRole("checkbox", { name: "Poziom 60 wykonany" })).toBeChecked();
 });
 
@@ -126,7 +126,10 @@ it("synchronizes language changes from another tab and handles cleared preferenc
             new StorageEvent("storage", { key: LANGUAGE_STORAGE_KEY, newValue: "en" })
         )
     );
-    expect(screen.getByRole("button", { name: "English" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "EN — English" })).toHaveAttribute(
+        "aria-pressed",
+        "true"
+    );
     act(() =>
         window.dispatchEvent(
             new StorageEvent("storage", { key: LANGUAGE_STORAGE_KEY, newValue: null })
@@ -147,7 +150,7 @@ it("keeps switching available when browser storage is blocked", async () => {
             <LanguageSwitcher />
         </LanguageProvider>
     );
-    await userEvent.click(screen.getByRole("button", { name: "English" }));
+    await userEvent.click(screen.getByRole("button", { name: "EN — English" }));
     expect(document.documentElement.lang).toBe("en");
 });
 
@@ -175,9 +178,9 @@ it("translates generated target names while preserving an identically named save
     const source = screen.getByRole("combobox", { name: "Target build" });
     await user.selectOptions(source, "current");
     expect(source).toHaveDisplayValue("Current build");
-    await user.click(screen.getByRole("button", { name: "Polski" }));
+    await user.click(screen.getByRole("button", { name: "PL — Polski" }));
     expect(source).toHaveDisplayValue("Aktualny build");
-    await user.click(screen.getByRole("button", { name: "English" }));
+    await user.click(screen.getByRole("button", { name: "EN — English" }));
     await user.selectOptions(source, "build:custom");
     expect(source).toHaveDisplayValue("Aktualny build");
 });

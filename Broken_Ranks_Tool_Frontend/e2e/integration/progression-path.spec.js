@@ -64,11 +64,11 @@ test("plans the current imported build with default options and a reserved ring"
     await expect(stage.getByText("Po", { exact: true }).first()).toBeVisible();
     await expect(page.getByText(/^(Drif|Orb) \d+$/)).toHaveCount(0);
     await stage.screenshot({ path: testInfo.outputPath("named-stone-transfers-pl.png") });
-    await page.getByRole("button", { name: "English", exact: true }).click();
+    await page.getByRole("button", { name: "EN — English", exact: true }).click();
     await expect(helmetTransfer.getByText("Remove from", { exact: true })).toBeVisible();
     await expect(helmetTransfer.getByText("Helmet · socket 1", { exact: true })).toBeVisible();
     await stage.screenshot({ path: testInfo.outputPath("named-stone-transfers-en.png") });
-    await page.getByRole("button", { name: "Polski", exact: true }).click();
+    await page.getByRole("button", { name: "PL — Polski", exact: true }).click();
     const busyStage = page.locator('.progression-timeline > li[data-level="135"]');
     await busyStage.locator(".progression-stage-toggle").click();
     expect(await busyStage.locator(".progression-transfer-card li").count()).toBeGreaterThan(10);

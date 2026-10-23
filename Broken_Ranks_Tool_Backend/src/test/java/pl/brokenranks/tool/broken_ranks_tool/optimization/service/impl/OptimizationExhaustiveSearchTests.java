@@ -61,7 +61,10 @@ class OptimizationExhaustiveSearchTests {
                                     scenario.rules, scenario.initialStates, scenario.evaluator)
                             .solve(scenario.context, Duration.ofSeconds(5), heuristic);
 
-            assertEquals(CpSatBuildOptimizationSolver.Status.OPTIMAL, cpSat.status());
+            assertEquals(
+                    CpSatBuildOptimizationSolver.Status.OPTIMAL,
+                    cpSat.status(),
+                    () -> definition + ": " + cpSat);
             assertEquals(
                     scenario.evaluator.score(exact, scenario.context),
                     scenario.evaluator.score(cpSat.best(), scenario.context),
