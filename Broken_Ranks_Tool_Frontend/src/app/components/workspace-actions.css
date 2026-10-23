@@ -1,0 +1,44 @@
+.equipment-history-actions,
+.storage-warning-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-family: Inter, system-ui, sans-serif;
+}
+
+.equipment-history-actions button,
+.storage-warning-actions button {
+    min-height: 2.75rem;
+    padding: 0.5rem 0.85rem;
+    border: 1px solid #70634e;
+    border-radius: 0.4rem;
+    background: #211e19;
+    color: #f5eee1;
+    font: inherit;
+    font-size: 0.875rem;
+    cursor: pointer;
+}
+
+.equipment-history-actions button:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+.mobile-content > .equipment-history-actions {
+    margin-bottom: 0.75rem;
+}
+
+.equipment-history-actions button:focus-visible,
+.storage-warning-actions button:focus-visible {
+    outline: 2px solid #f3cd85;
+    outline-offset: 3px;
+}
+
+.storage-warning {
+    flex-wrap: wrap;
+    font-family: Inter, system-ui, sans-serif;
+}
+
+.storage-warning p {
+    flex: 1 1 20rem;
+}

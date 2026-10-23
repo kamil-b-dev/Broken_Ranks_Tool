@@ -22,6 +22,8 @@ import { useBuildFileActions } from "../features/builds/useBuildFileActions";
 import { useBuildLibrary } from "../features/builds/useBuildLibrary";
 import { useAppRoute } from "./useAppRoute";
 import HomeWorkspace from "./components/HomeWorkspace";
+import EquipmentHistoryControls from "./components/EquipmentHistoryControls";
+import BuildStorageNotice from "./components/BuildStorageNotice";
 
 /** Desktop composition is loaded only for the desktop presentation. */
 export default function DesktopApp() {
@@ -53,7 +55,10 @@ export default function DesktopApp() {
                 onSaveBuild={() =>
                     buildLibrary.saveCurrent(`Build ${buildLibrary.builds.length + 1}`)
                 }
-                onLoadBuild={fileActions.loadBuild}
+                onLoadBuild={async (event) => {
+                    if ((await fileActions.loadBuild(event)) && window.location.pathname === "/")
+                        navigate("builder");
+                }}
             />
             <AppNotice
                 notice={buildLibrary.notice || fileActions.notice}
@@ -62,11 +67,26 @@ export default function DesktopApp() {
                 }
             />
             <EquipmentCalculationNotice />
+            <BuildStorageNotice library={buildLibrary} />
+            {["builder", "optimizer"].includes(mainView) && <EquipmentHistoryControls />}
             {mainView !== "home" && (
                 <WorkspaceState loading={equipment.loading} error={equipment.initialDataError} />
             )}
             <Suspense fallback={<WorkspaceState loading />}>
-                {mainView === "home" && <HomeWorkspace />}
+                {mainView === "home" && (
+                    <HomeWorkspace
+                        builds={buildLibrary.builds}
+                        disabled={unavailable}
+                        hasWorkingBuild={equipment.hasWorkingBuild}
+                        onContinue={() => navigate("builder")}
+                        onImport={() => fileActions.fileInputRef.current?.click()}
+                        onOpenLibrary={() => navigate("builds")}
+                        onOpenProgression={() => navigate("progression")}
+                        onOpenBuild={async (id) => {
+                            if (await buildLibrary.load(id)) navigate("builder");
+                        }}
+                    />
+                )}
                 {!unavailable && mainView === "progression" && (
                     <ProgressionWorkspace
                         builds={buildLibrary.builds}
@@ -85,6 +105,7 @@ export default function DesktopApp() {
                 )}
                 {!unavailable && mainView === "builds" && (
                     <BuildLibraryWorkspace
+                        library={buildLibrary}
                         builds={buildLibrary.builds}
                         data={equipment.data}
                         gameRules={equipment.gameRules}

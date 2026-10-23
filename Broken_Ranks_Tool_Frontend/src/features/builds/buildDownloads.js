@@ -1,9 +1,16 @@
 export const downloadBuildPayload = (payload, date = new Date()) => {
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    downloadBuildText(
+        JSON.stringify(payload, null, 2),
+        `broken-ranks-build-${date.toISOString().slice(0, 10)}.json`
+    );
+};
+
+export const downloadBuildText = (text, filename) => {
+    const blob = new Blob([text], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `broken-ranks-build-${date.toISOString().slice(0, 10)}.json`;
+    link.download = filename;
     document.body.appendChild(link);
     link.click();
     link.remove();

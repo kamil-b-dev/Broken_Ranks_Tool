@@ -21,6 +21,10 @@ export const useEquipmentBuildTransfer = ({
     onBuildImported,
 }) => {
     const importVersion = useRef(0);
+    const invalidateBuildImport = useCallback(() => {
+        importVersion.current += 1;
+    }, []);
+    useLayoutEffect(() => invalidateBuildImport, [invalidateBuildImport]);
     const snapshot = useRef({
         requestData,
         characterConfig,
@@ -104,5 +108,5 @@ export const useEquipmentBuildTransfer = ({
         [applyImportedBuild, data]
     );
 
-    return { loadBuildFromFile, createBuildSnapshot, loadBuildSnapshot };
+    return { loadBuildFromFile, createBuildSnapshot, loadBuildSnapshot, invalidateBuildImport };
 };

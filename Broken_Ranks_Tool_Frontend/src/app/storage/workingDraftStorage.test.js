@@ -15,6 +15,29 @@ describe("workingDraftStorage", () => {
     beforeEach(() => localStorage.clear());
     afterEach(() => vi.restoreAllMocks());
 
+    it("keeps earlier recovery copies and archives damaged data before any automatic overwrite", () => {
+        localStorage.setItem(EQUIPMENT_DRAFT_RECOVERY_STORAGE_KEY, "older backup");
+        localStorage.setItem(EQUIPMENT_DRAFT_STORAGE_KEY, "new damage");
+        expect(writeEquipmentDraft({ requestData: { slots: {} } })).toBe(true);
+        expect(localStorage.getItem(EQUIPMENT_DRAFT_RECOVERY_STORAGE_KEY)).toBe("older backup");
+        const extra = Object.keys(localStorage).find((key) =>
+            key.startsWith(EQUIPMENT_DRAFT_RECOVERY_STORAGE_KEY + ".")
+        );
+        expect(localStorage.getItem(extra)).toBe("new damage");
+    });
+
+    it("refuses to replace a rejected draft if its backup cannot be written", () => {
+        const storage = {
+            getItem: (key) => (key === EQUIPMENT_DRAFT_STORAGE_KEY ? "broken" : null),
+            setItem: vi.fn(() => {
+                throw new Error("quota");
+            }),
+        };
+        expect(writeEquipmentDraft({ requestData: { slots: {} } }, storage)).toBe(false);
+        expect(storage.setItem).toHaveBeenCalledTimes(1);
+        expect(storage.setItem.mock.calls[0][0]).toBe(EQUIPMENT_DRAFT_RECOVERY_STORAGE_KEY);
+    });
+
     it("keeps reads and automatic writes safe when obtaining localStorage throws", () => {
         vi.spyOn(globalThis, "localStorage", "get").mockImplementation(() => {
             throw new DOMException("Storage blocked", "SecurityError");

@@ -26,6 +26,9 @@ import drifOptimizerIcon from "../../assets/mobile/drif-optimizer.webp";
 import localBuildsIcon from "../../assets/mobile/local-builds.webp";
 import progressionPathIcon from "../../assets/mobile/progression-path.webp";
 import "./mobile-app.css";
+import EquipmentHistoryControls from "../components/EquipmentHistoryControls";
+import BuildStorageNotice from "../components/BuildStorageNotice";
+import HomeWorkspace from "../components/HomeWorkspace";
 
 const MobileOptimizerWorkspace = lazy(
     () => import("../../features/optimizer/mobile/MobileOptimizerWorkspace")
@@ -134,7 +137,10 @@ export default function MobileApp() {
                     ref={fileInputRef}
                     type="file"
                     accept="application/json,text/plain,.json,.txt"
-                    onChange={loadBuild}
+                    onChange={async (event) => {
+                        if ((await loadBuild(event)) && window.location.pathname === "/")
+                            goTo("builder");
+                    }}
                     hidden
                 />
             </header>
@@ -144,11 +150,23 @@ export default function MobileApp() {
                     onDismiss={library.notice ? library.dismissNotice : dismissFileNotice}
                 />
                 <EquipmentCalculationNotice />
+                <BuildStorageNotice library={library} />
+                {["builder", "optimizer"].includes(activeView) && <EquipmentHistoryControls />}
                 <Suspense fallback={<WorkspaceState loading />}>
                     {activeView === "home" ? (
-                        <main id="workspace-content" className="mobile-home">
-                            <h1>{t("Broken Ranks Tool")}</h1>
-                        </main>
+                        <HomeWorkspace
+                            mobile
+                            builds={library.builds}
+                            disabled={unavailable}
+                            hasWorkingBuild={equipment.hasWorkingBuild}
+                            onContinue={() => goTo("builder")}
+                            onImport={() => fileInputRef.current?.click()}
+                            onOpenLibrary={() => goTo("builds")}
+                            onOpenProgression={() => goTo("progression")}
+                            onOpenBuild={async (id) => {
+                                if (await library.load(id)) goTo("builder");
+                            }}
+                        />
                     ) : unavailable ? (
                         <main>
                             <WorkspaceState
@@ -174,6 +192,7 @@ export default function MobileApp() {
                         />
                     ) : (
                         <BuildLibraryWorkspace
+                            library={library}
                             builds={library.builds}
                             data={equipment.data}
                             gameRules={equipment.gameRules}

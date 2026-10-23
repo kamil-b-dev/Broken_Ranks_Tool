@@ -12,16 +12,20 @@ import {
     EquipmentCalculationContext,
     EquipmentBuildActionsContext,
     EquipmentBackpackContext,
+    EquipmentHistoryContext,
+    EquipmentStorageContext,
 } from "../shared/state/EquipmentContext";
 import {
     readEquipmentDraftState,
     writeEquipmentDraft,
     preserveEquipmentDraft,
+    readEquipmentDraftRaw,
 } from "./storage/workingDraftStorage";
 import { equipmentRequestIdentity } from "../shared/domain/equipment/equipmentRequestIdentity";
 import { useWorkingDraftSave } from "./storage/useWorkingDraftSave";
 import { useBackpackEquipmentTransfer } from "../features/builder/backpack/useBackpackEquipmentTransfer";
 import { normalizeBackpack } from "../features/builder/backpack/backpackSerialization";
+import { useEquipmentHistory } from "../features/equipment/useEquipmentHistory";
 
 /**
  * Provides application state for equipment, character stats, and optimization.
@@ -33,6 +37,8 @@ import { normalizeBackpack } from "../features/builder/backpack/backpackSerializ
 export const EquipmentProvider = ({ children }) => {
     const [initialStorage] = useState(readEquipmentDraftState);
     const initialDraft = initialStorage.draft;
+    const [recoveryRaw] = useState(() => readEquipmentDraftRaw(initialStorage.sourceKey));
+    const [draftRejected, setDraftRejected] = useState(Boolean(initialStorage.rejected));
     const [backpack, setBackpack] = useState([]);
     const [backpackImportRevision, setBackpackImportRevision] = useState(0);
     const handleBackpackChange = useCallback(
@@ -78,6 +84,7 @@ export const EquipmentProvider = ({ children }) => {
         canUndoReorganization,
         reorganizationUndoWarning,
         undoReorganization,
+        clearReorganizationUndo,
     } = useEquipmentOptimization({
         requestData,
         setRequestData,
@@ -133,6 +140,7 @@ export const EquipmentProvider = ({ children }) => {
                 markEquipmentChanged();
             } catch {
                 if (!active) return;
+                setDraftRejected(true);
                 // Keep a recoverable copy; never overwrite the original if that copy cannot be saved.
                 setDraftWritesAllowed(preserveEquipmentDraft(undefined, initialStorage.sourceKey));
             } finally {
@@ -159,7 +167,26 @@ export const EquipmentProvider = ({ children }) => {
         () => ({ requestData, characterConfig, lockedSlots, lockedDrifs, backpack }),
         [requestData, characterConfig, lockedSlots, lockedDrifs, backpack]
     );
-    useWorkingDraftSave(writeEquipmentDraft, workingDraft, draftRestored && draftWritesAllowed);
+    const { saveFailed, retrySave } = useWorkingDraftSave(
+        writeEquipmentDraft,
+        workingDraft,
+        draftRestored && draftWritesAllowed
+    );
+    const retryDraftSave = useCallback(() => {
+        if (!draftWritesAllowed) {
+            setDraftWritesAllowed(preserveEquipmentDraft(undefined, initialStorage.sourceKey));
+        } else retrySave();
+    }, [draftWritesAllowed, retrySave, initialStorage.sourceKey]);
+    const storageValue = useMemo(
+        () => ({
+            saveFailed: saveFailed || !draftWritesAllowed,
+            retrySave: retryDraftSave,
+            draftRejected,
+            recoveryRaw,
+            dismissRecovery: () => setDraftRejected(false),
+        }),
+        [saveFailed, draftWritesAllowed, retryDraftSave, draftRejected, recoveryRaw]
+    );
 
     /**
      * Updates the equipment data for a single slot.
@@ -208,8 +235,8 @@ export const EquipmentProvider = ({ children }) => {
     }, []);
 
     const buildImportData = useMemo(() => ({ ...data, gameRules }), [data, gameRules]);
-    const { loadBuildFromFile, createBuildSnapshot, loadBuildSnapshot } = useEquipmentBuildTransfer(
-        {
+    const { loadBuildFromFile, createBuildSnapshot, loadBuildSnapshot, invalidateBuildImport } =
+        useEquipmentBuildTransfer({
             data: buildImportData,
             backpack,
             setBackpack,
@@ -226,8 +253,49 @@ export const EquipmentProvider = ({ children }) => {
             calculateStatsFor,
             markEquipmentChanged,
             onBuildImported: handleBackpackImport,
-        }
+        });
+
+    const restoreHistory = useCallback(
+        (snapshot) => {
+            invalidateBuildImport();
+            invalidateDrifOptimization();
+            void cancelDrifOptimization().catch(() => {});
+            clearReorganizationUndo();
+            clearRemovalHistory();
+            setRequestData(snapshot.requestData);
+            setCharacterConfig(snapshot.characterConfig);
+            setBackpack(snapshot.backpack);
+            replaceLocks(snapshot.lockedSlots, snapshot.lockedDrifs);
+            setBackpackImportRevision((revision) => revision + 1);
+            markEquipmentChanged();
+            if (
+                equipmentRequestIdentity(snapshot.requestData) !==
+                equipmentRequestIdentity(requestData)
+            ) {
+                restoreStats(null);
+                void calculateStatsFor(snapshot.requestData);
+            }
+        },
+        [
+            invalidateBuildImport,
+            invalidateDrifOptimization,
+            cancelDrifOptimization,
+            clearReorganizationUndo,
+            clearRemovalHistory,
+            replaceLocks,
+            restoreStats,
+            markEquipmentChanged,
+            calculateStatsFor,
+            requestData,
+        ]
     );
+    const historyValue = useEquipmentHistory({
+        value: workingDraft,
+        enabled: draftRestored && !loading && !initialDataError,
+        catalog: data,
+        gameRules,
+        onRestore: restoreHistory,
+    });
 
     const value = useMemo(
         () => ({
@@ -374,25 +442,34 @@ export const EquipmentProvider = ({ children }) => {
         [backpack, backpackImportRevision, handleBackpackChange, backpackTransfer]
     );
 
+    const hasWorkingBuild =
+        Object.values(requestData.slots).some((slot) => slot?.itemId) ||
+        backpack.length > 0 ||
+        characterConfig != null ||
+        Object.keys(requestData.characterStats).length > 0;
     const buildActionsValue = useMemo(
-        () => ({ createBuildSnapshot, loadBuildSnapshot, loadBuildFromFile }),
-        [createBuildSnapshot, loadBuildSnapshot, loadBuildFromFile]
+        () => ({ createBuildSnapshot, loadBuildSnapshot, loadBuildFromFile, hasWorkingBuild }),
+        [createBuildSnapshot, loadBuildSnapshot, loadBuildFromFile, hasWorkingBuild]
     );
     return (
-        <EquipmentBackpackContext.Provider value={backpackValue}>
-            <EquipmentBuildActionsContext.Provider value={buildActionsValue}>
-                <EquipmentCatalogContext.Provider value={catalogValue}>
-                    <EquipmentSetupContext.Provider value={setupValue}>
-                        <EquipmentLocksContext.Provider value={locksValue}>
-                            <EquipmentCalculationContext.Provider value={calculationValue}>
-                                <EquipmentContext.Provider value={value}>
-                                    {children}
-                                </EquipmentContext.Provider>
-                            </EquipmentCalculationContext.Provider>
-                        </EquipmentLocksContext.Provider>
-                    </EquipmentSetupContext.Provider>
-                </EquipmentCatalogContext.Provider>
-            </EquipmentBuildActionsContext.Provider>
-        </EquipmentBackpackContext.Provider>
+        <EquipmentStorageContext.Provider value={storageValue}>
+            <EquipmentHistoryContext.Provider value={historyValue}>
+                <EquipmentBackpackContext.Provider value={backpackValue}>
+                    <EquipmentBuildActionsContext.Provider value={buildActionsValue}>
+                        <EquipmentCatalogContext.Provider value={catalogValue}>
+                            <EquipmentSetupContext.Provider value={setupValue}>
+                                <EquipmentLocksContext.Provider value={locksValue}>
+                                    <EquipmentCalculationContext.Provider value={calculationValue}>
+                                        <EquipmentContext.Provider value={value}>
+                                            {children}
+                                        </EquipmentContext.Provider>
+                                    </EquipmentCalculationContext.Provider>
+                                </EquipmentLocksContext.Provider>
+                            </EquipmentSetupContext.Provider>
+                        </EquipmentCatalogContext.Provider>
+                    </EquipmentBuildActionsContext.Provider>
+                </EquipmentBackpackContext.Provider>
+            </EquipmentHistoryContext.Provider>
+        </EquipmentStorageContext.Provider>
     );
 };

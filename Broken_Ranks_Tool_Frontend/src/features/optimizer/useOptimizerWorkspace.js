@@ -123,7 +123,7 @@ export const useOptimizerWorkspace = ({ optimizerSettings, onOptimizerSettingsCh
         () => createOptimizerConfigPayload(prioritizedBonuses, optimizerSettings),
         [optimizerSettings, prioritizedBonuses]
     );
-    useWorkingDraftSave(writeOptimizerDraft, workingDraft, draftReady);
+    const draftSave = useWorkingDraftSave(writeOptimizerDraft, workingDraft, draftReady);
     useLayoutEffect(
         () => resetOptimization(),
         [
@@ -429,6 +429,7 @@ export const useOptimizerWorkspace = ({ optimizerSettings, onOptimizerSettingsCh
         notice,
         setNotice,
         configFiles,
+        draftSave,
         currentModDetails,
         reportModDetails,
         displayedVariant,
