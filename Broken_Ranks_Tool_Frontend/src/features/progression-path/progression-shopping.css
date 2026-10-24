@@ -1,0 +1,85 @@
+.progression-shopping {
+    font-family: Inter, system-ui, sans-serif;
+    border: 1px solid #57534e;
+    border-radius: 8px;
+    margin: 16px 0;
+    padding: 0 14px;
+}
+.progression-shopping > summary {
+    cursor: pointer;
+    font-weight: 600;
+    min-height: 48px;
+    padding: 14px 0;
+}
+.progression-shopping-controls {
+    display: flex;
+    align-items: end;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 8px 0;
+}
+.progression-shopping-controls label {
+    display: grid;
+    gap: 6px;
+    flex: 1;
+    min-width: 180px;
+}
+.progression-shopping-controls :is(select, button) {
+    min-height: 44px;
+    padding: 8px;
+    border: 1px solid #78716c;
+    background: #1c1917;
+    color: #e7e5e4;
+    border-radius: 6px;
+}
+.progression-shopping p {
+    color: #bdb5ad;
+    font-size: 0.8rem;
+    margin: 12px 0;
+}
+.progression-shopping h3 {
+    font-size: 0.95rem;
+    margin: 16px 0 8px;
+}
+.progression-shopping ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.progression-shopping li {
+    border-top: 1px solid #44403c;
+}
+.progression-shopping li label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 48px;
+    padding: 10px 0;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+.progression-shopping input {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+.progression-shopping small {
+    display: block;
+    color: #bdb5ad;
+    margin-top: 4px;
+}
+.progression-shopping section:last-child {
+    margin-bottom: 16px;
+}
+@media (max-width: 767px) {
+    .progression-shopping-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .progression-shopping-controls label {
+        min-width: 0;
+    }
+    .progression-shopping-controls select {
+        width: 100%;
+    }
+}

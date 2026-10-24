@@ -1347,5 +1347,13 @@
     "Kolejny próg poziomu: {0}.": "Next level milestone: {0}.",
     "Na poziomie {0} moc drifa rośnie: {1} → {2}.": "At level {0}, drif power increases: {1} → {2}.",
     "Łączna moc przedmiotu po tej zmianie: {0}/{1}.": "Total power used in the item after this change: {0}/{1}.",
-    "Brakuje {0} pojemności przy niezmienionych pozostałych drifach.": "Missing {0} capacity with the other drifs unchanged."
+    "Brakuje {0} pojemności przy niezmienionych pozostałych drifach.": "Missing {0} capacity with the other drifs unchanged.",
+    "Zakupy i ulepszenia ścieżki": "Path purchases and upgrades",
+    "Zakres listy": "List scope",
+    "Wszystkie niewykonane etapy": "All incomplete stages",
+    "Najbliższe 3 etapy od Twojego poziomu": "Next 3 stages from your level",
+    "Pobierz listę TXT": "Download TXT list",
+    "Oznaczenie przygotowania nie oznacza wykonania etapu.": "Marking an item as prepared does not complete its stage.",
+    "Brak zakupów i ulepszeń w wybranym zakresie.": "No purchases or upgrades in the selected scope.",
+    "Kamienie": "Stones"
 }

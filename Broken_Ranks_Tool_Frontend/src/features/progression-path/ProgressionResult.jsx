@@ -2,6 +2,7 @@ import { useTranslation } from "../../shared/i18n/useTranslation";
 import { useId, useMemo, useState } from "react";
 import ProgressionNumberInput from "./ProgressionNumberInput";
 import ProgressionMilestone from "./ProgressionMilestone";
+import ProgressionShoppingList from "./ProgressionShoppingList";
 import {
     createProgressionView,
     nearestProgressionGroup,
@@ -22,6 +23,7 @@ export default function ProgressionResult({
     const { groups } = useMemo(() => createProgressionView(report, data, t), [report, data, t]);
     const [playerLevel, setPlayerLevel] = useState(initialProgress?.playerLevel ?? 1);
     const [completed, setCompleted] = useState(() => new Set(initialProgress?.completed ?? []));
+    const [prepared, setPrepared] = useState(() => new Set(initialProgress?.prepared ?? []));
     const [expandedLevel, setExpandedLevel] = useState(
         () =>
             nearestProgressionGroup(
@@ -34,7 +36,11 @@ export default function ProgressionResult({
     const next = nearestProgressionGroup(groups, playerLevel, completed);
     const changeLevel = (level) => {
         setPlayerLevel(level);
-        onProgressChange?.({ playerLevel: level, completed: [...completed] });
+        onProgressChange?.({
+            playerLevel: level,
+            completed: [...completed],
+            prepared: [...prepared],
+        });
         setExpandedLevel(nearestProgressionGroup(groups, level, completed)?.level ?? null);
     };
     const complete = (group) => {
@@ -42,7 +48,7 @@ export default function ProgressionResult({
         if (updated.has(group.level)) updated.delete(group.level);
         else updated.add(group.level);
         setCompleted(updated);
-        onProgressChange?.({ playerLevel, completed: [...updated] });
+        onProgressChange?.({ playerLevel, completed: [...updated], prepared: [...prepared] });
         if (updated.has(group.level) && expandedLevel === group.level)
             setExpandedLevel(nearestProgressionGroup(groups, playerLevel, updated)?.level ?? null);
     };
@@ -106,6 +112,23 @@ export default function ProgressionResult({
                         {t(warning)}
                     </p>
                 ))
+            )}
+            {groups.length > 0 && (
+                <ProgressionShoppingList
+                    groups={groups}
+                    data={data}
+                    completed={completed}
+                    playerLevel={playerLevel}
+                    prepared={prepared}
+                    onPreparedChange={(updated) => {
+                        setPrepared(updated);
+                        onProgressChange?.({
+                            playerLevel,
+                            completed: [...completed],
+                            prepared: [...updated],
+                        });
+                    }}
+                />
             )}
             <ol className="progression-timeline" aria-label={t("Etapy według poziomu")}>
                 {groups.map((group) => (

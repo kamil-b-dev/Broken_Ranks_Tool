@@ -54,6 +54,11 @@ const valid = (value) =>
     value.playerLevel <= 140 &&
     Array.isArray(value.completed) &&
     value.completed.length <= 140 &&
+    (value.prepared == null ||
+        (Array.isArray(value.prepared) &&
+            value.prepared.length <= 10000 &&
+            value.prepared.every((id) => typeof id === "string" && id.length <= 256) &&
+            new Set(value.prepared).size === value.prepared.length)) &&
     value.completed.every((level) => Number.isInteger(level) && level >= 1 && level <= 140) &&
     new Set(value.completed).size === value.completed.length;
 
@@ -79,8 +84,9 @@ export function restoreProgressionProgress(saved, inputKey, planKey, levels) {
     return {
         playerLevel: Math.min(saved?.playerLevel ?? 1, levels.at(-1) ?? 140),
         completed: matches ? saved.completed.filter((level) => levels.includes(level)) : [],
+        ...(matches && saved.prepared ? { prepared: saved.prepared } : {}),
         warning:
-            saved?.completed.length && !matches
+            (saved?.completed.length || saved?.prepared?.length) && !matches
                 ? "Plan się zmienił. Poprzednie oznaczenia wykonania nie zostały przeniesione; sprawdź etapy ponownie."
                 : null,
     };

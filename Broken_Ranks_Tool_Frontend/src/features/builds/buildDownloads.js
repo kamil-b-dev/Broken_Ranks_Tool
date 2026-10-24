@@ -5,8 +5,8 @@ export const downloadBuildPayload = (payload, date = new Date()) => {
     );
 };
 
-export const downloadBuildText = (text, filename) => {
-    const blob = new Blob([text], { type: "application/json" });
+export const downloadBuildText = (text, filename, type = "application/json") => {
+    const blob = new Blob([text], { type });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;

@@ -141,6 +141,16 @@ przekroczenie limitu nie zwraca fragmentu jako pełnej ścieżki.
 
 ## Czytanie raportu
 
+„Zakupy i ulepszenia ścieżki” zbiera potrzeby wszystkich niewykonanych etapów lub
+najbliższych trzech od wskazanego poziomu gracza. Osobno pokazuje przedmioty,
+nowe kamienie oraz ulepszenia. Przenoszenie i przemiana epika w legendę nie są
+nowymi zakupami. Sztuka kamienia jest liczona jako zakup tylko przy pozyskaniu;
+ulepszenie tej samej sztuki nie zwiększa liczby kupowanych kamieni. Odhaczenia
+oznaczają przygotowanie, a nie wykonanie etapu. Są zapisywane w istniejącym
+checkpoincie jako opcjonalna lista `prepared` i wracają wyłącznie dla zgodnego
+planu. Eksport TXT obejmuje aktualny zakres z oznaczeniami i poziomami etapów.
+Lista nie odejmuje rzeczy z plecaka i nie wycenia kosztów.
+
 Raport grupuje kolejne konfiguracje na tym samym poziomie w jedną kartę.
 Domyślnie rozwinięty jest najbliższy etap z działaniami, pozostałe są zwinięte.
 Nagłówek podaje poziom, zmieniane przedmioty i liczbę rzeczy do przygotowania,
