@@ -51,6 +51,12 @@ updates:
     schedule:
       interval: daily
     groups:
+      frontend-eslint:
+        applies-to: version-updates
+        patterns: [eslint, "@eslint/js"]
+      frontend-vitest:
+        applies-to: version-updates
+        patterns: [vitest, "@vitest/*"]
       frontend-dependencies:
         applies-to: version-updates
         patterns: ["*"]
@@ -61,6 +67,10 @@ updates:
 
   - package-ecosystem: npm
     directory: /
+    ignore:
+      # Match the Node 22 runtime used by CI and Docker.
+      - dependency-name: "@types/node"
+        update-types: [version-update:semver-major]
     schedule:
       interval: daily
     groups:
