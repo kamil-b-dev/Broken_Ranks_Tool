@@ -3,11 +3,46 @@ package pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.StatContributionDto;
 
 /** Accumulates flat and percentage statistics for one calculation. */
 public class StatsAccumulator {
     private final Map<String, Double> flatStats = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
     private final Map<String, Double> percentStats = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+    private final Map<String, List<StatContributionDto>> contributions;
+    private StatContributionDto.Source source;
+
+    public StatsAccumulator() {
+        this(false);
+    }
+
+    public StatsAccumulator(boolean trace) {
+        contributions = trace ? new TreeMap<>(String.CASE_INSENSITIVE_ORDER) : null;
+    }
+
+    public boolean isTracing() {
+        return contributions != null;
+    }
+
+    public void setSource(StatContributionDto.Source source) {
+        this.source = source;
+    }
+
+    public Map<String, List<StatContributionDto>> getContributions() {
+        Map<String, List<StatContributionDto>> result =
+                new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        if (contributions != null)
+            contributions.forEach((key, values) -> result.put(key, List.copyOf(values)));
+        return Collections.unmodifiableMap(result);
+    }
+
+    private void record(String stat, double base, double value, boolean percentage) {
+        if (contributions != null && source != null) {
+            contributions
+                    .computeIfAbsent(stat, key -> new ArrayList<>())
+                    .add(new StatContributionDto(source, base, value, percentage));
+        }
+    }
 
     /**
      * Adds a raw statistic value, automatically handling flat and percentage formats.
@@ -26,6 +61,7 @@ public class StatsAccumulator {
             double totalValue = parsedValue * multiplier;
 
             addFiniteValue(isPercent ? percentStats : flatStats, statName, totalValue);
+            record(statName, parsedValue, totalValue, isPercent);
         } catch (NumberFormatException exception) {
             throw new IllegalArgumentException(
                     "Niepoprawna wartość statystyki " + statName + ": " + rawValue + ".",
@@ -39,7 +75,12 @@ public class StatsAccumulator {
      * @param value Flat value to add.
      */
     public void addFlatValue(String statName, double value) {
+        addFlatValue(statName, value, value);
+    }
+
+    public void addFlatValue(String statName, double value, double baseValue) {
         addFiniteValue(flatStats, statName, value);
+        record(statName, baseValue, value, false);
     }
 
     private void addFiniteValue(Map<String, Double> target, String statName, double value) {
@@ -83,7 +124,7 @@ public class StatsAccumulator {
             }
         }
 
-        finalValues.forEach((stat, val) -> addFlatValue(stat, (double) val));
+        finalValues.forEach((stat, val) -> addFlatValue(stat, (double) val, baseValues.get(stat)));
     }
 
     /**

@@ -3,6 +3,7 @@ package pl.brokenranks.tool.broken_ranks_tool.equipment.service;
 import java.util.Collection;
 import java.util.Map;
 import java.util.function.Function;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.CalculationExplanationDto;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.CalculationResultDto;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
@@ -12,6 +13,8 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.Numeri
 
 /** Defines the statistics calculation contract independently from the API layer. */
 public interface EquipmentStatsCalculatorService {
+    CalculationExplanationDto calculateExplanation(EquipmentRequest request);
+
     /** Prepares numeric authoritative values without formatting every search candidate. */
     default Function<EquipmentRequest, NumericStats> prepareNumericCalculation(
             Map<Long, ItemTemplate> items,

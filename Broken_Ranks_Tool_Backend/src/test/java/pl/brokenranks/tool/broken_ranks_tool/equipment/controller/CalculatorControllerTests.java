@@ -30,6 +30,25 @@ class CalculatorControllerTests {
     @MockitoBean private EquipmentStatsCalculatorService calculatorService;
 
     @Test
+    void explanationUsesTheSameProtectedCalculatorEndpointOnlyWhenRequested() throws Exception {
+        when(calculatorService.calculateExplanation(any(EquipmentRequest.class)))
+                .thenReturn(
+                        new pl.brokenranks.tool.broken_ranks_tool.equipment.dto
+                                .CalculationExplanationDto(
+                                Map.of("CRITICAL_CHANCE", "2%"),
+                                Map.of(),
+                                Map.of("CRITICAL_CHANCE", 60)));
+        mockMvc.perform(
+                        post("/api/calculator/calculate?explain=true")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"slots\":{}}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.stats.CRITICAL_CHANCE").value("2%"))
+                .andExpect(jsonPath("$.caps.CRITICAL_CHANCE").value(60));
+        verify(calculatorService).calculateExplanation(any(EquipmentRequest.class));
+    }
+
+    @Test
     void returnsCalculatedStatisticsAndSources() throws Exception {
         when(calculatorService.calculateWithSources(any(EquipmentRequest.class)))
                 .thenReturn(

@@ -5,6 +5,8 @@ import { buildStatColumns } from "./statsPanelDomain";
 import StatSummaryColumn from "./StatSummaryColumn";
 import TabList from "../../../shared/ui/TabList";
 import crest from "../../../assets/ui/stats-crest.webp";
+import { useStatExplanation } from "./useStatExplanation";
+import StatExplanationDialog from "./StatExplanationDialog";
 
 /** Displays calculated statistics grouped by their purpose and source. */
 const StatsPanel = ({
@@ -14,10 +16,13 @@ const StatsPanel = ({
     gameRules,
     statSources = {},
     compact = false,
+    requestData,
+    catalog,
 }) => {
     const { t, locale } = useTranslation();
 
     const [activeResultView, setActiveResultView] = useState("all");
+    const explanation = useStatExplanation(requestData, gameRules, catalog);
     const statColumns = useMemo(
         () => buildStatColumns({ stats, gameRules, statSources, translateLabel: t, locale }),
         [stats, gameRules, statSources, t, locale]
@@ -80,10 +85,17 @@ const StatsPanel = ({
                         className={`stats-result-content grid grid-cols-1 gap-5 ${compact || activeResultView !== "all" ? "" : "lg:grid-cols-3"}`}
                     >
                         {visibleColumns.map((column) => (
-                            <StatSummaryColumn key={column.title} {...column} />
+                            <StatSummaryColumn
+                                key={column.title}
+                                {...column}
+                                onExplain={isCalculating ? undefined : explanation.open}
+                            />
                         ))}
                     </div>
                 </>
+            )}
+            {explanation.selected && (
+                <StatExplanationDialog model={explanation} gameRules={gameRules} />
             )}
         </section>
     );

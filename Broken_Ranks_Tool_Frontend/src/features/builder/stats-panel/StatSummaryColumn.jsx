@@ -44,7 +44,7 @@ const ACCENT_CLASSES = {
     },
 };
 
-const StatCategoryCard = ({ category, values, accent, colorLabels }) => {
+const StatCategoryCard = ({ category, values, accent, colorLabels, onExplain }) => {
     const { t } = useTranslation();
 
     const styles = ACCENT_CLASSES[accent || category.accent];
@@ -65,14 +65,29 @@ const StatCategoryCard = ({ category, values, accent, colorLabels }) => {
                         key={key}
                         className={`flex justify-between gap-3 items-center border-b p-2 transition-colors ${styles.row}`}
                     >
-                        <span
-                            className={`min-w-0 text-xs font-serif uppercase tracking-wide ${colorLabels ? styles.value : "text-stone-400"}`}
-                        >
-                            {t(displayName)}
-                        </span>
-                        <span className={`shrink-0 font-bold font-serif ${styles.value}`}>
-                            {t(val)}
-                        </span>
+                        {onExplain ? (
+                            <button
+                                type="button"
+                                className="stat-explain-trigger"
+                                onClick={(event) => onExplain(key, event.currentTarget)}
+                                aria-haspopup="dialog"
+                                aria-label={`${t(displayName)} ${t(val)}`}
+                            >
+                                <span>{t(displayName)}</span>
+                                <strong className={styles.value}>{t(val)}</strong>
+                            </button>
+                        ) : (
+                            <>
+                                <span
+                                    className={`min-w-0 text-xs font-serif uppercase tracking-wide ${colorLabels ? styles.value : "text-stone-400"}`}
+                                >
+                                    {t(displayName)}
+                                </span>
+                                <span className={`shrink-0 font-bold font-serif ${styles.value}`}>
+                                    {t(val)}
+                                </span>
+                            </>
+                        )}
                     </div>
                 ))}
             </div>
@@ -80,7 +95,7 @@ const StatCategoryCard = ({ category, values, accent, colorLabels }) => {
     );
 };
 
-const StatSummaryColumn = ({ title, accent, categories, categoryAccents = false }) => {
+const StatSummaryColumn = ({ title, accent, categories, categoryAccents = false, onExplain }) => {
     const { t } = useTranslation();
 
     const styles = ACCENT_CLASSES[accent];
@@ -103,6 +118,7 @@ const StatSummaryColumn = ({ title, accent, categories, categoryAccents = false 
                         values={values}
                         accent={categoryAccents ? undefined : accent}
                         colorLabels={categoryAccents}
+                        onExplain={onExplain}
                     />
                 ))}
             </div>

@@ -101,6 +101,73 @@ class EquipmentPreparedCalculationTests {
     }
 
     @Test
+    void explanationRecordsActualAdditionsWithoutChangingTheCalculation() {
+        var explanation = calculator.calculateExplanation(request);
+        assertEquals(calculator.calculateWithSources(request).stats(), explanation.stats());
+        explanation
+                .stats()
+                .forEach(
+                        (key, value) -> {
+                            double sum =
+                                    explanation.contributions().get(key).stream()
+                                            .mapToDouble(entry -> entry.value())
+                                            .sum();
+                            var rounded =
+                                    java.math.BigDecimal.valueOf(sum)
+                                            .setScale(2, java.math.RoundingMode.HALF_UP);
+                            assertEquals(
+                                    0,
+                                    rounded.compareTo(
+                                            new java.math.BigDecimal(value.replace("%", ""))),
+                                    key);
+                        });
+        var damage = explanation.contributions().get("DAMAGE_PHYSICAL");
+        assertEquals(4, damage.size());
+        assertEquals(4.5, damage.getFirst().baseValue());
+        assertEquals(4.5 * 1.15 * 0.95, damage.getFirst().value(), 1e-10);
+        assertEquals(4, damage.getFirst().source().repeatCount());
+        assertEquals(0.95, damage.getFirst().source().penaltyMultiplier());
+        assertEquals(0.15, damage.getFirst().source().starBonus());
+        assertEquals(-60, explanation.caps().get("STAMINA_USAGE_REDUCTION"));
+        assertTrue(
+                explanation.contributions().get("STAMINA_USAGE_REDUCTION").stream()
+                        .allMatch(entry -> entry.value() < 0));
+        var strength = explanation.contributions().get("Siła");
+        assertEquals(5, strength.size());
+        assertEquals("CHARACTER", strength.getFirst().source().kind());
+        assertEquals(30, strength.get(1).baseValue());
+        assertEquals(45, strength.get(1).value());
+        var orb = explanation.contributions().get("DMG_REDUCTION_MELEE").getFirst();
+        assertEquals("ORB", orb.source().kind());
+        assertEquals(3, orb.baseValue());
+        assertEquals(5.25, orb.value());
+    }
+
+    @Test
+    void explanationCountsAndLabelsBuiltInDrifsAndKeepsLevelNineteenIncrement() {
+        var helmet = request.getSlots().get("helmet");
+        var item = items.get(helmet.getItemId());
+        item.setRarity(RARITY.EPIC);
+        item.setName("Allenor");
+        var physical = drif(3L, DRIF_BONUS_TYPE.DAMAGE_PHYSICAL, "2%");
+        physical.setSize(DRIF_SIZE.MAGNIDRIF);
+        var critical = drif(4L, DRIF_BONUS_TYPE.CRITICAL_CHANCE, "2%");
+        critical.setSize(DRIF_SIZE.MAGNIDRIF);
+        drifs.put(3L, physical);
+        drifs.put(4L, critical);
+        helmet.setDrifIds(List.of(3L, 4L));
+        helmet.setDrifLevels(Map.of("0", 16, "1", 16));
+        for (String key : List.of("armor", "legs", "boots"))
+            request.getSlots().get(key).setDrifLevels(Map.of("0", 19, "1", 6));
+        var explanation = calculator.calculateExplanation(request);
+        assertEquals(calculator.calculateTotalStats(request), explanation.stats());
+        var damage = explanation.contributions().get("DAMAGE_PHYSICAL");
+        assertTrue(damage.getFirst().source().builtIn());
+        assertEquals(4, damage.getFirst().source().repeatCount());
+        assertEquals(11.5, damage.get(1).baseValue());
+    }
+
+    @Test
     void intelligenceSurvivesFreshPreparedAndNumericCalculatorsWithoutItemBonuses() {
         request.setCharacterStats(Map.of("Inteligencja", 10, "INTELIGENCJA", 25));
         var fresh = calculator.calculateTotalStats(request);
