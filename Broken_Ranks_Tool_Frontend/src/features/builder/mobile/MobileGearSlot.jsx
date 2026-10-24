@@ -12,6 +12,7 @@ import { useRef } from "react";
 import BackpackEquipmentSelect from "../backpack/BackpackEquipmentSelect";
 import BackpackItemChoices from "../backpack/BackpackItemChoices";
 import EquipmentRemovalAction from "../backpack/EquipmentRemovalAction";
+import { ItemUpgradeHint } from "../gear-slot/UpgradeHints";
 
 export default function MobileGearSlot({ slot, items, pickingItem, onPickItem, onClosePicker }) {
     const { t } = useTranslation();
@@ -96,6 +97,7 @@ export default function MobileGearSlot({ slot, items, pickingItem, onPickItem, o
                                 ))}
                             </select>
                         </div>
+                        <ItemUpgradeHint item={model.fullSelectedItem} stars={model.itemStars} />
                         <button
                             className="mobile-back"
                             type="button"

@@ -1338,5 +1338,14 @@
     "Obliczenie": "Calculation",
     "Bonus gwiazdek do orba": "Star orb bonus",
     "Wkład do wyniku": "Contribution to the result",
-    "Składniki pokazano do 4 miejsc po przecinku. Wynik jest zaokrąglany po zsumowaniu.": "Contributions are shown to 4 decimal places. The result is rounded after summing."
+    "Składniki pokazano do 4 miejsc po przecinku. Wynik jest zaokrąglany po zsumowaniu.": "Contributions are shown to 4 decimal places. The result is rounded after summing.",
+    "Najbliższy próg gniazd i pojemności: {0}★": "Next socket and capacity threshold: {0}★",
+    "Gniazda drifów: {0} → {1}": "Drif sockets: {0} → {1}",
+    "Pojemność: {0} → {1}": "Capacity: {0} → {1}",
+    "Progi ulepszenia drifa": "Drif upgrade thresholds",
+    "Maksymalny poziom tego rozmiaru: {0}.": "Maximum level for this size: {0}.",
+    "Kolejny próg poziomu: {0}.": "Next level milestone: {0}.",
+    "Na poziomie {0} moc drifa rośnie: {1} → {2}.": "At level {0}, drif power increases: {1} → {2}.",
+    "Łączna moc przedmiotu po tej zmianie: {0}/{1}.": "Total power used in the item after this change: {0}/{1}.",
+    "Brakuje {0} pojemności przy niezmienionych pozostałych drifach.": "Missing {0} capacity with the other drifs unchanged."
 }
