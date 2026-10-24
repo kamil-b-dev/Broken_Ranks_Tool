@@ -75,7 +75,7 @@ it("switches an open progression report without resetting completed stages", asy
     expect(localStorage.getItem(LANGUAGE_STORAGE_KEY)).toBe("en");
     expect(screen.getByRole("status")).toHaveTextContent("Completed stages: 1 of 3");
     expect(screen.getByRole("checkbox", { name: "Level 60 completed" })).toBeChecked();
-    expect(screen.getByRole("button", { name: /Level 120:/ })).toHaveAttribute(
+    expect(screen.getByRole("button", { name: /^Level 120/ })).toHaveAttribute(
         "aria-expanded",
         "true"
     );
