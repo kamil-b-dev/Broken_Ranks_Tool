@@ -32,12 +32,10 @@ export default function ProgressionMilestone({
                         className="progression-stage-toggle"
                         aria-expanded={expanded}
                         aria-controls={panelId}
-                        aria-label={t("Poziom {0}: {1}", [t(group.level), t(group.title)])}
                         onClick={onToggle}
                     >
                         <span className="progression-level">
-                            <small>{t("Poziom")}</small>
-                            {t(group.level)}
+                            <small>{t("Poziom")}</small> {t(group.level)}
                         </span>
                         <span className="progression-milestone-title">
                             <strong title={t(group.title)}>{t(group.title)}</strong>

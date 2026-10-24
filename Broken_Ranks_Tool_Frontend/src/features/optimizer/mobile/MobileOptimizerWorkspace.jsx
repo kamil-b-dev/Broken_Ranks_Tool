@@ -136,9 +136,9 @@ export default function MobileOptimizerWorkspace({ settings, onSettingsChange, o
                                 {t("s)")}
                             </>
                         ) : advisory ? (
-                            "Analizuj build"
+                            t("Analizuj build")
                         ) : (
-                            "Uruchom optymalizację"
+                            t("Uruchom optymalizację")
                         )}
                     </button>
                     {model.isOptimizing && advisory && (
