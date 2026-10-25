@@ -54,24 +54,6 @@
     outline-color: rgba(239, 106, 134, 0.85);
 }
 
-.builder-theme .custom-scrollbar::-webkit-scrollbar-thumb {
-    border-color: #991b1b;
-    background:
-        linear-gradient(rgba(62, 4, 13, 0.44), rgba(5, 2, 3, 0.72)),
-        url("../../../assets/ui/crimson-lacquer-texture.webp") center / 18rem;
-    background-blend-mode: normal, soft-light;
-    box-shadow: 0 0 8px rgba(153, 27, 27, 0.42);
-}
-
-.builder-theme .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    border-color: #dc2626;
-    background:
-        linear-gradient(rgba(86, 6, 18, 0.3), rgba(5, 2, 3, 0.58)),
-        url("../../../assets/ui/crimson-lacquer-texture.webp") center / 18rem;
-    background-blend-mode: normal, soft-light;
-    box-shadow: 0 0 10px rgba(220, 38, 38, 0.5);
-}
-
 .item-database-theme {
     border-color: var(--builder-gold-line);
     background:

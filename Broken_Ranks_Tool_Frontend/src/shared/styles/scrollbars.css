@@ -1,32 +1,115 @@
-.custom-scrollbar::-webkit-scrollbar {
-    width: 12px;
+:root {
+    --scrollbar-arrow-up: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='m4 10 4-4 4 4' stroke='%23d4a454' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    --scrollbar-arrow-down: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='m4 6 4 4 4-4' stroke='%23d4a454' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    --scrollbar-arrow-left: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='m10 4-4 4 4 4' stroke='%23d4a454' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    --scrollbar-arrow-right: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='m6 4 4 4-4 4' stroke='%23d4a454' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
 
-.custom-scrollbar::-webkit-scrollbar-track {
-    border: 1px solid rgba(112, 78, 43, 0.42);
-    background: rgba(0, 0, 0, 0.72);
-    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.92);
+/* Cover the page, dialogs and nested panels, including horizontal overflow. */
+::-webkit-scrollbar {
+    width: 14px;
+    height: 14px;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb {
-    border: 1px solid #991b1b;
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+    border: 1px solid var(--ui-line);
+    background: #090809;
+    box-shadow: inset 0 0 5px rgb(0 0 0 / 90%);
+}
+
+::-webkit-scrollbar-thumb {
+    min-width: 28px;
+    min-height: 28px;
+    border: 2px solid #090809;
+    border-radius: 3px;
     background:
-        linear-gradient(rgba(62, 4, 13, 0.44), rgba(5, 2, 3, 0.72)),
+        linear-gradient(rgb(103 17 35 / 78%), rgb(36 7 14 / 92%)),
         url("../../assets/ui/crimson-lacquer-texture.webp") center / 18rem;
     background-blend-mode: normal, soft-light;
-    box-shadow: 0 0 8px rgba(153, 27, 27, 0.42);
+    box-shadow: inset 0 0 0 1px rgb(193 144 75 / 65%);
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    border-color: #dc2626;
-    background:
-        linear-gradient(rgba(86, 6, 18, 0.3), rgba(5, 2, 3, 0.58)),
-        url("../../assets/ui/crimson-lacquer-texture.webp") center / 18rem;
-    background-blend-mode: normal, soft-light;
-    box-shadow: 0 0 10px rgba(220, 38, 38, 0.5);
+::-webkit-scrollbar-thumb:hover {
+    background-color: #8f1428;
+    background-image: linear-gradient(rgb(143 20 40 / 65%), rgb(67 10 24 / 85%));
+    box-shadow: inset 0 0 0 1px var(--ui-gold);
 }
 
-.custom-scrollbar {
-    scrollbar-color: auto;
-    scrollbar-width: auto;
+::-webkit-scrollbar-thumb:active {
+    background: #8f1428;
+    box-shadow: inset 0 0 0 1px #e4ba70;
+}
+
+::-webkit-scrollbar-button {
+    display: none;
+}
+
+::-webkit-scrollbar-button:single-button {
+    display: block;
+    width: 14px;
+    height: 14px;
+    border: 1px solid var(--ui-line);
+    background-color: #171214;
+    background-position: center;
+    background-size: 12px;
+    background-repeat: no-repeat;
+}
+
+::-webkit-scrollbar-button:vertical:decrement {
+    background-image: var(--scrollbar-arrow-up);
+}
+
+::-webkit-scrollbar-button:vertical:increment {
+    background-image: var(--scrollbar-arrow-down);
+}
+
+::-webkit-scrollbar-button:horizontal:decrement {
+    background-image: var(--scrollbar-arrow-left);
+}
+
+::-webkit-scrollbar-button:horizontal:increment {
+    background-image: var(--scrollbar-arrow-right);
+}
+
+::-webkit-scrollbar-button:single-button:hover {
+    border-color: var(--ui-gold);
+    background-color: #35121c;
+}
+
+::-webkit-scrollbar-button:single-button:active {
+    background-color: #541222;
+}
+
+::-webkit-scrollbar-button:disabled {
+    background-color: #090809;
+    background-image: none;
+}
+
+/* Standard colors would override the detailed Chromium/WebKit skin. */
+@supports not selector(::-webkit-scrollbar) {
+    * {
+        scrollbar-color: #8f2538 #090809;
+        scrollbar-width: auto;
+    }
+}
+
+@media (forced-colors: active) {
+    * {
+        scrollbar-color: auto;
+    }
+
+    ::-webkit-scrollbar-track,
+    ::-webkit-scrollbar-corner,
+    ::-webkit-scrollbar-button:single-button {
+        border-color: ButtonText;
+        background-color: Canvas;
+        box-shadow: none;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        border-color: Canvas;
+        background: ButtonText;
+        box-shadow: none;
+    }
 }
