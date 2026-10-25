@@ -108,7 +108,12 @@ test("desktop drags configured items and leveled gems from the backpack and retu
         .poll(async () => (await draft(page)).requestData.slots.helmet.orbLevels[0])
         .toBe(3);
     const secondDrif = editor.getByLabel("Wybierz rodzaj drifa 2").locator("..");
-    await source.locator(".backpack-card").filter({ hasText: "Regeneracja" }).dragTo(secondDrif);
+    await source
+        .locator(".backpack-card")
+        .filter({ hasText: "Regeneracja" })
+        .dragTo(secondDrif, {
+            targetPosition: { x: 3, y: 3 },
+        });
     await expect
         .poll(async () => (await draft(page)).requestData.slots.helmet.drifLevels[1])
         .toBe(6);

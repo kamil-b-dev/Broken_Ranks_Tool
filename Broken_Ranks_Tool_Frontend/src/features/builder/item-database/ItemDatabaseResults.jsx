@@ -27,23 +27,25 @@ const ItemRow = memo(
                 onMouseLeave={onLeave}
                 className="database-result-row p-1.5 transition-colors flex justify-between items-center group cursor-grab active:cursor-grabbing hover:bg-stone-900/50 border-b border-stone-800/50 optimizer-info-divider"
             >
-                <button
-                    {...detailsProps(
-                        item,
-                        "items",
-                        onHover,
-                        onLeave,
-                        tooltipId,
-                        activeDetailsKey,
-                        t
-                    )}
-                    className="database-item-copy text-left focus-visible:outline-2 focus-visible:outline-amber-500"
-                >
-                    <span className={`truncate font-serif ${getRarityColor(item.rarity)}`}>
-                        {item.name || item.description || item.bonusType}
-                    </span>
+                <div className="database-item-copy text-left">
+                    <button
+                        {...detailsProps(
+                            item,
+                            "items",
+                            onHover,
+                            onLeave,
+                            tooltipId,
+                            activeDetailsKey,
+                            t
+                        )}
+                        className="truncate text-left focus-visible:outline-2 focus-visible:outline-amber-500"
+                    >
+                        <span className={`truncate font-serif ${getRarityColor(item.rarity)}`}>
+                            {item.name || item.description || item.bonusType}
+                        </span>
+                    </button>
                     <small>{t(category)}</small>
-                </button>
+                </div>
                 <div className="flex items-center gap-2 shrink-0">
                     {item.tier && (
                         <span className="text-[10px] text-stone-400 font-serif font-bold border border-stone-800/50 optimizer-info-divider px-1.5 py-0.5 bg-black">

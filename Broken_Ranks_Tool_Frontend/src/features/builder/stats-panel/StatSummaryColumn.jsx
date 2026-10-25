@@ -73,7 +73,7 @@ const StatCategoryCard = ({ category, values, accent, colorLabels, onExplain }) 
                                 aria-haspopup="dialog"
                                 aria-label={`${t(displayName)} ${t(val)}`}
                             >
-                                <span>{t(displayName)}</span>
+                                <span>{t(displayName)}</span>{" "}
                                 <strong className={styles.value}>{t(val)}</strong>
                             </button>
                         ) : (

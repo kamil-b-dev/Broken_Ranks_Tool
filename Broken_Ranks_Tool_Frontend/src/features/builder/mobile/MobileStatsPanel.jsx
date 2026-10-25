@@ -86,7 +86,7 @@ function MobileStatsPanel({ requestData }) {
                                                             )
                                                         }
                                                     >
-                                                        <span>{t(displayName)}</span>
+                                                        <span>{t(displayName)}</span>{" "}
                                                         <strong>{t(val)}</strong>
                                                     </button>
                                                 </li>
