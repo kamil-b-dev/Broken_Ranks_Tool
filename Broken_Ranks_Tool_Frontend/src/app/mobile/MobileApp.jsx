@@ -20,11 +20,11 @@ const MobileBuilderWorkspace = lazy(
 import AppNotice from "../../shared/ui/AppNotice";
 import WorkspaceState from "../components/WorkspaceState";
 import crest from "../../assets/mobile/broken-ranks-crest.webp";
-import homeIcon from "../../assets/mobile/home.webp";
-import equipmentBuilderIcon from "../../assets/mobile/equipment-builder.webp";
-import drifOptimizerIcon from "../../assets/mobile/drif-optimizer.webp";
-import localBuildsIcon from "../../assets/mobile/local-builds.webp";
-import progressionPathIcon from "../../assets/mobile/progression-path.webp";
+import homeIcon from "../../assets/mobile/home.webp?no-inline";
+import equipmentBuilderIcon from "../../assets/mobile/equipment-builder.webp?no-inline";
+import drifOptimizerIcon from "../../assets/mobile/drif-optimizer.webp?no-inline";
+import localBuildsIcon from "../../assets/mobile/local-builds.webp?no-inline";
+import progressionPathIcon from "../../assets/mobile/progression-path.webp?no-inline";
 import "./mobile-app.css";
 import EquipmentHistoryControls from "../components/EquipmentHistoryControls";
 import BuildStorageNotice from "../components/BuildStorageNotice";
