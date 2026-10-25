@@ -65,9 +65,10 @@
 .mobile-app .mobile-builder .mobile-field :is(input, select) {
     border-color: rgba(124, 88, 47, 0.78);
     border-radius: 0.2rem;
-    background-image:
+    --select-surface-images:
         linear-gradient(rgba(2, 2, 2, 0.58), rgba(2, 2, 2, 0.76)),
         url("../../../assets/mobile/panel-aged-leather-texture.webp");
+    background-image: var(--select-surface-images);
     background-position: center;
     background-size: auto, 15rem;
     background-blend-mode: normal, soft-light;

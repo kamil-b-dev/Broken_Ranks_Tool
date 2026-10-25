@@ -1,5 +1,8 @@
 /* Restyle native steppers without replacing their min/max, step or keyboard behavior. */
-input[type="number"]::-webkit-inner-spin-button {
+input[type="number"]:not(
+        [class*="appearance:textfield"],
+        .character-level-control input
+    )::-webkit-inner-spin-button {
     appearance: none;
     -webkit-appearance: none;
     width: 0.875rem;
