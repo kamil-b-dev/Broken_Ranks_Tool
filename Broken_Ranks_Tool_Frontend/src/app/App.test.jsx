@@ -100,6 +100,45 @@ describe("App", () => {
         useEquipment.mockReturnValue(equipment);
     });
 
+    it("opens saved builds, the library and progression from home shortcuts", async () => {
+        const user = userEvent.setup();
+        await renderApp();
+        await user.click(screen.getByRole("button", { name: /Zapisz lokalnie/i }));
+        await screen.findByText(/Zapisano lokalnie/);
+        const home = () => user.click(screen.getByLabelText("Broken Ranks Tool — strona główna"));
+
+        await home();
+        await user.click(screen.getByRole("button", { name: "Otwórz build: Build 1" }));
+        await screen.findByRole("heading", { name: "Ekwipunek" });
+        expect(equipment.loadBuildSnapshot).toHaveBeenCalledOnce();
+        expect(window.location.pathname).toBe("/builder");
+
+        await home();
+        await user.click(screen.getByRole("button", { name: "Otwórz bibliotekę" }));
+        expect(await screen.findByRole("heading", { name: "Buildy lokalne" })).toBeVisible();
+        await home();
+        await user.click(screen.getByRole("button", { name: "Zaplanuj rozwój" }));
+        expect(await screen.findByRole("heading", { name: "Ścieżka rozwoju" })).toBeVisible();
+    });
+
+    it("starts the builder and imports a build through the home shortcuts", async () => {
+        window.history.replaceState(null, "", "/");
+        const user = userEvent.setup();
+        const app = await renderApp();
+        await user.click(screen.getByRole("button", { name: "Utwórz build" }));
+        expect(await screen.findByRole("heading", { name: "Ekwipunek" })).toBeVisible();
+        await user.click(screen.getByLabelText("Broken Ranks Tool — strona główna"));
+        const input = app.container.querySelector('input[type="file"]');
+        const click = vi.spyOn(input, "click");
+        await user.click(screen.getByRole("button", { name: "Importuj build" }));
+        expect(click).toHaveBeenCalledOnce();
+        const file = new File(["{}"], "build.json");
+        fireEvent.change(input, { target: { files: [file] } });
+        expect(await screen.findByRole("heading", { name: "Ekwipunek" })).toBeVisible();
+        expect(equipment.loadBuildFromFile).toHaveBeenCalledWith(file);
+        expect(window.location.pathname).toBe("/builder");
+    });
+
     it("navigates through the builder and optimizer workspaces", async () => {
         const user = userEvent.setup();
         await renderApp();

@@ -81,6 +81,45 @@ describe("mobile application integration", () => {
         delete HTMLDialogElement.prototype.close;
     });
 
+    it("imports and reopens a build through the mobile home shortcuts", async () => {
+        window.history.replaceState(null, "", "/?ui=mobile");
+        const user = userEvent.setup();
+        const app = mountApp();
+        await screen.findByRole("heading", { name: "Broken Ranks Tool" });
+        await user.click(screen.getByRole("button", { name: "Utwórz build" }));
+        await screen.findByText("Kreator ekwipunku", { selector: "span.mobile-eyebrow" });
+        const home = () => user.click(screen.getByRole("link", { name: "Broken Ranks Tool" }));
+        await home();
+        const input = app.container.querySelector('input[type="file"]');
+        const click = vi.spyOn(input, "click");
+        await user.click(screen.getByRole("button", { name: "Importuj build" }));
+        expect(click).toHaveBeenCalledOnce();
+        fireEvent.change(input, {
+            target: {
+                files: [
+                    {
+                        name: "build.json",
+                        size: 1000,
+                        text: async () => JSON.stringify(savedBuild()),
+                    },
+                ],
+            },
+        });
+        await screen.findByText("Kreator ekwipunku", { selector: "span.mobile-eyebrow" });
+        expect(window.location.pathname).toBe("/builder");
+        await save();
+        await home();
+        await user.click(screen.getByRole("button", { name: "Otwórz build: Build 1" }));
+        await screen.findByText("Kreator ekwipunku", { selector: "span.mobile-eyebrow" });
+        expect(readEquipmentDraft().requestData.slots.helmet.itemId).toBe(1);
+        await home();
+        await user.click(screen.getByRole("button", { name: "Otwórz bibliotekę" }));
+        expect(await screen.findByRole("heading", { name: "Buildy lokalne" })).toBeVisible();
+        await home();
+        await user.click(screen.getByRole("button", { name: "Zaplanuj rozwój" }));
+        expect(await screen.findByRole("heading", { name: "Ścieżka rozwoju" })).toBeVisible();
+    });
+
     it("edits a slot, calculates character statistics and saves a shared build snapshot", async () => {
         let calculation;
         server.use(
