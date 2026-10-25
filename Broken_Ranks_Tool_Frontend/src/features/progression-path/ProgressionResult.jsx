@@ -2,6 +2,7 @@ import { useTranslation } from "../../shared/i18n/useTranslation";
 import { useId, useMemo, useState } from "react";
 import ProgressionNumberInput from "./ProgressionNumberInput";
 import ProgressionMilestone from "./ProgressionMilestone";
+import ProgressionShoppingList from "./ProgressionShoppingList";
 import {
     createProgressionView,
     nearestProgressionGroup,
@@ -9,19 +10,37 @@ import {
 } from "./progressionReport";
 import "./progression-report.css";
 
-export default function ProgressionResult({ report, data, mobile = false }) {
+export default function ProgressionResult({
+    report,
+    data,
+    mobile = false,
+    initialProgress,
+    onProgressChange,
+    progressWarning,
+}) {
     const { t } = useTranslation();
 
     const { groups } = useMemo(() => createProgressionView(report, data, t), [report, data, t]);
-    const [playerLevel, setPlayerLevel] = useState(1);
-    const [completed, setCompleted] = useState(() => new Set());
+    const [playerLevel, setPlayerLevel] = useState(initialProgress?.playerLevel ?? 1);
+    const [completed, setCompleted] = useState(() => new Set(initialProgress?.completed ?? []));
+    const [prepared, setPrepared] = useState(() => new Set(initialProgress?.prepared ?? []));
     const [expandedLevel, setExpandedLevel] = useState(
-        () => nearestProgressionGroup(groups, 1, new Set())?.level ?? groups[0]?.level
+        () =>
+            nearestProgressionGroup(
+                groups,
+                initialProgress?.playerLevel ?? 1,
+                new Set(initialProgress?.completed ?? [])
+            )?.level ?? groups[0]?.level
     );
     const idPrefix = useId();
     const next = nearestProgressionGroup(groups, playerLevel, completed);
     const changeLevel = (level) => {
         setPlayerLevel(level);
+        onProgressChange?.({
+            playerLevel: level,
+            completed: [...completed],
+            prepared: [...prepared],
+        });
         setExpandedLevel(nearestProgressionGroup(groups, level, completed)?.level ?? null);
     };
     const complete = (group) => {
@@ -29,11 +48,13 @@ export default function ProgressionResult({ report, data, mobile = false }) {
         if (updated.has(group.level)) updated.delete(group.level);
         else updated.add(group.level);
         setCompleted(updated);
+        onProgressChange?.({ playerLevel, completed: [...updated], prepared: [...prepared] });
         if (updated.has(group.level) && expandedLevel === group.level)
             setExpandedLevel(nearestProgressionGroup(groups, playerLevel, updated)?.level ?? null);
     };
     return (
         <section className="progression-report" aria-label={t("Wynik planowania")}>
+            {progressWarning && <p role="status">{t(progressWarning)}</p>}
             <div className="progression-report-heading">
                 <h2>{t(groups.length ? "Plan rozwoju" : "Brak pełnej ścieżki")}</h2>
                 {groups.length > 0 && (
@@ -91,6 +112,23 @@ export default function ProgressionResult({ report, data, mobile = false }) {
                         {t(warning)}
                     </p>
                 ))
+            )}
+            {groups.length > 0 && (
+                <ProgressionShoppingList
+                    groups={groups}
+                    data={data}
+                    completed={completed}
+                    playerLevel={playerLevel}
+                    prepared={prepared}
+                    onPreparedChange={(updated) => {
+                        setPrepared(updated);
+                        onProgressChange?.({
+                            playerLevel,
+                            completed: [...completed],
+                            prepared: [...updated],
+                        });
+                    }}
+                />
             )}
             <ol className="progression-timeline" aria-label={t("Etapy według poziomu")}>
                 {groups.map((group) => (

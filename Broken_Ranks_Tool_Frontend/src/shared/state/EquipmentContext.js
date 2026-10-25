@@ -7,6 +7,8 @@ export const EquipmentLocksContext = createContext(null);
 export const EquipmentCalculationContext = createContext(null);
 export const EquipmentBuildActionsContext = createContext(null);
 export const EquipmentBackpackContext = createContext(null);
+export const EquipmentHistoryContext = createContext(null);
+export const EquipmentStorageContext = createContext(null);
 
 const useRequiredContext = (contextType, name) => {
     const context = useContext(contextType);
@@ -26,6 +28,10 @@ export const useEquipmentBuildActions = () =>
     useRequiredContext(EquipmentBuildActionsContext, "useEquipmentBuildActions");
 export const useEquipmentBackpack = () =>
     useRequiredContext(EquipmentBackpackContext, "useEquipmentBackpack");
+export const useEquipmentHistoryState = () =>
+    useRequiredContext(EquipmentHistoryContext, "useEquipmentHistoryState");
+export const useEquipmentStorageState = () =>
+    useRequiredContext(EquipmentStorageContext, "useEquipmentStorageState");
 
 /** Full workspace facade for compositions which need multiple state domains. Prefer a domain hook in leaf components. */
 export const useEquipment = () => {

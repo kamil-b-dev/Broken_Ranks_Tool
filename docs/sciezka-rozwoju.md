@@ -141,6 +141,16 @@ przekroczenie limitu nie zwraca fragmentu jako pełnej ścieżki.
 
 ## Czytanie raportu
 
+„Zakupy i ulepszenia ścieżki” zbiera potrzeby wszystkich niewykonanych etapów lub
+najbliższych trzech od wskazanego poziomu gracza. Osobno pokazuje przedmioty,
+nowe kamienie oraz ulepszenia. Przenoszenie i przemiana epika w legendę nie są
+nowymi zakupami. Sztuka kamienia jest liczona jako zakup tylko przy pozyskaniu;
+ulepszenie tej samej sztuki nie zwiększa liczby kupowanych kamieni. Odhaczenia
+oznaczają przygotowanie, a nie wykonanie etapu. Są zapisywane w istniejącym
+checkpoincie jako opcjonalna lista `prepared` i wracają wyłącznie dla zgodnego
+planu. Eksport TXT obejmuje aktualny zakres z oznaczeniami i poziomami etapów.
+Lista nie odejmuje rzeczy z plecaka i nie wycenia kosztów.
+
 Raport grupuje kolejne konfiguracje na tym samym poziomie w jedną kartę.
 Domyślnie rozwinięty jest najbliższy etap z działaniami, pozostałe są zwinięte.
 Nagłówek podaje poziom, zmieniane przedmioty i liczbę rzeczy do przygotowania,
@@ -173,8 +183,16 @@ bez numerowanych etykiet „Drif 1” lub „Orb 1” w interfejsie.
 
 Pole „Twój poziom” wskazuje najbliższy nieodhaczony próg na tym lub wyższym
 poziomie; nie odhacza automatycznie wcześniejszych etapów. Checklista dotyczy
-aktualnie wyświetlanego raportu i resetuje się przy nowym planowaniu lub
-odświeżeniu. Nie jest częścią zapisu projektu v2. Eksport karty obejmuje końcową
+konkretnego celu i wygenerowanych instrukcji. Poziom i odhaczenia są zapisywane
+lokalnie, osobno od projektu v2. Po ponownym otwarciu „Odtwórz plan” generuje
+świeży raport z API; aplikacja nie przywraca historycznego raportu jako aktualnego.
+Przy identycznym wejściu i instrukcjach odtwarza poziom i checklistę. Zmiana celu,
+profesji, rezerwacji, opcji planowania albo instrukcji usuwa odhaczenia z widoku
+z komunikatem o konieczności ponownego sprawdzenia etapów. Poziom postaci pozostaje
+zachowany w granicach nowego celu. Przechowywany jest ostatni checkpoint; samo
+planowanie innego celu nie nadpisuje go, dopóki użytkownik nie zmieni poziomu
+lub odhaczenia. Błąd zapisu pozostawia stan w karcie i udostępnia ponowienie.
+Checklista nie jest częścią eksportowanego projektu v2. Eksport karty obejmuje końcową
 konfigurację danego poziomu, po wszystkich jego działaniach.
 
 ## API, zapis i eksport

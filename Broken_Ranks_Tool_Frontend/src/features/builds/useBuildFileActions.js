@@ -23,9 +23,11 @@ export const useBuildFileActions = ({ loadBuildFromFile }) => {
                 type: skipped ? "warning" : "success",
                 message: `Wczytano build z pliku ${file.name}${details}.`,
             });
+            return true;
         } catch (error) {
             if (version !== importVersion.current) return;
             setNotice({ type: "error", message: `Nie udało się wczytać buildu: ${error.message}` });
+            return false;
         }
     };
 

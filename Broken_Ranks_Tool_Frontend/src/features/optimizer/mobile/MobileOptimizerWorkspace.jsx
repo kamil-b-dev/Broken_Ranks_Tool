@@ -6,6 +6,7 @@ import "../styles/optimizer-report.css";
 import "../styles/optimizer-results.css";
 import { useEffect, useRef } from "react";
 import AppNotice from "../../../shared/ui/AppNotice";
+import DraftSaveWarning from "../../../shared/ui/DraftSaveWarning";
 import { useOptimizerWorkspace } from "../useOptimizerWorkspace";
 import AdvisorGoalsPanel from "../advisor/AdvisorGoalsPanel";
 import SimpleProfileGoalsPanel from "../simple-profile/SimpleProfileGoalsPanel";
@@ -135,9 +136,9 @@ export default function MobileOptimizerWorkspace({ settings, onSettingsChange, o
                                 {t("s)")}
                             </>
                         ) : advisory ? (
-                            "Analizuj build"
+                            t("Analizuj build")
                         ) : (
-                            "Uruchom optymalizację"
+                            t("Uruchom optymalizację")
                         )}
                     </button>
                     {model.isOptimizing && advisory && (
@@ -156,6 +157,12 @@ export default function MobileOptimizerWorkspace({ settings, onSettingsChange, o
                         </div>
                     )}
                 </div>
+                <DraftSaveWarning
+                    failed={model.draftSave?.saveFailed}
+                    message="Nie udało się automatycznie zapisać ustawień optymalizatora. Ponów zapis lub pobierz konfigurację do pliku."
+                    onRetry={model.draftSave?.retrySave}
+                    onDownload={model.configFiles.save}
+                />
                 <AppNotice
                     notice={
                         model.notice

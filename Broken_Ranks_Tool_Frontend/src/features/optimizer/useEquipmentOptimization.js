@@ -44,6 +44,7 @@ export const useEquipmentOptimization = ({
     const slots = requestData?.slots;
     const [optimizationTrigger, setOptimizationTrigger] = useState(0);
     const [reorganizationUndo, setReorganizationUndo] = useState(null);
+    const clearReorganizationUndo = useCallback(() => setReorganizationUndo(null), []);
     const reorganizationUndoWarning =
         reorganizationUndo &&
         (inventorySignature(requestData, backpack, lockedSlots, lockedDrifs) !==
@@ -252,7 +253,10 @@ export const useEquipmentOptimization = ({
                     reorganizationDrifUsages,
                     reorganizationStatChanges,
                 } = await optimizeEquipmentDrifs(request);
-                if (baselineInputSignature !== currentInputSignature.current[signatureKey]) {
+                if (
+                    runVersion !== optimizerRunVersion.current ||
+                    baselineInputSignature !== currentInputSignature.current[signatureKey]
+                ) {
                     return {
                         ...failure(
                             "Build lub blokady zmieniły się podczas obliczeń. Uruchom optymalizację ponownie."
@@ -432,5 +436,6 @@ export const useEquipmentOptimization = ({
         canUndoReorganization: Boolean(reorganizationUndo),
         reorganizationUndoWarning,
         undoReorganization,
+        clearReorganizationUndo,
     };
 };

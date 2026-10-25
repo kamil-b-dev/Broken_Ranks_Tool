@@ -10,11 +10,11 @@ it("shows only step-by-step details on mobile, preserving the full upgrade order
     const timeline = screen.getByRole("list", { name: "Etapy według poziomu" });
     expect(timeline.children).toHaveLength(3);
     expect(screen.getAllByRole("button", { expanded: true })).toHaveLength(1);
-    expect(screen.getByRole("button", { name: /Poziom 120:/ })).toHaveAttribute(
+    expect(screen.getByRole("button", { name: /Poziom 120/ })).toHaveAttribute(
         "aria-expanded",
         "false"
     );
-    await user.click(screen.getByRole("button", { name: /Poziom 120:/ }));
+    await user.click(screen.getByRole("button", { name: /Poziom 120/ }));
     expect(screen.getAllByRole("button", { expanded: true })).toHaveLength(1);
     expect(
         screen.queryByRole("heading", { name: "Przygotuj", exact: true })
@@ -47,7 +47,7 @@ it("opens before and after equipment with Polish stats and omits every reserved 
     const user = userEvent.setup();
     const report = { ...legendReport(), resSlots: ["ring1", "ring2", "necklace"] };
     render(<ProgressionResult report={report} data={reportData} />);
-    await user.click(screen.getByRole("button", { name: /Poziom 120:/ }));
+    await user.click(screen.getByRole("button", { name: /Poziom 120/ }));
     await user.click(screen.getByText("Szczegóły"));
     expect(document.querySelector(".progression-instructions")).not.toBeInTheDocument();
     expect(screen.getByText("Przed", { exact: true })).toBeVisible();
@@ -68,7 +68,7 @@ it.each([false, true])("shows final stats even without operations, mobile=%s", a
     const user = userEvent.setup();
     const report = { ...legendReport(), resSlots: [] };
     render(<ProgressionResult report={report} data={reportData} mobile={mobile} />);
-    await user.click(screen.getByRole("button", { name: /Poziom 140:/ }));
+    await user.click(screen.getByRole("button", { name: /Poziom 140/ }));
     await user.click(screen.getByText("Szczegóły"));
     expect(screen.getAllByText("Szczegóły")).toHaveLength(1);
     expect(screen.getByRole("region", { name: "Podsumowanie statystyk" })).toBeVisible();
@@ -83,12 +83,12 @@ it("uses the player level and checklist to reveal the next milestone without com
     await user.clear(input);
     await user.type(input, "120");
     await user.tab();
-    expect(screen.getByRole("button", { name: /Poziom 120:/ })).toHaveAttribute(
+    expect(screen.getByRole("button", { name: /Poziom 120/ })).toHaveAttribute(
         "aria-expanded",
         "true"
     );
     await user.click(screen.getByRole("checkbox", { name: "Poziom 120 wykonany" }));
-    expect(screen.getByRole("button", { name: /Poziom 140:/ })).toHaveAttribute(
+    expect(screen.getByRole("button", { name: /Poziom 140/ })).toHaveAttribute(
         "aria-expanded",
         "true"
     );

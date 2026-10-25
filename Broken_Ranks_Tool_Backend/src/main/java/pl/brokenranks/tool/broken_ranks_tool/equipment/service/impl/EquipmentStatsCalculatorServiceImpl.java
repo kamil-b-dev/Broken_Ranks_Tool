@@ -7,8 +7,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.STAT_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.CalculationExplanationDto;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.CalculationResultDto;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.StatContributionDto;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.OrbTemplate;
@@ -45,6 +47,19 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
     private final DrifCounter drifCounter;
     private final CalculationMetadataFactory metadataFactory;
     private final SlotDrifSelectionFactory drifSelectionFactory;
+
+    @Override
+    public CalculationExplanationDto calculateExplanation(EquipmentRequest request) {
+        var state = calculateState(request, null, true).state();
+        Map<String, Integer> caps = new java.util.TreeMap<>();
+        for (var bonus : DRIF_BONUS_TYPE.values()) {
+            if (bonus.getMaxCap() != null) caps.put(bonus.name(), bonus.getMaxCap());
+        }
+        return new CalculationExplanationDto(
+                state.getAccumulator().getFormattedResults(),
+                state.getAccumulator().getContributions(),
+                Map.copyOf(caps));
+    }
 
     @Override
     public Map<String, String> calculateTotalStats(EquipmentRequest request) {
@@ -101,6 +116,11 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
 
     private CalculatedEquipment calculateState(
             EquipmentRequest request, CalculationContext preparedContext) {
+        return calculateState(request, preparedContext, false);
+    }
+
+    private CalculatedEquipment calculateState(
+            EquipmentRequest request, CalculationContext preparedContext, boolean trace) {
         request = OrbSelectionNormalizer.normalize(request);
         requestValidator.validateRequest(request);
         requestValidator.validateCharacterStats(request.getCharacterStats());
@@ -110,7 +130,7 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
                         : request.getSlots().isEmpty()
                                 ? new CalculationContext(Map.of(), Map.of(), Map.of())
                                 : dataProvider.buildContext(request.getSlots().values());
-        CalculationState state = new CalculationState(ctx);
+        CalculationState state = new CalculationState(ctx, trace);
 
         initializeDefaultStats(state);
         applyCharacterStats(state, request.getCharacterStats());
@@ -125,12 +145,18 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
     private record CalculatedEquipment(CalculationState state, EquipmentRequest request) {}
 
     private void initializeDefaultStats(CalculationState state) {
+        if (state.getAccumulator().isTracing())
+            state.getAccumulator()
+                    .setSource(StatContributionDto.Source.builder().kind("DEFAULT").build());
         state.getAccumulator().addRawValue(DRIF_BONUS_TYPE.CRITICAL_CHANCE.name(), "2%", 1.0);
         state.getAccumulator().addRawValue(DRIF_BONUS_TYPE.MANA_REGEN.name(), "5%", 1.0);
         state.getAccumulator().addRawValue(DRIF_BONUS_TYPE.STAMINA_REGEN.name(), "5%", 1.0);
     }
 
     private void applyCharacterStats(CalculationState state, Map<String, Integer> characterStats) {
+        if (state.getAccumulator().isTracing())
+            state.getAccumulator()
+                    .setSource(StatContributionDto.Source.builder().kind("CHARACTER").build());
         if (characterStats != null) {
             characterStats.forEach(
                     (stat, val) ->
@@ -178,6 +204,15 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
 
         double finalDrifMod = itemProcessor.calculateFinalDrifMod(item, starLevel);
 
+        if (state.getAccumulator().isTracing())
+            state.getAccumulator()
+                    .setSource(
+                            StatContributionDto.Source.builder()
+                                    .kind("ITEM")
+                                    .slotKey(slotKey)
+                                    .itemName(item.getName())
+                                    .itemStars(starLevel)
+                                    .build());
         itemProcessor.process(item, starLevel, state);
         orbProcessor.process(slotKey, slotData, item, starLevel, state);
         drifProcessor.process(slotKey, slotData, item, finalDrifMod, state);

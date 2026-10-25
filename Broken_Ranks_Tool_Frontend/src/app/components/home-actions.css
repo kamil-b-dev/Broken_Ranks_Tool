@@ -1,0 +1,92 @@
+.home-actions,
+.home-recent {
+    font-family: Inter, system-ui, sans-serif;
+}
+.home-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 2rem;
+}
+.home-actions button,
+.home-recent button {
+    min-height: 2.75rem;
+    padding: 0.65rem 1rem;
+    border: 1px solid #a8864e;
+    background: #211a13ee;
+    color: #f8e5bc;
+    font: inherit;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+.home-actions button:first-child {
+    background: #573c18;
+    border-color: #d7ac63;
+}
+.home-actions button:disabled,
+.home-recent button:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+.home-actions button:focus-visible,
+.home-recent button:focus-visible {
+    outline: 2px solid #f3cd85;
+    outline-offset: 3px;
+}
+.home-recent {
+    max-width: 38rem;
+    margin-top: 2rem;
+    padding: 1rem;
+    background: #11100eec;
+    border: 1px solid #655136;
+    color: #eee5d6;
+}
+.home-recent-heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+.home-recent h3 {
+    margin: 0;
+    font: inherit;
+    font-weight: 600;
+}
+.home-recent ul {
+    list-style: none;
+    margin: 0.75rem 0 0;
+    padding: 0;
+}
+.home-recent li {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
+    padding-block: 0.75rem;
+    border-top: 1px solid #4a3d2b;
+}
+.home-recent li span {
+    display: grid;
+    gap: 0.3rem;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+.home-recent time {
+    font-size: 0.8rem;
+    color: #c2b5a1;
+}
+.home-recent p {
+    margin-bottom: 0;
+}
+.home-actions-mobile .home-intro {
+    padding: 0;
+    width: 100%;
+}
+.home-actions-mobile .home-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+}
+.home-actions-mobile .home-recent {
+    margin-bottom: 1rem;
+}

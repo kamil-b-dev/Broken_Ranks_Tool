@@ -1,5 +1,6 @@
 import { useState } from "react";
 import AppNotice from "../../shared/ui/AppNotice";
+import DraftSaveWarning from "../../shared/ui/DraftSaveWarning";
 import OptimizerMobileNavigation from "./OptimizerMobileNavigation";
 import OptimizerSettingsPanel, { OptimizerModeNavigation } from "./OptimizerSettingsPanel";
 import OptimizerLocksColumn from "./OptimizerLocksColumn";
@@ -54,6 +55,7 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
         notice,
         setNotice,
         configFiles,
+        draftSave,
         currentModDetails,
         reportModDetails,
         displayedVariant,
@@ -84,6 +86,12 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                         notice ? { ...notice, message: labels.formatText(notice.message) } : notice
                     }
                     onDismiss={() => setNotice(null)}
+                />
+                <DraftSaveWarning
+                    failed={draftSave?.saveFailed}
+                    message="Nie udało się automatycznie zapisać ustawień optymalizatora. Ponów zapis lub pobierz konfigurację do pliku."
+                    onRetry={draftSave?.retrySave}
+                    onDownload={configFiles.save}
                 />
                 <OptimizerMobileNavigation
                     activeColumn={activeMobileColumn}

@@ -7,6 +7,7 @@ import { useMemo, useState } from "react";
 import BuildComparison from "./BuildComparison";
 import BuildRenameForm from "./library/BuildRenameForm";
 import SavedBuildList from "./library/SavedBuildList";
+import LibraryBackupPanel from "./library-backup/LibraryBackupPanel";
 
 const BuildLibraryWorkspace = ({
     active = true,
@@ -19,8 +20,10 @@ const BuildLibraryWorkspace = ({
     onExport,
     onRemove,
     onOpenBuilder,
+    library,
 }) => {
     const { t } = useTranslation();
+    const importData = useMemo(() => ({ ...data, gameRules }), [data, gameRules]);
 
     const [selectedIds, setSelectedIds] = useState([]);
     const availableSelectedIds = useMemo(() => {
@@ -54,6 +57,7 @@ const BuildLibraryWorkspace = ({
                 </div>
                 <BuildRenameForm builds={builds} onRename={onRename} />
             </section>
+            <LibraryBackupPanel library={library} data={importData} />
             <div className="build-library-layout">
                 <aside className="build-library-list-panel workbench">
                     <div className="build-library-panel-heading">

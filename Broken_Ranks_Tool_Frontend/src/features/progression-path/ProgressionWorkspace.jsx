@@ -21,6 +21,13 @@ import {
 import ProgressionNumberInput from "./ProgressionNumberInput";
 import ProgressionResult from "./ProgressionResult";
 import useProgressionProjectStorage from "./useProgressionProjectStorage";
+import {
+    progressionInputKey,
+    progressionPlanKey,
+    readProgressionProgress,
+    restoreProgressionProgress,
+    writeProgressionProgress,
+} from "./progressionProgress";
 import "../../shared/styles/workbench.css";
 import "./progression-path.css";
 
@@ -39,6 +46,10 @@ export default function ProgressionWorkspace({
     );
     const [initial] = useState(() => readProjectDraft(data));
     const [project, setProject] = useState(initial.project);
+    const [initialProgress] = useState(readProgressionProgress);
+    const inputKey = useMemo(() => progressionInputKey(project), [project]);
+    const [progressError, setProgressError] = useState(null);
+    const pendingProgress = useRef(null);
     const persistAllowed = useRef(initial.warning == null);
     const [reportState, setReportState] = useState(null);
     const report = reportState?.data === data ? reportState.value : null;
@@ -72,6 +83,8 @@ export default function ProgressionWorkspace({
     }, [data]);
 
     const update = (change) => {
+        setProgressError(null);
+        pendingProgress.current = null;
         persistAllowed.current = true;
         setStorageError(null);
         revision.current++;
@@ -161,7 +174,26 @@ export default function ProgressionWorkspace({
                 planningRequest(project, data),
                 { signal: controller.signal }
             );
-            if (version === revision.current) setReport(response.data);
+            const planKey = await progressionPlanKey(response.data);
+            if (version === revision.current) {
+                const saved = readProgressionProgress();
+                const levels = [
+                    ...new Set(response.data.stages.map((entry) => entry.stage.characterLevel)),
+                ];
+                const progress = restoreProgressionProgress(
+                    saved.progress,
+                    inputKey,
+                    planKey,
+                    levels
+                );
+                setReport({
+                    ...response.data,
+                    progressIdentity: { inputKey, planKey },
+                    restoredProgress: progress,
+                    progressWarning: saved.warning || progress.warning,
+                });
+                setProgressError(null);
+            }
         } catch (failure) {
             if (version === revision.current && !controller.signal.aborted)
                 setError(
@@ -172,6 +204,15 @@ export default function ProgressionWorkspace({
         } finally {
             if (version === revision.current) setRunning(false);
         }
+    };
+    const saveProgress = (progress) => {
+        const record = { ...report.progressIdentity, ...progress };
+        pendingProgress.current = record;
+        setProgressError(
+            writeProgressionProgress(record)
+                ? null
+                : "Nie udało się zapisać postępu. Oznaczenia pozostają dostępne tylko w tej karcie."
+        );
     };
 
     return (
@@ -198,6 +239,28 @@ export default function ProgressionWorkspace({
                 </p>
             )}
             {storageError && <p role="status">{t(storageError)}</p>}
+            {initialProgress.warning && !report && (
+                <p role="status">{t(initialProgress.warning)}</p>
+            )}
+            {!report && initialProgress.progress?.inputKey === inputKey && (
+                <p role="status">{t("Masz zapisany postęp. Odtwórz plan, aby kontynuować.")}</p>
+            )}
+            {progressError && report && (
+                <div role="alert">
+                    <p>{t(progressError)}</p>
+                    <button
+                        onClick={() =>
+                            setProgressError(
+                                writeProgressionProgress(pendingProgress.current)
+                                    ? null
+                                    : progressError
+                            )
+                        }
+                    >
+                        {t("Ponów zapis")}
+                    </button>
+                </div>
+            )}
             <div className="progression-source">
                 <label>
                     {t("Docelowy build")}
@@ -329,10 +392,25 @@ export default function ProgressionWorkspace({
                 ))}
             </fieldset>
             <button className="progression-run" disabled={running || !project.target} onClick={run}>
-                {t(running ? "Planowanie…" : "Zaplanuj ścieżkę")}
+                {t(
+                    running
+                        ? "Planowanie…"
+                        : initialProgress.progress?.inputKey === inputKey
+                          ? "Odtwórz plan"
+                          : "Zaplanuj ścieżkę"
+                )}
             </button>
             {running && <p role="status">{t("Generowanie planu…")}</p>}
-            {report && <ProgressionResult report={report} data={data} mobile={mobile} />}
+            {report && (
+                <ProgressionResult
+                    report={report}
+                    data={data}
+                    mobile={mobile}
+                    initialProgress={report.restoredProgress}
+                    progressWarning={report.progressWarning}
+                    onProgressChange={saveProgress}
+                />
+            )}
         </main>
     );
 }

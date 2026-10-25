@@ -5,9 +5,12 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ITEM_STAR;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.RARITY;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.DrifValueCalculator;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRulesRegistry;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest.SlotData;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.StatContributionDto;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.CalculationState;
@@ -60,6 +63,30 @@ public class DrifStatProcessor {
             String calculatedStatValue =
                     valueCalculator.calculate(drif.getBaseValue(), drif.getIncrement(), finalLvl);
             double finalMultiplier = (1.0 + drifMod) * penaltyMultiplier;
+
+            if (state.getAccumulator().isTracing()) {
+                int stars = slot.getItemStars() == null ? 1 : slot.getItemStars();
+                double starBonus = ITEM_STAR.fromLevel(stars).getDrifMod();
+                state.getAccumulator()
+                        .setSource(
+                                StatContributionDto.Source.builder()
+                                        .kind("DRIF")
+                                        .slotKey(slotKey)
+                                        .itemName(item.getName())
+                                        .itemStars(stars)
+                                        .stoneName(drif.getName())
+                                        .size(drif.getSize().name())
+                                        .level(finalLvl)
+                                        .socketIndex(i)
+                                        .builtIn(
+                                                item.getRarity() == RARITY.EPIC
+                                                        || item.getRarity() == RARITY.SET)
+                                        .itemBonus(drifMod - starBonus)
+                                        .starBonus(starBonus)
+                                        .repeatCount(globalCountForThisDrif)
+                                        .penaltyMultiplier(penaltyMultiplier)
+                                        .build());
+            }
 
             state.getAccumulator()
                     .addRawValue(drif.getBonusType().name(), calculatedStatValue, finalMultiplier);

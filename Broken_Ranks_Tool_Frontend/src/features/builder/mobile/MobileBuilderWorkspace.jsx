@@ -211,7 +211,7 @@ export default function MobileBuilderWorkspace() {
                     ) : route.section === "character" ? (
                         <MobileCharacterPanel />
                     ) : (
-                        <MobileStatsPanel />
+                        <MobileStatsPanel requestData={requestData} />
                     )}
                 </>
             )}

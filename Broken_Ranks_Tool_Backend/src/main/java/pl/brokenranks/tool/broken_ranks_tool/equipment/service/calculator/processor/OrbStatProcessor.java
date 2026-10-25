@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ITEM_STAR;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest.SlotData;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.StatContributionDto;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.ItemTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.OrbTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.CalculationState;
@@ -88,6 +89,20 @@ public class OrbStatProcessor {
 
             if (statValue != null) {
                 ITEM_STAR starMod = ITEM_STAR.fromLevel(itemStars);
+                if (state.getAccumulator().isTracing())
+                    state.getAccumulator()
+                            .setSource(
+                                    StatContributionDto.Source.builder()
+                                            .kind("ORB")
+                                            .slotKey(slotKey)
+                                            .itemName(item.getName())
+                                            .itemStars(itemStars)
+                                            .stoneName(orb.getName())
+                                            .size(orb.getSize().name())
+                                            .level(finalLvl)
+                                            .socketIndex(sourceIndex)
+                                            .starBonus(starMod.getOrbMod())
+                                            .build());
                 state.getAccumulator()
                         .addRawValue(
                                 orb.getBonusType().name(), statValue, 1.0 + starMod.getOrbMod());

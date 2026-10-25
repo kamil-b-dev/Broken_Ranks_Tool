@@ -24,6 +24,17 @@ const writeVersionedValue = (key, value, storage) => {
     try {
         storage = storage === undefined ? globalThis.localStorage : storage;
         if (!storage) return false;
+        const raw = storage.getItem(key);
+        if (raw != null) {
+            let valid = false;
+            try {
+                const existing = JSON.parse(raw);
+                valid = existing?.version === WORKING_DRAFT_VERSION && isObject(existing.value);
+            } catch {
+                /* Preserve unreadable data before replacing it. */
+            }
+            if (!valid && !preserveEquipmentDraft(storage, key)) return false;
+        }
         storage.setItem(key, JSON.stringify({ version: WORKING_DRAFT_VERSION, value }));
         return true;
     } catch {
@@ -91,6 +102,8 @@ export const writeEquipmentDraft = (draft, storage) => {
     try {
         storage = storage === undefined ? globalThis.localStorage : storage;
         if (!storage) return false;
+        const existing = readEquipmentDraftState(storage);
+        if (existing.rejected && !preserveEquipmentDraft(storage, existing.sourceKey)) return false;
         storage.setItem(
             EQUIPMENT_DRAFT_STORAGE_KEY,
             JSON.stringify({
@@ -115,10 +128,26 @@ export const preserveEquipmentDraft = (storage, sourceKey) => {
                   ? VERSION_TWO_EQUIPMENT_DRAFT_STORAGE_KEY
                   : LEGACY_EQUIPMENT_DRAFT_STORAGE_KEY;
         const raw = storage.getItem(sourceKey);
-        if (raw != null) storage.setItem(sourceKey + ".recovery", raw);
+        if (raw != null) {
+            let recoveryKey = sourceKey + ".recovery";
+            const existing = storage.getItem(recoveryKey);
+            if (existing != null && existing !== raw)
+                recoveryKey += `.${globalThis.crypto.randomUUID()}`;
+            storage.setItem(recoveryKey, raw);
+            if (storage.getItem(recoveryKey) !== raw) return false;
+        }
         return true;
     } catch {
         return false;
+    }
+};
+
+export const readEquipmentDraftRaw = (sourceKey, storage) => {
+    try {
+        storage ??= globalThis.localStorage;
+        return storage?.getItem(sourceKey) ?? null;
+    } catch {
+        return null;
     }
 };
 

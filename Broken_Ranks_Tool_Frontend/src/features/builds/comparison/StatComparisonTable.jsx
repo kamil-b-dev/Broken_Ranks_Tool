@@ -31,7 +31,11 @@ const StatComparisonTable = ({ builds, sections, onlyDifferences, comparisonStyl
         .filter((section) => section.rows.length);
 
     return (
-        <div className="build-comparison-table custom-scrollbar" style={comparisonStyle}>
+        <div
+            className="build-comparison-table custom-scrollbar"
+            style={comparisonStyle}
+            tabIndex={0}
+        >
             <div className="build-comparison-row build-comparison-header">
                 <span>{t("Statystyka")}</span>
                 {builds.map((build) => (

@@ -10,7 +10,9 @@
     left: 50%;
     z-index: 1;
     display: flex;
-    width: min(48rem, calc(100% - 2rem));
+    flex-direction: column;
+    gap: 0.75rem;
+    width: min(76rem, calc(100% - 2rem));
     justify-content: center;
     margin: 0;
     padding: 0;
@@ -29,7 +31,10 @@
 
 .app-shell-home .main-switch {
     width: 100%;
-    max-width: 48rem;
+    max-width: none;
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    order: 1;
     border: 1px solid rgba(184, 119, 62, 0.24);
     background: transparent;
     box-shadow: none;
@@ -37,8 +42,15 @@
 }
 
 .app-shell-home .main-switch a {
+    flex: 1 1 8rem;
+    min-width: 0;
     border-bottom-color: transparent;
     background: transparent;
+}
+
+.app-shell-home .app-masthead .header-actions {
+    width: 100%;
+    justify-content: flex-end;
 }
 
 .app-shell-home .main-switch a:hover {
@@ -81,8 +93,9 @@
 }
 
 .home-intro {
-    width: min(42rem, 56%);
-    padding: clamp(2.25rem, 6vw, 7.5rem);
+    width: min(58rem, 78%);
+    padding: clamp(2.25rem, 5vw, 6rem);
+    padding-top: 8rem;
     padding-right: 0;
 }
 
@@ -91,7 +104,7 @@
     margin: 0;
     color: #f0e9df;
     font-family: var(--display-font);
-    font-size: clamp(2.8rem, 5vw, 5.8rem);
+    font-size: clamp(2.8rem, 4vw, 4.8rem);
     font-weight: 500;
     letter-spacing: -0.035em;
     line-height: 0.95;

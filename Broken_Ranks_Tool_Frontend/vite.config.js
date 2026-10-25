@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { configDefaults } from "vitest/config";
 import { env } from "node:process";
+import { mutationPlugin } from "./scripts/mutation-cases.mjs";
 
 const domainTests = [
     "src/shared/domain/**/*.test.js",
@@ -39,7 +40,7 @@ const domainTests = [
 ];
 // https://vite.dev/config/
 export default defineConfig({
-    plugins: [react()],
+    plugins: [react(), ...(env.BRT_TEST_MUTATION ? [mutationPlugin(env.BRT_TEST_MUTATION)] : [])],
     server: {
         proxy: {
             "/api": env.API_PROXY_TARGET || "http://localhost:8080",

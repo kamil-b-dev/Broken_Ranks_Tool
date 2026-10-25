@@ -195,7 +195,9 @@ test("returns the replaced stone after a catalog drop into the right backpack ed
     await database
         .getByRole("button", { name: "Szczegóły: Band SUBDRIF", exact: true })
         .last()
-        .dragTo(editor.getByLabel("Wybierz rodzaj drifa 1").locator(".."));
+        .dragTo(editor.getByLabel("Wybierz rodzaj drifa 1").locator(".."), {
+            targetPosition: { x: 3, y: 3 },
+        });
     await expect(editor.getByLabel("Wybierz wielkość drifa 1")).toHaveValue("60");
     await expect(editor.getByLabel("Wybierz poziom drifa 1")).toHaveValue("1");
     await expect.poll(async () => (await draft(page)).backpack.length).toBe(entries.length + 1);

@@ -1,0 +1,50 @@
+.library-backup {
+    padding: 1rem;
+    border: 1px solid #655239;
+    background: #13120fea;
+    color: #eee5d6;
+    font-family: Inter, system-ui, sans-serif;
+}
+.library-backup-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+.library-backup button,
+.library-backup select {
+    min-height: 2.75rem;
+    padding: 0.5rem 0.8rem;
+    border: 1px solid #92764e;
+    background: #211c15;
+    color: #f5e5c7;
+    font: inherit;
+    cursor: pointer;
+}
+.library-backup button:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+.library-backup-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(12rem, 1fr);
+    align-items: center;
+    gap: 1rem;
+    margin-block: 0.75rem;
+}
+.library-backup-row span {
+    overflow-wrap: anywhere;
+}
+.library-backup select {
+    width: 100%;
+    min-width: 0;
+}
+.library-backup :is(button, select):focus-visible {
+    outline: 2px solid #f3cd85;
+    outline-offset: 3px;
+}
+@media (max-width: 600px) {
+    .library-backup-row {
+        grid-template-columns: 1fr;
+        gap: 0.4rem;
+    }
+}

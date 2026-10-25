@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.CalculationExplanationDto;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.CalculationResultDto;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCalculatorService;
@@ -15,6 +16,12 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.EquipmentStatsCal
 public class CalculatorController {
 
     private final EquipmentStatsCalculatorService calculatorService;
+
+    @PostMapping(value = "/calculate", params = "explain=true")
+    public ResponseEntity<CalculationExplanationDto> explainStats(
+            @Valid @RequestBody EquipmentRequest request) {
+        return ResponseEntity.ok(calculatorService.calculateExplanation(request));
+    }
 
     /**
      * Calculates equipment statistics from the submitted configuration.

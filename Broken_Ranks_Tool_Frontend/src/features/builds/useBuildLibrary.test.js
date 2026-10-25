@@ -1,10 +1,14 @@
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { downloadBuildPayload } from "./buildDownloads";
+import { downloadBuildPayload, downloadBuildText } from "./buildDownloads";
 import { useBuildLibrary } from "./useBuildLibrary";
-import { readBuildLibrary } from "./buildLibraryStorage";
+import {
+    readBuildLibrary,
+    BUILD_LIBRARY_STORAGE_KEY,
+    BUILD_LIBRARY_RECOVERY_KEY,
+} from "./buildLibraryStorage";
 
-vi.mock("./buildDownloads", () => ({ downloadBuildPayload: vi.fn() }));
+vi.mock("./buildDownloads", () => ({ downloadBuildPayload: vi.fn(), downloadBuildText: vi.fn() }));
 
 const snapshot = (itemId = 1) => ({
     payload: {
@@ -21,6 +25,65 @@ describe("useBuildLibrary", () => {
     afterEach(() => {
         vi.restoreAllMocks();
         vi.unstubAllGlobals();
+    });
+
+    it("blocks writes if another tab damages storage and recovers only after archiving the original", async () => {
+        const { result } = renderHook(() =>
+            useBuildLibrary({ createSnapshot: () => snapshot(), applySnapshot: vi.fn() })
+        );
+        localStorage.setItem(BUILD_LIBRARY_STORAGE_KEY, "{original damage");
+        await act(async () => expect(await result.current.saveCurrent("New")).toBeNull());
+        expect(localStorage.getItem(BUILD_LIBRARY_STORAGE_KEY)).toBe("{original damage");
+        expect(result.current.storageWarning).toContain("Zapis jest zablokowany");
+        act(() => result.current.downloadRecovery());
+        expect(downloadBuildText).toHaveBeenCalledWith(
+            "{original damage",
+            "broken-ranks-library-recovery.json"
+        );
+        await act(async () => result.current.recover());
+        expect(result.current.storageWarning).toBeNull();
+        expect(localStorage.getItem(BUILD_LIBRARY_RECOVERY_KEY)).toBe("{original damage");
+        await act(async () => expect(await result.current.saveCurrent("New")).not.toBeNull());
+        expect(result.current.builds).toHaveLength(1);
+    });
+
+    it("keeps recovery blocked when its backup cannot be saved", async () => {
+        localStorage.setItem(BUILD_LIBRARY_STORAGE_KEY, "broken");
+        const { result } = renderHook(() =>
+            useBuildLibrary({ createSnapshot: () => snapshot(), applySnapshot: vi.fn() })
+        );
+        vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+            throw new Error("quota");
+        });
+        await act(async () => result.current.recover());
+        expect(result.current.storageWarning).toContain("Zapis jest zablokowany");
+        expect(localStorage.getItem(BUILD_LIBRARY_STORAGE_KEY)).toBe("broken");
+        expect(result.current.notice.type).toBe("error");
+    });
+
+    it("imports a backup as one locked write and rejects stale previews or quota failures atomically", async () => {
+        const { result } = renderHook(() =>
+            useBuildLibrary({ createSnapshot: () => snapshot(), applySnapshot: vi.fn() })
+        );
+        await act(async () => result.current.saveCurrent("Original"));
+        const before = JSON.stringify(result.current.builds);
+        const incoming = [{ ...result.current.builds[0], id: "incoming", name: "Imported" }];
+        await act(async () =>
+            expect(await result.current.importLibrary(incoming, {}, "stale")).toBe(false)
+        );
+        expect(JSON.stringify(result.current.builds)).toBe(before);
+        const spy = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+            throw new Error("quota");
+        });
+        await act(async () =>
+            expect(await result.current.importLibrary(incoming, {}, before)).toBe(false)
+        );
+        expect(JSON.stringify(result.current.builds)).toBe(before);
+        spy.mockRestore();
+        await act(async () =>
+            expect(await result.current.importLibrary(incoming, {}, before)).toBe(true)
+        );
+        expect(result.current.builds.map((entry) => entry.name)).toEqual(["Original", "Imported"]);
     });
 
     it("saves, loads, overwrites and removes local builds", async () => {

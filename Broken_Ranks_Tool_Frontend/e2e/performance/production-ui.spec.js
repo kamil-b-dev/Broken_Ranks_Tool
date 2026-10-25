@@ -135,7 +135,7 @@ test("mobile editor preserves import calculations and provisional level edits", 
     await expect(page.getByRole("status").filter({ hasText: "Wczytano build" })).toBeVisible();
     await page.getByRole("button", { name: /Wszystkie sloty/ }).tap();
     await page.getByRole("button", { name: "Statystyki", exact: true }).tap();
-    await expect(page.getByRole("definition").filter({ hasText: "42" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Siła 42", exact: true })).toBeVisible();
     await page.getByRole("button", { name: "Postać", exact: true }).tap();
     const level = page.getByLabel("Poziom postaci");
     await level.focus();

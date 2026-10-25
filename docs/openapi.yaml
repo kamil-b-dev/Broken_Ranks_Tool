@@ -166,6 +166,11 @@ paths:
     post:
       operationId: calculateEquipment
       summary: Validate an equipment setup and calculate its statistics.
+      parameters:
+        - in: query
+          name: explain
+          description: Return an on-demand trace of the same calculation instead of source classifications. Uses the same request validation and rate limit.
+          schema: {type: boolean, default: false}
       requestBody:
         required: true
         content:
@@ -178,7 +183,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CalculationResult"
+                oneOf:
+                  - $ref: "#/components/schemas/CalculationResult"
+                  - $ref: "#/components/schemas/CalculationExplanation"
         "400":
           $ref: "#/components/responses/ApiFailure"
         "413":
@@ -521,6 +528,47 @@ components:
           uniqueItems: true
           items:
             type: string
+    CalculationExplanation:
+      type: object
+      required: [stats, contributions, caps]
+      properties:
+        stats:
+          type: object
+          additionalProperties: {type: string}
+        caps:
+          type: object
+          description: Natural drif modifier caps; negative values preserve resource reduction direction.
+          additionalProperties: {type: integer}
+        contributions:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              $ref: "#/components/schemas/StatContribution"
+    StatContribution:
+      type: object
+      required: [source, baseValue, value, percentage]
+      properties:
+        baseValue: {type: number, description: Value at the selected stone level or the base item/character value.}
+        value: {type: number, description: Actual contribution before display rounding.}
+        percentage: {type: boolean}
+        source:
+          type: object
+          required: [kind, itemStars, level, socketIndex, builtIn, itemBonus, starBonus, repeatCount, penaltyMultiplier]
+          properties:
+            kind: {type: string, enum: [DEFAULT, CHARACTER, ITEM, DRIF, ORB]}
+            slotKey: {type: [string, "null"]}
+            itemName: {type: [string, "null"]}
+            itemStars: {type: integer}
+            stoneName: {type: [string, "null"]}
+            size: {type: [string, "null"]}
+            level: {type: integer}
+            socketIndex: {type: integer, description: Zero-based index for stone sources.}
+            builtIn: {type: boolean}
+            itemBonus: {type: number}
+            starBonus: {type: number}
+            repeatCount: {type: integer}
+            penaltyMultiplier: {type: number}
     OptimizationRequest:
       type: object
       additionalProperties: false

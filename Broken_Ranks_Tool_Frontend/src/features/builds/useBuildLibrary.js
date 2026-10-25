@@ -4,17 +4,24 @@ import {
     createLocalBuildRecord,
     normalizeBuildName,
     readBuildLibrary,
+    readBuildLibraryState,
+    recoverBuildLibrary,
+    LIBRARY_RECOVERY_MESSAGE,
     replaceLocalBuildRecord,
     writeBuildLibrary,
     BUILD_LIBRARY_STORAGE_KEY,
     BUILD_LIBRARY_CHANGED_EVENT,
     withBuildLibraryLock,
 } from "./buildLibraryStorage";
-import { downloadBuildPayload } from "./buildDownloads";
+import { downloadBuildPayload, downloadBuildText } from "./buildDownloads";
 
 /** Owns the persistent browser library and applies saved snapshots to the editor. */
 export const useBuildLibrary = ({ createSnapshot, applySnapshot }) => {
-    const [builds, setBuilds] = useState(() => readBuildLibrary());
+    const [storageState, setStorageState] = useState(() => readBuildLibraryState());
+    const builds = storageState.builds;
+    const setBuilds = useCallback((next) => {
+        setStorageState({ ...readBuildLibraryState(), builds: next });
+    }, []);
     const [notice, setNotice] = useState(null);
     const origin = useRef(Symbol("build-library"));
 
@@ -26,7 +33,7 @@ export const useBuildLibrary = ({ createSnapshot, applySnapshot }) => {
                 event.key == null ||
                 event.key === BUILD_LIBRARY_STORAGE_KEY
             ) {
-                setBuilds(readBuildLibrary());
+                setStorageState(readBuildLibraryState());
             }
         };
         window.addEventListener("storage", refresh);
@@ -37,22 +44,25 @@ export const useBuildLibrary = ({ createSnapshot, applySnapshot }) => {
         };
     }, []);
 
-    const commit = useCallback(async (update) => {
-        let next;
-        try {
-            await withBuildLibraryLock(() => {
-                next = update(readBuildLibrary());
-                writeBuildLibrary(next);
-            });
-        } catch (error) {
-            setBuilds(readBuildLibrary());
-            throw error;
-        }
-        setBuilds(next);
-        window.dispatchEvent(
-            new CustomEvent(BUILD_LIBRARY_CHANGED_EVENT, { detail: { origin: origin.current } })
-        );
-    }, []);
+    const commit = useCallback(
+        async (update) => {
+            let next;
+            try {
+                await withBuildLibraryLock(() => {
+                    next = update(readBuildLibrary());
+                    writeBuildLibrary(next);
+                });
+            } catch (error) {
+                setBuilds(readBuildLibrary());
+                throw error;
+            }
+            setBuilds(next);
+            window.dispatchEvent(
+                new CustomEvent(BUILD_LIBRARY_CHANGED_EVENT, { detail: { origin: origin.current } })
+            );
+        },
+        [setBuilds]
+    );
 
     const saveCurrent = useCallback(
         async (name) => {
@@ -202,8 +212,86 @@ export const useBuildLibrary = ({ createSnapshot, applySnapshot }) => {
         [builds, commit]
     );
 
+    const downloadRecovery = () => {
+        try {
+            // Read again so a second tab's newer data is included.
+            const current = readBuildLibraryState();
+            if (current.raw == null)
+                throw new Error("Pamięć lokalna przeglądarki jest niedostępna.");
+            downloadBuildText(current.raw, "broken-ranks-library-recovery.json");
+        } catch (error) {
+            setNotice({ type: "error", message: error.message });
+        }
+    };
+    const recover = async () => {
+        try {
+            await withBuildLibraryLock(() => recoverBuildLibrary());
+            setStorageState(readBuildLibraryState());
+            window.dispatchEvent(new CustomEvent(BUILD_LIBRARY_CHANGED_EVENT));
+            setNotice({
+                type: "success",
+                message:
+                    "Zachowano kopię oryginalnych danych. Odzyskano czytelne buildy i odblokowano zapis.",
+            });
+        } catch {
+            setStorageState(readBuildLibraryState());
+            setNotice({
+                type: "error",
+                message:
+                    "Nie udało się zachować kopii biblioteki. Oryginalne dane nie zostały nadpisane.",
+            });
+        }
+    };
+
+    const exportLibrary = async () => {
+        try {
+            const current = readBuildLibraryState();
+            if (current.rejected) throw new Error(LIBRARY_RECOVERY_MESSAGE);
+            const { createLibraryBackup } = await import("./library-backup/libraryBackup");
+            downloadBuildText(
+                JSON.stringify(createLibraryBackup(current.builds), null, 2),
+                "broken-ranks-library-backup.json"
+            );
+            return true;
+        } catch (error) {
+            setNotice({ type: "error", message: error.message });
+            return false;
+        }
+    };
+    const importLibrary = async (incoming, decisions, expected) => {
+        try {
+            const { mergeLibraryBackup, librarySnapshotIdentity } =
+                await import("./library-backup/libraryBackup");
+            await commit((latest) => {
+                if (librarySnapshotIdentity(latest) !== expected)
+                    throw new Error(
+                        "Biblioteka zmieniła się podczas podglądu importu. Wczytaj kopię ponownie i sprawdź konflikty."
+                    );
+                return mergeLibraryBackup(latest, incoming, decisions);
+            });
+            setNotice({
+                type: "success",
+                message: "Zaimportowano wybrane buildy z kopii biblioteki.",
+            });
+            return true;
+        } catch (error) {
+            setNotice({ type: "error", message: error.message });
+            return false;
+        }
+    };
+
     return {
         builds,
+        exportLibrary,
+        importLibrary,
+        storageWarning: storageState.rejected
+            ? storageState.unavailable
+                ? "Pamięć lokalna przeglądarki jest niedostępna."
+                : LIBRARY_RECOVERY_MESSAGE
+            : null,
+        canRecover: storageState.rejected && storageState.raw != null,
+        downloadRecovery,
+        recover,
         notice,
         saveCurrent,
         overwrite,

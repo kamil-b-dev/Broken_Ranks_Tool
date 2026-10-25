@@ -173,6 +173,8 @@ const BuilderWorkspace = ({
                     )}
                     <StatsPanel
                         compact
+                        requestData={requestData}
+                        catalog={data}
                         stats={stats}
                         onCalculate={onCalculateStats}
                         isCalculating={isCalculatingStats}

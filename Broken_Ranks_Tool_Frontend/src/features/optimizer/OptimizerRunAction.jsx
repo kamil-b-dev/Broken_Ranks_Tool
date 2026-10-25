@@ -83,14 +83,14 @@ const OptimizerRunAction = ({
                         </>
                     ) : hasResult ? (
                         mode === "ADVISOR" ? (
-                            "ANALIZUJ PONOWNIE"
+                            t("ANALIZUJ PONOWNIE")
                         ) : (
-                            "OPTYMALIZUJ PONOWNIE"
+                            t("OPTYMALIZUJ PONOWNIE")
                         )
                     ) : mode === "ADVISOR" ? (
-                        "ANALIZUJ BUILD"
+                        t("ANALIZUJ BUILD")
                     ) : (
-                        "URUCHOM OPTYMALIZACJĘ"
+                        t("URUCHOM OPTYMALIZACJĘ")
                     )}
                 </button>
                 {isOptimizing && mode === "ADVISOR" && onCancel && (

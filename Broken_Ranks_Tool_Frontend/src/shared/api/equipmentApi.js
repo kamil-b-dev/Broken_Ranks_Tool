@@ -16,6 +16,16 @@ export const calculateEquipmentStats = async (requestData, options) => {
     return response.data;
 };
 
+/** Requests source contributions only when the player opens a statistic. */
+export const explainEquipmentStats = async (requestData, options) => {
+    const response = await apiClient.post(
+        "/calculator/calculate?explain=true",
+        requestData,
+        options
+    );
+    return response.data;
+};
+
 /** Requests an optimized drif setup from the backend. */
 export const optimizeEquipmentDrifs = async (optimizationRequest) => {
     const response = await apiClient.post("/optimizer/drifs", optimizationRequest);

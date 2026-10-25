@@ -71,6 +71,7 @@ test.describe("dedicated mobile builder", () => {
             .getByRole("dialog")
             .getByRole("button", { name: "Wybierz przedmiot", exact: true })
             .tap();
+        await expect(page.getByRole("dialog")).toHaveCount(0);
         await expect(page.getByRole("heading", { name: "Hełm testowy 1499" })).toBeVisible();
         expect(
             requestedScripts.some((url) =>
@@ -247,7 +248,9 @@ test.describe("dedicated mobile builder", () => {
         });
         await page.getByRole("button", { name: "Statystyki", exact: true }).tap();
         await page.getByRole("button", { name: "Przelicz statystyki" }).tap();
-        await expect(page.getByRole("definition").filter({ hasText: "12%" })).toBeVisible();
+        await expect(
+            page.getByRole("button", { name: "Szansa na krytyk 12%", exact: true })
+        ).toBeVisible();
         const statsPanel = page.getByRole("tabpanel");
         await expect(statsPanel.locator(".mobile-card")).toHaveCount(3);
         await page.getByRole("tab", { name: "Bazowe" }).tap();
@@ -359,7 +362,9 @@ test.describe("dedicated mobile builder", () => {
         await expect(strength).toContainText("0 pkt");
         await page.getByRole("button", { name: "Statystyki", exact: true }).tap();
         await page.getByRole("button", { name: "Przelicz statystyki" }).tap();
-        await expect(page.getByRole("definition").filter({ hasText: "12%" })).toBeVisible();
+        await expect(
+            page.getByRole("button", { name: "Szansa na krytyk 12%", exact: true })
+        ).toBeVisible();
     });
 
     test("keeps mobile navigation and the focused field reachable", async ({ page }) => {

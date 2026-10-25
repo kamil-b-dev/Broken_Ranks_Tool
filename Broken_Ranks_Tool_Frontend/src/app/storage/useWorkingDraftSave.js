@@ -1,24 +1,38 @@
-import { useEffect, useLayoutEffect, useRef } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 /** Coalesces automatic writes and flushes the last committed draft before leaving. */
 export const useWorkingDraftSave = (save, value, enabled = true) => {
     const latest = useRef(null);
     const timer = useRef(null);
+    const [saveFailed, setSaveFailed] = useState(false);
+    const retrySave = useCallback(() => {
+        if (latest.current == null) return false;
+        if (timer.current != null) clearTimeout(timer.current);
+        timer.current = null;
+        try {
+            const succeeded = save(latest.current) !== false;
+            setSaveFailed(!succeeded);
+            return succeeded;
+        } catch {
+            setSaveFailed(true);
+            return false;
+        }
+    }, [save]);
     useLayoutEffect(() => {
         latest.current = enabled ? value : null;
         if (timer.current != null) clearTimeout(timer.current);
         if (enabled)
             timer.current = setTimeout(() => {
                 timer.current = null;
-                if (latest.current != null) save(latest.current);
+                retrySave();
             }, 150);
-    }, [enabled, save, value]);
+    }, [enabled, retrySave, value]);
     useEffect(() => {
         const flush = () => {
             if (timer.current == null) return;
             clearTimeout(timer.current);
             timer.current = null;
-            if (latest.current != null) save(latest.current);
+            retrySave();
         };
         const visibility = () => {
             if (document.hidden) flush();
@@ -30,5 +44,6 @@ export const useWorkingDraftSave = (save, value, enabled = true) => {
             window.removeEventListener("pagehide", flush);
             document.removeEventListener("visibilitychange", visibility);
         };
-    }, [save]);
+    }, [retrySave]);
+    return { saveFailed, retrySave };
 };

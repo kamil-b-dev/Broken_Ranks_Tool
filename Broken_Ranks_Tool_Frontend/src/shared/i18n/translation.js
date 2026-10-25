@@ -1,5 +1,5 @@
-import english from "./en.json";
-import { messageParameters } from "./messageParameters";
+import english from "./en.json" with { type: "json" };
+import { messageParameters } from "./messageParameters.js";
 
 export const LANGUAGE_STORAGE_KEY = "broken-ranks-tool.language.v1";
 export const LANGUAGES = ["pl", "en"];
