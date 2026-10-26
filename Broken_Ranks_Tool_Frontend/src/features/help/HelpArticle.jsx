@@ -1,4 +1,4 @@
-import { useTranslation } from "../../shared/i18n/useTranslation";
+import { useHelpTranslation as useTranslation } from "./helpTranslation";
 import { findHelpTopic } from "./helpContent";
 import { useId } from "react";
 

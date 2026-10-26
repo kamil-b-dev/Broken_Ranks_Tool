@@ -8,7 +8,8 @@ Tematy referencyjne mogą zamiast kroków zawierać tabele (`tables`) z podpisem
 nagłówkami, wierszami i opcjonalną uwagą. Tabele mają nagłówki kolumn i wierszy
 oraz region przewijania dostępny z klawiatury.
 Opcjonalne `afterStep` umieszcza tabelę we wskazanym punkcie instrukcji (numeracja od 1).
-Polskie teksty korzystają ze wspólnego katalogu tłumaczeń `src/shared/i18n/en.json`.
+Tłumaczenia treści instrukcji są w `src/features/help/content/en.json`.
+Wspólne etykiety interfejsu korzystają z `src/shared/i18n/en.json`.
 Instrukcje opisują działanie aplikacji; reguły domenowe nadal określają dokumenty ekwipunku,
 optymalizatora, Doradcy i ścieżki rozwoju.
 
@@ -20,6 +21,9 @@ optymalizatora, Doradcy i ścieżki rozwoju.
 
 Panel i strona używają tego samego komponentu artykułu. `HelpProvider` utrzymuje
 bieżący widok aplikacji zamontowany również podczas otwarcia strony pomocy.
+Treść, tłumaczenia i oprawa instrukcji są pobierane dopiero przy jej otwarciu.
+Podstawowe style przycisków pomocy oraz krótkie podpowiedzi pozostają osobno,
+aby nie pobierać całej instrukcji przy uruchomieniu aplikacji.
 Osobny wpis historii zachowuje wcześniejszy adres z parametrami, wybrany slot i szkice.
 Zmiana tematu zastępuje adres bieżącego wpisu pomocy, więc jeden powrót przywraca pracę.
 Bezpośrednie wejście na stronę pomocy pozwala wrócić na stronę główną.

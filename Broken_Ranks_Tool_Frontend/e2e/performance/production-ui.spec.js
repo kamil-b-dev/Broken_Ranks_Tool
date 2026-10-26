@@ -38,6 +38,7 @@ test("mobile production startup obeys route budgets and defers other workspaces"
             JSON.stringify(loaded)
         ).toBeLessThan(maximum);
         expect(loaded.some(({ name }) => name.includes("DesktopApp"))).toBe(false);
+        expect(loaded.some(({ name }) => name.includes("HelpSurfaces"))).toBe(false);
         if (route === "/")
             expect(
                 loaded.some(({ name }) =>

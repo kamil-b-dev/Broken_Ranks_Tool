@@ -7,7 +7,7 @@ import HelpButton from "./HelpButton";
 import HelpHint from "./HelpHint";
 import { HELP_GROUPS, HELP_HINTS, HELP_TOPICS } from "./helpContent";
 import { LanguageContext } from "../../shared/i18n/LanguageContext";
-import { translate } from "../../shared/i18n/translation";
+import { translateHelp as translate } from "./helpTranslation";
 import { useAppRoute } from "../../app/useAppRoute";
 import { useMobileBuilderRoute } from "../builder/mobile/useMobileBuilderRoute";
 import { useMobileOptimizerNavigation } from "../optimizer/mobile/useMobileOptimizerNavigation";
@@ -62,7 +62,7 @@ it("opens contextual instructions, follows related topics and restores focus and
     await user.type(screen.getByRole("textbox"), "niezapisana zmiana");
     const opener = screen.getByRole("link", { name: "Jak korzystać?" });
     await user.click(opener);
-    const dialog = screen.getByRole("dialog", { name: "Jak korzystać z Doradcy?" });
+    const dialog = await screen.findByRole("dialog", { name: "Jak korzystać z Doradcy?" });
     expect(within(dialog).getAllByRole("listitem")).toHaveLength(4);
     await user.click(
         within(dialog).getByRole("link", { name: "Który tryb optymalizatora wybrać?" })
@@ -104,7 +104,9 @@ it("preserves the working view and nested mobile route through help history and 
 it("opens a topic directly and returns a standalone visit to the home page", async () => {
     window.history.replaceState(null, "", "/help?topic=progression");
     renderHelp();
-    expect(screen.getByRole("heading", { name: "Jak zaplanować rozwój ekwipunku?" })).toBeVisible();
+    expect(
+        await screen.findByRole("heading", { name: "Jak zaplanować rozwój ekwipunku?" })
+    ).toBeVisible();
     expect(window.location.pathname).toBe("/help");
     await userEvent.click(screen.getByRole("button", { name: "Wróć do aplikacji" }));
     expect(window.location.pathname).toBe("/");
@@ -114,7 +116,7 @@ it("opens a topic directly and returns a standalone visit to the home page", asy
 it("keeps every topic reachable in the same desktop and mobile groups", async () => {
     window.history.replaceState(null, "", "/help?topic=builder");
     renderHelp();
-    const navigation = screen.getByRole("navigation", { name: "Tematy pomocy" });
+    const navigation = await screen.findByRole("navigation", { name: "Tematy pomocy" });
     const picker = screen.getByRole("combobox", { name: "Wybierz temat" });
     expect(within(navigation).getAllByRole("group", { hidden: true })).toHaveLength(8);
     const topicIds = within(navigation)
@@ -198,7 +200,7 @@ it("provides keyboard and touch hints that close with Escape or an outside inter
     expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
 });
 
-it("has English translations for every instruction and opens localized help", () => {
+it("has English translations for every instruction and opens localized help", async () => {
     for (const group of HELP_GROUPS)
         expect(translate(group.title, "en"), group.title).not.toBe(group.title);
     for (const topic of HELP_TOPICS) {
@@ -227,6 +229,6 @@ it("has English translations for every instruction and opens localized help", ()
         </LanguageContext.Provider>
     );
     expect(
-        screen.getByRole("heading", { name: "Why does a drif not fit in an item?" })
+        await screen.findByRole("heading", { name: "Why does a drif not fit in an item?" })
     ).toBeVisible();
 });

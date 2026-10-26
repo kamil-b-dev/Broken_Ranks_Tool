@@ -1,8 +1,8 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "../../shared/i18n/useTranslation";
-import { HELP_HINTS } from "./helpContent";
-import "./help.css";
+import { HELP_HINTS } from "./helpHints";
+import "./help-controls.css";
 
 const contains = (element, target) => target instanceof Node && Boolean(element?.contains(target));
 

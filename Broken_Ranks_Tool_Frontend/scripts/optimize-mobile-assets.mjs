@@ -31,4 +31,8 @@ for (const [source, target, width] of variants) {
         .webp({ effort: 6, quality: 86, alphaQuality: 95 })
         .toFile(path.join(outputRoot, target));
 }
-console.log(`Generated ${variants.length} mobile assets.`);
+await sharp(path.join(assetsRoot, "home-hero-abstract.webp"))
+    .resize({ width: 1280, withoutEnlargement: true })
+    .avif({ effort: 6, quality: 50 })
+    .toFile(path.join(outputRoot, "home-hero-abstract.avif"));
+console.log(`Generated ${variants.length + 1} mobile assets.`);
