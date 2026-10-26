@@ -85,7 +85,7 @@ describe("OptimizerSettingsPanel", () => {
         await user.click(screen.getByText("Obliczaj dodatkowe warianty"));
         fireEvent.change(
             screen.getByRole("spinbutton", {
-                name: "Maksymalna dopuszczalna strata wariantu w procentach",
+                name: "Maksymalna dopuszczalna strata wariantu w punktach procentowych",
             }),
             { target: { value: "17" } }
         );

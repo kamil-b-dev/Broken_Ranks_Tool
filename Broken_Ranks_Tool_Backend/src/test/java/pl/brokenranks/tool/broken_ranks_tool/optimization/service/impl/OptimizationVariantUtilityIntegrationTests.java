@@ -17,17 +17,45 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.locking.OptimizationLo
 class OptimizationVariantUtilityIntegrationTests {
 
     @Test
-    void percentageLossUsesTheActualUsefulValueEvenBelowOnePoint() {
+    void percentagePointLossAllowsSmallBonusesToDropBelowTheirRelativeLimit() {
         var f = fixture("45%", "1%");
         var magic = f.context.drifs().get(11L);
         magic.setBaseValue("0.46%");
         magic.setIncrement("0.04%");
         f.main.setPlacement("armor", 0, f.main.slots().get("armor").getFirst().withLevel(2));
         f.context.request().setMaximizeBonuses(Set.of());
-        f.context.request().setMaxVariantLossPercent(5);
+        f.context.request().setMaxVariantLossPercent(0);
         assertTrue(f.generator.generate(f.main, f.context, List.of(f.state(2, 1))).isEmpty());
-        f.context.request().setMaxVariantLossPercent(10);
+        f.context.request().setMaxVariantLossPercent(1);
         assertEquals(1, f.generator.generate(f.main, f.context, List.of(f.state(2, 1))).size());
+    }
+
+    @Test
+    void fivePointLossAcceptsTenToFiveButRejectsAnyLargerDrop() {
+        var f = fixture("45%", "1%");
+        f.context.request().setMaximizeBonuses(Set.of());
+        f.context.request().setMaxVariantLossPercent(5);
+        var variants = f.generator.generate(f.main, f.context, List.of(f.state(2, 1)));
+        assertEquals(1, variants.size());
+        assertEquals(DRIF_BONUS_TYPE.CRITICAL_CHANCE, variants.getFirst().focus());
+        assertEquals(
+                10.0, f.assembler.actualValue(f.main, DRIF_BONUS_TYPE.DAMAGE_MAGIC, f.context));
+        assertEquals(
+                5.0,
+                f.assembler.actualValue(
+                        variants.getFirst().state(), DRIF_BONUS_TYPE.DAMAGE_MAGIC, f.context));
+
+        var overLimit = fixture("45%", "1%");
+        var magic = overLimit.context.drifs().get(11L);
+        magic.setBaseValue("4.99%");
+        magic.setIncrement("1.002%");
+        overLimit.context.request().setMaximizeBonuses(Set.of());
+        overLimit.context.request().setMaxVariantLossPercent(5);
+        assertTrue(
+                overLimit
+                        .generator
+                        .generate(overLimit.main, overLimit.context, List.of(overLimit.state(2, 1)))
+                        .isEmpty());
     }
 
     @Test

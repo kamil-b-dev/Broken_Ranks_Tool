@@ -133,7 +133,7 @@ public final class OptimizationRequestValidator {
         Integer maxVariantLossPercent = request.getMaxVariantLossPercent();
         if (maxVariantLossPercent != null
                 && (maxVariantLossPercent < 0 || maxVariantLossPercent > 100)) {
-            return "Maksymalna dopuszczalna strata wariantu musi mieścić się w zakresie 0–100%.";
+            return "Maksymalna dopuszczalna strata wariantu musi mieścić się w zakresie 0–100 p.p.";
         }
         return null;
     }

@@ -59,10 +59,12 @@ const VariantsOptions = ({ settings, onChange, label }) => {
                             maxVariantLossPercent: Number(event.target.value),
                         })
                     }
-                    aria-label={t("Maksymalna dopuszczalna strata wariantu w procentach")}
+                    aria-label={t(
+                        "Maksymalna dopuszczalna strata wariantu w punktach procentowych"
+                    )}
                     className="w-16 border border-purple-900/80 optimizer-accent-frame bg-black px-2 py-1 text-center text-xs text-stone-200 outline-hidden focus:border-purple-500 optimizer-accent-active disabled:cursor-not-allowed"
                 />
-                <span className="text-[11px] text-stone-400">%</span>
+                <span className="text-[11px] text-stone-400">{t("p.p.")}</span>
             </label>
         </>
     );

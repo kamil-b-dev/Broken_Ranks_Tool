@@ -125,7 +125,7 @@ public class OptimizationRequest {
     /** Enables the additional post-optimization search for interactive alternatives. */
     private boolean generateVariants;
 
-    /** Maximum percentage loss allowed on another priority when selecting a variant. */
+    /** Maximum loss in percentage points per other priority; wire name retained for compatibility. */
     @Min(0)
     @Max(100)
     private Integer maxVariantLossPercent;

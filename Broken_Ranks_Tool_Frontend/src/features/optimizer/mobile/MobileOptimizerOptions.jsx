@@ -50,7 +50,7 @@ export default function MobileOptimizerOptions({ settings, onChange }) {
                         {t("Obliczaj dodatkowe warianty")}
                     </label>
                     <label className="mobile-field">
-                        {t("Maksymalna strata wariantu (%)")}
+                        {t("Maksymalna strata wariantu (p.p.)")}
                         <input
                             type="number"
                             inputMode="decimal"
