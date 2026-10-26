@@ -15,6 +15,7 @@ import {
 import CategoryIcon from "../../../shared/ui/CategoryIcon";
 import { memo, useCallback, useLayoutEffect, useMemo, useRef } from "react";
 import { useOptimizerLabelContext } from "../optimizerLabelContext";
+import HelpHint from "../../help/HelpHint";
 
 const DEFAULT_PROTECTION = Object.freeze({ enabled: true, loss: 0 });
 const ProtectedModifierRow = memo(({ modifier, rule, onRuleChange }) => {
@@ -197,6 +198,7 @@ const AdvisorGoalsPanel = ({ stats = {}, gameRules = {}, settings, onChange, sec
                     <section className="advisor-goal-card">
                         <div className="advisor-goal-card-heading">
                             <strong>{t("Chronione modyfikatory")}</strong>
+                            <HelpHint kind="protection" label="Chronione modyfikatory" />
                         </div>
                         <div className="advisor-modifier-list">
                             {protectedGroups.map(({ category, modifiers: groupedModifiers }) => (

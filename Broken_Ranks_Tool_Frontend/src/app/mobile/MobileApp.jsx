@@ -26,9 +26,10 @@ import drifOptimizerIcon from "../../assets/mobile/drif-optimizer.webp?no-inline
 import localBuildsIcon from "../../assets/mobile/local-builds.webp?no-inline";
 import progressionPathIcon from "../../assets/mobile/progression-path.webp?no-inline";
 import "./mobile-app.css";
-import EquipmentHistoryControls from "../components/EquipmentHistoryControls";
+import EquipmentHistoryControls from "../../features/equipment/EquipmentHistoryControls";
 import BuildStorageNotice from "../components/BuildStorageNotice";
 import HomeWorkspace from "../components/HomeWorkspace";
+import HelpButton from "../../features/help/HelpButton";
 
 const MobileOptimizerWorkspace = lazy(
     () => import("../../features/optimizer/mobile/MobileOptimizerWorkspace")
@@ -98,6 +99,7 @@ export default function MobileApp() {
                         <strong>{t("Tool")}</strong>
                     </span>
                 </a>
+                <HelpButton page compact />
                 <div className="interface-preferences">
                     <OptimizerLabelSettings />
                     <LanguageSwitcher />

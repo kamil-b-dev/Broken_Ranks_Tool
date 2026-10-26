@@ -512,6 +512,9 @@
 }
 .mobile-app .mobile-optimizer :is(input:not([type="checkbox"]):not([type="range"]), select),
 .mobile-app .mobile-bonus-picker :is(input, select) {
+    --select-surface-images:
+        linear-gradient(rgba(2, 2, 2, 0.58), rgba(2, 2, 2, 0.76)),
+        url("../../../assets/mobile/panel-aged-leather-texture.webp");
     border-color: rgba(124, 88, 47, 0.78);
     border-radius: 0.2rem;
     background: var(--mobile-material-control);

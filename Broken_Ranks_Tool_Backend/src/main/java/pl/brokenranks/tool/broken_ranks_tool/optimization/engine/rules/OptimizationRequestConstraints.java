@@ -101,8 +101,8 @@ public class OptimizationRequestConstraints {
         return Math.max(0, Math.min(MAX_GLOBAL_DRIFS_PER_TYPE, value));
     }
 
-    public static double maxVariantRelativeLoss(OptimizationRequest request) {
-        Integer percent = request.getMaxVariantLossPercent();
-        return (percent != null ? percent : 5) / 100.0;
+    public static double maxVariantLossPercentagePoints(OptimizationRequest request) {
+        Integer points = request.getMaxVariantLossPercent();
+        return points != null ? points : 5;
     }
 }

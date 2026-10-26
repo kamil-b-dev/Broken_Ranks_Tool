@@ -1,31 +1,5 @@
 import { getDrifMaxLevel, getOrbMaxLevel } from "../../shared/domain/equipment/equipmentRules";
-
-const GAME_SLOT_BY_GEAR_TYPE = {
-    helmet: "helmet",
-    armor: "armor",
-    cape: "cape",
-    pants: "legs",
-    legs: "legs",
-    boots: "boots",
-    gloves: "gloves",
-    belt: "belt",
-    bracers: "shield",
-    shield: "shield",
-    off_hand: "shield",
-    amulet: "necklace",
-    necklace: "necklace",
-};
-
-const ITEM_CATEGORY_BY_GEAR_TYPE = {
-    ...GAME_SLOT_BY_GEAR_TYPE,
-    pants: "LEGS",
-    bracers: "OFF_HAND",
-    amulet: "NECKLACE",
-    bow: "WEAPON_RANGED",
-    weapon_1h: "WEAPON_1H",
-    weapon_2h: "WEAPON_2H",
-    weapon_ranged: "WEAPON_RANGED",
-};
+import { SLOTS } from "../../shared/domain/equipment/equipmentSlots";
 
 const DRIF_SIZE_BY_PREFIX = {
     subdrif: "SUBDRIF",
@@ -73,28 +47,20 @@ const itemStarsFromOrnaments = (value) => {
     return { B: 0, S: 3, G: 6 }[match[1]] + Number(match[2]);
 };
 
-const slotForEquipment = (equipment, occupiedSlots) => {
-    const gearType = normalizedText(equipment?.GearType);
-    if (gearType === "ring") return occupiedSlots.has("ring1") ? "ring2" : "ring1";
-    if (["bow", "weapon", "weapon_1h", "weapon_2h", "weapon_ranged"].includes(gearType)) {
-        return "weapon";
-    }
-    return GAME_SLOT_BY_GEAR_TYPE[gearType] || null;
-};
+const slotForItem = (item, occupiedSlots) =>
+    SLOTS.find(
+        (slot) =>
+            !occupiedSlots.has(slot.key) &&
+            [slot.cat].flat().includes(String(item.category).toUpperCase())
+    )?.key;
 
 const findItem = (equipment, items) => {
     const name = normalizedText(equipment?.Name);
     let candidates = items.filter((item) => normalizedText(item.name) === name);
     if (candidates.length <= 1) return candidates[0] || null;
 
-    const gearType = normalizedText(equipment?.GearType);
-    const category = ITEM_CATEGORY_BY_GEAR_TYPE[gearType]?.toUpperCase();
     const ranked = candidates.filter((item) => romanToNumber(item.tier) === Number(equipment.Rank));
     if (ranked.length) candidates = ranked;
-    if (category) {
-        const categorized = candidates.filter((item) => item.category?.toUpperCase() === category);
-        if (categorized.length) candidates = categorized;
-    }
     const rarity = ITEM_RARITY_BY_TYPE[normalizedText(equipment?.Type)];
     if (rarity) {
         const matchingRarity = candidates.filter((item) => item.rarity?.toUpperCase() === rarity);
@@ -194,13 +160,13 @@ export const parseGameBuildPayload = (payload, { items = [], orbs = [], drifs = 
     equippedEntries.forEach(([, equipmentId]) => {
         const equipment = equipmentById.get(String(equipmentId));
         if (!equipment) throw new Error(`Nie znaleziono wyposażenia o ID ${equipmentId}.`);
-        const slotKey = slotForEquipment(equipment, occupiedSlots);
-        if (!slotKey || occupiedSlots.has(slotKey)) {
-            throw new Error(`Nie udało się przypisać do slotu przedmiotu ${equipment.Name}.`);
-        }
         const item = findItem(equipment, items);
         if (!item) {
             throw new Error(`Nie znaleziono jednoznacznego odpowiednika: ${equipment.Name}.`);
+        }
+        const slotKey = slotForItem(item, occupiedSlots);
+        if (!slotKey) {
+            throw new Error(`Nie udało się przypisać do slotu przedmiotu ${equipment.Name}.`);
         }
 
         const drifIds = [];

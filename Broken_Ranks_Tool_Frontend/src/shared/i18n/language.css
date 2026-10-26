@@ -28,10 +28,3 @@
     outline: 2px solid #e9c887;
     outline-offset: 2px;
 }
-
-.app-shell-home .app-masthead .header-actions {
-    display: flex;
-}
-.app-shell-home .header-actions > .header-action {
-    display: none;
-}

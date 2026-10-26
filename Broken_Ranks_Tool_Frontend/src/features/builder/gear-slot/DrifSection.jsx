@@ -2,7 +2,6 @@ import { useTranslation } from "../../../shared/i18n/useTranslation";
 import { useEquipmentLocksState } from "../../../shared/state/EquipmentContext";
 import BuiltInDrifSlots from "./BuiltInDrifSlots";
 import StandardDrifSlot from "./StandardDrifSlot";
-import { DrifUpgradeHint } from "./UpgradeHints";
 
 /**
  * Renders built-in and standard drif slots, capacity, levels, and locks.
@@ -91,6 +90,14 @@ const DrifSection = ({
                 )}
             </div>
 
+            {fullSelectedItem && isOverCapacity && (
+                <p role="alert" className="help-capacity-warning">
+                    {t("Przekroczona pojemność o {0}. Obniż poziom drifa lub wyjmij kamień.", [
+                        t(currentPowerUsed - itemCapacity),
+                    ])}
+                </p>
+            )}
+
             {fullSelectedItem && itemCapacity > 0 && (
                 <div className="w-full bg-black border border-rose-900/70 builder-accent-frame shadow-inner h-1 mb-2">
                     <div
@@ -147,22 +154,6 @@ const DrifSection = ({
                                 {t(renderStoneActions?.(index))}
                             </div>
                             {t(renderBackpackPicker?.(index))}
-                            <DrifUpgradeHint
-                                drif={drifs.find(
-                                    (entry) => String(entry.id) === String(selectedDrifs[index])
-                                )}
-                                level={drifLevels[index]}
-                                basePower={
-                                    drifBasePowers[
-                                        drifs.find(
-                                            (entry) =>
-                                                String(entry.id) === String(selectedDrifs[index])
-                                        )?.bonusType
-                                    ]
-                                }
-                                usedPower={currentPowerUsed}
-                                capacity={itemCapacity}
-                            />
                         </div>
                     ))}
                 {!fullSelectedItem && (

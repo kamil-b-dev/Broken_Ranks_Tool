@@ -6,9 +6,12 @@ import equipmentBuilderIcon from "../../assets/ui/equipment-builder.webp";
 import homeIcon from "../../assets/ui/home.webp";
 import localBuildsIcon from "../../assets/ui/local-builds.webp";
 import progressionPathIcon from "../../assets/ui/progression-path.webp";
+import instructionsIcon from "../../assets/ui/instructions.webp";
 import { APP_ROUTES } from "../useAppRoute";
 import LanguageSwitcher from "../../shared/i18n/LanguageSwitcher";
 import OptimizerLabelSettings from "../../features/optimizer/OptimizerLabelSettings";
+import HelpButton from "../../features/help/HelpButton";
+import "./app-header.css";
 
 const AppHeader = ({
     activeView,
@@ -120,6 +123,11 @@ const AppHeader = ({
                         <small>{t(buildCount)}/10</small>
                     </span>
                 </a>
+                <HelpButton
+                    page
+                    className="main-switch-instructions text-stone-500 hover:text-stone-200"
+                    icon={<img src={instructionsIcon} alt="" draggable="false" />}
+                />
             </nav>
             <div className="header-actions">
                 <div className="interface-preferences">

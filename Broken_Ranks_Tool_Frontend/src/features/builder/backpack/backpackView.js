@@ -64,7 +64,7 @@ export const backpackSortOptions = (filter, data) => {
             ["bonusType", "Typ bonusu"],
             ["price", "Cena kamienia"]
         );
-        if (filter !== "ORB") options.push(["power", "Bazowa moc drifa"]);
+        if (filter !== "ORB") options.push(["power", "Bazowa potęga drifa"]);
     }
     return options;
 };

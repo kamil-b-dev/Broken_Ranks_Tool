@@ -751,6 +751,8 @@ components:
           type: boolean
         maxVariantLossPercent:
           type: integer
+          description: Maximum loss in percentage points per other evaluated bonus; legacy field name retained for compatibility.
+          default: 5
           minimum: 0
           maximum: 100
         reorganization:

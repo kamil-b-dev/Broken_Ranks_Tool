@@ -1,6 +1,5 @@
 import { useTranslation } from "../../../shared/i18n/useTranslation";
 import { getRarityColor, getStarColor } from "./gearSlotPresentation";
-import { ItemUpgradeHint } from "./UpgradeHints";
 
 /**
  * Renders item selection, upgrade level, and drag-and-drop behavior for a slot.
@@ -127,7 +126,6 @@ const ItemSection = ({
                     );
                 })}
             </div>
-            <ItemUpgradeHint item={fullSelectedItem} stars={itemStars} />
         </div>
     );
 };

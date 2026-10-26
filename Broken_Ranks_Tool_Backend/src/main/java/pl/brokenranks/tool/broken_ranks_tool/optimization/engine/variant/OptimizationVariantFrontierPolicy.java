@@ -81,11 +81,10 @@ final class OptimizationVariantFrontierPolicy {
             DRIF_BONUS_TYPE focus,
             List<DRIF_BONUS_TYPE> trackedTypes,
             OptimizationContext context) {
+        double allowedLoss = maxVariantLossPercentagePoints(context.request());
         for (DRIF_BONUS_TYPE type : trackedTypes) {
             if (type == focus) continue;
             double mainValue = main.values().get(type);
-            double allowedLoss =
-                    Math.max(0.0, mainValue) * maxVariantRelativeLoss(context.request());
             if (candidate.values().get(type) < mainValue - allowedLoss - 1e-8) return false;
         }
         return true;

@@ -106,7 +106,7 @@ test("advanced goals are searchable and all constraints stay editable at phone w
     await page.getByLabel("Minimum SUBDRIF dla Szansa na krytyk").fill("1");
     await page.getByText("Opcje i warianty").tap();
     await page.getByLabel("Obliczaj dodatkowe warianty").check();
-    await page.getByLabel("Maksymalna strata wariantu (%)").fill("5");
+    await page.getByLabel("Maksymalna strata wariantu (p.p.)").fill("5");
     for (const width of [320, 390, 768, 1024]) {
         await page.setViewportSize({ width, height: 844 });
         await noOverflow(page);

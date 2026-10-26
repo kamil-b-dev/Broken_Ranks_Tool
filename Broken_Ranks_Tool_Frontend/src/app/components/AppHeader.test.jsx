@@ -1,10 +1,11 @@
 import { createRef } from "react";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import AppHeader from "./AppHeader";
+import { HelpContext } from "../../features/help/HelpContext";
 
-const renderHeader = (overrides = {}) => {
+const renderHeader = (overrides = {}, help = null) => {
     const props = {
         activeView: "home",
         buildCount: 2,
@@ -16,11 +17,29 @@ const renderHeader = (overrides = {}) => {
         ...overrides,
     };
 
-    render(<AppHeader {...props} />);
+    render(
+        <HelpContext.Provider value={help}>
+            <AppHeader {...props} />
+        </HelpContext.Provider>
+    );
     return props;
 };
 
 describe("AppHeader", () => {
+    it("opens the guide from the main navigation even when build controls are unavailable", async () => {
+        const user = userEvent.setup();
+        const openPage = vi.fn();
+        const props = renderHeader({ disabled: true }, { openPage });
+        const navigation = screen.getByRole("navigation", { name: "Główne widoki aplikacji" });
+        expect(within(navigation).getAllByRole("link")).toHaveLength(6);
+        const guide = within(navigation).getByRole("link", { name: "Instrukcja", exact: true });
+        expect(guide).toHaveAttribute("href", "/help");
+        expect(guide.closest(".header-actions")).toBeNull();
+        await user.click(guide);
+        expect(openPage).toHaveBeenCalledOnce();
+        expect(props.onViewChange).not.toHaveBeenCalled();
+    });
+
     it("navigates between views and exposes the build actions", async () => {
         const user = userEvent.setup();
         const props = renderHeader();

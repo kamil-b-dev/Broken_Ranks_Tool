@@ -72,7 +72,11 @@
     background:
         linear-gradient(90deg, rgba(2, 2, 2, 0.97) 0%, rgba(3, 3, 3, 0.82) 31%, transparent 68%),
         radial-gradient(circle at 72% 42%, transparent 0%, rgba(0, 0, 0, 0.2) 48%, #020202 100%),
-        url("../../assets/home-hero-abstract.webp") 62% center / cover no-repeat;
+        image-set(
+                url("../../assets/mobile/home-hero-abstract.avif") type("image/avif"),
+                url("../../assets/home-hero-abstract.webp") type("image/webp")
+            )
+            62% center / cover no-repeat;
 }
 .mobile-app:has(.mobile-home) .mobile-content {
     max-width: none;

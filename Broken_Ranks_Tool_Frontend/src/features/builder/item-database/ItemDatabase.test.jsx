@@ -90,7 +90,7 @@ describe("ItemDatabase", () => {
             />
         );
         const search = screen.getByRole("textbox", { name: "Wyszukaj przedmioty" });
-        expect(search).toHaveAttribute("placeholder", "Nazwa przedmiotu lub bossa (regex)");
+        expect(search).toHaveAttribute("placeholder", "Nazwa przedmiotu lub bossa");
         fireEvent.change(search, { target: { value: "^TARUL$" } });
         expect(screen.getByText("Morana")).toBeInTheDocument();
         expect(screen.queryByText("Prosty hełm")).not.toBeInTheDocument();
@@ -163,7 +163,7 @@ describe("ItemDatabase", () => {
             name: "Filtruj drify według kategorii",
         });
         const basePower = screen.getByRole("spinbutton", {
-            name: "Filtruj drify według mocy bazowej",
+            name: "Filtruj drify według potęgi bazowej",
         });
         await user.selectOptions(category, "OFFENSIVE");
         fireEvent.change(basePower, { target: { value: "2" } });

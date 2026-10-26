@@ -43,19 +43,19 @@ class OptimizationRequestValidatorTests {
     }
 
     @Test
-    void usesFivePercentVariantLossWhenOlderRequestOmitsSetting() {
+    void usesFivePercentagePointsVariantLossWhenOlderRequestOmitsSetting() {
         OptimizationRequest request = new OptimizationRequest();
 
-        assertEquals(0.05, OptimizationRequestConstraints.maxVariantRelativeLoss(request));
+        assertEquals(5.0, OptimizationRequestConstraints.maxVariantLossPercentagePoints(request));
         assertNull(OptimizationRequestValidator.validateSettings(request));
     }
 
     @Test
-    void convertsConfiguredVariantLossFromPercentToRatio() {
+    void usesConfiguredVariantLossAsPercentagePoints() {
         OptimizationRequest request = new OptimizationRequest();
         request.setMaxVariantLossPercent(17);
 
-        assertEquals(0.17, OptimizationRequestConstraints.maxVariantRelativeLoss(request));
+        assertEquals(17.0, OptimizationRequestConstraints.maxVariantLossPercentagePoints(request));
     }
 
     @Test

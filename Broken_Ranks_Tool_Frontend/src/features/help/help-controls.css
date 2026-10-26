@@ -1,0 +1,138 @@
+@import "../../shared/styles/tooltips.css";
+
+.help-app-surface:not([hidden]) {
+    display: contents;
+}
+.help-app-surface[hidden] {
+    display: none;
+}
+.help-link,
+.help-hint {
+    font-family: Inter, system-ui, sans-serif;
+    font-size: 14px;
+    letter-spacing: normal;
+    text-transform: none;
+    line-height: 1.65;
+}
+
+.help-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 4px 10px;
+    color: #d6bd94;
+    white-space: nowrap;
+}
+.help-link > span[aria-hidden] {
+    display: inline-grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border: 1px solid #95703d;
+    border-radius: 50%;
+    background: linear-gradient(145deg, #302418, #09090a 75%);
+    box-shadow:
+        inset 0 0 0 2px #09090a,
+        0 2px 8px #0005;
+    color: #e4ba70;
+    font-weight: 600;
+}
+.help-link-compact {
+    justify-content: center;
+    width: 44px;
+    min-height: 44px;
+    padding: 0;
+}
+.help-link-compact .help-link-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+.mobile-app header.mobile-header:has(> .help-link) {
+    grid-template-columns: minmax(0, 1fr) 44px auto;
+}
+.mobile-app header.mobile-header > .help-link {
+    grid-row: 1;
+    grid-column: 2;
+}
+.mobile-app header.mobile-header:has(> .help-link) .mobile-build-actions {
+    grid-column: 3;
+}
+.help-link:hover {
+    color: #fff0cf;
+}
+.help-link:hover > span[aria-hidden] {
+    border-color: #e4ba70;
+}
+.help-link:focus-visible,
+.help-hint button:focus-visible,
+.help-page :is(a, button, select):focus-visible,
+.help-topics summary:focus-visible,
+.help-dialog :is(a, button):focus-visible {
+    outline: 2px solid #e4ba70;
+    outline-offset: 3px;
+}
+.help-workspace-action {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.help-hint {
+    position: relative;
+    display: inline-flex;
+    vertical-align: middle;
+    margin-left: 4px;
+}
+.help-hint button {
+    display: inline-grid;
+    place-items: center;
+    min-width: 32px;
+    min-height: 32px;
+    border: 1px solid #95703d;
+    border-radius: 50%;
+    background: linear-gradient(145deg, #302418, #09090a 75%);
+    color: #e4ba70;
+    box-shadow:
+        inset 0 0 0 3px #09090a,
+        0 3px 10px #0005;
+    cursor: help;
+    font:
+        600 14px Inter,
+        system-ui,
+        sans-serif;
+}
+.help-hint button:hover {
+    border-color: #e4ba70;
+    color: #ffe8bc;
+}
+.help-hint-text {
+    position: fixed;
+    z-index: 100;
+    width: min(280px, 75vw);
+    padding: 14px 16px;
+    text-align: left;
+    white-space: normal;
+}
+.help-capacity-warning {
+    margin: 6px 0;
+    color: #fca5a5;
+    font:
+        13px/1.5 Inter,
+        system-ui,
+        sans-serif;
+}
+
+@media (max-width: 600px) {
+    .help-link {
+        padding: 4px 6px;
+    }
+    .help-hint button {
+        min-width: 40px;
+        min-height: 40px;
+    }
+}

@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import { getPresentation } from "./mobile/presentation";
 import WorkspaceState from "./components/WorkspaceState";
+import HelpProvider from "../features/help/HelpProvider";
 
 const MobileApp = lazy(() => import("./mobile/MobileApp"));
 const DesktopApp = lazy(() => import("./DesktopApp"));
@@ -20,8 +21,10 @@ export default function App() {
         };
     }, []);
     return (
-        <Suspense fallback={<WorkspaceState loading />}>
-            {presentation === "mobile" ? <MobileApp /> : <DesktopApp />}
-        </Suspense>
+        <HelpProvider>
+            <Suspense fallback={<WorkspaceState loading />}>
+                {presentation === "mobile" ? <MobileApp /> : <DesktopApp />}
+            </Suspense>
+        </HelpProvider>
     );
 }

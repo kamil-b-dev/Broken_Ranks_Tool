@@ -25,7 +25,7 @@ for (const [layout, width] of [
         await level.press("Tab");
         await preferences.getByRole("button", { name: "EN — English", exact: true }).press("Enter");
         await expect(page.locator("html")).toHaveAttribute("lang", "en");
-        await expect(preferences.getByRole("combobox", { name: "Modifier labels" })).toHaveValue(
+        await expect(preferences.getByRole("combobox", { name: "Modifier names" })).toHaveValue(
             "DRIFS"
         );
         await expect(
@@ -36,7 +36,7 @@ for (const [layout, width] of [
         await expect(level).toHaveValue("77");
         await preferences.getByRole("button", { name: "EN — English", exact: true }).press("Enter");
         await page.reload();
-        await expect(preferences.getByRole("combobox", { name: "Modifier labels" })).toHaveValue(
+        await expect(preferences.getByRole("combobox", { name: "Modifier names" })).toHaveValue(
             "DRIFS"
         );
         await expect(

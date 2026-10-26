@@ -108,7 +108,7 @@ describe("mobile optimizer integration", () => {
         fireEvent.click(screen.getByText("Opcje i warianty"));
         fireEvent.click(screen.getByLabelText("Wymuś maksymalizację według bonusów do drifów"));
         fireEvent.click(screen.getByLabelText("Obliczaj dodatkowe warianty"));
-        change("Maksymalna strata wariantu (%)", "8");
+        change("Maksymalna strata wariantu (p.p.)", "8");
         section("Blokady");
         section("Cele");
         expect(screen.getByLabelText("Wymuszony procent dla Szansa na krytyk")).toHaveValue(60);

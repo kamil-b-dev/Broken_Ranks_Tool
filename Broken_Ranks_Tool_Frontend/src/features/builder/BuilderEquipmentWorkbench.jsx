@@ -3,6 +3,8 @@ import { SLOTS } from "../../shared/domain/equipment/equipmentSlots";
 import EquipmentSlotOverview from "./equipment/EquipmentSlotOverview";
 import BuilderEquipmentViewSwitch from "./BuilderEquipmentViewSwitch";
 import EquipmentRemovalActions from "./backpack/EquipmentRemovalActions";
+import HelpButton from "../help/HelpButton";
+import EquipmentHistoryControls from "../equipment/EquipmentHistoryControls";
 
 const BuilderEquipmentWorkbench = ({
     model,
@@ -27,12 +29,18 @@ const BuilderEquipmentWorkbench = ({
                 <div>
                     <h2>{t("Ekwipunek")}</h2>
                 </div>
-                {onEquipmentViewChange && (
-                    <BuilderEquipmentViewSwitch
-                        view={equipmentView}
-                        onChange={onEquipmentViewChange}
-                    />
-                )}
+                <div className="builder-equipment-toolbar">
+                    <EquipmentHistoryControls />
+                    {onEquipmentViewChange && (
+                        <BuilderEquipmentViewSwitch
+                            view={equipmentView}
+                            onChange={onEquipmentViewChange}
+                        />
+                    )}
+                </div>
+            </div>
+            <div className="help-workspace-action">
+                <HelpButton topic={equipmentView === "backpack" ? "backpack" : "builder"} />
             </div>
             {equipmentView === "backpack" ? (
                 backpackContent

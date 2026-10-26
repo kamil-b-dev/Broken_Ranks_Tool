@@ -1,4 +1,5 @@
 import { useTranslation } from "../../shared/i18n/useTranslation";
+import HelpButton from "../help/HelpButton";
 import { useEffect, useMemo, useRef, useState } from "react";
 import apiClient from "../../shared/api/axiosConfig";
 import { parseBuildFile } from "../builds/buildFile";
@@ -220,6 +221,7 @@ export default function ProgressionWorkspace({
             <header className="progression-heading">
                 <h1>{t("Ścieżka rozwoju")}</h1>
                 <div className="progression-actions">
+                    <HelpButton topic="progression" />
                     <button onClick={() => downloadProject(project)}>{t("Pobierz projekt")}</button>
                     <button onClick={() => projectInput.current.click()}>
                         {t("Wczytaj projekt")}

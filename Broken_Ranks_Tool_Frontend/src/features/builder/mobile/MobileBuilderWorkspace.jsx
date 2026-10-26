@@ -18,6 +18,7 @@ import BackpackEditor from "../backpack/BackpackEditor";
 import { useBackpackWorkspace } from "../backpack/useBackpackWorkspace";
 import "../backpack/backpack.css";
 import EquipmentRemovalActions from "../backpack/EquipmentRemovalActions";
+import HelpButton from "../../help/HelpButton";
 
 export default function MobileBuilderWorkspace() {
     const { t } = useTranslation();
@@ -76,6 +77,9 @@ export default function MobileBuilderWorkspace() {
                     {t(model.equippedSlotCount)}
                     <small> / 12</small>
                 </span>
+            </div>
+            <div className="help-workspace-action">
+                <HelpButton topic={route.section === "backpack" ? "backpack" : "builder"} />
             </div>
             {route.slot ? (
                 <>

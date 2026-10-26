@@ -103,9 +103,10 @@
 
 .gear-slot-editor-expanded select,
 .gear-slot-editor-expanded [class*="bg-black"] {
-    background-image:
+    --select-surface-images:
         linear-gradient(rgba(2, 2, 2, 0.58), rgba(2, 2, 2, 0.76)),
         url("../../../assets/ui/panel-aged-leather-texture.webp");
+    background-image: var(--select-surface-images);
     background-position: center;
     background-size: auto, 15rem;
     background-blend-mode: normal, soft-light;
