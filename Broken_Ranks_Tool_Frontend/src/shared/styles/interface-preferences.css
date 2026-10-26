@@ -33,9 +33,19 @@
     grid-template-columns: minmax(0, 1fr) auto;
 }
 .mobile-app .mobile-header .interface-preferences {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
     grid-row: 2;
     grid-column: 1 / -1;
     justify-content: space-between;
+    gap: 0.5rem;
+}
+.mobile-app .mobile-header .optimizer-label-setting {
+    min-width: 0;
+    white-space: nowrap;
+}
+.mobile-app .mobile-header .optimizer-label-setting select {
+    flex: 1 1 0;
 }
 .mobile-app .mobile-header .mobile-build-actions {
     grid-row: 1;

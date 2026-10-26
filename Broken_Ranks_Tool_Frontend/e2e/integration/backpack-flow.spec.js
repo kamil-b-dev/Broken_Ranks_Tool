@@ -349,7 +349,7 @@ test("displays real calculator validation errors and recovers after fixing the e
     const response = await responsePromise;
     expect(response.status()).toBe(400);
     const error = await response.json();
-    await expect(page.getByRole("alert")).toContainText(error.message);
+    await expect(page.getByRole("alert").filter({ hasText: error.message })).toBeVisible();
     await expect(
         page.getByRole("button", { name: "Przelicz statystyki", exact: true })
     ).toBeEnabled();
