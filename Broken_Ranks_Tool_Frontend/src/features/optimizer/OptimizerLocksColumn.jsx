@@ -2,6 +2,7 @@ import { useTranslation } from "../../shared/i18n/useTranslation";
 import { useMemo, useState } from "react";
 import { SLOTS } from "../../shared/domain/equipment/equipmentSlots";
 import CategoryIcon from "../../shared/ui/CategoryIcon";
+import HelpHint from "../help/HelpHint";
 
 const LockIcon = ({ locked, small = false }) => (
     <svg
@@ -34,7 +35,6 @@ const OptimizerLocksColumn = ({
     lockedDrifs,
     onToggleSlot,
     onToggleDrif,
-    mode,
 }) => {
     const { t } = useTranslation();
 
@@ -56,7 +56,6 @@ const OptimizerLocksColumn = ({
     const visibleSlots = equippedSlots.filter(
         ({ slot }) => filter === "all" || lockedSlots?.includes(slot.key)
     );
-    const heading = mode === "ADVISOR" ? "Analizowany build" : "Blokady buildu";
 
     return (
         <section
@@ -68,7 +67,8 @@ const OptimizerLocksColumn = ({
                     <span className="optimizer-heading-icon" aria-hidden="true">
                         ◈
                     </span>
-                    <h3 id="optimizer-locks-heading">{t(heading)}</h3>
+                    <h3 id="optimizer-locks-heading">{t("Blokady buildu")}</h3>
+                    <HelpHint kind="locks" label="Blokady" />
                 </div>
             </header>
             <div className="optimizer-lock-filters" role="group" aria-label={t("Filtr blokad")}>

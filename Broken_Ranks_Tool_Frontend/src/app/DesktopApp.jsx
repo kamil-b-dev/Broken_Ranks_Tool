@@ -22,7 +22,7 @@ import { useBuildFileActions } from "../features/builds/useBuildFileActions";
 import { useBuildLibrary } from "../features/builds/useBuildLibrary";
 import { useAppRoute } from "./useAppRoute";
 import HomeWorkspace from "./components/HomeWorkspace";
-import EquipmentHistoryControls from "./components/EquipmentHistoryControls";
+import EquipmentHistoryControls from "../features/equipment/EquipmentHistoryControls";
 import BuildStorageNotice from "./components/BuildStorageNotice";
 
 /** Desktop composition is loaded only for the desktop presentation. */
@@ -68,7 +68,7 @@ export default function DesktopApp() {
             />
             <EquipmentCalculationNotice />
             <BuildStorageNotice library={buildLibrary} />
-            {["builder", "optimizer"].includes(mainView) && <EquipmentHistoryControls />}
+            {mainView === "optimizer" && <EquipmentHistoryControls />}
             {mainView !== "home" && (
                 <WorkspaceState loading={equipment.loading} error={equipment.initialDataError} />
             )}

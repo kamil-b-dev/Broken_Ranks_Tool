@@ -20,6 +20,7 @@ import { useMobileOptimizerNavigation } from "./useMobileOptimizerNavigation";
 import "./mobile-optimizer.css";
 import OptimizationElapsedTime from "../OptimizationElapsedTime";
 import { OptimizerLabelContext } from "../optimizerLabelContext";
+import HelpButton from "../../help/HelpButton";
 
 export default function MobileOptimizerWorkspace({ settings, onSettingsChange, onBackToBuilder }) {
     const { t } = useTranslation();
@@ -61,6 +62,11 @@ export default function MobileOptimizerWorkspace({ settings, onSettingsChange, o
                         </h1>
                     </div>
                 </header>
+                <div className="help-workspace-action">
+                    <HelpButton
+                        topic={advisory ? "advisor" : reorganize ? "reorganization" : "optimizer"}
+                    />
+                </div>
                 <button type="button" className="mobile-back" onClick={onBackToBuilder}>
                     {t("← Edytuj ekwipunek")}
                 </button>

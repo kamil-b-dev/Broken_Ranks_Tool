@@ -1,5 +1,6 @@
 import { useTranslation } from "../../../shared/i18n/useTranslation";
-import { doubleIncrement, getRarityColor } from "./itemDatabasePresentation";
+import { doubleIncrement } from "./itemDatabasePresentation";
+import "../../../shared/styles/tooltips.css";
 
 const ItemStats = ({ item }) => {
     const { t } = useTranslation();
@@ -105,11 +106,12 @@ const ItemDatabaseTooltip = ({ tooltip, bonusTranslations, drifBasePowers, id, e
             id={id}
             role="tooltip"
             style={{ top: 0, left: 0, transform: `translate3d(${tooltip.x}px, ${tooltip.y}px, 0)` }}
-            className="fixed z-50 bg-linear-to-b from-stone-900 to-black border border-stone-700 p-4 shadow-[0_0_20px_rgba(0,0,0,1)] pointer-events-none w-64"
+            className="app-tooltip item-database-tooltip fixed z-50 p-4 pointer-events-none w-64"
         >
-            <div className="flex justify-between items-start border-b-2 border-double border-rose-900/50 builder-accent-frame pb-2 mb-2">
+            <div className="app-tooltip-header flex justify-between items-start border-b-2 border-double pb-2 mb-2">
                 <h4
-                    className={`text-base font-serif tracking-wide ${type === "items" ? getRarityColor(item.rarity) : `font-bold bg-clip-text text-transparent bg-linear-to-r ${type === "orbs" ? "from-red-400 to-rose-600" : "from-orange-400 to-amber-600"}`}`}
+                    className="app-tooltip-heading"
+                    data-rarity={type === "items" ? item.rarity?.toUpperCase() : undefined}
                 >
                     {type === "items" ? (
                         item.name

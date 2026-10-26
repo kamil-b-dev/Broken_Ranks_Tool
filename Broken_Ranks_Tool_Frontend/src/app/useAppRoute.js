@@ -7,6 +7,7 @@ export const APP_ROUTES = {
     optimizer: "/optimizer",
     builds: "/builds",
     progression: "/progression-path",
+    help: "/help",
 };
 
 const LEGACY_ROUTES = {
@@ -24,7 +25,9 @@ const canonicalPath = (pathname) =>
           : APP_ROUTES.home;
 
 const routeForPath = (pathname) =>
-    Object.entries(APP_ROUTES).find(([, path]) => path === canonicalPath(pathname))?.[0] ?? "home";
+    Object.entries(APP_ROUTES).find(
+        ([view, path]) => view !== "help" && path === canonicalPath(pathname)
+    )?.[0] ?? "home";
 
 const canonicalizeLocation = () => {
     const path = canonicalPath(window.location.pathname);
@@ -46,6 +49,7 @@ export const useAppRoute = () => {
 
         const handlePopState = () => {
             const nextPath = canonicalizeLocation();
+            if (nextPath === APP_ROUTES.help) return;
             setActiveView(routeForPath(nextPath));
         };
         window.addEventListener("popstate", handlePopState);
@@ -55,6 +59,10 @@ export const useAppRoute = () => {
     const navigate = useCallback((view) => {
         const path = APP_ROUTES[view] ?? APP_ROUTES.home;
         if (path !== window.location.pathname) window.history.pushState(null, "", path);
+        if (path === APP_ROUTES.help) {
+            window.dispatchEvent(new PopStateEvent("popstate"));
+            return;
+        }
         if (view !== "home") requestEquipmentCatalog();
         setActiveView(routeForPath(path));
     }, []);

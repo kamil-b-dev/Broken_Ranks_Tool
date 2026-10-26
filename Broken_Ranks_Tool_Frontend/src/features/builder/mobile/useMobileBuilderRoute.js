@@ -15,7 +15,17 @@ const readRoute = () => {
 export const useMobileBuilderRoute = () => {
     const [route, setRoute] = useState(readRoute);
     useEffect(() => {
-        const update = () => setRoute(readRoute());
+        const update = () => {
+            if (window.location.pathname === "/help") return;
+            const next = readRoute();
+            setRoute((previous) =>
+                previous.section === next.section &&
+                previous.slot === next.slot &&
+                previous.pickingItem === next.pickingItem
+                    ? previous
+                    : next
+            );
+        };
         window.addEventListener("popstate", update);
         return () => window.removeEventListener("popstate", update);
     }, []);

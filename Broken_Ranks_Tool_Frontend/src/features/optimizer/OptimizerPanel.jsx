@@ -8,6 +8,7 @@ import OptimizerGoalsColumn from "./OptimizerGoalsColumn";
 import OptimizerReportColumn from "./OptimizerReportColumn";
 import { useOptimizerWorkspace } from "./useOptimizerWorkspace";
 import { OptimizerLabelContext } from "./optimizerLabelContext";
+import HelpButton from "../help/HelpButton";
 
 /** Desktop composition retains its existing markup and navigation. */
 const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
@@ -77,6 +78,17 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                     settings={optimizerSettings}
                     onChange={onOptimizerSettingsChange}
                 />
+                <div className="help-workspace-action">
+                    <HelpButton
+                        topic={
+                            optimizerSettings.mode === "ADVISOR"
+                                ? "advisor"
+                                : optimizerSettings.mode === "REORGANIZE"
+                                  ? "reorganization"
+                                  : "optimizer"
+                        }
+                    />
+                </div>
                 <OptimizerSettingsPanel
                     settings={optimizerSettings}
                     onChange={onOptimizerSettingsChange}

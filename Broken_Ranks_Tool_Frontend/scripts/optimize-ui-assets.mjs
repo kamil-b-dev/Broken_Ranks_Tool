@@ -11,9 +11,14 @@ const variants = [
     ["broken-ranks-crest.webp", "stats-crest.webp", 416],
     ["equipment-slot-icons.webp", "equipment-slot-icons.webp", 768],
     ["character-stat-icons.webp", "character-stat-icons.webp", 576],
-    ...["home", "equipment-builder", "drif-optimizer", "local-builds", "progression-path"].map(
-        (name) => [`navigation-icons/${name}.png`, `${name}.webp`, 96]
-    ),
+    ...[
+        "home",
+        "equipment-builder",
+        "drif-optimizer",
+        "local-builds",
+        "progression-path",
+        "instructions",
+    ].map((name) => [`navigation-icons/${name}.png`, `${name}.webp`, 96]),
     ...[
         "drif-defensive",
         "drif-offensive",

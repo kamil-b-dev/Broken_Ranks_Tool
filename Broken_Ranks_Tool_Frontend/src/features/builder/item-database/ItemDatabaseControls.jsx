@@ -22,11 +22,8 @@ const ItemDatabaseControls = ({
     const { t } = useTranslation();
     return (
         <>
-            <div className="flex justify-between items-end border-b-4 border-double border-rose-900/70 builder-accent-frame pb-3 mb-4 shrink-0">
-                <h3 className="text-xl font-serif font-bold text-stone-300 uppercase tracking-widest drop-shadow-[0_2px_5px_rgba(0,0,0,1)]">
-                    {t("Baza Danych")}
-                </h3>
-                {hasActiveFilters && (
+            {hasActiveFilters && (
+                <div className="flex justify-end mb-3 shrink-0">
                     <button
                         type="button"
                         onClick={onClearFilters}
@@ -34,9 +31,9 @@ const ItemDatabaseControls = ({
                     >
                         {t("Wyczyść filtry")}
                     </button>
-                )}
-            </div>
-            <div className="flex bg-black/60 p-1 mb-4 shrink-0 border border-stone-800 optimizer-info-divider shadow-[inset_0_0_10px_rgba(0,0,0,1)]">
+                </div>
+            )}
+            <div className="database-tabs flex bg-black/60 p-1 mb-4 shrink-0 border border-stone-800 optimizer-info-divider shadow-[inset_0_0_10px_rgba(0,0,0,1)]">
                 {Object.entries(TAB_LABELS).map(([tab, label]) => {
                     const isActive = activeTab === tab;
                     return (
@@ -74,7 +71,7 @@ const ItemDatabaseControls = ({
                     ])}
                     placeholder={t(
                         activeTab === "items"
-                            ? "Nazwa przedmiotu lub bossa (regex)"
+                            ? "Nazwa przedmiotu lub bossa"
                             : `Wyszukaj ${activeTab === "orbs" ? "orba" : "drifa"}...`
                     )}
                     title={t(
@@ -173,8 +170,8 @@ const ItemDatabaseControls = ({
                             </select>
                             <input
                                 type="number"
-                                aria-label={t("Filtruj drify według mocy bazowej")}
-                                placeholder={t("Moc bazowa...")}
+                                aria-label={t("Filtruj drify według potęgi bazowej")}
+                                placeholder={t("Potęga bazowa...")}
                                 value={filters.basePower}
                                 onChange={(event) =>
                                     onFilterChange("basePower", event.target.value)

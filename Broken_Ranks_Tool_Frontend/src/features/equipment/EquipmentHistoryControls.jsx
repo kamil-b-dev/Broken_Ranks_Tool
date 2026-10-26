@@ -1,7 +1,7 @@
 import { useContext, useEffect } from "react";
 import { EquipmentHistoryContext } from "../../shared/state/EquipmentContext";
 import { useTranslation } from "../../shared/i18n/useTranslation";
-import "./workspace-actions.css";
+import "./equipment-history-controls.css";
 
 export default function EquipmentHistoryControls() {
     const history = useContext(EquipmentHistoryContext);

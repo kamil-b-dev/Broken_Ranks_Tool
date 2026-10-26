@@ -1,0 +1,69 @@
+/* Shared material and typography for all custom tooltips. */
+.app-tooltip {
+    box-sizing: border-box;
+    max-width: calc(100vw - 16px);
+    border: 1px solid #a67a40;
+    border-radius: 0;
+    background:
+        linear-gradient(155deg, rgba(27, 23, 18, 0.97), rgba(4, 5, 6, 0.99) 75%),
+        url("../../assets/ui/panel-blackened-steel-texture.webp") center / 22rem;
+    color: #e8e0d4;
+    box-shadow:
+        0 14px 32px #000b,
+        inset 0 0 0 3px #070708,
+        inset 0 1px #c59a5633;
+    font:
+        400 13px/1.65 Inter,
+        system-ui,
+        sans-serif;
+    letter-spacing: normal;
+    text-transform: none;
+    overflow-wrap: anywhere;
+}
+.app-tooltip::before {
+    position: absolute;
+    top: 3px;
+    left: 14px;
+    right: 14px;
+    height: 1px;
+    content: "";
+    pointer-events: none;
+    background: linear-gradient(90deg, transparent, #dfb66a77, transparent);
+}
+.item-database-tooltip :is(h4, span, div, p) {
+    font-family: Inter, system-ui, sans-serif;
+}
+.item-database-tooltip .app-tooltip-header {
+    border-bottom-color: #916934;
+}
+.item-database-tooltip .app-tooltip-heading {
+    color: #e4ba70;
+    font-size: 14px;
+    line-height: 1.4;
+    font-weight: 700;
+    letter-spacing: normal;
+}
+.item-database-tooltip [data-rarity="RARE"] {
+    color: #7bb7ff;
+}
+.item-database-tooltip [data-rarity="EPIC"] {
+    color: #f7d476;
+}
+.item-database-tooltip [data-rarity="LEGENDARY"] {
+    color: #efa45d;
+}
+.item-database-tooltip [data-rarity="SET"] {
+    color: #a3d59e;
+}
+.item-database-tooltip :is(.text-stone-400, .text-stone-500, .text-stone-600) {
+    color: #bcb09e;
+}
+.item-database-tooltip :is(.text-orange-500, .text-orange-600, .builder-accent-text) {
+    color: #e4ba70;
+}
+.item-database-tooltip [class~="text-orange-600/70"] {
+    color: #d7b17b;
+}
+.item-database-tooltip [class~="text-[10px]"] {
+    font-size: 11px;
+}

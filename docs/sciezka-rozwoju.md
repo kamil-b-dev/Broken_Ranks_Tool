@@ -75,7 +75,7 @@ Jeżeli sam epik jest dokładnym celem, jego wybrane gwiazdki obowiązują od po
 Docelowy epik 9★ nie czeka z gwiazdkowaniem do końcowego poziomu ścieżki.
 
 Legenda zachowuje maksymalnie trzy zwykłe drify wybrane przez użytkownika w docelowym
-buildzie, wraz z ich poziomami. Łączna moc musi mieścić się w pojemności przy wybranych
+buildzie, wraz z ich poziomami. Łączna potęga musi mieścić się w pojemności przy wybranych
 gwiazdkach. Układ przekraczający pojemność jest odrzucany; planner nie usuwa wybranych
 drifów ani nie obniża ich poziomów w celu dopasowania celu.
 
@@ -100,7 +100,7 @@ wartość poprawie zaniedbanej statystyki.
 
 Heurystyka najpierw osadza kamienie do poziomu 6 (lub niższego późniejszego
 limitu konkretnej sztuki), aby nie zużyć całej pojemności na pierwszy bonus.
-Następnie podnosi poziomy o kolejny próg mocy, wybierając największy przyrost
+Następnie podnosi poziomy o kolejny próg potęgi, wybierając największy przyrost
 użyteczności na dodatkową jednostkę pojemności. Każda propozycja przechodzi
 wspólny kalkulator. Limity rozmiaru i poziomu sztuk są nadal przenoszone wstecz,
 a wszystkie operacje sprawdzane w przód. Opcja nie wprowadza obniżania kamieni

@@ -1,0 +1,293 @@
+/* Materials and colours shared with the equipment builder and optimizer. */
+.build-library-theme {
+    --library-gold: #e4ba70;
+    --library-line: rgba(166, 116, 55, 0.78);
+    --library-line-soft: rgba(126, 90, 47, 0.38);
+    --library-text: #e8e0d4;
+    --library-muted: #b6aa99;
+    --library-panel:
+        linear-gradient(155deg, rgba(24, 23, 21, 0.93), rgba(5, 6, 7, 0.97) 68%),
+        url("../../../assets/ui/panel-blackened-steel-texture.webp") center / 28rem;
+    --library-inset:
+        linear-gradient(110deg, rgba(20, 17, 15, 0.87), rgba(4, 5, 6, 0.96)),
+        url("../../../assets/ui/hammered-black-iron-texture.webp") center / 24rem;
+    --library-control:
+        linear-gradient(rgba(5, 4, 4, 0.64), rgba(3, 4, 5, 0.86)),
+        url("../../../assets/ui/panel-aged-leather-texture.webp") center / 18rem;
+    --library-active:
+        linear-gradient(rgba(87, 12, 24, 0.65), rgba(23, 5, 10, 0.92)),
+        url("../../../assets/ui/crimson-lacquer-texture.webp") center / 18rem;
+    color: var(--library-text);
+}
+
+.build-library-theme .workbench,
+.build-library-theme .library-backup {
+    border-color: var(--library-line);
+    background: var(--library-panel);
+    box-shadow:
+        0 18px 40px #0006,
+        inset 0 1px rgba(255, 224, 169, 0.07);
+}
+
+.build-library-theme .workbench::before {
+    background: linear-gradient(90deg, transparent, rgba(214, 158, 78, 0.82), transparent);
+}
+
+.build-library-theme .build-library-list-panel {
+    background:
+        linear-gradient(155deg, rgba(20, 19, 17, 0.88), rgba(4, 5, 6, 0.96) 68%),
+        url("../../../assets/ui/database-panel-backdrop-texture.webp") center / 32rem;
+}
+
+.build-library-theme .build-comparison-panel {
+    background:
+        linear-gradient(155deg, rgba(17, 17, 17, 0.82), rgba(3, 4, 5, 0.95) 68%),
+        url("../../../assets/ui/equipment-config-backdrop-texture.webp") center top / 42rem;
+    background-blend-mode: normal, luminosity;
+}
+
+.build-library-theme .build-library-heading h2,
+.build-library-theme .build-library-panel-heading h3 {
+    color: var(--library-gold);
+}
+
+.build-library-theme .build-library-panel-heading {
+    border-bottom: 3px double var(--library-line);
+}
+
+.build-library-theme
+    :is(
+        .build-library-save-form > label,
+        .build-comparison-label,
+        .build-comparison-hero > span,
+        .build-comparison-difference-strip strong,
+        .build-comparison-stat-section > header strong,
+        .build-drif-analysis-heading strong,
+        .build-drif-result-heading strong,
+        .build-drif-profile-label strong,
+        .build-drif-unique-grid article > strong
+    ) {
+    color: var(--library-gold);
+}
+
+.build-library-theme
+    :is(
+        .saved-build-copy strong,
+        .build-comparison-hero strong,
+        .build-comparison-row strong,
+        .build-drif-profile-grid > strong,
+        .build-drif-profile-row > div > strong,
+        .build-drif-token > span strong
+    ) {
+    color: var(--library-text);
+}
+
+.build-library-theme
+    :is(
+        .saved-build-compare,
+        .saved-build-copy small,
+        .saved-build-copy span,
+        .saved-build-card time,
+        .build-comparison-hero small,
+        .build-comparison-difference-strip > span,
+        .build-comparison-toolbar > label,
+        .build-comparison-row small,
+        .build-comparison-no-differences,
+        .build-comparison-hint,
+        .build-comparison-stat-section > header small,
+        .build-drif-analysis-heading small,
+        .build-drif-result-heading small,
+        .build-drif-profile-grid > strong small,
+        .build-drif-profile-label small,
+        .build-drif-profile-row > div > span,
+        .build-drif-category-groups > div > span,
+        .build-drif-token > span small,
+        .build-drif-token > em,
+        .build-drif-empty,
+        .build-drif-unique-grid article > small
+    ) {
+    color: var(--library-muted);
+}
+
+.build-library-theme
+    :is(.build-library-save-form input, .build-library-save-form select, .library-backup select) {
+    border-color: var(--library-line);
+    color: var(--library-text);
+    background-color: #080707;
+    box-shadow: inset 0 0 14px #0007;
+}
+
+.build-library-theme :is(button, input, select):focus-visible {
+    outline: 2px solid var(--library-gold);
+    outline-offset: 3px;
+}
+
+.build-library-theme
+    :is(
+        .build-library-save-form button,
+        .library-backup button,
+        .saved-build-actions button,
+        .build-library-panel-heading > button
+    ) {
+    border: 1px solid #916934;
+    border-radius: 0;
+    color: #e1c18f;
+    background: var(--library-control);
+    box-shadow:
+        inset 0 1px rgba(255, 224, 169, 0.05),
+        0 3px 10px #0004;
+    cursor: pointer;
+}
+
+.build-library-theme :is(.library-backup button, .build-library-panel-heading > button) {
+    min-height: 44px;
+    padding: 8px 12px;
+    font:
+        600 12px/1.4 Inter,
+        system-ui,
+        sans-serif;
+}
+
+.build-library-theme
+    :is(
+        .build-library-save-form button,
+        .saved-build-actions .is-primary,
+        .build-comparison-toolbar button[aria-selected="true"]
+    ) {
+    border-color: #b88741;
+    color: #f4d79f;
+    background: var(--library-active);
+    box-shadow: inset 0 1px rgba(255, 210, 135, 0.1);
+}
+
+.build-library-theme
+    :is(
+        .build-library-save-form button,
+        .library-backup button,
+        .saved-build-actions button,
+        .build-library-panel-heading > button,
+        .build-comparison-toolbar button
+    ):hover:not(:disabled) {
+    border-color: var(--library-gold);
+    color: #ffe7bc;
+    background: var(--library-active);
+}
+
+.build-library-theme .saved-build-actions .is-danger {
+    color: #efa6a6;
+}
+
+.build-library-theme .saved-build-card {
+    border-color: var(--library-line-soft);
+    background: var(--library-control);
+    box-shadow: inset 0 1px rgba(255, 224, 169, 0.04);
+}
+
+.build-library-theme .saved-build-card.is-selected {
+    border-color: #c3924b;
+    background: var(--library-active);
+    box-shadow:
+        inset 3px 0 var(--library-gold),
+        inset 0 1px rgba(255, 224, 169, 0.07);
+}
+
+.build-library-theme .saved-build-index {
+    border-color: var(--library-line);
+    color: var(--library-gold);
+    background: var(--library-inset);
+    box-shadow: inset 0 0 0 2px #080808;
+}
+
+.build-library-theme .saved-build-compare input {
+    border-color: #b88741;
+    background: var(--library-inset);
+}
+
+.build-library-theme .saved-build-compare input:checked {
+    border-color: var(--library-gold);
+    background: var(--library-active);
+}
+
+.build-library-theme :is(.build-library-empty, .build-comparison-empty) {
+    background:
+        radial-gradient(ellipse at center, rgba(38, 29, 19, 0.42), rgba(3, 4, 5, 0.88) 76%),
+        url("../../../assets/ui/dark-basalt-texture.webp") center / 28rem;
+    background-blend-mode: normal, soft-light;
+}
+
+.build-library-theme :is(.build-library-empty, .build-comparison-empty) strong {
+    color: #cbb695;
+}
+
+.build-library-theme :is(.build-comparison-hero, .build-comparison-difference-strip) {
+    border-color: var(--library-line);
+    background: var(--library-control);
+}
+
+.build-library-theme .build-comparison-hero.tone-2 {
+    border-color: #bd6963;
+}
+.build-library-theme .build-comparison-hero.tone-3 {
+    border-color: #7f9da4;
+}
+
+.build-library-theme .build-comparison-difference-strip > span {
+    border-right-color: var(--library-line-soft);
+}
+
+.build-library-theme .build-comparison-toolbar {
+    border-bottom-color: var(--library-line);
+    background: var(--library-inset);
+}
+
+.build-library-theme .build-comparison-toolbar button {
+    color: var(--library-muted);
+}
+
+.build-library-theme .build-comparison-toolbar input {
+    accent-color: #c3924b;
+}
+
+.build-library-theme .build-comparison-header,
+.build-library-theme .build-comparison-header > * {
+    border-color: var(--library-line);
+    color: #d7ba8c;
+    background: #0b0b0c;
+}
+
+.build-library-theme .build-comparison-row,
+.build-library-theme .build-comparison-row > * {
+    border-color: var(--library-line-soft);
+}
+
+.build-library-theme .build-comparison-row > div.is-different {
+    background:
+        linear-gradient(110deg, rgba(66, 12, 23, 0.56), rgba(16, 5, 9, 0.88)),
+        url("../../../assets/ui/panel-oxblood-texture.webp") center / 18rem;
+}
+
+.build-library-theme
+    :is(
+        .build-comparison-stat-section > header,
+        .build-drif-analysis-heading,
+        .build-drif-result-heading
+    ) {
+    border-color: var(--library-line);
+    background: var(--library-inset);
+}
+
+.build-library-theme :is(.build-drif-profile, .build-drif-common, .build-drif-unique) {
+    border-color: var(--library-line-soft);
+    background: rgba(3, 4, 5, 0.62);
+}
+
+.build-library-theme .build-drif-token {
+    background-color: rgba(6, 5, 7, 0.72);
+}
+
+.build-library-theme .build-drif-profile-row > div i.has-value,
+.build-library-theme .build-drif-token > i {
+    color: var(--library-gold);
+    border-color: var(--library-line);
+    background: var(--library-inset);
+}

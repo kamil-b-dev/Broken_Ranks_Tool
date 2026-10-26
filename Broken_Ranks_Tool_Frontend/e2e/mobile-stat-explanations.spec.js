@@ -99,7 +99,7 @@ for (const mobile of [false, true]) {
                     { slots }
                 );
             });
-            test("explains the current statistic and exposes the next upgrade thresholds", async ({
+            test("explains the current statistic without upgrade hints in the editor", async ({
                 page,
             }, testInfo) => {
                 let requests = 0;
@@ -153,14 +153,8 @@ for (const mobile of [false, true]) {
                         .getByRole("button", { name: "Edytuj slot: Hełm", exact: true })
                         .click();
                 }
-                await page
-                    .getByText("Najbliższy próg gniazd i pojemności: 7★", { exact: true })
-                    .click();
-                await expect(page.getByText("Pojemność: 12 → 13", { exact: true })).toBeVisible();
-                await page.getByText("Progi ulepszenia drifa", { exact: true }).click();
-                await expect(
-                    page.getByText("Na poziomie 7 moc drifa rośnie: 4 → 8.", { exact: true })
-                ).toBeVisible();
+                await expect(page.locator(".upgrade-hints")).toHaveCount(0);
+                await page.screenshot({ path: testInfo.outputPath("equipment-editor.png") });
             });
             test("persists prepared supplies and downloads the shopping list", async ({
                 page,

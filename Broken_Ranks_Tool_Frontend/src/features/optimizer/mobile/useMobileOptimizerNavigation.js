@@ -9,7 +9,15 @@ const readNavigation = () => {
 export const useMobileOptimizerNavigation = (advisory) => {
     const [navigation, setNavigation] = useState(readNavigation);
     useEffect(() => {
-        const update = () => setNavigation(readNavigation());
+        const update = () => {
+            if (window.location.pathname === "/help") return;
+            const next = readNavigation();
+            setNavigation((previous) =>
+                previous.section === next.section && previous.picking === next.picking
+                    ? previous
+                    : next
+            );
+        };
         window.addEventListener("popstate", update);
         return () => window.removeEventListener("popstate", update);
     }, []);
