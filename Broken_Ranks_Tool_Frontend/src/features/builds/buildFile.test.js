@@ -302,6 +302,66 @@ describe("parseBuildPayload", () => {
         expect(() => parseBuildPayload(payload, data)).toThrow(message);
     });
 
+    it("imports the Broken HUD two-handed axe as legendary Gorthdar", async () => {
+        const payload = {
+            stats: { Level: 140 },
+            equipped: { 4: 33089335 },
+            equipmentList: [
+                {
+                    EqId: 33089335,
+                    Name: "Gorthdar",
+                    GearType: "axe_th",
+                    GearCategory: "Weapons",
+                    Rank: 12,
+                    Type: "legend",
+                    Ornaments: "G3",
+                    Drifs: [{ Name: "Arcydrif astah", Level: 21 }],
+                    Orbs: [{ Code: "orb_23_10", Level: 10 }],
+                },
+            ],
+        };
+        const data = {
+            ...gameData,
+            items: [
+                { id: 170, name: "Gorthdar", category: "WEAPON_2H", tier: "IX", rarity: "EPIC" },
+                {
+                    id: 177,
+                    name: "Gorthdar",
+                    category: "WEAPON_2H",
+                    tier: "XII",
+                    rarity: "LEGENDARY",
+                    capacity: 32,
+                },
+            ],
+            drifs: [{ id: 80, name: "Astah", size: "ARCYDRIF", bonusType: "DOUBLE_ATTACK" }],
+            gameRules: {
+                ...gameData.gameRules,
+                drifBasePowers: { DOUBLE_ATTACK: 3 },
+            },
+        };
+
+        const imported = await parseBuildFile(createFile(payload), data);
+        expect(imported.requestData.slots).toEqual({
+            weapon: {
+                itemId: 177,
+                itemStars: 9,
+                drifIds: [80],
+                drifLevels: { 0: 21 },
+                orbIds: [],
+                orbLevels: [],
+            },
+        });
+        expect(imported.importSummary).toMatchObject({
+            importedItems: 1,
+            importedDrifs: 1,
+            skippedOrbs: 1,
+        });
+        data.items[1].capacity = 0;
+        await expect(parseBuildFile(createFile(payload), data)).rejects.toThrow(
+            "Drify przekraczają pojemność przedmiotu w slocie weapon."
+        );
+    });
+
     it("runs game exports through the same equipment validation as native builds", async () => {
         const payload = {
             stats: {},

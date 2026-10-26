@@ -145,11 +145,11 @@ describe("parseGameBuildPayload", () => {
         ).toThrow("Nie udało się przypisać do slotu przedmiotu Dar Skrzydlatej.");
     });
 
-    it("uses rank, category and rarity to resolve duplicate item names", () => {
+    it("uses rank and rarity to resolve duplicate item names", () => {
         const items = [
             { id: 1, name: "Ostrze", category: "WEAPON_1H", tier: "X", rarity: "RARE" },
             { id: 2, name: "Ostrze", category: "WEAPON_1H", tier: "XI", rarity: "EPIC" },
-            { id: 3, name: "Ostrze", category: "WEAPON_2H", tier: "XI", rarity: "EPIC" },
+            { id: 3, name: "Ostrze", category: "WEAPON_2H", tier: "XI", rarity: "RARE" },
         ];
         const result = parseGameBuildPayload(
             {
@@ -159,7 +159,7 @@ describe("parseGameBuildPayload", () => {
                     {
                         EqId: 7,
                         Name: "Ostrze",
-                        GearType: "weapon_1h",
+                        GearType: "nieznany_typ_broni",
                         Rank: 11,
                         Type: "epik",
                         Ornaments: "nieznane",
@@ -184,6 +184,49 @@ describe("parseGameBuildPayload", () => {
         expect(result.characterConfig).toMatchObject({ level: 1, spentPoints: { PŻ: 0 } });
     });
 
+    it.each(["WEAPON_1H", "WEAPON_2H", "WEAPON_RANGED"])(
+        "assigns a named %s from the catalog regardless of HUD gear metadata",
+        (category) => {
+            for (const metadata of [
+                {},
+                { GearType: "axe_th", GearCategory: "Weapons" },
+                { GearType: "nieznany_typ_broni" },
+                { GearType: "helmet", GearCategory: "Armors" },
+            ]) {
+                const result = parseGameBuildPayload(
+                    {
+                        stats: {},
+                        equipped: { 4: 7 },
+                        equipmentList: [{ EqId: 7, Name: ' " OSTRZE " ', ...metadata }],
+                    },
+                    { items: [{ id: 1, name: "Ostrze", category, tier: "X", rarity: "RARE" }] }
+                );
+                expect(result.requestData.slots.weapon.itemId).toBe(1);
+                expect(Object.keys(result.requestData.slots)).toEqual(["weapon"]);
+            }
+        }
+    );
+
+    it("does not use HUD gear type to guess between ambiguous catalog names", () => {
+        expect(() =>
+            parseGameBuildPayload(
+                {
+                    stats: {},
+                    equipped: { 4: 7 },
+                    equipmentList: [
+                        { EqId: 7, Name: "Ostrze", GearType: "weapon_1h", Rank: 10, Type: "rar" },
+                    ],
+                },
+                {
+                    items: [
+                        { id: 1, name: "Ostrze", category: "WEAPON_1H", tier: "X", rarity: "RARE" },
+                        { id: 2, name: "Ostrze", category: "WEAPON_2H", tier: "X", rarity: "RARE" },
+                    ],
+                }
+            )
+        ).toThrow("Nie znaleziono jednoznacznego odpowiednika: Ostrze.");
+    });
+
     it("imports both rings, defaults missing levels and reports unmatched modifiers", () => {
         const result = parseGameBuildPayload(
             {
@@ -193,7 +236,6 @@ describe("parseGameBuildPayload", () => {
                     {
                         EqId: 1,
                         Name: "Dar Skrzydlatej",
-                        GearType: "ring",
                         Orbs: [
                             { Name: "Orb złota", Level: 3 },
                             { Name: "Nieznany orb", Level: 2 },
@@ -203,7 +245,7 @@ describe("parseGameBuildPayload", () => {
                             { Name: "Subdrif nieznany", Level: 5 },
                         ],
                     },
-                    { EqId: 2, Name: "Dar Skrzydlatej", GearType: "ring" },
+                    { EqId: 2, Name: "Dar Skrzydlatej" },
                 ],
             },
             {
