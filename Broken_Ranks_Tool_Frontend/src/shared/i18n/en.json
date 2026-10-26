@@ -1388,5 +1388,14 @@
     "Brak": "None",
     "Wartość": "Value",
     "Instrukcja": "Guide",
-    "Ładowanie instrukcji...": "Loading instructions..."
+    "Ładowanie instrukcji...": "Loading instructions...",
+    "Ekwipunek: {0}/12 przedmiotów, {1} drifów, {2} orbów.": "Equipment: {0}/12 items, {1} drifs, {2} orbs.",
+    "Plecak: {0} przedmiotów, {1} drifów, {2} orbów.": "Backpack: {0} items, {1} drifs, {2} orbs.",
+    "Pominięto {0} orbów bez jednoznacznego odpowiednika.": "Skipped {0} orbs without an unambiguous match.",
+    "Pominięto {0} nierozpoznanych drifów.": "Skipped {0} unrecognized drifs.",
+    "Pominięto {0} nierozpoznanych przedmiotów plecaka.": "Skipped {0} unrecognized backpack items.",
+    "Pominięto {0} skórek.": "Skipped {0} skins.",
+    "Eksport zawiera powtórzone ID wyposażenia.": "The export contains duplicate equipment IDs.",
+    "Ten sam przedmiot o ID {0} jest założony więcej niż raz.": "The same item with ID {0} is equipped more than once.",
+    "Zachowano bazowe statystyki postaci bez rozdziału punktów: nie pasują do zasad rozwoju (poziom {0}, punkty {1}/{2}).": "Base character stats were preserved without a point allocation: they do not match the development rules (level {0}, points {1}/{2})."
 }

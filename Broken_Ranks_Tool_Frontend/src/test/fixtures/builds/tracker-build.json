@@ -1,0 +1,1068 @@
+{
+    "stats": {
+        "BaseStrength": 260,
+        "BaseDexterity": 240,
+        "BasePower": 10,
+        "BaseKnowledge": 10,
+        "BaseIntelligence": 40,
+        "BaseHealth": 540,
+        "BaseMana": 200,
+        "BaseStamina": 400,
+        "Might": 21453,
+        "Name": "Postać testowa",
+        "Level": 140,
+        "Exp": 1412900000
+    },
+    "skills": [
+        {
+            "Name": "Cios pięścią",
+            "Level": 1
+        },
+        {
+            "Name": "Okrzyk bojowy",
+            "Level": 1
+        },
+        {
+            "Name": "Rzut kamieniem",
+            "Level": 1
+        },
+        {
+            "Name": "Strzał",
+            "Level": 1
+        },
+        {
+            "Name": "Zwykły atak",
+            "Level": 1
+        },
+        {
+            "Name": "Ucieczka",
+            "Level": 1
+        },
+        {
+            "Name": "Wyrwanie z korzeni",
+            "Level": 1
+        },
+        {
+            "Name": "Okrzyk bojowy",
+            "Level": 1
+        },
+        {
+            "Name": "Zwykły atak",
+            "Level": 1
+        },
+        {
+            "Name": "Atak miotany",
+            "Level": 1
+        },
+        {
+            "Name": "Wataha",
+            "Level": 0
+        },
+        {
+            "Name": "Lodowa strzała",
+            "Level": 14
+        },
+        {
+            "Name": "Krótkie spięcie",
+            "Level": 15
+        },
+        {
+            "Name": "Wyostrzone zmysły",
+            "Level": 15
+        },
+        {
+            "Name": "Piach w oczy",
+            "Level": 12
+        },
+        {
+            "Name": "Zatruta strzała",
+            "Level": 15
+        },
+        {
+            "Name": "Precyzyjny strzał",
+            "Level": 13
+        },
+        {
+            "Name": "Ognista strzała",
+            "Level": 21
+        },
+        {
+            "Name": "Grad strzał",
+            "Level": 5
+        },
+        {
+            "Name": "Instynkt przetrwania",
+            "Level": 14
+        },
+        {
+            "Name": "Wyładowanie gniewu",
+            "Level": 14
+        },
+        {
+            "Name": "Odzyskanie sił",
+            "Level": 12
+        },
+        {
+            "Name": "Wściekły refleks",
+            "Level": 8
+        }
+    ],
+    "equipped": {
+        "1": 22600668,
+        "2": 24153007,
+        "3": 23989475,
+        "4": 32002702,
+        "5": 28179106,
+        "6": 24372247,
+        "7": 24404585,
+        "8": 24369728,
+        "9": 30523086,
+        "10": 31521667,
+        "11": 24069545,
+        "12": 32203225
+    },
+    "equipmentList": [
+        {
+            "Name": "\"Takerony\"",
+            "EqId": 22597411,
+            "Value": 23390000,
+            "Rank": 10,
+            "Ornaments": "B1",
+            "Type": "rar",
+            "Strength": 10,
+            "Dexterity": 30,
+            "Power": 0,
+            "Knowledge": 0,
+            "Life": 700,
+            "Mana": 50,
+            "Durability": 45,
+            "ResistSlash": 0,
+            "ResistBlunt": 0,
+            "ResistPierce": 0,
+            "ResistFire": 0,
+            "ResistEnergy": 0,
+            "ResistCold": 0,
+            "ResistCharm": 0,
+            "Capacity": 24,
+            "UpgradeLevel": 5,
+            "Drifs": [
+                {
+                    "Id": 4913724,
+                    "Name": "Arcydrif holm",
+                    "Size": "giant",
+                    "PsychoCode": 36,
+                    "Value": 8,
+                    "Psycho": 320000,
+                    "Level": 11,
+                    "code": "giant_36_2"
+                },
+                {
+                    "Id": 3084625,
+                    "Name": "Arcydrif farid",
+                    "Size": "giant",
+                    "PsychoCode": 35,
+                    "Value": 10,
+                    "Psycho": 900378,
+                    "Level": 15,
+                    "code": "giant_35_2"
+                },
+                {
+                    "Id": 3084627,
+                    "Name": "Arcydrif faln",
+                    "Size": "giant",
+                    "PsychoCode": 68,
+                    "Value": 25,
+                    "Psycho": 3517934,
+                    "Level": 19,
+                    "code": "giant_68_2"
+                }
+            ],
+            "Orbs": [
+                {
+                    "Id": 5524006,
+                    "PsychoCode": 17,
+                    "Value": 7.5,
+                    "Level": 8,
+                    "code": "orb_17_8"
+                }
+            ],
+            "Upgrades": {
+                "Dexterity": 5
+            }
+        },
+        {
+            "Name": "\"Pamięć Morany\"",
+            "EqId": 22600668,
+            "Value": 76090000,
+            "Rank": 10,
+            "Ornaments": "G1",
+            "Type": "rar",
+            "Strength": 34,
+            "Dexterity": 65,
+            "Power": 0,
+            "Knowledge": 0,
+            "Life": 397,
+            "Mana": 0,
+            "Durability": 48,
+            "ResistSlash": 59,
+            "ResistBlunt": 58,
+            "ResistPierce": 55,
+            "ResistFire": 21,
+            "ResistEnergy": 18,
+            "ResistCold": 18,
+            "ResistCharm": 19,
+            "Capacity": 25,
+            "UpgradeLevel": 11,
+            "Drifs": [
+                {
+                    "Id": 5854302,
+                    "Name": "Arcydrif ling",
+                    "Size": "giant",
+                    "PsychoCode": 53,
+                    "Value": 29,
+                    "Psycho": 5000317,
+                    "Level": 21,
+                    "code": "giant_53_5"
+                },
+                {
+                    "Id": 2861088,
+                    "Name": "Magnidrif alorn",
+                    "Size": "big",
+                    "PsychoCode": 66,
+                    "Value": 9.5,
+                    "Psycho": 1001494,
+                    "Level": 16,
+                    "code": "big_66_2"
+                }
+            ],
+            "Orbs": [
+                {
+                    "Id": 3245848,
+                    "PsychoCode": 15,
+                    "Value": 10.65,
+                    "Level": 10,
+                    "code": "orb_15_10"
+                }
+            ],
+            "Upgrades": {
+                "Dexterity": 35
+            }
+        },
+        {
+            "Name": "\"Arhauty\"",
+            "EqId": 23989475,
+            "Value": 111280000,
+            "Rank": 11,
+            "Ornaments": "G1",
+            "Type": "rar",
+            "Strength": 0,
+            "Dexterity": 62,
+            "Power": 0,
+            "Knowledge": 0,
+            "Life": 879,
+            "Mana": 0,
+            "Durability": 49,
+            "ResistSlash": 62,
+            "ResistBlunt": 65,
+            "ResistPierce": 63,
+            "ResistFire": 17,
+            "ResistEnergy": 18,
+            "ResistCold": 17,
+            "ResistCharm": 24,
+            "Capacity": 29,
+            "UpgradeLevel": 10,
+            "Drifs": [
+                {
+                    "Id": 5919962,
+                    "Name": "Arcydrif alorn",
+                    "Size": "giant",
+                    "PsychoCode": 66,
+                    "Value": 14.5,
+                    "Psycho": 5000086,
+                    "Level": 21,
+                    "code": "giant_66_2"
+                },
+                {
+                    "Id": 5854320,
+                    "Name": "Arcydrif ling",
+                    "Size": "giant",
+                    "PsychoCode": 53,
+                    "Value": 29,
+                    "Psycho": 5011232,
+                    "Level": 21,
+                    "code": "giant_53_5"
+                }
+            ],
+            "Orbs": [
+                {
+                    "Id": 5644504,
+                    "PsychoCode": 16,
+                    "Value": 10.65,
+                    "Level": 10,
+                    "code": "orb_16_10"
+                }
+            ],
+            "Upgrades": {
+                "Dexterity": 29
+            }
+        },
+        {
+            "Name": "\"Dorbis\"",
+            "EqId": 24069545,
+            "Value": 111280000,
+            "Rank": 11,
+            "Ornaments": "G1",
+            "Type": "rar",
+            "Strength": 76,
+            "Dexterity": 73,
+            "Power": 0,
+            "Knowledge": 0,
+            "Life": 381,
+            "Mana": 63,
+            "Durability": 50,
+            "ResistSlash": 0,
+            "ResistBlunt": 0,
+            "ResistPierce": 0,
+            "ResistFire": 12,
+            "ResistEnergy": 40,
+            "ResistCold": 0,
+            "ResistCharm": 0,
+            "Capacity": 29,
+            "UpgradeLevel": 10,
+            "Drifs": [
+                {
+                    "Id": 5143046,
+                    "Name": "Arcydrif alorn",
+                    "Size": "giant",
+                    "PsychoCode": 66,
+                    "Value": 14.5,
+                    "Psycho": 5001802,
+                    "Level": 21,
+                    "code": "giant_66_2"
+                },
+                {
+                    "Id": 5109018,
+                    "Name": "Arcydrif iori",
+                    "Size": "giant",
+                    "PsychoCode": 70,
+                    "Value": 16,
+                    "Psycho": 250913,
+                    "Level": 11,
+                    "code": "giant_70_2"
+                },
+                {
+                    "Id": 3112926,
+                    "Name": "Arcydrif amad",
+                    "Size": "giant",
+                    "PsychoCode": 34,
+                    "Value": -16,
+                    "Psycho": 250445,
+                    "Level": 11,
+                    "code": "giant_34_1"
+                }
+            ],
+            "Orbs": [
+                {
+                    "Id": 5963571,
+                    "PsychoCode": 4,
+                    "Value": 28,
+                    "Level": 8,
+                    "code": "orb_4_8"
+                }
+            ],
+            "Upgrades": {
+                "Strength": 29
+            }
+        },
+        {
+            "Name": "\"Ziraki\"",
+            "EqId": 24153007,
+            "Value": 153530000,
+            "Rank": 11,
+            "Ornaments": "G2",
+            "Type": "rar",
+            "Strength": 74,
+            "Dexterity": 105,
+            "Power": 0,
+            "Knowledge": 0,
+            "Life": 256,
+            "Mana": 0,
+            "Durability": 50,
+            "ResistSlash": 50,
+            "ResistBlunt": 52,
+            "ResistPierce": 55,
+            "ResistFire": 23,
+            "ResistEnergy": 20,
+            "ResistCold": 0,
+            "ResistCharm": 0,
+            "Capacity": 30,
+            "UpgradeLevel": 10,
+            "Drifs": [
+                {
+                    "Id": 5854285,
+                    "Name": "Arcydrif teld",
+                    "Size": "giant",
+                    "PsychoCode": 37,
+                    "Value": 10.5,
+                    "Psycho": 1000142,
+                    "Level": 16,
+                    "code": "giant_37_4"
+                },
+                {
+                    "Id": 5724919,
+                    "Name": "Arcydrif iori",
+                    "Size": "giant",
+                    "PsychoCode": 70,
+                    "Value": 11,
+                    "Psycho": 63838,
+                    "Level": 6,
+                    "code": "giant_70_2"
+                },
+                {
+                    "Id": 3167686,
+                    "Name": "Arcydrif ling",
+                    "Size": "giant",
+                    "PsychoCode": 53,
+                    "Value": 29,
+                    "Psycho": 5000828,
+                    "Level": 21,
+                    "code": "giant_53_5"
+                }
+            ],
+            "Orbs": [
+                {
+                    "Id": 2942038,
+                    "PsychoCode": 18,
+                    "Value": 9.9,
+                    "Level": 9,
+                    "code": "orb_18_9"
+                }
+            ],
+            "Upgrades": {
+                "Dexterity": 35
+            }
+        },
+        {
+            "Name": "\"Remigesy\"",
+            "EqId": 24369728,
+            "Value": 186545000,
+            "Rank": 12,
+            "Ornaments": "G2",
+            "Type": "rar",
+            "Strength": 67,
+            "Dexterity": 132,
+            "Power": 0,
+            "Knowledge": 0,
+            "Life": 421,
+            "Mana": 142,
+            "Durability": 50,
+            "ResistSlash": 0,
+            "ResistBlunt": 0,
+            "ResistPierce": 0,
+            "ResistFire": 21,
+            "ResistEnergy": 22,
+            "ResistCold": 0,
+            "ResistCharm": 0,
+            "Capacity": 34,
+            "UpgradeLevel": 10,
+            "Drifs": [
+                {
+                    "Id": 3588590,
+                    "Name": "Arcydrif band",
+                    "Size": "giant",
+                    "PsychoCode": 38,
+                    "Value": 14.5,
+                    "Psycho": 5000011,
+                    "Level": 21,
+                    "code": "giant_38_4"
+                },
+                {
+                    "Id": 3393492,
+                    "Name": "Arcydrif astah",
+                    "Size": "giant",
+                    "PsychoCode": 50,
+                    "Value": 14.5,
+                    "Psycho": 5000864,
+                    "Level": 21,
+                    "code": "giant_50_4"
+                },
+                {
+                    "Id": 2714951,
+                    "Name": "Arcydrif grod",
+                    "Size": "giant",
+                    "PsychoCode": 55,
+                    "Value": 8,
+                    "Psycho": 250091,
+                    "Level": 11,
+                    "code": "giant_55_3"
+                }
+            ],
+            "Orbs": [
+                {
+                    "Id": 3329682,
+                    "PsychoCode": 11,
+                    "Value": 37.5,
+                    "Level": 10,
+                    "code": "orb_11_10"
+                }
+            ],
+            "Upgrades": {
+                "Dexterity": 35
+            }
+        },
+        {
+            "Name": "\"Salmurn\"",
+            "EqId": 24372247,
+            "Value": 186545000,
+            "Rank": 12,
+            "Ornaments": "G2",
+            "Type": "rar",
+            "Strength": 28,
+            "Dexterity": 107,
+            "Power": 0,
+            "Knowledge": 0,
+            "Life": 440,
+            "Mana": 120,
+            "Durability": 50,
+            "ResistSlash": 69,
+            "ResistBlunt": 65,
+            "ResistPierce": 71,
+            "ResistFire": 20,
+            "ResistEnergy": 19,
+            "ResistCold": 23,
+            "ResistCharm": 20,
+            "Capacity": 34,
+            "UpgradeLevel": 10,
+            "Drifs": [
+                {
+                    "Id": 4224889,
+                    "Name": "Arcydrif teld",
+                    "Size": "giant",
+                    "PsychoCode": 37,
+                    "Value": 14.5,
+                    "Psycho": 5000159,
+                    "Level": 21,
+                    "code": "giant_37_4"
+                },
+                {
+                    "Id": 3704258,
+                    "Name": "Arcydrif band",
+                    "Size": "giant",
+                    "PsychoCode": 38,
+                    "Value": 14.5,
+                    "Psycho": 5000571,
+                    "Level": 21,
+                    "code": "giant_38_4"
+                },
+                {
+                    "Id": 4057678,
+                    "Name": "Arcydrif jorn",
+                    "Size": "giant",
+                    "PsychoCode": 75,
+                    "Value": 16,
+                    "Psycho": 300260,
+                    "Level": 11,
+                    "code": "giant_75_2"
+                }
+            ],
+            "Orbs": [
+                {
+                    "Id": 5481820,
+                    "PsychoCode": 14,
+                    "Value": 11.25,
+                    "Level": 10,
+                    "code": "orb_14_10"
+                }
+            ],
+            "Upgrades": {
+                "Dexterity": 35
+            }
+        },
+        {
+            "Name": "\"Vengur\"",
+            "EqId": 24404585,
+            "Value": 186545000,
+            "Rank": 12,
+            "Ornaments": "G2",
+            "Type": "rar",
+            "Strength": 80,
+            "Dexterity": 124,
+            "Power": 0,
+            "Knowledge": 0,
+            "Life": 405,
+            "Mana": 91,
+            "Durability": 49,
+            "ResistSlash": 0,
+            "ResistBlunt": 0,
+            "ResistPierce": 0,
+            "ResistFire": 0,
+            "ResistEnergy": 0,
+            "ResistCold": 21,
+            "ResistCharm": 22,
+            "Capacity": 34,
+            "UpgradeLevel": 10,
+            "Drifs": [
+                {
+                    "Id": 4221821,
+                    "Name": "Arcydrif teld",
+                    "Size": "giant",
+                    "PsychoCode": 37,
+                    "Value": 14.5,
+                    "Psycho": 5000718,
+                    "Level": 21,
+                    "code": "giant_37_4"
+                },
+                {
+                    "Id": 4340797,
+                    "Name": "Arcydrif ling",
+                    "Size": "giant",
+                    "PsychoCode": 53,
+                    "Value": 21,
+                    "Psycho": 1072864,
+                    "Level": 16,
+                    "code": "giant_53_5"
+                },
+                {
+                    "Id": 5142961,
+                    "Name": "Arcydrif dur",
+                    "Size": "giant",
+                    "PsychoCode": 65,
+                    "Value": 14.5,
+                    "Psycho": 5000044,
+                    "Level": 21,
+                    "code": "giant_65_5"
+                }
+            ],
+            "Orbs": [
+                {
+                    "Id": 2091231,
+                    "PsychoCode": 10,
+                    "Value": 37.5,
+                    "Level": 10,
+                    "code": "orb_10_10"
+                }
+            ],
+            "Upgrades": {
+                "Dexterity": 35
+            }
+        },
+        {
+            "Name": "\"Undurisy\"",
+            "EqId": 28179106,
+            "Value": 51090000,
+            "Rank": 10,
+            "Ornaments": "G1",
+            "Type": "rar",
+            "Strength": 62,
+            "Dexterity": 85,
+            "Power": 0,
+            "Knowledge": 0,
+            "Life": 119,
+            "Mana": 85,
+            "Durability": 50,
+            "ResistSlash": 0,
+            "ResistBlunt": 0,
+            "ResistPierce": 0,
+            "ResistFire": 0,
+            "ResistEnergy": 0,
+            "ResistCold": 0,
+            "ResistCharm": 0,
+            "Capacity": 25,
+            "UpgradeLevel": 11,
+            "Drifs": [
+                {
+                    "Id": 5919333,
+                    "Name": "Arcydrif astah",
+                    "Size": "giant",
+                    "PsychoCode": 50,
+                    "Value": 14.5,
+                    "Psycho": 5001528,
+                    "Level": 21,
+                    "code": "giant_50_4"
+                },
+                {
+                    "Id": 2675759,
+                    "Name": "Arcydrif amad",
+                    "Size": "giant",
+                    "PsychoCode": 34,
+                    "Value": -25,
+                    "Psycho": 3289946,
+                    "Level": 19,
+                    "code": "giant_34_1"
+                },
+                {
+                    "Id": 3272042,
+                    "Name": "Arcydrif von",
+                    "Size": "giant",
+                    "PsychoCode": 33,
+                    "Value": -16,
+                    "Psycho": 305608,
+                    "Level": 11,
+                    "code": "giant_33_1"
+                }
+            ],
+            "Orbs": [
+                {
+                    "Id": 2085797,
+                    "PsychoCode": 9,
+                    "Value": 17.75,
+                    "Level": 10,
+                    "code": "orb_9_10"
+                }
+            ],
+            "Upgrades": {
+                "Dexterity": 35
+            }
+        },
+        {
+            "Name": "\"Dar Skrzydlatej\"",
+            "EqId": 30523086,
+            "Value": 208070000,
+            "Rank": 12,
+            "Ornaments": "G2",
+            "Type": "rar",
+            "Strength": 22,
+            "Dexterity": 53,
+            "Power": 0,
+            "Knowledge": 36,
+            "Life": 815,
+            "Mana": 182,
+            "Durability": 36,
+            "ResistSlash": 0,
+            "ResistBlunt": 0,
+            "ResistPierce": 0,
+            "ResistFire": 84,
+            "ResistEnergy": 84,
+            "ResistCold": 79,
+            "ResistCharm": 79,
+            "Capacity": 34,
+            "UpgradeLevel": 8,
+            "Drifs": [
+                {
+                    "Id": 5854284,
+                    "Name": "Arcydrif teld",
+                    "Size": "giant",
+                    "PsychoCode": 37,
+                    "Value": 14.5,
+                    "Psycho": 5060362,
+                    "Level": 21,
+                    "code": "giant_37_4"
+                },
+                {
+                    "Id": 4324702,
+                    "Name": "Arcydrif astah",
+                    "Size": "giant",
+                    "PsychoCode": 50,
+                    "Value": 14.5,
+                    "Psycho": 5005497,
+                    "Level": 21,
+                    "code": "giant_50_4"
+                },
+                {
+                    "Id": 3576622,
+                    "Name": "Arcydrif farid",
+                    "Size": "giant",
+                    "PsychoCode": 35,
+                    "Value": 5.5,
+                    "Psycho": 58745,
+                    "Level": 6,
+                    "code": "giant_35_2"
+                }
+            ],
+            "Orbs": [
+                {
+                    "Id": 6272795,
+                    "PsychoCode": 3,
+                    "Value": 15,
+                    "Level": 8,
+                    "code": "orb_3_8"
+                }
+            ],
+            "Upgrades": {
+                "Strength": 22
+            }
+        },
+        {
+            "Name": "\"Dar Skrzydlatej\"",
+            "EqId": 31521667,
+            "Value": 218270000,
+            "Rank": 12,
+            "Ornaments": "G2",
+            "Type": "rar",
+            "Strength": 0,
+            "Dexterity": 96,
+            "Power": 0,
+            "Knowledge": 34,
+            "Life": 778,
+            "Mana": 234,
+            "Durability": 49,
+            "ResistSlash": 0,
+            "ResistBlunt": 0,
+            "ResistPierce": 0,
+            "ResistFire": 84,
+            "ResistEnergy": 83,
+            "ResistCold": 82,
+            "ResistCharm": 77,
+            "Capacity": 34,
+            "UpgradeLevel": 11,
+            "Drifs": [
+                {
+                    "Id": 4324776,
+                    "Name": "Arcydrif astah",
+                    "Size": "giant",
+                    "PsychoCode": 50,
+                    "Value": 14.5,
+                    "Psycho": 5000972,
+                    "Level": 21,
+                    "code": "giant_50_4"
+                },
+                {
+                    "Id": 5727770,
+                    "Name": "Arcydrif ling",
+                    "Size": "giant",
+                    "PsychoCode": 53,
+                    "Value": 29,
+                    "Psycho": 5000328,
+                    "Level": 21,
+                    "code": "giant_53_5"
+                },
+                {
+                    "Id": 4324775,
+                    "Name": "Arcydrif dur",
+                    "Size": "giant",
+                    "PsychoCode": 65,
+                    "Value": 14.5,
+                    "Psycho": 5000582,
+                    "Level": 21,
+                    "code": "giant_65_5"
+                }
+            ],
+            "Orbs": [
+                {
+                    "Id": 5792128,
+                    "PsychoCode": 2,
+                    "Value": 15,
+                    "Level": 8,
+                    "code": "orb_2_8"
+                }
+            ],
+            "Upgrades": {
+                "Dexterity": 42
+            }
+        },
+        {
+            "Name": "Imisindo",
+            "EqId": 32002702,
+            "Value": 123270000,
+            "Rank": 12,
+            "Ornaments": "G3",
+            "Type": "legend",
+            "Strength": 37,
+            "Dexterity": 103,
+            "Power": 0,
+            "Knowledge": 0,
+            "Life": 372,
+            "Mana": 210,
+            "Durability": 56,
+            "ResistSlash": 0,
+            "ResistBlunt": 0,
+            "ResistPierce": 0,
+            "ResistFire": 0,
+            "ResistEnergy": 0,
+            "ResistCold": 0,
+            "ResistCharm": 0,
+            "Capacity": 36,
+            "UpgradeLevel": 11,
+            "Drifs": [
+                {
+                    "Id": 5727750,
+                    "Name": "Arcydrif band",
+                    "Size": "giant",
+                    "PsychoCode": 38,
+                    "Value": 14.5,
+                    "Psycho": 5002718,
+                    "Level": 21,
+                    "code": "giant_38_4"
+                },
+                {
+                    "Id": 5232828,
+                    "Name": "Arcydrif dur",
+                    "Size": "giant",
+                    "PsychoCode": 65,
+                    "Value": 14.5,
+                    "Psycho": 5000864,
+                    "Level": 21,
+                    "code": "giant_65_5"
+                },
+                {
+                    "Id": 5371439,
+                    "Name": "Arcydrif astah",
+                    "Size": "giant",
+                    "PsychoCode": 50,
+                    "Value": 14.5,
+                    "Psycho": 5003796,
+                    "Level": 21,
+                    "code": "giant_50_4"
+                }
+            ],
+            "Orbs": [
+                {
+                    "Id": 5490617,
+                    "PsychoCode": 23,
+                    "Value": 20,
+                    "Level": 10,
+                    "code": "orb_23_10"
+                },
+                {
+                    "Id": 2096627,
+                    "PsychoCode": 7,
+                    "Value": 20,
+                    "Level": 10,
+                    "code": "orb_7_10"
+                }
+            ],
+            "Upgrades": {
+                "Damage": 66
+            }
+        },
+        {
+            "Name": "\"Nienawiść Draugula\"",
+            "EqId": 32203225,
+            "Value": 49890000,
+            "Rank": 10,
+            "Ornaments": "G1",
+            "Type": "rar",
+            "Strength": 72,
+            "Dexterity": 80,
+            "Power": 0,
+            "Knowledge": 0,
+            "Life": 210,
+            "Mana": 0,
+            "Durability": 50,
+            "ResistSlash": 0,
+            "ResistBlunt": 0,
+            "ResistPierce": 0,
+            "ResistFire": 0,
+            "ResistEnergy": 0,
+            "ResistCold": 0,
+            "ResistCharm": 0,
+            "Capacity": 25,
+            "UpgradeLevel": 10,
+            "Drifs": [
+                {
+                    "Id": 6601169,
+                    "Name": "Arcydrif astah",
+                    "Size": "giant",
+                    "PsychoCode": 50,
+                    "Value": 13.5,
+                    "Psycho": 4409763,
+                    "Level": 20,
+                    "code": "giant_50_4"
+                },
+                {
+                    "Id": 4340796,
+                    "Name": "Arcydrif ling",
+                    "Size": "giant",
+                    "PsychoCode": 53,
+                    "Value": 22,
+                    "Psycho": 1891244,
+                    "Level": 17,
+                    "code": "giant_53_5"
+                }
+            ],
+            "Orbs": [
+                {
+                    "Id": 5140284,
+                    "PsychoCode": 19,
+                    "Value": 9.3,
+                    "Level": 9,
+                    "code": "orb_19_9"
+                }
+            ],
+            "Upgrades": {
+                "Dexterity": 29
+            }
+        },
+        {
+            "Name": "Spodnie Maga Utoru",
+            "EqId": 35034281,
+            "Value": 0,
+            "Rank": 1,
+            "Ornaments": "-100",
+            "Type": "skin",
+            "Strength": 0,
+            "Dexterity": 0,
+            "Power": 0,
+            "Knowledge": 0,
+            "Life": 0,
+            "Mana": 0,
+            "Durability": 44,
+            "ResistSlash": 0,
+            "ResistBlunt": 0,
+            "ResistPierce": 0,
+            "ResistFire": 0,
+            "ResistEnergy": 0,
+            "ResistCold": 0,
+            "ResistCharm": 0,
+            "Capacity": -1,
+            "UpgradeLevel": 0,
+            "Drifs": [],
+            "Orbs": [],
+            "Upgrades": {}
+        },
+        {
+            "Name": "Buty Maga Utoru",
+            "EqId": 35034312,
+            "Value": 0,
+            "Rank": 1,
+            "Ornaments": "-100",
+            "Type": "skin",
+            "Strength": 0,
+            "Dexterity": 0,
+            "Power": 0,
+            "Knowledge": 0,
+            "Life": 0,
+            "Mana": 0,
+            "Durability": 33,
+            "ResistSlash": 0,
+            "ResistBlunt": 0,
+            "ResistPierce": 0,
+            "ResistFire": 0,
+            "ResistEnergy": 0,
+            "ResistCold": 0,
+            "ResistCharm": 0,
+            "Capacity": -1,
+            "UpgradeLevel": 0,
+            "Drifs": [],
+            "Orbs": [],
+            "Upgrades": {}
+        },
+        {
+            "Name": "Fatum",
+            "EqId": 35305647,
+            "Value": 0,
+            "Rank": 1,
+            "Ornaments": "-100",
+            "Type": "skin",
+            "Strength": 0,
+            "Dexterity": 0,
+            "Power": 0,
+            "Knowledge": 0,
+            "Life": 0,
+            "Mana": 0,
+            "Durability": 34,
+            "ResistSlash": 0,
+            "ResistBlunt": 0,
+            "ResistPierce": 0,
+            "ResistFire": 0,
+            "ResistEnergy": 0,
+            "ResistCold": 0,
+            "ResistCharm": 0,
+            "Capacity": -1,
+            "UpgradeLevel": 0,
+            "Drifs": [],
+            "Orbs": [],
+            "Upgrades": {}
+        }
+    ]
+}

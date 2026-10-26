@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { parseGameBuildPayload } from "./gameBuildFile";
+import { createBuildPayload, parseBuildFile, parseBuildPayload } from "./buildFile";
+import trackerBuild from "../../test/fixtures/builds/tracker-build.json";
+import trackerCatalog from "../../test/fixtures/builds/tracker-catalog.json";
+import legacyCatalog from "../../test/fixtures/builds/legacy-epic-catalog.json";
 
 const catalog = {
     items: [
@@ -262,7 +266,7 @@ describe("parseGameBuildPayload", () => {
             drifLevels: { 0: 1 },
         });
         expect(result.requestData.slots.ring2.itemId).toBe(160);
-        expect(result.importSummary).toEqual({
+        expect(result.importSummary).toMatchObject({
             importedItems: 2,
             importedDrifs: 1,
             skippedDrifs: 1,
@@ -344,5 +348,120 @@ describe("parseGameBuildPayload", () => {
             catalog
         );
         expect(result.requestData.characterStats).toMatchObject({ Siła: 0, PŻ: 0, Mana: 200 });
+    });
+
+    it("imports the tracker export through the file reader and preserves it in native v3", async () => {
+        const data = { ...trackerCatalog, gameRules: legacyCatalog.gameRules };
+        const text = JSON.stringify(trackerBuild);
+        const result = await parseBuildFile({ size: text.length, text: async () => text }, data);
+        expect(result.importSummary).toMatchObject({
+            importedItems: 12,
+            importedDrifs: 33,
+            importedOrbs: 0,
+            skippedDrifs: 0,
+            skippedOrbs: 14,
+            importedBackpackItems: 1,
+            importedBackpackDrifs: 3,
+            skippedBackpackItems: 0,
+            skippedSkins: 3,
+        });
+        expect(result.requestData.slots.weapon).toMatchObject({ itemId: 178, itemStars: 9 });
+        expect(result.requestData.slots.ring1.itemStars).toBe(8);
+        expect(result.requestData.slots.ring2.itemStars).toBe(8);
+        expect(result.backpack).toHaveLength(1);
+        expect(result.backpack[0].equipment).toMatchObject({
+            itemId: "35",
+            itemStars: 1,
+            drifLevels: { 0: 11, 1: 15, 2: 19 },
+        });
+        expect(result.characterConfig).toBeNull();
+        expect(result.requestData.characterStats).toEqual({
+            Siła: 260,
+            Zręczność: 240,
+            Moc: 10,
+            Wiedza: 10,
+            Inteligencja: 40,
+            PŻ: 540,
+            Mana: 200,
+            Kondycja: 400,
+        });
+        expect(result.importSummary.warnings[0]).toContain("564/556");
+        const { importSummary: _summary, ...state } = result;
+        expect(parseBuildPayload(createBuildPayload(result), data)).toEqual(state);
+    });
+
+    it("keeps separate backpack copies and reports unknown spares without dropping the build", () => {
+        const result = parseGameBuildPayload(
+            {
+                stats: {},
+                equipped: { 1: 1 },
+                equipmentList: [
+                    { EqId: 1, Name: "Dar Skrzydlatej" },
+                    {
+                        EqId: 2,
+                        Name: "Dar Skrzydlatej",
+                        Drifs: [{ Name: "Arcydrif astah", Level: 21 }],
+                    },
+                    { EqId: 3, Name: "Dar Skrzydlatej" },
+                    { EqId: 4, Name: "Nieznany" },
+                ],
+            },
+            catalog
+        );
+        expect(result.backpack).toHaveLength(2);
+        expect(new Set(result.backpack.map((entry) => entry.id)).size).toBe(2);
+        expect(result.backpack[0].equipment.drifLevels).toEqual({ 0: 21 });
+        expect(result.importSummary).toMatchObject({
+            importedItems: 1,
+            importedBackpackItems: 2,
+            skippedBackpackItems: 1,
+        });
+    });
+
+    it("rejects duplicate equipment identities instead of duplicating owned items", () => {
+        const item = { EqId: 1, Name: "Dar Skrzydlatej" };
+        expect(() =>
+            parseGameBuildPayload(
+                { stats: {}, equipped: { 1: 1 }, equipmentList: [item, item] },
+                catalog
+            )
+        ).toThrow("powtórzone ID");
+        expect(() =>
+            parseGameBuildPayload(
+                { stats: {}, equipped: { 1: 1, 2: 1 }, equipmentList: [item] },
+                catalog
+            )
+        ).toThrow("założony więcej niż raz");
+    });
+
+    it("does not bypass equipped capacity validation for a tracker build", async () => {
+        const payload = structuredClone(trackerBuild);
+        const helmet = payload.equipmentList.find((entry) => entry.EqId === 22600668);
+        helmet.Drifs[1] = { Name: "Arcydrif alorn", Level: 21 };
+        const text = JSON.stringify(payload);
+        await expect(
+            parseBuildFile(
+                { size: text.length, text: async () => text },
+                {
+                    ...trackerCatalog,
+                    gameRules: legacyCatalog.gameRules,
+                }
+            )
+        ).rejects.toThrow("Drify przekraczają pojemność przedmiotu w slocie helmet");
+    });
+
+    it("enforces the native backpack limit for external imports", async () => {
+        const payload = {
+            stats: {},
+            equipped: {},
+            equipmentList: Array.from({ length: 201 }, (_, index) => ({
+                EqId: index + 1,
+                Name: "Dar Skrzydlatej",
+            })),
+        };
+        const text = JSON.stringify(payload);
+        await expect(
+            parseBuildFile({ size: text.length, text: async () => text }, catalog)
+        ).rejects.toThrow("200");
     });
 });

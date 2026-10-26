@@ -1,5 +1,11 @@
 import { getDrifMaxLevel, getOrbMaxLevel } from "../../shared/domain/equipment/equipmentRules";
 import { SLOTS } from "../../shared/domain/equipment/equipmentSlots";
+import {
+    calculateCharacterStats,
+    clampLevel,
+    spentPointCount,
+    totalPointsForLevel,
+} from "../builder/character/characterDevelopmentDomain";
 
 const DRIF_SIZE_BY_PREFIX = {
     subdrif: "SUBDRIF",
@@ -115,21 +121,36 @@ const parseCharacter = (stats) => {
         Mana: Number(stats.BaseMana ?? 200),
         Kondycja: Number(stats.BaseStamina ?? 200),
     };
+    const characterConfig = {
+        level: Number(stats.Level) || 1,
+        spentPoints: {
+            Siła: Math.max(0, characterStats["Siła"] - 10),
+            Zręczność: Math.max(0, characterStats["Zręczność"] - 10),
+            Moc: Math.max(0, characterStats.Moc - 10),
+            Wiedza: Math.max(0, characterStats.Wiedza - 10),
+            Inteligencja: Math.max(0, characterStats.Inteligencja - 10),
+            PŻ: Math.max(0, (characterStats["PŻ"] - 200) / 10),
+            Mana: Math.max(0, (characterStats.Mana - 200) / 10),
+            Kondycja: Math.max(0, (characterStats.Kondycja - 200) / 10),
+        },
+    };
+    const points = spentPointCount(characterConfig.spentPoints);
+    const maximum = totalPointsForLevel(characterConfig.level);
+    const derived = calculateCharacterStats(characterConfig.spentPoints);
+    const representable =
+        clampLevel(characterConfig.level) === characterConfig.level &&
+        Object.values(characterConfig.spentPoints).every(Number.isInteger) &&
+        points <= maximum &&
+        Object.entries(characterStats).every(([name, value]) => derived[name] === value);
     return {
         characterStats,
-        characterConfig: {
-            level: Number(stats.Level) || 1,
-            spentPoints: {
-                Siła: Math.max(0, characterStats["Siła"] - 10),
-                Zręczność: Math.max(0, characterStats["Zręczność"] - 10),
-                Moc: Math.max(0, characterStats.Moc - 10),
-                Wiedza: Math.max(0, characterStats.Wiedza - 10),
-                Inteligencja: Math.max(0, characterStats.Inteligencja - 10),
-                PŻ: Math.max(0, (characterStats["PŻ"] - 200) / 10),
-                Mana: Math.max(0, (characterStats.Mana - 200) / 10),
-                Kondycja: Math.max(0, (characterStats.Kondycja - 200) / 10),
-            },
-        },
+        // A native character config would be trimmed on import and display different stats.
+        characterConfig: representable ? characterConfig : null,
+        warnings: representable
+            ? []
+            : [
+                  `Zachowano bazowe statystyki postaci bez rozdziału punktów: nie pasują do zasad rozwoju (poziom ${characterConfig.level}, punkty ${points}/${maximum}).`,
+              ],
     };
 };
 
@@ -147,6 +168,9 @@ export const parseGameBuildPayload = (payload, { items = [], orbs = [], drifs = 
     const equipmentById = new Map(
         payload.equipmentList.map((equipment) => [String(equipment.EqId), equipment])
     );
+    if (equipmentById.size !== payload.equipmentList.length) {
+        throw new Error("Eksport zawiera powtórzone ID wyposażenia.");
+    }
     const equippedEntries = Object.entries(payload.equipped).sort(
         ([left], [right]) => Number(left) - Number(right)
     );
@@ -156,19 +180,14 @@ export const parseGameBuildPayload = (payload, { items = [], orbs = [], drifs = 
     let skippedDrifs = 0;
     let importedOrbs = 0;
     let skippedOrbs = 0;
+    const backpack = [];
+    const equippedIds = new Set();
+    let importedBackpackDrifs = 0;
+    let importedBackpackOrbs = 0;
+    let skippedBackpackItems = 0;
+    let skippedSkins = 0;
 
-    equippedEntries.forEach(([, equipmentId]) => {
-        const equipment = equipmentById.get(String(equipmentId));
-        if (!equipment) throw new Error(`Nie znaleziono wyposażenia o ID ${equipmentId}.`);
-        const item = findItem(equipment, items);
-        if (!item) {
-            throw new Error(`Nie znaleziono jednoznacznego odpowiednika: ${equipment.Name}.`);
-        }
-        const slotKey = slotForItem(item, occupiedSlots);
-        if (!slotKey) {
-            throw new Error(`Nie udało się przypisać do slotu przedmiotu ${equipment.Name}.`);
-        }
-
+    const parseEquipment = (equipment, item, inBackpack = false) => {
         const drifIds = [];
         const drifLevels = {};
         (equipment.Drifs || []).forEach((entry) => {
@@ -184,7 +203,8 @@ export const parseGameBuildPayload = (payload, { items = [], orbs = [], drifs = 
                 getDrifMaxLevel(drif.size),
                 `drifa ${drif.name}`
             );
-            importedDrifs += 1;
+            if (inBackpack) importedBackpackDrifs += 1;
+            else importedDrifs += 1;
         });
 
         const orbIds = [];
@@ -197,10 +217,11 @@ export const parseGameBuildPayload = (payload, { items = [], orbs = [], drifs = 
             }
             orbIds.push(orb.id);
             orbLevels.push(importedLevel(entry, getOrbMaxLevel(orb.size), `orba ${orb.name}`));
-            importedOrbs += 1;
+            if (inBackpack) importedBackpackOrbs += 1;
+            else importedOrbs += 1;
         });
 
-        slots[slotKey] = {
+        return {
             itemId: item.id,
             itemStars: itemStarsFromOrnaments(equipment.Ornaments),
             orbIds,
@@ -208,7 +229,43 @@ export const parseGameBuildPayload = (payload, { items = [], orbs = [], drifs = 
             drifIds,
             drifLevels,
         };
+    };
+
+    equippedEntries.forEach(([, equipmentId]) => {
+        const equipment = equipmentById.get(String(equipmentId));
+        if (!equipment) throw new Error(`Nie znaleziono wyposażenia o ID ${equipmentId}.`);
+        if (equippedIds.has(String(equipmentId))) {
+            throw new Error(`Ten sam przedmiot o ID ${equipmentId} jest założony więcej niż raz.`);
+        }
+        equippedIds.add(String(equipmentId));
+        const item = findItem(equipment, items);
+        if (!item) {
+            throw new Error(`Nie znaleziono jednoznacznego odpowiednika: ${equipment.Name}.`);
+        }
+        const slotKey = slotForItem(item, occupiedSlots);
+        if (!slotKey) {
+            throw new Error(`Nie udało się przypisać do slotu przedmiotu ${equipment.Name}.`);
+        }
+        slots[slotKey] = parseEquipment(equipment, item);
         occupiedSlots.add(slotKey);
+    });
+
+    payload.equipmentList.forEach((equipment, index) => {
+        if (equippedIds.has(String(equipment.EqId))) return;
+        if (normalizedText(equipment.Type) === "skin") {
+            skippedSkins += 1;
+            return;
+        }
+        const item = findItem(equipment, items);
+        if (!item) {
+            skippedBackpackItems += 1;
+            return;
+        }
+        backpack.push({
+            id: `game-equipment-${index}`,
+            kind: "ITEM",
+            equipment: parseEquipment(equipment, item, true),
+        });
     });
 
     const character = parseCharacter(payload.stats);
@@ -217,12 +274,19 @@ export const parseGameBuildPayload = (payload, { items = [], orbs = [], drifs = 
         characterConfig: character.characterConfig,
         lockedSlots: [],
         lockedDrifs: {},
+        backpack,
         importSummary: {
             importedItems: Object.keys(slots).length,
             importedDrifs,
             skippedDrifs,
             importedOrbs,
             skippedOrbs,
+            importedBackpackItems: backpack.length,
+            importedBackpackDrifs,
+            importedBackpackOrbs,
+            skippedBackpackItems,
+            skippedSkins,
+            warnings: character.warnings,
         },
     };
 };
