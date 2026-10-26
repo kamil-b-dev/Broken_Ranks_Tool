@@ -2,6 +2,19 @@
 
 Plik buildu jest trwałym formatem danych, niezależnym od stanu React i od kontraktu żądania kalkulatora. Aktualny eksport ma `format: "broken-ranks-tool-build"` i `version: 3`. Import obsługuje wersje 1, 2 i 3 poprzez jawny rejestr czytników w `features/builds/buildFile.js`; nie porównuje wersji pliku z bieżącą wersją eksportera.
 
+## Eksporty z zewnętrznych aplikacji
+
+Czytnik plików rozpoznaje także strukturę `stats`, `equipped`, `equipmentList`, używaną przez Broken HUD i eksport trackera sprawdzony na pliku `bolid.json`. Zapis z rozpoznanym własnym `format` nadal ma pierwszeństwo. Po konwersji zewnętrzny build przechodzi zwykłą walidację importu i może zostać zapisany jako v3.
+
+- Przedmioty są dopasowywane po nazwie (z pominięciem zewnętrznych cudzysłowów i wielkości liter); przy wielu odpowiednikach także po randze i rzadkości. Kategorię slota określa katalog. `EqId` identyfikuje wystąpienie w pliku, a nie ID szablonu w aplikacji. Powtórzone ID i wielokrotne założenie tej samej sztuki są odrzucane.
+- `equipped` wybiera założone sztuki, a pozostałe rozpoznane przedmioty trafiają do plecaka jako oddzielne konfiguracje z gwiazdkami, drifami i rozpoznanymi orbami. Zachowana jest kolejność `equipmentList`; obowiązuje limit 200 wpisów. Skórki oraz nierozpoznane zapasowe przedmioty są pomijane z informacją w podsumowaniu. Nierozpoznany założony przedmiot blokuje import.
+- `Ornaments` (`B1`–`G3`) wyznacza 1–9 gwiazdek. Nazwa drifa zawiera rozmiar i typ, np. `Arcydrif astah`; zachowywany jest jego rzeczywisty `Level`. Nieznane lub niejednoznaczne kamienie są raportowane jako pominięte.
+- Orby bez `Name`, zawierające wyłącznie `PsychoCode`/`code` i poziomy w obcej skali, nie mają potwierdzonej mapy typów i rozmiarów. Importer ich nie zgaduje na podstawie wartości bonusu, numeru kodu ani rangi przedmiotu. W `bolid.json` dotyczy to 13 założonych orbów i jednego w zapasowych Takeronach.
+- Bazowe statystyki postaci pochodzą z `Base*`. Jeśli da się je odtworzyć legalnym przydziałem punktów na podanym poziomie, zachowywany jest również `characterConfig`. W przeciwnym razie pozostają dokładne statystyki bazowe, `characterConfig` jest null, a komunikat podaje poziom i rozbieżność punktów. Unika to cichego przycięcia przydziału i pokazania innych statystyk w edytorze.
+- Wartości i ulepszenia konkretnych egzemplarzy (`Strength`, `Life`, odporności, `UpgradeLevel`, `Upgrades`), ceny, trwałość i doświadczenie psycho nie mają odpowiedników w modelu buildu. Statystyki ekwipunku są liczone z szablonów naszego katalogu i zaimportowanych gwiazdek oraz kamieni. Umiejętności, nick, doświadczenie i potęga postaci również nie są przenoszone.
+
+Fixture trackera ma zanonimizowaną nazwę postaci. Test sprawdza 12 założonych przedmiotów, 33 drify w zestawie, Takerony z kolejnymi trzema drifami w plecaku, pominięcie 14 orbów i trzech skórek oraz ponowny zapis i odczyt v3. Statystyki postaci odpowiadają 564 punktom przy limicie 556 na poziomie 140, więc są zachowane bez edytowalnego przydziału.
+
 ## Kontrakt wersji 1
 
 Schemat [build-file-v1.schema.json](build-file-v1.schema.json) opisuje strukturę zapisu. Obowiązkowe są `format`, `version`, `build`, `build.requestData` i `build.requestData.slots`. Wersja 1 zachowuje poniższe pola, kopiowane do niezależnego snapshotu. Testy nadal sprawdzają jawny eksporter v1, a obecny eksporter v2 używa tych samych pól ekwipunku:
