@@ -1,6 +1,32 @@
 import { useHelpTranslation as useTranslation } from "./helpTranslation";
 import { findHelpTopic } from "./helpContent";
 import { useId } from "react";
+import { HELP_SCREENSHOTS } from "./content/screenshots";
+
+function HelpScreenshot({ screenshot, title }) {
+    const { t, language } = useTranslation();
+    const { src, width, height } = screenshot.sources[language] || screenshot.sources.pl;
+    const caption = t(screenshot.caption || title);
+    return (
+        <figure className="help-screenshot">
+            <a
+                href={src}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={t("Powiększ zrzut: {0} (nowa karta)", [caption])}
+            >
+                <img
+                    src={src}
+                    alt={caption}
+                    width={width}
+                    height={height}
+                    loading="lazy"
+                    decoding="async"
+                />
+            </a>
+        </figure>
+    );
+}
 
 function HelpTable({ table }) {
     const { t } = useTranslation();
@@ -60,6 +86,7 @@ function HelpTable({ table }) {
 export default function HelpArticle({ topic, onSelect, titleId }) {
     const { t } = useTranslation();
     const tables = topic.tables || [];
+    const screenshots = HELP_SCREENSHOTS[topic.id] || [];
     return (
         <article className="help-article">
             <h2 id={titleId}>{t(topic.title)}</h2>
@@ -69,6 +96,15 @@ export default function HelpArticle({ topic, onSelect, titleId }) {
                     {topic.steps.map((step, index) => (
                         <li key={step}>
                             {t(step)}
+                            {screenshots
+                                .filter((screenshot) => screenshot.afterStep === index + 1)
+                                .map((screenshot) => (
+                                    <HelpScreenshot
+                                        key={screenshot.id}
+                                        screenshot={screenshot}
+                                        title={topic.title}
+                                    />
+                                ))}
                             {tables
                                 .filter((table) => table.afterStep === index + 1)
                                 .map((table) => (

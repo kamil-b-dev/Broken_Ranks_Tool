@@ -214,5 +214,10 @@
     "Plecak i historia zmian": "Backpack and change history",
     "Optymalizator — podstawy": "Optimizer basics",
     "Od zera — ustawienia": "Build from scratch settings",
-    "Zapis i porównanie": "Saving and comparison"
+    "Zapis i porównanie": "Saving and comparison",
+    "Edytor przedmiotu: gwiazdki, orb, drify i wykorzystana pojemność.": "Item editor: stars, orb, drifs and used capacity.",
+    "Plecak: filtry, dodawanie rzeczy i wybór drifa do optymalizacji.": "Backpack: filters, adding items and selecting a drif for optimization.",
+    "Tryb prosty: profil profesji, liczby drifów i opcje dodatkowe.": "Simple mode: profession profile, drif counts and additional options.",
+    "Doradca: główny bonus, oczekiwany efekt i wartość celu.": "Advisor: main bonus, expected effect and target value.",
+    "Powiększ zrzut: {0} (nowa karta)": "Enlarge screenshot: {0} (new tab)"
 }

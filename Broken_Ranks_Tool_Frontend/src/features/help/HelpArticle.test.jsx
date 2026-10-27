@@ -2,6 +2,7 @@ import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import HelpArticle from "./HelpArticle";
 import { findHelpTopic } from "./helpContent";
+import { HELP_SCREENSHOTS } from "./content/screenshots";
 import { LanguageContext } from "../../shared/i18n/LanguageContext";
 import {
     calculateItemCapacity,
@@ -11,6 +12,67 @@ import {
 } from "../../shared/domain/equipment/equipmentRules";
 
 afterEach(cleanup);
+
+it.each(["pl", "en"])(
+    "renders every illustrated topic in %s without visible captions",
+    (language) => {
+        for (const [id, screenshots] of Object.entries(HELP_SCREENSHOTS)) {
+            const topic = findHelpTopic(id);
+            expect(topic.id).toBe(id);
+            const { container, unmount } = render(
+                <LanguageContext.Provider value={{ language, setLanguage: vi.fn() }}>
+                    <HelpArticle topic={topic} onSelect={vi.fn()} />
+                </LanguageContext.Provider>
+            );
+            expect(screen.getAllByRole("img")).toHaveLength(screenshots.length);
+            for (const screenshot of screenshots) {
+                const source = screenshot.sources[language];
+                expect(source.src).toContain(`${screenshot.id}-${language}.webp`);
+                expect(source.src).not.toMatch(/^data:/);
+                expect(source.width).toBeGreaterThan(0);
+                expect(source.height).toBeGreaterThan(0);
+                const step =
+                    container.querySelectorAll(".help-article > ol > li")[screenshot.afterStep - 1];
+                const image = within(step).getByRole("img");
+                expect(image).toHaveAttribute("src", source.src);
+                expect(image).toHaveAttribute("alt", expect.any(String));
+                expect(image.getAttribute("alt")).not.toBe("");
+                expect(image).toHaveAttribute("width", String(source.width));
+                expect(image).toHaveAttribute("height", String(source.height));
+                expect(image.closest("figure").textContent).toBe("");
+            }
+            expect(container.querySelector(".help-screenshot figcaption")).toBeNull();
+            unmount();
+        }
+    }
+);
+
+it("illustrates the relevant step and switches the screenshot with the guide language", () => {
+    const topic = findHelpTopic("builder");
+    const { rerender } = render(<HelpArticle topic={topic} onSelect={vi.fn()} />);
+    const image = screen.getByRole("img", { name: /Edytor przedmiotu/ });
+    expect(within(screen.getAllByRole("listitem")[2]).getByRole("img")).toBe(image);
+    expect(image).toHaveAttribute("loading", "lazy");
+    expect(image).toHaveAttribute("src", expect.stringContaining("equipment-pl.webp"));
+    const link = screen.getByRole("link", { name: /Powiększ zrzut:.*nowa karta/ });
+    expect(link).toHaveAttribute("href", image.getAttribute("src"));
+    expect(link).toHaveAttribute("target", "_blank");
+    rerender(
+        <LanguageContext.Provider value={{ language: "en", setLanguage: vi.fn() }}>
+            <HelpArticle topic={topic} onSelect={vi.fn()} />
+        </LanguageContext.Provider>
+    );
+    expect(screen.getByRole("img", { name: /Item editor/ })).toHaveAttribute(
+        "src",
+        expect.stringContaining("equipment-en.webp")
+    );
+    expect(screen.getByRole("link", { name: /Enlarge screenshot:.*new tab/ })).toHaveAttribute(
+        "href",
+        screen.getByRole("img").getAttribute("src")
+    );
+    rerender(<HelpArticle topic={findHelpTopic("stars")} onSelect={vi.fn()} />);
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+});
 
 it("shows orb categories, rarity rules and size limits as tables", () => {
     render(<HelpArticle topic={findHelpTopic("orbs")} onSelect={vi.fn()} />);
