@@ -85,12 +85,16 @@ export default function StatExplanationDialog({ model, gameRules }) {
                             </p>
                         )}
                         {drif?.source.repeatCount > 3 && (
-                            <p>
-                                {t("Drify tego typu: {0}. Mnożnik {1} obejmuje każdy z nich.", [
-                                    number(drif.source.repeatCount),
-                                    number(drif.source.penaltyMultiplier),
-                                ])}
-                            </p>
+                            <dl className="stat-repeat-summary">
+                                <div>
+                                    <dt>{t("Ilość drifów:")}</dt>
+                                    <dd>{number(drif.source.repeatCount)}</dd>
+                                </div>
+                                <div>
+                                    <dt>{t("Mnożnik:")}</dt>
+                                    <dd>{number(drif.source.penaltyMultiplier)}</dd>
+                                </div>
+                            </dl>
                         )}
                         <ul className="stat-source-list">
                             {sources.map(({ source, baseValue, value, percentage }, index) => (
@@ -186,11 +190,6 @@ export default function StatExplanationDialog({ model, gameRules }) {
                                 </li>
                             ))}
                         </ul>
-                        <p className="stat-source-rounding">
-                            {t(
-                                "Składniki pokazano do 4 miejsc po przecinku. Wynik jest zaokrąglany po zsumowaniu."
-                            )}
-                        </p>
                     </>
                 )}
             </div>

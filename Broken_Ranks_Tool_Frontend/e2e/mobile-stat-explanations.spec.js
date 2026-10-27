@@ -117,10 +117,23 @@ for (const mobile of [false, true]) {
                     exact: true,
                 });
                 await expect(opener).toBeVisible();
+                await expect(opener.locator(".stat-drif-count")).toHaveText("4");
+                await expect(opener.locator(".stat-drif-multiplier")).toHaveText("0,95");
+                await expect(
+                    page.locator(".stat-columns-heading").getByText("Mnożnik", { exact: true })
+                ).toHaveCount(1);
+                await expect(opener).toHaveAttribute(
+                    "aria-description",
+                    "Ilość drifów: 4 · Mnożnik: 0,95 · Cap: 60%"
+                );
+                await expect(opener.locator(".stat-cap")).toHaveText("Cap: 60%");
                 expect(requests).toBe(0);
                 await opener.click();
                 const dialog = page.getByRole("dialog");
-                await expect(dialog.getByText(/Mnożnik 0,95/)).toBeVisible();
+                await expect(dialog.locator(".stat-repeat-summary")).toContainText("Ilość drifów:");
+                await expect(dialog.locator(".stat-repeat-summary")).toContainText("Mnożnik:");
+                await expect(dialog.locator(".stat-repeat-summary dd").last()).toHaveText("0,95");
+                await expect(dialog.getByText(/Składniki pokazano/)).toHaveCount(0);
                 await expect(dialog.getByText(/Nadmiar bez dodatkowej korzyści: 18/)).toBeVisible();
                 await dialog.locator(".stat-source-list summary").nth(1).click();
                 await expect(dialog.getByText("Bonus gwiazdek do drifów").first()).toBeVisible();

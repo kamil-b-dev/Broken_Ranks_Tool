@@ -94,7 +94,9 @@ describe("stat explanation", () => {
         await user.click(opener);
         await screen.findByText("Kryt");
         expect(screen.getByText(/Nadmiar bez dodatkowej korzyści: 2 p.p./)).toBeInTheDocument();
-        expect(screen.getByText(/Mnożnik 0,95 obejmuje każdy/)).toBeInTheDocument();
+        expect(screen.getByText("Ilość drifów:").nextElementSibling).toHaveTextContent("4");
+        expect(screen.getByText("Mnożnik:").nextElementSibling).toHaveTextContent("0,95");
+        expect(screen.queryByText(/Składniki pokazano/)).not.toBeInTheDocument();
         await user.click(screen.getByText("Kryt"));
         expect(screen.getByText("Bonus gwiazdek do drifów")).toBeVisible();
         await user.click(screen.getByRole("button", { name: "Wróć do statystyk" }));

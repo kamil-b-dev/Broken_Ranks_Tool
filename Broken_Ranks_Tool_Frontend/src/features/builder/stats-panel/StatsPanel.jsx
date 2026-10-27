@@ -24,8 +24,17 @@ const StatsPanel = ({
     const [activeResultView, setActiveResultView] = useState("all");
     const explanation = useStatExplanation(requestData, gameRules, catalog);
     const statColumns = useMemo(
-        () => buildStatColumns({ stats, gameRules, statSources, translateLabel: t, locale }),
-        [stats, gameRules, statSources, t, locale]
+        () =>
+            buildStatColumns({
+                stats,
+                gameRules,
+                statSources,
+                translateLabel: t,
+                locale,
+                requestData,
+                catalog,
+            }),
+        [stats, gameRules, statSources, t, locale, requestData, catalog]
     );
     const visibleColumns = statColumns.filter((column) => {
         if (activeResultView === "all") return true;
