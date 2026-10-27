@@ -93,7 +93,12 @@ from loading. The catalogue and application paths remain read-only.
 
 The image itself supplies `JAVA_TOOL_OPTIONS` for a 4 GB container: a 128 MB initial heap,
 2 GB maximum heap, 256 MB maximum metaspace, and G1 GC. The heap grows as needed;
-the application does not reserve 2 GB of physical RAM at startup. Railway may override this variable; keep room
+the application does not reserve 2 GB of physical RAM at startup. After at least 60 seconds
+without a GC pause, periodic G1 collections can advance the collection cycle, allowing unused committed heap to be returned
+to the operating system during quiet periods. This preserves the 2 GB peak heap and all search
+budgets. It adds a small amount of background GC work; it does not call `System.gc()` or request
+periodic stop-the-world Full GC. See [G1 periodic collections](https://docs.oracle.com/en/java/javase/21/gctuning/garbage-first-g1-garbage-collector1.html).
+Railway may override this variable; keep room
 for non-heap memory when changing it. `-XX:+ExitOnOutOfMemoryError` is also enforced
 in the image entrypoint, so a heap failure terminates the process instead of leaving
 a live JVM with a failed HTTP poller. Configure Railway to restart failed deployments;
@@ -111,7 +116,7 @@ when used JVM heap reaches 85% of its maximum. The worker permit is released imm
 no search starts and no valid result in progress is discarded. Admission resumes when
 usage falls below the threshold. This is a check of current heap occupancy, including
 objects not yet collected, rather than a prediction of the next search's allocations.
-No forced GC is used. `OPTIMIZER_MEMORY_MAX_HEAP_USAGE_PERCENT` may override the threshold
+The admission check does not trigger GC. `OPTIMIZER_MEMORY_MAX_HEAP_USAGE_PERCENT` may override the threshold
 within 1–95%. Internal metrics `optimizer.memory.rejected` and
 `optimizer.memory.headroom.bytes` track rejections and remaining heap capacity.
 
@@ -129,11 +134,44 @@ dashboard already has a `JAVA_TOOL_OPTIONS` value, update it to match when deplo
 this version; an older dashboard value can override the Docker image defaults:
 
 ```text
-JAVA_TOOL_OPTIONS=-Xms128m -Xmx2g -XX:MaxMetaspaceSize=256m -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError
+JAVA_TOOL_OPTIONS=-Xms128m -Xmx2g -XX:MaxMetaspaceSize=256m -XX:+UseG1GC -XX:G1PeriodicGCInterval=60000 -XX:+G1PeriodicGCInvokesConcurrent -XX:+ExitOnOutOfMemoryError
 ```
 
 This gives the heap 2 GB while reserving room for native JVM memory, thread stacks,
 and the rest of the container. It does not change the automatic exit-on-OOM entrypoint.
+
+The production SQLite pool keeps one idle connection rather than ten. It can still grow to
+ten connections during request bursts and retires surplus idle connections after 60 seconds
+(plus the pool housekeeping delay). This reduces idle native SQLite caches without limiting
+the existing peak connection capacity. Standard `SPRING_DATASOURCE_HIKARI_*` environment
+variables can override these settings.
+
+To compare runtime memory and CPU locally, package the backend and run this PowerShell 7
+benchmark from the repository root with JDK 21 selected in `JAVA_HOME`:
+
+```powershell
+./scripts/measure-hosting-resources.ps1
+```
+
+The script starts two isolated local JVMs in sequence with the same JAR, catalogue, heap limit,
+and Archer workload. It compares the previous runtime settings against periodic concurrent GC
+and a single warm SQLite connection, measures ten minutes of idle time, and verifies the next
+request after idle. Every build and variant is checked against the calculator and compared
+across runs. It writes process memory samples, CPU/request timings, GC logs, and a summary to
+`tmp/hosting-resources/`. It never requests Full GC. Windows process memory is diagnostic;
+use Railway memory and CPU measurements after deployment to establish actual billing savings.
+The benchmark does not simulate sustained concurrent traffic or all optimizer inputs.
+G1 may need several periodic cycles to finish mixed collections and reclaim the idle heap;
+a shorter `-IdleSeconds` run can end before memory is returned. Do not interpret the periodic
+interval as a guarantee that the process shrinks within one minute.
+
+Local verification on 2026-10-27 used the production Linux image with a 4 GB limit and 1 vCPU.
+After an Archer search with variants, Docker reported 875.5 MiB, falling to 548.1 MiB after
+146 seconds of idle time (about 37% below the post-search sample). This measures reclamation
+within the updated process, rather than a monthly cost reduction. A separate before/after
+Windows run returned identical builds, statistics and variants, including requests after idle;
+its 130-second idle window was too short to demonstrate reclamation. Use the longer default
+benchmark window and Railway's average memory/CPU usage to assess production savings.
 
 The manual Archer benchmark can verify repeated searches under a constrained heap
 after compiling the backend normally:
