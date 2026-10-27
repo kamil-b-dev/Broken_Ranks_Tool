@@ -26,15 +26,15 @@ export default function StatRows({
                 {values.map(({ key, displayName, val, drifSummary, capLabel }) => {
                     const content = (
                         <>
-                            <span className="stat-name">{t(displayName)}</span>
+                            <span className="stat-name">{t(displayName)}</span>{" "}
                             {hasDrifs && (
                                 <>
                                     <span className="stat-drif-count">
                                         {drifSummary?.count ?? "—"}
-                                    </span>
+                                    </span>{" "}
                                     <span className="stat-drif-multiplier">
                                         {drifSummary ? format.format(drifSummary.multiplier) : "—"}
-                                    </span>
+                                    </span>{" "}
                                 </>
                             )}
                             <StatValue value={val} capLabel={capLabel} className={valueClassName} />
@@ -49,7 +49,6 @@ export default function StatRows({
                                     disabled={disabled}
                                     onClick={(event) => onExplain(key, event.currentTarget)}
                                     aria-haspopup="dialog"
-                                    aria-label={`${t(displayName)} ${t(val)}`}
                                     aria-description={
                                         [drifSummary?.description, capLabel]
                                             .filter(Boolean)

@@ -113,8 +113,7 @@ for (const mobile of [false, true]) {
                     .getByRole("button", { name: "Przelicz statystyki", exact: true })
                     .click();
                 const opener = page.getByRole("button", {
-                    name: "Szansa na krytyk 78%",
-                    exact: true,
+                    name: /^Szansa na krytyk .*78%/,
                 });
                 await expect(opener).toBeVisible();
                 await expect(opener.locator(".stat-drif-count")).toHaveText("4");

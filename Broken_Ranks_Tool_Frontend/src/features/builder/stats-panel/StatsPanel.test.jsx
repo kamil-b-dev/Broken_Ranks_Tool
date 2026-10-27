@@ -75,6 +75,7 @@ describe("StatsPanel", () => {
             expect(within(row).getByText("4")).toHaveClass("stat-drif-count");
             expect(within(row).getByText(multiplier)).toHaveClass("stat-drif-multiplier");
             expect(row).toHaveAccessibleDescription(description);
+            expect(row).toHaveAccessibleName(row.textContent.replace(/\s+/g, " ").trim());
             const group = row.closest(".stat-rows");
             expect(within(group).getAllByText(heading)).toHaveLength(1);
             expect(
