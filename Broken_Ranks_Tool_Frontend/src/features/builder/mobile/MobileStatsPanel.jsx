@@ -9,6 +9,7 @@ import TabList from "../../../shared/ui/TabList";
 import { buildStatColumns } from "../stats-panel/statsPanelDomain";
 import { useStatExplanation } from "../stats-panel/useStatExplanation";
 import StatExplanationDialog from "../stats-panel/StatExplanationDialog";
+import StatRows from "../stats-panel/StatRows";
 
 function MobileStatsPanel({ requestData }) {
     const { t, locale } = useTranslation();
@@ -17,8 +18,17 @@ function MobileStatsPanel({ requestData }) {
     const { stats, gameRules, statSources } = equipment;
     const explanation = useStatExplanation(requestData, gameRules, equipment.data);
     const columns = useMemo(
-        () => buildStatColumns({ stats, gameRules, statSources, translateLabel: t, locale }),
-        [stats, gameRules, statSources, t, locale]
+        () =>
+            buildStatColumns({
+                stats,
+                gameRules,
+                statSources,
+                translateLabel: t,
+                locale,
+                requestData,
+                catalog: equipment.data,
+            }),
+        [stats, gameRules, statSources, t, locale, requestData, equipment.data]
     );
     const [activeView, setActiveView] = useState("all");
     const visibleColumns = columns.filter((column) => {
@@ -70,28 +80,11 @@ function MobileStatsPanel({ requestData }) {
                                 {column.categories.map(({ category, values }) => (
                                     <div key={category.title}>
                                         <h3>{t(category.title)}</h3>
-                                        <ul className="stat-mobile-list">
-                                            {values.map(({ key, val, displayName }) => (
-                                                <li key={key}>
-                                                    <button
-                                                        type="button"
-                                                        className="stat-explain-trigger"
-                                                        disabled={equipment.isCalculatingStats}
-                                                        aria-haspopup="dialog"
-                                                        aria-label={`${t(displayName)} ${t(val)}`}
-                                                        onClick={(event) =>
-                                                            explanation.open?.(
-                                                                key,
-                                                                event.currentTarget
-                                                            )
-                                                        }
-                                                    >
-                                                        <span>{t(displayName)}</span>{" "}
-                                                        <strong>{t(val)}</strong>
-                                                    </button>
-                                                </li>
-                                            ))}
-                                        </ul>
+                                        <StatRows
+                                            values={values}
+                                            onExplain={explanation.open}
+                                            disabled={equipment.isCalculatingStats}
+                                        />
                                     </div>
                                 ))}
                             </section>

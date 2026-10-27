@@ -2,6 +2,41 @@ import { describe, expect, it } from "vitest";
 import { buildStatColumns, formatStatValue } from "./statsPanelDomain";
 
 describe("statsPanelDomain", () => {
+    it("summarizes ordinary and built-in drifs using catalog penalties, without counting orbs", () => {
+        const columns = buildStatColumns({
+            stats: { CRITICAL_CHANCE: "55%", MANA_REGEN: "5%" },
+            gameRules: { drifPenaltyMultipliers: { 4: 0.91 } },
+            requestData: {
+                slots: {
+                    helmet: { itemId: 1, drifIds: [10], orbIds: [10] },
+                    armor: { itemId: 2, drifIds: [10] },
+                    boots: { itemId: 3, drifIds: [10] },
+                    weapon: { itemId: 4, drifIds: ["11"] },
+                },
+            },
+            catalog: {
+                items: [{ id: 4, rarity: "EPIC" }],
+                drifs: [
+                    { id: 10, bonusType: "CRITICAL_CHANCE", size: "ARCYDRIF" },
+                    { id: 11, bonusType: "CRITICAL_CHANCE", size: "MAGNIDRIF" },
+                ],
+            },
+        });
+        const values = columns.flatMap(({ categories }) =>
+            categories.flatMap(({ values }) => values)
+        );
+        expect(values.find(({ key }) => key === "CRITICAL_CHANCE").drifSummary).toEqual({
+            count: 4,
+            multiplier: 0.91,
+            description: "Ilość drifów: 4 · Mnożnik: 0,91",
+        });
+        expect(values.find(({ key }) => key === "MANA_REGEN").drifSummary).toEqual({
+            count: 0,
+            multiplier: 1,
+            description: "Ilość drifów: 0 · Mnożnik: 1",
+        });
+    });
+
     it("shows intelligence as a character attribute", () => {
         const [column] = buildStatColumns({ stats: { Inteligencja: "135" } });
         expect(column.categories[0].category.title).toBe("Atrybuty");

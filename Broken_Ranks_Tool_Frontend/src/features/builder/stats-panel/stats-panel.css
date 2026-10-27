@@ -8,6 +8,108 @@
     background: rgba(0, 0, 0, 0.58);
 }
 
+.stat-name {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+.stat-rows {
+    container-type: inline-size;
+    font-family: Inter, system-ui, sans-serif;
+}
+.stat-result-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.stat-result-row {
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    transition: background-color 150ms;
+}
+.mobile-stats .stat-result-row {
+    border-color: #44403c;
+}
+.stat-result-row > :is(button, .stat-static-row) {
+    padding: 10px 6px;
+}
+.stat-static-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+}
+.stat-rows .stat-columns-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 3.5rem 5rem 8rem;
+    align-items: center;
+    gap: 6px 16px;
+}
+.stat-columns-heading {
+    padding: 6px;
+    color: #b9afa0;
+    font-size: 11px;
+    font-weight: 500;
+}
+.stat-columns-heading > :not(:first-child),
+.stat-drif-count,
+.stat-drif-multiplier {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+.stat-drif-count,
+.stat-drif-multiplier {
+    color: #d6cfc3;
+    font-size: 12px;
+}
+.stat-columns-grid .stat-value {
+    max-width: none;
+}
+.stat-explain-trigger > strong {
+    flex-shrink: 0;
+}
+.stat-value {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: flex-end;
+    gap: 2px 7px;
+    max-width: 45%;
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+.stat-cap {
+    color: #b9afa0;
+    font:
+        400 11px/1.5 Inter,
+        system-ui,
+        sans-serif;
+    letter-spacing: normal;
+    text-transform: none;
+}
+
+@container (max-width: 420px) {
+    .stat-rows .stat-columns-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        column-gap: 10px;
+    }
+    .stat-columns-grid .stat-name {
+        grid-column: 1 / -1;
+    }
+    .stat-mod-heading {
+        display: none;
+    }
+    .stat-columns-heading > :nth-child(2),
+    .stat-drif-count {
+        text-align: left;
+    }
+    .stat-columns-heading > :nth-child(3),
+    .stat-drif-multiplier {
+        text-align: center;
+    }
+}
+
 .stats-result-tabs button {
     min-width: 0;
     padding: 0.55rem 0.3rem;

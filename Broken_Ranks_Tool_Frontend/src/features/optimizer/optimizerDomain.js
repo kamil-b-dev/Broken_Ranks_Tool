@@ -10,8 +10,13 @@ import {
     DRIF_CATEGORY_ORDER,
     resolveDrifCategoryKey,
 } from "../../shared/domain/equipment/drifCategories";
+import {
+    calculatePlacedDrifCounts,
+    getDrifPenaltyMultiplier,
+} from "../../shared/domain/equipment/drifStatistics";
 
 export { DRIF_CATEGORY_LABELS, DRIF_CATEGORY_ORDER, resolveDrifCategoryKey };
+export { calculatePlacedDrifCounts, getDrifPenaltyMultiplier };
 
 export const OPTIMIZER_CONFIG_FORMAT = "broken-ranks-tool-optimizer-config";
 export const OPTIMIZER_CONFIG_VERSION = 1;
@@ -23,15 +28,6 @@ export const DRIF_CATEGORY_TEXT_CLASSES = {
     UTILITY: "text-emerald-400 group-hover:text-emerald-300",
 };
 export const ITEM_STAR_DRIF_BONUS = { 7: 0.03, 8: 0.08, 9: 0.15 };
-
-export const getDrifPenaltyMultiplier = (count, multipliers = {}) => {
-    const providedMultiplier = Number(multipliers?.[count]);
-    if (Number.isFinite(providedMultiplier)) return providedMultiplier;
-    if (count <= 3) return 1;
-    return (
-        { 4: 0.95, 5: 0.87, 6: 0.8, 7: 0.74, 8: 0.69, 9: 0.64, 10: 0.59, 11: 0.54 }[count] ?? 0.5
-    );
-};
 
 export const createBonusOption = ([key, value], drifBonusCategories = {}) => ({
     key,
@@ -98,24 +94,6 @@ export const formatPotentialValue = (value, locale = "pl-PL") =>
     `${Number(value).toLocaleString(locale, { maximumFractionDigits: 2 })}%`;
 
 /** Calculates current counts, penalties, and achievable ranges for prioritized modifiers. */
-export const calculatePlacedDrifCounts = (slots, drifs) => {
-    const counts = {};
-    const drifsById = new Map(drifs.map((drif) => [String(drif.id), drif]));
-
-    Object.values(slots || {}).forEach((slot) => {
-        const typesInSlot = new Set();
-        (slot?.drifIds || []).forEach((drifId) => {
-            const drif = drifsById.get(String(drifId));
-            if (drif?.bonusType && !typesInSlot.has(drif.bonusType)) {
-                typesInSlot.add(drif.bonusType);
-                counts[drif.bonusType] = (counts[drif.bonusType] || 0) + 1;
-            }
-        });
-    });
-
-    return counts;
-};
-
 export const createModifierDetailsCalculator = ({ slots, drifs, items, gameRules }) => {
     const counts = calculatePlacedDrifCounts(slots, drifs);
     const itemsById = new Map(items.map((item) => [String(item.id), item]));

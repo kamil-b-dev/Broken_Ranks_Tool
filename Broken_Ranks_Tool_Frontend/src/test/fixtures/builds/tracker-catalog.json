@@ -1,0 +1,1176 @@
+{
+    "items": [
+        {
+            "id": 1,
+            "name": "Salmurn",
+            "category": "ARMOR",
+            "tier": "XII",
+            "rarity": "RARE",
+            "capacity": 32
+        },
+        {
+            "id": 3,
+            "name": "Remigesy",
+            "category": "GLOVES",
+            "tier": "XII",
+            "rarity": "RARE",
+            "capacity": 32
+        },
+        {
+            "id": 4,
+            "name": "Vengur",
+            "category": "CAPE",
+            "tier": "XII",
+            "rarity": "RARE",
+            "capacity": 32
+        },
+        {
+            "id": 8,
+            "name": "Ziraki",
+            "category": "LEGS",
+            "tier": "XI",
+            "rarity": "RARE",
+            "capacity": 28
+        },
+        {
+            "id": 9,
+            "name": "Arhauty",
+            "category": "BOOTS",
+            "tier": "XI",
+            "rarity": "RARE",
+            "capacity": 28
+        },
+        {
+            "id": 10,
+            "name": "Dorbis",
+            "category": "NECKLACE",
+            "tier": "XI",
+            "rarity": "RARE",
+            "capacity": 28
+        },
+        {
+            "id": 14,
+            "name": "Pamięć Morany",
+            "category": "HELMET",
+            "tier": "X",
+            "rarity": "RARE",
+            "capacity": 24
+        },
+        {
+            "id": 20,
+            "name": "Nienawiść Draugula",
+            "category": "BELT",
+            "tier": "X",
+            "rarity": "RARE",
+            "capacity": 24
+        },
+        {
+            "id": 32,
+            "name": "Undurisy",
+            "category": "OFF_HAND",
+            "tier": "X",
+            "rarity": "RARE",
+            "capacity": 24
+        },
+        {
+            "id": 35,
+            "name": "Takerony",
+            "category": "OFF_HAND",
+            "tier": "X",
+            "rarity": "RARE",
+            "capacity": 24
+        },
+        {
+            "id": 160,
+            "name": "Dar Skrzydlatej",
+            "category": "RING",
+            "tier": "XII",
+            "rarity": "RARE",
+            "capacity": 32
+        },
+        {
+            "id": 171,
+            "name": "Imisindo",
+            "category": "WEAPON_RANGED",
+            "tier": "IX",
+            "rarity": "EPIC",
+            "capacity": null
+        },
+        {
+            "id": 178,
+            "name": "Imisindo",
+            "category": "WEAPON_RANGED",
+            "tier": "XII",
+            "rarity": "LEGENDARY",
+            "capacity": 32
+        }
+    ],
+    "drifs": [
+        {
+            "id": 1,
+            "name": "Amad",
+            "size": "SUBDRIF",
+            "bonusType": "STAMINA_USAGE_REDUCTION"
+        },
+        {
+            "id": 2,
+            "name": "Amad",
+            "size": "BIDRIF",
+            "bonusType": "STAMINA_USAGE_REDUCTION"
+        },
+        {
+            "id": 3,
+            "name": "Amad",
+            "size": "MAGNIDRIF",
+            "bonusType": "STAMINA_USAGE_REDUCTION"
+        },
+        {
+            "id": 4,
+            "name": "Amad",
+            "size": "ARCYDRIF",
+            "bonusType": "STAMINA_USAGE_REDUCTION"
+        },
+        {
+            "id": 25,
+            "name": "Von",
+            "size": "SUBDRIF",
+            "bonusType": "MANA_USAGE_REDUCTION"
+        },
+        {
+            "id": 26,
+            "name": "Von",
+            "size": "BIDRIF",
+            "bonusType": "MANA_USAGE_REDUCTION"
+        },
+        {
+            "id": 27,
+            "name": "Von",
+            "size": "MAGNIDRIF",
+            "bonusType": "MANA_USAGE_REDUCTION"
+        },
+        {
+            "id": 28,
+            "name": "Von",
+            "size": "ARCYDRIF",
+            "bonusType": "MANA_USAGE_REDUCTION"
+        },
+        {
+            "id": 33,
+            "name": "Grod",
+            "size": "SUBDRIF",
+            "bonusType": "CRITICAL_DAMAGE_CHANCE_REDUCTION"
+        },
+        {
+            "id": 34,
+            "name": "Grod",
+            "size": "BIDRIF",
+            "bonusType": "CRITICAL_DAMAGE_CHANCE_REDUCTION"
+        },
+        {
+            "id": 35,
+            "name": "Grod",
+            "size": "MAGNIDRIF",
+            "bonusType": "CRITICAL_DAMAGE_CHANCE_REDUCTION"
+        },
+        {
+            "id": 36,
+            "name": "Grod",
+            "size": "ARCYDRIF",
+            "bonusType": "CRITICAL_DAMAGE_CHANCE_REDUCTION"
+        },
+        {
+            "id": 49,
+            "name": "Alorn",
+            "size": "SUBDRIF",
+            "bonusType": "DAMAGE_REDUCTION"
+        },
+        {
+            "id": 50,
+            "name": "Alorn",
+            "size": "BIDRIF",
+            "bonusType": "DAMAGE_REDUCTION"
+        },
+        {
+            "id": 51,
+            "name": "Alorn",
+            "size": "MAGNIDRIF",
+            "bonusType": "DAMAGE_REDUCTION"
+        },
+        {
+            "id": 52,
+            "name": "Alorn",
+            "size": "ARCYDRIF",
+            "bonusType": "DAMAGE_REDUCTION"
+        },
+        {
+            "id": 53,
+            "name": "Faln",
+            "size": "SUBDRIF",
+            "bonusType": "CRITICAL_DAMAGE_REDUCTION"
+        },
+        {
+            "id": 54,
+            "name": "Faln",
+            "size": "BIDRIF",
+            "bonusType": "CRITICAL_DAMAGE_REDUCTION"
+        },
+        {
+            "id": 55,
+            "name": "Faln",
+            "size": "MAGNIDRIF",
+            "bonusType": "CRITICAL_DAMAGE_REDUCTION"
+        },
+        {
+            "id": 56,
+            "name": "Faln",
+            "size": "ARCYDRIF",
+            "bonusType": "CRITICAL_DAMAGE_REDUCTION"
+        },
+        {
+            "id": 57,
+            "name": "Farid",
+            "size": "SUBDRIF",
+            "bonusType": "DODGE_CHANCE"
+        },
+        {
+            "id": 58,
+            "name": "Farid",
+            "size": "BIDRIF",
+            "bonusType": "DODGE_CHANCE"
+        },
+        {
+            "id": 59,
+            "name": "Farid",
+            "size": "MAGNIDRIF",
+            "bonusType": "DODGE_CHANCE"
+        },
+        {
+            "id": 60,
+            "name": "Farid",
+            "size": "ARCYDRIF",
+            "bonusType": "DODGE_CHANCE"
+        },
+        {
+            "id": 61,
+            "name": "Holm",
+            "size": "SUBDRIF",
+            "bonusType": "DAMAGE_REDUCTION_CHANCE"
+        },
+        {
+            "id": 62,
+            "name": "Holm",
+            "size": "BIDRIF",
+            "bonusType": "DAMAGE_REDUCTION_CHANCE"
+        },
+        {
+            "id": 63,
+            "name": "Holm",
+            "size": "MAGNIDRIF",
+            "bonusType": "DAMAGE_REDUCTION_CHANCE"
+        },
+        {
+            "id": 64,
+            "name": "Holm",
+            "size": "ARCYDRIF",
+            "bonusType": "DAMAGE_REDUCTION_CHANCE"
+        },
+        {
+            "id": 65,
+            "name": "Iori",
+            "size": "SUBDRIF",
+            "bonusType": "PASIVE_DAMAGE_REDUCTION"
+        },
+        {
+            "id": 66,
+            "name": "Iori",
+            "size": "BIDRIF",
+            "bonusType": "PASIVE_DAMAGE_REDUCTION"
+        },
+        {
+            "id": 67,
+            "name": "Iori",
+            "size": "MAGNIDRIF",
+            "bonusType": "PASIVE_DAMAGE_REDUCTION"
+        },
+        {
+            "id": 68,
+            "name": "Iori",
+            "size": "ARCYDRIF",
+            "bonusType": "PASIVE_DAMAGE_REDUCTION"
+        },
+        {
+            "id": 69,
+            "name": "Jorn",
+            "size": "SUBDRIF",
+            "bonusType": "PERCENTAGE_DAMAGE_REDUCTION"
+        },
+        {
+            "id": 70,
+            "name": "Jorn",
+            "size": "BIDRIF",
+            "bonusType": "PERCENTAGE_DAMAGE_REDUCTION"
+        },
+        {
+            "id": 71,
+            "name": "Jorn",
+            "size": "MAGNIDRIF",
+            "bonusType": "PERCENTAGE_DAMAGE_REDUCTION"
+        },
+        {
+            "id": 72,
+            "name": "Jorn",
+            "size": "ARCYDRIF",
+            "bonusType": "PERCENTAGE_DAMAGE_REDUCTION"
+        },
+        {
+            "id": 77,
+            "name": "Astah",
+            "size": "SUBDRIF",
+            "bonusType": "DAMAGE_PHYSICAL"
+        },
+        {
+            "id": 78,
+            "name": "Astah",
+            "size": "BIDRIF",
+            "bonusType": "DAMAGE_PHYSICAL"
+        },
+        {
+            "id": 79,
+            "name": "Astah",
+            "size": "MAGNIDRIF",
+            "bonusType": "DAMAGE_PHYSICAL"
+        },
+        {
+            "id": 80,
+            "name": "Astah",
+            "size": "ARCYDRIF",
+            "bonusType": "DAMAGE_PHYSICAL"
+        },
+        {
+            "id": 81,
+            "name": "Band",
+            "size": "SUBDRIF",
+            "bonusType": "CRITICAL_CHANCE"
+        },
+        {
+            "id": 82,
+            "name": "Band",
+            "size": "BIDRIF",
+            "bonusType": "CRITICAL_CHANCE"
+        },
+        {
+            "id": 83,
+            "name": "Band",
+            "size": "MAGNIDRIF",
+            "bonusType": "CRITICAL_CHANCE"
+        },
+        {
+            "id": 84,
+            "name": "Band",
+            "size": "ARCYDRIF",
+            "bonusType": "CRITICAL_CHANCE"
+        },
+        {
+            "id": 89,
+            "name": "Teld",
+            "size": "SUBDRIF",
+            "bonusType": "DOUBLE_ATTACK_CHANCE"
+        },
+        {
+            "id": 90,
+            "name": "Teld",
+            "size": "BIDRIF",
+            "bonusType": "DOUBLE_ATTACK_CHANCE"
+        },
+        {
+            "id": 91,
+            "name": "Teld",
+            "size": "MAGNIDRIF",
+            "bonusType": "DOUBLE_ATTACK_CHANCE"
+        },
+        {
+            "id": 92,
+            "name": "Teld",
+            "size": "ARCYDRIF",
+            "bonusType": "DOUBLE_ATTACK_CHANCE"
+        },
+        {
+            "id": 101,
+            "name": "Dur",
+            "size": "SUBDRIF",
+            "bonusType": "DOUBLE_HIT_ROLL_CHANCE"
+        },
+        {
+            "id": 102,
+            "name": "Dur",
+            "size": "BIDRIF",
+            "bonusType": "DOUBLE_HIT_ROLL_CHANCE"
+        },
+        {
+            "id": 103,
+            "name": "Dur",
+            "size": "MAGNIDRIF",
+            "bonusType": "DOUBLE_HIT_ROLL_CHANCE"
+        },
+        {
+            "id": 104,
+            "name": "Dur",
+            "size": "ARCYDRIF",
+            "bonusType": "DOUBLE_HIT_ROLL_CHANCE"
+        },
+        {
+            "id": 105,
+            "name": "Ling",
+            "size": "SUBDRIF",
+            "bonusType": "HIT_CHANCE_RANGED"
+        },
+        {
+            "id": 106,
+            "name": "Ling",
+            "size": "BIDRIF",
+            "bonusType": "HIT_CHANCE_RANGED"
+        },
+        {
+            "id": 107,
+            "name": "Ling",
+            "size": "MAGNIDRIF",
+            "bonusType": "HIT_CHANCE_RANGED"
+        },
+        {
+            "id": 108,
+            "name": "Ling",
+            "size": "ARCYDRIF",
+            "bonusType": "HIT_CHANCE_RANGED"
+        }
+    ],
+    "orbs": [
+        {
+            "id": 1,
+            "name": "M'ren",
+            "size": "SUBORB",
+            "category": "UTILITY",
+            "bonusType": "EQUIPMENT_DRAIN_REDUCTION"
+        },
+        {
+            "id": 2,
+            "name": "M'ren",
+            "size": "BIORB",
+            "category": "UTILITY",
+            "bonusType": "EQUIPMENT_DRAIN_REDUCTION"
+        },
+        {
+            "id": 3,
+            "name": "M'ren",
+            "size": "MAGNIORB",
+            "category": "UTILITY",
+            "bonusType": "EQUIPMENT_DRAIN_REDUCTION"
+        },
+        {
+            "id": 4,
+            "name": "M'ren",
+            "size": "ARCYORB",
+            "category": "UTILITY",
+            "bonusType": "EQUIPMENT_DRAIN_REDUCTION"
+        },
+        {
+            "id": 5,
+            "name": "N'xen",
+            "size": "SUBORB",
+            "category": "UTILITY",
+            "bonusType": "FASTER_REST"
+        },
+        {
+            "id": 6,
+            "name": "N'xen",
+            "size": "BIORB",
+            "category": "UTILITY",
+            "bonusType": "FASTER_REST"
+        },
+        {
+            "id": 7,
+            "name": "N'xen",
+            "size": "MAGNIORB",
+            "category": "UTILITY",
+            "bonusType": "FASTER_REST"
+        },
+        {
+            "id": 8,
+            "name": "N'xen",
+            "size": "ARCYORB",
+            "category": "UTILITY",
+            "bonusType": "FASTER_REST"
+        },
+        {
+            "id": 9,
+            "name": "Q'zen",
+            "size": "SUBORB",
+            "category": "UTILITY",
+            "bonusType": "EXTRA_DAIMONITS"
+        },
+        {
+            "id": 10,
+            "name": "Q'zen",
+            "size": "BIORB",
+            "category": "UTILITY",
+            "bonusType": "EXTRA_DAIMONITS"
+        },
+        {
+            "id": 11,
+            "name": "Q'zen",
+            "size": "MAGNIORB",
+            "category": "UTILITY",
+            "bonusType": "EXTRA_DAIMONITS"
+        },
+        {
+            "id": 12,
+            "name": "Q'zen",
+            "size": "ARCYORB",
+            "category": "UTILITY",
+            "bonusType": "EXTRA_DAIMONITS"
+        },
+        {
+            "id": 13,
+            "name": "P'ren",
+            "size": "SUBORB",
+            "category": "UTILITY",
+            "bonusType": "EXTRA_PSYCHO_EXP"
+        },
+        {
+            "id": 14,
+            "name": "P'ren",
+            "size": "BIORB",
+            "category": "UTILITY",
+            "bonusType": "EXTRA_PSYCHO_EXP"
+        },
+        {
+            "id": 15,
+            "name": "P'ren",
+            "size": "MAGNIORB",
+            "category": "UTILITY",
+            "bonusType": "EXTRA_PSYCHO_EXP"
+        },
+        {
+            "id": 16,
+            "name": "P'ren",
+            "size": "ARCYORB",
+            "category": "UTILITY",
+            "bonusType": "EXTRA_PSYCHO_EXP"
+        },
+        {
+            "id": 17,
+            "name": "R'xen",
+            "size": "SUBORB",
+            "category": "UTILITY",
+            "bonusType": "EXTRA_EXP"
+        },
+        {
+            "id": 18,
+            "name": "R'xen",
+            "size": "BIORB",
+            "category": "UTILITY",
+            "bonusType": "EXTRA_EXP"
+        },
+        {
+            "id": 19,
+            "name": "R'xen",
+            "size": "MAGNIORB",
+            "category": "UTILITY",
+            "bonusType": "EXTRA_EXP"
+        },
+        {
+            "id": 20,
+            "name": "R'xen",
+            "size": "ARCYORB",
+            "category": "UTILITY",
+            "bonusType": "EXTRA_EXP"
+        },
+        {
+            "id": 21,
+            "name": "S'len",
+            "size": "SUBORB",
+            "category": "UTILITY",
+            "bonusType": "INCREASED_CARRY_WEIGHT"
+        },
+        {
+            "id": 22,
+            "name": "S'len",
+            "size": "BIORB",
+            "category": "UTILITY",
+            "bonusType": "INCREASED_CARRY_WEIGHT"
+        },
+        {
+            "id": 23,
+            "name": "S'len",
+            "size": "MAGNIORB",
+            "category": "UTILITY",
+            "bonusType": "INCREASED_CARRY_WEIGHT"
+        },
+        {
+            "id": 24,
+            "name": "S'len",
+            "size": "ARCYORB",
+            "category": "UTILITY",
+            "bonusType": "INCREASED_CARRY_WEIGHT"
+        },
+        {
+            "id": 25,
+            "name": "V'lan",
+            "size": "SUBORB",
+            "category": "UTILITY",
+            "bonusType": "EXTRA_GOLD"
+        },
+        {
+            "id": 26,
+            "name": "V'lan",
+            "size": "BIORB",
+            "category": "UTILITY",
+            "bonusType": "EXTRA_GOLD"
+        },
+        {
+            "id": 27,
+            "name": "V'lan",
+            "size": "MAGNIORB",
+            "category": "UTILITY",
+            "bonusType": "EXTRA_GOLD"
+        },
+        {
+            "id": 28,
+            "name": "V'lan",
+            "size": "ARCYORB",
+            "category": "UTILITY",
+            "bonusType": "EXTRA_GOLD"
+        },
+        {
+            "id": 29,
+            "name": "Ba'ed",
+            "size": "SUBORB",
+            "category": "DEFENSIVE",
+            "bonusType": "DMG_REDUCTION_MELEE"
+        },
+        {
+            "id": 30,
+            "name": "Ba'ed",
+            "size": "BIORB",
+            "category": "DEFENSIVE",
+            "bonusType": "DMG_REDUCTION_MELEE"
+        },
+        {
+            "id": 31,
+            "name": "Ba'ed",
+            "size": "MAGNIORB",
+            "category": "DEFENSIVE",
+            "bonusType": "DMG_REDUCTION_MELEE"
+        },
+        {
+            "id": 32,
+            "name": "Ba'ed",
+            "size": "ARCYORB",
+            "category": "DEFENSIVE",
+            "bonusType": "DMG_REDUCTION_MELEE"
+        },
+        {
+            "id": 33,
+            "name": "De'ed",
+            "size": "SUBORB",
+            "category": "DEFENSIVE",
+            "bonusType": "DMG_REDUCTION_RANGED"
+        },
+        {
+            "id": 34,
+            "name": "De'ed",
+            "size": "BIORB",
+            "category": "DEFENSIVE",
+            "bonusType": "DMG_REDUCTION_RANGED"
+        },
+        {
+            "id": 35,
+            "name": "De'ed",
+            "size": "MAGNIORB",
+            "category": "DEFENSIVE",
+            "bonusType": "DMG_REDUCTION_RANGED"
+        },
+        {
+            "id": 36,
+            "name": "De'ed",
+            "size": "ARCYORB",
+            "category": "DEFENSIVE",
+            "bonusType": "DMG_REDUCTION_RANGED"
+        },
+        {
+            "id": 37,
+            "name": "Ge'ed",
+            "size": "SUBORB",
+            "category": "DEFENSIVE",
+            "bonusType": "DMG_REDUCTION_MENTAL"
+        },
+        {
+            "id": 38,
+            "name": "Ge'ed",
+            "size": "BIORB",
+            "category": "DEFENSIVE",
+            "bonusType": "DMG_REDUCTION_MENTAL"
+        },
+        {
+            "id": 39,
+            "name": "Ge'ed",
+            "size": "MAGNIORB",
+            "category": "DEFENSIVE",
+            "bonusType": "DMG_REDUCTION_MENTAL"
+        },
+        {
+            "id": 40,
+            "name": "Ge'ed",
+            "size": "ARCYORB",
+            "category": "DEFENSIVE",
+            "bonusType": "DMG_REDUCTION_MENTAL"
+        },
+        {
+            "id": 41,
+            "name": "Lu'ed",
+            "size": "SUBORB",
+            "category": "DEFENSIVE",
+            "bonusType": "DMG_REDUCTION_CHAMPION_ELITE"
+        },
+        {
+            "id": 42,
+            "name": "Lu'ed",
+            "size": "BIORB",
+            "category": "DEFENSIVE",
+            "bonusType": "DMG_REDUCTION_CHAMPION_ELITE"
+        },
+        {
+            "id": 43,
+            "name": "Lu'ed",
+            "size": "MAGNIORB",
+            "category": "DEFENSIVE",
+            "bonusType": "DMG_REDUCTION_CHAMPION_ELITE"
+        },
+        {
+            "id": 44,
+            "name": "Lu'ed",
+            "size": "ARCYORB",
+            "category": "DEFENSIVE",
+            "bonusType": "DMG_REDUCTION_CHAMPION_ELITE"
+        },
+        {
+            "id": 45,
+            "name": "Mi'ed",
+            "size": "SUBORB",
+            "category": "DEFENSIVE",
+            "bonusType": "DMG_REDUCTION_AOE"
+        },
+        {
+            "id": 46,
+            "name": "Mi'ed",
+            "size": "BIORB",
+            "category": "DEFENSIVE",
+            "bonusType": "DMG_REDUCTION_AOE"
+        },
+        {
+            "id": 47,
+            "name": "Mi'ed",
+            "size": "MAGNIORB",
+            "category": "DEFENSIVE",
+            "bonusType": "DMG_REDUCTION_AOE"
+        },
+        {
+            "id": 48,
+            "name": "Mi'ed",
+            "size": "ARCYORB",
+            "category": "DEFENSIVE",
+            "bonusType": "DMG_REDUCTION_AOE"
+        },
+        {
+            "id": 49,
+            "name": "Na'ed",
+            "size": "SUBORB",
+            "category": "DEFENSIVE",
+            "bonusType": "DEFENSE_CHANCE_AFTER_HIT"
+        },
+        {
+            "id": 50,
+            "name": "Na'ed",
+            "size": "BIORB",
+            "category": "DEFENSIVE",
+            "bonusType": "DEFENSE_CHANCE_AFTER_HIT"
+        },
+        {
+            "id": 51,
+            "name": "Na'ed",
+            "size": "MAGNIORB",
+            "category": "DEFENSIVE",
+            "bonusType": "DEFENSE_CHANCE_AFTER_HIT"
+        },
+        {
+            "id": 52,
+            "name": "Na'ed",
+            "size": "ARCYORB",
+            "category": "DEFENSIVE",
+            "bonusType": "DEFENSE_CHANCE_AFTER_HIT"
+        },
+        {
+            "id": 53,
+            "name": "Re'ed",
+            "size": "SUBORB",
+            "category": "DEFENSIVE",
+            "bonusType": "DODGE_CHANCE_WHEN_WOUNDED"
+        },
+        {
+            "id": 54,
+            "name": "Re'ed",
+            "size": "BIORB",
+            "category": "DEFENSIVE",
+            "bonusType": "DODGE_CHANCE_WHEN_WOUNDED"
+        },
+        {
+            "id": 55,
+            "name": "Re'ed",
+            "size": "MAGNIORB",
+            "category": "DEFENSIVE",
+            "bonusType": "DODGE_CHANCE_WHEN_WOUNDED"
+        },
+        {
+            "id": 56,
+            "name": "Re'ed",
+            "size": "ARCYORB",
+            "category": "DEFENSIVE",
+            "bonusType": "DODGE_CHANCE_WHEN_WOUNDED"
+        },
+        {
+            "id": 57,
+            "name": "Vo'ed",
+            "size": "SUBORB",
+            "category": "DEFENSIVE",
+            "bonusType": "DMG_REDUCTION_NORMAL_MOBS"
+        },
+        {
+            "id": 58,
+            "name": "Vo'ed",
+            "size": "BIORB",
+            "category": "DEFENSIVE",
+            "bonusType": "DMG_REDUCTION_NORMAL_MOBS"
+        },
+        {
+            "id": 59,
+            "name": "Vo'ed",
+            "size": "MAGNIORB",
+            "category": "DEFENSIVE",
+            "bonusType": "DMG_REDUCTION_NORMAL_MOBS"
+        },
+        {
+            "id": 60,
+            "name": "Vo'ed",
+            "size": "ARCYORB",
+            "category": "DEFENSIVE",
+            "bonusType": "DMG_REDUCTION_NORMAL_MOBS"
+        },
+        {
+            "id": 61,
+            "name": "Ze'ed",
+            "size": "SUBORB",
+            "category": "DEFENSIVE",
+            "bonusType": "DMG_REDUCTION_BOSS"
+        },
+        {
+            "id": 62,
+            "name": "Ze'ed",
+            "size": "BIORB",
+            "category": "DEFENSIVE",
+            "bonusType": "DMG_REDUCTION_BOSS"
+        },
+        {
+            "id": 63,
+            "name": "Ze'ed",
+            "size": "MAGNIORB",
+            "category": "DEFENSIVE",
+            "bonusType": "DMG_REDUCTION_BOSS"
+        },
+        {
+            "id": 64,
+            "name": "Ze'ed",
+            "size": "ARCYORB",
+            "category": "DEFENSIVE",
+            "bonusType": "DMG_REDUCTION_BOSS"
+        },
+        {
+            "id": 65,
+            "name": "Cu'at",
+            "size": "SUBORB",
+            "category": "OFFENSIVE",
+            "bonusType": "HIT_CHANCE_AFTER_MISS"
+        },
+        {
+            "id": 66,
+            "name": "Cu'at",
+            "size": "BIORB",
+            "category": "OFFENSIVE",
+            "bonusType": "HIT_CHANCE_AFTER_MISS"
+        },
+        {
+            "id": 67,
+            "name": "Cu'at",
+            "size": "MAGNIORB",
+            "category": "OFFENSIVE",
+            "bonusType": "HIT_CHANCE_AFTER_MISS"
+        },
+        {
+            "id": 68,
+            "name": "Cu'at",
+            "size": "ARCYORB",
+            "category": "OFFENSIVE",
+            "bonusType": "HIT_CHANCE_AFTER_MISS"
+        },
+        {
+            "id": 69,
+            "name": "Fu'at",
+            "size": "SUBORB",
+            "category": "OFFENSIVE",
+            "bonusType": "HEALTH_STEAL_CHANCE"
+        },
+        {
+            "id": 70,
+            "name": "Fu'at",
+            "size": "BIORB",
+            "category": "OFFENSIVE",
+            "bonusType": "HEALTH_STEAL_CHANCE"
+        },
+        {
+            "id": 71,
+            "name": "Fu'at",
+            "size": "MAGNIORB",
+            "category": "OFFENSIVE",
+            "bonusType": "HEALTH_STEAL_CHANCE"
+        },
+        {
+            "id": 72,
+            "name": "Fu'at",
+            "size": "ARCYORB",
+            "category": "OFFENSIVE",
+            "bonusType": "HEALTH_STEAL_CHANCE"
+        },
+        {
+            "id": 73,
+            "name": "Ha'at",
+            "size": "SUBORB",
+            "category": "OFFENSIVE",
+            "bonusType": "ATTACK_POWER_WHEN_WOUNDED"
+        },
+        {
+            "id": 74,
+            "name": "Ha'at",
+            "size": "BIORB",
+            "category": "OFFENSIVE",
+            "bonusType": "ATTACK_POWER_WHEN_WOUNDED"
+        },
+        {
+            "id": 75,
+            "name": "Ha'at",
+            "size": "MAGNIORB",
+            "category": "OFFENSIVE",
+            "bonusType": "ATTACK_POWER_WHEN_WOUNDED"
+        },
+        {
+            "id": 76,
+            "name": "Ha'at",
+            "size": "ARCYORB",
+            "category": "OFFENSIVE",
+            "bonusType": "ATTACK_POWER_WHEN_WOUNDED"
+        },
+        {
+            "id": 77,
+            "name": "Ka'at",
+            "size": "SUBORB",
+            "category": "OFFENSIVE",
+            "bonusType": "DMG_BOOST_NORMAL_MOBS"
+        },
+        {
+            "id": 78,
+            "name": "Ka'at",
+            "size": "BIORB",
+            "category": "OFFENSIVE",
+            "bonusType": "DMG_BOOST_NORMAL_MOBS"
+        },
+        {
+            "id": 79,
+            "name": "Ka'at",
+            "size": "MAGNIORB",
+            "category": "OFFENSIVE",
+            "bonusType": "DMG_BOOST_NORMAL_MOBS"
+        },
+        {
+            "id": 80,
+            "name": "Ka'at",
+            "size": "ARCYORB",
+            "category": "OFFENSIVE",
+            "bonusType": "DMG_BOOST_NORMAL_MOBS"
+        },
+        {
+            "id": 81,
+            "name": "Li'at",
+            "size": "SUBORB",
+            "category": "OFFENSIVE",
+            "bonusType": "STRONGER_CRIT_CHANCE"
+        },
+        {
+            "id": 82,
+            "name": "Li'at",
+            "size": "BIORB",
+            "category": "OFFENSIVE",
+            "bonusType": "STRONGER_CRIT_CHANCE"
+        },
+        {
+            "id": 83,
+            "name": "Li'at",
+            "size": "MAGNIORB",
+            "category": "OFFENSIVE",
+            "bonusType": "STRONGER_CRIT_CHANCE"
+        },
+        {
+            "id": 84,
+            "name": "Li'at",
+            "size": "ARCYORB",
+            "category": "OFFENSIVE",
+            "bonusType": "STRONGER_CRIT_CHANCE"
+        },
+        {
+            "id": 85,
+            "name": "Pa'at",
+            "size": "SUBORB",
+            "category": "OFFENSIVE",
+            "bonusType": "DMG_BOOST_CHAMPION_ELITE"
+        },
+        {
+            "id": 86,
+            "name": "Pa'at",
+            "size": "BIORB",
+            "category": "OFFENSIVE",
+            "bonusType": "DMG_BOOST_CHAMPION_ELITE"
+        },
+        {
+            "id": 87,
+            "name": "Pa'at",
+            "size": "MAGNIORB",
+            "category": "OFFENSIVE",
+            "bonusType": "DMG_BOOST_CHAMPION_ELITE"
+        },
+        {
+            "id": 88,
+            "name": "Pa'at",
+            "size": "ARCYORB",
+            "category": "OFFENSIVE",
+            "bonusType": "DMG_BOOST_CHAMPION_ELITE"
+        },
+        {
+            "id": 89,
+            "name": "Po'at",
+            "size": "SUBORB",
+            "category": "OFFENSIVE",
+            "bonusType": "MANA_STEAL_CHANCE"
+        },
+        {
+            "id": 90,
+            "name": "Po'at",
+            "size": "BIORB",
+            "category": "OFFENSIVE",
+            "bonusType": "MANA_STEAL_CHANCE"
+        },
+        {
+            "id": 91,
+            "name": "Po'at",
+            "size": "MAGNIORB",
+            "category": "OFFENSIVE",
+            "bonusType": "MANA_STEAL_CHANCE"
+        },
+        {
+            "id": 92,
+            "name": "Po'at",
+            "size": "ARCYORB",
+            "category": "OFFENSIVE",
+            "bonusType": "MANA_STEAL_CHANCE"
+        },
+        {
+            "id": 93,
+            "name": "Se'at",
+            "size": "SUBORB",
+            "category": "OFFENSIVE",
+            "bonusType": "STAMINA_STEAL_CHANCE"
+        },
+        {
+            "id": 94,
+            "name": "Se'at",
+            "size": "BIORB",
+            "category": "OFFENSIVE",
+            "bonusType": "STAMINA_STEAL_CHANCE"
+        },
+        {
+            "id": 95,
+            "name": "Se'at",
+            "size": "MAGNIORB",
+            "category": "OFFENSIVE",
+            "bonusType": "STAMINA_STEAL_CHANCE"
+        },
+        {
+            "id": 96,
+            "name": "Se'at",
+            "size": "ARCYORB",
+            "category": "OFFENSIVE",
+            "bonusType": "STAMINA_STEAL_CHANCE"
+        },
+        {
+            "id": 97,
+            "name": "Te'at",
+            "size": "SUBORB",
+            "category": "OFFENSIVE",
+            "bonusType": "BREAK_FARID_HOLM_CHANCE"
+        },
+        {
+            "id": 98,
+            "name": "Te'at",
+            "size": "BIORB",
+            "category": "OFFENSIVE",
+            "bonusType": "BREAK_FARID_HOLM_CHANCE"
+        },
+        {
+            "id": 99,
+            "name": "Te'at",
+            "size": "MAGNIORB",
+            "category": "OFFENSIVE",
+            "bonusType": "BREAK_FARID_HOLM_CHANCE"
+        },
+        {
+            "id": 100,
+            "name": "Te'at",
+            "size": "ARCYORB",
+            "category": "OFFENSIVE",
+            "bonusType": "BREAK_FARID_HOLM_CHANCE"
+        },
+        {
+            "id": 101,
+            "name": "Ti'at",
+            "size": "SUBORB",
+            "category": "OFFENSIVE",
+            "bonusType": "DMG_BOOST_BOSS"
+        },
+        {
+            "id": 102,
+            "name": "Ti'at",
+            "size": "BIORB",
+            "category": "OFFENSIVE",
+            "bonusType": "DMG_BOOST_BOSS"
+        },
+        {
+            "id": 103,
+            "name": "Ti'at",
+            "size": "MAGNIORB",
+            "category": "OFFENSIVE",
+            "bonusType": "DMG_BOOST_BOSS"
+        },
+        {
+            "id": 104,
+            "name": "Ti'at",
+            "size": "ARCYORB",
+            "category": "OFFENSIVE",
+            "bonusType": "DMG_BOOST_BOSS"
+        }
+    ]
+}

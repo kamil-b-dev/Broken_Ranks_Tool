@@ -1,5 +1,9 @@
 import { resolveDrifCategoryKey } from "../../../shared/domain/equipment/drifCategories";
 import { STAT_CONFIG } from "../character/characterConstants";
+import {
+    calculatePlacedDrifCounts,
+    getDrifPenaltyMultiplier,
+} from "../../../shared/domain/equipment/drifStatistics";
 
 const CHARACTER_STAT_NAMES = new Set(Object.keys(STAT_CONFIG));
 
@@ -51,12 +55,18 @@ export const buildStatColumns = ({
     statSources = {},
     translateLabel = (value) => value,
     locale = "pl",
+    requestData,
+    catalog,
 }) => {
     const sortByDisplayName = (left, right) =>
         left.displayName.localeCompare(right.displayName, locale);
     const groups = { attributes: [], offense: [], defense: [], other: [], combat: [], utility: [] };
     const drifCategories = statSources.drifCategories || {};
     const orbBonusTypes = new Set(statSources.orbBonusTypes || []);
+    const drifCounts =
+        requestData?.slots && Array.isArray(catalog?.drifs)
+            ? calculatePlacedDrifCounts(requestData.slots, catalog.drifs)
+            : null;
     const resolveDrifCategory = (key) => {
         if (drifCategories[key]) return String(drifCategories[key]).trim().toUpperCase();
         if (orbBonusTypes.has(key)) return null;
@@ -71,6 +81,28 @@ export const buildStatColumns = ({
         val: formatStatValue(rawValue),
         displayName: translateLabel(gameRules.bonusTranslations?.[key] || key),
     });
+    const toDrifStat = (entry) => {
+        const stat = toStat(entry);
+        const cap = gameRules.drifMaxCaps?.[stat.key];
+        if (cap != null && Number.isFinite(Number(cap))) {
+            stat.cap = Number(cap);
+            stat.capLabel = translateLabel(
+                `Cap: ${new Intl.NumberFormat(locale, { maximumFractionDigits: 2 }).format(stat.cap)}%`
+            );
+        }
+        if (!drifCounts) return stat;
+        const count = drifCounts[stat.key] || 0;
+        const multiplier = getDrifPenaltyMultiplier(count, gameRules.drifPenaltyMultipliers);
+        const format = new Intl.NumberFormat(locale, { maximumFractionDigits: 2 });
+        return {
+            ...stat,
+            drifSummary: {
+                count,
+                multiplier,
+                description: `${translateLabel("Ilość drifów:")} ${count} · ${translateLabel("Mnożnik:")} ${format.format(multiplier)}`,
+            },
+        };
+    };
 
     Object.entries(stats || {}).forEach((entry) => {
         const [key] = entry;
@@ -91,7 +123,7 @@ export const buildStatColumns = ({
             category,
             Object.entries(stats || {})
                 .filter(([key]) => resolveDrifCategory(key) === category)
-                .map(toStat)
+                .map(toDrifStat)
                 .sort(sortByDisplayName),
         ])
     );

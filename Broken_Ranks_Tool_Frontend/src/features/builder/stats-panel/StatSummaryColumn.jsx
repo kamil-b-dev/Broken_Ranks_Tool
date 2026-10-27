@@ -1,4 +1,5 @@
 import { useTranslation } from "../../../shared/i18n/useTranslation";
+import StatRows from "./StatRows";
 const ACCENT_CLASSES = {
     stone: {
         card: "border-stone-800 optimizer-info-divider",
@@ -44,7 +45,7 @@ const ACCENT_CLASSES = {
     },
 };
 
-const StatCategoryCard = ({ category, values, accent, colorLabels, onExplain }) => {
+const StatCategoryCard = ({ category, values, accent, onExplain }) => {
     const { t } = useTranslation();
 
     const styles = ACCENT_CLASSES[accent || category.accent];
@@ -59,38 +60,12 @@ const StatCategoryCard = ({ category, values, accent, colorLabels, onExplain }) 
                     {t(category.title)}
                 </h4>
             </div>
-            <div className="flex flex-col gap-1">
-                {values.map(({ key, val, displayName }) => (
-                    <div
-                        key={key}
-                        className={`flex justify-between gap-3 items-center border-b p-2 transition-colors ${styles.row}`}
-                    >
-                        {onExplain ? (
-                            <button
-                                type="button"
-                                className="stat-explain-trigger"
-                                onClick={(event) => onExplain(key, event.currentTarget)}
-                                aria-haspopup="dialog"
-                                aria-label={`${t(displayName)} ${t(val)}`}
-                            >
-                                <span>{t(displayName)}</span>{" "}
-                                <strong className={styles.value}>{t(val)}</strong>
-                            </button>
-                        ) : (
-                            <>
-                                <span
-                                    className={`min-w-0 text-xs font-serif uppercase tracking-wide ${colorLabels ? styles.value : "text-stone-400"}`}
-                                >
-                                    {t(displayName)}
-                                </span>
-                                <span className={`shrink-0 font-bold font-serif ${styles.value}`}>
-                                    {t(val)}
-                                </span>
-                            </>
-                        )}
-                    </div>
-                ))}
-            </div>
+            <StatRows
+                values={values}
+                onExplain={onExplain}
+                rowClassName={styles.row}
+                valueClassName={styles.value}
+            />
         </section>
     );
 };
@@ -117,7 +92,6 @@ const StatSummaryColumn = ({ title, accent, categories, categoryAccents = false,
                         category={category}
                         values={values}
                         accent={categoryAccents ? undefined : accent}
-                        colorLabels={categoryAccents}
                         onExplain={onExplain}
                     />
                 ))}

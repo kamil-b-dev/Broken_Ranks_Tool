@@ -39,6 +39,29 @@ Wspólny styl własnych tooltipów jest w `src/shared/styles/tooltips.css`:
 obejmuje podpowiedzi `?` i podglądy przedmiotów, drifów oraz orbów w bazie danych.
 `src/features/help/help.css` odpowiada za menu tematów, treść instrukcji i panel boczny.
 
+Wszystkie 40 tematów opisujących obsługę zawiera zrzuty rzeczywistego interfejsu.
+Tematy referencyjne gwiazdek i orbów zachowują tabele. `content/screenshots.js`
+przypisuje listę ilustracji do tematu i numerów kroków; temat może mieć kilka
+zrzutów przy różnych krokach. Pliki WebP w `src/assets/help/` mają osobne wersje
+PL/EN i wymiary zapisane w `content/screenshotDimensions.json`. Zmiana języka
+przełącza obraz i opis alternatywny. Obrazy nie mają widocznych podpisów,
+ładują się leniwie i otwierają w pełnym rozmiarze w nowej karcie.
+
+Zrzuty można odtworzyć po uruchomieniu lokalnego frontendu i API poleceniem
+`node scripts/capture-help-screenshots.mjs` z katalogu frontendu (wymagany Chromium
+Playwright). `HELP_SCREENSHOT_URL` pozwala wskazać inny adres niż
+`http://127.0.0.1:5173`. Można przekazać sekcję `builder`, `optimizer` lub `library`;
+domyślnie wykonywane są wszystkie. Istniejące obrazy są pomijane; zmienna
+`HELP_SCREENSHOT_OVERWRITE=1` pozwala je odtworzyć. Można ograniczyć zapis do nazw
+kadrów przez `HELP_SCREENSHOT_FILTER`, np. `built-in-drifs,stats`. Skrypt aktualizuje
+manifest wymiarów automatycznie. Sekcje w `scripts/help-screenshots/` przygotowują widoki
+ekwipunku, optymalizatora oraz biblioteki i ścieżki rozwoju.
+
+Skrypt używa izolowanej sesji przeglądarki, fixture'ów buildów i rzeczywistego
+katalogu API. Wyniki optymalizacji, Doradcy, Reorganizacji i planowania pochodzą
+z lokalnego API; biblioteka oraz konflikty importu korzystają z zapisanych przez
+skrypt przykładów. Nie korzysta z zapisów użytkownika.
+
 Tematy są podzielone na ekwipunek i statystyki, plecak i historię zmian, podstawy
 optymalizatora, ustawienia Od zera, Doradcę, Reorganizację, zapis i porównanie oraz
 ścieżkę rozwoju. Menu na komputerze używa rozwijanych grup i otwiera grupę wybranego

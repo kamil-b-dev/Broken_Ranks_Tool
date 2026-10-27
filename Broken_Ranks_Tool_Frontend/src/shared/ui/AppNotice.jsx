@@ -10,7 +10,11 @@ const AppNotice = ({ notice, onDismiss }) => {
                 aria-live={notice.type === "error" ? "assertive" : "polite"}
             >
                 <span aria-hidden="true">{t(notice.type === "success" ? "✓" : "!")}</span>
-                <p>{t(notice.message)}</p>
+                <p>
+                    {[notice.message, ...(notice.details || [])]
+                        .map((message) => t(message))
+                        .join(" ")}
+                </p>
                 {onDismiss ? (
                     <button type="button" onClick={onDismiss} aria-label={t("Zamknij komunikat")}>
                         ×

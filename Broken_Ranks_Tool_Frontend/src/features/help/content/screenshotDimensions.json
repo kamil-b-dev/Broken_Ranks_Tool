@@ -1,0 +1,338 @@
+{
+    "advisor-changes-en.webp": {
+        "width": 1758,
+        "height": 144
+    },
+    "advisor-changes-pl.webp": {
+        "width": 1758,
+        "height": 144
+    },
+    "advisor-en.webp": {
+        "width": 1758,
+        "height": 416
+    },
+    "advisor-pl.webp": {
+        "width": 1758,
+        "height": 416
+    },
+    "advisor-protections-en.webp": {
+        "width": 1758,
+        "height": 384
+    },
+    "advisor-protections-pl.webp": {
+        "width": 1758,
+        "height": 384
+    },
+    "advisor-result-en.webp": {
+        "width": 1076,
+        "height": 1344
+    },
+    "advisor-result-pl.webp": {
+        "width": 1076,
+        "height": 1344
+    },
+    "advisor-search-en.webp": {
+        "width": 1758,
+        "height": 164
+    },
+    "advisor-search-pl.webp": {
+        "width": 1758,
+        "height": 164
+    },
+    "backpack-drifs-en.webp": {
+        "width": 2048,
+        "height": 194
+    },
+    "backpack-drifs-pl.webp": {
+        "width": 2048,
+        "height": 194
+    },
+    "backpack-editor-en.webp": {
+        "width": 786,
+        "height": 530
+    },
+    "backpack-editor-pl.webp": {
+        "width": 786,
+        "height": 530
+    },
+    "backpack-en.webp": {
+        "width": 2120,
+        "height": 830
+    },
+    "backpack-pl.webp": {
+        "width": 2120,
+        "height": 830
+    },
+    "backpack-source-en.webp": {
+        "width": 642,
+        "height": 514
+    },
+    "backpack-source-pl.webp": {
+        "width": 642,
+        "height": 514
+    },
+    "build-files-en.webp": {
+        "width": 1176,
+        "height": 98
+    },
+    "build-files-pl.webp": {
+        "width": 1134,
+        "height": 98
+    },
+    "built-in-drifs-en.webp": {
+        "width": 682,
+        "height": 272
+    },
+    "built-in-drifs-pl.webp": {
+        "width": 682,
+        "height": 272
+    },
+    "capacity-en.webp": {
+        "width": 682,
+        "height": 390
+    },
+    "capacity-pl.webp": {
+        "width": 682,
+        "height": 390
+    },
+    "character-en.webp": {
+        "width": 2104,
+        "height": 274
+    },
+    "character-pl.webp": {
+        "width": 2104,
+        "height": 274
+    },
+    "comparison-en.webp": {
+        "width": 1618,
+        "height": 680
+    },
+    "comparison-pl.webp": {
+        "width": 1618,
+        "height": 680
+    },
+    "database-en.webp": {
+        "width": 642,
+        "height": 1340
+    },
+    "database-pl.webp": {
+        "width": 642,
+        "height": 1340
+    },
+    "drif-limits-en.webp": {
+        "width": 1204,
+        "height": 694
+    },
+    "drif-limits-pl.webp": {
+        "width": 1204,
+        "height": 694
+    },
+    "equipment-en.webp": {
+        "width": 738,
+        "height": 1214
+    },
+    "equipment-pl.webp": {
+        "width": 738,
+        "height": 1214
+    },
+    "equipment-removal-en.webp": {
+        "width": 1700,
+        "height": 74
+    },
+    "equipment-removal-pl.webp": {
+        "width": 1700,
+        "height": 74
+    },
+    "history-en.webp": {
+        "width": 330,
+        "height": 90
+    },
+    "history-pl.webp": {
+        "width": 358,
+        "height": 90
+    },
+    "labels-en.webp": {
+        "width": 452,
+        "height": 74
+    },
+    "labels-pl.webp": {
+        "width": 386,
+        "height": 74
+    },
+    "library-backup-en.webp": {
+        "width": 2104,
+        "height": 590
+    },
+    "library-backup-pl.webp": {
+        "width": 2104,
+        "height": 590
+    },
+    "library-en.webp": {
+        "width": 1028,
+        "height": 610
+    },
+    "library-pl.webp": {
+        "width": 1028,
+        "height": 610
+    },
+    "locks-en.webp": {
+        "width": 816,
+        "height": 1040
+    },
+    "locks-pl.webp": {
+        "width": 816,
+        "height": 1040
+    },
+    "maximization-en.webp": {
+        "width": 1204,
+        "height": 688
+    },
+    "maximization-pl.webp": {
+        "width": 1204,
+        "height": 688
+    },
+    "optimizer-config-en.webp": {
+        "width": 1216,
+        "height": 150
+    },
+    "optimizer-config-pl.webp": {
+        "width": 1216,
+        "height": 150
+    },
+    "optimizer-modes-en.webp": {
+        "width": 2092,
+        "height": 140
+    },
+    "optimizer-modes-pl.webp": {
+        "width": 2092,
+        "height": 140
+    },
+    "optimizer-result-en.webp": {
+        "width": 1076,
+        "height": 1346
+    },
+    "optimizer-result-pl.webp": {
+        "width": 1076,
+        "height": 1346
+    },
+    "optimizer-settings-en.webp": {
+        "width": 2048,
+        "height": 206
+    },
+    "optimizer-settings-pl.webp": {
+        "width": 2048,
+        "height": 220
+    },
+    "priorities-en.webp": {
+        "width": 1204,
+        "height": 492
+    },
+    "priorities-pl.webp": {
+        "width": 1204,
+        "height": 492
+    },
+    "progression-files-en.webp": {
+        "width": 722,
+        "height": 90
+    },
+    "progression-files-pl.webp": {
+        "width": 760,
+        "height": 90
+    },
+    "progression-options-en.webp": {
+        "width": 1820,
+        "height": 204
+    },
+    "progression-options-pl.webp": {
+        "width": 1820,
+        "height": 204
+    },
+    "progression-shopping-en.webp": {
+        "width": 2476,
+        "height": 1240
+    },
+    "progression-shopping-pl.webp": {
+        "width": 2476,
+        "height": 1240
+    },
+    "progression-source-en.webp": {
+        "width": 1820,
+        "height": 202
+    },
+    "progression-source-pl.webp": {
+        "width": 1820,
+        "height": 202
+    },
+    "progression-stage-en.webp": {
+        "width": 2434,
+        "height": 1124
+    },
+    "progression-stage-pl.webp": {
+        "width": 2434,
+        "height": 1124
+    },
+    "reorganization-en.webp": {
+        "width": 1224,
+        "height": 86
+    },
+    "reorganization-pl.webp": {
+        "width": 1224,
+        "height": 86
+    },
+    "reorganization-report-en.webp": {
+        "width": 1502,
+        "height": 1344
+    },
+    "reorganization-report-pl.webp": {
+        "width": 1502,
+        "height": 1344
+    },
+    "reorganization-reserve-en.webp": {
+        "width": 1288,
+        "height": 1214
+    },
+    "reorganization-reserve-pl.webp": {
+        "width": 1288,
+        "height": 1214
+    },
+    "reorganization-upgrade-en.webp": {
+        "width": 1224,
+        "height": 614
+    },
+    "reorganization-upgrade-pl.webp": {
+        "width": 1224,
+        "height": 614
+    },
+    "simple-profile-en.webp": {
+        "width": 1808,
+        "height": 512
+    },
+    "simple-profile-pl.webp": {
+        "width": 1808,
+        "height": 512
+    },
+    "stats-en.webp": {
+        "width": 1360,
+        "height": 1356
+    },
+    "stats-pl.webp": {
+        "width": 1360,
+        "height": 1356
+    },
+    "stone-levels-en.webp": {
+        "width": 840,
+        "height": 74
+    },
+    "stone-levels-pl.webp": {
+        "width": 840,
+        "height": 74
+    },
+    "variants-en.webp": {
+        "width": 1030,
+        "height": 276
+    },
+    "variants-pl.webp": {
+        "width": 1030,
+        "height": 276
+    }
+}
