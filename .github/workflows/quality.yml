@@ -21,6 +21,9 @@ jobs:
   changes:
     name: Select quality checks
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
     outputs:
       backend: ${{ steps.select.outputs.backend }}
       frontend: ${{ steps.select.outputs.frontend }}
@@ -35,6 +38,8 @@ jobs:
           node-version: "22"
       - name: Select checks from changed files
         id: select
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: node .github/scripts/select-quality-checks.mjs
 
   backend:

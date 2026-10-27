@@ -15,6 +15,7 @@ import { fileURLToPath } from "node:url";
 import { parse } from "yaml";
 import {
   classifyChanges,
+  findCoveringPullRequest,
   readChangedFiles,
   selectQualityChecks,
 } from "../.github/scripts/select-quality-checks.mjs";
@@ -240,6 +241,7 @@ test("Git diff covers multiple commits, both sides of a move and more than 300 f
       cwd: directory,
       env: {
         ...process.env,
+        GH_TOKEN: "",
         GITHUB_EVENT_NAME: "push",
         GITHUB_REF: "refs/heads/dev",
         GITHUB_EVENT_PATH: eventPath,
@@ -256,6 +258,161 @@ test("Git diff covers multiple commits, both sides of a move and more than 300 f
   assert.match(
     readFileSync(summaryPath, "utf8"),
     /Checks selected from the complete Git diff/,
+  );
+});
+
+const pushContext = {
+  eventName: "push",
+  ref: "refs/heads/dev",
+  sha: "c".repeat(40),
+  repository: "owner/project",
+  token: "test-token",
+};
+const coveringPull = {
+  number: 7,
+  state: "open",
+  mergeable: true,
+  head: {
+    sha: pushContext.sha,
+    ref: "dev",
+    repo: { full_name: pushContext.repository },
+  },
+  base: { ref: "master", repo: { full_name: pushContext.repository } },
+};
+const pullsResponse =
+  (pulls, detail = coveringPull) =>
+  async (url) => ({
+    ok: true,
+    json: async () => (url.pathname.endsWith("/7") ? detail : pulls),
+  });
+
+test("only a PR to master for the exact pushed commit replaces duplicate dev checks", async () => {
+  let requests = 0;
+  const number = await findCoveringPullRequest(
+    pushContext,
+    async (url, options) => {
+      requests++;
+      assert.equal(url.origin, "https://api.github.com");
+      if (requests === 1) {
+        assert.equal(url.pathname, "/repos/owner/project/pulls");
+        assert.equal(url.searchParams.get("head"), "owner:dev");
+        assert.equal(url.searchParams.get("base"), "master");
+        assert.equal(url.searchParams.get("state"), "open");
+      } else {
+        assert.equal(url.pathname, "/repos/owner/project/pulls/7");
+      }
+      assert.equal(options.headers.Authorization, "Bearer test-token");
+      return {
+        ok: true,
+        json: async () => (requests === 1 ? [coveringPull] : coveringPull),
+      };
+    },
+  );
+  assert.equal(requests, 2);
+  assert.equal(number, 7);
+  assert.equal(
+    await findCoveringPullRequest(pushContext, pullsResponse([])),
+    null,
+  );
+});
+
+test("conflicting PRs, unknown mergeability and a racing head update keep push verification", async () => {
+  for (const detail of [
+    { ...coveringPull, mergeable: false },
+    { ...coveringPull, mergeable: null },
+    { ...coveringPull, mergeable: undefined },
+    { ...coveringPull, number: 8 },
+    { ...coveringPull, state: "closed" },
+    { ...coveringPull, head: { ...coveringPull.head, sha: "d".repeat(40) } },
+  ]) {
+    assert.equal(
+      await findCoveringPullRequest(
+        pushContext,
+        pullsResponse([coveringPull], detail),
+      ),
+      null,
+    );
+  }
+  assert.equal(
+    await findCoveringPullRequest(pushContext, async (url) =>
+      url.pathname.endsWith("/7")
+        ? { ok: false }
+        : { ok: true, json: async () => [coveringPull] },
+    ),
+    null,
+  );
+});
+
+test("stale, closed, fork and other-target PRs cannot suppress push verification", async () => {
+  const mismatches = [
+    { ...coveringPull, number: "7" },
+    { ...coveringPull, state: "closed" },
+    { ...coveringPull, head: { ...coveringPull.head, sha: "d".repeat(40) } },
+    { ...coveringPull, head: { ...coveringPull.head, ref: "feature" } },
+    {
+      ...coveringPull,
+      head: { ...coveringPull.head, repo: { full_name: "fork/project" } },
+    },
+    { ...coveringPull, base: { ...coveringPull.base, ref: "dev" } },
+    {
+      ...coveringPull,
+      base: { ...coveringPull.base, repo: { full_name: "other/project" } },
+    },
+  ];
+  for (const pull of mismatches) {
+    assert.equal(
+      await findCoveringPullRequest(pushContext, pullsResponse([pull])),
+      null,
+    );
+  }
+});
+
+test("API errors, timeouts and malformed responses keep the push checks", async () => {
+  for (const request of [
+    async () => {
+      throw new Error("Network timeout");
+    },
+    async () => ({ ok: false }),
+    async () => ({
+      ok: true,
+      json: async () => {
+        throw new Error("Invalid JSON");
+      },
+    }),
+    pullsResponse({ message: "Not a pull request list" }),
+    pullsResponse([null, {}]),
+  ]) {
+    assert.equal(await findCoveringPullRequest(pushContext, request), null);
+  }
+});
+
+test("PRs, master, merge queue, manual and scheduled runs never check for duplicate pushes", async () => {
+  for (const overrides of [
+    { eventName: "pull_request" },
+    { eventName: "merge_group" },
+    { eventName: "schedule" },
+    { eventName: "workflow_dispatch" },
+    { ref: "refs/heads/master" },
+    { token: "" },
+    { sha: "" },
+    { repository: "" },
+  ]) {
+    let requested = false;
+    const result = await findCoveringPullRequest(
+      { ...pushContext, ...overrides },
+      async () => {
+        requested = true;
+        return { ok: true, json: async () => [coveringPull] };
+      },
+    );
+    assert.equal(result, null);
+    assert.equal(requested, false);
+  }
+  assert.equal(workflow.jobs.changes.permissions["pull-requests"], "read");
+  assert.equal(
+    workflow.jobs.changes.steps.find((step) => step.id === "select").env
+      .GH_TOKEN,
+    "${{ github.token }}",
   );
 });
 

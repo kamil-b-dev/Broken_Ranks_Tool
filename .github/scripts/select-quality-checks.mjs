@@ -85,15 +85,91 @@ export function selectQualityChecks(
   }
 }
 
+export async function findCoveringPullRequest(
+  { eventName, ref, sha, repository, token, apiUrl = "https://api.github.com" },
+  request = fetch,
+) {
+  if (
+    eventName !== "push" ||
+    ref !== "refs/heads/dev" ||
+    !sha ||
+    !repository ||
+    !token
+  ) {
+    return null;
+  }
+  try {
+    const url = new URL(`/repos/${repository}/pulls`, apiUrl);
+    url.search = new URLSearchParams({
+      state: "open",
+      base: "master",
+      head: `${repository.split("/")[0]}:dev`,
+      per_page: "100",
+    });
+    const options = {
+      headers: {
+        Accept: "application/vnd.github+json",
+        Authorization: `Bearer ${token}`,
+      },
+      signal: AbortSignal.timeout(10_000),
+    };
+    const response = await request(url, options);
+    if (!response.ok) return null;
+    const pulls = await response.json();
+    if (!Array.isArray(pulls)) return null;
+    const matchesPush = (pull) =>
+      Number.isSafeInteger(pull?.number) &&
+      pull.number > 0 &&
+      pull.state === "open" &&
+      pull.head?.sha === sha &&
+      pull.head?.ref === "dev" &&
+      pull.head?.repo?.full_name === repository &&
+      pull.base?.ref === "master" &&
+      pull.base?.repo?.full_name === repository;
+    const covering = pulls.find(matchesPush);
+    if (!covering) return null;
+    // GitHub does not start pull_request workflows for conflicting PRs. The list
+    // endpoint omits mergeability, so confirm it and the SHA in the detail response.
+    const detailResponse = await request(
+      new URL(`/repos/${repository}/pulls/${covering.number}`, apiUrl),
+      options,
+    );
+    if (!detailResponse.ok) return null;
+    const detail = await detailResponse.json();
+    return matchesPush(detail) &&
+      detail.number === covering.number &&
+      detail.mergeable === true
+      ? covering.number
+      : null;
+  } catch {
+    // API outages or missing permissions must preserve the push checks.
+    return null;
+  }
+}
+
 if (
   process.argv[1] &&
   import.meta.url === pathToFileURL(process.argv[1]).href
 ) {
-  const result = selectQualityChecks({
+  const context = {
     eventName: process.env.GITHUB_EVENT_NAME,
     ref: process.env.GITHUB_REF,
     event: JSON.parse(readFileSync(process.env.GITHUB_EVENT_PATH, "utf8")),
+  };
+  let result = selectQualityChecks(context);
+  const coveringPullRequest = await findCoveringPullRequest({
+    ...context,
+    sha: process.env.GITHUB_SHA,
+    repository: process.env.GITHUB_REPOSITORY,
+    token: process.env.GH_TOKEN,
+    apiUrl: process.env.GITHUB_API_URL,
   });
+  if (coveringPullRequest !== null) {
+    result = {
+      checks: allChecks(false),
+      reason: `Full verification of this exact commit runs in PR #${coveringPullRequest} to master; skipping duplicate push checks.`,
+    };
+  }
   appendFileSync(
     process.env.GITHUB_OUTPUT,
     Object.entries(result.checks)

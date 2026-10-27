@@ -142,6 +142,12 @@ widoczny w podsumowaniu przebiegu. Audyty zależności, kontenera i CodeQL zacho
 dotychczasowy zakres uruchomień. Kolejny commit w tym samym PR anuluje jego starsze
 przebiegi; pushe, kolejka scalania i kontrole cykliczne mają niezależne przebiegi.
 
+Push na `dev` pomija powtórne kontrole jakości, jeśli istnieje otwarty PR z `dev`
+do `master` dla dokładnie tego samego commita i GitHub potwierdzi możliwość
+scalenia. Pełne testy działają wtedy w PR na wyniku scalenia. Brak takiego PR,
+konflikt lub nieustalony stan scalania, niezgodność commita i błąd API zachowują
+zwykłe kontrole pusha. Audyty bezpieczeństwa i CodeQL nadal działają niezależnie.
+
 Szczegóły konfiguracji Railway, limitów zasobów i kontroli po wdrożeniu opisuje
 [`DEPLOYMENT.md`](DEPLOYMENT.md).
 
