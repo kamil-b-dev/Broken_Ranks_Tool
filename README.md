@@ -114,9 +114,33 @@ z pełnym przeszukaniem nadal wymaga statusu `OPTIMAL` i zgodności wyniku.
 Podobna regresja jest opisana w [google/or-tools#5003](https://github.com/google/or-tools/issues/5003).
 
 Zmiany trafiają na gałąź `dev`. Po testach i przeglądzie pull request scala `dev`
-do `master`; `master` jest źródłem wdrożenia produkcyjnego. GitHub Actions uruchamia
-testy jakości dla obu gałęzi, audyt zależności dla pull requestów i pełny smoke test
-kontenera po zmianie `master`.
+do `master`; `master` jest źródłem wdrożenia produkcyjnego.
+
+GitHub Actions dobiera testy jakości dla PR-ów do `dev` i pushów na `dev` według
+zmienionych plików:
+
+| Zmiana                                                      | Weryfikacja jakości                                                               |
+| ----------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| Markdown, raporty CSV w `docs/`, `LICENSE`, `NOTICE`        | Bez testów aplikacji                                                              |
+| Backend                                                     | Pełne testy backendu, benchmark pamięci, infrastruktura i integracja API          |
+| Frontend                                                    | Pełne testy frontendu z coverage, build, przeglądarki, wydajność i integracja API |
+| Główne `package.json` / `package-lock.json`                 | Infrastruktura i integracja API                                                   |
+| `.railway/`                                                 | Lint, typecheck i testy infrastruktury                                            |
+| Kontrakty, CI, konfiguracja budowania i nierozpoznane pliki | Pełny zestaw                                                                      |
+
+Zmiany frontendu uruchamiają również testy infrastruktury sprawdzające format
+zapisu. Backend potrzebny do integracji jest wtedy pakowany bez ponownego
+uruchamiania jego testów. Zmiany obejmujące kilka obszarów łączą ich kontrole.
+Lista pochodzi z pełnego diffu Git, z uwzględnieniem usunięć i przeniesień;
+brak możliwości porównania powoduje uruchomienie wszystkich kontroli.
+
+Pełny zestaw jakości uruchamia się dla PR-ów do `master`, pushów na `master`,
+kolejki scalania, raz w tygodniu na gałęzi domyślnej oraz ręcznie przez **Run workflow**
+w workflowie **Quality checks**. Pełny smoke test kontenera działa po pushu na
+`master`. Nazwy dotychczasowych zadań pozostają zachowane, a wybór kontroli jest
+widoczny w podsumowaniu przebiegu. Audyty zależności, kontenera i CodeQL zachowują
+dotychczasowy zakres uruchomień. Kolejny commit w tym samym PR anuluje jego starsze
+przebiegi; pushe, kolejka scalania i kontrole cykliczne mają niezależne przebiegi.
 
 Szczegóły konfiguracji Railway, limitów zasobów i kontroli po wdrożeniu opisuje
 [`DEPLOYMENT.md`](DEPLOYMENT.md).
