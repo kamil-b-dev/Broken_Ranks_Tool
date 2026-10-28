@@ -97,10 +97,7 @@ public final class OptimizationLargeNeighborhoodSearch {
                 if (control.exhausted()) break;
                 expanded.addAll(neighborGenerator.generate(state, slot, context, control));
             }
-            beam =
-                    neighborhoodSupport.retainApproximateBeam(expanded, context).stream()
-                            .limit(GROUP_BEAM_WIDTH)
-                            .toList();
+            beam = neighborhoodSupport.retainApproximateBeam(expanded, GROUP_BEAM_WIDTH, context);
             if (beam.isEmpty() || control.exhausted()) break;
         }
         return bestActualFinalist(current, beam, context, control);

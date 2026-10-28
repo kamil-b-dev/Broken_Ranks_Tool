@@ -71,4 +71,60 @@ class BuildStateTests {
         assertEquals("helmet:_,_", source.signature());
         assertSame(second, copy.slots().get("helmet").get(0));
     }
+
+    @Test
+    void retainsExactSeparatorsEmptySlotsAndLexicalSlotOrder() {
+        var state = new BuildState();
+        state.putSlot("ring2", Arrays.asList(null, first, second));
+        state.putSlot("ring10", List.of(second));
+        state.putSlot("boots", List.of());
+        assertEquals("boots:|ring10:2@6|ring2:_,1@1,2@6", state.signature());
+        state.putSlot("ring10", List.of(first));
+        assertEquals("boots:|ring10:1@1|ring2:_,1@1,2@6", state.signature());
+    }
+
+    @Test
+    void addingSlotsInvalidatesOnlyTheModifiedBranchOfCachedCopyTrees() {
+        var source = new BuildState();
+        source.putSlot("helmet", Arrays.asList(first, null));
+        source.putSlot("boots", List.of(second));
+        String initial = source.signature();
+        var child = source.copy();
+        var sibling = child.copy();
+
+        source.putSlot("armor", List.of(first));
+        child.setPlacement("helmet", 1, second);
+        child.putSlot("ring1", List.of(second));
+
+        assertEquals("armor:1@1|boots:2@6|helmet:1@1,_", source.signature());
+        assertEquals("boots:2@6|helmet:1@1,2@6|ring1:2@6", child.signature());
+        assertEquals(initial, sibling.signature());
+        sibling.setPlacement("helmet", 0, second);
+        assertEquals("boots:2@6|helmet:2@6,_", sibling.signature());
+    }
+
+    @Test
+    void anEmptyCachedStateCanBeCopiedAndExtendedIndependently() {
+        var state = new BuildState();
+        assertEquals("", state.signature());
+        var copy = state.copy();
+        copy.putSlot("helmet", List.of(first));
+        assertEquals("helmet:1@1", copy.signature());
+        assertEquals("", state.signature());
+        state.putSlot("boots", List.of(second));
+        assertEquals("boots:2@6", state.signature());
+        assertEquals("helmet:1@1", copy.signature());
+    }
+
+    @Test
+    void encodesLongAndMissingTemplateIdsExactlyAsBefore() {
+        var large = drif(Long.MAX_VALUE, DRIF_BONUS_TYPE.CRITICAL_CHANCE);
+        var missing = drif(0, DRIF_BONUS_TYPE.DAMAGE_MAGIC);
+        missing.setId(null);
+        var state = new BuildState();
+        state.putSlot(
+                "helmet",
+                List.of(new Placement(large, 21, false), new Placement(missing, 1, false)));
+        assertEquals("helmet:9223372036854775807@21,null@1", state.signature());
+    }
 }

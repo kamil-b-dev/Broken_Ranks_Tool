@@ -58,15 +58,20 @@ public class StatsAccumulator {
 
         try {
             double parsedValue = Double.parseDouble(cleanValue);
-            double totalValue = parsedValue * multiplier;
-
-            addFiniteValue(isPercent ? percentStats : flatStats, statName, totalValue);
-            record(statName, parsedValue, totalValue, isPercent);
+            addNumericValue(statName, parsedValue, isPercent, multiplier);
         } catch (NumberFormatException exception) {
             throw new IllegalArgumentException(
                     "Niepoprawna wartość statystyki " + statName + ": " + rawValue + ".",
                     exception);
         }
+    }
+
+    /** Adds an already parsed value without formatting it back to text. */
+    public void addNumericValue(
+            String statName, double value, boolean percentage, double multiplier) {
+        double totalValue = value * multiplier;
+        addFiniteValue(percentage ? percentStats : flatStats, statName, totalValue);
+        record(statName, value, totalValue, percentage);
     }
 
     /**

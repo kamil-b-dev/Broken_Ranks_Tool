@@ -1,6 +1,9 @@
 name: Quality checks
 
 on:
+  workflow_dispatch:
+  schedule:
+    - cron: "29 3 * * 1"
   push:
     branches: [dev, master]
   pull_request:
@@ -10,9 +13,39 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
+  changes:
+    name: Select quality checks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      backend: ${{ steps.select.outputs.backend }}
+      frontend: ${{ steps.select.outputs.frontend }}
+      infrastructure: ${{ steps.select.outputs.infrastructure }}
+      integration: ${{ steps.select.outputs.integration }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22"
+      - name: Select checks from changed files
+        id: select
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node .github/scripts/select-quality-checks.mjs
+
   backend:
     name: Backend tests
+    needs: changes
+    if: ${{ !cancelled() && (needs.changes.result != 'success' || needs.changes.outputs.backend == 'true' || needs.changes.outputs.integration == 'true') }}
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -30,10 +63,15 @@ jobs:
           cache-dependency-path: Broken_Ranks_Tool_Backend/pom.xml
 
       - name: Verify backend
-        run: ./mvnw --batch-mode clean verify
+        if: needs.changes.result != 'success' || needs.changes.outputs.backend == 'true'
+        run: ./mvnw --batch-mode --no-transfer-progress clean verify
+
+      - name: Package backend for frontend-only integration
+        if: needs.changes.result == 'success' && needs.changes.outputs.backend != 'true'
+        run: ./mvnw --batch-mode --no-transfer-progress -DskipTests package
 
       - name: Upload backend coverage
-        if: always()
+        if: always() && (needs.changes.result != 'success' || needs.changes.outputs.backend == 'true')
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: backend-coverage
@@ -41,6 +79,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Upload backend for API integration tests
+        if: needs.changes.result != 'success' || needs.changes.outputs.integration == 'true'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: integration-backend
@@ -48,12 +87,15 @@ jobs:
           if-no-files-found: error
 
       - name: Verify repeated optimization under constrained heap
+        if: needs.changes.result != 'success' || needs.changes.outputs.backend == 'true'
         env:
           JAVA_TOOL_OPTIONS: "-Xmx128m"
-        run: ./mvnw --batch-mode -Dtest=OptimizationArcherPerformanceBenchmark -Doptimizer.memory.repetitions=3 test
+        run: ./mvnw --batch-mode --no-transfer-progress -Dtest=OptimizationArcherPerformanceBenchmark -Doptimizer.memory.repetitions=3 test
 
   infrastructure:
     name: Infrastructure lint and API contract checks
+    needs: changes
+    if: ${{ !cancelled() && (needs.changes.result != 'success' || needs.changes.outputs.infrastructure == 'true') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -67,13 +109,15 @@ jobs:
       - run: npm run typecheck
       - run: npm run test:contracts
       - run: npm run test:dependency-policy
+      - run: npm run test:ci
       - name: Test smoke assertions
         shell: pwsh
         run: ./scripts/smoke-assertions.tests.ps1
 
   integration:
     name: Real frontend-backend integration
-    needs: backend
+    needs: [changes, backend]
+    if: ${{ !cancelled() && needs.backend.result == 'success' && (needs.changes.result != 'success' || needs.changes.outputs.integration == 'true') }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -86,7 +130,9 @@ jobs:
         with:
           node-version: "22"
           cache: npm
-          cache-dependency-path: Broken_Ranks_Tool_Frontend/package-lock.json
+          cache-dependency-path: |
+            package-lock.json
+            Broken_Ranks_Tool_Frontend/package-lock.json
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: integration-backend
@@ -143,6 +189,8 @@ jobs:
 
   frontend:
     name: Frontend checks
+    needs: changes
+    if: ${{ !cancelled() && (needs.changes.result != 'success' || needs.changes.outputs.frontend == 'true') }}
     runs-on: ubuntu-24.04
     defaults:
       run:

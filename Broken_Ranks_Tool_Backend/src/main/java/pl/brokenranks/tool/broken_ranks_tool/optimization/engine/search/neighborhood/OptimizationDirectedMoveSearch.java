@@ -57,8 +57,7 @@ final class OptimizationDirectedMoveSearch {
 
     private List<BuildState> finalists(List<BuildState> candidates, OptimizationContext context) {
         Map<String, BuildState> finalists = new LinkedHashMap<>();
-        neighborhoodSupport.retainApproximateBeam(candidates, context).stream()
-                .limit(DIRECTED_FINALISTS)
+        neighborhoodSupport.retainApproximateBeam(candidates, DIRECTED_FINALISTS, context).stream()
                 .forEach(state -> finalists.putIfAbsent(state.signature(), state));
         if (context.request().getMaximizeBonuses() != null) {
             for (DRIF_BONUS_TYPE type : context.request().getMaximizeBonuses()) {

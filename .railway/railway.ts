@@ -8,7 +8,7 @@ export default defineRailway(() => {
         env: {
             SPRING_PROFILES_ACTIVE: "prod",
             JAVA_TOOL_OPTIONS:
-                "-Xms128m -Xmx2g -XX:MaxMetaspaceSize=256m -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError",
+                "-Xms128m -Xmx2g -XX:MaxMetaspaceSize=256m -XX:+UseG1GC -XX:G1PeriodicGCInterval=60000 -XX:+G1PeriodicGCInvokesConcurrent -XX:+ExitOnOutOfMemoryError",
             OPTIMIZER_MAX_CONCURRENT_RUNS: "1",
             // Forwarded addresses are ignored until TRUSTED_PROXY_REGEX is set to exact proxy IPs.
             // Equal client/global values keep the process-wide protection effective meanwhile.

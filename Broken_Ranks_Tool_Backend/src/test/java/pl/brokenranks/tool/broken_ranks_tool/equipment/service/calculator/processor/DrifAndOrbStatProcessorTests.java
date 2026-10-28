@@ -15,7 +15,6 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ORB_BONUS_TY
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ORB_CATEGORY;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.ORB_SIZE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.RARITY;
-import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.DrifValueCalculator;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRulesRegistry;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
@@ -73,11 +72,7 @@ class DrifAndOrbStatProcessorTests {
         state.getDrifCounts().put(DRIF_BONUS_TYPE.CRITICAL_CHANCE, 4);
 
         DrifStatProcessor processor =
-                new DrifStatProcessor(
-                        placementRules,
-                        levelPolicy,
-                        new EquipmentRulesRegistry(),
-                        new DrifValueCalculator());
+                new DrifStatProcessor(placementRules, levelPolicy, new EquipmentRulesRegistry());
         processor.process("helmet", slot, item, 0.0, state);
 
         assertEquals(

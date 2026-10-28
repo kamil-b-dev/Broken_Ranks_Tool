@@ -25,7 +25,6 @@ public class DrifStatProcessor {
     private final EquipmentPlacementRules placementRules;
     private final UpgradeLevelPolicy levelPolicy;
     private final EquipmentRulesRegistry rules;
-    private final DrifValueCalculator valueCalculator;
 
     public void process(
             String slotKey,
@@ -60,8 +59,11 @@ public class DrifStatProcessor {
             int globalCountForThisDrif = state.getDrifCounts().getOrDefault(drif.getBonusType(), 1);
             double penaltyMultiplier = rules.getDrifPenalty(globalCountForThisDrif);
 
-            String calculatedStatValue =
-                    valueCalculator.calculate(drif.getBaseValue(), drif.getIncrement(), finalLvl);
+            double calculatedStatValue =
+                    DrifValueCalculator.calculateNumeric(
+                            drif.getBaseValue(), drif.getIncrement(), finalLvl);
+            boolean percentage =
+                    drif.getBaseValue().contains("%") || drif.getIncrement().contains("%");
             double finalMultiplier = (1.0 + drifMod) * penaltyMultiplier;
 
             if (state.getAccumulator().isTracing()) {
@@ -89,7 +91,11 @@ public class DrifStatProcessor {
             }
 
             state.getAccumulator()
-                    .addRawValue(drif.getBonusType().name(), calculatedStatValue, finalMultiplier);
+                    .addNumericValue(
+                            drif.getBonusType().name(),
+                            calculatedStatValue,
+                            percentage,
+                            finalMultiplier);
         }
     }
 }

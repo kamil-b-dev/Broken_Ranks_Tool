@@ -124,7 +124,7 @@ abstract class AdvisorOptimizationTestSupport {
                                 new DrifSecurityValidator(placement, levels),
                                 itemProcessor,
                                 orbProcessor,
-                                new DrifStatProcessor(placement, levels, rules, values),
+                                new DrifStatProcessor(placement, levels, rules),
                                 new DrifCounter(placement),
                                 new CalculationMetadataFactory(),
                                 new SlotDrifSelectionFactory()));
