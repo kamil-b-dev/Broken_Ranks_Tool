@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /** Mutable candidate equipment state with a lazily cached stable signature. */
 public final class BuildState {
@@ -15,6 +14,7 @@ public final class BuildState {
     private final Map<String, List<Placement>> readOnlySlots =
             Collections.unmodifiableMap(slotViews);
     private String cachedSignature;
+    private List<String> sortedSlotKeys;
 
     public Map<String, List<Placement>> slots() {
         return readOnlySlots;
@@ -24,7 +24,7 @@ public final class BuildState {
     public void putSlot(String slotKey, List<Placement> placements) {
         Objects.requireNonNull(slotKey, "slotKey");
         List<Placement> owned = new ArrayList<>(placements);
-        slots.put(slotKey, owned);
+        if (slots.put(slotKey, owned) == null) sortedSlotKeys = null;
         slotViews.put(slotKey, Collections.unmodifiableList(owned));
         cachedSignature = null;
     }
@@ -33,31 +33,33 @@ public final class BuildState {
         BuildState copy = new BuildState();
         slots.forEach(copy::putSlot);
         copy.cachedSignature = cachedSignature;
+        copy.sortedSlotKeys = sortedSlotKeys;
         return copy;
     }
 
     public String signature() {
         if (cachedSignature == null) {
-            cachedSignature =
-                    slots.entrySet().stream()
-                            .sorted(Map.Entry.comparingByKey())
-                            .map(
-                                    entry ->
-                                            entry.getKey()
-                                                    + ":"
-                                                    + entry.getValue().stream()
-                                                            .map(
-                                                                    placement ->
-                                                                            placement == null
-                                                                                    ? "_"
-                                                                                    : placement
-                                                                                                    .drif()
-                                                                                                    .getId()
-                                                                                            + "@"
-                                                                                            + placement
-                                                                                                    .level())
-                                                            .collect(Collectors.joining(",")))
-                            .collect(Collectors.joining("|"));
+            if (sortedSlotKeys == null) {
+                sortedSlotKeys = slots.keySet().stream().sorted().toList();
+            }
+            StringBuilder signature = new StringBuilder(128);
+            for (String key : sortedSlotKeys) {
+                if (!signature.isEmpty()) signature.append('|');
+                signature.append(key).append(':');
+                List<Placement> placements = slots.get(key);
+                for (int index = 0; index < placements.size(); index++) {
+                    if (index > 0) signature.append(',');
+                    Placement placement = placements.get(index);
+                    if (placement == null) signature.append('_');
+                    else {
+                        Long id = placement.drif().getId();
+                        if (id == null) signature.append("null");
+                        else signature.append(id.longValue());
+                        signature.append('@').append(placement.level());
+                    }
+                }
+            }
+            cachedSignature = signature.toString();
         }
         return cachedSignature;
     }

@@ -183,6 +183,18 @@ $env:JAVA_TOOL_OPTIONS = "-Xmx128m"
 Remove-Item Env:JAVA_TOOL_OPTIONS
 ```
 
+The manual `EquipmentCalculationPerformanceBenchmark` measures CPU and allocations in the
+shared prepared calculator. See the [calculator measurements](docs/wydajnosc-kalkulatora-2026-10-28.md)
+for the procedure, observed reductions, and limits of the local comparison.
+
+Neighborhood beam selection uses the same ranking and width with bounded top-k selection.
+See the [search measurements](docs/wydajnosc-wyszukiwania-2026-10-28.md) for the selection
+benchmark and the before/after build and search-budget comparison.
+
+Search-state signatures also reuse immutable slot ordering and avoid temporary per-slot
+strings. See the [state-signature measurements](docs/wydajnosc-sygnatur-stanow-2026-10-28.md)
+for allocation measurements and the exact-output comparison.
+
 Public calculation endpoints are protected by per-client and whole-instance, one-minute request
 limits. The checked-in Railway configuration initially uses the global allowance as the client
 allowance: 20 optimizer requests, 600 calculator requests, 300 control requests, and 3000 public

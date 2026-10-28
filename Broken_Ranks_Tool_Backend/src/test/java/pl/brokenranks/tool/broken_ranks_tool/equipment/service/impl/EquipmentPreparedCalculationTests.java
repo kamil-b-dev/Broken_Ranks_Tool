@@ -40,7 +40,7 @@ class EquipmentPreparedCalculationTests {
                         new DrifSecurityValidator(placement, levels),
                         new ItemStatProcessor(),
                         new OrbStatProcessor(placement, new OrbSecurityValidator()),
-                        new DrifStatProcessor(placement, levels, rules, new DrifValueCalculator()),
+                        new DrifStatProcessor(placement, levels, rules),
                         new DrifCounter(placement),
                         new CalculationMetadataFactory(),
                         new SlotDrifSelectionFactory());

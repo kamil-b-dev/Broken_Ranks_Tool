@@ -42,7 +42,7 @@ record OptimizationCalculatorFixture(
                         new DrifSecurityValidator(placement, levels),
                         itemProcessor,
                         new OrbStatProcessor(placement, new OrbSecurityValidator()),
-                        new DrifStatProcessor(placement, levels, rules, new DrifValueCalculator()),
+                        new DrifStatProcessor(placement, levels, rules),
                         new DrifCounter(placement),
                         new CalculationMetadataFactory(),
                         new SlotDrifSelectionFactory());

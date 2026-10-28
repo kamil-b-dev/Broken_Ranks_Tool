@@ -6,8 +6,49 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.StatContributionDto;
 
 class StatsAccumulatorTests {
+
+    @ParameterizedTest
+    @CsvSource({"2.35, true, 1.15", "-2.35, true, 0.95", "0, false, 1", "12.34, false, 1.08"})
+    void numericValuesPreserveFormattedResultsRoundingAndExplanation(
+            double value, boolean percentage, double multiplier) {
+        var numeric = new StatsAccumulator(true);
+        var text = new StatsAccumulator(true);
+        var source = StatContributionDto.Source.builder().kind("DRIF").build();
+        numeric.setSource(source);
+        text.setSource(source);
+        numeric.addNumericValue("Bonus", value, percentage, multiplier);
+        text.addRawValue("Bonus", value + (percentage ? "%" : ""), multiplier);
+        assertEquals(text.getNumericResults(), numeric.getNumericResults());
+        assertEquals(text.getFormattedResults(), numeric.getFormattedResults());
+        assertEquals(text.getContributions(), numeric.getContributions());
+    }
+
+    @Test
+    void numericValuesRejectNonFiniteProductsAndOverflowWithoutChangingPreviousValues() {
+        var accumulator = new StatsAccumulator();
+        accumulator.addNumericValue("Bonus", Double.MAX_VALUE, true, 1);
+        for (double invalid :
+                new double[] {Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY}) {
+            assertThrows(
+                    IllegalArgumentException.class,
+                    () -> accumulator.addNumericValue("Bonus", invalid, true, 1));
+            assertThrows(
+                    IllegalArgumentException.class,
+                    () -> accumulator.addNumericValue("Bonus", 1, true, invalid));
+        }
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> accumulator.addNumericValue("Bonus", Double.MAX_VALUE, true, 2));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> accumulator.addNumericValue("Bonus", Double.MAX_VALUE, true, 1));
+        assertEquals(Map.of("Bonus", Double.MAX_VALUE), accumulator.getNumericResults());
+    }
 
     @Test
     void rejectsNonFiniteValuesAndAccumulationOverflowWithoutCorruptingTheSnapshot() {

@@ -1,6 +1,9 @@
 package pl.brokenranks.tool.broken_ranks_tool.optimization.engine.evaluation;
 
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
+import java.util.PriorityQueue;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_SIZE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.EquipmentRulesRegistry;
@@ -41,6 +44,36 @@ public final class OptimizationStateEvaluator {
             return left.signature().compareTo(right.signature());
         };
     }
+
+    /** Selects the same stable prefix as a full sort, evaluating each candidate only once. */
+    public List<BuildState> bestStates(
+            List<BuildState> states, int limit, OptimizationContext context) {
+        if (limit <= 0 || states.isEmpty()) return List.of();
+        Comparator<RankedState> order =
+                (left, right) -> {
+                    int comparison = qualityComparator.compare(left.quality(), right.quality());
+                    if (comparison != 0) return -comparison;
+                    comparison = left.state().signature().compareTo(right.state().signature());
+                    return comparison != 0
+                            ? comparison
+                            : Integer.compare(left.index(), right.index());
+                };
+        var retained = new PriorityQueue<>(Math.min(limit, states.size()), order.reversed());
+        for (int index = 0; index < states.size(); index++) {
+            BuildState state = states.get(index);
+            var ranked = new RankedState(state, quality(state, context), index);
+            if (retained.size() < limit) retained.add(ranked);
+            else if (order.compare(ranked, retained.peek()) < 0) {
+                retained.poll();
+                retained.add(ranked);
+            }
+        }
+        var sorted = new ArrayList<>(retained);
+        sorted.sort(order);
+        return sorted.stream().map(RankedState::state).toList();
+    }
+
+    private record RankedState(BuildState state, Quality quality, int index) {}
 
     public double score(BuildState state, OptimizationContext context) {
         return scoreCalculator.score(evaluation(state, context), context);

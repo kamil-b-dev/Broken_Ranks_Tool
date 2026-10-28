@@ -22,8 +22,9 @@ public class DrifValueCalculator {
     private static BigDecimal calculateDecimal(String baseValue, String incrementValue, int level) {
         BigDecimal total = ModifierNumbers.decimal(baseValue, "drif.baseValue");
         BigDecimal increment = ModifierNumbers.decimal(incrementValue, "drif.increment");
-        for (int currentLevel = 2; currentLevel <= level; currentLevel++) {
-            total = total.add(currentLevel >= 19 ? increment.multiply(BigDecimal.TWO) : increment);
+        long increments = Math.max(0L, (long) level - 1) + Math.max(0L, (long) level - 18);
+        if (increments > 0) {
+            total = total.add(increment.multiply(BigDecimal.valueOf(increments)));
         }
         ModifierNumbers.finite(total.doubleValue(), "wynik drifa");
         return total.setScale(2, RoundingMode.HALF_UP);

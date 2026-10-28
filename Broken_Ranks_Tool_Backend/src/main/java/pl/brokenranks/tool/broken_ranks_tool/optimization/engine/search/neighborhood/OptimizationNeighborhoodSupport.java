@@ -39,12 +39,11 @@ final class OptimizationNeighborhoodSupport {
         return new ArrayList<>(levels);
     }
 
-    List<BuildState> retainApproximateBeam(List<BuildState> states, OptimizationContext context) {
+    List<BuildState> retainApproximateBeam(
+            List<BuildState> states, int limit, OptimizationContext context) {
         Map<String, BuildState> unique = new LinkedHashMap<>();
         states.forEach(state -> unique.putIfAbsent(state.signature(), state));
-        List<BuildState> retained = new ArrayList<>(unique.values());
-        retained.sort((left, right) -> compareApproximate(left, right, context));
-        return retained;
+        return stateEvaluator.bestStates(new ArrayList<>(unique.values()), limit, context);
     }
 
     boolean containsBonusExcept(
@@ -66,9 +65,5 @@ final class OptimizationNeighborhoodSupport {
     boolean isSlotLocked(SlotContext slot, OptimizationContext context) {
         return context.request().getLockedSlots() != null
                 && context.request().getLockedSlots().contains(slot.key());
-    }
-
-    private int compareApproximate(BuildState left, BuildState right, OptimizationContext context) {
-        return stateEvaluator.stateComparator(context).compare(left, right);
     }
 }
