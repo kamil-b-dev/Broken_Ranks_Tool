@@ -1,6 +1,6 @@
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, expect, it, vi } from "vitest";
 import { useState } from "react";
 import HelpProvider from "./HelpProvider";
 import HelpButton from "./HelpButton";
@@ -13,6 +13,10 @@ import { useMobileBuilderRoute } from "../builder/mobile/useMobileBuilderRoute";
 import { useMobileOptimizerNavigation } from "../optimizer/mobile/useMobileOptimizerNavigation";
 
 vi.mock("../equipment/useEquipmentCatalog", () => ({ requestEquipmentCatalog: vi.fn() }));
+
+beforeAll(async () => {
+    await import("./HelpSurfaces");
+});
 
 beforeEach(() => {
     window.history.replaceState(null, "", "/builder?slot=helmet");
@@ -82,7 +86,7 @@ it("preserves the working view and nested mobile route through help history and 
     const opener = screen.getByRole("link", { name: "Instrukcja", exact: true });
     await user.click(opener);
     expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
-    await user.click(screen.getByText("Plecak i historia zmian", { exact: true }));
+    await user.click(await screen.findByText("Plecak i historia zmian", { exact: true }));
     await user.click(
         within(screen.getByRole("navigation", { name: "Tematy pomocy" })).getByRole("link", {
             name: "Plecak",
@@ -169,7 +173,7 @@ it("keeps related topic links valid across the help catalog", () => {
 it("moves from the dialog to the full help page without losing the originating URL", async () => {
     renderHelp();
     await userEvent.click(screen.getByRole("link", { name: "Jak korzystać?" }));
-    await userEvent.click(screen.getByRole("link", { name: "Wszystkie tematy" }));
+    await userEvent.click(await screen.findByRole("link", { name: "Wszystkie tematy" }));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(window.location.href).toContain("/help?topic=advisor");
     await userEvent.click(screen.getByRole("button", { name: "Wróć do aplikacji" }));
