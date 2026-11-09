@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { HttpResponse, http } from "msw";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import App from "../App";
 import { EquipmentProvider } from "../EquipmentProvider";
 import { readEquipmentDraft } from "../storage/workingDraftStorage";
@@ -55,6 +55,10 @@ const savedBuild = (stars = 7) => ({
 });
 
 describe("mobile application integration", () => {
+    beforeAll(async () => {
+        await import("../../features/builder/mobile/MobileBuilderWorkspace");
+    });
+
     beforeEach(() => {
         localStorage.clear();
         sessionStorage.clear();
