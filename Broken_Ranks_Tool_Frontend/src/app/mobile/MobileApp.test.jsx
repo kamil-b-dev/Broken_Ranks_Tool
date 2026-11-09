@@ -111,7 +111,7 @@ describe("mobile application integration", () => {
         await home();
         await user.click(screen.getByRole("button", { name: "Otwórz build: Build 1" }));
         await screen.findByText("Kreator ekwipunku", { selector: "span.mobile-eyebrow" });
-        expect(readEquipmentDraft().requestData.slots.helmet.itemId).toBe(1);
+        await waitFor(() => expect(readEquipmentDraft()?.requestData.slots.helmet?.itemId).toBe(1));
         await home();
         await user.click(screen.getByRole("button", { name: "Otwórz bibliotekę" }));
         expect(await screen.findByRole("heading", { name: "Buildy lokalne" })).toBeVisible();
