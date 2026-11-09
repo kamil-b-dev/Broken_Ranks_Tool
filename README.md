@@ -22,7 +22,7 @@ etapy; odtwarza je po wygenerowaniu zgodnego planu z aktualnego API.
 
 ## Uruchomienie lokalne
 
-Wymagane są Java 21 i Node.js 22.13 lub nowszy. Najpierw uruchom API:
+Wymagane są Java 21 i Node.js 22 LTS w wersji co najmniej 22.22.2. Najpierw uruchom API:
 
 ```powershell
 cd Broken_Ranks_Tool_Backend
