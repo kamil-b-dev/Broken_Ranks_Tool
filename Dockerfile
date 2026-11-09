@@ -19,7 +19,8 @@ RUN ./mvnw -B -DskipTests package
 FROM eclipse-temurin:21-jre-jammy@sha256:affcab5356e1270ac35d2361ee83135af2f03e8d580eca78a6d5d6fdbf048db0 AS runtime
 WORKDIR /app
 RUN apt-get update \
-    && apt-get install --only-upgrade --no-install-recommends -y libssl3 openssl \
+    && apt-get install -o Acquire::Retries=0 --only-upgrade --no-install-recommends -y \
+        apt libapt-pkg6.0 libbrotli1 libssl3 openssl \
     && rm -rf /var/lib/apt/lists/* \
     && groupadd --system app && useradd --system --gid app --home-dir /app app \
     && mkdir -p /app/data
