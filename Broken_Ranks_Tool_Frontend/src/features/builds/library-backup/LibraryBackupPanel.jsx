@@ -63,6 +63,11 @@ export default function LibraryBackupPanel({ library, data }) {
     };
     return (
         <section className="library-backup" aria-label={t("Kopia całej biblioteki")}>
+            <p>
+                {t(
+                    "Kopia obejmuje zapisane buildy i ich plecaki. Nie obejmuje roboczego szkicu ani lokalnego postępu planera."
+                )}
+            </p>
             <div className="library-backup-actions">
                 <button
                     type="button"

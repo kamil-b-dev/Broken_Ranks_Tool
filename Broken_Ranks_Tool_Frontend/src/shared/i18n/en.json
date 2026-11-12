@@ -1399,5 +1399,21 @@
     "Pominięto {0} skórek.": "Skipped {0} skins.",
     "Eksport zawiera powtórzone ID wyposażenia.": "The export contains duplicate equipment IDs.",
     "Ten sam przedmiot o ID {0} jest założony więcej niż raz.": "The same item with ID {0} is equipped more than once.",
-    "Zachowano bazowe statystyki postaci bez rozdziału punktów: nie pasują do zasad rozwoju (poziom {0}, punkty {1}/{2}).": "Base character stats were preserved without a point allocation: they do not match the development rules (level {0}, points {1}/{2})."
+    "Zachowano bazowe statystyki postaci bez rozdziału punktów: nie pasują do zasad rozwoju (poziom {0}, punkty {1}/{2}).": "Base character stats were preserved without a point allocation: they do not match the development rules (level {0}, points {1}/{2}).",
+    "Informacje o projekcie": "Project information",
+    "Zgłoś błąd": "Report a bug",
+    "Kod źródłowy": "Source code",
+    "Licencja AGPL-3.0": "AGPL-3.0 licence",
+    "O projekcie i danych": "About this project and your data",
+    "Broken Ranks Tool to nieoficjalny projekt fanowski autorstwa kamil-b-dev, niezwiązany z Whitemoon Games. Nazwa Broken Ranks oraz materiały gry należą do ich właścicieli.": "Broken Ranks Tool is an unofficial fan project by kamil-b-dev, unaffiliated with Whitemoon Games. The Broken Ranks name and game materials belong to their respective owners.",
+    "Dane w przeglądarce": "Data in your browser",
+    "Buildy, plecak, roboczy szkic, postęp i ustawienia są zapisywane lokalnie w tej przeglądarce. Usunięcie danych witryny usuwa te zapisy. Inne urządzenie lub adres strony ma osobny magazyn danych.": "Builds, backpack, working draft, progress and settings are stored locally in this browser. Deleting site data removes these records. A different device or site address has separate storage.",
+    "Przed zmianą przeglądarki lub usunięciem danych pobierz bibliotekę w widoku Buildy lokalne. Kopia obejmuje zapisane buildy i ich plecaki; nie obejmuje roboczego szkicu ani lokalnego postępu planera. Najpierw zapisz szkic jako build, a projekt ścieżki pobierz osobno w widoku Rozwój.": "Before changing browsers or deleting site data, download your library from Local builds. The backup includes saved builds and their backpacks; it does not include the working draft or local planner progress. Save the draft as a build first, and download the progression project separately from Progression.",
+    "Obliczenia i hosting": "Calculations and hosting",
+    "Dane potrzebne do obliczeń są wysyłane do API aplikacji. Serwer nie prowadzi kont użytkowników ani biblioteki ich buildów. Hosting Railway obsługuje połączenia i może przetwarzać dane techniczne, w tym adres IP, w swoich logach.": "Data required for calculations is sent to the application API. The server does not maintain user accounts or a library of their builds. Railway handles hosting connections and may process technical data, including IP addresses, in its logs.",
+    "Prywatność hostingu Railway": "Railway hosting privacy",
+    "Kontakt i zgłoszenia": "Contact and reports",
+    "Błędy i pytania zgłaszaj w GitHub Issues. Zgłoszenia są publiczne; dołączaj tylko dane, które chcesz udostępnić. Podatności zgłaszaj prywatnie przez zakładkę Security repozytorium.": "Report bugs and ask questions through GitHub Issues. Reports are public; include only data you want to share. Report vulnerabilities privately through the repository's Security tab.",
+    "Zgłoś podatność prywatnie": "Report a vulnerability privately",
+    "Kopia obejmuje zapisane buildy i ich plecaki. Nie obejmuje roboczego szkicu ani lokalnego postępu planera.": "The backup includes saved builds and their backpacks. It does not include the working draft or local planner progress."
 }

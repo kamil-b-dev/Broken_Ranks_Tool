@@ -24,6 +24,7 @@ import { useAppRoute } from "./useAppRoute";
 import HomeWorkspace from "./components/HomeWorkspace";
 import EquipmentHistoryControls from "../features/equipment/EquipmentHistoryControls";
 import BuildStorageNotice from "./components/BuildStorageNotice";
+import ProjectFooter from "../features/project/ProjectFooter";
 
 /** Desktop composition is loaded only for the desktop presentation. */
 export default function DesktopApp() {
@@ -118,6 +119,7 @@ export default function DesktopApp() {
                     />
                 )}
             </Suspense>
+            <ProjectFooter />
         </div>
     );
 }

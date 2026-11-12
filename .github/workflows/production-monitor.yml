@@ -1,0 +1,47 @@
+name: Production monitoring
+
+on:
+  schedule:
+    - cron: "7,17,27,37,47,57 * * * *"
+  workflow_dispatch:
+  push:
+    branches: [master]
+    paths:
+      - .github/workflows/production-monitor.yml
+      - .github/scripts/production-monitor.mjs
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-monitor
+  cancel-in-progress: false
+
+jobs:
+  availability:
+    name: Check public production endpoints
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    env:
+      PRODUCTION_URL: ${{ vars.PRODUCTION_URL || 'https://brokenrankstool-production.up.railway.app' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22"
+      - name: Check availability with one retry
+        id: check
+        continue-on-error: true
+        run: node .github/scripts/production-monitor.mjs check
+      - name: Open or resolve the production incident
+        if: always() && steps.check.outcome != 'skipped'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node .github/scripts/production-monitor.mjs report
+      - name: Mark an unavailable service as a failed check
+        if: always() && steps.check.outcome == 'failure'
+        run: exit 1

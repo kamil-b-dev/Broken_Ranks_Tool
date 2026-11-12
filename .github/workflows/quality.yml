@@ -110,6 +110,7 @@ jobs:
       - run: npm run test:contracts
       - run: npm run test:dependency-policy
       - run: npm run test:ci
+      - run: npm run test:monitor
       - name: Test smoke assertions
         shell: pwsh
         run: ./scripts/smoke-assertions.tests.ps1
