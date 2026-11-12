@@ -110,6 +110,9 @@ for (const mobile of [false, true]) {
                 )
             ).toEqual(exported.builds);
             await restored.reload();
+            await expect(
+                restored.getByRole("button", { name: "Pobierz całą bibliotekę" })
+            ).toBeEnabled();
             await restored.goto("/");
             await restored
                 .getByRole("button", { name: "Otwórz build: Kopia do odzyskania" })
