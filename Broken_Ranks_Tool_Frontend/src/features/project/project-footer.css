@@ -1,0 +1,46 @@
+.project-footer {
+    margin-top: auto;
+    padding: 1rem;
+    border-top: 1px solid #655239;
+    color: #c9c0b2;
+    font-family: Inter, system-ui, sans-serif;
+    font-size: 0.875rem;
+    line-height: 1.6;
+}
+.project-footer nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.25rem;
+}
+.project-footer a,
+.project-footer summary {
+    display: inline-block;
+    padding-block: 0.625rem;
+    color: #edcc91;
+    cursor: pointer;
+}
+.project-footer a {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+}
+.project-footer summary {
+    display: list-item;
+    width: fit-content;
+}
+.project-footer :is(a, summary):focus-visible {
+    outline: 2px solid #f3cd85;
+    outline-offset: 3px;
+}
+.project-footer-details {
+    max-width: 75ch;
+    overflow-wrap: anywhere;
+}
+.project-footer-details h2 {
+    margin-block: 1rem 0.25rem;
+    font: inherit;
+    font-weight: 700;
+    color: #f1e8da;
+}
+.project-footer-details p {
+    margin-block: 0.5rem;
+}

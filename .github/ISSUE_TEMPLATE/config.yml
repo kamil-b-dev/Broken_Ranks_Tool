@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Prywatne zgłoszenie podatności / Private vulnerability report
+    url: https://github.com/kamil-b-dev/Broken_Ranks_Tool/security/advisories/new
+    about: Nie publikuj podatności w Issues. / Do not post vulnerabilities in public issues.
