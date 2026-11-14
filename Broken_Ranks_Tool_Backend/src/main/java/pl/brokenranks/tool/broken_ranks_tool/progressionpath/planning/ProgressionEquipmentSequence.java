@@ -27,7 +27,11 @@ public final class ProgressionEquipmentSequence {
                         .equipment();
         var routes = new TreeMap<String, NavigableMap<Integer, ItemTemplate>>();
         var milestones = new TreeSet<Integer>();
-        milestones.add(1);
+        int firstLevel = input.startingPoint() == null ? 1 : input.startingPoint().characterLevel();
+        if (firstLevel > input.targetLevel())
+            throw new IllegalArgumentException(
+                    "Poziom początkowy nie może przekraczać poziomu celu.");
+        milestones.add(firstLevel);
         milestones.add(input.targetLevel());
         for (var entry : target.getSlots().entrySet()) {
             if (entry.getValue().getItemId() == null) continue;
@@ -43,13 +47,46 @@ public final class ProgressionEquipmentSequence {
                                 + ".");
             var route =
                     route(entry.getKey(), goal, input.characterClass(), input.minItemLevelGap());
+            var seen = new HashSet<Integer>();
+            for (var required : input.requiredItems()) {
+                if (!required.slot().equals(entry.getKey())) continue;
+                var pinned = context.items().get(required.itemId());
+                if (pinned == null
+                        || !placement.isValidItem(pinned, required.slot())
+                        || !available(pinned, input.characterClass())
+                        || required.characterLevel() < plannedLevel(required.slot(), pinned)
+                        || required.characterLevel() < firstLevel
+                        || required.characterLevel() > input.targetLevel()
+                        || !seen.add(required.characterLevel())
+                        || required.characterLevel() == input.targetLevel()
+                                && !pinned.getId().equals(goal.getId()))
+                    throw new IllegalArgumentException(
+                            "Niepoprawny obowiązkowy przedmiot pośredni.");
+                if (required.slot().equals("weapon")
+                        && goal.getRarity() == RARITY.LEGENDARY
+                        && required.characterLevel() >= 120
+                        && required.characterLevel() < 140
+                        && !(pinned.getRarity() == RARITY.EPIC
+                                && pinned.getName().equals(goal.getName())))
+                    throw new IllegalArgumentException(
+                            "Przed legendą wymagany jest epik profesji na 9★.");
+                route.put(required.characterLevel(), pinned);
+            }
             routes.put(entry.getKey(), route);
             milestones.addAll(route.keySet());
         }
+        if (input.requiredItems().stream()
+                .anyMatch(required -> !routes.containsKey(required.slot())))
+            throw new IllegalArgumentException(
+                    "Obowiązkowy przedmiot musi wskazywać slot obecny w celu i nieoznaczony res.");
         var result = new ArrayList<ProgressionStage>();
+        if (input.startingPoint() != null)
+            result.add(
+                    new ProgressionStage(
+                            "starting-point", firstLevel, input.startingPoint().equipment()));
         EquipmentRequest previous = null;
         for (int level : milestones) {
-            if (level > input.targetLevel()) continue;
+            if (level < firstLevel || level > input.targetLevel()) continue;
             var equipment = new EquipmentRequest();
             equipment.setSlots(new LinkedHashMap<>());
             equipment.setCharacterStats(
@@ -58,6 +95,29 @@ public final class ProgressionEquipmentSequence {
                 var data = emptySlot();
                 var route = routes.get(entry.getKey());
                 var selected = route == null ? null : route.floorEntry(level);
+                var owned =
+                        input.startingPoint() == null
+                                ? null
+                                : input.startingPoint().equipment().getSlots().get(entry.getKey());
+                var ownedItem = owned == null ? null : context.items().get(owned.getItemId());
+                if (ownedItem != null
+                        && (selected == null
+                                || selected.getValue().getReqLevel() < ownedItem.getReqLevel()
+                                        && !Objects.equals(
+                                                selected.getValue().getId(),
+                                                entry.getValue().getItemId()))
+                        && input.requiredItems().stream()
+                                .noneMatch(
+                                        required ->
+                                                required.slot().equals(entry.getKey())
+                                                        && required.characterLevel() <= level
+                                                        && route.floorEntry(level) != null
+                                                        && required.itemId()
+                                                                .equals(
+                                                                        route.floorEntry(level)
+                                                                                .getValue()
+                                                                                .getId())))
+                    selected = Map.entry(firstLevel, ownedItem);
                 if (selected != null) {
                     var item = selected.getValue();
                     data.setItemId(item.getId());
@@ -84,6 +144,8 @@ public final class ProgressionEquipmentSequence {
                             epicWeapon
                                     ? finalItem ? stars(entry.getValue()) : 9
                                     : finalItem && endgame ? stars(entry.getValue()) : 1);
+                    if (owned != null && Objects.equals(item.getId(), owned.getItemId()))
+                        data.setItemStars(Math.max(stars(data), stars(owned)));
                     builtIns(item, data);
                     if (finalItem
                             && (item.getRarity() == RARITY.EPIC
@@ -98,6 +160,8 @@ public final class ProgressionEquipmentSequence {
                                         : new LinkedHashMap<>(entry.getValue().getDrifLevels()));
                     }
                 }
+                if (selected == null && owned != null && owned.getSynergetic() != null)
+                    data.setSynergetic(owned.getSynergetic());
                 equipment.getSlots().put(entry.getKey(), data);
             }
             var oldWeapon = previous == null ? null : previous.getSlots().get("weapon");

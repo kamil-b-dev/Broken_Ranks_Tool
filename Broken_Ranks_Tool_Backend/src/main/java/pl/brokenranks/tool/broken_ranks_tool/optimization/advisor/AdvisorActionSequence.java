@@ -17,6 +17,7 @@ final class AdvisorActionSequence {
                         || !earlier.drifs().getFirst().identity().equals(upgrade.identity()))
                     continue;
                 int initialLevel = earlier.drifs().getFirst().fromLevel();
+                Long initialTemplate = earlier.drifs().getFirst().fromDrifId();
                 result.remove(index);
                 for (int position = index; position < result.size(); position++) {
                     AdvisorAction action = result.get(position);
@@ -27,7 +28,7 @@ final class AdvisorActionSequence {
                                                     stone.identity().equals(upgrade.identity())
                                                             ? new DrifChange(
                                                                     stone.identity(),
-                                                                    stone.drifId(),
+                                                                    initialTemplate,
                                                                     stone.from(),
                                                                     stone.to(),
                                                                     initialLevel,
@@ -46,7 +47,8 @@ final class AdvisorActionSequence {
                                                 upgrade.from(),
                                                 upgrade.to(),
                                                 initialLevel,
-                                                upgrade.toLevel())));
+                                                upgrade.toLevel(),
+                                                initialTemplate)));
                 break;
             }
         }

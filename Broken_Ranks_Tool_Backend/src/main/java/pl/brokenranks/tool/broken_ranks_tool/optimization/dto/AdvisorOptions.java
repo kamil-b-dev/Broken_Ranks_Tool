@@ -58,6 +58,12 @@ public class AdvisorOptions {
 
     @NotNull private AdvisorProfession profession = AdvisorProfession.AUTO;
 
+    @Size(max = 200)
+    private java.util.Set<@NotNull @Positive Long> excludedItemIds = java.util.Set.of();
+
+    @Size(max = 32)
+    private java.util.Set<@NotNull DRIF_BONUS_TYPE> excludedPurchaseBonusTypes = java.util.Set.of();
+
     @Valid private Changes allowedChanges = new Changes();
 
     @Valid

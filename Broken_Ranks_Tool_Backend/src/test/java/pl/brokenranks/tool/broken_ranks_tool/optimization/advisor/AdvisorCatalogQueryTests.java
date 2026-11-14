@@ -6,7 +6,8 @@ import jakarta.persistence.EntityManagerFactory;
 import java.util.List;
 import java.util.Map;
 import org.hibernate.SessionFactory;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.*;
@@ -29,8 +30,9 @@ class AdvisorCatalogQueryTests {
     @Autowired private OrbTemplateRepository orbs;
     @Autowired private EntityManagerFactory entityManagerFactory;
 
-    @Test
-    void allFinalistsShareThreeCatalogQueriesAndMatchFreshCalculatorResults() {
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void allFinalistsShareThreeCatalogQueriesAndMatchFreshCalculatorResults(boolean upgrades) {
         var helmet =
                 items.findAll().stream()
                         .filter(
@@ -72,6 +74,7 @@ class AdvisorCatalogQueryTests {
         var options = new AdvisorOptions();
         options.setGoal(DRIF_BONUS_TYPE.CRITICAL_CHANCE);
         options.setMaxActions(1);
+        options.getAllowedChanges().setDrifUpgrades(upgrades);
         request.setAdvisor(options);
         var statistics = entityManagerFactory.unwrap(SessionFactory.class).getStatistics();
         statistics.clear();

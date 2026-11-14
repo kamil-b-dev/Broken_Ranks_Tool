@@ -19,6 +19,52 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.calculator.proces
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.*;
 
 class EquipmentPreparedCalculationTests {
+    @Test
+    void includesExplicitSynergeticValuesInPreparedAndExplainedCalculations() {
+        var before = calculator.calculateTotalStats(request);
+        var synergetic =
+                new EquipmentRequest.SynergeticItem(
+                        "Mój res", Map.of("PŻ", 123, "Odporność ogień", 45));
+        var slot = new EquipmentRequest.SlotData();
+        slot.setSynergetic(synergetic);
+        request.getSlots().put("ring1", slot);
+        var after = calculator.calculateTotalStats(request);
+        assertEquals("123", after.get("PŻ"));
+        assertEquals("45", after.get("Odporność ogień"));
+        assertEquals(before.get("CRITICAL_CHANCE"), after.get("CRITICAL_CHANCE"));
+        assertEquals(
+                after,
+                calculator
+                        .prepareCalculationWithSources(
+                                items,
+                                Map.of(1L, orbsRepository.findAllById(List.of(1L)).getFirst()),
+                                drifs)
+                        .apply(request)
+                        .stats());
+        assertTrue(
+                calculator.calculateExplanation(request).contributions().get("PŻ").stream()
+                        .anyMatch(value -> "Mój res".equals(value.source().itemName())));
+    }
+
+    @Test
+    void rejectsSynergeticOutsideJewelleryOrWithStonesCatalogItemsOrUnknownStats() {
+        var custom = new EquipmentRequest.SlotData();
+        custom.setSynergetic(new EquipmentRequest.SynergeticItem("res", Map.of("PŻ", 50)));
+        request.getSlots().put("helmet", custom);
+        assertThrows(IllegalArgumentException.class, () -> calculator.calculateTotalStats(request));
+        request.getSlots().remove("helmet");
+        request.getSlots().put("ring1", custom);
+        custom.setItemId(1L);
+        assertThrows(IllegalArgumentException.class, () -> calculator.calculateTotalStats(request));
+        custom.setItemId(null);
+        custom.setDrifIds(List.of(1L));
+        assertThrows(IllegalArgumentException.class, () -> calculator.calculateTotalStats(request));
+        custom.setDrifIds(null);
+        custom.setSynergetic(
+                new EquipmentRequest.SynergeticItem("res", Map.of("CRITICAL_CHANCE", 60)));
+        assertThrows(IllegalArgumentException.class, () -> calculator.calculateTotalStats(request));
+    }
+
     private final ItemTemplateRepository itemsRepository = mock(ItemTemplateRepository.class);
     private final DrifTemplateRepository drifsRepository = mock(DrifTemplateRepository.class);
     private final OrbTemplateRepository orbsRepository = mock(OrbTemplateRepository.class);

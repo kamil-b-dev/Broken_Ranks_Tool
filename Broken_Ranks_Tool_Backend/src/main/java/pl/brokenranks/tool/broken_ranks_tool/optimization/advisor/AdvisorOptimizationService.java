@@ -150,7 +150,7 @@ public class AdvisorOptimizationService {
     }
 
     private boolean equipped(SlotData slot) {
-        return slot != null && slot.getItemId() != null;
+        return slot != null && (slot.getItemId() != null || slot.getSynergetic() != null);
     }
 
     private boolean hasStonePayload(SlotData slot) {
@@ -184,7 +184,10 @@ public class AdvisorOptimizationService {
                                 ? drifRepository.findAll()
                                 : drifIds.isEmpty()
                                         ? List.of()
-                                        : drifRepository.findAllById(drifIds),
+                                        : changes.isDrifUpgrades()
+                                                ? drifRepository.findUpgradeCandidatesByOwnedIds(
+                                                        drifIds)
+                                                : drifRepository.findAllById(drifIds),
                         DrifTemplate::getId));
     }
 

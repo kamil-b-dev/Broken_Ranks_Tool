@@ -25,6 +25,7 @@ public class EquipmentRequest {
     @Data
     public static class SlotData {
         private Long itemId;
+        @Valid private SynergeticItem synergetic;
 
         @Min(1)
         @Max(9)
@@ -42,4 +43,14 @@ public class EquipmentRequest {
         @Size(max = 8)
         private Map<String, Integer> drifLevels;
     }
+
+    /** Actual user-supplied jewellery values, independent from the immutable catalog. */
+    public record SynergeticItem(
+            @jakarta.validation.constraints.NotBlank @Size(max = 64) String name,
+            @jakarta.validation.constraints.NotNull @Size(min = 1, max = 16)
+                    Map<
+                                    String,
+                                    @jakarta.validation.constraints.NotNull @Min(0) @Max(50_000)
+                                    Integer>
+                            stats) {}
 }

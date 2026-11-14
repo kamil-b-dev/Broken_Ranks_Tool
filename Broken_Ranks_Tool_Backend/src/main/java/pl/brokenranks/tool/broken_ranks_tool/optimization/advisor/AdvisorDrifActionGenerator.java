@@ -2,6 +2,8 @@ package pl.brokenranks.tool.broken_ranks_tool.optimization.advisor;
 
 import static pl.brokenranks.tool.broken_ranks_tool.optimization.advisor.AdvisorSlotData.*;
 
+import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,11 +19,27 @@ final class AdvisorDrifActionGenerator {
     private final AdvisorSearch search;
     private final AdvisorEquipmentModel model;
     private final AdvisorNodeFactory nodes;
+    private final Map<DRIF_BONUS_TYPE, List<DrifTemplate>> upgradeCandidates =
+            new EnumMap<>(DRIF_BONUS_TYPE.class);
 
     AdvisorDrifActionGenerator(AdvisorSearch search, AdvisorNodeFactory nodes) {
         this.search = search;
         this.model = search.model;
         this.nodes = nodes;
+        if (search.options.getAllowedChanges().isDrifUpgrades()) {
+            model.templates.drifs().values().stream()
+                    .filter(model.placement::isValidDrif)
+                    .sorted(
+                            Comparator.comparing(DrifTemplate::getSize)
+                                    .thenComparing(DrifTemplate::getId))
+                    .forEach(
+                            drif ->
+                                    upgradeCandidates
+                                            .computeIfAbsent(
+                                                    drif.getBonusType(),
+                                                    ignored -> new java.util.ArrayList<>())
+                                            .add(drif));
+        }
     }
 
     void generateMoves(
@@ -106,6 +124,37 @@ final class AdvisorDrifActionGenerator {
                     nextLevel - level(slot, index),
                     accept);
         }
+        int currentLevel = level(slot, index);
+        for (DrifTemplate target : upgradeCandidates.getOrDefault(drif.getBonusType(), List.of())) {
+            if (!search.running()) return;
+            if (target.getSize().ordinal() <= drif.getSize().ordinal()
+                    || target.getSize().getMaxLevel() < currentLevel
+                    || !model.placement.isValidDrifSizeForTier(target, model.item(slot))) continue;
+            // A size-only upgrade preserves even a non-boundary level such as 7.
+            emitUpgrade(node, key, slot, index, target, currentLevel, accept);
+            for (int nextLevel : DRIF_SIZE.meaningfulLevels()) {
+                if (!search.running()) return;
+                if (nextLevel > currentLevel && nextLevel <= target.getSize().getMaxLevel())
+                    emitUpgrade(node, key, slot, index, target, nextLevel, accept);
+            }
+        }
+    }
+
+    private void emitUpgrade(
+            AdvisorSearch.Node node,
+            String key,
+            SlotData slot,
+            int index,
+            DrifTemplate target,
+            int nextLevel,
+            Consumer<AdvisorSearch.Node> accept) {
+        nodes.emit(
+                node,
+                key,
+                placed(slot, index, target.getId(), nextLevel),
+                new AdvisorChangeKey.Drif(key, index),
+                nextLevel - level(slot, index),
+                accept);
     }
 
     private void generatePurchases(
@@ -132,7 +181,8 @@ final class AdvisorDrifActionGenerator {
     }
 
     private boolean purchasable(DRIF_BONUS_TYPE type) {
-        if (type == null) return false;
+        if (type == null || search.options.getExcludedPurchaseBonusTypes().contains(type))
+            return false;
         return switch (search.options.getPurchaseScope()) {
             case GOAL_ONLY -> type == search.options.getGoal();
             case GOAL_AND_PROTECTED ->

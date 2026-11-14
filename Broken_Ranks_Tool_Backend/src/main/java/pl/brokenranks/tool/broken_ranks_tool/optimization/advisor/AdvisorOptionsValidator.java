@@ -14,6 +14,13 @@ final class AdvisorOptionsValidator {
                 || options.getMaxActions() > 10
                 || options.getProfession() == null
                 || options.getPurchaseScope() == null
+                || options.getExcludedItemIds() == null
+                || options.getExcludedItemIds().size() > 200
+                || options.getExcludedItemIds().stream().anyMatch(id -> id == null || id <= 0)
+                || options.getExcludedPurchaseBonusTypes() == null
+                || options.getExcludedPurchaseBonusTypes().size() > 32
+                || options.getExcludedPurchaseBonusTypes().stream()
+                        .anyMatch(java.util.Objects::isNull)
                 || (options.getRunId() == null) != (options.getCancellationToken() == null)
                 || options.getTargetValue() != null && options.getTargetGain() != null)
             return false;

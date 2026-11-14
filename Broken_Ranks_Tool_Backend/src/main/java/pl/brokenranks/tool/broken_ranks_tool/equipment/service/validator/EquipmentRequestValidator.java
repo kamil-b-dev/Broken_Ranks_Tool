@@ -34,6 +34,7 @@ public class EquipmentRequestValidator {
     }
 
     private void validateSlotPayload(String key, EquipmentRequest.SlotData slot) {
+        if (slot.getSynergetic() != null) validateSynergetic(key, slot);
         boolean hasDrifs =
                 slot.getDrifIds() != null
                         && slot.getDrifIds().stream().anyMatch(java.util.Objects::nonNull);
@@ -64,5 +65,47 @@ public class EquipmentRequestValidator {
 
     public void validateCharacterStats(Map<String, Integer> stats) {
         CharacterStatRules.validate(stats);
+    }
+
+    private void validateSynergetic(String key, EquipmentRequest.SlotData slot) {
+        var item = slot.getSynergetic();
+        if (!java.util.Set.of("ring1", "ring2", "necklace").contains(key)
+                || slot.getItemId() != null
+                || slot.getItemStars() != null && slot.getItemStars() != 1
+                || slot.getDrifIds() != null && !slot.getDrifIds().isEmpty()
+                || slot.getOrbIds() != null && !slot.getOrbIds().isEmpty()
+                || item.name() == null
+                || item.name().isBlank()
+                || item.name().length() > 64
+                || item.stats() == null
+                || item.stats().isEmpty()
+                || item.stats().size() > 16) {
+            throw new IllegalArgumentException(
+                    "Synergetyk wymaga pustego slotu pierścienia lub naszyjnika, bez gwiazdek i kamieni.");
+        }
+        item.stats()
+                .forEach(
+                        (name, value) -> {
+                            boolean known =
+                                    java.util.Arrays.stream(
+                                                            pl.brokenranks.tool.broken_ranks_tool
+                                                                    .equipment.domain.enums
+                                                                    .STAT_TYPE.values())
+                                                    .anyMatch(
+                                                            stat ->
+                                                                    stat.getDescription()
+                                                                            .equals(name))
+                                            || java.util.Arrays.stream(
+                                                            pl.brokenranks.tool.broken_ranks_tool
+                                                                    .equipment.domain.enums
+                                                                    .RESISTANCE_STAT_TYPE.values())
+                                                    .anyMatch(
+                                                            stat ->
+                                                                    stat.getDescription()
+                                                                            .equals(name));
+                            if (!known || value == null || value < 0 || value > 50_000)
+                                throw new IllegalArgumentException(
+                                        "Synergetyk zawiera niepoprawną statystykę lub wartość spoza zakresu 0–50000.");
+                        });
     }
 }

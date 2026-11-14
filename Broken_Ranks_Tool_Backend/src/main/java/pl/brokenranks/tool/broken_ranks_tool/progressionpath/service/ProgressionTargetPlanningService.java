@@ -75,6 +75,24 @@ public class ProgressionTargetPlanningService {
                                 target)),
                 context);
         var sequence = new ProgressionEquipmentSequence(context, placement);
+        if (input.startingPoint() != null) {
+            if (input.startingPoint().characterLevel() > input.targetLevel())
+                throw new IllegalArgumentException(
+                        "Poziom początkowy nie może przekraczać poziomu celu.");
+            evaluation.evaluate(
+                    new ProgressionPath(
+                            input.characterClass(),
+                            List.of(
+                                    new ProgressionStage(
+                                            "starting-validation",
+                                            input.startingPoint().characterLevel(),
+                                            input.startingPoint().equipment()),
+                                    new ProgressionStage(
+                                            "starting-validation-copy",
+                                            input.startingPoint().characterLevel(),
+                                            input.startingPoint().equipment()))),
+                    context);
+        }
         var frames = sequence.generate(input);
         var transitions = new ProgressionTransition(context, replay);
         var numeric =
@@ -83,6 +101,14 @@ public class ProgressionTargetPlanningService {
         var candidates =
                 new ProgressionCandidates(context, placement, levels, transitions, numeric);
         var orbPlanner = new ProgressionOrbs(context, placement);
+        var startingInventory =
+                new ProgressionStartingInventory(
+                        input.startingPoint(),
+                        context,
+                        calculator.prepareCalculationWithSources(
+                                context.items(), context.orbs(), context.drifs()),
+                        transitions,
+                        orbPlanner);
         var drifCeilings = new ArrayList<>(transitions.equipped(target.equipment()));
         // Built-in target bonuses can be provided by temporary ordinary stones before the epic.
         target.equipment().getSlots().entrySet().stream()
@@ -128,7 +154,7 @@ public class ProgressionTargetPlanningService {
                         throw new IllegalArgumentException(
                                 "Przekroczono zakres generowania ścieżki.");
                 };
-        for (int i = planned.size() - 2; i >= 0; i--) {
+        for (int i = planned.size() - 2; i >= (input.startingPoint() == null ? 0 : 1); i--) {
             var frame = planned.get(i);
             if (balanced != null) {
                 var projectedOrbs = orbPlanner.project(frame.equipment(), orbCeilings);
@@ -170,11 +196,19 @@ public class ProgressionTargetPlanningService {
             compact.add(new ProgressionStage("target", input.targetLevel(), target.equipment()));
         var verified =
                 evaluation.evaluate(new ProgressionPath(input.characterClass(), compact), context);
-        var inventory = List.<ProgressionDrif>of();
-        var orbInventory = List.<ProgressionOrbs.Stone>of();
+        var inventory = startingInventory.drifs();
+        var orbInventory = startingInventory.orbs();
+        var ownedItems = startingInventory.items();
         var previous = new EquipmentRequest();
         previous.setSlots(Map.of());
         previous.setCharacterStats(Map.of());
+        if (input.startingPoint() != null)
+            previous =
+                    new ProgressionStage(
+                                    "initial-copy",
+                                    input.startingPoint().characterLevel(),
+                                    input.startingPoint().equipment())
+                            .equipment();
         var results = new ArrayList<StageResult>();
         for (int i = 0; i < verified.size(); i++) {
             var current = verified.get(i);
@@ -188,9 +222,21 @@ public class ProgressionTargetPlanningService {
             if (transition == null)
                 throw new IllegalStateException("Nie odtworzono operacji drifów.");
             inventory = transition.inventory();
-            var orbTransition = orbPlanner.toStage(orbInventory, previous, next);
+            var orbTransition =
+                    input.startingPoint() == null
+                            ? orbPlanner.toStage(orbInventory, previous, next)
+                            : orbPlanner.toOwnedStage(orbInventory, previous, next);
             orbInventory = orbTransition.inventory();
-            var changes = changes(previous, next, context, sequence);
+            var ownedItemSlots = new HashMap<String, Integer>();
+            if (i == 0 && input.startingPoint() != null)
+                next.getSlots()
+                        .forEach(
+                                (key, slot) -> {
+                                    if (slot.getItemId() != null)
+                                        ownedItemSlots.put(
+                                                key, ProgressionEquipmentSequence.stars(slot));
+                                });
+            var changes = changes(previous, next, context, sequence, ownedItems, ownedItemSlots);
             if (i == 0)
                 reserved.stream()
                         .sorted()
@@ -205,7 +251,8 @@ public class ProgressionTargetPlanningService {
                             current.calculation(),
                             transition.actions(),
                             List.copyOf(changes),
-                            orbTransition.actions()));
+                            orbTransition.actions(),
+                            Map.copyOf(ownedItemSlots)));
             previous = next;
         }
         if (!previous.equals(target.equipment()))
@@ -237,8 +284,18 @@ public class ProgressionTargetPlanningService {
             EquipmentRequest before,
             EquipmentRequest after,
             CalculationContext context,
-            ProgressionEquipmentSequence sequence) {
+            ProgressionEquipmentSequence sequence,
+            List<EquipmentRequest.SlotData> ownedItems,
+            Map<String, Integer> ownedItemSlots) {
         var result = new ArrayList<String>();
+        for (var entry : before.getSlots().entrySet()) {
+            var old = entry.getValue();
+            var replacement = after.getSlots().get(entry.getKey());
+            if (old.getItemId() != null
+                    && (replacement == null
+                            || !Objects.equals(old.getItemId(), replacement.getItemId()))
+                    && !sequence.isLegendUpgrade(old, replacement)) ownedItems.add(old);
+        }
         for (var entry : new TreeMap<>(after.getSlots()).entrySet()) {
             String key = entry.getKey();
             var a = before.getSlots().get(key);
@@ -252,13 +309,30 @@ public class ProgressionTargetPlanningService {
                             "Ulepszenie legendy wymaga epika 9★ i resetu do 1★.");
                 result.add("Ulepsz epik " + item.getName() + " (9★) do legendy (1★).");
             } else if (a == null || !Objects.equals(a.getItemId(), b.getItemId())) {
+                var owned =
+                        ownedItems.stream()
+                                .filter(
+                                        value ->
+                                                Objects.equals(value.getItemId(), b.getItemId())
+                                                        && ProgressionEquipmentSequence.stars(value)
+                                                                <= ProgressionEquipmentSequence
+                                                                        .stars(b))
+                                .max(Comparator.comparingInt(ProgressionEquipmentSequence::stars))
+                                .orElse(null);
+                if (owned != null) {
+                    ownedItems.remove(owned);
+                    ownedItemSlots.put(key, ProgressionEquipmentSequence.stars(owned));
+                }
                 result.add(
-                        "Kup i załóż: "
+                        (owned == null ? "Kup i załóż: " : "Załóż z posiadanych rzeczy: ")
                                 + EQUIPMENT_SLOT.fromKey(key).label()
                                 + " — "
                                 + item.getName()
-                                + " (1★).");
-                if (ProgressionEquipmentSequence.stars(b) > 1)
+                                + " ("
+                                + (owned == null ? 1 : ProgressionEquipmentSequence.stars(owned))
+                                + "★).");
+                if (ProgressionEquipmentSequence.stars(b)
+                        > (owned == null ? 1 : ProgressionEquipmentSequence.stars(owned)))
                     result.add(
                             "Ulepsz "
                                     + item.getName()
@@ -267,6 +341,9 @@ public class ProgressionTargetPlanningService {
                                     + "★.");
             } else if (ProgressionEquipmentSequence.stars(a)
                     != ProgressionEquipmentSequence.stars(b)) {
+                if (ProgressionEquipmentSequence.stars(a) > ProgressionEquipmentSequence.stars(b))
+                    throw new IllegalArgumentException(
+                            "Cel wymaga obniżenia gwiazdek posiadanego przedmiotu. Zwiększ gwiazdki w celu.");
                 result.add(
                         "Ulepsz "
                                 + item.getName()

@@ -181,6 +181,24 @@ class EquipmentStatsCalculatorServiceImpl implements EquipmentStatsCalculatorSer
             EquipmentRequest.SlotData slotData,
             CalculationContext ctx,
             CalculationState state) {
+        if (slotData.getSynergetic() != null) {
+            var synergetic = slotData.getSynergetic();
+            if (state.getAccumulator().isTracing())
+                state.getAccumulator()
+                        .setSource(
+                                StatContributionDto.Source.builder()
+                                        .kind("ITEM")
+                                        .slotKey(slotKey)
+                                        .itemName(synergetic.name())
+                                        .itemStars(1)
+                                        .build());
+            synergetic
+                    .stats()
+                    .forEach(
+                            (name, value) ->
+                                    state.getAccumulator().addFlatValue(name, value.doubleValue()));
+            return;
+        }
         if (slotData.getItemId() == null) return;
         if (!ctx.items().containsKey(slotData.getItemId()))
             throw new IllegalArgumentException(

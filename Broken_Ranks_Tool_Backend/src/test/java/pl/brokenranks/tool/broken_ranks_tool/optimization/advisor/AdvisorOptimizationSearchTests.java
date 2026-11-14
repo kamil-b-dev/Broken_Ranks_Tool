@@ -6,6 +6,8 @@ import static org.mockito.Mockito.*;
 
 import java.util.*;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.*;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.*;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest.SlotData;
@@ -133,8 +135,9 @@ class AdvisorOptimizationSearchTests extends AdvisorOptimizationTestSupport {
                         .targetSatisfied());
     }
 
-    @Test
-    void boundsWorkOnAFullBuildAndVerifiesEveryReturnedPlan() {
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void boundsWorkOnAFullBuildAndVerifiesEveryReturnedPlan(boolean resize) {
         String[] keys = {
             "helmet",
             "armor",
@@ -178,19 +181,33 @@ class AdvisorOptimizationSearchTests extends AdvisorOptimizationTestSupport {
             drif.setSize(DRIF_SIZE.ARCYDRIF);
             drif.setIncrement("0.5%");
             drifs.add(drif);
+            if (resize) {
+                var medium = drif(200 + i, types.get(i), "1%");
+                medium.setSize(DRIF_SIZE.MAGNIDRIF);
+                medium.setIncrement("0.5%");
+                drifs.add(medium);
+            }
         }
         Map<String, SlotData> slots = new LinkedHashMap<>();
         for (int i = 0; i < keys.length; i++) {
             items.add(item(i + 1, categories[i], "X", 48, (i % 3) * 10));
+            long firstId = resize ? 200 : 100;
             SlotData slot =
-                    slot(i + 1, 6 + i % 4, 100L + i % 6, 100L + (i + 1) % 6, 100L + (i + 2) % 6);
-            slot.setDrifLevels(Map.of("0", 6 + i % 4 * 5, "1", 11, "2", 16));
+                    slot(
+                            i + 1,
+                            6 + i % 4,
+                            firstId + i % 6,
+                            firstId + (i + 1) % 6,
+                            firstId + (i + 2) % 6);
+            slot.setDrifLevels(
+                    Map.of("0", resize ? 6 + i % 3 * 5 : 6 + i % 4 * 5, "1", 11, "2", 16));
             slots.put(keys[i], slot);
         }
         Fixture f = fixture(items, drifs);
         var request = request(A, slots);
         request.getAdvisor().setMaxActions(3);
         request.getAdvisor().getAllowedChanges().setStars(true);
+        request.getAdvisor().getAllowedChanges().setDrifUpgrades(resize);
         long started = System.nanoTime();
         var result = f.service.optimize(request);
         assertTrue(result.getSummary().isSuccess());

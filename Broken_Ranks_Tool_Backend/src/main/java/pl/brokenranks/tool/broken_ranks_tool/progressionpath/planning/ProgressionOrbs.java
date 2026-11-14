@@ -191,6 +191,11 @@ public final class ProgressionOrbs {
         return new Transition(List.copyOf(state.values()), List.copyOf(actions));
     }
 
+    public Transition toOwnedStage(
+            List<Stone> inventory, EquipmentRequest before, EquipmentRequest after) {
+        return new ProgressionOwnedOrbs(context).toStage(inventory, before, after, equipped(after));
+    }
+
     private Action action(
             String type, Stone stone, Position from, Position to, Long oldId, Integer oldLevel) {
         return new Action(
