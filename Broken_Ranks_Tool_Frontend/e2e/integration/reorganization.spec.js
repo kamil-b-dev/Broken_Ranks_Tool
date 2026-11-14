@@ -4,7 +4,11 @@ import { Buffer } from "node:buffer";
 const optimizerPath = "/api/optimizer/drifs";
 const draft = (page) =>
     page.evaluate(
-        () => JSON.parse(localStorage.getItem("broken-ranks-tool.equipment-draft.v3")).value
+        () =>
+            JSON.parse(
+                localStorage.getItem("broken-ranks-tool.equipment-draft.v4") ||
+                    localStorage.getItem("broken-ranks-tool.equipment-draft.v3")
+            ).value
     );
 
 async function scenario(request) {
@@ -291,7 +295,7 @@ test("real reorganization API keeps locked sources and reports unmet soft target
     expect(response.summary.warnings.length).toBeGreaterThan(0);
     expect(response.optimizedSetup.slots.helmet.drifIds[0]).toBe(helmet.drifIds[0]);
     expect(response.optimizedSetup.slots.helmet.drifLevels[0]).toBe(2);
-    expect(response.optimizedSetup.slots.armor).toEqual(armor);
+    expect(response.optimizedSetup.slots.armor).toEqual({ ...armor, synergetic: null });
     expect(response.reorganizationDrifUsages).toEqual([]);
     await assertCalculatorParity(request, response);
 });

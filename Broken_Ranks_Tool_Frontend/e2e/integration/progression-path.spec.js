@@ -112,7 +112,7 @@ for (const mobile of [false, true]) {
         await page.goto(`/progression-path?ui=${mobile ? "mobile" : "desktop"}`);
         await expect(page.getByLabel("Docelowy build")).toHaveValue("target");
         await expect(page.getByLabel("Docelowy build")).toHaveText(/Cel epicki/);
-        await page.locator('input[accept=".json,.txt"]').setInputFiles({
+        await page.locator('.progression-source input[accept=".json,.txt"]').setInputFiles({
             name: "BUILD (2).json",
             mimeType: "application/json",
             buffer: Buffer.from(JSON.stringify(epicTarget)),
@@ -254,7 +254,7 @@ for (const mobile of [false, true]) {
         );
         await expect(page.getByText("Od pierwszego zakupu do docelowego buildu")).toHaveCount(0);
         await page.getByLabel("Docelowy build").selectOption("file");
-        await page.locator('input[accept=".json,.txt"]').setInputFiles({
+        await page.locator('.progression-source input[accept=".json,.txt"]').setInputFiles({
             name: "cel.json",
             mimeType: "application/json",
             buffer: Buffer.from(JSON.stringify(target)),

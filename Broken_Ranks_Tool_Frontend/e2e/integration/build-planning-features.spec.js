@@ -88,7 +88,7 @@ test("previews changes, preserves saved versions and metadata, recalculates, exp
     const preview = page.locator(".item-preview");
     await preview.locator("summary").click();
     await preview
-        .getByLabel("Przedmiot do porównania")
+        .getByRole("combobox", { name: "Przedmiot do porównania", exact: true })
         .selectOption(String(item("Miłość Morany").id));
     await preview.getByRole("button", { name: "Sprawdź zmianę", exact: true }).click();
     await expect(preview.locator("dl")).toBeVisible();
@@ -96,8 +96,10 @@ test("previews changes, preserves saved versions and metadata, recalculates, exp
     await page.getByRole("button", { name: "Zapisz lokalnie", exact: true }).click();
     await page.getByRole("link", { name: /Buildy lokalne/ }).click();
     let tools = await openTools(page);
-    await tools.getByLabel("Notatka", { exact: true }).fill("Plan pod exp");
-    await tools.getByLabel("Oznaczenia (oddziel przecinkiem)").fill("exp, test");
+    await tools.getByRole("textbox", { name: "Notatka", exact: true }).fill("Plan pod exp");
+    await tools
+        .getByRole("textbox", { name: "Oznaczenia (oddziel przecinkiem)", exact: true })
+        .fill("exp, test");
     await tools.getByRole("button", { name: "Zapisz opis" }).click();
     await expect.poll(() => saved(page).then((entries) => entries[0].notes)).toBe("Plan pod exp");
     const changed = structuredClone(original);
@@ -119,7 +121,9 @@ test("previews changes, preserves saved versions and metadata, recalculates, exp
     expect((await draft(page)).requestData.slots.helmet.itemStars).toBe(7);
     await page.reload();
     tools = await openTools(page);
-    await expect(tools.getByLabel("Notatka", { exact: true })).toHaveValue("Plan pod exp");
+    await expect(tools.getByRole("textbox", { name: "Notatka", exact: true })).toHaveValue(
+        "Plan pod exp"
+    );
     const calculated = page.waitForResponse((response) =>
         response.url().endsWith("/api/calculator/calculate")
     );
@@ -136,8 +140,12 @@ test("previews changes, preserves saved versions and metadata, recalculates, exp
         Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])
     );
     await tools.getByRole("button", { name: "Udostępnij link" }).click();
-    await expect(tools.getByLabel("Link do podglądu")).toBeVisible();
-    const link = await tools.getByLabel("Link do podglądu").inputValue();
+    await expect(
+        tools.getByRole("textbox", { name: "Link do podglądu", exact: true })
+    ).toBeVisible();
+    const link = await tools
+        .getByRole("textbox", { name: "Link do podglądu", exact: true })
+        .inputValue();
     await page.screenshot({ path: testInfo.outputPath("library-tools.png"), fullPage: true });
     await page.goto(link);
     await expect(page.getByText("Udostępniony build — podgląd", { exact: true })).toBeVisible();
@@ -163,13 +171,17 @@ test("plans from current equipment and keeps a manually required intermediate it
     await importPayload(page, payload("Htagan", 100));
     await page.getByRole("link", { name: "Ścieżka rozwoju", exact: true }).click();
     const goal = (await saved(page))[0];
-    await page.getByLabel("Docelowy build", { exact: true }).selectOption(`build:${goal.id}`);
-    await page.getByLabel("Profesja", { exact: true }).selectOption("FIRE_MAGE");
-    await page.getByLabel("Początek ścieżki", { exact: true }).selectOption("current");
-    await page.getByText("Obowiązkowe przedmioty pośrednie", { exact: true }).click();
-    await page.getByLabel("Poziom etapu", { exact: true }).fill("110");
     await page
-        .getByLabel("Przedmiot etapu", { exact: true })
+        .getByRole("combobox", { name: "Docelowy build", exact: true })
+        .selectOption(`build:${goal.id}`);
+    await page.getByRole("combobox", { name: "Profesja", exact: true }).selectOption("FIRE_MAGE");
+    await page
+        .getByRole("combobox", { name: "Początek ścieżki", exact: true })
+        .selectOption("current");
+    await page.getByText("Obowiązkowe przedmioty pośrednie", { exact: true }).click();
+    await page.getByRole("spinbutton", { name: "Poziom etapu", exact: true }).fill("110");
+    await page
+        .getByRole("combobox", { name: "Przedmiot etapu", exact: true })
         .selectOption(String(item("Sigil").id));
     await page.getByRole("button", { name: "Dodaj etap obowiązkowy" }).click();
     const response = page.waitForResponse((response) =>
@@ -213,13 +225,15 @@ test("preserves advisor exclusions and reopens a complete saved analysis without
     await page.getByLabel("Maksymalna liczba działań w planie").selectOption("1");
     await page.getByText("Wykluczenia Doradcy", { exact: true }).click();
     await page
-        .getByLabel("Nie proponuj przedmiotu", { exact: true })
+        .getByRole("combobox", { name: "Nie proponuj przedmiotu", exact: true })
         .selectOption(String(item("Miłość Morany").id));
-    await page.getByLabel("Nie kupuj typu drifa", { exact: true }).selectOption("CRITICAL_CHANCE");
+    await page
+        .getByRole("combobox", { name: "Nie kupuj typu drifa", exact: true })
+        .selectOption("CRITICAL_CHANCE");
     const response = page.waitForResponse((response) =>
         response.url().endsWith("/api/optimizer/drifs")
     );
-    await page.getByRole("button", { name: "Analizuj build", exact: true }).click();
+    await page.getByRole("button", { name: /^Analizuj build$/i }).click();
     const analyzed = await response;
     expect(analyzed.status()).toBe(200);
     expect(analyzed.request().postDataJSON().advisor.excludedPurchaseBonusTypes).toEqual([

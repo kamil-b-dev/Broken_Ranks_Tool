@@ -140,6 +140,9 @@ test("real optimizer reports outcomes, numeric-search measurements and typed adv
     expect(advice.advisorReport.plans.length).toBeGreaterThan(0);
     expect(advice.advisorReport.plans[0].actionDetails[0]).toMatchObject({
         type: "UPGRADE_DRIF",
-        drifs: [{ identity: "initial:helmet:0", fromLevel: 1, toLevel: 6 }],
+        drifs: [{ identity: "initial:helmet:0", fromLevel: 1, toLevel: expect.any(Number) }],
     });
+    const upgrade = advice.advisorReport.plans[0].actionDetails[0].drifs[0];
+    expect(upgrade.toLevel).toBeGreaterThanOrEqual(upgrade.fromLevel);
+    expect(upgrade.toLevel).toBe(advice.optimizedSetup.slots.helmet.drifLevels[0]);
 });

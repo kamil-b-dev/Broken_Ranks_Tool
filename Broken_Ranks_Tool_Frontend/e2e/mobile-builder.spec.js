@@ -159,7 +159,8 @@ test.describe("dedicated mobile builder", () => {
                     .poll(async () =>
                         page.evaluate(() => {
                             const draft = JSON.parse(
-                                localStorage.getItem("broken-ranks-tool.equipment-draft.v3")
+                                localStorage.getItem("broken-ranks-tool.equipment-draft.v4") ||
+                                    localStorage.getItem("broken-ranks-tool.equipment-draft.v3")
                             );
                             return draft.value.backpack.some((entry) => entry.id === "owned-drif");
                         })

@@ -26,7 +26,10 @@ for (const layout of ["desktop", "mobile"]) {
         await page.setViewportSize({ width: 1800, height: 1100 });
         await page.addInitScript(
             (value) => {
-                if (!localStorage.getItem("broken-ranks-tool.equipment-draft.v3"))
+                if (!(
+                    localStorage.getItem("broken-ranks-tool.equipment-draft.v4") ||
+                    localStorage.getItem("broken-ranks-tool.equipment-draft.v3")
+                ))
                     localStorage.setItem(
                         "broken-ranks-tool.equipment-draft.v3",
                         JSON.stringify({ version: 3, value })
@@ -70,7 +73,11 @@ for (const layout of ["desktop", "mobile"]) {
         });
         const draft = () =>
             page.evaluate(
-                () => JSON.parse(localStorage.getItem("broken-ranks-tool.equipment-draft.v3")).value
+                () =>
+                    JSON.parse(
+                        localStorage.getItem("broken-ranks-tool.equipment-draft.v4") ||
+                            localStorage.getItem("broken-ranks-tool.equipment-draft.v3")
+                    ).value
             );
         await page.goto("/builder?ui=desktop");
         const buttonStyle = (element) => {

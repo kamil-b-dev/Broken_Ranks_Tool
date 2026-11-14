@@ -20,7 +20,11 @@ const stone = (id, changes = {}) => ({
 const inventory = (count) => Array.from({ length: count }, (_, index) => stone(`owned-${index}`));
 const draft = (page) =>
     page.evaluate(
-        () => JSON.parse(localStorage.getItem("broken-ranks-tool.equipment-draft.v3")).value
+        () =>
+            JSON.parse(
+                localStorage.getItem("broken-ranks-tool.equipment-draft.v4") ||
+                    localStorage.getItem("broken-ranks-tool.equipment-draft.v3")
+            ).value
     );
 const initialize = async (page, backpack, changes = {}) => {
     await page.addInitScript(

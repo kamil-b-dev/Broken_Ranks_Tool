@@ -163,15 +163,19 @@ for (const layout of ["desktop", "mobile"]) {
             .poll(() =>
                 page.evaluate(
                     () =>
-                        JSON.parse(localStorage.getItem("broken-ranks-tool.equipment-draft.v3"))
-                            .value.requestData.slots.armor.drifLevels[0]
+                        JSON.parse(
+                            localStorage.getItem("broken-ranks-tool.equipment-draft.v4") ||
+                                localStorage.getItem("broken-ranks-tool.equipment-draft.v3")
+                        ).value.requestData.slots.armor.drifLevels[0]
                 )
             )
             .toBe(21);
         const backpack = await page.evaluate(
             () =>
-                JSON.parse(localStorage.getItem("broken-ranks-tool.equipment-draft.v3")).value
-                    .backpack
+                JSON.parse(
+                    localStorage.getItem("broken-ranks-tool.equipment-draft.v4") ||
+                        localStorage.getItem("broken-ranks-tool.equipment-draft.v3")
+                ).value.backpack
         );
         expect(backpack).toEqual([]);
         if (layout === "mobile")
