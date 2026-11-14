@@ -289,3 +289,30 @@
         flex: 0 1 90px;
     }
 }
+.progression-starting-controls {
+    font-family: Inter, system-ui, sans-serif;
+    padding: 0.75rem 0;
+}
+.progression-starting-controls > label {
+    display: grid;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+.progression-starting-controls select,
+.progression-starting-controls input {
+    min-width: 0;
+    max-width: 100%;
+    padding: 0.5rem;
+    background: #12100e;
+    color: #eee7da;
+    border: 1px solid #665136;
+}
+.progression-starting-controls summary {
+    cursor: pointer;
+    color: #d5ae69;
+}
+.progression-starting-controls button {
+    padding: 0.5rem;
+    border: 1px solid #665136;
+    margin: 0.25rem;
+}

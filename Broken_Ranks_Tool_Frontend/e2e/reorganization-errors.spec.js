@@ -83,7 +83,11 @@ for (const layout of ["desktop", "mobile"]) {
             await expect(page.getByText(title, { exact: true })).toHaveCount(0);
         }
         const saved = await page.evaluate(
-            () => JSON.parse(localStorage.getItem("broken-ranks-tool.equipment-draft.v3")).value
+            () =>
+                JSON.parse(
+                    localStorage.getItem("broken-ranks-tool.equipment-draft.v4") ||
+                        localStorage.getItem("broken-ranks-tool.equipment-draft.v3")
+                ).value
         );
         expect(saved.requestData).toEqual(equipment.requestData);
         expect(saved.backpack).toEqual([]);

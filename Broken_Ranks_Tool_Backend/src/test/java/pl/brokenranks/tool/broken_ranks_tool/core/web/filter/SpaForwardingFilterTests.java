@@ -12,24 +12,58 @@ class SpaForwardingFilterTests {
     private final SpaForwardingFilter filter = new SpaForwardingFilter();
 
     @Test
-    void forwardsBrowserRoutesToTheFrontendEntryPoint() throws Exception {
+    void forwardsKnownRoutesToTheirOwnHtmlEvenWithoutAnAcceptHeader() throws Exception {
         for (String route :
-                new String[] {
-                    "/builder",
-                    "/optimizer",
-                    "/builds",
-                    "/progression-path",
-                    "/kreator",
-                    "/optymalizator",
-                    "/buildy",
-                    "/sciezka-rozwoju"
-                }) {
-            MockHttpServletRequest request = request(route, "text/html");
+                new String[] {"/builder", "/optimizer", "/builds", "/progression-path", "/help"}) {
+            MockHttpServletRequest request = new MockHttpServletRequest("GET", route);
             MockHttpServletResponse response = new MockHttpServletResponse();
 
             filter.doFilter(request, response, new MockFilterChain());
 
-            assertEquals("/index.html", response.getForwardedUrl());
+            assertEquals(route + "/index.html", response.getForwardedUrl());
+        }
+    }
+
+    @Test
+    void redirectsLegacyAndDuplicateUrlsPermanentlyPreservingQueriesAndContext() throws Exception {
+        for (String[] route :
+                new String[][] {
+                    {"/kreator", "/builder"},
+                    {"/optymalizator", "/optimizer"},
+                    {"/buildy", "/builds"},
+                    {"/sciezka-rozwoju", "/progression-path"},
+                    {"/builder/", "/builder"},
+                    {"/help/index.html", "/help"},
+                    {"/index.html", "/"}
+                }) {
+            MockHttpServletRequest request = request("/tool" + route[0], "text/html");
+            request.setContextPath("/tool");
+            request.setQueryString("ui=mobile&topic=builder");
+            MockHttpServletResponse response = new MockHttpServletResponse();
+
+            filter.doFilter(request, response, new MockFilterChain());
+
+            assertEquals(301, response.getStatus());
+            assertEquals(
+                    "/tool" + route[1] + "?ui=mobile&topic=builder",
+                    response.getHeader("Location"));
+        }
+    }
+
+    @Test
+    void leavesUnknownUrlsForSpringToReturnNotFoundInsteadOfTheHomePage() throws Exception {
+        for (String path :
+                new String[] {
+                    "/does-not-exist", "/builder/not-found", "/robots.txt", "/sitemap.xml", "/"
+                }) {
+            MockHttpServletRequest request = request(path, "text/html");
+            MockFilterChain chain = new MockFilterChain();
+            MockHttpServletResponse response = new MockHttpServletResponse();
+
+            filter.doFilter(request, response, chain);
+
+            assertEquals(request, chain.getRequest());
+            assertEquals(null, response.getForwardedUrl());
         }
     }
 

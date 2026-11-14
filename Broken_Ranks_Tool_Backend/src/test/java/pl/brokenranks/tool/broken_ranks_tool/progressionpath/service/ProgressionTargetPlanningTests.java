@@ -19,6 +19,182 @@ import pl.brokenranks.tool.broken_ranks_tool.progressionpath.planning.Progressio
 
 @SpringBootTest
 class ProgressionTargetPlanningTests {
+    @Test
+    void reusesAnOwnedBackpackItemAndItsStoneWithoutBuyingEitherAgain() {
+        var goal =
+                items.findAll().stream()
+                        .filter(item -> item.getName().equals("Miłość Morany"))
+                        .findFirst()
+                        .orElseThrow();
+        var stone =
+                drifs.findAll().stream()
+                        .filter(
+                                value ->
+                                        value.getBonusType() == DRIF_BONUS_TYPE.CRITICAL_CHANCE
+                                                && value.getSize() == DRIF_SIZE.MAGNIDRIF)
+                        .findFirst()
+                        .orElseThrow();
+        var target = equipment("helmet", goal.getId(), 1);
+        target.getSlots().get("helmet").setDrifIds(List.of(stone.getId()));
+        target.getSlots().get("helmet").setDrifLevels(Map.of("0", 6));
+        var initial = new EquipmentRequest();
+        initial.setSlots(Map.of());
+        initial.setCharacterStats(Map.of());
+        var owned =
+                new ProgressionTargetRequest.OwnedResource(
+                        "owned",
+                        ProgressionTargetRequest.ResourceKind.ITEM,
+                        null,
+                        null,
+                        target.getSlots().get("helmet"));
+        var input =
+                new ProgressionTargetRequest(
+                        CHARACTER_CLASS.FIRE_MAGE,
+                        140,
+                        target,
+                        Set.of(),
+                        false,
+                        0,
+                        new ProgressionTargetRequest.StartingPoint(120, initial, List.of(owned)),
+                        List.of());
+        var result = service.plan(input);
+        assertTrue(
+                result.stages().stream()
+                        .flatMap(stage -> stage.actions().stream())
+                        .noneMatch(action -> action.type().equals("ACQUIRE")));
+        assertTrue(
+                result.stages().stream()
+                        .anyMatch(stage -> stage.ownedItemStars().containsKey("helmet")));
+        assertEquals(target, result.stages().getLast().stage().equipment());
+        var invalid =
+                new ProgressionTargetRequest.OwnedResource(
+                        "unknown", ProgressionTargetRequest.ResourceKind.DRIF, null, 6, null);
+        assertThrows(
+                IllegalArgumentException.class,
+                () ->
+                        service.plan(
+                                new ProgressionTargetRequest(
+                                        CHARACTER_CLASS.FIRE_MAGE,
+                                        140,
+                                        target,
+                                        Set.of(),
+                                        false,
+                                        0,
+                                        new ProgressionTargetRequest.StartingPoint(
+                                                120, initial, List.of(invalid)),
+                                        List.of())));
+    }
+
+    @Test
+    void startsFromOwnedEquipmentAndUpgradesItsPhysicalStoneWithoutAcquiringItAgain() {
+        var helmet =
+                items.findAll().stream()
+                        .filter(item -> item.getName().equals("Htagan"))
+                        .findFirst()
+                        .orElseThrow();
+        var source =
+                drifs.findAll().stream()
+                        .filter(
+                                stone ->
+                                        stone.getBonusType() == DRIF_BONUS_TYPE.CRITICAL_CHANCE
+                                                && stone.getSize() == DRIF_SIZE.BIDRIF)
+                        .findFirst()
+                        .orElseThrow();
+        var destination =
+                drifs.findAll().stream()
+                        .filter(
+                                stone ->
+                                        stone.getBonusType() == DRIF_BONUS_TYPE.CRITICAL_CHANCE
+                                                && stone.getSize() == DRIF_SIZE.MAGNIDRIF)
+                        .findFirst()
+                        .orElseThrow();
+        var initial = equipment("helmet", helmet.getId(), 1);
+        initial.getSlots().get("helmet").setDrifIds(List.of(source.getId()));
+        initial.getSlots().get("helmet").setDrifLevels(Map.of("0", 6));
+        var target = equipment("helmet", helmet.getId(), 7);
+        target.getSlots().get("helmet").setDrifIds(List.of(destination.getId()));
+        target.getSlots().get("helmet").setDrifLevels(Map.of("0", 11));
+        var input =
+                new ProgressionTargetRequest(
+                        CHARACTER_CLASS.FIRE_MAGE,
+                        140,
+                        target,
+                        Set.of(),
+                        false,
+                        0,
+                        new ProgressionTargetRequest.StartingPoint(100, initial, List.of()),
+                        List.of());
+        var result = service.plan(input);
+        assertEquals(initial, result.stages().getFirst().stage().equipment());
+        assertTrue(
+                result.stages().stream().allMatch(stage -> stage.stage().characterLevel() >= 100));
+        assertEquals(target, result.stages().getLast().stage().equipment());
+        assertTrue(
+                result.stages().stream()
+                        .flatMap(stage -> stage.actions().stream())
+                        .noneMatch(action -> action.type().equals("ACQUIRE")));
+        assertTrue(
+                result.stages().stream()
+                        .flatMap(stage -> stage.actions().stream())
+                        .anyMatch(action -> action.type().equals("UPGRADE")));
+    }
+
+    @Test
+    void keepsAnExplicitIntermediateItemDespiteTheAutomaticMinimumGap() {
+        var all = items.findAll();
+        var intermediate =
+                all.stream()
+                        .filter(item -> item.getName().equals("Sigil"))
+                        .findFirst()
+                        .orElseThrow();
+        var goal =
+                all.stream()
+                        .filter(item -> item.getName().equals("Miłość Morany"))
+                        .findFirst()
+                        .orElseThrow();
+        var target = equipment("helmet", goal.getId(), 1);
+        var input =
+                new ProgressionTargetRequest(
+                        CHARACTER_CLASS.FIRE_MAGE,
+                        140,
+                        target,
+                        Set.of(),
+                        false,
+                        140,
+                        null,
+                        List.of(
+                                new ProgressionTargetRequest.RequiredItem(
+                                        "helmet", 80, intermediate.getId())));
+        var result = service.plan(input);
+        assertTrue(
+                result.stages().stream()
+                        .anyMatch(
+                                stage ->
+                                        stage.stage().characterLevel() == 80
+                                                && intermediate
+                                                        .getId()
+                                                        .equals(
+                                                                stage.stage()
+                                                                        .equipment()
+                                                                        .getSlots()
+                                                                        .get("helmet")
+                                                                        .getItemId())));
+        assertEquals(target, result.stages().getLast().stage().equipment());
+        var wrong =
+                new ProgressionTargetRequest(
+                        CHARACTER_CLASS.FIRE_MAGE,
+                        140,
+                        target,
+                        Set.of(),
+                        false,
+                        0,
+                        null,
+                        List.of(
+                                new ProgressionTargetRequest.RequiredItem(
+                                        "weapon", 80, intermediate.getId())));
+        assertThrows(IllegalArgumentException.class, () -> service.plan(wrong));
+    }
+
     @Autowired private ProgressionTargetPlanningService service;
     @Autowired private EquipmentStatsCalculatorService calculator;
     @Autowired private ItemTemplateRepository items;

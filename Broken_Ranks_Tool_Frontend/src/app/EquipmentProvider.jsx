@@ -206,6 +206,9 @@ export const EquipmentProvider = ({ children }) => {
                     ...(prev.slots || {}),
                     [slotKey]: {
                         itemId: slotData.itemId,
+                        ...(slotData.synergetic
+                            ? { synergetic: structuredClone(slotData.synergetic) }
+                            : {}),
                         itemStars: slotData.itemStars,
                         orbIds: slotData.orbIds,
                         orbLevels: slotData.orbLevels,
@@ -443,7 +446,7 @@ export const EquipmentProvider = ({ children }) => {
     );
 
     const hasWorkingBuild =
-        Object.values(requestData.slots).some((slot) => slot?.itemId) ||
+        Object.values(requestData.slots).some((slot) => slot?.itemId || slot?.synergetic) ||
         backpack.length > 0 ||
         characterConfig != null ||
         Object.keys(requestData.characterStats).length > 0;

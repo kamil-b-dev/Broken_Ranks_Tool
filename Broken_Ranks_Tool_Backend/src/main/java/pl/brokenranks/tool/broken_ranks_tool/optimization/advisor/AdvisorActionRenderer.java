@@ -40,13 +40,7 @@ final class AdvisorActionRenderer {
                             + label(action.drifs().getFirst(), true)
                             + " do "
                             + location(action.drifs().getFirst().to());
-            case UPGRADE_DRIF ->
-                    "Ulepsz "
-                            + label(action.drifs().getFirst(), false)
-                            + " w "
-                            + location(action.drifs().getFirst().from())
-                            + " do poziomu "
-                            + action.drifs().getFirst().toLevel();
+            case UPGRADE_DRIF -> upgrade(action.drifs().getFirst());
             case MOVE ->
                     "Przenieś "
                             + label(action.drifs().getFirst(), false)
@@ -68,12 +62,19 @@ final class AdvisorActionRenderer {
     }
 
     private String label(DrifChange stone, boolean purchased) {
-        var drif = model.templates.drifs().get(stone.drifId());
+        var drif = model.templates.drifs().get(purchased ? stone.drifId() : stone.fromDrifId());
         return drif.getSize()
                 + " "
                 + drif.getName()
                 + " "
                 + (purchased ? stone.toLevel() : stone.fromLevel());
+    }
+
+    private String upgrade(DrifChange stone) {
+        String source = "Ulepsz " + label(stone, false) + " w " + location(stone.from());
+        return stone.drifId().equals(stone.fromDrifId())
+                ? source + " do poziomu " + stone.toLevel()
+                : source + " na " + label(stone, true);
     }
 
     private String location(Location location) {

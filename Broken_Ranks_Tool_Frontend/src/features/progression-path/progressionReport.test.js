@@ -8,6 +8,15 @@ import {
 import { reportData, legendReport, position, orb } from "./progressionReport.fixtures";
 
 describe("player progression summary", () => {
+    it("does not list starting equipment or an owned replacement as a purchase or a new upgrade", () => {
+        const report = legendReport();
+        report.stages = [report.stages[0]];
+        report.stages[0].ownedItemStars = { weapon: 1 };
+        report.stages[0].orbActions = [];
+        const group = createProgressionView(report, reportData).groups[0];
+        expect(group.purchases).toEqual([]);
+        expect(group.prepareCount).toBe(0);
+    });
     it("distinguishes starring a purchased replacement from upgrading an epic to its legend", () => {
         const data = {
             items: [

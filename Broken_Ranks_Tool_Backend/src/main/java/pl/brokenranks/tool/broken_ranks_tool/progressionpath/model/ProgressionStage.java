@@ -46,6 +46,11 @@ public record ProgressionStage(String id, int characterLevel, EquipmentRequest e
         if (source == null) return null;
         var copy = new SlotData();
         copy.setItemId(source.getItemId());
+        if (source.getSynergetic() != null)
+            copy.setSynergetic(
+                    new EquipmentRequest.SynergeticItem(
+                            source.getSynergetic().name(),
+                            new LinkedHashMap<>(source.getSynergetic().stats())));
         copy.setItemStars(source.getItemStars());
         copy.setDrifIds(source.getDrifIds() == null ? null : new ArrayList<>(source.getDrifIds()));
         copy.setDrifLevels(

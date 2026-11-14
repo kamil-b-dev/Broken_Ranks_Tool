@@ -11,7 +11,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.*;
 
 class AdvisorCatalogLoadingTests extends AdvisorOptimizationTestSupport {
     @Test
-    void readsOnlyOwnedTemplatesOnceForMovesAndLevelUpgrades() {
+    void readsOnlyOwnedBonusFamiliesOnceForUpgrades() {
         var owned = drif(10, A, "2%");
         owned.setIncrement("1%");
         var fixture =
@@ -29,7 +29,7 @@ class AdvisorCatalogLoadingTests extends AdvisorOptimizationTestSupport {
         assertEquals(
                 6, result.getOptimizedSetup().getSlots().get("helmet").getDrifLevels().get("0"));
         verify(fixture.items).findAllById(List.of(1L));
-        verify(fixture.drifs).findAllById(List.of(10L));
+        verify(fixture.drifs).findUpgradeCandidatesByOwnedIds(List.of(10L));
         verifyNoMoreInteractions(fixture.items, fixture.drifs);
         verifyNoInteractions(fixture.orbs);
         verify(fixture.calculator).prepareCalculationWithSources(any(), any(), any());
@@ -37,6 +37,17 @@ class AdvisorCatalogLoadingTests extends AdvisorOptimizationTestSupport {
         assertEquals(
                 fixture.calculator.calculateWithSources(result.getOptimizedSetup()),
                 result.getCalculationResult());
+    }
+
+    @Test
+    void readsOnlyOwnedTemplatesWhenUpgradesAndPurchasesAreDisabled() {
+        var fixture =
+                fixture(
+                        List.of(item(1, ITEM_CATEGORY.HELMET, "I", 10, 0)),
+                        List.of(drif(10, A, "2%"), drif(11, B, "3%")));
+        fixture.service.optimize(request(A, Map.of("helmet", slot(1, 1, 10L))));
+        verify(fixture.drifs).findAllById(List.of(10L));
+        verifyNoMoreInteractions(fixture.drifs);
     }
 
     @Test

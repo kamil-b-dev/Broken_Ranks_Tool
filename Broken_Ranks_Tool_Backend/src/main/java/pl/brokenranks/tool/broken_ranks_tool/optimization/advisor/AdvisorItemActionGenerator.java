@@ -62,6 +62,11 @@ final class AdvisorItemActionGenerator {
                                                     && item.getRarity() != RARITY.EPIC
                                                     && item.getRarity() != RARITY.SET)
                             .filter(item -> selected.accepts(item.getProfile()))
+                            .filter(
+                                    item ->
+                                            !search.options
+                                                    .getExcludedItemIds()
+                                                    .contains(item.getId()))
                             .collect(
                                     java.util.stream.Collectors.groupingBy(
                                             ItemTemplate::getCategory));

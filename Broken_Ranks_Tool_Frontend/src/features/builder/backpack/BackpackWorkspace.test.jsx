@@ -409,7 +409,7 @@ describe("builder backpack workflow", () => {
         );
         expect(calculations).toHaveBeenCalledTimes(initialCalls);
         const snapshot = exposeRef.current.createBuildSnapshot();
-        expect(snapshot.payload.version).toBe(3);
+        expect(snapshot.payload.version).toBe(4);
         expect(snapshot.payload.build.backpack).toHaveLength(1);
         await act(async () => exposeRef.current.loadBuildSnapshot(snapshot));
         expect(exposeRef.current.backpack).toEqual(snapshot.payload.build.backpack);

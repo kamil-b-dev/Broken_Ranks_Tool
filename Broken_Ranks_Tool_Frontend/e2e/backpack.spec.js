@@ -44,7 +44,8 @@ const draft = (page) =>
     page.evaluate(
         () =>
             JSON.parse(
-                localStorage.getItem("broken-ranks-tool.equipment-draft.v3") ||
+                localStorage.getItem("broken-ranks-tool.equipment-draft.v4") ||
+                    localStorage.getItem("broken-ranks-tool.equipment-draft.v3") ||
                     localStorage.getItem("broken-ranks-tool.equipment-draft.v2")
             ).value
     );
@@ -116,7 +117,7 @@ test("assembles a replacement with gems, keeps over-capacity drafts and restores
     const download = page.waitForEvent("download");
     await card.getByRole("button", { name: "Eksportuj JSON" }).click();
     const payload = JSON.parse(await readFile(await (await download).path(), "utf8"));
-    expect(payload.version).toBe(3);
+    expect(payload.version).toBe(4);
     expect(payload.build.backpack).toEqual(stored.backpack);
     await page.reload();
     await page

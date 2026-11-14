@@ -76,13 +76,15 @@ const OptimizerVariantsSection = ({
                             </button>
                         ))}
                     </div>
-                    <button
-                        type="button"
-                        className="optimizer-apply-variant"
-                        onClick={() => onApply(variants[activeIndex], activeIndex)}
-                    >
-                        {t("Zastosuj wybrany wariant")}
-                    </button>
+                    {onApply && (
+                        <button
+                            type="button"
+                            className="optimizer-apply-variant"
+                            onClick={() => onApply(variants[activeIndex], activeIndex)}
+                        >
+                            {t("Zastosuj wybrany wariant")}
+                        </button>
+                    )}
                 </>
             ) : null}
         </section>

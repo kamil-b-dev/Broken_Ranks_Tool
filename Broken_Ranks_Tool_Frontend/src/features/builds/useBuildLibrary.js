@@ -14,6 +14,7 @@ import {
     withBuildLibraryLock,
 } from "./buildLibraryStorage";
 import { downloadBuildPayload, downloadBuildText } from "./buildDownloads";
+import { restoreBuildVersion, updateBuildMetadata } from "./library/buildVersions";
 
 /** Owns the persistent browser library and applies saved snapshots to the editor. */
 export const useBuildLibrary = ({ createSnapshot, applySnapshot }) => {
@@ -280,8 +281,25 @@ export const useBuildLibrary = ({ createSnapshot, applySnapshot }) => {
         }
     };
 
+    const editRecord = async (id, update) => {
+        try {
+            const existing = builds.find((build) => build.id === id);
+            if (!existing) throw new Error("Nie znaleziono wybranego buildu.");
+            await commit((latest) => {
+                requireUnchangedRecord(latest, existing);
+                return latest.map((record) => (record.id === id ? update(record) : record));
+            });
+            return true;
+        } catch (error) {
+            setNotice({ type: "error", message: error.message });
+            return false;
+        }
+    };
+
     return {
         builds,
+        createSnapshot,
+        loadSnapshot: applySnapshot,
         exportLibrary,
         importLibrary,
         storageWarning: storageState.rejected
@@ -296,6 +314,23 @@ export const useBuildLibrary = ({ createSnapshot, applySnapshot }) => {
         saveCurrent,
         overwrite,
         rename,
+        updateMetadata: (id, metadata) =>
+            editRecord(id, (record) => updateBuildMetadata(record, metadata)),
+        restoreVersion: (id, index) =>
+            editRecord(id, (record) => restoreBuildVersion(record, index)),
+        updateCalculation: (id, expectedPayload, response) =>
+            editRecord(id, (record) => {
+                if (JSON.stringify(record.payload) !== expectedPayload)
+                    throw new Error("Build zmienił się podczas przeliczania.");
+                return {
+                    ...record,
+                    stats: response.stats || response,
+                    statSources: {
+                        drifCategories: response.drifCategories || {},
+                        orbBonusTypes: response.orbBonusTypes || [],
+                    },
+                };
+            }),
         load,
         exportBuild,
         remove,

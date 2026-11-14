@@ -21,6 +21,7 @@ import {
 } from "./progressionProject";
 import ProgressionNumberInput from "./ProgressionNumberInput";
 import ProgressionResult from "./ProgressionResult";
+import ProgressionStartingControls from "./ProgressionStartingControls";
 import useProgressionProjectStorage from "./useProgressionProjectStorage";
 import {
     progressionInputKey,
@@ -301,6 +302,13 @@ export default function ProgressionWorkspace({
                     onChange={loadBuildFile}
                 />
             </div>
+            <ProgressionStartingControls
+                project={project}
+                update={update}
+                builds={builds}
+                data={data}
+                createSnapshot={createSnapshot}
+            />
             <section className="progression-controls" aria-label={t("Założenia ścieżki")}>
                 <label>
                     {t("Profesja")}

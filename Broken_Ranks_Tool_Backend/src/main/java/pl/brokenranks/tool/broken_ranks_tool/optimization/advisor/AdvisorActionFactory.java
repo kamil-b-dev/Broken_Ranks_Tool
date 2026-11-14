@@ -4,11 +4,22 @@ import static pl.brokenranks.tool.broken_ranks_tool.optimization.advisor.Advisor
 
 import java.util.*;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest.SlotData;
+import pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.AdvisorAction;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.AdvisorAction.*;
 
 /** Describes an already validated single transition without parsing message text. */
 final class AdvisorActionFactory {
+    private final Map<Long, DrifTemplate> templates;
+
+    AdvisorActionFactory() {
+        this(Map.of());
+    }
+
+    AdvisorActionFactory(Map<Long, DrifTemplate> templates) {
+        this.templates = templates;
+    }
+
     AdvisorAction create(AdvisorSearch.Node parent, Map<String, SlotData> after) {
         List<Stone> removed = new ArrayList<>(), added = new ArrayList<>();
         for (String key : after.keySet().stream().sorted().toList()) {
@@ -51,9 +62,10 @@ final class AdvisorActionFactory {
                                             added.stream()
                                                     .filter(
                                                             next ->
-                                                                    next.id.equals(stone.id)
-                                                                            && next.location.equals(
-                                                                                    stone.location))
+                                                                    next.location.equals(
+                                                                                    stone.location)
+                                                                            && isUpgrade(
+                                                                                    stone, next))
                                                     .findFirst()
                                                     .orElse(null));
             if (destination == null)
@@ -62,11 +74,12 @@ final class AdvisorActionFactory {
             changes.add(
                     new DrifChange(
                             identity(parent, stone.location, stone.id),
-                            stone.id,
+                            destination.id,
                             stone.location,
                             destination.location,
                             stone.level,
-                            destination.level));
+                            destination.level,
+                            stone.id));
         }
         for (Stone purchased : added)
             changes.add(
@@ -103,6 +116,16 @@ final class AdvisorActionFactory {
             }
         }
         return "initial:" + location.slotKey() + ":" + location.socketIndex();
+    }
+
+    private boolean isUpgrade(Stone source, Stone target) {
+        if (target.level < source.level) return false;
+        if (source.id.equals(target.id)) return true;
+        DrifTemplate before = templates.get(source.id), after = templates.get(target.id);
+        return before != null
+                && after != null
+                && before.getBonusType() == after.getBonusType()
+                && after.getSize().ordinal() > before.getSize().ordinal();
     }
 
     private record Stone(Location location, Long id, int level) {}

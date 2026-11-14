@@ -13,6 +13,7 @@ import CompactCharacterPanel from "../../features/builder/character/CompactChara
 import ProgressionWorkspace from "../../features/progression-path/ProgressionWorkspace";
 import { createBuildPayload } from "../../features/builds/buildPayload";
 import { useTranslation } from "./useTranslation";
+import PageMetadata from "../../app/seo/PageMetadata";
 
 beforeEach(() => localStorage.clear());
 afterEach(() => vi.restoreAllMocks());
@@ -40,17 +41,18 @@ it("updates translated page metadata and ignores unrelated storage events", asyn
     try {
         render(
             <LanguageProvider>
+                <PageMetadata />
                 <LanguageSwitcher />
             </LanguageProvider>
         );
-        expect(description.content).toMatch(/Kalkulator ekwipunku/);
+        expect(description.content).toMatch(/Twórz buildy/);
         expect(locale.content).toBe("pl_PL");
         act(() =>
             window.dispatchEvent(new StorageEvent("storage", { key: "other", newValue: "en" }))
         );
         expect(document.documentElement.lang).toBe("pl");
         await userEvent.click(screen.getByRole("button", { name: "EN — English" }));
-        expect(description.content).toMatch(/Equipment calculator/);
+        expect(description.content).toMatch(/Create.*builds/);
         expect(locale.content).toBe("en_GB");
     } finally {
         description.remove();

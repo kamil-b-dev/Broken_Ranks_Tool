@@ -33,6 +33,7 @@ public final class OrbSelectionNormalizer {
         if (count == originalCount) return source;
         var normalized = new SlotData();
         normalized.setItemId(source.getItemId());
+        normalized.setSynergetic(source.getSynergetic());
         normalized.setItemStars(source.getItemStars());
         normalized.setDrifIds(source.getDrifIds());
         normalized.setDrifLevels(source.getDrifLevels());

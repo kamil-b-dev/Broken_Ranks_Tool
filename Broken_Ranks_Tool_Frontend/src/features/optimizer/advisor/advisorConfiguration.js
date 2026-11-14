@@ -56,11 +56,30 @@ export const selectedAdvisorGoal = (modifiers, requested) =>
     modifiers[0]?.key ||
     "";
 
+export const normalizeAdvisorExclusions = (value = {}) => {
+    const itemIds = value.itemIds ?? [];
+    const purchaseBonusTypes = value.purchaseBonusTypes ?? [];
+    if (
+        !Array.isArray(itemIds) ||
+        itemIds.length > 200 ||
+        itemIds.some((id) => !Number.isSafeInteger(Number(id)) || Number(id) <= 0) ||
+        !Array.isArray(purchaseBonusTypes) ||
+        purchaseBonusTypes.length > 32 ||
+        purchaseBonusTypes.some((type) => typeof type !== "string" || !/^[A-Z_]+$/.test(type))
+    )
+        throw new Error("Niepoprawne wykluczenia Doradcy.");
+    return {
+        itemIds: [...new Set(itemIds.map(Number))],
+        purchaseBonusTypes: [...new Set(purchaseBonusTypes)],
+    };
+};
+
 /** Sends relative protection rules; the backend derives minima from the same build it searches. */
 export const buildAdvisorConfiguration = (settings, stats, gameRules, characterStats) => {
     const goal = selectedAdvisorGoal(advisorModifiers(stats, gameRules), settings.advisorGoal);
     if (!goal) throw new Error("Brak dostępnych modyfikatorów do analizy.");
     const search = { ...DEFAULT_ADVISOR_SEARCH, ...settings.advisorSearch };
+    const exclusions = normalizeAdvisorExclusions(settings.advisorExclusions);
     const target = Number(String(search.target).replace(",", "."));
     if (
         search.targetMode !== "MAXIMIZE" &&
@@ -86,6 +105,8 @@ export const buildAdvisorConfiguration = (settings, stats, gameRules, characterS
         advisor: {
             goal,
             profession: settings.advisorProfession || "AUTO",
+            excludedItemIds: exclusions.itemIds,
+            excludedPurchaseBonusTypes: exclusions.purchaseBonusTypes,
             allowedChanges: { ...DEFAULT_ADVISOR_CHANGES, ...settings.advisorAllowedChanges },
             protectedModifiers,
             purchaseScope: normalizeAdvisorPurchaseScope(settings.advisorPurchaseScope),

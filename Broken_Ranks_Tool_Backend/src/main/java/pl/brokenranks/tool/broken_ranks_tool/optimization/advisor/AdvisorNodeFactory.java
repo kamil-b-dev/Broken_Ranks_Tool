@@ -38,7 +38,8 @@ final class AdvisorNodeFactory {
             AdvisorChangeKey change,
             int upgrades,
             int effort) {
-        AdvisorAction action = new AdvisorActionFactory().create(parent, slots);
+        AdvisorAction action =
+                new AdvisorActionFactory(model.templates.drifs()).create(parent, slots);
         List<AdvisorAction> details =
                 new AdvisorActionSequence().append(parent.actionDetails(), action);
         AdvisorActionRenderer renderer = new AdvisorActionRenderer(model);

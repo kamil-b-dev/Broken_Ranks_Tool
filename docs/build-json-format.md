@@ -1,6 +1,15 @@
 # Zgodność zapisanych buildów JSON
 
-Plik buildu jest trwałym formatem danych, niezależnym od stanu React i od kontraktu żądania kalkulatora. Aktualny eksport ma `format: "broken-ranks-tool-build"` i `version: 3`. Import obsługuje wersje 1, 2 i 3 poprzez jawny rejestr czytników w `features/builds/buildFile.js`; nie porównuje wersji pliku z bieżącą wersją eksportera.
+Plik buildu jest trwałym formatem danych, niezależnym od stanu React i od kontraktu żądania kalkulatora. Aktualny eksport ma `format: "broken-ranks-tool-build"` i `version: 4`. Import obsługuje wersje 1–4 poprzez jawny rejestr czytników w `features/builds/buildFile.js`; nie porównuje wersji pliku z bieżącą wersją eksportera.
+
+Wersja 4 dodaje opcjonalne `synergetic: { name, stats }` w slocie `ring1`, `ring2`
+lub `necklace`. Nazwa ma 1–64 znaki; od 1 do 16 kanonicznych statystyk atrybutów,
+pancerza i odporności ma wartości całkowite 0–50000. Synergetyk nie współistnieje
+z `itemId`, kamieniami, poziomami kamieni ani gwiazdkami innymi niż 1. Nie jest
+wpisem katalogu i nie może być przenoszony jako gotowy przedmiot plecaka. Kontrakt
+jest w `build-file-v4.schema.json`; reguły fizyczne nadal sprawdza importer.
+Zamrożone eksportery v1/v2/v3 nie zmieniają swoich dokumentów. Biblioteka ma nadal
+własną wersję 1 i opcjonalne metadane `notes`, `tags`, `revisions`.
 
 ## Eksporty z zewnętrznych aplikacji
 

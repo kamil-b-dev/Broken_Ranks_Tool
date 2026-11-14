@@ -23,6 +23,20 @@ export const progressionInputKey = (project) => {
         [...project.resSlots].sort(),
         project.balanceStats ?? false,
         project.minItemLevelGap ?? 0,
+        ...(project.startingPoint || project.requiredItems?.length
+            ? [
+                  project.startingPoint
+                      ? [
+                            project.startingPoint.characterLevel,
+                            equipmentRequestIdentity(
+                                project.startingPoint.payload.build.requestData
+                            ),
+                            project.startingPoint.payload.build.backpack || [],
+                        ]
+                      : null,
+                  project.requiredItems || [],
+              ]
+            : []),
     ]);
 };
 

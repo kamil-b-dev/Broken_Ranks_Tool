@@ -13,7 +13,11 @@ const helmet = slot(1, 2);
 const selected = { id: "selected", kind: "DRIF", templateId: "60", level: 6, sendToBackend: true };
 const draft = (page) =>
     page.evaluate(
-        () => JSON.parse(localStorage.getItem("broken-ranks-tool.equipment-draft.v3")).value
+        () =>
+            JSON.parse(
+                localStorage.getItem("broken-ranks-tool.equipment-draft.v4") ||
+                    localStorage.getItem("broken-ranks-tool.equipment-draft.v3")
+            ).value
     );
 
 async function initialize(page, layout, changes = {}) {
@@ -22,7 +26,10 @@ async function initialize(page, layout, changes = {}) {
     );
     await page.addInitScript(
         (value) => {
-            if (!localStorage.getItem("broken-ranks-tool.equipment-draft.v3"))
+            if (!(
+                localStorage.getItem("broken-ranks-tool.equipment-draft.v4") ||
+                localStorage.getItem("broken-ranks-tool.equipment-draft.v3")
+            ))
                 localStorage.setItem(
                     "broken-ranks-tool.equipment-draft.v3",
                     JSON.stringify({ version: 3, value })

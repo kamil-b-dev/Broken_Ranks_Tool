@@ -4,6 +4,7 @@ import { useHelpTranslation as useTranslation } from "./helpTranslation";
 import { HELP_GROUPS, findHelpTopic } from "./helpContent";
 import HelpArticle from "./HelpArticle";
 import "./help.css";
+import PageIntroduction from "../../app/seo/PageIntroduction";
 
 function HelpDialog({ topicId, onSelect, onClose, onOpenPage }) {
     const { t } = useTranslation();
@@ -93,6 +94,7 @@ function HelpPage({ topicId, onSelect, onClose }) {
                     <LanguageSwitcher />
                 </div>
             </header>
+            <PageIntroduction path="/help" />
             <label className="help-topic-picker">
                 {t("Wybierz temat")}
                 <select value={topicId} onChange={(event) => onSelect(event.target.value)}>

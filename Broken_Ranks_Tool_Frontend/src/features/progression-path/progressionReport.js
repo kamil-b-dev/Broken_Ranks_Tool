@@ -140,16 +140,30 @@ export const createProgressionView = (report, data, t = identity) => {
                     });
                 }
                 if (!frameChanged(old, slot)) continue;
-                if (!paths.has(key)) paths.set(key, { slot: key, states: [old ?? null] });
+                const ownedStars = result.ownedItemStars?.[key];
+                if (!paths.has(key))
+                    paths.set(key, {
+                        slot: key,
+                        states: [
+                            ownedStars != null ? { ...slot, itemStars: ownedStars } : (old ?? null),
+                        ],
+                    });
                 paths.get(key).states.push(slot);
                 const legend = isLegendUpgrade(old, slot, data);
-                if (slot.itemId != null && !sameId(old?.itemId, slot.itemId) && !legend)
+                if (
+                    slot.itemId != null &&
+                    !sameId(old?.itemId, slot.itemId) &&
+                    !legend &&
+                    ownedStars == null
+                )
                     purchases.push({ itemId: slot.itemId });
                 if (
                     legend ||
                     (slot.itemId != null &&
                         stars(slot) > 1 &&
-                        (!sameId(old?.itemId, slot.itemId) || stars(old) !== stars(slot)))
+                        (ownedStars != null
+                            ? ownedStars < stars(slot)
+                            : !sameId(old?.itemId, slot.itemId) || stars(old) !== stars(slot)))
                 )
                     upgradedItems.add(key);
             }

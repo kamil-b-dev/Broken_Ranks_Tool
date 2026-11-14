@@ -29,6 +29,7 @@ export const equipmentRequestIdentity = ({ slots = {}, characterStats = {} } = {
                 const orbs = stones(slot.orbIds, slot.orbLevels);
                 if (
                     !slot.itemId &&
+                    !slot.synergetic &&
                     !drifs.placed.length &&
                     !orbs.placed.length &&
                     !drifs.orphanLevels.length &&
@@ -42,6 +43,16 @@ export const equipmentRequestIdentity = ({ slots = {}, characterStats = {} } = {
                         numberOrValue(slot.itemStars ?? 1),
                         drifs,
                         orbs,
+                        ...(slot.synergetic
+                            ? [
+                                  [
+                                      slot.synergetic.name,
+                                      Object.entries(slot.synergetic.stats || {}).sort(
+                                          ([left], [right]) => left.localeCompare(right)
+                                      ),
+                                  ],
+                              ]
+                            : []),
                     ],
                 ];
             }),

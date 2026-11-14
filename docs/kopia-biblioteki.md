@@ -9,7 +9,9 @@ niezapisanego roboczego kreatora ani lokalnego postępu planera.
 „Wczytaj kopię biblioteki” przyjmuje plik do 10 MB, obejmujący najwyżej 10 buildów.
 Każdy build przechodzi ten sam importer i walidację katalogową co pojedynczy plik.
 Niepoprawny rekord odrzuca całą kopię bez częściowego zapisu. Obsługiwane są
-wersje 1–3 buildów wewnątrz kopii. Otwieranie zaimportowanego buildu przelicza
+wersje 1–4 buildów wewnątrz kopii. Kopia zachowuje także notatki, oznaczenia i do
+10 wersji każdego zapisu; każda wersja przechodzi walidację katalogową.
+Otwieranie zaimportowanego buildu przelicza
 statystyki według aktualnych reguł, tak jak pozostałe zapisy biblioteki.
 
 Przed zapisem aplikacja pokazuje podgląd. Konflikt oznacza zgodne ID lub nazwę

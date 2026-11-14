@@ -93,9 +93,7 @@ try {
 
     Wait-ForReadiness
     $homeResponse = Invoke-WebRequest "$baseUrl/" -TimeoutSec 5
-    if ($homeResponse.StatusCode -ne 200 -or $homeResponse.Content -notmatch '<div id="root"></div>') {
-        throw "Frontend smoke check failed."
-    }
+    Assert-SmokeFrontendHtml $homeResponse.StatusCode $homeResponse.Content
 
     $initialData = Invoke-RestMethod "$baseUrl/api/initial-data" -TimeoutSec 15
     if ($initialData.items.Count -eq 0 -or $initialData.drifs.Count -eq 0) {

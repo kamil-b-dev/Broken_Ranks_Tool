@@ -47,6 +47,7 @@ export const useOptimizerWorkspace = ({ optimizerSettings, onOptimizerSettingsCh
         canUndoReorganization,
         reorganizationUndoWarning,
         undoReorganization,
+        createBuildSnapshot,
     } = useEquipment();
 
     const labels = useOptimizerLabels(gameRules, data.drifs);
@@ -81,11 +82,12 @@ export const useOptimizerWorkspace = ({ optimizerSettings, onOptimizerSettingsCh
         startedAt: optimizationStartedAt,
         lastDurationSeconds: lastOptimizationDurationSeconds,
         status: optimizationStatus,
+        analysisInput,
         activeVariantIndex,
         setActiveVariantIndex,
         reset: resetRunReport,
         run: runOptimization,
-    } = useOptimizationRun(runDrifOptimization);
+    } = useOptimizationRun(runDrifOptimization, undefined, createBuildSnapshot);
     const resetOptimization = useCallback(() => {
         invalidateDrifOptimization?.();
         resetRunReport();
@@ -130,6 +132,7 @@ export const useOptimizerWorkspace = ({ optimizerSettings, onOptimizerSettingsCh
             optimizerSettings.mode,
             optimizerSettings.configurationMode,
             optimizerSettings.reorganization,
+            optimizerSettings.advisorExclusions,
             resetOptimization,
         ]
     );
@@ -382,6 +385,7 @@ export const useOptimizerWorkspace = ({ optimizerSettings, onOptimizerSettingsCh
         }
     };
     return {
+        analysisDocument: { input: analysisInput, status: optimizationStatus },
         reorganizationCheck,
         canUndoReorganization,
         reorganizationUndoWarning,

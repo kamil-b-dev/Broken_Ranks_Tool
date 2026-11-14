@@ -9,11 +9,14 @@ import OptimizerReportColumn from "./OptimizerReportColumn";
 import { useOptimizerWorkspace } from "./useOptimizerWorkspace";
 import { OptimizerLabelContext } from "./optimizerLabelContext";
 import HelpButton from "../help/HelpButton";
+import AnalysisArchive from "./archive/AnalysisArchive";
+import AdvisorExclusions from "./advisor/AdvisorExclusions";
 
 /** Desktop composition retains its existing markup and navigation. */
 const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
     const {
         labels,
+        analysisDocument,
         gameRules,
         drifCategories,
         requestData,
@@ -104,6 +107,20 @@ const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
                     message="Nie udało się automatycznie zapisać ustawień optymalizatora. Ponów zapis lub pobierz konfigurację do pliku."
                     onRetry={draftSave?.retrySave}
                     onDownload={configFiles.save}
+                />
+                {optimizerSettings.mode === "ADVISOR" && (
+                    <AdvisorExclusions
+                        settings={optimizerSettings}
+                        onChange={onOptimizerSettingsChange}
+                        data={data}
+                        gameRules={gameRules}
+                    />
+                )}
+                <AnalysisArchive
+                    document={analysisDocument}
+                    busy={isOptimizing}
+                    data={data}
+                    gameRules={gameRules}
                 />
                 <OptimizerMobileNavigation
                     activeColumn={activeMobileColumn}

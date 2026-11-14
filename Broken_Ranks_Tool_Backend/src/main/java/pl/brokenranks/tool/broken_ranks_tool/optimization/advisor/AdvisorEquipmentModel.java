@@ -148,6 +148,8 @@ final class AdvisorEquipmentModel {
     }
 
     boolean locked(String key) {
+        if (request.getOriginalSlots().get(key) != null
+                && request.getOriginalSlots().get(key).getSynergetic() != null) return true;
         ItemTemplate original = item(request.getOriginalSlots().get(key));
         return original != null && original.getRarity() == RARITY.SET
                 || request.getLockedSlots() != null && request.getLockedSlots().contains(key);
@@ -166,12 +168,24 @@ final class AdvisorEquipmentModel {
     }
 
     ItemTemplate item(SlotData slot) {
-        return slot == null ? null : templates.items().get(slot.getItemId());
+        return slot == null || slot.getItemId() == null
+                ? null
+                : templates.items().get(slot.getItemId());
     }
 
     EquipmentRequest setup(Map<String, SlotData> slots) {
         EquipmentRequest setup = new EquipmentRequest();
-        setup.setSlots(slots);
+        var complete = new java.util.LinkedHashMap<>(slots);
+        request.getOriginalSlots()
+                .forEach(
+                        (key, slot) -> {
+                            if (slot != null && slot.getSynergetic() != null)
+                                complete.put(
+                                        key,
+                                        pl.brokenranks.tool.broken_ranks_tool.optimization.support
+                                                .EquipmentSlotDataCopier.copySlot(slot));
+                        });
+        setup.setSlots(complete);
         setup.setCharacterStats(request.getCharacterStats());
         return setup;
     }

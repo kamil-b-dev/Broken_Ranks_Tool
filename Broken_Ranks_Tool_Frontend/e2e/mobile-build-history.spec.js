@@ -4,7 +4,7 @@ import { expect, test } from "./fixtures/test.js";
 import { mobileDevice } from "./mobile-device.js";
 import { builderCatalog } from "../src/test/fixtures/equipment/builderCatalog.js";
 
-const draftKey = "broken-ranks-tool.equipment-draft.v3";
+const draftKey = "broken-ranks-tool.equipment-draft.v4";
 const libraryKey = "broken-ranks-tool.build-library.v1";
 
 for (const mobile of [false, true]) {
@@ -24,7 +24,7 @@ for (const mobile of [false, true]) {
                         localStorage.setItem(
                             draftKey,
                             JSON.stringify({
-                                version: 3,
+                                version: 4,
                                 value: {
                                     requestData: {
                                         slots: {

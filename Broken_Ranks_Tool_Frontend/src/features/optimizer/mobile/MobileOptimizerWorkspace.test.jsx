@@ -199,7 +199,9 @@ describe("mobile optimizer integration", () => {
         await screen.findByText("Obliczenia zakończone.");
         expect(cancellationToken).toBe(requestBody.advisor.cancellationToken);
         expect(readEquipmentDraft().requestData.slots.helmet.drifIds).toEqual([60]);
-        const helmet = screen.getByText("Hełm podróżnika").closest(".optimizer-lock-card");
+        const helmet = screen
+            .getByText("Hełm podróżnika", { selector: "strong" })
+            .closest(".optimizer-lock-card");
         fireEvent.click(within(helmet).getByRole("button", { name: "Zablokuj cały slot" }));
         section("Porady");
         expect(screen.getByText(/Wyszukiwanie zostało anulowane/)).toBeInTheDocument();

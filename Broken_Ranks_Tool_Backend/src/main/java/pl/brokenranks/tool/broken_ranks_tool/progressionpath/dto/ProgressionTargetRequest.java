@@ -2,6 +2,7 @@ package pl.brokenranks.tool.broken_ranks_tool.progressionpath.dto;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
+import java.util.List;
 import java.util.Set;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.CHARACTER_CLASS;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.EquipmentRequest;
@@ -13,10 +14,58 @@ public record ProgressionTargetRequest(
         @NotNull @Valid EquipmentRequest targetEquipment,
         @Size(max = 3) Set<@NotNull @Pattern(regexp = "ring1|ring2|necklace") String> resSlots,
         Boolean balanceStats,
-        @Min(0) @Max(140) Integer minItemLevelGap) {
+        @Min(0) @Max(140) Integer minItemLevelGap,
+        @Valid StartingPoint startingPoint,
+        @Size(max = 24) List<@NotNull @Valid RequiredItem> requiredItems) {
     public ProgressionTargetRequest {
         balanceStats = Boolean.TRUE.equals(balanceStats);
         minItemLevelGap = minItemLevelGap == null ? 0 : minItemLevelGap;
+        requiredItems = requiredItems == null ? List.of() : List.copyOf(requiredItems);
+    }
+
+    public record StartingPoint(
+            @Min(1) @Max(140) int characterLevel,
+            @NotNull @Valid EquipmentRequest equipment,
+            @Size(max = 200) List<@NotNull @Valid OwnedResource> backpack) {
+        public StartingPoint {
+            backpack = backpack == null ? List.of() : List.copyOf(backpack);
+        }
+    }
+
+    public enum ResourceKind {
+        ITEM,
+        DRIF,
+        ORB
+    }
+
+    public record OwnedResource(
+            @NotBlank @Size(max = 128) String id,
+            @NotNull ResourceKind kind,
+            @Positive Long templateId,
+            @Min(1) @Max(21) Integer level,
+            @Valid EquipmentRequest.SlotData equipment) {}
+
+    public record RequiredItem(
+            @NotBlank @Size(max = 16) String slot,
+            @Min(1) @Max(140) int characterLevel,
+            @NotNull @Positive Long itemId) {}
+
+    public ProgressionTargetRequest(
+            CHARACTER_CLASS characterClass,
+            int targetLevel,
+            EquipmentRequest targetEquipment,
+            Set<String> resSlots,
+            Boolean balanceStats,
+            Integer minItemLevelGap) {
+        this(
+                characterClass,
+                targetLevel,
+                targetEquipment,
+                resSlots,
+                balanceStats,
+                minItemLevelGap,
+                null,
+                List.of());
     }
 
     public ProgressionTargetRequest(

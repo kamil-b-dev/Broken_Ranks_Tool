@@ -1,3 +1,14 @@
+function Assert-SmokeFrontendHtml {
+    param([int]$StatusCode, [string]$Content)
+
+    if ($StatusCode -ne 200 -or
+        $Content -notmatch '<div\b[^>]*\bid=["'']root["'']' -or
+        $Content -notmatch 'Broken Ranks Tool' -or
+        $Content -notmatch '<script\b[^>]*\btype=["'']module["'']') {
+        throw "Frontend smoke check failed."
+    }
+}
+
 function Assert-SmokeOptimizationResult {
     param([object]$Result, [object]$OriginalSlots)
 

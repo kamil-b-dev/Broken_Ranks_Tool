@@ -9,6 +9,10 @@ import BuildComparison from "./BuildComparison";
 import BuildRenameForm from "./library/BuildRenameForm";
 import SavedBuildList from "./library/SavedBuildList";
 import LibraryBackupPanel from "./library-backup/LibraryBackupPanel";
+import BuildRecordTools from "./library/BuildRecordTools";
+import SharedBuildPreview from "./sharing/SharedBuildPreview";
+import BuildComparisonRefresh from "./comparison/BuildComparisonRefresh";
+import "./styles/build-tools.css";
 
 const BuildLibraryWorkspace = ({
     active = true,
@@ -58,6 +62,7 @@ const BuildLibraryWorkspace = ({
                 </div>
                 <BuildRenameForm builds={builds} onRename={onRename} />
             </section>
+            <SharedBuildPreview data={importData} library={library} onOpenBuilder={onOpenBuilder} />
             <LibraryBackupPanel library={library} data={importData} />
             <div className="build-library-layout">
                 <aside className="build-library-list-panel workbench">
@@ -75,6 +80,14 @@ const BuildLibraryWorkspace = ({
                         onExport={onExport}
                         onOverwrite={onOverwrite}
                         onRemove={onRemove}
+                        renderTools={(record) => (
+                            <BuildRecordTools
+                                key={`${record.id}-${record.updatedAt}`}
+                                record={record}
+                                data={importData}
+                                library={library}
+                            />
+                        )}
                     />
                 </aside>
                 <section
@@ -91,6 +104,11 @@ const BuildLibraryWorkspace = ({
                             </button>
                         )}
                     </div>
+                    <BuildComparisonRefresh
+                        builds={selectedBuilds}
+                        library={library}
+                        data={importData}
+                    />
                     <BuildComparison
                         builds={selectedBuilds}
                         items={data.items}

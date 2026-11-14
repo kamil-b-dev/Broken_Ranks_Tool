@@ -10,10 +10,13 @@ import "./shared/styles/number-inputs.css";
 import "./shared/styles/interface-preferences.css";
 import { EquipmentProvider } from "./app/EquipmentProvider.jsx";
 import LanguageProvider from "./shared/i18n/LanguageProvider.jsx";
+import PageMetadata from "./app/seo/PageMetadata.jsx";
+import "./app/seo/page-introduction.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
     <React.StrictMode>
         <LanguageProvider>
+            <PageMetadata />
             <AppErrorBoundary>
                 <EquipmentProvider>
                     <App />

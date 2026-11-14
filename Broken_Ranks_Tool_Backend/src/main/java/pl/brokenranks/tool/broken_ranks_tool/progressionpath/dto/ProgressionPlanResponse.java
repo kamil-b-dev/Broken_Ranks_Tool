@@ -1,6 +1,7 @@
 package pl.brokenranks.tool.broken_ranks_tool.progressionpath.dto;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.dto.CalculationResultDto;
 import pl.brokenranks.tool.broken_ranks_tool.progressionpath.model.ProgressionDrif;
@@ -29,7 +30,17 @@ public record ProgressionPlanResponse(
             CalculationResultDto calculation,
             List<Action> actions,
             List<String> equipmentChanges,
-            List<Action> orbActions) {
+            List<Action> orbActions,
+            Map<String, Integer> ownedItemStars) {
+        public StageResult(
+                ProgressionStage stage,
+                CalculationResultDto calculation,
+                List<Action> actions,
+                List<String> equipmentChanges,
+                List<Action> orbActions) {
+            this(stage, calculation, actions, equipmentChanges, orbActions, Map.of());
+        }
+
         public StageResult(
                 ProgressionStage stage,
                 CalculationResultDto calculation,

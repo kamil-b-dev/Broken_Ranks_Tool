@@ -3,7 +3,12 @@
 Widok `/progression-path` przyjmuje jeden docelowy build z kreatora, biblioteki
 lub pliku. Sam generuje wcześniejsze wyposażenie od poziomu 1 i pokazuje plan
 w kolejności gry: zakupy, zakładanie przedmiotów, ulepszenia i przenoszenie kamieni.
-Jest osobną funkcją, niezależną od trybów optymalizatora.
+Jest osobną funkcją, niezależną od trybów optymalizatora. Opcjonalny początek może
+pochodzić z aktualnego kreatora z plecakiem, biblioteki albo pliku. Wtedy pierwszy
+etap zachowuje dokładny obecny build i poziom; kolejne wykorzystują posiadane sztuki.
+Można wskazać do 24 obowiązkowych przedmiotów pośrednich, z poziomem i slotem.
+Opcje zapisuje projekt v3, z zachowaniem odczytu v1/v2. Szczegóły obsługi i ograniczeń
+opisuje [planowanie i zapis buildów](planowanie-i-zapis-buildow.md).
 
 ## Przygotowanie
 

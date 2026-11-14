@@ -19,6 +19,7 @@ import BackpackEditor from "./backpack/BackpackEditor";
 import { useBackpackWorkspace } from "./backpack/useBackpackWorkspace";
 import "./backpack/backpack.css";
 import BackpackSourcePanel from "./backpack/BackpackSourcePanel";
+import EquipmentRequirements from "./preview/EquipmentRequirements";
 
 /** Composes the manual equipment builder workflow. */
 const BuilderWorkspace = ({
@@ -99,6 +100,11 @@ const BuilderWorkspace = ({
                 externalConfig={characterConfig}
                 externalStats={requestData.characterStats}
                 syncTrigger={optimizationTrigger}
+            />
+            <EquipmentRequirements
+                requestData={requestData}
+                items={data.items}
+                level={characterConfig?.level}
             />
             <div className="builder-workspace-grid">
                 <aside className="builder-database-column">

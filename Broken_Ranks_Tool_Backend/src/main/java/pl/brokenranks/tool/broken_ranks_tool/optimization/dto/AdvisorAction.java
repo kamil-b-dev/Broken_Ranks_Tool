@@ -26,12 +26,23 @@ public record AdvisorAction(
 
     public record Location(String slotKey, int socketIndex) {}
 
-    /** Identity survives movement and upgrading, even for repeated template IDs in the build. */
+    /** Identity survives upgrades; drifId is the destination template, fromDrifId the source. */
     public record DrifChange(
             String identity,
             Long drifId,
             Location from,
             Location to,
             Integer fromLevel,
-            Integer toLevel) {}
+            Integer toLevel,
+            Long fromDrifId) {
+        public DrifChange(
+                String identity,
+                Long drifId,
+                Location from,
+                Location to,
+                Integer fromLevel,
+                Integer toLevel) {
+            this(identity, drifId, from, to, fromLevel, toLevel, from == null ? null : drifId);
+        }
+    }
 }

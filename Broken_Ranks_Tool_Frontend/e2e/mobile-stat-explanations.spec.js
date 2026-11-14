@@ -81,7 +81,10 @@ for (const mobile of [false, true]) {
                 );
                 await page.addInitScript(
                     ({ slots }) => {
-                        if (!localStorage.getItem("broken-ranks-tool.equipment-draft.v3"))
+                        if (!(
+                            localStorage.getItem("broken-ranks-tool.equipment-draft.v4") ||
+                            localStorage.getItem("broken-ranks-tool.equipment-draft.v3")
+                        ))
                             localStorage.setItem(
                                 "broken-ranks-tool.equipment-draft.v3",
                                 JSON.stringify({

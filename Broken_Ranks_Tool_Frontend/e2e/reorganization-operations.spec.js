@@ -161,15 +161,18 @@ for (const layout of ["desktop", "mobile"])
                         page.evaluate(
                             () =>
                                 JSON.parse(
-                                    localStorage.getItem("broken-ranks-tool.equipment-draft.v3")
+                                    localStorage.getItem("broken-ranks-tool.equipment-draft.v4") ||
+                                        localStorage.getItem("broken-ranks-tool.equipment-draft.v3")
                                 ).value.requestData.slots.armor.drifLevels[0]
                         )
                     )
                     .toBe(task === "INSERT" ? 6 : 2);
                 const contents = await page.evaluate(
                     () =>
-                        JSON.parse(localStorage.getItem("broken-ranks-tool.equipment-draft.v3"))
-                            .value.backpack
+                        JSON.parse(
+                            localStorage.getItem("broken-ranks-tool.equipment-draft.v4") ||
+                                localStorage.getItem("broken-ranks-tool.equipment-draft.v3")
+                        ).value.backpack
                 );
                 expect(contents.some((entry) => entry.id === "chosen")).toBe(task === "RESERVE");
                 expect(contents.find((entry) => entry.id === "unused")).toMatchObject({

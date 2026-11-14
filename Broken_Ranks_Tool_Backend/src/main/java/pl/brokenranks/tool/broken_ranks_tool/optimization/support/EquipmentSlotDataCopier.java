@@ -25,6 +25,11 @@ public class EquipmentSlotDataCopier {
         if (source == null) return null;
         EquipmentRequest.SlotData copy = new EquipmentRequest.SlotData();
         copy.setItemId(source.getItemId());
+        if (source.getSynergetic() != null)
+            copy.setSynergetic(
+                    new EquipmentRequest.SynergeticItem(
+                            source.getSynergetic().name(),
+                            new HashMap<>(source.getSynergetic().stats())));
         copy.setItemStars(source.getItemStars());
         copy.setOrbIds(source.getOrbIds() != null ? new ArrayList<>(source.getOrbIds()) : null);
         copy.setOrbLevels(

@@ -105,7 +105,11 @@ for (const layout of ["desktop", "mobile"]) {
         await page.getByRole("button", { name: /Uruchom optymalizację/i }).click();
         const draft = () =>
             page.evaluate(
-                () => JSON.parse(localStorage.getItem("broken-ranks-tool.equipment-draft.v3")).value
+                () =>
+                    JSON.parse(
+                        localStorage.getItem("broken-ranks-tool.equipment-draft.v4") ||
+                            localStorage.getItem("broken-ranks-tool.equipment-draft.v3")
+                    ).value
             );
         await expect.poll(() => received?.mode).toBe("REORGANIZE");
         expect(received.backpackOnly).toBeUndefined();

@@ -107,6 +107,15 @@ abstract class AdvisorOptimizationTestSupport {
         when(drifRepo.findAll()).thenReturn(drifs);
         when(drifRepo.findAllById(any()))
                 .thenAnswer(call -> selected(drifs, DrifTemplate::getId, call.getArgument(0)));
+        when(drifRepo.findUpgradeCandidatesByOwnedIds(any()))
+                .thenAnswer(
+                        call -> {
+                            var owned = selected(drifs, DrifTemplate::getId, call.getArgument(0));
+                            var bonuses = owned.stream().map(DrifTemplate::getBonusType).toList();
+                            return drifs.stream()
+                                    .filter(drif -> bonuses.contains(drif.getBonusType()))
+                                    .toList();
+                        });
         when(orbRepo.findAll()).thenReturn(List.of());
         when(orbRepo.findAllById(any())).thenReturn(List.of());
         EquipmentRulesRegistry rules = new EquipmentRulesRegistry();

@@ -1,6 +1,6 @@
 export const BUILD_FILE_FORMAT = "broken-ranks-tool-build";
 import { normalizeBackpack } from "../builder/backpack/backpackSerialization.js";
-export const BUILD_FILE_VERSION = 3;
+export const BUILD_FILE_VERSION = 4;
 
 const pick = (value, keys) =>
     Object.fromEntries(
@@ -52,14 +52,24 @@ export const createVersionTwoBuildPayload = (state) => {
         },
     };
 };
-export const createBuildPayload = (state) => {
+export const createVersionThreeBuildPayload = (state) => {
     const previous = createVersionOneBuildPayload(state);
     return {
         ...previous,
-        version: BUILD_FILE_VERSION,
+        version: 3,
         build: {
             ...previous.build,
             backpack: normalizeBackpack(state.backpack || []),
         },
     };
+};
+
+export const createBuildPayload = (state) => {
+    const payload = createVersionThreeBuildPayload(state);
+    payload.version = BUILD_FILE_VERSION;
+    for (const [key, slot] of Object.entries(state.requestData.slots)) {
+        if (slot.synergetic)
+            payload.build.requestData.slots[key].synergetic = structuredClone(slot.synergetic);
+    }
+    return payload;
 };

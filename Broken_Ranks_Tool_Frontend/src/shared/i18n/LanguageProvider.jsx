@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { LanguageContext } from "./LanguageContext";
-import { LANGUAGE_STORAGE_KEY, normalizeLanguage, translate } from "./translation";
+import { LANGUAGE_STORAGE_KEY, normalizeLanguage } from "./translation";
 import "./language.css";
 
 function readLanguage() {
@@ -19,19 +19,6 @@ export default function LanguageProvider({ children }) {
     );
     useEffect(() => {
         document.documentElement.lang = language;
-        document
-            .querySelectorAll(
-                'meta[name="description"], meta[property="og:description"], meta[name="twitter:description"]'
-            )
-            .forEach((element) => {
-                element.content = translate(
-                    "Kalkulator ekwipunku i optymalizator postaci do gry Broken Ranks.",
-                    language
-                );
-            });
-        document
-            .querySelector('meta[property="og:locale"]')
-            ?.setAttribute("content", language === "en" ? "en_GB" : "pl_PL");
         try {
             localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
         } catch {

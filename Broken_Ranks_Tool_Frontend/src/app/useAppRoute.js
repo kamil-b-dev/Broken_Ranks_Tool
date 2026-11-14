@@ -1,36 +1,15 @@
 import { requestEquipmentCatalog } from "../features/equipment/useEquipmentCatalog";
 import { useCallback, useEffect, useState } from "react";
-
-export const APP_ROUTES = {
-    home: "/",
-    builder: "/builder",
-    optimizer: "/optimizer",
-    builds: "/builds",
-    progression: "/progression-path",
-    help: "/help",
-};
-
-const LEGACY_ROUTES = {
-    "/kreator": APP_ROUTES.builder,
-    "/optymalizator": APP_ROUTES.optimizer,
-    "/buildy": APP_ROUTES.builds,
-    "/sciezka-rozwoju": APP_ROUTES.progression,
-};
-
-const canonicalPath = (pathname) =>
-    Object.hasOwn(LEGACY_ROUTES, pathname)
-        ? LEGACY_ROUTES[pathname]
-        : Object.values(APP_ROUTES).includes(pathname)
-          ? pathname
-          : APP_ROUTES.home;
+import { APP_ROUTES, canonicalAppPath } from "./routes";
+export { APP_ROUTES } from "./routes";
 
 const routeForPath = (pathname) =>
     Object.entries(APP_ROUTES).find(
-        ([view, path]) => view !== "help" && path === canonicalPath(pathname)
+        ([view, path]) => view !== "help" && path === canonicalAppPath(pathname)
     )?.[0] ?? "home";
 
 const canonicalizeLocation = () => {
-    const path = canonicalPath(window.location.pathname);
+    const path = canonicalAppPath(window.location.pathname);
     if (path !== window.location.pathname)
         window.history.replaceState(
             window.history.state,
@@ -59,10 +38,8 @@ export const useAppRoute = () => {
     const navigate = useCallback((view) => {
         const path = APP_ROUTES[view] ?? APP_ROUTES.home;
         if (path !== window.location.pathname) window.history.pushState(null, "", path);
-        if (path === APP_ROUTES.help) {
-            window.dispatchEvent(new PopStateEvent("popstate"));
-            return;
-        }
+        window.dispatchEvent(new PopStateEvent("popstate"));
+        if (path === APP_ROUTES.help) return;
         if (view !== "home") requestEquipmentCatalog();
         setActiveView(routeForPath(path));
     }, []);

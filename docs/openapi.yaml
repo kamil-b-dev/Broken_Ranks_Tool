@@ -316,6 +316,18 @@ components:
           enum: [BARBARIAN, KNIGHT, ARCHER, FIRE_MAGE, DRUID, SHEED, VOODOO]
         targetLevel: {type: integer, minimum: 1, maximum: 140}
         targetEquipment: {$ref: "#/components/schemas/EquipmentRequest"}
+        startingPoint: {$ref: "#/components/schemas/ProgressionStartingPoint"}
+        requiredItems:
+          type: array
+          maxItems: 24
+          items:
+            type: object
+            additionalProperties: false
+            required: [slot, characterLevel, itemId]
+            properties:
+              slot: {type: string, enum: [helmet, armor, cape, legs, boots, gloves, belt, necklace, ring1, ring2, weapon, shield]}
+              characterLevel: {type: integer, minimum: 1, maximum: 140}
+              itemId: {type: integer, minimum: 1}
         balanceStats:
           type: [boolean, "null"]
           default: false
@@ -331,6 +343,29 @@ components:
           maxItems: 3
           uniqueItems: true
           items: {type: string, enum: [ring1, ring2, necklace]}
+    ProgressionStartingPoint:
+      type: [object, "null"]
+      additionalProperties: false
+      required: [characterLevel, equipment]
+      properties:
+        characterLevel: {type: integer, minimum: 1, maximum: 140}
+        equipment: {$ref: "#/components/schemas/EquipmentRequest"}
+        backpack:
+          type: array
+          maxItems: 200
+          items:
+            type: object
+            additionalProperties: false
+            required: [id, kind]
+            properties:
+              id: {type: string, minLength: 1, maxLength: 128}
+              kind: {type: string, enum: [ITEM, DRIF, ORB]}
+              templateId: {type: [integer, "null"], minimum: 1}
+              level: {type: [integer, "null"], minimum: 1, maximum: 21}
+              equipment:
+                anyOf:
+                  - {$ref: "#/components/schemas/SlotData"}
+                  - {type: "null"}
     ProgressionPosition:
       type: [object, "null"]
       additionalProperties: false
@@ -387,6 +422,10 @@ components:
                 type: array
                 items: {$ref: "#/components/schemas/ProgressionAction"}
               equipmentChanges: {type: array, items: {type: string}}
+              ownedItemStars:
+                type: object
+                maxProperties: 12
+                additionalProperties: {type: integer, minimum: 1, maximum: 9}
               orbActions:
                 type: array
                 items: {$ref: "#/components/schemas/ProgressionAction"}
@@ -427,6 +466,7 @@ components:
       type: object
       additionalProperties: false
       properties:
+        synergetic: {$ref: "#/components/schemas/SynergeticItem"}
         itemId:
           type:
             - integer
@@ -474,6 +514,20 @@ components:
           maxProperties: 8
           additionalProperties:
             type: integer
+    SynergeticItem:
+      type: [object, "null"]
+      additionalProperties: false
+      required: [name, stats]
+      description: Explicit values in a ring or necklace slot. Catalog items, stars other than 1, stones and stone levels are forbidden together with this field.
+      properties:
+        name: {type: string, minLength: 1, maxLength: 64, pattern: '\S'}
+        stats:
+          type: object
+          minProperties: 1
+          maxProperties: 16
+          propertyNames:
+            enum: [PŻ, Mana, Kondycja, Siła, Zręczność, Moc, Wiedza, Inteligencja, Obrażenia, Pancerz sieczne, Pancerz kłute, Pancerz obuchowe, Odporność energia, Odporność ogień, Odporność zimno, Odporność uroki]
+          additionalProperties: {type: integer, minimum: 0, maximum: 50000}
     CharacterStats:
       type:
         - object
@@ -826,6 +880,18 @@ components:
             - ANY
           default: GOAL_ONLY
           description: Bonus types considered when drif purchases are enabled. Protected means an active protection derived from the baseline build.
+        excludedItemIds:
+          type: array
+          uniqueItems: true
+          maxItems: 200
+          items: {type: integer, minimum: 1}
+          description: Excludes replacement candidates before capacity and dominance filtering; equipped items are retained.
+        excludedPurchaseBonusTypes:
+          type: array
+          uniqueItems: true
+          maxItems: 32
+          items: {$ref: "#/components/schemas/DrifBonusType"}
+          description: Excludes only purchases. Owned drifs can still be moved and upgraded.
         profession:
           type: string
           enum:
@@ -849,6 +915,7 @@ components:
               default: false
             drifUpgrades:
               type: boolean
+              description: Allows increasing the level and/or size of owned ordinary drifs without lowering either.
               default: false
         protectedModifiers:
           type: object
@@ -1677,6 +1744,9 @@ components:
       properties:
         identity: { type: string }
         drifId: { type: integer }
+        fromDrifId:
+          description: Source template ID before this transition; drifId is the destination template. Null for purchases. Older responses may omit this field.
+          type: [integer, "null"]
         from:
           oneOf:
             - $ref: "#/components/schemas/AdvisorActionLocation"

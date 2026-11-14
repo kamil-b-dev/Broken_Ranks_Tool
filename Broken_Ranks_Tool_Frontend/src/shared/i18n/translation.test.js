@@ -6,6 +6,11 @@ import { formatAverage } from "../../features/builds/comparison/comparisonPresen
 import { formatPotentialValue } from "../../features/optimizer/optimizerDomain";
 
 describe("interface messages", () => {
+    it("translates advisor size upgrades without altering catalogue names", () => {
+        expect(translate("Ulepsz BIDRIF Band 7 w hełm, gniazdo 1 na MAGNIDRIF Band 7", "en")).toBe(
+            "Upgrade BIDRIF Band 7 in helmet, socket 1 to MAGNIDRIF Band 7"
+        );
+    });
     it("translates reorganization source locations while preserving the stone name", () => {
         expect(translate("Siła · 16 lvl · Hełm, gniazdo 1", "en")).toBe(
             "Siła · level 16 · Helmet, socket 1"

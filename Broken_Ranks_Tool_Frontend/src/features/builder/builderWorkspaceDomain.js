@@ -16,4 +16,4 @@ export const groupItemsBySlot = (items = []) =>
 export const indexItemsById = (items = []) => new Map(items.map((item) => [String(item.id), item]));
 
 export const countEquippedSlots = (slots = {}) =>
-    SLOTS.filter((slot) => slots[slot.key]?.itemId).length;
+    SLOTS.filter((slot) => slots[slot.key]?.itemId || slots[slot.key]?.synergetic).length;

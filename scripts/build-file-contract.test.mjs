@@ -9,6 +9,7 @@ import {
   createBuildPayload,
   createVersionOneBuildPayload,
   createVersionTwoBuildPayload,
+  createVersionThreeBuildPayload,
 } from "../Broken_Ranks_Tool_Frontend/src/features/builds/buildPayload.js";
 
 const readJson = async (relative) =>
@@ -58,7 +59,7 @@ test("v3 preserves per-occurrence drif selection and the v1/v2 equipment fields"
   const validateV3 = ajv.compile(
     await readJson("../docs/build-file-v3.schema.json"),
   );
-  const saved = createBuildPayload(fixture.build);
+  const saved = createVersionThreeBuildPayload(fixture.build);
   assert.deepEqual({ ...saved, exportedAt: fixture.exportedAt }, fixture);
   assert.equal(validateV3(saved), true, JSON.stringify(validateV3.errors));
   saved.build.backpack.find((entry) => entry.kind === "DRIF").sendToBackend =
@@ -74,6 +75,17 @@ test("v3 preserves per-occurrence drif selection and the v1/v2 equipment fields"
     entry.sendToBackend = false;
     assert.equal(validateV3(payload), true, JSON.stringify(validateV3.errors));
   }
+});
+
+test("v4 stores explicit synergetic values while frozen older writers retain their formats", async () => {
+  const validateV4 = ajv.compile(await readJson("../docs/build-file-v4.schema.json"));
+  const state = { requestData: { slots: { ring1: { itemId: null, synergetic: { name: "Mój res", stats: { PŻ: 200, "Odporność ogień": 30 } } } } }, backpack: [], lockedSlots: [], lockedDrifs: {} };
+  const saved = createBuildPayload(state);
+  assert.equal(BUILD_FILE_VERSION, 4);
+  assert.equal(validateV4(saved), true, JSON.stringify(validateV4.errors));
+  saved.build.requestData.slots.ring1.synergetic.stats.PŻ = -1;
+  assert.equal(validateV4(saved), false);
+  assert.equal(createVersionThreeBuildPayload(state).version, 3);
 });
 
 // Input is intentionally independent of the golden output and of application defaults.
@@ -194,7 +206,7 @@ test("v2 exports the backpack separately while retaining every frozen v1 equipme
   const state = structuredClone(fixture.build);
   state.backpack[0].temporaryEditorState = true;
   const saved = createVersionTwoBuildPayload(state);
-  assert.equal(BUILD_FILE_VERSION, 3);
+  assert.equal(BUILD_FILE_VERSION, 4);
   assert.deepEqual({ ...saved, exportedAt: fixture.exportedAt }, fixture);
   state.backpack[0].equipment.drifLevels[0] = 1;
   assert.equal(saved.build.backpack[0].equipment.drifLevels[0], 6);

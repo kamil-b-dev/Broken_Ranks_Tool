@@ -4,7 +4,11 @@ import { Buffer } from "node:buffer";
 const optimizerPath = "/api/optimizer/drifs";
 const draft = (page) =>
     page.evaluate(
-        () => JSON.parse(localStorage.getItem("broken-ranks-tool.equipment-draft.v3")).value
+        () =>
+            JSON.parse(
+                localStorage.getItem("broken-ranks-tool.equipment-draft.v4") ||
+                    localStorage.getItem("broken-ranks-tool.equipment-draft.v3")
+            ).value
     );
 const scenario = async (request) => {
     const http = await request.get("/api/initial-data");

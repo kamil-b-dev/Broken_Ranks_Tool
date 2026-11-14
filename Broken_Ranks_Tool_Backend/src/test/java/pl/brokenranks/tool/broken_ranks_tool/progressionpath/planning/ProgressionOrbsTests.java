@@ -14,6 +14,32 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.Equipme
 import pl.brokenranks.tool.broken_ranks_tool.progressionpath.model.ProgressionDrif.Position;
 
 class ProgressionOrbsTests {
+    @Test
+    void usesACompatibleBackpackOrbAndDoesNotDowngradeAnOwnedLargerStone() {
+        var before = equipment(0, 0, 1);
+        var after = equipment(2, 0, 1);
+        var inventory =
+                List.of(
+                        new ProgressionOrbs.Stone("large", 1, 3, null),
+                        new ProgressionOrbs.Stone("small", 2, 1, null));
+        var result = orbs.toOwnedStage(inventory, before, after);
+        assertTrue(result.actions().stream().noneMatch(action -> action.type().equals("ACQUIRE")));
+        assertEquals(
+                1L,
+                result.inventory().stream()
+                        .filter(stone -> stone.instanceId().equals("large"))
+                        .findFirst()
+                        .orElseThrow()
+                        .templateId());
+        assertEquals(2, result.inventory().size());
+        assertTrue(
+                result.inventory().stream()
+                        .anyMatch(
+                                stone ->
+                                        stone.instanceId().equals("small")
+                                                && stone.position() != null));
+    }
+
     private final Map<Long, OrbTemplate> templates =
             Map.of(
                     1L, orb(1, ORB_SIZE.ARCYORB, ORB_BONUS_TYPE.STRONGER_CRIT_CHANCE),
