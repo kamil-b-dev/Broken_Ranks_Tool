@@ -363,8 +363,12 @@ export const buildOptimizationConfig = (priorities, settings = {}) => {
         maximizeBonuses: [],
         drifSizeQuantities: {},
         forceMaximizationByDrifBonus:
-            !simple && !reorganize && Boolean(settings.forceMaximizationByDrifBonus),
-        generateVariants: !simple && !reorganize && Boolean(settings.generateVariants),
+            !simple &&
+            !reorganize &&
+            !settings.backpackOnly &&
+            Boolean(settings.forceMaximizationByDrifBonus),
+        generateVariants:
+            !simple && !reorganize && !settings.backpackOnly && Boolean(settings.generateVariants),
         maxVariantLossPercent: clamp(Number(settings.maxVariantLossPercent) || 0, 0, 100),
         ...(simple
             ? {

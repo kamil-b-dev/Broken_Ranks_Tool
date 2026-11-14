@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import OptimizerStatusSection from "./OptimizerStatusSection";
 
 describe("OptimizerStatusSection", () => {
-    it("shows owned levels alongside the original optimization targets without offering to apply the target", () => {
+    it("shows the actual owned level without proposing upgrades or another application", () => {
         render(
             <OptimizerStatusSection
                 status={{
@@ -22,9 +22,9 @@ describe("OptimizerStatusSection", () => {
                 }}
             />
         );
-        expect(screen.getByText("Drify z plecaka — poziomy docelowe")).toBeInTheDocument();
+        expect(screen.getByText("Wykorzystane drify z plecaka")).toBeInTheDocument();
         expect(screen.getByText("18")).toBeInTheDocument();
-        expect(screen.getByText("21")).toBeInTheDocument();
+        expect(screen.queryByText("21")).not.toBeInTheDocument();
         expect(screen.queryByRole("button")).not.toBeInTheDocument();
     });
     it.each([

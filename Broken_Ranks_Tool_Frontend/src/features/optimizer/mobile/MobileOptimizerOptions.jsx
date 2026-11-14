@@ -10,7 +10,8 @@ export default function MobileOptimizerOptions({ settings, onChange }) {
             <label>
                 <input
                     type="checkbox"
-                    checked={settings.forceMaximizationByDrifBonus}
+                    checked={!settings.backpackOnly && settings.forceMaximizationByDrifBonus}
+                    disabled={Boolean(settings.backpackOnly)}
                     onChange={(event) =>
                         onChange({
                             ...settings,
@@ -28,11 +29,13 @@ export default function MobileOptimizerOptions({ settings, onChange }) {
                         onChange({
                             ...settings,
                             backpackOnly: event.target.checked,
-                            ...(event.target.checked ? { generateVariants: false } : {}),
+                            ...(event.target.checked
+                                ? { generateVariants: false, forceMaximizationByDrifBonus: false }
+                                : {}),
                         })
                     }
                 />
-                {t("Użyj drifów z plecaka")}
+                {t("Wyłącznie zawartość plecaka")}
             </label>
             {!settings.backpackOnly && (
                 <>

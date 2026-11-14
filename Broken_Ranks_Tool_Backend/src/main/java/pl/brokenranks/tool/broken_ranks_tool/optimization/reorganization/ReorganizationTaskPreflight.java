@@ -14,7 +14,7 @@ final class ReorganizationTaskPreflight {
     static String blockingReason(OptimizationContext context, EquipmentPlacementRules rules) {
         var options = context.request().getReorganization();
         if (!ReorganizationTaskRules.operational(options)) return null;
-        var pool = new ReorganizationPool(context);
+        var pool = new OwnedDrifPool(context);
         var reservation = options.getReservation();
         if (reservation != null) {
             var slot =

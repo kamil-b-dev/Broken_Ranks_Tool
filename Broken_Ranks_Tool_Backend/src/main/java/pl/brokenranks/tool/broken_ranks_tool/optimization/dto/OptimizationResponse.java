@@ -21,10 +21,10 @@ public class OptimizationResponse {
 
     private AdvisorReport advisorReport;
 
-    /** Standard optimization result before the optional backpack substitutions. */
+    /** Legacy catalog target; current backpack-only searches return null. */
     private EquipmentRequest targetSetup;
 
-    /** Exact inventory occurrences used by the final substitutions; null outside this option. */
+    /** Exact selected backpack occurrences used by the owned build; null outside this option. */
     private List<BackpackDrifUsage> backpackDrifUsages;
 
     /** Sources of every movable drif in a reorganization result. */

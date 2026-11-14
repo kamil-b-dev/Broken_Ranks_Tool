@@ -125,8 +125,6 @@
     "Wybór wariantu pokazuje podgląd. Kliknij „Zastosuj wybrany wariant”, aby przenieść go do zestawu. Po ręcznych zmianach buildu może być potrzebna ponowna optymalizacja.": "Selecting a variant opens a preview. Click “Apply selected variant” to transfer it to the setup. Manual build changes may require running optimization again.",
     "W zaawansowanej konfiguracji Od zera możesz wykorzystać osobne drify zapisane w plecaku.": "In advanced Build from scratch settings, you can use individual drifs stored in your backpack.",
     "W plecaku zaznacz drify do użycia w optymalizacji. Drify osadzone w zapasowych przedmiotach nie są brane pod uwagę.": "Select backpack drifs for use in optimization. Drifs embedded in spare items are not considered.",
-    "Włącz „Użyj drifów z plecaka”. Optymalizator najpierw wyznaczy docelowy układ, a potem dopasuje posiadane drify tego samego typu i rozmiaru.": "Enable “Use backpack drifs”. The optimizer first finds a target layout, then matches owned drifs of the same type and size.",
-    "Posiadany drif trafia do zestawu ze swoim obecnym poziomem. Raport pokazuje też poziom docelowy do ulepszenia. Brakujący drif pozostaje w wyniku jako kamień do zdobycia.": "An owned drif enters the setup at its current level. The report also shows its target upgrade level. A missing drif remains in the result as a stone to acquire.",
     "Po zastosowaniu wyniku użyte drify znikają z plecaka, a zastąpione zwykłe drify do niego wracają. Każda posiadana sztuka może zostać użyta tylko raz.": "Applying the result removes used drifs from your backpack and returns replaced ordinary drifs to it. Each owned drif can only be used once.",
     "Zapis i czyszczenie ustawień": "Saving and clearing settings",
     "„Zapisz” przy priorytetach pobiera plik ustawień optymalizatora: priorytety, cele, limity i opcje trybów. Ekwipunek zapisujesz osobno jako build.": "“Save” beside priorities downloads optimizer settings: priorities, targets, limits and mode options. Save equipment separately as a build.",
@@ -219,5 +217,7 @@
     "Plecak: filtry, dodawanie rzeczy i wybór drifa do optymalizacji.": "Backpack: filters, adding items and selecting a drif for optimization.",
     "Tryb prosty: profil profesji, liczby drifów i opcje dodatkowe.": "Simple mode: profession profile, drif counts and additional options.",
     "Doradca: główny bonus, oczekiwany efekt i wartość celu.": "Advisor: main bonus, expected effect and target value.",
-    "Powiększ zrzut: {0} (nowa karta)": "Enlarge screenshot: {0} (new tab)"
+    "Powiększ zrzut: {0} (nowa karta)": "Enlarge screenshot: {0} (new tab)",
+    "Włącz „Wyłącznie zawartość plecaka”. Optymalizator dobierze zwykłe drify wyłącznie z zaznaczonych sztuk, zachowując ich rozmiary i poziomy.": "Enable “Backpack contents only”. The optimizer will choose ordinary drifs only from the selected copies, keeping their sizes and levels.",
+    "Drify wbudowane i zablokowane pozostają na miejscu. Pozostałe założone drify wracają do plecaka; nie są dodawane do puli tego uruchomienia. Niewykorzystane gniazda mogą pozostać puste.": "Built-in and locked drifs stay in place. Other equipped drifs return to the backpack and are excluded from this run’s pool. Unused sockets may remain empty."
 }

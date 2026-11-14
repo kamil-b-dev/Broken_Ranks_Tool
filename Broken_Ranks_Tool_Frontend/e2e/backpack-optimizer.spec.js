@@ -2,9 +2,7 @@ import { expect, test } from "@playwright/test";
 import { builderCatalog } from "../src/test/fixtures/equipment/builderCatalog.js";
 
 for (const layout of ["desktop", "mobile"]) {
-    test(`${layout} persists drif selection and applies final backpack substitutions`, async ({
-        page,
-    }) => {
+    test(`${layout} persists selection and applies only owned backpack drifs`, async ({ page }) => {
         const equipment = {
             itemId: "1",
             itemStars: 7,
@@ -142,7 +140,7 @@ for (const layout of ["desktop", "mobile"]) {
             };
             expect(
                 await page
-                    .getByRole("checkbox", { name: "Użyj drifów z plecaka", exact: true })
+                    .getByRole("checkbox", { name: "Wyłącznie zawartość plecaka", exact: true })
                     .evaluate(choiceStyle)
             ).toEqual(
                 await page
@@ -153,7 +151,10 @@ for (const layout of ["desktop", "mobile"]) {
                 .locator(".optimizer-settings-strip")
                 .screenshot({ path: "../tmp/optimizer-settings.png" });
         }
-        await page.getByRole("checkbox", { name: "Użyj drifów z plecaka", exact: true }).check();
+        await page
+            .getByRole("checkbox", { name: "Wyłącznie zawartość plecaka", exact: true })
+            .check();
+        await expect(page.getByRole("checkbox", { name: /Wymuś maksymalizację/ })).toBeDisabled();
         if (layout === "mobile") {
             await page.getByRole("button", { name: "＋ Dodaj cel", exact: true }).click();
             await page.getByRole("button", { name: "Szansa na krytyk", exact: true }).click();
@@ -168,15 +169,16 @@ for (const layout of ["desktop", "mobile"]) {
             .poll(() => received?.backpackDrifs)
             .toEqual([{ id: "selected", templateId: 60, level: 3 }]);
         expect(received.backpackOnly).toBe(true);
+        expect(received.backpackSlotCount).toBe(4);
         expect(received.generateVariants).toBe(false);
         await expect
             .poll(async () => (await draft()).requestData.slots.helmet.drifLevels[0])
             .toBe(3);
         if (layout === "mobile")
             await page.getByRole("button", { name: "Pokaż wynik →", exact: true }).click();
-        await page.getByText("Drify z plecaka — poziomy docelowe").click();
+        await page.getByText("Wykorzystane drify z plecaka").click();
         await expect(page.locator(".optimizer-backpack-targets tbody tr")).toContainText("3");
-        await expect(page.locator(".optimizer-backpack-targets tbody tr")).toContainText("6");
+        await expect(page.locator(".optimizer-backpack-targets tbody tr td")).toHaveCount(1);
         await page
             .locator(".optimizer-backpack-targets")
             .screenshot({ path: `../tmp/backpack-upgrade-targets-${layout}.png` });

@@ -25,9 +25,11 @@ import { useWorkingDraftSave } from "../../app/storage/useWorkingDraftSave";
 import { equipmentRequestIdentity } from "../../shared/domain/equipment/equipmentRequestIdentity";
 import { useOptimizerLabels } from "./useOptimizerLabels";
 import { reorganizationPreflight } from "./reorganization/reorganizationPreflight";
+import { useProfession } from "../../shared/state/ProfessionContext";
 
 /** Shared optimizer workflow; presentation changes never remount the current run. */
 export const useOptimizerWorkspace = ({ optimizerSettings, onOptimizerSettingsChange }) => {
+    const sharedProfession = useProfession()?.resolvedProfession;
     const {
         gameRules,
         drifCategories,
@@ -105,9 +107,20 @@ export const useOptimizerWorkspace = ({ optimizerSettings, onOptimizerSettingsCh
                 try {
                     const imported = parseOptimizerConfigPayload(savedDraft, gameRules);
                     replaceConfiguration(imported);
-                    onOptimizerSettingsChange((previous) =>
-                        mergeOptimizerSettings(previous, imported)
-                    );
+                    onOptimizerSettingsChange((previous) => {
+                        const merged = mergeOptimizerSettings(previous, imported);
+                        // Opening an old optimizer draft must not undo a newer choice in the builder.
+                        return sharedProfession
+                            ? {
+                                  ...merged,
+                                  simpleProfile: previous.simpleProfile,
+                                  simpleOptions:
+                                      imported.simpleProfile === previous.simpleProfile
+                                          ? merged.simpleOptions
+                                          : previous.simpleOptions,
+                              }
+                            : merged;
+                    });
                 } catch {
                     // Ignore drafts from obsolete or malformed application versions.
                 }
@@ -120,7 +133,7 @@ export const useOptimizerWorkspace = ({ optimizerSettings, onOptimizerSettingsCh
         return () => {
             active = false;
         };
-    }, [gameRules, onOptimizerSettingsChange, replaceConfiguration]);
+    }, [gameRules, onOptimizerSettingsChange, replaceConfiguration, sharedProfession]);
     const workingDraft = useMemo(
         () => createOptimizerConfigPayload(prioritizedBonuses, optimizerSettings),
         [optimizerSettings, prioritizedBonuses]
@@ -133,6 +146,8 @@ export const useOptimizerWorkspace = ({ optimizerSettings, onOptimizerSettingsCh
             optimizerSettings.configurationMode,
             optimizerSettings.reorganization,
             optimizerSettings.advisorExclusions,
+            optimizerSettings.simpleProfile,
+            optimizerSettings.advisorProfession,
             resetOptimization,
         ]
     );

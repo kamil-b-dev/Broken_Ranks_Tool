@@ -15,7 +15,7 @@ const equipmentIdentity = (slot) =>
         stonesIdentity(slot?.orbIds, slot?.orbLevels),
     ]);
 
-/** Transfers only the explicit occurrences used by the final backpack substitutions. */
+/** Verifies every movable placement against a selected occurrence before changing either inventory. */
 export const applyBackpackOptimization = ({
     backpack,
     previousSlots,
@@ -25,8 +25,9 @@ export const applyBackpackOptimization = ({
     lockedDrifs = {},
     data,
     gameRules,
-    targetSlots,
     builtInSlots = [],
+    // Reorganization validates equipped sources, levels and movements before sharing this transfer.
+    validatedEquippedPositions = [],
 }) => {
     if (!Array.isArray(backpackDrifUsages))
         throw new Error("Wynik nie zawiera listy drifów użytych z plecaka.");
@@ -49,10 +50,12 @@ export const applyBackpackOptimization = ({
             throw new Error(
                 "Wynik zmienia przedmiot, gwiazdki lub orby poza zakresem optymalizacji drifów."
             );
-        if (targetSlots && equipmentIdentity(previous) !== equipmentIdentity(targetSlots[key]))
-            throw new Error(
-                "Build docelowy zmienia przedmiot, gwiazdki lub orby poza zakresem optymalizacji drifów."
-            );
+        if (
+            builtInSlots.includes(key) &&
+            stonesIdentity(previous?.drifIds, previous?.drifLevels) !==
+                stonesIdentity(next?.drifIds, next?.drifLevels)
+        )
+            throw new Error("Wynik zmienia wbudowane drify.");
         if (
             lockedSlots.includes(key) &&
             stonesIdentity(previous?.drifIds, previous?.drifLevels) !==
@@ -74,11 +77,6 @@ export const applyBackpackOptimization = ({
             { requestData: { slots: nextSlots } },
             { ...data, gameRules: gameRules || data.gameRules || {} }
         );
-    if (data && targetSlots)
-        validateImportedBuild(
-            { requestData: { slots: targetSlots } },
-            { ...data, gameRules: gameRules || data.gameRules || {} }
-        );
     for (const usage of backpackDrifUsages) {
         const { entryId, slotKey, drifIndex } = usage || {};
         const owned = pool.get(entryId);
@@ -98,27 +96,19 @@ export const applyBackpackOptimization = ({
             Number(destination.drifLevels?.[drifIndex] ?? 1) !== owned.level
         )
             throw new Error("Wynik nie odpowiada zaznaczonym drifom plecaka lub narusza blokadę.");
-        if (targetSlots) {
-            const targetId = targetSlots[slotKey]?.drifIds?.[drifIndex];
-            const target = data?.drifs?.find((drif) => String(drif.id) === String(targetId));
-            const actual = data?.drifs?.find(
-                (drif) => String(drif.id) === String(owned.templateId)
-            );
-            if (
-                !targetId ||
-                (data
-                    ? !target ||
-                      !actual ||
-                      target.bonusType !== actual.bonusType ||
-                      target.size !== actual.size
-                    : String(targetId) !== String(owned.templateId))
-            )
-                throw new Error(
-                    "Drif z plecaka nie pasuje do rodzaju i rozmiaru drifa docelowego."
-                );
-        }
         consumed.add(entryId);
         positions.add(position);
+    }
+    for (const [key, slot] of Object.entries(nextSlots)) {
+        if (lockedSlots.includes(key) || builtInSlots.includes(key)) continue;
+        for (let index = 0; index < (slot?.drifIds || []).length; index++) {
+            if (!slot.drifIds[index] || (lockedDrifs?.[key] || []).includes(index)) continue;
+            if (
+                !positions.has(`${key}:${index}`) &&
+                !validatedEquippedPositions.includes(`${key}:${index}`)
+            )
+                throw new Error("Wynik zawiera drif spoza zaznaczonej zawartości plecaka.");
+        }
     }
     for (const [key, previous] of Object.entries(previousSlots)) {
         const slot = nextSlots[key];

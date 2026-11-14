@@ -1,4 +1,7 @@
 import { useTranslation } from "../../shared/i18n/useTranslation";
+import { useId } from "react";
+import { useCalculationCooldown } from "../../shared/api/useCalculationCooldown";
+import CalculationCooldownNotice from "../../shared/ui/CalculationCooldownNotice";
 /** Presents optimizer progress and the primary run action. */
 import OptimizationElapsedTime from "./OptimizationElapsedTime";
 const OptimizerRunAction = ({
@@ -15,6 +18,8 @@ const OptimizerRunAction = ({
     disabled = false,
 }) => {
     const { t } = useTranslation();
+    const cooldownSeconds = useCalculationCooldown();
+    const cooldownId = useId();
     return (
         <div className="optimizer-run-panel">
             <div className="optimizer-run-inner">
@@ -45,7 +50,10 @@ const OptimizerRunAction = ({
                 </div>
                 <button
                     onClick={onRun}
-                    disabled={disabled || priorityCount === 0 || isOptimizing}
+                    disabled={
+                        disabled || priorityCount === 0 || isOptimizing || cooldownSeconds > 0
+                    }
+                    aria-describedby={cooldownSeconds > 0 ? cooldownId : undefined}
                     className="optimizer-run-action"
                 >
                     {isOptimizing ? (
@@ -99,6 +107,7 @@ const OptimizerRunAction = ({
                     </button>
                 )}
             </div>
+            <CalculationCooldownNotice id={cooldownId} seconds={cooldownSeconds} />
         </div>
     );
 };

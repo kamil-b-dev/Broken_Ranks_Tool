@@ -26,6 +26,7 @@ import { useWorkingDraftSave } from "./storage/useWorkingDraftSave";
 import { useBackpackEquipmentTransfer } from "../features/builder/backpack/useBackpackEquipmentTransfer";
 import { normalizeBackpack } from "../features/builder/backpack/backpackSerialization";
 import { useEquipmentHistory } from "../features/equipment/useEquipmentHistory";
+import ProfessionProvider from "./ProfessionProvider";
 
 /**
  * Provides application state for equipment, character stats, and optimization.
@@ -464,7 +465,12 @@ export const EquipmentProvider = ({ children }) => {
                                 <EquipmentLocksContext.Provider value={locksValue}>
                                     <EquipmentCalculationContext.Provider value={calculationValue}>
                                         <EquipmentContext.Provider value={value}>
-                                            {children}
+                                            <ProfessionProvider
+                                                slots={requestData.slots}
+                                                items={data.items}
+                                            >
+                                                {children}
+                                            </ProfessionProvider>
                                         </EquipmentContext.Provider>
                                     </EquipmentCalculationContext.Provider>
                                 </EquipmentLocksContext.Provider>

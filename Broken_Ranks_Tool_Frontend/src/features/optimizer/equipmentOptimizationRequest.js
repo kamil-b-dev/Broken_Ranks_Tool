@@ -37,7 +37,9 @@ export const createEquipmentOptimizationRequest = ({
     forcedPercentageTargets: configuration.forcedPercentageTargets || {},
     maximizeBonuses: configuration.maximizeBonuses || [],
     forceMaximizationByDrifBonus:
-        configuration.mode !== "REORGANIZE" && Boolean(configuration.forceMaximizationByDrifBonus),
+        configuration.mode !== "REORGANIZE" &&
+        !configuration.backpackOnly &&
+        Boolean(configuration.forceMaximizationByDrifBonus),
     generateVariants:
         configuration.mode !== "REORGANIZE" && Boolean(configuration.generateVariants),
     maxVariantLossPercent: Number(configuration.maxVariantLossPercent),
@@ -55,9 +57,8 @@ export const createEquipmentOptimizationRequest = ({
         (configuration.configurationMode || "ADVANCED") === "ADVANCED" &&
         configuration.backpackOnly)
         ? {
-              ...(configuration.mode === "REORGANIZE"
-                  ? { backpackSlotCount: normalizeBackpack(backpack).length }
-                  : { backpackOnly: true }),
+              ...(configuration.mode === "REORGANIZE" ? {} : { backpackOnly: true }),
+              backpackSlotCount: normalizeBackpack(backpack).length,
               generateVariants: false,
               backpackDrifs: normalizeBackpack(backpack)
                   .filter((entry) => isBackpackSource(entry, configuration))

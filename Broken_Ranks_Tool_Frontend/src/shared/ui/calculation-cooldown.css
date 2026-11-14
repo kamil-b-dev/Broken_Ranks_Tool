@@ -1,0 +1,9 @@
+.calculation-cooldown {
+    margin: 0.65rem 0 0;
+    color: var(--ui-text, #ebd3bc);
+    font-family: Inter, system-ui, sans-serif;
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.5;
+    text-align: center;
+}

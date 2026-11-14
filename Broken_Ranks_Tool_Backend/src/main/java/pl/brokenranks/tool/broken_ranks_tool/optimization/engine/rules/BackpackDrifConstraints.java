@@ -14,11 +14,11 @@ public final class BackpackDrifConstraints {
         if (entries != null && entries.size() > 200) return "Plecak mieści maksymalnie 200 drifów.";
         boolean reorganize = request.getMode() == OptimizationMode.REORGANIZE;
         if (request.getBackpackSlotCount() != null
-                && (!reorganize
+                && (!(reorganize || request.isBackpackOnly())
                         || request.getBackpackSlotCount() < 0
                         || request.getBackpackSlotCount() > 200
                         || entries != null && entries.size() > request.getBackpackSlotCount()))
-            return "Niepoprawna liczba zajętych miejsc plecaka dla reorganizacji.";
+            return "Niepoprawna liczba zajętych miejsc plecaka.";
         if (reorganize
                 && (request.isBackpackOnly()
                         || request.getConfigurationMode() != BuildConfigurationMode.ADVANCED
@@ -27,14 +27,16 @@ public final class BackpackDrifConstraints {
             return "Reorganizacja używa posiadanej puli bez opcji trybu od zera i dodatkowych wariantów.";
         if (!request.isBackpackOnly() && !reorganize)
             return entries != null && !entries.isEmpty()
-                    ? "Drify plecaka wymagają opcji Użyj drifów z plecaka."
+                    ? "Drify plecaka wymagają opcji Wyłącznie zawartość plecaka."
                     : null;
         if (!reorganize
                 && (request.getMode() != OptimizationMode.BUILD_FROM_SCRATCH
                         || request.getConfigurationMode() != BuildConfigurationMode.ADVANCED))
-            return "Opcja Użyj drifów z plecaka jest dostępna w zaawansowanym trybie od zera.";
+            return "Opcja Wyłącznie zawartość plecaka jest dostępna w zaawansowanym trybie od zera.";
         if (request.isGenerateVariants())
             return "Tryb drifów z plecaka nie obsługuje dodatkowych wariantów.";
+        if (request.isBackpackOnly() && request.isForceMaximizationByDrifBonus())
+            return "Tryb Wyłącznie zawartość plecaka zachowuje poziomy drifów bez wymuszania maksymalizacji.";
         var task = reorganize ? request.getReorganization() : null;
         if (task != null) {
             if (task.getTask() == ReorganizationOptions.Task.INSERT) {
@@ -63,6 +65,8 @@ public final class BackpackDrifConstraints {
                 return "To zadanie korzysta wyłącznie z założonych drifów.";
         }
         if (entries == null) return reorganize ? null : "Brak listy drifów plecaka.";
+        if (!reorganize && entries.isEmpty())
+            return "Zaznacz w plecaku przynajmniej jeden osobny drif do optymalizacji.";
         var ids = new HashSet<String>();
         for (var entry : entries) {
             if (entry == null

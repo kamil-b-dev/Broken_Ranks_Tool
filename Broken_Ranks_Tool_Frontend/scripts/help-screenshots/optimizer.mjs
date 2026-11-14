@@ -138,7 +138,7 @@ export async function captureOptimizer({ page, catalog, capture, importBuild, fi
     await page.goto("/optimizer?ui=desktop");
     await page.getByRole("button", { name: "Od zera", exact: true }).click();
     await page.getByRole("button", { name: "Zaawansowany", exact: true }).click();
-    await page.getByRole("checkbox", { name: "Użyj drifów z plecaka", exact: true }).check();
+    await page.getByRole("checkbox", { name: "Wyłącznie zawartość plecaka", exact: true }).check();
     await capture("backpack-drifs", page.locator(".optimizer-settings-strip"), {
         viewportWidth: 1100,
     });

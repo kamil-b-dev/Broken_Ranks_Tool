@@ -124,7 +124,10 @@ const OptimizerSettingsPanel = ({ settings, onChange }) => {
                     <label className="optimizer-settings-choice flex items-center gap-3 cursor-pointer select-none">
                         <input
                             type="checkbox"
-                            checked={settings.forceMaximizationByDrifBonus}
+                            checked={
+                                !settings.backpackOnly && settings.forceMaximizationByDrifBonus
+                            }
+                            disabled={Boolean(settings.backpackOnly)}
                             onChange={(event) =>
                                 onChange({
                                     ...settings,
@@ -148,12 +151,17 @@ const OptimizerSettingsPanel = ({ settings, onChange }) => {
                                 onChange({
                                     ...settings,
                                     backpackOnly: event.target.checked,
-                                    ...(event.target.checked ? { generateVariants: false } : {}),
+                                    ...(event.target.checked
+                                        ? {
+                                              generateVariants: false,
+                                              forceMaximizationByDrifBonus: false,
+                                          }
+                                        : {}),
                                 })
                             }
                         />
                         <span className="text-[11px] text-stone-400 leading-relaxed">
-                            {t("Użyj drifów z plecaka")}
+                            {t("Wyłącznie zawartość plecaka")}
                         </span>
                     </label>
                 )}

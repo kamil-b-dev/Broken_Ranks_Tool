@@ -221,6 +221,11 @@ streamed without a `Content-Length` header. Tune the limits with
 `CONTROL_GLOBAL_REQUESTS_PER_MINUTE`, `PUBLIC_DATA_CLIENT_REQUESTS_PER_MINUTE`,
 `PUBLIC_DATA_GLOBAL_REQUESTS_PER_MINUTE`, and `ABUSE_PROTECTION_MAX_REQUEST_BYTES`. A rejected
 rate limit response uses HTTP 429 and includes `Retry-After`.
+For optimizer modes and progression planning, the frontend uses the returned seconds to show
+a countdown beside the run button and disable further calculation requests until that deadline.
+The cooldown is shared across these views in the open application and resynchronizes when the
+browser tab becomes active. Expiry enables manual retry; other users may still exhaust the global
+quota. Missing or invalid headers leave manual retry available. Requests are never retried automatically.
 
 The limiter is intentionally process-local. Keep the declared Railway service at one replica. Do
 not enable horizontal scaling until these counters are moved to a shared store or equivalent limits

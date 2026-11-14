@@ -81,6 +81,6 @@ final class OptimizationServiceTestFactory {
                 new OptimizationVariantGenerator(neighborhoodSearch, evaluator, assembler),
                 null,
                 new pl.brokenranks.tool.broken_ranks_tool.optimization.reorganization
-                        .ReorganizationSearch(placementRules, evaluator, assembler));
+                        .OwnedDrifSearch(placementRules, evaluator, assembler));
     }
 }

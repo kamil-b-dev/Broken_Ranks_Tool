@@ -99,7 +99,9 @@ for (const layout of ["desktop", "mobile"]) {
         await page.getByLabel("Drif z plecaka").selectOption("selected");
         await page.getByText("Ustawienia zaawansowane", { exact: true }).click();
         await page.getByLabel("Pozwól odkładać założone drify do plecaka").check();
-        await expect(page.getByRole("checkbox", { name: "Użyj drifów z plecaka" })).toHaveCount(0);
+        await expect(
+            page.getByRole("checkbox", { name: "Wyłącznie zawartość plecaka" })
+        ).toHaveCount(0);
         await expect(page.getByText("Potencjalny zakres", { exact: true })).toHaveCount(0);
         await page.screenshot({ path: `../tmp/reorganization-${layout}.png`, fullPage: true });
         await page.getByRole("button", { name: /Uruchom optymalizację/i }).click();

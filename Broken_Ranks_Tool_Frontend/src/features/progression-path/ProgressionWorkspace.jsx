@@ -1,7 +1,10 @@
 import { useTranslation } from "../../shared/i18n/useTranslation";
 import HelpButton from "../help/HelpButton";
-import { useEffect, useMemo, useRef, useState } from "react";
-import apiClient from "../../shared/api/axiosConfig";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { postCalculation } from "../../shared/api/calculationCooldown";
+import { useCalculationCooldown } from "../../shared/api/useCalculationCooldown";
+import CalculationCooldownNotice from "../../shared/ui/CalculationCooldownNotice";
+import { useProfession } from "../../shared/state/ProfessionContext";
 import { parseBuildFile } from "../builds/buildFile";
 import { createBuildPayload } from "../builds/buildPayload";
 import {
@@ -41,21 +44,33 @@ export default function ProgressionWorkspace({
     mobile = false,
 }) {
     const { t } = useTranslation();
+    const cooldownSeconds = useCalculationCooldown();
+    const cooldownId = useId();
+    const sharedProfession = useProfession();
 
     const data = useMemo(
         () => ({ ...templates, gameRules: gameRules ?? templates.gameRules ?? {} }),
         [templates, gameRules]
     );
     const [initial] = useState(() => readProjectDraft(data));
-    const [project, setProject] = useState(initial.project);
+    const [storedProject, setProject] = useState(initial.project);
+    const profession = sharedProfession?.resolvedProfession;
+    const project = useMemo(
+        () =>
+            profession && storedProject.characterClass !== profession
+                ? { ...storedProject, characterClass: profession }
+                : storedProject,
+        [storedProject, profession]
+    );
     const [initialProgress] = useState(readProgressionProgress);
     const inputKey = useMemo(() => progressionInputKey(project), [project]);
     const [progressError, setProgressError] = useState(null);
     const pendingProgress = useRef(null);
     const persistAllowed = useRef(initial.warning == null);
     const [reportState, setReportState] = useState(null);
-    const report = reportState?.data === data ? reportState.value : null;
-    const setReport = (value) => setReportState(value == null ? null : { data, value });
+    const report =
+        reportState?.data === data && reportState.inputKey === inputKey ? reportState.value : null;
+    const setReport = (value) => setReportState(value == null ? null : { data, inputKey, value });
     const [error, setError] = useState(null);
     const [storageError, setStorageError] = useProgressionProjectStorage(
         project,
@@ -63,8 +78,8 @@ export default function ProgressionWorkspace({
         persistAllowed
     );
     const [runningData, setRunningData] = useState(null);
-    const running = runningData === data;
-    const setRunning = (value) => setRunningData(value ? data : null);
+    const running = runningData?.data === data && runningData.inputKey === inputKey;
+    const setRunning = (value) => setRunningData(value ? { data, inputKey } : null);
     const revision = useRef(0);
     const transport = useRef(null);
     const importRevision = useRef(0);
@@ -82,7 +97,7 @@ export default function ProgressionWorkspace({
     useEffect(() => {
         revision.current++;
         transport.current?.abort();
-    }, [data]);
+    }, [data, inputKey]);
 
     const update = (change) => {
         setProgressError(null);
@@ -95,7 +110,10 @@ export default function ProgressionWorkspace({
         setReport(null);
         setError(null);
         setRunning(false);
-        setProject((previous) => (typeof change === "function" ? change(previous) : change));
+        const next = typeof change === "function" ? change(project) : change;
+        if (next.characterClass !== project.characterClass)
+            sharedProfession?.setProfession(next.characterClass);
+        setProject(next);
     };
     const capture = (payload, name, nameSource) => {
         const target = stageFromPayload(payload, data, "target", name);
@@ -108,9 +126,11 @@ export default function ProgressionWorkspace({
             ...previous,
             target,
             characterClass:
-                weapon?.allowedClasses?.length === 1
-                    ? weapon.allowedClasses[0]
-                    : previous.characterClass,
+                sharedProfession && sharedProfession.profession !== "AUTO"
+                    ? previous.characterClass
+                    : weapon?.allowedClasses?.length === 1
+                      ? weapon.allowedClasses[0]
+                      : previous.characterClass,
         }));
     };
     const selectSource = (source) => {
@@ -171,7 +191,7 @@ export default function ProgressionWorkspace({
         setError(null);
         setRunning(true);
         try {
-            const response = await apiClient.post(
+            const response = await postCalculation(
                 "/progression-path/plan",
                 planningRequest(project, data),
                 { signal: controller.signal }
@@ -401,7 +421,12 @@ export default function ProgressionWorkspace({
                     </label>
                 ))}
             </fieldset>
-            <button className="progression-run" disabled={running || !project.target} onClick={run}>
+            <button
+                className="progression-run"
+                disabled={running || !project.target || cooldownSeconds > 0}
+                aria-describedby={cooldownSeconds > 0 ? cooldownId : undefined}
+                onClick={run}
+            >
                 {t(
                     running
                         ? "Planowanie…"
@@ -410,6 +435,7 @@ export default function ProgressionWorkspace({
                           : "Zaplanuj ścieżkę"
                 )}
             </button>
+            <CalculationCooldownNotice id={cooldownId} seconds={cooldownSeconds} />
             {running && <p role="status">{t("Generowanie planu…")}</p>}
             {report && (
                 <ProgressionResult

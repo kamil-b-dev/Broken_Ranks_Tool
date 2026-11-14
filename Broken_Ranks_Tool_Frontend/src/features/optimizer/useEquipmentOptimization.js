@@ -8,14 +8,15 @@ import { applyReorganization } from "../builder/backpack/backpackReorganizationT
 import { SLOTS } from "../../shared/domain/equipment/equipmentSlots";
 
 const failureMessage = (error) => {
-    const retryAfter = Number(error.response?.headers?.["retry-after"]);
-    if (error.response?.status === 429 && Number.isFinite(retryAfter) && retryAfter > 0)
-        return `Przekroczono limit żądań. Spróbuj ponownie za ${Math.ceil(retryAfter)} s.`;
     return (
         error.response?.data?.summary?.message ||
         error.response?.data?.message ||
         error.response?.data?.error ||
-        (error.code === "ECONNABORTED" ? "Przekroczono limit czasu optymalizacji." : error.message)
+        (error.response?.status === 429
+            ? "Przekroczono limit żądań. Spróbuj ponownie później."
+            : error.code === "ECONNABORTED"
+              ? "Przekroczono limit czasu optymalizacji."
+              : error.message)
     );
 };
 
@@ -102,7 +103,6 @@ export const useEquipmentOptimization = ({
                     lockedDrifs,
                     backpackDrifUsages: inventoryUsages.usages,
                     reorganizationDrifUsages: inventoryUsages.usages,
-                    targetSlots: inventoryUsages.targetSlots,
                     reorganizationOptions: inventoryUsages.options,
                     allowedBackpackIds: inventoryUsages.allowedBackpackIds,
                     data,
@@ -248,7 +248,6 @@ export const useEquipmentOptimization = ({
                     summary,
                     advisorReport,
                     calculationResult,
-                    targetSetup,
                     backpackDrifUsages,
                     reorganizationDrifUsages,
                     reorganizationStatChanges,
@@ -298,15 +297,8 @@ export const useEquipmentOptimization = ({
                 const hasEquipment = Object.values(optimizedSetup?.slots || {}).some(
                     (slot) => slot?.itemId != null
                 );
-                if (
-                    inventory &&
-                    !reorganize &&
-                    hasEquipment &&
-                    (!targetSetup?.slots || !Array.isArray(backpackDrifUsages))
-                )
-                    throw new Error(
-                        "Wynik nie zawiera buildu docelowego lub listy użytych drifów plecaka."
-                    );
+                if (inventory && !reorganize && hasEquipment && !Array.isArray(backpackDrifUsages))
+                    throw new Error("Wynik nie zawiera listy drifów użytych z plecaka.");
                 if (reorganize && hasEquipment && !Array.isArray(reorganizationDrifUsages))
                     throw new Error("Wynik reorganizacji nie zawiera źródeł drifów.");
                 const reorganizationReport =
@@ -345,7 +337,7 @@ export const useEquipmentOptimization = ({
                                   ),
                               }
                             : inventory
-                              ? { usages: backpackDrifUsages, targetSlots: targetSetup.slots }
+                              ? { usages: backpackDrifUsages }
                               : null
                     );
                 return {
@@ -361,7 +353,6 @@ export const useEquipmentOptimization = ({
                         : {}),
                     ...(inventory && !reorganize
                         ? {
-                              targetSetup,
                               backpackDrifUsages,
                               optimizedSetup,
                               backpackDrifTargets: (backpackDrifUsages || []).map(
@@ -380,11 +371,6 @@ export const useEquipmentOptimization = ({
                                               template?.name || String(current.drifIds[drifIndex]),
                                           size: template?.size,
                                           level: Number(current.drifLevels?.[drifIndex] ?? 1),
-                                          targetLevel: Number(
-                                              targetSetup?.slots?.[slotKey]?.drifLevels?.[
-                                                  drifIndex
-                                              ] ?? 1
-                                          ),
                                       };
                                   }
                               ),

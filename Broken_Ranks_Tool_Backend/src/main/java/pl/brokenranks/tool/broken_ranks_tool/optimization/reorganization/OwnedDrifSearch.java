@@ -9,6 +9,7 @@ import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_T
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_SIZE;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.rules.DrifPowerRules;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.service.validator.EquipmentPlacementRules;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationResponse.BackpackDrifUsage;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationResponse.ReorganizationDrifUsage;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationSummary.StatChange;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.ReorganizationOptions.Upgrade;
@@ -19,12 +20,12 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.result.Optimiza
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationDrifSizeConstraints;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.rules.OptimizationRequestConstraints;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.search.pipeline.OptimizationSearchPipeline.PipelineResult;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.reorganization.ReorganizationPool.*;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.reorganization.OwnedDrifPool.*;
 
 /** Bounded deterministic search over actual template/level multiplicities, without level allocation. */
 @Component
 @RequiredArgsConstructor
-public final class ReorganizationSearch {
+public final class OwnedDrifSearch {
     private static final int BEAM_WIDTH = 48;
     private final EquipmentPlacementRules placementRules;
     private final OptimizationStateEvaluator evaluator;
@@ -37,7 +38,7 @@ public final class ReorganizationSearch {
     public String validateSupply(OptimizationContext context) {
         String upgradeError = ReorganizationTaskRules.validateUpgrade(context, placementRules);
         if (upgradeError != null) return upgradeError;
-        ReorganizationPool pool = new ReorganizationPool(context);
+        OwnedDrifPool pool = new OwnedDrifPool(context);
         var options = context.request().getReorganization();
         if (options != null
                 && options.getTask()
@@ -132,7 +133,7 @@ public final class ReorganizationSearch {
 
     private PipelineResult optimizeLevel(OptimizationContext context) {
         long started = System.nanoTime();
-        ReorganizationPool pool = new ReorganizationPool(context);
+        OwnedDrifPool pool = new OwnedDrifPool(context);
         assembler.calibrateCalculatorBaseline(pool.fixed, context);
         prepareProtections(pool, context);
         Map<Position, List<Stone>> choices = new LinkedHashMap<>();
@@ -211,16 +212,32 @@ public final class ReorganizationSearch {
                 bestQuality = quality;
             }
         }
-        context.calculatorSession().metrics().recordStage("reorganization", started, context);
+        context.calculatorSession()
+                .metrics()
+                .recordStage(
+                        context.request().isBackpackOnly()
+                                ? "backpackConstruction"
+                                : "reorganization",
+                        started,
+                        context);
         return best == null ? null : new PipelineResult(best, finalists);
     }
 
     public List<ReorganizationDrifUsage> usages(BuildState state, OptimizationContext context) {
-        return new ReorganizationPool(context).usages(state);
+        return new OwnedDrifPool(context).usages(state);
+    }
+
+    public List<BackpackDrifUsage> backpackUsages(BuildState state, OptimizationContext context) {
+        return usages(state, context).stream()
+                .map(
+                        usage ->
+                                new BackpackDrifUsage(
+                                        usage.entryId(), usage.slotKey(), usage.drifIndex()))
+                .toList();
     }
 
     public List<StatChange> statChanges(BuildState state, OptimizationContext context) {
-        BuildState baseline = new ReorganizationPool(context).baseline;
+        BuildState baseline = new OwnedDrifPool(context).baseline;
         var before = assembler.actualStats(baseline, context);
         var after = assembler.actualStats(state, context);
         return Arrays.stream(DRIF_BONUS_TYPE.values())
@@ -245,7 +262,7 @@ public final class ReorganizationSearch {
             int depth,
             List<Position> positions,
             Map<Position, List<Stone>> choices,
-            ReorganizationPool pool,
+            OwnedDrifPool pool,
             OptimizationContext context,
             List<BuildState> candidates) {
         if (!context.beamSearchBudget().tryConsume()) return;
@@ -275,7 +292,7 @@ public final class ReorganizationSearch {
     private void beam(
             List<Position> positions,
             Map<Position, List<Stone>> choices,
-            ReorganizationPool pool,
+            OwnedDrifPool pool,
             OptimizationContext context,
             List<BuildState> candidates) {
         List<BuildState> beam = List.of(pool.fixed.copy());
@@ -318,8 +335,7 @@ public final class ReorganizationSearch {
         beam.stream().filter(state -> valid(state, pool, context)).forEach(candidates::add);
     }
 
-    private BuildState refine(
-            BuildState seed, ReorganizationPool pool, OptimizationContext context) {
+    private BuildState refine(BuildState seed, OwnedDrifPool pool, OptimizationContext context) {
         BuildState best = seed;
         boolean improved = true;
         while (improved && !context.refinementSearchBudget().exhausted()) {
@@ -413,7 +429,7 @@ public final class ReorganizationSearch {
         return true;
     }
 
-    private boolean valid(BuildState state, ReorganizationPool pool, OptimizationContext context) {
+    private boolean valid(BuildState state, OwnedDrifPool pool, OptimizationContext context) {
         if (missingRequired(state, pool) != 0
                 || pool.missingTargeted(state) != 0
                 || pool.available(state).values().stream().anyMatch(count -> count < 0)
@@ -445,7 +461,7 @@ public final class ReorganizationSearch {
     }
 
     private Comparator<BuildState> stateComparator(
-            ReorganizationPool pool, OptimizationContext context) {
+            OwnedDrifPool pool, OptimizationContext context) {
         var quality = evaluator.stateComparator(context);
         return preferMoves(context)
                 ? Comparator.comparingInt((BuildState state) -> pool.movementCost(state))
@@ -453,7 +469,7 @@ public final class ReorganizationSearch {
                 : quality;
     }
 
-    private int missingRequired(BuildState state, ReorganizationPool pool) {
+    private int missingRequired(BuildState state, OwnedDrifPool pool) {
         Map<Stone, Integer> remaining = pool.available(state);
         return pool.required.entrySet().stream()
                 .mapToInt(
@@ -467,7 +483,7 @@ public final class ReorganizationSearch {
     }
 
     private Comparator<BuildState> partialComparator(
-            ReorganizationPool pool, OptimizationContext context) {
+            OwnedDrifPool pool, OptimizationContext context) {
         return Comparator.comparingInt((BuildState state) -> missingRequired(state, pool))
                 .thenComparingInt(pool::missingTargeted)
                 .thenComparingInt(
@@ -475,7 +491,7 @@ public final class ReorganizationSearch {
                 .thenComparing(evaluator.stateComparator(context));
     }
 
-    private void prepareProtections(ReorganizationPool pool, OptimizationContext context) {
+    private void prepareProtections(OwnedDrifPool pool, OptimizationContext context) {
         var options = context.request().getReorganization();
         if (options == null) return;
         Set<DRIF_BONUS_TYPE> present = EnumSet.noneOf(DRIF_BONUS_TYPE.class);
@@ -507,7 +523,7 @@ public final class ReorganizationSearch {
     }
 
     private void seedUnequipping(
-            ReorganizationPool pool, OptimizationContext context, List<BuildState> candidates) {
+            OwnedDrifPool pool, OptimizationContext context, List<BuildState> candidates) {
         var options = context.request().getReorganization();
         if (options == null || !options.isAllowUnequip()) return;
         for (Position position : pool.positions) {
@@ -521,7 +537,7 @@ public final class ReorganizationSearch {
     }
 
     private void seedSwaps(
-            ReorganizationPool pool, OptimizationContext context, List<BuildState> candidates) {
+            OwnedDrifPool pool, OptimizationContext context, List<BuildState> candidates) {
         for (int i = 0; i < pool.positions.size(); i++) {
             for (int j = i + 1; j < pool.positions.size(); j++) {
                 if (!context.refinementSearchBudget().tryConsume()) return;

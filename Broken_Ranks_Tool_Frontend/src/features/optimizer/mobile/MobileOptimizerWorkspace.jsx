@@ -4,7 +4,9 @@ import "../styles/optimizer-shell.css";
 import "../styles/optimizer-goals.css";
 import "../styles/optimizer-report.css";
 import "../styles/optimizer-results.css";
-import { useEffect, useRef } from "react";
+import { useEffect, useId, useRef } from "react";
+import { useCalculationCooldown } from "../../../shared/api/useCalculationCooldown";
+import CalculationCooldownNotice from "../../../shared/ui/CalculationCooldownNotice";
 import AppNotice from "../../../shared/ui/AppNotice";
 import DraftSaveWarning from "../../../shared/ui/DraftSaveWarning";
 import { useOptimizerWorkspace } from "../useOptimizerWorkspace";
@@ -23,9 +25,20 @@ import { OptimizerLabelContext } from "../optimizerLabelContext";
 import HelpButton from "../../help/HelpButton";
 import AnalysisArchive from "../archive/AnalysisArchive";
 import AdvisorExclusions from "../advisor/AdvisorExclusions";
+import { useProfessionOptimizerSettings } from "../useProfessionOptimizerSettings";
 
-export default function MobileOptimizerWorkspace({ settings, onSettingsChange, onBackToBuilder }) {
+export default function MobileOptimizerWorkspace({
+    settings: storedSettings,
+    onSettingsChange: changeSettings,
+    onBackToBuilder,
+}) {
+    const [settings, onSettingsChange] = useProfessionOptimizerSettings(
+        storedSettings,
+        changeSettings
+    );
     const { t } = useTranslation();
+    const cooldownSeconds = useCalculationCooldown();
+    const cooldownId = useId();
 
     const model = useOptimizerWorkspace({
         optimizerSettings: settings,
@@ -133,6 +146,7 @@ export default function MobileOptimizerWorkspace({ settings, onSettingsChange, o
                         className="mobile-primary"
                         disabled={
                             model.isOptimizing ||
+                            cooldownSeconds > 0 ||
                             (reorganize &&
                                 (model.reorganizationCheck?.blocked ||
                                     model.reorganizationCheck?.alreadySatisfied)) ||
@@ -145,6 +159,7 @@ export default function MobileOptimizerWorkspace({ settings, onSettingsChange, o
                                 !model.prioritizedBonuses.length) ||
                             (advisory && !model.stats)
                         }
+                        aria-describedby={cooldownSeconds > 0 ? cooldownId : undefined}
                         onClick={model.handleOptimizeClick}
                     >
                         {model.isOptimizing ? (
@@ -163,6 +178,7 @@ export default function MobileOptimizerWorkspace({ settings, onSettingsChange, o
                             t("Uruchom optymalizację")
                         )}
                     </button>
+                    <CalculationCooldownNotice id={cooldownId} seconds={cooldownSeconds} />
                     {model.isOptimizing && advisory && (
                         <button type="button" onClick={model.handleCancel}>
                             {t("Zatrzymaj i pokaż znalezione plany")}

@@ -295,7 +295,7 @@ const configureOptimizer = async (page, layout) => {
         await page.getByLabel("Tryb optymalizatora").selectOption("ADVANCED");
         await page.getByText("Opcje i warianty", { exact: true }).click();
     } else await page.getByRole("button", { name: "Zaawansowany", exact: true }).click();
-    await page.getByRole("checkbox", { name: "Użyj drifów z plecaka", exact: true }).check();
+    await page.getByRole("checkbox", { name: "Wyłącznie zawartość plecaka", exact: true }).check();
     if (layout === "mobile") {
         await page.getByRole("button", { name: "＋ Dodaj cel", exact: true }).click();
         await page.getByRole("button", { name: "Szansa na krytyk", exact: true }).click();
@@ -324,18 +324,18 @@ const invalidResults = [
         message: /nie odpowiada zaznaczonym drifom/,
     },
     {
-        name: "invalid target level",
+        name: "unreported catalog stone",
         corrupt: (value) => {
-            value.targetSetup.slots.helmet.drifLevels[0] = 21;
+            value.backpackDrifUsages = [];
         },
-        message: /poziom/i,
+        message: /spoza zaznaczonej/,
     },
     {
         name: "missing consumption metadata",
         corrupt: (value) => {
             delete value.backpackDrifUsages;
         },
-        message: /listy użytych drifów/,
+        message: /listy drifów użytych z plecaka/,
     },
 ];
 for (const { name, corrupt, message } of invalidResults) {

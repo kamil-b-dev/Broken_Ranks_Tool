@@ -31,7 +31,7 @@ const renderOptimization = (slots = {}) => {
 };
 
 describe("useEquipmentOptimization", () => {
-    it("preserves the reorganization task on HTTP 429 and reports the server retry delay without changing inventory", async () => {
+    it("preserves the reorganization task on HTTP 429 without changing inventory or adding a stale retry delay to the report", async () => {
         const { result, setRequestData, restoreStats } = renderOptimization({
             boots: { itemId: 19 },
         });
@@ -62,7 +62,7 @@ describe("useEquipmentOptimization", () => {
                 applied: false,
                 mode: "REORGANIZE",
                 reorganizationOptions: reorganization,
-                message: "Przekroczono limit żądań. Spróbuj ponownie za 37 s.",
+                message: "Przekroczono limit żądań. Spróbuj ponownie później.",
             });
         });
         expect(optimizeEquipmentDrifs).toHaveBeenCalledTimes(1);
@@ -88,7 +88,7 @@ describe("useEquipmentOptimization", () => {
         });
     });
 
-    it("validates built-in stones with catalog rules while allowing their normal upgrade and keeping them out of the backpack", async () => {
+    it("keeps built-in stones unchanged and outside the backpack pool", async () => {
         const original = {
             itemId: 99,
             itemStars: 1,
@@ -97,7 +97,7 @@ describe("useEquipmentOptimization", () => {
             orbIds: [],
             orbLevels: [],
         };
-        const setup = { slots: { helmet: { ...original, drifLevels: { 0: 16 } } } };
+        const setup = { slots: { helmet: original } };
         const gameRules = {
             ...builderCatalog.gameRules,
             epicBuiltInDrifs: { Epik: ["CRITICAL_CHANCE"] },
@@ -139,7 +139,7 @@ describe("useEquipmentOptimization", () => {
             })
         );
         expect(props.setBackpack).toHaveBeenCalledWith([]);
-        expect(props.setRequestData.mock.lastCall[0].slots.helmet.drifLevels[0]).toBe(16);
+        expect(props.setRequestData.mock.lastCall[0].slots.helmet.drifLevels[0]).toBe(2);
     });
     it("reports unsafe selected IDs without sending a rounded template ID or changing state", async () => {
         const props = {
@@ -171,7 +171,7 @@ describe("useEquipmentOptimization", () => {
         expect(props.setRequestData).not.toHaveBeenCalled();
         expect(props.setBackpack).not.toHaveBeenCalled();
     });
-    it("applies a weaker final build, consumes only reported copies and retains its upgrade target", async () => {
+    it("applies an owned build with unmet soft goals and consumes only reported copies", async () => {
         const stone = { id: "used", kind: "DRIF", templateId: "60", level: 3, sendToBackend: true };
         const original = { itemId: 1, drifIds: [60], drifLevels: { 0: 2 } };
         const props = {
@@ -187,7 +187,7 @@ describe("useEquipmentOptimization", () => {
             slots: { helmet: { ...original, drifIds: [60, 61], drifLevels: { 0: 6, 1: 21 } } },
         };
         const optimizedSetup = {
-            slots: { helmet: { ...original, drifIds: [60, 61], drifLevels: { 0: 3, 1: 21 } } },
+            slots: { helmet: { ...original, drifIds: [60], drifLevels: { 0: 3 } } },
         };
         const calculationResult = { stats: { CRITICAL_CHANCE: "5%" } };
         optimizeEquipmentDrifs.mockResolvedValue({
@@ -201,8 +201,7 @@ describe("useEquipmentOptimization", () => {
         await act(async () => {
             expect(await result.current.runDrifOptimization({ backpackOnly: true })).toMatchObject({
                 applied: true,
-                targetSetup,
-                backpackDrifTargets: [{ level: 3, targetLevel: 6, entryId: "used" }],
+                backpackDrifTargets: [{ level: 3, entryId: "used" }],
             });
         });
         expect(props.setRequestData).toHaveBeenCalledWith(

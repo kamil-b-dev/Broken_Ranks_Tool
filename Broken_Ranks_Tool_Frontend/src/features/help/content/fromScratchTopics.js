@@ -58,8 +58,8 @@ export const fromScratchTopics = [
         intro: "W zaawansowanej konfiguracji Od zera możesz wykorzystać osobne drify zapisane w plecaku.",
         steps: [
             "W plecaku zaznacz drify do użycia w optymalizacji. Drify osadzone w zapasowych przedmiotach nie są brane pod uwagę.",
-            "Włącz „Użyj drifów z plecaka”. Optymalizator najpierw wyznaczy docelowy układ, a potem dopasuje posiadane drify tego samego typu i rozmiaru.",
-            "Posiadany drif trafia do zestawu ze swoim obecnym poziomem. Raport pokazuje też poziom docelowy do ulepszenia. Brakujący drif pozostaje w wyniku jako kamień do zdobycia.",
+            "Włącz „Wyłącznie zawartość plecaka”. Optymalizator dobierze zwykłe drify wyłącznie z zaznaczonych sztuk, zachowując ich rozmiary i poziomy.",
+            "Drify wbudowane i zablokowane pozostają na miejscu. Pozostałe założone drify wracają do plecaka; nie są dodawane do puli tego uruchomienia. Niewykorzystane gniazda mogą pozostać puste.",
             "Po zastosowaniu wyniku użyte drify znikają z plecaka, a zastąpione zwykłe drify do niego wracają. Każda posiadana sztuka może zostać użyta tylko raz.",
         ],
         related: ["backpack", "from-scratch", "results"],
