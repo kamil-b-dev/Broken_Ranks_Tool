@@ -138,7 +138,15 @@ for (const mobile of [false, true]) {
         const report = await http.json();
         validate("ProgressionPlanResponse", report);
         expect(report.searchReport.stopReason).toBe("BALANCED_BACKWARD_PROJECTION");
-        expect(report.stages.at(-1).stage.equipment).toEqual(epicTarget.build.requestData);
+        expect(report.stages.at(-1).stage.equipment).toEqual({
+            ...epicTarget.build.requestData,
+            slots: Object.fromEntries(
+                Object.entries(epicTarget.build.requestData.slots).map(([key, slot]) => [
+                    key,
+                    { ...slot, synergetic: null },
+                ])
+            ),
+        });
         const purchases = new Map();
         for (const entry of report.stages) {
             for (const [key, slot] of Object.entries(entry.stage.equipment.slots)) {
@@ -294,9 +302,10 @@ for (const mobile of [false, true]) {
                 .filter((stage) => stage.stage.characterLevel === 140)
                 .every((stage) => stage.stage.equipment.slots.weapon.itemId === weapon.id)
         ).toBe(true);
-        expect(report.stages.at(-1).stage.equipment.slots.weapon).toEqual(
-            target.build.requestData.slots.weapon
-        );
+        expect(report.stages.at(-1).stage.equipment.slots.weapon).toEqual({
+            ...target.build.requestData.slots.weapon,
+            synergetic: null,
+        });
         expect(
             report.stages
                 .flatMap((stage) => stage.orbActions)
@@ -370,7 +379,16 @@ for (const mobile of [false, true]) {
         await page.getByRole("button", { name: "Eksportuj ekwipunek etapu" }).last().click();
         const download = await downloadPromise;
         const exported = JSON.parse(await readFile(await download.path(), "utf8"));
-        expect(exported.build.requestData).toEqual(report.stages.at(-1).stage.equipment);
+        const finalEquipment = report.stages.at(-1).stage.equipment;
+        expect(exported.build.requestData).toEqual({
+            ...finalEquipment,
+            slots: Object.fromEntries(
+                Object.entries(finalEquipment.slots).map(([key, slot]) => {
+                    const { synergetic, ...equipment } = slot;
+                    return [key, synergetic == null ? equipment : slot];
+                })
+            ),
+        });
         expect(exported.build.backpack).toEqual([]);
         expect(
             await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)
