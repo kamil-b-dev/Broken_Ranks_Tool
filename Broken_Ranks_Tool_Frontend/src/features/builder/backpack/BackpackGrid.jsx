@@ -143,7 +143,7 @@ const BackpackCard = ({ entry, entries, index, data, gameRules, model, manualOrd
                 <label
                     className="backpack-backend-selection"
                     title={t(
-                        "Udostępnij tę sztukę optymalizatorowi w trybie Użyj drifów z plecaka"
+                        "Udostępnij tę sztukę optymalizatorowi w trybie Wyłącznie zawartość plecaka"
                     )}
                 >
                     <input

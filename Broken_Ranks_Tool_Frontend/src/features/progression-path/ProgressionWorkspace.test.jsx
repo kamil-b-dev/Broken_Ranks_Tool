@@ -1,7 +1,8 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import apiClient from "../../shared/api/axiosConfig";
+import { subscribeCalculationCooldown } from "../../shared/api/calculationCooldown";
 import { createBuildPayload } from "../builds/buildPayload";
 import ProgressionWorkspace from "./ProgressionWorkspace";
 import {
@@ -25,6 +26,14 @@ const createSnapshot = () => ({ payload });
 beforeEach(() => {
     localStorage.clear();
     vi.clearAllMocks();
+});
+afterEach(() => {
+    if (vi.isFakeTimers()) {
+        const unsubscribe = subscribeCalculationCooldown(() => {});
+        act(() => vi.advanceTimersByTime(120000));
+        unsubscribe();
+        vi.useRealTimers();
+    }
 });
 
 const uploadedFile = (name, content) => ({ name, size: content.length, text: async () => content });
@@ -128,6 +137,32 @@ it("reports server failures and allows retrying without losing the target", asyn
     await user.click(screen.getByText("Zaplanuj ścieżkę"));
     await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
     expect(apiClient.post).toHaveBeenCalledTimes(2);
+});
+
+it("counts down a rate limit beside the planner button without losing the target or automatically retrying", async () => {
+    vi.useFakeTimers();
+    apiClient.post.mockRejectedValueOnce({
+        response: {
+            status: 429,
+            headers: { "retry-after": "3" },
+            data: { message: "Przekroczono limit żądań. Spróbuj ponownie później." },
+        },
+    });
+    render(<ProgressionWorkspace data={data} createSnapshot={createSnapshot} />);
+    fireEvent.change(screen.getByLabelText("Docelowy build"), { target: { value: "current" } });
+    const button = screen.getByRole("button", { name: "Zaplanuj ścieżkę" });
+    await act(async () => fireEvent.click(button));
+    expect(button).toBeDisabled();
+    expect(button).toHaveAccessibleDescription("Ponowne uruchomienie za 3 s.");
+    expect(screen.getByLabelText("Docelowy build")).toHaveDisplayValue("Aktualny build");
+    fireEvent.change(screen.getByLabelText("Profesja"), { target: { value: "DRUID" } });
+    expect(button).toBeDisabled();
+    act(() => vi.advanceTimersByTime(2000));
+    expect(screen.getByRole("timer")).toHaveTextContent("Ponowne uruchomienie za 1 s.");
+    act(() => vi.advanceTimersByTime(1000));
+    expect(button).toBeEnabled();
+    expect(screen.queryByRole("timer")).not.toBeInTheDocument();
+    expect(apiClient.post).toHaveBeenCalledTimes(1);
 });
 
 it("uses separately provided game rules when capturing and restoring an epic target", async () => {

@@ -19,7 +19,8 @@ it("generates route-specific HTML without JavaScript and preserves the applicati
             options.verification
         );
         expect(document.querySelector("#root h1").textContent).toBe(page.heading);
-        expect(document.querySelector("#root p").textContent).toBe(page.description);
+        expect(document.querySelector('meta[name="description"]').content).toBe(page.description);
+        expect(document.querySelector("#root > main > p")).toBeNull();
         expect(document.querySelector('script[type="module"]').getAttribute("src")).toBe(
             "/src/main.jsx"
         );

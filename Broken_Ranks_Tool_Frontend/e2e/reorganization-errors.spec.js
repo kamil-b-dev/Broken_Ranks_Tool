@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { builderCatalog } from "../src/test/fixtures/equipment/builderCatalog.js";
 
 for (const layout of ["desktop", "mobile"]) {
-    test(`${layout} reports a rate-limited reorganization without empty result sections or inventory changes`, async ({
+    test(`${layout} counts down a rate-limited reorganization without automatic retries or inventory changes`, async ({
         page,
     }) => {
         await page.setViewportSize(
@@ -71,11 +71,21 @@ for (const layout of ["desktop", "mobile"]) {
         });
         await page.goto(`/optimizer?ui=${layout}`);
         await expect(page.getByLabel("Docelowy poziom")).toHaveValue("6");
-        await page.getByRole("button", { name: /Uruchom optymalizację/i }).click();
+        await page.clock.install({ time: new Date("2026-11-14T12:00:00Z") });
+        await page.clock.pauseAt(new Date("2026-11-14T12:00:01Z"));
+        const runButton = page.getByRole("button", {
+            name: /Uruchom optymalizację|optymalizuj ponownie/i,
+        });
+        await runButton.click();
         if (layout === "mobile") await page.getByRole("button", { name: "Pokaż wynik →" }).click();
         await expect(
-            page.getByText("Przekroczono limit żądań. Spróbuj ponownie za 37 s.")
+            page.getByText("Przekroczono limit żądań. Spróbuj ponownie później.")
         ).toBeVisible();
+        await expect(runButton).toBeDisabled();
+        await expect(page.getByRole("timer")).toHaveText("Ponowne uruchomienie za 37 s.");
+        await expect(runButton).toHaveAccessibleDescription("Ponowne uruchomienie za 37 s.");
+        await page.clock.fastForward(1000);
+        await expect(page.getByRole("timer")).toHaveText("Ponowne uruchomienie za 36 s.");
         await expect(
             page.getByText("Ekwipunek nie został zmieniony.", { exact: true })
         ).toBeVisible();
@@ -96,5 +106,19 @@ for (const layout of ["desktop", "mobile"]) {
             path: `../tmp/reorganization-rate-limit-${layout}.png`,
             fullPage: true,
         });
+        await page.getByRole("link", { name: /Ścieżka rozwoju/, exact: false }).click();
+        await expect(
+            page.getByRole("heading", { name: "Ścieżka rozwoju", exact: true })
+        ).toBeVisible();
+        await expect(page.getByRole("timer")).toHaveText("Ponowne uruchomienie za 36 s.");
+        await page.getByLabel("Docelowy build").selectOption("current");
+        const planButton = page.getByRole("button", { name: "Zaplanuj ścieżkę", exact: true });
+        await expect(planButton).toBeDisabled();
+        await page.clock.fastForward(36000);
+        await expect(planButton).toBeEnabled();
+        await expect(page.getByRole("timer")).toHaveCount(0);
+        await page.getByRole("link", { name: /Optymalizator/, exact: false }).click();
+        await expect(runButton).toBeEnabled();
+        expect(calls).toBe(1);
     });
 }

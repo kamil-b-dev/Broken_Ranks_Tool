@@ -31,7 +31,6 @@ import BuildStorageNotice from "../components/BuildStorageNotice";
 import HomeWorkspace from "../components/HomeWorkspace";
 import HelpButton from "../../features/help/HelpButton";
 import ProjectFooter from "../../features/project/ProjectFooter";
-import PageIntroduction from "../seo/PageIntroduction";
 
 const MobileOptimizerWorkspace = lazy(
     () => import("../../features/optimizer/mobile/MobileOptimizerWorkspace")
@@ -155,7 +154,6 @@ export default function MobileApp() {
                 />
                 <EquipmentCalculationNotice />
                 <BuildStorageNotice library={library} />
-                {activeView !== "home" && <PageIntroduction path={APP_ROUTES[activeView]} />}
                 {["builder", "optimizer"].includes(activeView) && <EquipmentHistoryControls />}
                 <Suspense fallback={<WorkspaceState loading />}>
                     {activeView === "home" ? (

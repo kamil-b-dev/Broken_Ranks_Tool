@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import pl.brokenranks.tool.broken_ranks_tool.core.ratelimit.ValidatedCalculationRateLimiter;
 import pl.brokenranks.tool.broken_ranks_tool.core.web.error.*;
 
 /** Shared admission for optimizer and progression planning, with no unbounded waiting queue. */
@@ -16,23 +17,43 @@ public class HeavyCalculationGate {
     private final Semaphore permits;
     private final int maxHeapUsagePercent;
     private final Supplier<MemoryUsage> heapUsage;
+    private final ValidatedCalculationRateLimiter requestLimiter;
 
     @Autowired
     public HeavyCalculationGate(
             @Value("${optimizer.max-concurrent-runs:1}") int count,
-            @Value("${optimizer.memory.max-heap-usage-percent:85}") int maxHeapUsagePercent) {
+            @Value("${optimizer.memory.max-heap-usage-percent:85}") int maxHeapUsagePercent,
+            ValidatedCalculationRateLimiter requestLimiter) {
         this(
                 count,
                 maxHeapUsagePercent,
-                () -> ManagementFactory.getMemoryMXBean().getHeapMemoryUsage());
+                () -> ManagementFactory.getMemoryMXBean().getHeapMemoryUsage(),
+                requestLimiter);
+    }
+
+    public HeavyCalculationGate(int count, int maxHeapUsagePercent) {
+        this(
+                count,
+                maxHeapUsagePercent,
+                () -> ManagementFactory.getMemoryMXBean().getHeapMemoryUsage(),
+                null);
     }
 
     HeavyCalculationGate(int count, int maxHeapUsagePercent, Supplier<MemoryUsage> heapUsage) {
+        this(count, maxHeapUsagePercent, heapUsage, null);
+    }
+
+    private HeavyCalculationGate(
+            int count,
+            int maxHeapUsagePercent,
+            Supplier<MemoryUsage> heapUsage,
+            ValidatedCalculationRateLimiter requestLimiter) {
         if (count < 1 || maxHeapUsagePercent < 1 || maxHeapUsagePercent > 95)
             throw new IllegalArgumentException("Nieprawidłowy limit obliczeń.");
         this.permits = new Semaphore(count, true);
         this.maxHeapUsagePercent = maxHeapUsagePercent;
         this.heapUsage = heapUsage;
+        this.requestLimiter = requestLimiter;
     }
 
     public boolean tryAcquire() {
@@ -41,6 +62,10 @@ public class HeavyCalculationGate {
 
     public void release() {
         permits.release();
+    }
+
+    public void ensureRequestAllowance() {
+        if (requestLimiter != null) requestLimiter.checkCurrentRequest();
     }
 
     public void ensureMemoryAvailable() {

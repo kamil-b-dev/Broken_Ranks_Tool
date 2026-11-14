@@ -95,13 +95,12 @@ const OptimizerStatusSection = ({
                     )}
                     {status.backpackDrifTargets?.length > 0 && (
                         <details className="optimizer-backpack-targets">
-                            <summary>{t("Drify z plecaka — poziomy docelowe")}</summary>
+                            <summary>{t("Wykorzystane drify z plecaka")}</summary>
                             <table>
                                 <thead>
                                     <tr>
                                         <th scope="col">{t("Slot / drif")}</th>
-                                        <th scope="col">{t("Obecny")}</th>
-                                        <th scope="col">{t("Docelowy")}</th>
+                                        <th scope="col">{t("Poziom")}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -113,7 +112,6 @@ const OptimizerStatusSection = ({
                                                 {t(drif.drifName)} {t(drif.size)}
                                             </th>
                                             <td>{t(drif.level)}</td>
-                                            <td>{t(drif.targetLevel)}</td>
                                         </tr>
                                     ))}
                                 </tbody>

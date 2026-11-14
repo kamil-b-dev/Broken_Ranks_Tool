@@ -9,13 +9,13 @@ it("distinguishes level and profession requirements and rechecks after a profess
         <EquipmentRequirements requestData={requestData} items={items} level={40} />
     );
     expect(screen.getByRole("status")).toHaveTextContent("wymagany poziom 80");
-    fireEvent.change(screen.getByLabelText("Profesja do sprawdzenia wymagań"), {
+    fireEvent.change(screen.getByLabelText("Profesja"), {
         target: { value: "KNIGHT" },
     });
     expect(screen.getByRole("status")).toHaveTextContent(
         "przedmiot nie pasuje do wybranej profesji"
     );
-    fireEvent.change(screen.getByLabelText("Profesja do sprawdzenia wymagań"), {
+    fireEvent.change(screen.getByLabelText("Profesja"), {
         target: { value: "ARCHER" },
     });
     rerender(<EquipmentRequirements requestData={requestData} items={items} level={80} />);

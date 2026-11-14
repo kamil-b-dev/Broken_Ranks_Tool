@@ -11,9 +11,17 @@ import { OptimizerLabelContext } from "./optimizerLabelContext";
 import HelpButton from "../help/HelpButton";
 import AnalysisArchive from "./archive/AnalysisArchive";
 import AdvisorExclusions from "./advisor/AdvisorExclusions";
+import { useProfessionOptimizerSettings } from "./useProfessionOptimizerSettings";
 
 /** Desktop composition retains its existing markup and navigation. */
-const OptimizerPanel = ({ optimizerSettings, onOptimizerSettingsChange }) => {
+const OptimizerPanel = ({
+    optimizerSettings: storedSettings,
+    onOptimizerSettingsChange: onSettingsChange,
+}) => {
+    const [optimizerSettings, onOptimizerSettingsChange] = useProfessionOptimizerSettings(
+        storedSettings,
+        onSettingsChange
+    );
     const {
         labels,
         analysisDocument,

@@ -26,6 +26,7 @@ public class ProgressionPathController {
                     "Trwają inne obliczenia. Spróbuj ponownie za chwilę.");
         try {
             gate.ensureMemoryAvailable();
+            gate.ensureRequestAllowance();
             return service.plan(request);
         } finally {
             gate.release();

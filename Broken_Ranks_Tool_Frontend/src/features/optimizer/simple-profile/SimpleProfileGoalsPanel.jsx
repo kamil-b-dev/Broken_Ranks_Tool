@@ -8,6 +8,7 @@ import {
     SIMPLE_STYLES,
 } from "./simpleProfileDefinitions";
 import { useOptimizerLabelContext } from "../optimizerLabelContext";
+import { useProfession } from "../../../shared/state/ProfessionContext";
 
 const QuantityField = ({ label, value, onChange }) => {
     const { t } = useTranslation();
@@ -48,6 +49,7 @@ const SimpleProfileGoalsPanel = ({ settings, onChange }) => {
     const { t } = useTranslation();
 
     const labels = useOptimizerLabelContext();
+    const shared = useProfession();
     const profile = settings.simpleProfile || "BARBARIAN";
     const options = normalizeSimpleOptions(settings.simpleOptions, profile);
     const update = (key, value) =>
@@ -75,13 +77,14 @@ const SimpleProfileGoalsPanel = ({ settings, onChange }) => {
                     <select
                         aria-label={t("Profil prostego optymalizatora")}
                         value={profile}
-                        onChange={(event) =>
+                        onChange={(event) => {
+                            shared?.setProfession(event.target.value);
                             onChange({
                                 ...settings,
                                 simpleProfile: event.target.value,
                                 simpleOptions: defaultSimpleOptions(event.target.value),
-                            })
-                        }
+                            });
+                        }}
                         className="min-w-44 border border-purple-900/80 optimizer-accent-frame bg-black px-2 py-1 text-stone-100"
                     >
                         {SIMPLE_PROFILES.map((option) => (

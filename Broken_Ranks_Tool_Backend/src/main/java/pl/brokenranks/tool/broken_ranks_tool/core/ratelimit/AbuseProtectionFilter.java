@@ -2,19 +2,20 @@ package pl.brokenranks.tool.broken_ranks_tool.core.ratelimit;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import pl.brokenranks.tool.broken_ranks_tool.core.web.error.ApiError;
@@ -22,46 +23,64 @@ import pl.brokenranks.tool.broken_ranks_tool.core.web.error.ApiErrorCode;
 import pl.brokenranks.tool.broken_ranks_tool.core.web.filter.RequestTracingFilter;
 import tools.jackson.databind.ObjectMapper;
 
-/** Rejects oversized or excessively frequent requests before request bodies are parsed. */
+/** Rejects oversized declarations and excessive request rates before bodies are received. */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE + 1)
 @EnableConfigurationProperties(AbuseProtectionProperties.class)
+@Import(ClientAddressResolver.class)
 public class AbuseProtectionFilter extends OncePerRequestFilter {
 
-    private static final String OPTIMIZER_PATH = "/api/optimizer/drifs";
-    private static final String PROGRESSION_PATH = "/api/progression-path/plan";
-    private static final String CALCULATOR_PATH = "/api/calculator/calculate";
-    private static final String ADVISOR_PATH_PREFIX = "/api/optimizer/advisor/";
-    private static final String CANCELLATION_PATH_SUFFIX = "/cancel";
-    private static final String API_PATH_PREFIX = "/api/";
+    // Match decoded path segments just like Spring Security and MVC, including encoded letters.
+    private static final RequestMatcher OPTIMIZER_REQUEST =
+            PathPatternRequestMatcher.pathPattern(HttpMethod.POST, "/api/optimizer/drifs");
+    private static final RequestMatcher PROGRESSION_REQUEST =
+            PathPatternRequestMatcher.pathPattern(HttpMethod.POST, "/api/progression-path/plan");
+    private static final RequestMatcher CALCULATOR_REQUEST =
+            PathPatternRequestMatcher.pathPattern(HttpMethod.POST, "/api/calculator/calculate");
+    private static final RequestMatcher CANCELLATION_REQUEST =
+            PathPatternRequestMatcher.pathPattern(
+                    HttpMethod.POST, "/api/optimizer/advisor/*/cancel");
+    private static final RequestMatcher PUBLIC_DATA_REQUEST =
+            PathPatternRequestMatcher.pathPattern(HttpMethod.GET, "/api/**");
 
     private final AbuseProtectionProperties properties;
     private final RequestRateLimiter rateLimiter;
     private final ObjectMapper objectMapper;
+    private final ClientAddressResolver addresses;
 
     @Autowired
-    public AbuseProtectionFilter(AbuseProtectionProperties properties, ObjectMapper objectMapper) {
-        this(properties, new RequestRateLimiter(), objectMapper);
+    public AbuseProtectionFilter(
+            AbuseProtectionProperties properties,
+            ObjectMapper objectMapper,
+            ClientAddressResolver addresses) {
+        this(properties, new RequestRateLimiter(), objectMapper, addresses);
     }
 
     AbuseProtectionFilter(
             AbuseProtectionProperties properties,
             RequestRateLimiter rateLimiter,
             ObjectMapper objectMapper) {
+        this(properties, rateLimiter, objectMapper, new ClientAddressResolver(false));
+    }
+
+    AbuseProtectionFilter(
+            AbuseProtectionProperties properties,
+            RequestRateLimiter rateLimiter,
+            ObjectMapper objectMapper,
+            ClientAddressResolver addresses) {
         this.properties = properties;
         this.rateLimiter = rateLimiter;
         this.objectMapper = objectMapper;
+        this.addresses = addresses;
     }
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        String path = request.getRequestURI();
-        if (HttpMethod.GET.matches(request.getMethod())) return !path.startsWith(API_PATH_PREFIX);
-        if (!HttpMethod.POST.matches(request.getMethod())) return true;
-        return !OPTIMIZER_PATH.equals(path)
-                && !PROGRESSION_PATH.equals(path)
-                && !CALCULATOR_PATH.equals(path)
-                && !isCancellationPath(path);
+        return !PUBLIC_DATA_REQUEST.matches(request)
+                && !OPTIMIZER_REQUEST.matches(request)
+                && !PROGRESSION_REQUEST.matches(request)
+                && !CALCULATOR_REQUEST.matches(request)
+                && !CANCELLATION_REQUEST.matches(request);
     }
 
     @Override
@@ -84,11 +103,10 @@ public class AbuseProtectionFilter extends OncePerRequestFilter {
         if (publicDataRequest) {
             policy = RateLimitPolicy.PUBLIC_DATA;
             limit = properties.publicData();
-        } else if (OPTIMIZER_PATH.equals(request.getRequestURI())
-                || PROGRESSION_PATH.equals(request.getRequestURI())) {
+        } else if (OPTIMIZER_REQUEST.matches(request) || PROGRESSION_REQUEST.matches(request)) {
             policy = RateLimitPolicy.OPTIMIZER;
-            limit = properties.optimizer();
-        } else if (CALCULATOR_PATH.equals(request.getRequestURI())) {
+            limit = properties.optimizerIngress();
+        } else if (CALCULATOR_REQUEST.matches(request)) {
             policy = RateLimitPolicy.CALCULATOR;
             limit = properties.calculator();
         } else {
@@ -97,7 +115,7 @@ public class AbuseProtectionFilter extends OncePerRequestFilter {
         }
 
         RequestRateLimiter.Decision decision =
-                rateLimiter.acquire(policy, clientId(request), limit);
+                rateLimiter.acquire(policy, addresses.resolve(request), limit);
         if (!decision.allowed()) {
             response.setHeader("Retry-After", Integer.toString(decision.retryAfterSeconds()));
             writeError(
@@ -108,58 +126,14 @@ public class AbuseProtectionFilter extends OncePerRequestFilter {
             return;
         }
 
-        if (publicDataRequest) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        byte[] requestBody = readBodyUpToLimit(request, properties.maxRequestBytes());
-        if (requestBody == null) {
-            writeError(
-                    response,
-                    HttpServletResponse.SC_REQUEST_ENTITY_TOO_LARGE,
-                    ApiErrorCode.REQUEST_TOO_LARGE,
-                    "Żądanie przekracza dozwolony rozmiar.");
-            return;
-        }
-
-        filterChain.doFilter(new CachedBodyHttpServletRequest(request, requestBody), response);
-    }
-
-    private String clientId(HttpServletRequest request) {
-        String remoteAddress = request.getRemoteAddr();
-        return remoteAddress == null || remoteAddress.isBlank() ? "unknown" : remoteAddress;
-    }
-
-    private boolean isCancellationPath(String path) {
-        return path.startsWith(ADVISOR_PATH_PREFIX) && path.endsWith(CANCELLATION_PATH_SUFFIX);
-    }
-
-    private byte[] readBodyUpToLimit(HttpServletRequest request, int maxRequestBytes)
-            throws IOException {
-        try (ByteArrayOutputStream body =
-                new ByteArrayOutputStream(Math.min(maxRequestBytes, 8192))) {
-            byte[] buffer = new byte[8192];
-            int totalBytes = 0;
-            ServletInputStream inputStream = request.getInputStream();
-
-            while (true) {
-                long remainingWithSentinel = (long) maxRequestBytes - totalBytes + 1;
-                int bytesToRead = (int) Math.min(buffer.length, remainingWithSentinel);
-                int bytesRead = inputStream.read(buffer, 0, bytesToRead);
-                if (bytesRead == -1) return body.toByteArray();
-                if (totalBytes + bytesRead > maxRequestBytes) return null;
-
-                body.write(buffer, 0, bytesRead);
-                totalBytes += bytesRead;
-            }
-        }
+        filterChain.doFilter(request, response);
     }
 
     private void writeError(
             HttpServletResponse response, int status, ApiErrorCode code, String message)
             throws IOException {
         response.setStatus(status);
+        response.setHeader("Connection", "close");
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         objectMapper.writeValue(
                 response.getOutputStream(),

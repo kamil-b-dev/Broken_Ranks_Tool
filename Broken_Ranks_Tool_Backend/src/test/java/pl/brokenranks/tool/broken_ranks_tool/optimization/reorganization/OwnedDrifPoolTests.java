@@ -8,9 +8,9 @@ import org.junit.jupiter.api.Test;
 import pl.brokenranks.tool.broken_ranks_tool.equipment.domain.enums.DRIF_BONUS_TYPE;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRequest;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
-import pl.brokenranks.tool.broken_ranks_tool.optimization.reorganization.ReorganizationPool.Stone;
+import pl.brokenranks.tool.broken_ranks_tool.optimization.reorganization.OwnedDrifPool.Stone;
 
-class ReorganizationPoolTests {
+class OwnedDrifPoolTests {
     private final pl.brokenranks.tool.broken_ranks_tool.equipment.entity.templates.DrifTemplate
             crit = drif(10, DRIF_BONUS_TYPE.CRITICAL_CHANCE);
 
@@ -33,13 +33,13 @@ class ReorganizationPoolTests {
     void groupsOnlyIdenticalTemplatesAndLevelsAndPreservesEveryOccurrence() {
         var request = request(DRIF_BONUS_TYPE.CRITICAL_CHANCE);
         request.setBackpackDrifs(List.of(owned("six-b", 6), owned("two", 2), owned("six-a", 6)));
-        var pool = new ReorganizationPool(context(request, equipped("helmet", 6, Set.of())));
+        var pool = new OwnedDrifPool(context(request, equipped("helmet", 6, Set.of())));
         assertEquals(Map.of(new Stone(10, 6), 3, new Stone(10, 2), 1), pool.supply);
         assertEquals(4, pool.sources.size());
         assertEquals(
                 List.of("six-a", "six-b", "two"),
                 pool.sources.stream()
-                        .map(ReorganizationPool.Source::entryId)
+                        .map(OwnedDrifPool.Source::entryId)
                         .filter(Objects::nonNull)
                         .toList());
     }
@@ -51,7 +51,7 @@ class ReorganizationPoolTests {
         var special = slot("weapon", 0, 0, 0, true, Set.of(), crit);
         special.original().setDrifLevels(Map.of("0", 4));
         var pool =
-                new ReorganizationPool(
+                new OwnedDrifPool(
                         context(
                                 request,
                                 equipped("helmet", 2, Set.of(0)),
@@ -75,7 +75,7 @@ class ReorganizationPoolTests {
         var request = request(DRIF_BONUS_TYPE.CRITICAL_CHANCE);
         request.setBackpackDrifs(List.of(owned("spare", 6)));
         var pool =
-                new ReorganizationPool(
+                new OwnedDrifPool(
                         context(
                                 request,
                                 equipped("helmet", 6, Set.of(0)),
@@ -92,9 +92,7 @@ class ReorganizationPoolTests {
         var request = request(DRIF_BONUS_TYPE.CRITICAL_CHANCE);
         request.setBackpackDrifs(List.of(owned("spare", 6)));
         var emptyHelmet = slot("helmet", 12, 2, 0, false, Set.of(), crit);
-        var pool =
-                new ReorganizationPool(
-                        context(request, emptyHelmet, equipped("armor", 6, Set.of())));
+        var pool = new OwnedDrifPool(context(request, emptyHelmet, equipped("armor", 6, Set.of())));
         var result = pool.original.copy();
         result.setPlacement("helmet", 0, new Placement(crit, 6, false));
         var usages = pool.usages(result);
@@ -113,7 +111,7 @@ class ReorganizationPoolTests {
         var request = request(DRIF_BONUS_TYPE.CRITICAL_CHANCE);
         request.setBackpackDrifs(List.of(owned("spare", 6)));
         var pool =
-                new ReorganizationPool(
+                new OwnedDrifPool(
                         context(
                                 request,
                                 equipped("armor", 6, Set.of()),
@@ -131,7 +129,7 @@ class ReorganizationPoolTests {
     @Test
     void rejectsFabricatedLevelsAndDuplicateUsesBeyondTheOwnedMultiplicity() {
         var pool =
-                new ReorganizationPool(
+                new OwnedDrifPool(
                         context(
                                 request(DRIF_BONUS_TYPE.CRITICAL_CHANCE),
                                 equipped("helmet", 6, Set.of())));
@@ -147,7 +145,7 @@ class ReorganizationPoolTests {
     void supportsEmptyInventoryAndSparseEquippedSocketsWithDefaultLevels() {
         var slot = slot("helmet", 12, 3, 0, false, Set.of(), crit);
         slot.original().setDrifIds(Arrays.asList(null, crit.getId()));
-        var pool = new ReorganizationPool(context(request(DRIF_BONUS_TYPE.CRITICAL_CHANCE), slot));
+        var pool = new OwnedDrifPool(context(request(DRIF_BONUS_TYPE.CRITICAL_CHANCE), slot));
         assertEquals(1, pool.sources.getFirst().stone().level());
         assertEquals(1, pool.sources.getFirst().index());
         assertEquals(3, pool.positions.size());

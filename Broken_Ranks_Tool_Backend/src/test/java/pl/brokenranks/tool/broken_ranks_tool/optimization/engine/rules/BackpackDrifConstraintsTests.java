@@ -53,8 +53,8 @@ class BackpackDrifConstraintsTests {
     }
 
     @Test
-    void acceptsEmptyStockAnd200DistinctCopiesButRejectsOverflowBeforeEntryValidation() {
-        assertNull(BackpackDrifConstraints.validateRequest(using(List.of())));
+    void rejectsEmptyStockAndAccepts200DistinctCopiesButRejectsOverflowBeforeEntryValidation() {
+        assertNotNull(BackpackDrifConstraints.validateRequest(using(List.of())));
         var stock =
                 java.util.stream.IntStream.range(0, 200)
                         .mapToObj(i -> owned("stone-" + i, 1L, 21))

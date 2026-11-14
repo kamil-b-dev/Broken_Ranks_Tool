@@ -18,7 +18,11 @@ test("serves unique titles, canonicals and useful content without executing Java
                 `https://www.brokenrankstool.pl${entry.path}`
             );
             await expect(page.getByRole("heading", { level: 1 })).toHaveText(entry.heading);
-            await expect(page.getByText(entry.description)).toBeVisible();
+            await expect(page.getByText(entry.description)).toHaveCount(0);
+            await expect(page.locator('meta[name="description"]')).toHaveAttribute(
+                "content",
+                entry.description
+            );
         }
         const sitemap = await request.get("/sitemap.xml");
         expect(sitemap.status()).toBe(200);
@@ -45,7 +49,7 @@ test("updates metadata when navigating to help and back, including language chan
         route.fulfill({ json: { stats: {} } })
     );
     await page.goto("/");
-    await expect(page.getByText(SITE_PAGES[0].description)).toBeVisible();
+    await expect(page.getByText(SITE_PAGES[0].description)).toHaveCount(0);
     await page.getByRole("button", { name: "EN — English" }).click();
     await expect(page).toHaveTitle("Broken Ranks Tool – equipment calculator and drif optimizer");
     await expect(page.locator('a[href="/builder"]').first()).not.toHaveAttribute(
@@ -65,7 +69,9 @@ for (const viewport of [
     { width: 1440, height: 900 },
     { width: 390, height: 844 },
 ]) {
-    test(`home description fits the ${viewport.width}px layout`, async ({ browser }, testInfo) => {
+    test(`pages omit introduction paragraphs in the ${viewport.width}px layout`, async ({
+        browser,
+    }, testInfo) => {
         const mobile = viewport.width < 600;
         const context = await browser.newContext(
             mobile ? { ...devices["Pixel 7"], viewport } : { viewport }
@@ -76,7 +82,7 @@ for (const viewport of [
                 route.fulfill({ json: builderCatalog })
             );
             await page.goto("http://127.0.0.1:4173/");
-            await expect(page.locator(".home-description")).toHaveText(SITE_PAGES[0].description);
+            await expect(page.locator(".home-description, .page-description")).toHaveCount(0);
             await expect(page.locator(mobile ? ".mobile-app" : ".app-shell")).toBeVisible();
             await expect(page.getByRole("button", { name: "Utwórz build" })).toBeVisible();
             await page.waitForLoadState("networkidle");
@@ -92,6 +98,23 @@ for (const viewport of [
             await page
                 .locator(".home-intro")
                 .screenshot({ path: testInfo.outputPath("intro.png"), scale: "css" });
+            for (const entry of SITE_PAGES.filter((entry) => entry.path !== "/")) {
+                await page.goto(
+                    `http://127.0.0.1:4173${entry.path}?ui=${mobile ? "mobile" : "desktop"}`
+                );
+                await expect(
+                    page.locator(entry.path === "/help" ? "#help-content" : "#workspace-content")
+                ).toBeVisible();
+                await expect(page.locator(".workspace-state")).toHaveCount(0);
+                await expect(page.locator(".home-description, .page-description")).toHaveCount(0);
+                await expect(page.getByText(entry.description)).toHaveCount(0);
+                if (entry.path === "/builder")
+                    await page.screenshot({
+                        path: testInfo.outputPath("builder.png"),
+                        animations: "disabled",
+                        scale: "css",
+                    });
+            }
         } finally {
             await context.close();
         }

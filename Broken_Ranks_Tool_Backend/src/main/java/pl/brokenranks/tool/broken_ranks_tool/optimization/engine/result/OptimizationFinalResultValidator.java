@@ -110,6 +110,7 @@ final class OptimizationFinalResultValidator {
                                     .getOrDefault(String.valueOf(index), 1);
             boolean levelLocked =
                     context.request().getMode() == OptimizationMode.REORGANIZE
+                            || context.request().isBackpackOnly()
                             || !slot.special()
                             || context.request().getLockedSlots() != null
                                     && context.request().getLockedSlots().contains(slot.key())

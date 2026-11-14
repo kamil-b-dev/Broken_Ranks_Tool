@@ -84,6 +84,7 @@ test("real optimizer rejects malformed backpack requests before optimization", a
         },
         { name: "null occurrence", changes: { backpackDrifs: [null] } },
         { name: "missing list", changes: { backpackDrifs: null } },
+        { name: "empty selection", changes: { backpackDrifs: [] } },
         {
             name: "invalid level",
             changes: { backpackDrifs: [{ ...owned("bad-level"), level: 22 }] },
@@ -92,6 +93,7 @@ test("real optimizer rejects malformed backpack requests before optimization", a
         { name: "simple mode", changes: { configurationMode: "SIMPLE" } },
         { name: "advisor mode", changes: { mode: "ADVISOR" } },
         { name: "variants", changes: { generateVariants: true } },
+        { name: "forced level allocation", changes: { forceMaximizationByDrifBonus: true } },
     ];
     for (const { name, changes, message } of invalid) {
         await test.step(name, async () => {
@@ -106,7 +108,7 @@ test("real optimizer rejects malformed backpack requests before optimization", a
     }
 });
 
-test("real optimizer accepts 200 occurrences, preserves the normal target and uses one owned level", async ({
+test("real optimizer accepts 200 occurrences and keeps the owned level without catalog fallback", async ({
     request,
 }) => {
     const { base, owned, drif } = await scenario(request);
@@ -121,14 +123,14 @@ test("real optimizer accepts 200 occurrences, preserves the normal target and us
     expect(http.status()).toBe(200);
     const response = await http.json();
     expect(response.summary.outcome).toMatch(/^VALID_BUILD/);
-    expect(response.targetSetup).toEqual(target.optimizedSetup);
+    expect(response.targetSetup).toBeNull();
     expect(response.backpackDrifUsages).toHaveLength(1);
     const usage = response.backpackDrifUsages[0];
     expect(entries.some((entry) => entry.id === usage.entryId)).toBe(true);
     expect(usage.slotKey).toBe("helmet");
     expect(response.optimizedSetup.slots.helmet.drifIds[usage.drifIndex]).toBe(drif.id);
     expect(response.optimizedSetup.slots.helmet.drifLevels[usage.drifIndex]).toBe(3);
-    expect(response.targetSetup.slots.helmet.drifLevels[usage.drifIndex]).toBeGreaterThan(3);
+    expect(target.optimizedSetup.slots.helmet.drifLevels[usage.drifIndex]).toBeGreaterThan(3);
     await assertParity(request, response);
 });
 
@@ -201,7 +203,9 @@ for (const layout of ["desktop", "mobile"]) {
             await page.getByLabel("Tryb optymalizatora").selectOption("ADVANCED");
             await page.getByText("Opcje i warianty", { exact: true }).click();
         } else await page.getByRole("button", { name: "Zaawansowany", exact: true }).click();
-        await page.getByRole("checkbox", { name: "Użyj drifów z plecaka", exact: true }).check();
+        await page
+            .getByRole("checkbox", { name: "Wyłącznie zawartość plecaka", exact: true })
+            .check();
         if (layout === "mobile") {
             await page.getByRole("button", { name: "＋ Dodaj cel", exact: true }).click();
             await page.getByRole("button", { name: label, exact: true }).click();
@@ -229,6 +233,7 @@ for (const layout of ["desktop", "mobile"]) {
         expect(http.request().postDataJSON().backpackDrifs).toEqual([
             { id: "selected", templateId: drif.id, level: 3 },
         ]);
+        expect(http.request().postDataJSON().backpackSlotCount).toBe(200);
         const response = await http.json();
         expect(response.summary.outcome).toMatch(/^VALID_BUILD/);
         expect(response.backpackDrifUsages).toEqual([
@@ -255,9 +260,9 @@ for (const layout of ["desktop", "mobile"]) {
         ).toEqual(expect.objectContaining({ templateId: String(drif.id) }));
         if (layout === "mobile")
             await page.getByRole("button", { name: "Pokaż wynik →", exact: true }).click();
-        await page.getByText("Drify z plecaka — poziomy docelowe", { exact: true }).click();
+        await page.getByText("Wykorzystane drify z plecaka", { exact: true }).click();
         await expect(page.locator(".optimizer-backpack-targets tbody tr")).toContainText(
-            String(response.targetSetup.slots.helmet.drifLevels[0])
+            String(response.optimizedSetup.slots.helmet.drifLevels[0])
         );
         await page.goto(`/builder?ui=${layout}`);
         await page

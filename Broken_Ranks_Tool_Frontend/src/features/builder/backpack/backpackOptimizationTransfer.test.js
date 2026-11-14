@@ -4,7 +4,7 @@ import { builderCatalog } from "../../../test/fixtures/equipment/builderCatalog"
 const slot = (id, level) => ({ itemId: 1, drifIds: [id], drifLevels: { 0: level } });
 const stone = { id: "owned", kind: "DRIF", templateId: "60", level: 6, sendToBackend: true };
 const usage = { entryId: "owned", slotKey: "helmet", drifIndex: 0 };
-describe("applying final backpack substitutions", () => {
+describe("applying an exclusively owned backpack result", () => {
     it.each([
         { helmet: { ...slot(60, 6), itemStars: 9 } },
         { helmet: { ...slot(60, 6), orbIds: [50], orbLevels: [1] } },
@@ -37,9 +37,11 @@ describe("applying final backpack substitutions", () => {
         expect(() => applyBackpackOptimization({ ...input, lockedDrifs: { helmet: [0] } })).toThrow(
             /blokadę/
         );
-        expect(applyBackpackOptimization({ ...input, builtInSlots: ["helmet"] })).toEqual([stone]);
+        expect(() => applyBackpackOptimization({ ...input, builtInSlots: ["helmet"] })).toThrow(
+            /wbudowane/
+        );
     });
-    it("validates physical capacity and the target kind and size before transferring a matched stone", () => {
+    it("validates physical capacity and the exact owned template before transferring a stone", () => {
         const equipment = { ...slot(60, 2), itemStars: 1, orbIds: [], orbLevels: [] };
         const input = {
             backpack: [stone],
@@ -67,10 +69,10 @@ describe("applying final backpack substitutions", () => {
             ],
         };
         expect(() =>
-            applyBackpackOptimization({ ...input, data, targetSlots: { helmet: slot(61, 11) } })
-        ).toThrow(/rodzaju i rozmiaru/);
+            applyBackpackOptimization({ ...input, data, nextSlots: { helmet: slot(61, 11) } })
+        ).toThrow(/nie odpowiada/);
     });
-    it("consumes the explicit occurrence and keeps unmatched catalog stones and identical copies", () => {
+    it("consumes the explicit occurrence, returns removed stones and keeps unused copies", () => {
         const backpack = [
             stone,
             { ...stone, id: "other-selected" },
@@ -81,7 +83,7 @@ describe("applying final backpack substitutions", () => {
             previousSlots: { helmet: slot(60, 2), armor: { itemId: 2, drifIds: [] } },
             nextSlots: {
                 helmet: slot(60, 6),
-                armor: { itemId: 2, drifIds: [99], drifLevels: { 0: 21 } },
+                armor: { itemId: 2, drifIds: [], drifLevels: {} },
             },
             backpackDrifUsages: [usage],
         });
@@ -95,15 +97,15 @@ describe("applying final backpack substitutions", () => {
         });
         expect(backpack).toHaveLength(3);
     });
-    it("does not consume any matching copy when no substitution was reported", () => {
-        expect(
+    it("rejects unreported catalog stones instead of inventing an occurrence", () => {
+        expect(() =>
             applyBackpackOptimization({
                 backpack: [stone],
                 previousSlots: { helmet: slot(null, 1) },
                 nextSlots: { helmet: slot(60, 6) },
                 backpackDrifUsages: [],
             })
-        ).toEqual([stone]);
+        ).toThrow(/spoza zaznaczonej/);
     });
     it.each([
         undefined,
@@ -148,7 +150,7 @@ describe("applying final backpack substitutions", () => {
                 ...input,
                 backpack: full,
                 backpackDrifUsages: [],
-                nextSlots: { helmet: slot(99, 21) },
+                nextSlots: { helmet: slot(null, 1) },
             })
         ).toThrow(/200/);
     });

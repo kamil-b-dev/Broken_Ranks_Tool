@@ -223,7 +223,9 @@ export const applyReorganization = ({ reorganizationDrifUsages, ...input }) => {
         ),
         previousSlots,
         backpackDrifUsages: backpackUsages,
-        targetSlots: undefined,
+        validatedEquippedPositions: reorganizationDrifUsages
+            .filter((usage) => usage.entryId == null)
+            .map((usage) => `${usage.slotKey}:${usage.drifIndex}`),
     });
     if (next.length > MAX_BACKPACK_ENTRIES) throw new Error("Brak miejsca na nieużyte drify.");
     return next;

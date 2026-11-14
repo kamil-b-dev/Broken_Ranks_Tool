@@ -1,4 +1,5 @@
 import apiClient from "./axiosConfig";
+import { postCalculation } from "./calculationCooldown";
 
 /** Loads the complete data set required to initialize the equipment tool. */
 export const fetchInitialEquipmentData = async (options) => {
@@ -28,7 +29,7 @@ export const explainEquipmentStats = async (requestData, options) => {
 
 /** Requests an optimized drif setup from the backend. */
 export const optimizeEquipmentDrifs = async (optimizationRequest) => {
-    const response = await apiClient.post("/optimizer/drifs", optimizationRequest);
+    const response = await postCalculation("/optimizer/drifs", optimizationRequest);
     return response.data;
 };
 

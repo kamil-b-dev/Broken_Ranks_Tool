@@ -31,6 +31,8 @@ paths:
           $ref: "#/components/responses/ApiFailure"
         "413":
           $ref: "#/components/responses/ApiFailure"
+        "408":
+          $ref: "#/components/responses/ApiFailure"
         "429":
           $ref: "#/components/responses/RateLimited"
         "503":
@@ -190,6 +192,8 @@ paths:
           $ref: "#/components/responses/ApiFailure"
         "413":
           $ref: "#/components/responses/RequestTooLarge"
+        "408":
+          $ref: "#/components/responses/ApiFailure"
         "429":
           $ref: "#/components/responses/RateLimited"
   /api/optimizer/drifs:
@@ -220,6 +224,8 @@ paths:
           $ref: "#/components/responses/RateLimited"
         "503":
           $ref: "#/components/responses/OptimizerUnavailable"
+        "408":
+          $ref: "#/components/responses/ApiFailure"
   /api/optimizer/advisor/{runId}/cancel:
     post:
       operationId: cancelAdvisorRun
@@ -263,6 +269,10 @@ paths:
           $ref: "#/components/responses/ApiFailure"
         "429":
           $ref: "#/components/responses/RateLimited"
+        "408":
+          $ref: "#/components/responses/ApiFailure"
+        "413":
+          $ref: "#/components/responses/RequestTooLarge"
 components:
   responses:
     Dictionary:
@@ -687,12 +697,12 @@ components:
         backpackOnly:
           type: boolean
           default: false
-          description: Advanced build-from-scratch only. Run standard optimization, then substitute matching selected backpack drifs at their owned levels. Unmatched catalog drifs remain. The legacy wire name is retained; additional variants are unavailable.
+          description: Advanced build-from-scratch only. Search exclusively over selected loose backpack occurrences at their actual sizes and levels. Each occurrence can be placed once. Built-in and locked drifs stay unchanged; other equipped drifs are returned to the backpack and are not candidates. Empty sockets are allowed. Requires a nonempty selection and disables variants and forced maximization by drif bonus. Soft percentage targets remain warnings.
         backpackSlotCount:
           type: [integer, "null"]
           minimum: 0
           maximum: 200
-          description: Total occupied backpack slots in reorganization, including unselected objects. Limits how many equipped stones can be returned. May not be lower than the selected drif count.
+          description: Total occupied backpack slots for reorganization or backpack-only optimization, including unselected objects. Limits how many equipped stones can be returned. May not be lower than the selected drif count.
         backpackDrifs:
           type:
             - array
@@ -1790,12 +1800,13 @@ components:
         - advisorReport
       properties:
         targetSetup:
-          description: Standard target setup before backpack substitutions, retained as an upgrade reference. Null outside the backpack option.
+          deprecated: true
+          description: Legacy catalog target retained in the response schema for compatibility. Current backpack-only optimization returns null and reports only the actual owned build.
           anyOf:
             - $ref: "#/components/schemas/EquipmentRequest"
             - type: "null"
         backpackDrifUsages:
-          description: Exact selected backpack occurrences consumed by substitutions, mapped to the final sockets. Null outside the backpack option.
+          description: Exact selected backpack occurrences used by backpack-only optimization, mapped to final sockets. Every movable ordinary placement must reference a distinct occurrence at its actual template and level. Null outside the backpack option.
           type: [array, "null"]
           maxItems: 200
           items:

@@ -1,5 +1,4 @@
-.item-preview,
-.equipment-requirements {
+.item-preview {
     padding: 0.75rem;
     font:
         0.875rem Inter,
@@ -10,16 +9,14 @@
     cursor: pointer;
     color: #d5ae69;
 }
-.item-preview label,
-.equipment-requirements label {
+.item-preview label {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
     align-items: center;
     margin: 0.5rem 0;
 }
-.item-preview select,
-.equipment-requirements select {
+.item-preview select {
     min-width: 0;
     max-width: 100%;
     padding: 0.4rem;
@@ -37,4 +34,70 @@
 }
 .equipment-requirements li {
     color: #e5b76e;
+}
+
+.equipment-requirements {
+    min-width: 0;
+    font:
+        0.8125rem/1.5 Inter,
+        system-ui,
+        sans-serif;
+}
+.equipment-profession-control {
+    display: flex;
+    width: fit-content;
+    max-width: 100%;
+    align-items: center;
+    border: 1px solid #74532e;
+    border-radius: 0.2rem;
+    background: linear-gradient(135deg, #211c15, #0c0b0a);
+    box-shadow: inset 0 1px rgba(234, 190, 111, 0.08);
+    transition:
+        border-color 150ms,
+        box-shadow 150ms;
+}
+.equipment-profession-control:focus-within {
+    border-color: #dfb46b;
+    box-shadow: 0 0 0 2px rgba(223, 180, 107, 0.18);
+}
+.equipment-profession-label {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0 0.8rem;
+    color: #d6ae6c;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+.equipment-profession-label svg {
+    width: 1rem;
+    height: 1rem;
+}
+.equipment-requirements .equipment-profession-control select {
+    width: 13rem;
+    min-width: 0;
+    min-height: 2.75rem;
+    padding: 0.6rem 0.75rem;
+    border: 0;
+    border-left: 1px solid rgba(162, 120, 61, 0.35);
+    border-radius: 0;
+    color: #eee4d1;
+    background-color: rgba(0, 0, 0, 0.28);
+    font: inherit;
+}
+.equipment-requirements .equipment-profession-control select:focus {
+    border-left-color: #a57a41;
+}
+.equipment-requirements .equipment-profession-control select:focus-visible {
+    outline: 2px solid #dfb46b;
+    outline-offset: -3px;
+}
+.equipment-profession-control option {
+    color: #eee4d1;
+    background: #12100e;
+}
+.equipment-requirements ul {
+    margin-top: 0.65rem;
+    padding-left: 1.2rem;
 }

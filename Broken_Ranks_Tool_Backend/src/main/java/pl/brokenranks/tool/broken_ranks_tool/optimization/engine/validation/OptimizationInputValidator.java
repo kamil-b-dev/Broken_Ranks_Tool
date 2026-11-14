@@ -83,7 +83,8 @@ public final class OptimizationInputValidator {
 
     private String validateSelectedDrifCatalog(OptimizationContext context) {
         // Reorganization validates every equipped and selected backpack occurrence separately.
-        if (context.request().getMode() == OptimizationMode.REORGANIZE) return null;
+        if (context.request().getMode() == OptimizationMode.REORGANIZE
+                || context.request().isBackpackOnly()) return null;
         for (DrifTemplate drif : context.drifs().values()) {
             if (drif == null
                     || drif.getBonusType() == null
@@ -129,7 +130,8 @@ public final class OptimizationInputValidator {
         String orbError = validateOrbs(key, data, item, orbs, usedOrbBonuses);
         if (orbError != null) return orbError;
         Set<Integer> preserved = preservedIndexes(key, data, slot, context.request());
-        if (context.request().getMode() == OptimizationMode.REORGANIZE) {
+        if (context.request().getMode() == OptimizationMode.REORGANIZE
+                || context.request().isBackpackOnly()) {
             preserved = new HashSet<>(preserved);
             for (int index = 0;
                     index < (data.getDrifIds() == null ? 0 : data.getDrifIds().size());

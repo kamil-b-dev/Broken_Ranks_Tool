@@ -25,8 +25,6 @@ import HomeWorkspace from "./components/HomeWorkspace";
 import EquipmentHistoryControls from "../features/equipment/EquipmentHistoryControls";
 import BuildStorageNotice from "./components/BuildStorageNotice";
 import ProjectFooter from "../features/project/ProjectFooter";
-import PageIntroduction from "./seo/PageIntroduction";
-import { APP_ROUTES } from "./routes";
 
 /** Desktop composition is loaded only for the desktop presentation. */
 export default function DesktopApp() {
@@ -71,7 +69,6 @@ export default function DesktopApp() {
             />
             <EquipmentCalculationNotice />
             <BuildStorageNotice library={buildLibrary} />
-            {mainView !== "home" && <PageIntroduction path={APP_ROUTES[mainView]} />}
             {mainView === "optimizer" && <EquipmentHistoryControls />}
             {mainView !== "home" && (
                 <WorkspaceState loading={equipment.loading} error={equipment.initialDataError} />

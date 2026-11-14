@@ -19,6 +19,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import pl.brokenranks.tool.broken_ranks_tool.core.config.*;
 import pl.brokenranks.tool.broken_ranks_tool.core.execution.HeavyCalculationGate;
+import pl.brokenranks.tool.broken_ranks_tool.core.ratelimit.ValidatedCalculationRateLimiter;
 import pl.brokenranks.tool.broken_ranks_tool.progressionpath.dto.ProgressionPlanResponse;
 import pl.brokenranks.tool.broken_ranks_tool.progressionpath.dto.ProgressionTargetRequest;
 import pl.brokenranks.tool.broken_ranks_tool.progressionpath.service.ProgressionTargetPlanningService;
@@ -28,9 +29,12 @@ import pl.brokenranks.tool.broken_ranks_tool.progressionpath.service.Progression
 @TestPropertySource(
         properties = {
             "abuse-protection.optimizer.client-requests-per-minute=1000",
-            "abuse-protection.optimizer.global-requests-per-minute=1000"
+            "abuse-protection.optimizer.global-requests-per-minute=1000",
+            "abuse-protection.optimizer-ingress.client-requests-per-minute=1000",
+            "abuse-protection.optimizer-ingress.global-requests-per-minute=1000"
         })
 class ProgressionPathControllerTests {
+    @MockitoBean private ValidatedCalculationRateLimiter requestLimiter;
     private static final String INPUT =
             """
         {"characterClass":"ARCHER","targetLevel":140,"targetEquipment":{"slots":{}},"resSlots":[]}

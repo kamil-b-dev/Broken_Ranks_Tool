@@ -6,8 +6,8 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.OptimizationRespon
 import pl.brokenranks.tool.broken_ranks_tool.optimization.dto.ReorganizationOptions.Upgrade;
 import pl.brokenranks.tool.broken_ranks_tool.optimization.engine.model.*;
 
-/** Keeps equipped and backpack occurrences separate while grouping interchangeable search choices. */
-final class ReorganizationPool {
+/** Groups actual occurrences for backpack-only placement and equipped-pool reorganization. */
+final class OwnedDrifPool {
     record Stone(long templateId, int level) {
         static Stone of(Placement placement) {
             return new Stone(placement.drif().getId(), placement.level());
@@ -29,7 +29,7 @@ final class ReorganizationPool {
     final Map<Source, String> targetSlots = new LinkedHashMap<>();
     final Map<DRIF_BONUS_TYPE, Double> minimums = new EnumMap<>(DRIF_BONUS_TYPE.class);
 
-    ReorganizationPool(OptimizationContext context) {
+    OwnedDrifPool(OptimizationContext context) {
         for (SlotContext slot : context.slots()) {
             List<Placement> fixedPlacements = new ArrayList<>();
             List<Placement> originalPlacements = new ArrayList<>();
@@ -57,7 +57,7 @@ final class ReorganizationPool {
                 fixedPlacements.add(locked ? placement : null);
                 if (!locked) {
                     positions.add(new Position(slot, index));
-                    if (placement != null)
+                    if (placement != null && !context.request().isBackpackOnly())
                         sources.add(new Source(Stone.of(placement), null, slot.key(), index));
                 }
             }
@@ -92,6 +92,15 @@ final class ReorganizationPool {
 
         if (context.request().getBackpackDrifs() != null) {
             context.request().getBackpackDrifs().stream()
+                    .filter(
+                            entry ->
+                                    !context.request().isBackpackOnly()
+                                            || context.request()
+                                                    .getPriorities()
+                                                    .containsKey(
+                                                            context.drifs()
+                                                                    .get(entry.getTemplateId())
+                                                                    .getBonusType()))
                     .sorted(
                             Comparator.comparing(
                                     pl.brokenranks.tool.broken_ranks_tool.optimization.dto
