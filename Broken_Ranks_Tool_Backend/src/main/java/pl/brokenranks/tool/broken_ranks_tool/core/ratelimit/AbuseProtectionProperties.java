@@ -1,13 +1,21 @@
 package pl.brokenranks.tool.broken_ranks_tool.core.ratelimit;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.bind.ConstructorBinding;
 
 /** Configurable request limits for public, computationally expensive endpoints. */
 @ConfigurationProperties("abuse-protection")
 public record AbuseProtectionProperties(
-        int maxRequestBytes, Limit optimizer, Limit calculator, Limit control, Limit publicData) {
+        int maxRequestBytes,
+        Limit optimizer,
+        Limit calculator,
+        Limit control,
+        Limit publicData,
+        Limit optimizerIngress) {
 
+    @ConstructorBinding
     public AbuseProtectionProperties {
+        if (optimizerIngress == null) optimizerIngress = optimizer;
         if (maxRequestBytes <= 0
                 || optimizer == null
                 || calculator == null
@@ -15,6 +23,15 @@ public record AbuseProtectionProperties(
                 || publicData == null) {
             throw new IllegalArgumentException("Abuse-protection limits must be configured.");
         }
+    }
+
+    public AbuseProtectionProperties(
+            int maxRequestBytes,
+            Limit optimizer,
+            Limit calculator,
+            Limit control,
+            Limit publicData) {
+        this(maxRequestBytes, optimizer, calculator, control, publicData, optimizer);
     }
 
     /** Per-client and whole-instance allowance within one minute. */

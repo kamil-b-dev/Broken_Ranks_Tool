@@ -57,6 +57,7 @@ public class OptimizationExecutionGuard {
         }
         try {
             memoryGuard.ensureAvailable();
+            permits.ensureRequestAllowance();
         } catch (RuntimeException ex) {
             permits.release();
             throw ex;

@@ -31,6 +31,8 @@ paths:
           $ref: "#/components/responses/ApiFailure"
         "413":
           $ref: "#/components/responses/ApiFailure"
+        "408":
+          $ref: "#/components/responses/ApiFailure"
         "429":
           $ref: "#/components/responses/RateLimited"
         "503":
@@ -190,6 +192,8 @@ paths:
           $ref: "#/components/responses/ApiFailure"
         "413":
           $ref: "#/components/responses/RequestTooLarge"
+        "408":
+          $ref: "#/components/responses/ApiFailure"
         "429":
           $ref: "#/components/responses/RateLimited"
   /api/optimizer/drifs:
@@ -220,6 +224,8 @@ paths:
           $ref: "#/components/responses/RateLimited"
         "503":
           $ref: "#/components/responses/OptimizerUnavailable"
+        "408":
+          $ref: "#/components/responses/ApiFailure"
   /api/optimizer/advisor/{runId}/cancel:
     post:
       operationId: cancelAdvisorRun
@@ -263,6 +269,10 @@ paths:
           $ref: "#/components/responses/ApiFailure"
         "429":
           $ref: "#/components/responses/RateLimited"
+        "408":
+          $ref: "#/components/responses/ApiFailure"
+        "413":
+          $ref: "#/components/responses/RequestTooLarge"
 components:
   responses:
     Dictionary:

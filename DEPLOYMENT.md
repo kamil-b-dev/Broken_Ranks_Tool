@@ -129,8 +129,13 @@ values, item values and drif values. Evicted entries are recalculated using the 
 catalogue snapshot; search deduplication and proof candidates are not evicted.
 
 The production HTTP server has at most 64 worker threads (8 spare), 512 connections,
-and an accept backlog of 64. This bounds simultaneous request-body processing alongside
-the existing 256 KiB body limit. Standard Spring environment variables such as
+and an accept backlog of 64. Bodies are received with non-blocking servlet I/O before
+security and MVC parse them, with a 256 KiB limit, a 15-second total receive timeout,
+at most 8 pending bodies and at most 2 per identified client. Slow senders do not occupy
+HTTP workers. The servlet timeout check can add approximately one second of scheduling
+granularity. Rejected unfinished bodies are not drained on worker threads.
+`REQUEST_BODY_TIMEOUT`, `REQUEST_BODY_MAX_PENDING_REQUESTS` and
+`REQUEST_BODY_MAX_PENDING_PER_CLIENT` tune these bounds. Standard Spring variables such as
 `SERVER_TOMCAT_THREADS_MAX` can override these limits when measured throughput requires it.
 
 The image and Railway IaC use the following limits for the 4 GB service. If the Railway
@@ -199,12 +204,17 @@ Search-state signatures also reuse immutable slot ordering and avoid temporary p
 strings. See the [state-signature measurements](docs/wydajnosc-sygnatur-stanow-2026-10-28.md)
 for allocation measurements and the exact-output comparison.
 
-Public calculation endpoints are protected by per-client and whole-instance, one-minute request
-limits. The checked-in Railway configuration initially uses the global allowance as the client
-allowance: 20 optimizer requests, 600 calculator requests, 300 control requests, and 3000 public
-API reads per minute. This keeps the process-wide boundary effective while forwarded client
-addresses remain disabled. Requests larger than 256 KiB are rejected before JSON parsing, including requests
-streamed without a `Content-Length` header. Tune these values with
+Public endpoints have per-client and whole-instance one-minute request limits. Optimizer and
+progression requests have two budgets: ingress (including malformed input) and admission to heavy
+work after JSON parsing and DTO validation. Malformed JSON and invalid DTOs cannot consume the
+20-per-minute global analysis allowance. Requests rejected as busy or under memory pressure also
+do not consume it. Semantic checks inside an admitted analysis still count as work.
+Ingress defaults to 60 requests per client and 600 globally; analysis admission defaults to 5
+per client and 20 globally. Calculator, control and public-read defaults are respectively
+120/600, 30/300 and 300/3000 per client/globally.
+Requests larger than 256 KiB are rejected before JSON parsing, including requests
+streamed without a `Content-Length` header. Tune the limits with
+`OPTIMIZER_INGRESS_CLIENT_REQUESTS_PER_MINUTE`, `OPTIMIZER_INGRESS_GLOBAL_REQUESTS_PER_MINUTE`,
 `OPTIMIZER_CLIENT_REQUESTS_PER_MINUTE`,
 `OPTIMIZER_GLOBAL_REQUESTS_PER_MINUTE`, `CALCULATOR_CLIENT_REQUESTS_PER_MINUTE`,
 `CALCULATOR_GLOBAL_REQUESTS_PER_MINUTE`, `CONTROL_CLIENT_REQUESTS_PER_MINUTE`,
@@ -216,12 +226,26 @@ The limiter is intentionally process-local. Keep the declared Railway service at
 not enable horizontal scaling until these counters are moved to a shared store or equivalent limits
 are enforced at the edge; otherwise every replica would grant a separate allowance.
 
-The production profile trusts forwarded client addresses only from loopback by default. Therefore
-Railway requests are initially grouped under the direct proxy address and cannot evade limits by
-forging `X-Forwarded-For`. After observing and confirming Railway's direct proxy addresses, set
-`TRUSTED_PROXY_REGEX` to an exact anchored Java regular expression for those addresses and reduce
-the client allowances if desired. Never configure whole private, link-local, or carrier-grade NAT
-ranges. Keep the service reachable only through Railway's public proxy.
+By default, client-supplied forwarding headers are ignored; native forwarded addresses are trusted
+only from loopback or exact proxy addresses configured in `TRUSTED_PROXY_REGEX`. Never trust whole
+private, link-local or carrier-grade NAT ranges. An unidentified private intermediary receives
+the global pending-body bound so its users are not all restricted to two simultaneous uploads.
+
+The production service has been confirmed to be reachable **exclusively through Railway's
+public HTTP/HTTPS edge**. Its IaC sets `TRUST_RAILWAY_CLIENT_IP=true` and the per-client
+budgets above; no local opt-in variable is needed when planning or applying this configuration.
+The application uses Railway's single numeric `X-Real-IP`, normalizing IPv4 and IPv6 without
+resolving hostnames. Missing, malformed or duplicate values fall back to the transport address.
+This mode is unsafe if an untrusted caller can reach the application through a TCP proxy or a
+direct connection, because that caller could forge `X-Real-IP`. Do not enable it for an additional
+CDN/proxy without verifying which address Railway reports. Deployments outside the declared
+Railway topology keep this feature disabled by default.
+
+If the network topology changes, disable this header trust before exposing a direct or TCP path
+and configure the new trust boundary. The separated analysis budget and non-blocking body bounds
+still apply without header trust, but separate client-IP quotas need trusted client addresses.
+No application-level setting guarantees protection against a distributed flood;
+keep an operational WAF/edge response available.
 
 Advisor cancellation requires both its random run identifier and a separate random cancellation
 token sent in `X-Advisor-Cancellation-Token`. Treat both values as short-lived secrets and never

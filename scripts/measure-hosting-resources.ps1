@@ -114,7 +114,8 @@ foreach ($mode in @("baseline", "optimized")) {
         "--spring.datasource.hikari.minimum-idle=$(if ($mode -eq 'optimized') { 1 } else { 10 })",
         "--spring.datasource.hikari.maximum-pool-size=10",
         "--spring.datasource.hikari.idle-timeout=60000",
-        "--abuse-protection.optimizer.client-requests-per-minute=600", "--abuse-protection.optimizer.global-requests-per-minute=600"
+        "--abuse-protection.optimizer.client-requests-per-minute=600", "--abuse-protection.optimizer.global-requests-per-minute=600",
+        "--abuse-protection.optimizer-ingress.client-requests-per-minute=600", "--abuse-protection.optimizer-ingress.global-requests-per-minute=600"
     )
     foreach ($argument in $arguments) { $startInfo.ArgumentList.Add($argument) }
     $process = [System.Diagnostics.Process]::new()

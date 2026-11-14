@@ -19,7 +19,9 @@ import org.springframework.test.context.ActiveProfiles;
         properties = {
             "spring.datasource.url=jdbc:sqlite:file:database/catalog/broken_ranks.db?mode=ro",
             "abuse-protection.optimizer.client-requests-per-minute=2",
-            "abuse-protection.optimizer.global-requests-per-minute=10"
+            "abuse-protection.optimizer.global-requests-per-minute=10",
+            "abuse-protection.optimizer-ingress.client-requests-per-minute=2",
+            "abuse-protection.optimizer-ingress.global-requests-per-minute=10"
         })
 @ActiveProfiles("prod")
 class ForwardedHeaderIntegrationTests {

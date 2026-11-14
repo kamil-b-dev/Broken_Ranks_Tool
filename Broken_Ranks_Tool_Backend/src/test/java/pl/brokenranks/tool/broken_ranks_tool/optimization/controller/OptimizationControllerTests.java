@@ -29,7 +29,9 @@ import pl.brokenranks.tool.broken_ranks_tool.optimization.service.OptimizerMemor
         value = OptimizationController.class,
         properties = {
             "abuse-protection.optimizer.client-requests-per-minute=100",
-            "abuse-protection.optimizer.global-requests-per-minute=100"
+            "abuse-protection.optimizer.global-requests-per-minute=100",
+            "abuse-protection.optimizer-ingress.client-requests-per-minute=100",
+            "abuse-protection.optimizer-ingress.global-requests-per-minute=100"
         })
 @Import(SecurityConfig.class)
 class OptimizationControllerTests {

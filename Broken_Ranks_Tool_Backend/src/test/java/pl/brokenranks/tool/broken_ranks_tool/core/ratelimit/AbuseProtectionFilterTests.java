@@ -2,7 +2,6 @@ package pl.brokenranks.tool.broken_ranks_tool.core.ratelimit;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -63,6 +62,8 @@ import tools.jackson.databind.ObjectMapper;
             "abuse-protection.max-request-bytes=256",
             "abuse-protection.optimizer.client-requests-per-minute=2",
             "abuse-protection.optimizer.global-requests-per-minute=10",
+            "abuse-protection.optimizer-ingress.client-requests-per-minute=2",
+            "abuse-protection.optimizer-ingress.global-requests-per-minute=10",
             "abuse-protection.calculator.client-requests-per-minute=2",
             "abuse-protection.calculator.global-requests-per-minute=4",
             "abuse-protection.control.client-requests-per-minute=2",
@@ -150,22 +151,24 @@ class AbuseProtectionFilterTests {
     }
 
     @Test
-    void rejectsAnOversizedBodyWhenContentLengthIsUnknown() throws Exception {
+    void rejectsExcessiveRequestsBeforeReadingUnknownLengthBodies() throws Exception {
         AbuseProtectionFilter filter = createFilter();
         HttpServletRequest request = unknownLengthRequest(new byte[257]);
         MockHttpServletResponse response = new MockHttpServletResponse();
         FilterChain chain = mock(FilterChain.class);
 
+        filter.doFilter(unknownLengthRequest(new byte[257]), new MockHttpServletResponse(), chain);
+        filter.doFilter(unknownLengthRequest(new byte[257]), new MockHttpServletResponse(), chain);
         filter.doFilter(request, response, chain);
 
-        org.assertj.core.api.Assertions.assertThat(response.getStatus()).isEqualTo(413);
+        org.assertj.core.api.Assertions.assertThat(response.getStatus()).isEqualTo(429);
         org.assertj.core.api.Assertions.assertThat(response.getContentAsString())
-                .contains("REQUEST_TOO_LARGE");
-        verify(chain, never()).doFilter(any(), any());
+                .contains("RATE_LIMITED");
+        verify(chain, times(2)).doFilter(any(), any());
     }
 
     @Test
-    void replaysAnAllowedBodyWhenContentLengthIsUnknown() throws Exception {
+    void leavesAnAllowedUnknownLengthBodyForTheNonBlockingReceiver() throws Exception {
         AbuseProtectionFilter filter = createFilter();
         byte[] body = "{\"priorities\":{}}".getBytes(StandardCharsets.UTF_8);
         HttpServletRequest request = unknownLengthRequest(body);
