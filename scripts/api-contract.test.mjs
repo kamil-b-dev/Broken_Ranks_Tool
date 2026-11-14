@@ -4,6 +4,13 @@ import { createContractValidator, loadApiContract } from "./api-contract.mjs";
 
 const document = await loadApiContract();
 const validate = createContractValidator(document);
+test("types explicit synergetics, starting possessions, required milestones and advisor exclusions", () => {
+  validate("EquipmentRequest", { slots: { ring1: { synergetic: { name: "Res", stats: { PŻ: 300 } } } } });
+  assert.throws(() => validate("SynergeticItem", { name: "Res", stats: { UNKNOWN: 1 } }));
+  validate("ProgressionPlanRequest", { characterClass: "ARCHER", targetLevel: 140, targetEquipment: { slots: {} }, startingPoint: { characterLevel: 100, equipment: { slots: {} }, backpack: [{ id: "owned", kind: "DRIF", templateId: 1, level: 6 }] }, requiredItems: [{ slot: "helmet", characterLevel: 110, itemId: 1 }] });
+  validate("AdvisorOptions", { goal: "CRITICAL_CHANCE", excludedItemIds: [1], excludedPurchaseBonusTypes: ["CRITICAL_CHANCE"] });
+  assert.throws(() => validate("AdvisorOptions", { goal: "CRITICAL_CHANCE", excludedItemIds: [-1] }));
+});
 test("reorganization tasks type the selected upgrade and relative modifier protections", () => {
   const options = {
     task: "UPGRADE",
@@ -386,6 +393,10 @@ test("advisor structured actions distinguish drif occurrences and preserve displ
     ],
   };
   validate("AdvisorAction", action);
+  validate("AdvisorAction", {
+    ...action,
+    drifs: [{ ...action.drifs[0], fromDrifId: 10, drifId: 11 }],
+  });
   validate("AdvisorPlan", {
     kind: "ONE_UPGRADE",
     actions: ["Ulepsz drif"],

@@ -9,7 +9,8 @@
         "typecheck": "tsc -p tsconfig.infrastructure.json",
         "test:contracts": "node --test scripts/api-contract.test.mjs scripts/build-file-contract.test.mjs",
         "test:dependency-policy": "node --test scripts/dependency-policy.test.mjs",
-        "test:ci": "node --test scripts/quality-checks.test.mjs"
+        "test:ci": "node --test scripts/quality-checks.test.mjs",
+        "test:monitor": "node --test scripts/production-monitor.test.mjs"
     },
     "devDependencies": {
         "@eslint/js": "^10.0.1",

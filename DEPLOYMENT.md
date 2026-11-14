@@ -1,5 +1,9 @@
 # Railway deployment
 
+Operational monitoring, release and rollback procedures, browser-library recovery,
+and the Railway settings still requiring dashboard verification are documented in
+[`docs/utrzymanie-produkcji.md`](docs/utrzymanie-produkcji.md).
+
 The production topology contains one Railway service. Its Docker image includes the React
 frontend, Spring Boot API, and the read-only SQLite catalogue. No Railway database or volume is
 required while the application does not persist user data.

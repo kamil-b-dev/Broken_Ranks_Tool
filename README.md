@@ -10,6 +10,11 @@ ostatnio zapisane konfiguracje. Biblioteka pozwala wykonać zbiorczą
 [Ścieżka rozwoju](docs/sciezka-rozwoju.md) zapamiętuje lokalnie poziom i wykonane
 etapy; odtwarza je po wygenerowaniu zgodnego planu z aktualnego API.
 
+[Planowanie i zapis buildów](docs/planowanie-i-zapis-buildow.md) obejmuje podgląd
+zamienników, wymagania noszenia, synergetyki, braki zasobów, trwałe wersje i opisy,
+przeliczanie porównań, linki i PNG, początek ścieżki z posiadanego ekwipunku,
+obowiązkowe etapy, wykluczenia Doradcy oraz lokalne archiwum pełnych analiz.
+
 ## Struktura
 
 - `Broken_Ranks_Tool_Frontend/` — interfejs użytkownika pogrupowany według funkcji:
