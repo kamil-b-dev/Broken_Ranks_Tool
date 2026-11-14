@@ -1,6 +1,5 @@
 import { useTranslation } from "../../shared/i18n/useTranslation";
 import "./home-actions.css";
-import PageIntroduction from "../seo/PageIntroduction";
 
 const HomeWorkspace = ({
     mobile = false,
@@ -35,7 +34,6 @@ const HomeWorkspace = ({
             )}
             <section className="home-intro" aria-labelledby="home-title">
                 <Heading id="home-title">{t("Broken Ranks Tool")}</Heading>
-                <PageIntroduction home />
                 <div className="home-actions">
                     <button type="button" onClick={onContinue} disabled={disabled}>
                         {t(hasWorkingBuild ? "Kontynuuj build" : "Utwórz build")}

@@ -1,21 +1,3 @@
-.home-description,
-.page-description {
-    max-width: 65ch;
-    color: #d5cbbb;
-    font-family: Inter, system-ui, sans-serif;
-    font-size: 0.95rem;
-    line-height: 1.65;
-    text-wrap: pretty;
-}
-
-.home-description {
-    margin: 1.25rem 0 0;
-}
-
-.page-description {
-    margin: 0;
-}
-
 .page-preview {
     max-width: 54rem;
     margin: 0 auto;

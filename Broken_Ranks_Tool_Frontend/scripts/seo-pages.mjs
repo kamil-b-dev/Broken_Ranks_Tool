@@ -43,7 +43,7 @@ export function renderSeoPage(template, page, { siteUrl, verification = "" }) {
         .map((entry) => `<a href="${entry.path}">${escapeHtml(entry.label)}</a>`)
         .join("\n");
     const content = `<main class="page-preview"><h1>${escapeHtml(page.heading)}</h1>
-        <p>${description}</p><nav aria-label="Narzędzia Broken Ranks Tool">${links}</nav>
+        <nav aria-label="Narzędzia Broken Ranks Tool">${links}</nav>
         <noscript><p>Włącz JavaScript, aby korzystać z kalkulatora i zapisywać buildy.</p></noscript></main>`;
     return template
         .replace(
