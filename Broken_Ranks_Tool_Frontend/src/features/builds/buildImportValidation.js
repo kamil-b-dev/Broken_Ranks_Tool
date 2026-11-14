@@ -1,5 +1,6 @@
 import { STAT_CONFIG } from "../builder/character/characterConstants";
 import { SLOTS } from "../../shared/domain/equipment/equipmentSlots";
+import { validateSynergeticSlot } from "../builder/synergetics/synergetic";
 import {
     ROMAN_TO_INT,
     SIZE_INDEX,
@@ -122,6 +123,10 @@ export const validateImportedBuild = (
         const slotDefinition = SLOT_BY_KEY.get(slotKey);
         if (!slotDefinition) throw new Error(`Build zawiera nieznany slot ${slotKey}.`);
         if (!isObject(slot)) throw new Error(`Niepoprawne dane slota ${slotKey}.`);
+        if (slot.synergetic != null) {
+            validateSynergeticSlot(slotKey, slot);
+            return;
+        }
         if (slot.itemId != null && !knownItems.has(String(slot.itemId))) {
             throw new Error(`Build odwołuje się do nieznanego przedmiotu w slocie ${slotKey}.`);
         }
@@ -265,7 +270,10 @@ export const validateImportedBuild = (
 
     const lockedSlots = Array.isArray(build.lockedSlots) ? build.lockedSlots : [];
     lockedSlots.forEach((slotKey) => {
-        if (!SLOT_BY_KEY.has(slotKey) || !importedRequest.slots[slotKey]?.itemId) {
+        if (
+            !SLOT_BY_KEY.has(slotKey) ||
+            (!importedRequest.slots[slotKey]?.itemId && !importedRequest.slots[slotKey]?.synergetic)
+        ) {
             throw new Error(`Niepoprawna blokada slota ${slotKey}.`);
         }
     });

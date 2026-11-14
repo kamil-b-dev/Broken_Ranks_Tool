@@ -10,6 +10,7 @@ import {
     DEFAULT_ADVISOR_SEARCH,
     normalizeAdvisorTimeBudget,
     normalizeAdvisorPurchaseScope,
+    normalizeAdvisorExclusions,
 } from "./advisor/advisorConfiguration";
 import {
     DEFAULT_SIMPLE_ASPECTS,
@@ -87,6 +88,7 @@ export const createOptimizerConfigPayload = (priorities, settings, exportedAt = 
         simpleAspects: normalizeSimpleAspects(settings?.simpleAspects),
         advisorProfession: settings?.advisorProfession || "AUTO",
         advisorPurchaseScope: normalizeAdvisorPurchaseScope(settings?.advisorPurchaseScope),
+        advisorExclusions: normalizeAdvisorExclusions(settings?.advisorExclusions),
         advisorGoal: settings?.advisorGoal || "",
         advisorProtectedModifiers: settings?.advisorProtectedModifiers || {},
         advisorAllowedChanges: { ...DEFAULT_ADVISOR_CHANGES, ...settings?.advisorAllowedChanges },
@@ -219,6 +221,7 @@ export const parseOptimizerConfigPayload = (payload, gameRules = {}) => {
         ),
         simpleAspects: normalizeSimpleAspects(payload.settings?.simpleAspects),
         advisorPurchaseScope: normalizeAdvisorPurchaseScope(payload.settings?.advisorPurchaseScope),
+        advisorExclusions: normalizeAdvisorExclusions(payload.settings?.advisorExclusions),
         advisorProfession: ["AUTO", "MAGICAL", "PHYSICAL"].includes(
             payload.settings?.advisorProfession
         )
@@ -287,6 +290,7 @@ export const mergeOptimizerSettings = (previous, imported) => ({
     ...(imported.reorganization ? { reorganization: imported.reorganization } : {}),
     advisorProfession: imported.advisorProfession,
     advisorPurchaseScope: imported.advisorPurchaseScope,
+    advisorExclusions: imported.advisorExclusions,
     ...(imported.advisorGoal !== null ? { advisorGoal: imported.advisorGoal } : {}),
     ...(imported.advisorSearch !== null ? { advisorSearch: imported.advisorSearch } : {}),
     ...(imported.advisorProtectedModifiers !== null

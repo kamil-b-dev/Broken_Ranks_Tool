@@ -1,0 +1,40 @@
+.item-preview,
+.equipment-requirements {
+    padding: 0.75rem;
+    font:
+        0.875rem Inter,
+        system-ui,
+        sans-serif;
+}
+.item-preview summary {
+    cursor: pointer;
+    color: #d5ae69;
+}
+.item-preview label,
+.equipment-requirements label {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    margin: 0.5rem 0;
+}
+.item-preview select,
+.equipment-requirements select {
+    min-width: 0;
+    max-width: 100%;
+    padding: 0.4rem;
+    background: #12100e;
+    color: #eee7da;
+    border: 1px solid #665136;
+}
+.item-preview dl > div {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.3rem 0;
+    border-bottom: 1px solid #443724;
+}
+.equipment-requirements li {
+    color: #e5b76e;
+}

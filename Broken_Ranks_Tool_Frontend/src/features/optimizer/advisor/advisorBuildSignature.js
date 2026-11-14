@@ -2,7 +2,7 @@
 export const advisorBuildSignature = (slots) =>
     JSON.stringify(
         Object.entries(slots || {})
-            .filter(([, slot]) => slot?.itemId)
+            .filter(([, slot]) => slot?.itemId || slot?.synergetic)
             .sort(([a], [b]) => a.localeCompare(b))
             .map(([key, slot]) => [
                 key,
@@ -13,5 +13,15 @@ export const advisorBuildSignature = (slots) =>
                         id ? [[index, Number(id), Number(slot[`${kind}Levels`]?.[index] || 1)]] : []
                     )
                 ),
+                ...(slot.synergetic
+                    ? [
+                          [
+                              slot.synergetic.name,
+                              Object.entries(slot.synergetic.stats).sort(([left], [right]) =>
+                                  left.localeCompare(right)
+                              ),
+                          ],
+                      ]
+                    : []),
             ])
     );

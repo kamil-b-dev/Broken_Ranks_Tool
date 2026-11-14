@@ -45,6 +45,17 @@ it.each(routes)(
     }
 );
 
+it.each(["/builder/", "/builder/index.html", "/kreator/"])(
+    "normalizes the static-host variant %s without losing the selected tool",
+    (path) => {
+        window.history.replaceState(null, "", `${path}?ui=mobile`);
+        const { result } = renderHook(useAppRoute);
+        expect(result.current.activeView).toBe("builder");
+        expect(window.location.pathname).toBe("/builder");
+        expect(window.location.search).toBe("?ui=mobile");
+    }
+);
+
 it("navigates to English paths and normalizes legacy history entries", () => {
     const { result } = renderHook(useAppRoute);
     for (const [view, path] of routes) {

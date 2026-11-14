@@ -1,3 +1,4 @@
+import { archiveBuildVersion, validBuildExtras } from "./library/buildVersions";
 export const BUILD_LIBRARY_STORAGE_KEY = "broken-ranks-tool.build-library.v1";
 export const BUILD_LIBRARY_VERSION = 1;
 export const MAX_SAVED_BUILDS = 10;
@@ -57,7 +58,8 @@ const isStoredBuildRecord = (record) =>
     typeof record.id === "string" &&
     typeof record.name === "string" &&
     typeof record.savedAt === "string" &&
-    isObject(record.payload?.build);
+    isObject(record.payload?.build) &&
+    validBuildExtras(record);
 
 /** Retains readable records for export, but never treats rejected data as an empty writable library. */
 export const readBuildLibraryState = (storage) => {
@@ -127,16 +129,13 @@ export const recoverBuildLibrary = (storage = globalThis.localStorage) => {
     return current.builds;
 };
 
-export const replaceLocalBuildRecord = (
-    record,
-    snapshot,
-    updatedAt = new Date().toISOString()
-) => ({
-    ...createLocalBuildRecord({
-        name: record.name,
-        snapshot,
-        id: record.id,
-        savedAt: record.savedAt,
-    }),
-    updatedAt,
-});
+export const replaceLocalBuildRecord = (record, snapshot, updatedAt = new Date().toISOString()) =>
+    archiveBuildVersion(record, {
+        ...createLocalBuildRecord({
+            name: record.name,
+            snapshot,
+            id: record.id,
+            savedAt: record.savedAt,
+        }),
+        updatedAt,
+    });

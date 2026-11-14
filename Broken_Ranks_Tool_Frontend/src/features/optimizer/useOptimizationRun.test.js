@@ -5,6 +5,33 @@ import { useOptimizationRun } from "./useOptimizationRun";
 afterEach(() => vi.restoreAllMocks());
 
 describe("useOptimizationRun", () => {
+    it("captures the input and configuration before an asynchronous run can change them", async () => {
+        const input = { payload: { build: { requestData: { slots: {} } } } };
+        const configuration = { mode: "ADVISOR" };
+        let resolve;
+        const { result } = renderHook(() =>
+            useOptimizationRun(
+                () =>
+                    new Promise((done) => {
+                        resolve = done;
+                    }),
+                () => 1000,
+                () => input
+            )
+        );
+        let pending;
+        act(() => {
+            pending = result.current.run(configuration);
+        });
+        input.payload.build.requestData.slots.helmet = { itemId: 99 };
+        configuration.mode = "REORGANIZE";
+        await act(async () => {
+            resolve({ nextVariants: [] });
+            await pending;
+        });
+        expect(result.current.analysisInput.payload.build.requestData.slots).toEqual({});
+        expect(result.current.analysisInput.optimization.mode).toBe("ADVISOR");
+    });
     it("stores the result, duration, and resets the active variant", async () => {
         const resultPayload = { success: true, message: "Gotowe" };
         const runOptimization = vi.fn().mockResolvedValue(resultPayload);

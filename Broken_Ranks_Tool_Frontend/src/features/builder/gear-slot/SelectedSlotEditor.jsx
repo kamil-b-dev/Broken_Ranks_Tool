@@ -1,5 +1,7 @@
 import { useTranslation } from "../../../shared/i18n/useTranslation";
 import GearSlot from "./GearSlot";
+import ItemReplacementPreview from "../preview/ItemReplacementPreview";
+import SynergeticEditor from "../synergetics/SynergeticEditor";
 
 /** Edits the slot currently selected in the equipment overview. */
 const SelectedSlotEditor = ({
@@ -25,24 +27,40 @@ const SelectedSlotEditor = ({
             <div className="selected-slot-editor-content">
                 {[model.activeSlot].map((slot) => (
                     <div key={slot.key}>
-                        <GearSlot
-                            expanded
+                        {!requestData.slots?.[slot.key]?.synergetic && (
+                            <GearSlot
+                                expanded
+                                slotKey={slot.key}
+                                label={t(slot.label)}
+                                items={model.itemsBySlot[slot.key] || []}
+                                orbs={data.orbs}
+                                drifs={data.drifs}
+                                allSlots={requestData.slots || {}}
+                                onUpdate={onSlotUpdate}
+                                onBackpackEquip={onBackpackEquip}
+                                getBackpackEquipWarning={getBackpackEquipWarning}
+                                equipmentRemoval={equipmentRemoval}
+                                gameRules={gameRules}
+                                optimizationTrigger={optimizationTrigger}
+                            />
+                        )}
+                        <SynergeticEditor
+                            key={JSON.stringify(requestData.slots?.[slot.key]?.synergetic)}
                             slotKey={slot.key}
-                            label={t(slot.label)}
-                            items={model.itemsBySlot[slot.key] || []}
-                            orbs={data.orbs}
-                            drifs={data.drifs}
-                            allSlots={requestData.slots || {}}
+                            slot={requestData.slots?.[slot.key]}
                             onUpdate={onSlotUpdate}
-                            onBackpackEquip={onBackpackEquip}
-                            getBackpackEquipWarning={getBackpackEquipWarning}
-                            equipmentRemoval={equipmentRemoval}
-                            gameRules={gameRules}
-                            optimizationTrigger={optimizationTrigger}
                         />
                     </div>
                 ))}
             </div>
+            <ItemReplacementPreview
+                key={model.activeSlot.key}
+                slotKey={model.activeSlot.key}
+                items={model.itemsBySlot[model.activeSlot.key] || []}
+                data={data}
+                gameRules={gameRules}
+                requestData={requestData}
+            />
         </section>
     );
 };

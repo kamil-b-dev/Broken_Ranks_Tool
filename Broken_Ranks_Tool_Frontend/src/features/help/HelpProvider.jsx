@@ -11,10 +11,11 @@ import {
 import { useTranslation } from "../../shared/i18n/useTranslation";
 import { HelpContext } from "./HelpContext";
 import "./help-controls.css";
+import { canonicalAppPath } from "../../app/routes";
 
 const HelpSurfaces = lazy(() => import("./HelpSurfaces"));
 const readPage = () =>
-    window.location.pathname === "/help"
+    canonicalAppPath(window.location.pathname) === "/help"
         ? new URLSearchParams(window.location.search).get("topic") || "builder"
         : null;
 
@@ -53,6 +54,7 @@ export default function HelpProvider({ children }) {
             };
             window.history.pushState({ helpPage: true }, "", `/help?topic=${id}`);
         } else window.history.replaceState(window.history.state, "", `/help?topic=${id}`);
+        window.dispatchEvent(new PopStateEvent("popstate"));
         setDialogTopic(null);
         setPageTopic(id);
         window.scrollTo({ top: 0, behavior: "instant" });

@@ -1,0 +1,33 @@
+.synergetic-editor {
+    padding: 0.75rem;
+    font:
+        0.875rem Inter,
+        system-ui,
+        sans-serif;
+}
+.synergetic-editor summary {
+    color: #d5ae69;
+    cursor: pointer;
+}
+.synergetic-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.5rem;
+    margin: 0.75rem 0;
+}
+.synergetic-editor label {
+    display: grid;
+    gap: 0.25rem;
+}
+.synergetic-editor input {
+    width: 100%;
+    padding: 0.4rem;
+    color: #eee7da;
+    background: #12100e;
+    border: 1px solid #665136;
+}
+.synergetic-editor button {
+    padding: 0.5rem;
+    border: 1px solid #665136;
+    margin-right: 0.5rem;
+}

@@ -1,0 +1,57 @@
+.build-record-tools,
+.shared-build-preview {
+    font-family: Inter, system-ui, sans-serif;
+    min-width: 0;
+}
+.build-record-tools {
+    grid-column: 1 / -1;
+    width: 100%;
+    margin-top: 0.5rem;
+}
+.build-record-tools summary {
+    cursor: pointer;
+    color: #d5ae69;
+    padding: 0.5rem 0;
+}
+.build-record-tools label {
+    display: grid;
+    gap: 0.35rem;
+    margin: 0.65rem 0;
+}
+.build-record-tools textarea,
+.build-record-tools input,
+.build-record-tools select {
+    width: 100%;
+    padding: 0.5rem;
+    color: #eee7da;
+    background: #12100e;
+    border: 1px solid #665136;
+    border-radius: 0.25rem;
+    font: inherit;
+}
+.build-tools-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.65rem;
+    align-items: end;
+}
+.build-record-tools button,
+.shared-build-preview button {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #665136;
+    border-radius: 0.25rem;
+}
+.build-record-tools button:disabled {
+    opacity: 0.5;
+}
+.shared-build-preview {
+    padding: 1rem;
+    overflow-wrap: anywhere;
+}
+.shared-build-preview dl {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.75rem;
+    margin-top: 1rem;
+}

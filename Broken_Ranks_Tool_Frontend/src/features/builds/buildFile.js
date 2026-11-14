@@ -30,7 +30,7 @@ const normalizeImportedCharacterConfig = (config) => {
 // Publish the container shapes expected by EquipmentRequest after validation.
 const normalizeSlotLevels = (slot) => {
     const normalized = Object.fromEntries(
-        ["itemId", "itemStars", "drifIds", "drifLevels", "orbIds", "orbLevels"]
+        ["itemId", "itemStars", "drifIds", "drifLevels", "orbIds", "orbLevels", "synergetic"]
             .filter((key) => Object.hasOwn(slot, key))
             .map((key) => [key, slot[key]])
     );
@@ -94,7 +94,12 @@ export const parseBuildPayload = (payload, data = {}) => {
 };
 
 /** v1 stays registered when the export version changes. Never reuse a version for a new shape. */
-const readVersionOneBuild = (build, data) => {
+const readVersionOneBuild = (build, data, allowSynergetics = false) => {
+    if (
+        !allowSynergetics &&
+        Object.values(build?.requestData?.slots || {}).some((slot) => slot?.synergetic != null)
+    )
+        throw new Error("Synergetyki wymagają pliku buildu w wersji 4.");
     const originalRequest = build?.requestData;
     const importedRequest = isObject(originalRequest?.slots)
         ? {
@@ -133,6 +138,17 @@ const BUILD_FILE_READERS = new Map([
     [
         "broken-ranks-tool-build",
         new Map([
+            [
+                4,
+                (build, data) => {
+                    if (!Array.isArray(build?.backpack))
+                        throw new Error("Plik wersji 4 nie zawiera poprawnego plecaka.");
+                    return {
+                        ...readVersionOneBuild(build, data, true),
+                        backpack: normalizeBackpack(build.backpack),
+                    };
+                },
+            ],
             [1, readVersionOneBuild],
             [
                 2,

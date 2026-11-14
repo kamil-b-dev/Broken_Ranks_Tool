@@ -19,6 +19,9 @@ import { useBackpackWorkspace } from "../backpack/useBackpackWorkspace";
 import "../backpack/backpack.css";
 import EquipmentRemovalActions from "../backpack/EquipmentRemovalActions";
 import HelpButton from "../../help/HelpButton";
+import EquipmentRequirements from "../preview/EquipmentRequirements";
+import ItemReplacementPreview from "../preview/ItemReplacementPreview";
+import SynergeticEditor from "../synergetics/SynergeticEditor";
 
 export default function MobileBuilderWorkspace() {
     const { t } = useTranslation();
@@ -86,13 +89,29 @@ export default function MobileBuilderWorkspace() {
                     <button type="button" className="mobile-back" onClick={route.back}>
                         {t("← Wszystkie sloty")}
                     </button>
-                    <MobileGearSlot
-                        key={`${route.slot.key}:${equipment.optimizationTrigger}:${revision}`}
-                        slot={route.slot}
+                    {!requestData.slots?.[route.slot.key]?.synergetic && (
+                        <MobileGearSlot
+                            key={`${route.slot.key}:${equipment.optimizationTrigger}:${revision}`}
+                            slot={route.slot}
+                            items={model.itemsBySlot[route.slot.key] || []}
+                            pickingItem={route.pickingItem}
+                            onPickItem={() => route.change({ slot: route.slot.key, pick: "item" })}
+                            onClosePicker={route.back}
+                        />
+                    )}
+                    <SynergeticEditor
+                        key={JSON.stringify(requestData.slots?.[route.slot.key]?.synergetic)}
+                        slotKey={route.slot.key}
+                        slot={requestData.slots?.[route.slot.key]}
+                        onUpdate={handleSlotUpdate}
+                    />
+                    <ItemReplacementPreview
+                        key={route.slot.key}
+                        slotKey={route.slot.key}
                         items={model.itemsBySlot[route.slot.key] || []}
-                        pickingItem={route.pickingItem}
-                        onPickItem={() => route.change({ slot: route.slot.key, pick: "item" })}
-                        onClosePicker={route.back}
+                        data={data}
+                        gameRules={gameRules}
+                        requestData={requestData}
                     />
                 </>
             ) : (
@@ -114,6 +133,11 @@ export default function MobileBuilderWorkspace() {
                             </button>
                         ))}
                     </nav>
+                    <EquipmentRequirements
+                        requestData={requestData}
+                        items={data.items}
+                        level={equipment.characterConfig?.level}
+                    />
                     {route.section === "equipment" ? (
                         <>
                             <div className="mobile-slot-list" aria-label={t("Sloty ekwipunku")}>

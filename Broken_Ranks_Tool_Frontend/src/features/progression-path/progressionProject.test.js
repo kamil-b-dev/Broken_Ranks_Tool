@@ -30,7 +30,7 @@ describe("target progression project", () => {
         const loaded = parseProject({ ...saved, report: { outcome: "VALID_PATH" } }, data);
         expect(loaded.target.name).toBe("Cel");
         expect(loaded.report).toBeUndefined();
-        expect(saved.version).toBe(2);
+        expect(saved.version).toBe(3);
         expect(planningRequest(loaded, data)).toEqual({
             characterClass: "ARCHER",
             targetLevel: 140,
@@ -68,7 +68,7 @@ describe("target progression project", () => {
     });
     it("rejects unknown versions, invalid reservations, and missing or contradictory target levels", () => {
         const saved = projectPayload(project());
-        expect(() => parseProject({ ...saved, version: 3 }, data)).toThrow();
+        expect(() => parseProject({ ...saved, version: 99 }, data)).toThrow();
         for (const resSlots of [["weapon"], ["ring1", "ring1"]])
             expect(() =>
                 parseProject({ ...saved, project: { ...saved.project, resSlots } }, data)

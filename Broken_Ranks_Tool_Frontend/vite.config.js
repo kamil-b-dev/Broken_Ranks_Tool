@@ -1,8 +1,9 @@
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import { configDefaults } from "vitest/config";
 import { env } from "node:process";
 import { mutationPlugin } from "./scripts/mutation-cases.mjs";
+import { seoPagesPlugin } from "./scripts/seo-pages.mjs";
 
 const domainTests = [
     "src/shared/domain/**/*.test.js",
@@ -39,51 +40,61 @@ const domainTests = [
     "src/test/coverageFloor.test.js",
 ];
 // https://vite.dev/config/
-export default defineConfig({
-    plugins: [react(), ...(env.BRT_TEST_MUTATION ? [mutationPlugin(env.BRT_TEST_MUTATION)] : [])],
-    server: {
-        proxy: {
-            "/api": env.API_PROXY_TARGET || "http://localhost:8080",
-        },
-    },
-    test: {
-        maxWorkers: 4,
-        projects: [
-            {
-                extends: true,
-                test: {
-                    name: "domain",
-                    environment: "node",
-                    pool: "threads",
-                    setupFiles: [],
-                    include: domainTests,
-                },
-            },
-            {
-                extends: true,
-                test: {
-                    name: "ui",
-                    environment: "jsdom",
-                    setupFiles: "./src/test/setup.js",
-                    include: ["src/**/*.test.{js,jsx}"],
-                    exclude: [...configDefaults.exclude, ...domainTests],
-                },
-            },
+export default defineConfig(({ mode }) => {
+    const settings = loadEnv(mode, process.cwd(), "VITE_");
+    return {
+        plugins: [
+            react(),
+            seoPagesPlugin({
+                siteUrl: settings.VITE_SITE_URL,
+                verification: settings.VITE_GOOGLE_SITE_VERIFICATION,
+            }),
+            ...(env.BRT_TEST_MUTATION ? [mutationPlugin(env.BRT_TEST_MUTATION)] : []),
         ],
-        testTimeout: 10000,
-        exclude: [...configDefaults.exclude, "e2e/**"],
-        coverage: {
-            provider: "v8",
-            reporter: ["text", "html", "lcov", "json-summary"],
-            reportsDirectory: "./coverage",
-            include: ["src/**/*.{js,jsx}"],
-            exclude: ["src/main.jsx", "src/test/**"],
-            thresholds: {
-                statements: 85,
-                branches: 70,
-                functions: 80,
-                lines: 85,
+        server: {
+            proxy: {
+                "/api": env.API_PROXY_TARGET || "http://localhost:8080",
             },
         },
-    },
+        test: {
+            maxWorkers: 4,
+            projects: [
+                {
+                    extends: true,
+                    test: {
+                        name: "domain",
+                        environment: "node",
+                        pool: "threads",
+                        setupFiles: [],
+                        include: domainTests,
+                    },
+                },
+                {
+                    extends: true,
+                    test: {
+                        name: "ui",
+                        environment: "jsdom",
+                        setupFiles: "./src/test/setup.js",
+                        include: ["src/**/*.test.{js,jsx}"],
+                        exclude: [...configDefaults.exclude, ...domainTests],
+                    },
+                },
+            ],
+            testTimeout: 10000,
+            exclude: [...configDefaults.exclude, "e2e/**"],
+            coverage: {
+                provider: "v8",
+                reporter: ["text", "html", "lcov", "json-summary"],
+                reportsDirectory: "./coverage",
+                include: ["src/**/*.{js,jsx}"],
+                exclude: ["src/main.jsx", "src/test/**"],
+                thresholds: {
+                    statements: 85,
+                    branches: 70,
+                    functions: 80,
+                    lines: 85,
+                },
+            },
+        },
+    };
 });

@@ -21,6 +21,8 @@ import "./mobile-optimizer.css";
 import OptimizationElapsedTime from "../OptimizationElapsedTime";
 import { OptimizerLabelContext } from "../optimizerLabelContext";
 import HelpButton from "../../help/HelpButton";
+import AnalysisArchive from "../archive/AnalysisArchive";
+import AdvisorExclusions from "../advisor/AdvisorExclusions";
 
 export default function MobileOptimizerWorkspace({ settings, onSettingsChange, onBackToBuilder }) {
     const { t } = useTranslation();
@@ -62,6 +64,20 @@ export default function MobileOptimizerWorkspace({ settings, onSettingsChange, o
                         </h1>
                     </div>
                 </header>
+                {advisory && (
+                    <AdvisorExclusions
+                        settings={settings}
+                        onChange={onSettingsChange}
+                        data={model.data}
+                        gameRules={model.gameRules}
+                    />
+                )}
+                <AnalysisArchive
+                    document={model.analysisDocument}
+                    busy={model.isOptimizing}
+                    data={model.data}
+                    gameRules={model.gameRules}
+                />
                 <div className="help-workspace-action">
                     <HelpButton
                         topic={advisory ? "advisor" : reorganize ? "reorganization" : "optimizer"}

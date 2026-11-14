@@ -1,6 +1,7 @@
 import { parseBuildPayload } from "../buildFile";
 import { createBuildPayload } from "../buildPayload";
 import { MAX_SAVED_BUILDS, normalizeBuildName } from "../buildLibraryStorage";
+import { updateBuildMetadata, MAX_BUILD_REVISIONS } from "../library/buildVersions";
 
 export const LIBRARY_BACKUP_FORMAT = "broken-ranks-tool-build-library";
 export const MAX_LIBRARY_BACKUP_SIZE = 10 * 1024 * 1024;
@@ -50,7 +51,34 @@ export function parseLibraryBackup(payload, data) {
         // Keep backup timestamps and cached display stats; opening a build always recalculates.
         const normalized = createBuildPayload(imported);
         normalized.exportedAt = record.payload.exportedAt ?? normalized.exportedAt;
+        const extras = {};
+        if (record.notes != null || record.tags != null) {
+            const metadata = updateBuildMetadata(record, {
+                notes: record.notes ?? "",
+                tags: record.tags ?? [],
+            });
+            extras.notes = metadata.notes;
+            extras.tags = metadata.tags;
+        }
+        if (record.revisions != null) {
+            if (!Array.isArray(record.revisions) || record.revisions.length > MAX_BUILD_REVISIONS)
+                fail();
+            extras.revisions = record.revisions.map((revision) => {
+                if (
+                    !object(revision) ||
+                    revision.revisions ||
+                    typeof revision.updatedAt !== "string" ||
+                    !Number.isFinite(Date.parse(revision.updatedAt)) ||
+                    (revision.stats != null && !object(revision.stats)) ||
+                    !object(revision.statSources)
+                )
+                    fail();
+                parseBuildPayload(revision.payload, data);
+                return structuredClone(revision);
+            });
+        }
         return {
+            ...extras,
             id: record.id,
             name: normalizeBuildName(record.name),
             savedAt: record.savedAt,

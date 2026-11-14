@@ -24,6 +24,7 @@ const SavedBuildList = ({
     onExport,
     onOverwrite,
     onRemove,
+    renderTools,
 }) => {
     const { t, locale } = useTranslation();
 
@@ -123,6 +124,7 @@ const SavedBuildList = ({
                                 )}
                             </button>
                         </div>
+                        {renderTools?.(build)}
                     </article>
                 );
             })}

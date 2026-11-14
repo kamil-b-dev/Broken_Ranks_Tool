@@ -16,11 +16,13 @@ export const useBuilderWorkspace = ({ items = [], slots = {} }) => {
             activeSlot,
             activeItem: activeSlotData?.itemId
                 ? itemsById.get(String(activeSlotData.itemId))
-                : null,
+                : activeSlotData?.synergetic || null,
             equippedSlotCount: countEquippedSlots(slots),
             itemsBySlot,
             itemForSlot: (slot) =>
-                slots[slot.key]?.itemId ? itemsById.get(String(slots[slot.key].itemId)) : null,
+                slots[slot.key]?.itemId
+                    ? itemsById.get(String(slots[slot.key].itemId))
+                    : slots[slot.key]?.synergetic || null,
             selectSlot,
         }),
         [activeSlot, activeSlotData, slots, itemsById, itemsBySlot, selectSlot]

@@ -8,7 +8,7 @@ export const getPopulatedIds = (ids) => (Array.isArray(ids) ? ids.filter(isPopul
 export const summarizeLocalBuild = (record) => {
     const slots = Object.values(getBuildSlots(record));
     return {
-        equipped: slots.filter((slot) => isPopulatedId(slot?.itemId)).length,
+        equipped: slots.filter((slot) => isPopulatedId(slot?.itemId) || slot?.synergetic).length,
         drifs: slots.reduce((sum, slot) => sum + getPopulatedIds(slot?.drifIds).length, 0),
         orbs: slots.reduce((sum, slot) => sum + getPopulatedIds(slot?.orbIds).length, 0),
         level: Number(record?.payload?.build?.characterConfig?.level) || 1,
@@ -26,7 +26,7 @@ export const createEquipmentComparisonRows = (builds, items = []) => {
             const drifCount = getPopulatedIds(slotData?.drifIds).length;
             const orbCount = getPopulatedIds(slotData?.orbIds).length;
             return {
-                itemName: item?.name || "Pusty slot",
+                itemName: item?.name || slotData?.synergetic?.name || "Pusty slot",
                 tier: item?.tier || null,
                 stars: Number(slotData?.itemStars) || 0,
                 drifCount,
@@ -38,6 +38,7 @@ export const createEquipmentComparisonRows = (builds, items = []) => {
                     orbLevels: slotData?.orbLevels || [],
                     drifIds: getPopulatedIds(slotData?.drifIds),
                     drifLevels: slotData?.drifLevels || {},
+                    ...(slotData?.synergetic ? { synergetic: slotData.synergetic } : {}),
                 }),
             };
         });

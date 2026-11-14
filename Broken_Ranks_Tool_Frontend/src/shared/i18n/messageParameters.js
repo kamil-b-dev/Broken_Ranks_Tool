@@ -31,6 +31,7 @@ export const messageParameters = {
     "Podnieś {0} ({1}) z {2}★ do {3}★": [0],
     "Dodaj {0} do {1}": [1],
     "Ulepsz {0} w {1} do poziomu {2}": [1],
+    "Ulepsz {0} w {1} na {2}": [1],
     "Przenieś {0} z {1} do {2}": [1, 2],
     "Zamień {0} ({1}) z {2} ({3})": [1, 3],
 };

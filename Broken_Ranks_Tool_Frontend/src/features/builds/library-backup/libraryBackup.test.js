@@ -29,6 +29,23 @@ const record = (id = "one", name = "Build") =>
     });
 
 describe("whole-library backups", () => {
+    it("retains notes, labels and independently validated revision history", () => {
+        const original = record();
+        original.notes = "Plan";
+        original.tags = ["exp"];
+        original.revisions = [
+            {
+                payload: structuredClone(original.payload),
+                stats: null,
+                statSources: {},
+                updatedAt: original.savedAt,
+            },
+        ];
+        const imported = parseLibraryBackup(createLibraryBackup([original]), data)[0];
+        expect(imported).toEqual(original);
+        original.revisions[0].payload.build.requestData.slots.helmet.itemId = 999999;
+        expect(() => parseLibraryBackup(createLibraryBackup([original]), data)).toThrow();
+    });
     it("round trips names, timestamps, equipment, locks and the owned backpack selection", () => {
         const original = [record()];
         const exported = createLibraryBackup(original);

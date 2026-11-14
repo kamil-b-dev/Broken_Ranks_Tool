@@ -3,6 +3,8 @@ WORKDIR /workspace/frontend
 COPY Broken_Ranks_Tool_Frontend/package.json Broken_Ranks_Tool_Frontend/package-lock.json ./
 RUN npm ci
 COPY Broken_Ranks_Tool_Frontend/ ./
+ARG VITE_SITE_URL=https://www.brokenrankstool.pl
+ARG VITE_GOOGLE_SITE_VERIFICATION
 RUN npm run build && npm run check:bundle-size
 
 FROM eclipse-temurin:21-jdk-alpine AS backend-build
