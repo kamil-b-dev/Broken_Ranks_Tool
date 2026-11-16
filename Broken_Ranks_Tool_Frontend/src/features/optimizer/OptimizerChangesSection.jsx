@@ -18,11 +18,44 @@ const OptimizerChangesSection = ({
     const { t } = useTranslation();
 
     const { getName, formatText } = useOptimizerLabelContext();
+    const displayedStatChanges = advisory
+        ? (variant?.statChanges || []).filter(
+              (change) =>
+                  numericStatValue(change.finalValue) !== numericStatValue(change.variantValue)
+          )
+        : (variant?.statChanges || []).slice(0, 4);
+    const statChangeList = displayedStatChanges.length > 0 && (
+        <div className="optimizer-stat-change-list" aria-label={t("Zmiany statystyk")}>
+            {displayedStatChanges.map((change) => {
+                const before = numericStatValue(change.finalValue);
+                const after = numericStatValue(change.variantValue);
+                const improves =
+                    Number(maxCaps?.[change.statKey]) < 0 ? after < before : after > before;
+                return (
+                    <span key={change.statKey} className={improves ? "is-positive" : "is-negative"}>
+                        {t(
+                            getName(
+                                change.statKey,
+                                translations?.[change.statKey] || change.statKey
+                            )
+                        )}
+                        :{t(" ")}
+                        <strong>
+                            {t(change.finalValue)} → {t(change.variantValue)}
+                        </strong>
+                    </span>
+                );
+            })}
+        </div>
+    );
     return (
-        <section className="optimizer-report-section optimizer-changes-section">
+        <section
+            className={`optimizer-report-section optimizer-changes-section ${advisory ? "is-advisor" : ""}`}
+        >
             <h5>{t(advisory ? "Rekomendowane zakupy i zmiany" : "Najważniejsze zmiany")}</h5>
             {variant?.changes?.length > 0 || variant?.advisorActions?.length > 0 ? (
                 <>
+                    {advisory && statChangeList}
                     {advisory && variant.advisorActions?.length > 0 && (
                         <ol className="advisor-action-list" aria-label={t("Plan zmian")}>
                             {variant.advisorActions.map((action, index) => (
@@ -82,45 +115,7 @@ const OptimizerChangesSection = ({
                             })}
                         </div>
                     )}
-                    {variant.statChanges?.length > 0 && (
-                        <div
-                            className="optimizer-stat-change-list"
-                            aria-label={t("Zmiany statystyk")}
-                        >
-                            {(advisory
-                                ? variant.statChanges.filter(
-                                      (change) =>
-                                          numericStatValue(change.finalValue) !==
-                                          numericStatValue(change.variantValue)
-                                  )
-                                : variant.statChanges.slice(0, 4)
-                            ).map((change) => {
-                                const before = numericStatValue(change.finalValue);
-                                const after = numericStatValue(change.variantValue);
-                                const improves =
-                                    Number(maxCaps?.[change.statKey]) < 0
-                                        ? after < before
-                                        : after > before;
-                                return (
-                                    <span
-                                        key={change.statKey}
-                                        className={improves ? "is-positive" : "is-negative"}
-                                    >
-                                        {t(
-                                            getName(
-                                                change.statKey,
-                                                translations?.[change.statKey] || change.statKey
-                                            )
-                                        )}
-                                        :{t(" ")}
-                                        <strong>
-                                            {t(change.finalValue)} → {t(change.variantValue)}
-                                        </strong>
-                                    </span>
-                                );
-                            })}
-                        </div>
-                    )}
+                    {!advisory && statChangeList}
                 </>
             ) : null}
         </section>

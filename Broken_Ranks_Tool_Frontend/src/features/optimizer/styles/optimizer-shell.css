@@ -237,6 +237,23 @@
     overflow-y: auto;
 }
 
+.optimizer-lock-list[hidden] {
+    display: none;
+}
+
+.optimizer-lock-column > .optimizer-column-heading + .optimizer-lock-list {
+    margin-top: 0.75rem;
+}
+
+.optimizer-lock-filters button {
+    cursor: pointer;
+}
+
+.optimizer-lock-filters button:focus-visible {
+    outline: 2px solid #e4ba70;
+    outline-offset: -3px;
+}
+
 .optimizer-lock-card {
     flex: 0 0 auto;
     overflow: hidden;

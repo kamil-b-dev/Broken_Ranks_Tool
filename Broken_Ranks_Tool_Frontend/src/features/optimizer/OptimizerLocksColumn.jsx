@@ -35,6 +35,7 @@ const OptimizerLocksColumn = ({
     lockedDrifs,
     onToggleSlot,
     onToggleDrif,
+    exclusions,
 }) => {
     const { t } = useTranslation();
 
@@ -49,12 +50,10 @@ const OptimizerLocksColumn = ({
             }),
         [items, slots]
     );
-    const [filter, setFilter] = useState("all");
+    const [showExclusions, setShowExclusions] = useState(false);
+    const exclusionsActive = Boolean(exclusions) && showExclusions;
     const [expandedSlot, setExpandedSlot] = useState(
         () => equippedSlots.find(({ item }) => item)?.slot.key || null
-    );
-    const visibleSlots = equippedSlots.filter(
-        ({ slot }) => filter === "all" || lockedSlots?.includes(slot.key)
     );
 
     return (
@@ -71,24 +70,31 @@ const OptimizerLocksColumn = ({
                     <HelpHint kind="locks" label="Blokady" />
                 </div>
             </header>
-            <div className="optimizer-lock-filters" role="group" aria-label={t("Filtr blokad")}>
-                <button
-                    type="button"
-                    aria-pressed={filter === "all"}
-                    onClick={() => setFilter("all")}
+            {exclusions && (
+                <div
+                    className="optimizer-lock-filters"
+                    role="group"
+                    aria-label={t("Blokady buildu")}
                 >
-                    {t("Wszystkie")}
-                </button>
-                <button
-                    type="button"
-                    aria-pressed={filter === "locked"}
-                    onClick={() => setFilter("locked")}
-                >
-                    {t("Zablokowane")}
-                </button>
-            </div>
-            <div className="optimizer-lock-list custom-scrollbar">
-                {visibleSlots.map(({ slot, slotData, item }) => {
+                    <button
+                        type="button"
+                        aria-pressed={!exclusionsActive}
+                        onClick={() => setShowExclusions(false)}
+                    >
+                        {t("Przedmioty")}
+                    </button>
+                    <button
+                        type="button"
+                        aria-pressed={exclusionsActive}
+                        aria-label={t("Wykluczenia Doradcy")}
+                        onClick={() => setShowExclusions(true)}
+                    >
+                        {t("Wykluczenia")}
+                    </button>
+                </div>
+            )}
+            <div className="optimizer-lock-list custom-scrollbar" hidden={exclusionsActive}>
+                {equippedSlots.map(({ slot, slotData, item }) => {
                     const slotLocked = lockedSlots?.includes(slot.key);
                     const expanded = expandedSlot === slot.key;
                     return (
@@ -188,12 +194,12 @@ const OptimizerLocksColumn = ({
                         </article>
                     );
                 })}
-                {visibleSlots.length === 0 && (
-                    <p className="optimizer-lock-empty">
-                        {t("Nie zablokowano jeszcze żadnego slotu.")}
-                    </p>
-                )}
             </div>
+            {exclusions && (
+                <div className="optimizer-lock-list custom-scrollbar" hidden={!exclusionsActive}>
+                    {exclusions}
+                </div>
+            )}
         </section>
     );
 };

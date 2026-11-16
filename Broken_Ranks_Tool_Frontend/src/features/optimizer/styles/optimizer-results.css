@@ -276,6 +276,22 @@
     background: rgba(35, 9, 13, 0.46);
 }
 
+.optimizer-changes-section.is-advisor .optimizer-stat-change-list {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 0.4rem;
+    margin-bottom: 0.75rem;
+    padding-top: 0;
+}
+
+.optimizer-changes-section.is-advisor .optimizer-stat-change-list > span {
+    padding: 0.45rem 0.55rem;
+    font-family: var(--ui-font);
+    font-size: 0.75rem;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
 .optimizer-full-report {
     padding: 0.55rem 0.62rem;
 }

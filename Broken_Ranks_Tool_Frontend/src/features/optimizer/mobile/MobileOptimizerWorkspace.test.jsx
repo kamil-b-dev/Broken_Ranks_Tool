@@ -176,6 +176,18 @@ describe("mobile optimizer integration", () => {
         mount();
         await screen.findByRole("heading", { name: "Optymalizator" });
         change("Tryb optymalizatora", "ADVISOR");
+        expect(screen.queryByText("Wykluczenia Doradcy")).not.toBeInTheDocument();
+        section("Build i blokady");
+        const locks = screen.getByRole("region", { name: "Blokady buildu" });
+        fireEvent.click(within(locks).getByRole("button", { name: "Wykluczenia Doradcy" }));
+        change("Nie proponuj przedmiotu", "2");
+        change("Nie kupuj typu drifa", "MANA_USAGE_REDUCTION");
+        fireEvent.click(within(locks).getByRole("button", { name: "Przedmioty", exact: true }));
+        expect(
+            within(locks).queryByRole("combobox", { name: "Nie proponuj przedmiotu" })
+        ).not.toBeInTheDocument();
+        fireEvent.click(within(locks).getByRole("button", { name: "Wykluczenia Doradcy" }));
+        expect(within(locks).getAllByRole("button", { name: "Usuń wykluczenie" })).toHaveLength(2);
         section("Porady");
         expect(
             screen.getByText("Uruchom analizę, aby zobaczyć propozycje zmian buildu.")
@@ -193,6 +205,8 @@ describe("mobile optimizer integration", () => {
         click("Analizuj build");
         await waitFor(() => expect(requestBody?.advisor?.maxActions).toBe(10));
         expect(requestBody.advisor.profession).toBe("MAGICAL");
+        expect(requestBody.advisor.excludedItemIds).toEqual([2]);
+        expect(requestBody.advisor.excludedPurchaseBonusTypes).toEqual(["MANA_USAGE_REDUCTION"]);
         section("Build i blokady");
         expect(screen.getByLabelText("Tryb optymalizatora")).toBeDisabled();
         click("Zatrzymaj i pokaż znalezione plany");

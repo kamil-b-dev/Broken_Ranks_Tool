@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, expect, it, vi } from "vitest";
 import AnalysisArchive from "./AnalysisArchive";
+import OptimizerReportViews from "../OptimizerReportViews";
 import { ANALYSIS_ARCHIVE_KEY, readAnalysisArchive } from "./analysisArchiveStorage";
 import { downloadBuildText } from "../../builds/buildDownloads";
 
@@ -23,16 +24,32 @@ const document = {
 };
 
 it("saves a complete analysis, opens both variants, exports it and removes the saved copy", async () => {
-    render(<AnalysisArchive document={document} data={{ items: [{ id: 1, name: "Hełm" }] }} />);
-    fireEvent.click(screen.getByText("Archiwum analiz"));
+    render(
+        <OptimizerReportViews
+            archive={
+                <AnalysisArchive document={document} data={{ items: [{ id: 1, name: "Hełm" }] }} />
+            }
+        >
+            <p>Aktualny wynik</p>
+        </OptimizerReportViews>
+    );
+    expect(screen.getByText("Aktualny wynik")).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Zapisz pełną analizę" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Archiwum analiz" }));
     fireEvent.click(screen.getByText("Zapisz pełną analizę"));
-    const saved = await screen.findByRole("button", { name: /ADVISOR/ });
+    const saved = await screen.findByRole("button", { name: /Doradca/ });
     expect(readAnalysisArchive()[0].document).toEqual(document);
     fireEvent.click(saved);
+    expect(saved).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByText("Pierwszy")).toBeInTheDocument();
     expect(screen.getByText(/Hełm: Hełm · 1★/)).toBeInTheDocument();
     fireEvent.click(screen.getByText("Następny wariant"));
     expect(screen.getByText("Drugi")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Raport", exact: true }));
+    expect(screen.getByText("Aktualny wynik")).toBeVisible();
+    expect(screen.getByText("Drugi")).not.toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "Archiwum analiz" }));
+    expect(screen.getByText("Drugi")).toBeVisible();
     fireEvent.click(screen.getByText("Pobierz analizę"));
     expect(JSON.parse(downloadBuildText.mock.calls[0][0]).document).toEqual(document);
     fireEvent.click(screen.getByText("Usuń analizę"));
@@ -43,7 +60,6 @@ it("saves a complete analysis, opens both variants, exports it and removes the s
 it("preserves corrupt archive bytes before enabling writes again", async () => {
     localStorage.setItem(ANALYSIS_ARCHIVE_KEY, "{broken");
     render(<AnalysisArchive document={null} />);
-    fireEvent.click(screen.getByText("Archiwum analiz"));
     expect(screen.getByRole("alert")).toHaveTextContent("uszkodzone");
     expect(screen.getByText("Zapisz pełną analizę")).toBeDisabled();
     fireEvent.click(screen.getByText("Pobierz kopię archiwum"));
@@ -64,7 +80,7 @@ it("reports a full archive without dropping existing analyses", async () => {
     }));
     localStorage.setItem(ANALYSIS_ARCHIVE_KEY, JSON.stringify({ version: 1, entries }));
     render(<AnalysisArchive document={document} />);
-    fireEvent.click(screen.getByText("Archiwum analiz"));
+    expect(screen.getByText("10 / 10")).toBeInTheDocument();
     fireEvent.click(screen.getByText("Zapisz pełną analizę"));
     expect(await screen.findByRole("alert")).toHaveTextContent("mieści 10 analiz");
     expect(readAnalysisArchive()).toHaveLength(10);
