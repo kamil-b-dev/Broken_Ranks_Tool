@@ -4,10 +4,9 @@ import AdvisorGoalsPanel from "./advisor/AdvisorGoalsPanel";
 import OptimizerBonusColumn from "./OptimizerBonusColumn";
 import OptimizerPriorityList from "./OptimizerPriorityList";
 import OptimizerPriorityToolbar from "./OptimizerPriorityToolbar";
-import OptimizerRunAction from "./OptimizerRunAction";
 import SimpleProfileGoalsPanel from "./simple-profile/SimpleProfileGoalsPanel";
 
-/** Editable goals, priorities, settings, and execution controls. */
+/** Editable goals, priorities, and settings. */
 const OptimizerGoalsColumn = ({
     activeMobileColumn,
     settings,
@@ -40,14 +39,7 @@ const OptimizerGoalsColumn = ({
     onToggleExpanded,
     onClear,
     isOptimizing,
-    elapsedSeconds,
-    startedAt,
-    lastDurationSeconds,
-    hasResult,
-    onRun,
-    onCancel,
     reorganizationStatus,
-    reorganizationCheck,
 }) => {
     const { t } = useTranslation();
     return (
@@ -131,35 +123,6 @@ const OptimizerGoalsColumn = ({
                     </div>
                 </div>
             )}
-            <OptimizerRunAction
-                priorityCount={
-                    ["ADVISOR", "REORGANIZE"].includes(settings.mode)
-                        ? 1
-                        : settings.mode !== "REORGANIZE" && settings.configurationMode === "SIMPLE"
-                          ? 1
-                          : priorityCount
-                }
-                isOptimizing={isOptimizing}
-                disabled={Boolean(
-                    settings.mode === "REORGANIZE" &&
-                    (reorganizationCheck?.blocked ||
-                        reorganizationCheck?.alreadySatisfied ||
-                        (reorganizationStatus?.applied &&
-                            reorganizationStatus.reorganizationOptions &&
-                            reorganizationStatus.reorganizationOptions.task !== "ARRANGE"))
-                )}
-                elapsedSeconds={elapsedSeconds}
-                startedAt={startedAt}
-                lastDurationSeconds={lastDurationSeconds}
-                hasResult={hasResult}
-                onRun={onRun}
-                onCancel={onCancel}
-                mode={settings.mode}
-                simple={
-                    settings.mode === "BUILD_FROM_SCRATCH" &&
-                    settings.configurationMode === "SIMPLE"
-                }
-            />
         </section>
     );
 };

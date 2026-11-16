@@ -6,6 +6,7 @@ import OptimizerSettingsPanel, { OptimizerModeNavigation } from "./OptimizerSett
 import OptimizerLocksColumn from "./OptimizerLocksColumn";
 import OptimizerGoalsColumn from "./OptimizerGoalsColumn";
 import OptimizerReportColumn from "./OptimizerReportColumn";
+import OptimizerRunAction from "./OptimizerRunAction";
 import { useOptimizerWorkspace } from "./useOptimizerWorkspace";
 import { OptimizerLabelContext } from "./optimizerLabelContext";
 import HelpButton from "../help/HelpButton";
@@ -13,7 +14,7 @@ import AnalysisArchive from "./archive/AnalysisArchive";
 import AdvisorExclusions from "./advisor/AdvisorExclusions";
 import { useProfessionOptimizerSettings } from "./useProfessionOptimizerSettings";
 
-/** Desktop composition retains its existing markup and navigation. */
+/** Desktop composition of equipment locks, goals, results, and execution controls. */
 const OptimizerPanel = ({
     optimizerSettings: storedSettings,
     onOptimizerSettingsChange: onSettingsChange,
@@ -186,14 +187,7 @@ const OptimizerPanel = ({
                         onToggleExpanded={toggleAllExpanded}
                         onClear={clearAll}
                         isOptimizing={isOptimizing}
-                        elapsedSeconds={optimizationElapsedSeconds}
-                        startedAt={optimizationStartedAt}
-                        lastDurationSeconds={lastOptimizationDurationSeconds}
-                        hasResult={Boolean(optimizationStatus)}
                         reorganizationStatus={displayedStatus}
-                        reorganizationCheck={reorganizationCheck}
-                        onRun={handleOptimizeClick}
-                        onCancel={handleCancel}
                     />
                     <OptimizerReportColumn
                         archive={
@@ -225,6 +219,37 @@ const OptimizerPanel = ({
                         onUndoReorganization={handleUndoReorganization}
                     />
                 </div>
+            </div>
+            <div className="optimizer-run-bar">
+                <OptimizerRunAction
+                    priorityCount={
+                        ["ADVISOR", "REORGANIZE"].includes(optimizerSettings.mode) ||
+                        (optimizerSettings.mode === "BUILD_FROM_SCRATCH" &&
+                            optimizerSettings.configurationMode === "SIMPLE")
+                            ? 1
+                            : prioritizedBonuses.length
+                    }
+                    isOptimizing={isOptimizing}
+                    disabled={Boolean(
+                        optimizerSettings.mode === "REORGANIZE" &&
+                        (reorganizationCheck?.blocked ||
+                            reorganizationCheck?.alreadySatisfied ||
+                            (displayedStatus?.applied &&
+                                displayedStatus.reorganizationOptions &&
+                                displayedStatus.reorganizationOptions.task !== "ARRANGE"))
+                    )}
+                    elapsedSeconds={optimizationElapsedSeconds}
+                    startedAt={optimizationStartedAt}
+                    lastDurationSeconds={lastOptimizationDurationSeconds}
+                    hasResult={Boolean(optimizationStatus)}
+                    onRun={handleOptimizeClick}
+                    onCancel={handleCancel}
+                    mode={optimizerSettings.mode}
+                    simple={
+                        optimizerSettings.mode === "BUILD_FROM_SCRATCH" &&
+                        optimizerSettings.configurationMode === "SIMPLE"
+                    }
+                />
             </div>
         </OptimizerLabelContext.Provider>
     );
