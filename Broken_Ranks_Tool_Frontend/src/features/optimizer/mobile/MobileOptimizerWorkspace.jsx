@@ -23,7 +23,6 @@ import "./mobile-optimizer.css";
 import OptimizationElapsedTime from "../OptimizationElapsedTime";
 import { OptimizerLabelContext } from "../optimizerLabelContext";
 import HelpButton from "../../help/HelpButton";
-import AnalysisArchive from "../archive/AnalysisArchive";
 import AdvisorExclusions from "../advisor/AdvisorExclusions";
 import { useProfessionOptimizerSettings } from "../useProfessionOptimizerSettings";
 
@@ -77,20 +76,6 @@ export default function MobileOptimizerWorkspace({
                         </h1>
                     </div>
                 </header>
-                {advisory && (
-                    <AdvisorExclusions
-                        settings={settings}
-                        onChange={onSettingsChange}
-                        data={model.data}
-                        gameRules={model.gameRules}
-                    />
-                )}
-                <AnalysisArchive
-                    document={model.analysisDocument}
-                    busy={model.isOptimizing}
-                    data={model.data}
-                    gameRules={model.gameRules}
-                />
                 <div className="help-workspace-action">
                     <HelpButton
                         topic={advisory ? "advisor" : reorganize ? "reorganization" : "optimizer"}
@@ -329,6 +314,16 @@ export default function MobileOptimizerWorkspace({
                         onToggleSlot={model.toggleSlotLock}
                         onToggleDrif={model.toggleDrifLock}
                         mode={settings.mode}
+                        exclusions={
+                            advisory && (
+                                <AdvisorExclusions
+                                    settings={settings}
+                                    onChange={onSettingsChange}
+                                    data={model.data}
+                                    gameRules={model.gameRules}
+                                />
+                            )
+                        }
                     />
                 )}
                 {navigation.section === "result" && (

@@ -116,20 +116,6 @@ const OptimizerPanel = ({
                     onRetry={draftSave?.retrySave}
                     onDownload={configFiles.save}
                 />
-                {optimizerSettings.mode === "ADVISOR" && (
-                    <AdvisorExclusions
-                        settings={optimizerSettings}
-                        onChange={onOptimizerSettingsChange}
-                        data={data}
-                        gameRules={gameRules}
-                    />
-                )}
-                <AnalysisArchive
-                    document={analysisDocument}
-                    busy={isOptimizing}
-                    data={data}
-                    gameRules={gameRules}
-                />
                 <OptimizerMobileNavigation
                     activeColumn={activeMobileColumn}
                     priorityCount={
@@ -153,6 +139,16 @@ const OptimizerPanel = ({
                         onToggleSlot={toggleSlotLock}
                         onToggleDrif={toggleDrifLock}
                         mode={optimizerSettings.mode}
+                        exclusions={
+                            optimizerSettings.mode === "ADVISOR" && (
+                                <AdvisorExclusions
+                                    settings={optimizerSettings}
+                                    onChange={onOptimizerSettingsChange}
+                                    data={data}
+                                    gameRules={gameRules}
+                                />
+                            )
+                        }
                     />
 
                     <OptimizerGoalsColumn
@@ -200,6 +196,14 @@ const OptimizerPanel = ({
                         onCancel={handleCancel}
                     />
                     <OptimizerReportColumn
+                        archive={
+                            <AnalysisArchive
+                                document={analysisDocument}
+                                busy={isOptimizing}
+                                data={data}
+                                gameRules={gameRules}
+                            />
+                        }
                         active={activeMobileColumn === "result"}
                         advisory={optimizerSettings.mode === "ADVISOR"}
                         isOptimizing={isOptimizing}

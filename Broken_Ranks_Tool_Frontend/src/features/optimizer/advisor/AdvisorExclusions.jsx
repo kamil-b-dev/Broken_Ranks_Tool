@@ -5,8 +5,10 @@ export default function AdvisorExclusions({ settings, onChange, data, gameRules 
     const update = (field, values) =>
         onChange((previous) => ({ ...previous, advisorExclusions: { ...value, [field]: values } }));
     return (
-        <details className="advisor-goal-card">
-            <summary>{t("Wykluczenia Doradcy")}</summary>
+        <section
+            className="advisor-goal-card advisor-exclusions"
+            aria-label={t("Wykluczenia Doradcy")}
+        >
             <label>
                 {t("Nie proponuj przedmiotu")}
                 <select
@@ -89,6 +91,6 @@ export default function AdvisorExclusions({ settings, onChange, data, gameRules 
                     </li>
                 ))}
             </ul>
-        </details>
+        </section>
     );
 }

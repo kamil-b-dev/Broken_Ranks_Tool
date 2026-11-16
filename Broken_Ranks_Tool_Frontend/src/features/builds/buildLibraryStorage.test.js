@@ -45,7 +45,7 @@ describe("buildLibrary", () => {
                               : kind === "duplicate IDs"
                                 ? [record, record]
                                 : kind === "too many builds"
-                                  ? Array.from({ length: 11 }, (_, index) => ({
+                                  ? Array.from({ length: MAX_SAVED_BUILDS + 1 }, (_, index) => ({
                                         ...record,
                                         id: String(index),
                                     }))
@@ -142,10 +142,15 @@ describe("buildLibrary", () => {
         expect(readBuildLibrary()).toEqual([]);
     });
 
-    it("enforces the ten-build limit", () => {
+    it("persists 100 builds and rejects the next build without dropping existing records", () => {
+        expect(MAX_SAVED_BUILDS).toBe(100);
         const builds = Array.from({ length: MAX_SAVED_BUILDS + 1 }, (_, index) =>
             createLocalBuildRecord({ name: `Build ${index}`, snapshot: snapshot(), id: `${index}` })
         );
-        expect(() => writeBuildLibrary(builds)).toThrow("maksymalnie 10 buildów");
+        writeBuildLibrary(builds.slice(0, MAX_SAVED_BUILDS));
+        expect(readBuildLibrary()).toEqual(builds.slice(0, MAX_SAVED_BUILDS));
+        const original = localStorage.getItem(BUILD_LIBRARY_STORAGE_KEY);
+        expect(() => writeBuildLibrary(builds)).toThrow("maksymalnie 100 buildów");
+        expect(localStorage.getItem(BUILD_LIBRARY_STORAGE_KEY)).toBe(original);
     });
 });

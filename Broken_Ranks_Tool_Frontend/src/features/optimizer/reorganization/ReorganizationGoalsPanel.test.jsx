@@ -20,8 +20,8 @@ vi.mock("../../../shared/state/EquipmentContext", () => ({
         lockedDrifs: {},
     }),
 }));
-const View = () => {
-    const [settings, onChange] = useState({ reorganization: {} });
+const View = ({ initialReorganization = {} }) => {
+    const [settings, onChange] = useState({ reorganization: initialReorganization });
     return <ReorganizationGoalsPanel settings={settings} onChange={onChange} />;
 };
 describe("operational reorganization goals", () => {
@@ -79,8 +79,8 @@ describe("operational reorganization goals", () => {
             screen.getByText("Obecnie wolne: 2 z 3 gniazd, 8 z 12 pojemności.")
         ).toBeInTheDocument();
     });
-    it("shows calculator-based capped protection minima and supports targeted insertion with upgrades", () => {
-        render(<View />);
+    it("keeps targeted insertion separate from saved upgrades and retains capped protections", () => {
+        render(<View initialReorganization={{ includeUpgrades: true, targetLevel: 5 }} />);
         fireEvent.change(screen.getByRole("spinbutton", { name: /Dopuszczalny spadek dla:/ }), {
             target: { value: "3" },
         });
@@ -90,8 +90,11 @@ describe("operational reorganization goals", () => {
             target: { value: "armor" },
         });
         expect(screen.getByLabelText("Przedmiot docelowy")).toHaveValue("armor");
-        fireEvent.click(screen.getByLabelText("Ulepsz również założone drify"));
+        expect(screen.queryByLabelText("Ulepsz również założone drify")).not.toBeInTheDocument();
+        expect(screen.queryByLabelText("Kamień do ulepszenia")).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "Ulepsz drify" }));
         expect(screen.getByLabelText("Kamień do ulepszenia")).toBeInTheDocument();
+        expect(screen.getByLabelText("Docelowy poziom")).toHaveValue(5);
     });
     it("lets the player edit a move limit from 1 to 50 without resetting an incomplete value", () => {
         render(<View />);

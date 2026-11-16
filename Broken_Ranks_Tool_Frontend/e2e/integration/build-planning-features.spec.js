@@ -223,7 +223,7 @@ test("preserves advisor exclusions and reopens a complete saved analysis without
     await page.getByRole("checkbox", { name: "Ulepszanie drifów", exact: true }).check();
     await page.getByRole("checkbox", { name: "Zakupy drifów", exact: true }).check();
     await page.getByLabel("Maksymalna liczba działań w planie").selectOption("1");
-    await page.getByText("Wykluczenia Doradcy", { exact: true }).click();
+    await page.getByRole("button", { name: "Wykluczenia Doradcy", exact: true }).click();
     await page
         .getByRole("combobox", { name: "Nie proponuj przedmiotu", exact: true })
         .selectOption(String(item("Miłość Morany").id));
@@ -242,7 +242,7 @@ test("preserves advisor exclusions and reopens a complete saved analysis without
     const result = await analyzed.json();
     expect(result.summary.success).toBe(true);
     expect(result.optimizedSetup.slots.ring1.synergetic.stats.PŻ).toBe(123);
-    await page.getByText("Archiwum analiz", { exact: true }).click();
+    await page.getByRole("button", { name: "Archiwum analiz", exact: true }).click();
     await page.getByRole("button", { name: "Zapisz pełną analizę", exact: true }).click();
     await expect
         .poll(() =>
@@ -258,9 +258,9 @@ test("preserves advisor exclusions and reopens a complete saved analysis without
     page.on("request", (request) => {
         if (request.url().endsWith("/api/optimizer/drifs")) searches++;
     });
+    await page.getByRole("button", { name: "Archiwum analiz", exact: true }).click();
     const archive = page.locator(".analysis-archive");
-    await archive.locator("summary").click();
-    await archive.locator("li > button").first().click();
+    await archive.locator(".analysis-archive-select").first().click();
     await expect(archive.getByRole("heading", { name: "Zapisany wynik analizy" })).toBeVisible();
     await expect(archive.getByRole("button", { name: "Zastosuj wybrany wariant" })).toHaveCount(0);
     expect(searches).toBe(0);

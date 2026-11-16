@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import OptimizerPanel from "./OptimizerPanel";
@@ -467,6 +467,10 @@ describe("OptimizerPanel", () => {
             />
         );
 
+        const locks = screen.getByRole("region", { name: "Blokady buildu" });
+        await user.click(within(locks).getByRole("button", { name: "Wykluczenia Doradcy" }));
+        expect(within(locks).getByLabelText("Nie proponuj przedmiotu")).toBeVisible();
+        expect(within(locks).getByLabelText("Nie kupuj typu drifa")).toBeVisible();
         await user.click(screen.getByRole("button", { name: "ANALIZUJ BUILD" }));
         await screen.findByRole("button", { name: /Lepszy krytyk/i });
         expect(advisorEquipment.runDrifOptimization).toHaveBeenCalledWith({

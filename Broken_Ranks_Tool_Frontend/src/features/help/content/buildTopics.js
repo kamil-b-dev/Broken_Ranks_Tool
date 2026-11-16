@@ -28,7 +28,7 @@ export const buildTopics = [
         steps: [
             "„Pobierz całą bibliotekę” zapisuje wszystkie lokalne buildy w jednym pliku.",
             "Przy każdym wpisie wybierz dodanie, dodanie kopii, pominięcie albo zastąpienie wskazanego buildu. Zastąpienie podmieni zawartość istniejącego zapisu.",
-            "Biblioteka mieści 10 buildów. Podgląd pokazuje liczbę po imporcie; przy przekroczeniu limitu pomiń wpisy lub zastąp istniejące. Zatwierdź przyciskiem „Importuj wybrane buildy”.",
+            "Biblioteka mieści 100 buildów. Podgląd pokazuje liczbę po imporcie; przy przekroczeniu limitu pomiń wpisy lub zastąp istniejące. Zatwierdź przyciskiem „Importuj wybrane buildy”.",
         ],
         related: ["builds", "library", "comparison"],
     },

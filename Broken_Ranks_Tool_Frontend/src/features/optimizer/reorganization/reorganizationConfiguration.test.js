@@ -25,7 +25,7 @@ const input = () => ({
 });
 
 describe("owned-pool task configuration", () => {
-    it("serializes exact insertion occurrences with optional destinations and combined upgrades", () => {
+    it("serializes targeted insertions without upgrades from legacy combined settings", () => {
         const state = input();
         state.slots.armor = { itemId: 2, drifIds: [] };
         state.backpack.push({ ...state.backpack[0], id: "second" });
@@ -43,15 +43,8 @@ describe("owned-pool task configuration", () => {
         const config = buildReorganizationConfiguration(settings, state);
         expect(config.reorganization).toMatchObject({
             insertions: settings.reorganization.insertions,
-            upgrades: [
-                {
-                    sourceSlotKey: "helmet",
-                    sourceDrifIndex: 0,
-                    targetTemplateId: 62,
-                    targetLevel: 21,
-                },
-            ],
         });
+        expect(config.reorganization).not.toHaveProperty("upgrades");
         expect(
             createEquipmentOptimizationRequest({
                 ...state,
@@ -59,10 +52,45 @@ describe("owned-pool task configuration", () => {
             }).backpackDrifs.map((entry) => entry.id)
         ).toEqual(["owned", "second"]);
         const saved = createOptimizerConfigPayload([], { mode: "REORGANIZE", ...settings });
+        expect(saved.settings.reorganization).not.toHaveProperty("includeUpgrades");
+        saved.settings.reorganization.includeUpgrades = true;
         const restored = parseOptimizerConfigPayload(saved, builderCatalog.gameRules);
-        expect(restored.reorganization).toMatchObject(settings.reorganization);
+        expect(restored.reorganization).toMatchObject({
+            task: "INSERT",
+            insertions: settings.reorganization.insertions,
+            upgrades: settings.reorganization.upgrades,
+        });
+        expect(restored.reorganization).not.toHaveProperty("includeUpgrades");
+        expect(buildReorganizationConfiguration(restored, state).reorganization).not.toHaveProperty(
+            "upgrades"
+        );
+        expect(
+            buildReorganizationConfiguration(
+                {
+                    reorganization: { ...restored.reorganization, task: "UPGRADE" },
+                },
+                state
+            ).reorganization.upgrades
+        ).toEqual([
+            { sourceSlotKey: "helmet", sourceDrifIndex: 0, targetTemplateId: 62, targetLevel: 21 },
+        ]);
         settings.reorganization.insertions[1].entryId = "owned";
         expect(() => buildReorganizationConfiguration(settings, state)).toThrow(/różne/);
+    });
+    it("does not validate stale upgrade selections while inserting a drif", () => {
+        const config = buildReorganizationConfiguration(
+            {
+                reorganization: {
+                    task: "INSERT",
+                    insertEntryId: "owned",
+                    includeUpgrades: true,
+                    upgrades: [{ source: "missing:0", targetTemplateId: 999, targetLevel: "" }],
+                },
+            },
+            input()
+        );
+        expect(config.reorganization.insertEntryId).toBe("owned");
+        expect(config.reorganization).not.toHaveProperty("upgrades");
     });
     it("uses the pool goal and excludes catalog-building preferences and backpack by default", () => {
         const state = input();

@@ -1,4 +1,5 @@
 export const ANALYSIS_ARCHIVE_KEY = "broken-ranks-tool.analysis-archive.v1";
+export const MAX_SAVED_ANALYSES = 100;
 const MAX_BYTES = 4 * 1024 * 1024;
 export const readAnalysisArchive = (storage = localStorage) => {
     const raw = storage.getItem(ANALYSIS_ARCHIVE_KEY);
@@ -9,7 +10,7 @@ export const readAnalysisArchive = (storage = localStorage) => {
         if (
             value.version !== 1 ||
             !Array.isArray(value.entries) ||
-            value.entries.length > 10 ||
+            value.entries.length > MAX_SAVED_ANALYSES ||
             value.entries.some(
                 (entry) =>
                     typeof entry.id !== "string" ||
@@ -49,8 +50,10 @@ export const saveAnalysis = (document) =>
     mutate((entries) => {
         if (!document?.status || !document.input)
             throw new Error("Brak zakończonej analizy do zapisania.");
-        if (entries.length >= 10)
-            throw new Error("Archiwum mieści 10 analiz. Usuń wybraną starszą analizę.");
+        if (entries.length >= MAX_SAVED_ANALYSES)
+            throw new Error(
+                `Archiwum mieści ${MAX_SAVED_ANALYSES} analiz. Usuń wybraną starszą analizę.`
+            );
         return [
             ...entries,
             {

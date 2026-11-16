@@ -161,7 +161,7 @@ export function mergeLibraryBackup(
     const plan = planLibraryImport(existing, incoming, decisions);
     if (!plan.fits)
         throw new Error(
-            "Po imporcie biblioteka przekroczyłaby limit 10 buildów. Pomiń wybrane wpisy lub zastąp istniejące."
+            `Po imporcie biblioteka przekroczyłaby limit ${MAX_SAVED_BUILDS} buildów. Pomiń wybrane wpisy lub zastąp istniejące.`
         );
     const result = structuredClone(existing);
     const usedIds = new Set([...existing, ...incoming].map((entry) => entry.id));

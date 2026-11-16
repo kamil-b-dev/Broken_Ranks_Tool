@@ -27,7 +27,6 @@ it("adds and removes exclusions without changing the remaining advisor settings"
         );
     }
     render(<Harness />);
-    fireEvent.click(screen.getByText("Wykluczenia Doradcy"));
     fireEvent.change(screen.getByLabelText("Nie proponuj przedmiotu"), { target: { value: "12" } });
     fireEvent.change(screen.getByLabelText("Nie kupuj typu drifa"), {
         target: { value: "DEFENSE" },

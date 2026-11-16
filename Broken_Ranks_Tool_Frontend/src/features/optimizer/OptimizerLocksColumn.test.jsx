@@ -21,7 +21,12 @@ describe("OptimizerLocksColumn", () => {
 
         expect(screen.getByText("Hełm testowy")).toBeInTheDocument();
         expect(screen.getByText("Drif krytyczny (BIDRIF)")).toBeInTheDocument();
-        expect(screen.queryByText(/^Zablokowane:/)).not.toBeInTheDocument();
+        expect(
+            screen.queryByRole("button", { name: "Zablokowane", exact: true })
+        ).not.toBeInTheDocument();
+        expect(
+            screen.queryByRole("button", { name: "Przedmioty", exact: true })
+        ).not.toBeInTheDocument();
         await user.click(screen.getByTitle("Zablokuj cały slot"));
         await user.click(screen.getByTitle("Zablokuj drif"));
 
