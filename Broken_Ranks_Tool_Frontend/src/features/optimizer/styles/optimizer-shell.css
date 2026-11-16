@@ -12,6 +12,7 @@
 
 .optimizer-theme {
     --optimizer-ui-font: var(--ui-font);
+    --optimizer-grid-columns: minmax(14rem, 0.82fr) minmax(34rem, 1.82fr) minmax(21rem, 1.08fr);
     gap: 0.75rem;
     font-family: var(--optimizer-ui-font);
 }
@@ -129,13 +130,40 @@
 .optimizer-main-grid {
     display: grid;
     min-height: 44rem;
-    grid-template-columns: minmax(14rem, 0.82fr) minmax(34rem, 1.82fr) minmax(21rem, 1.08fr);
+    grid-template-columns: var(--optimizer-grid-columns);
     gap: 0;
 }
 
 .optimizer-main-grid > * {
     min-width: 0;
     grid-column: auto;
+}
+
+.optimizer-run-bar {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: var(--optimizer-grid-columns);
+    padding-inline: 1px;
+}
+
+.optimizer-run-bar > .optimizer-run-panel {
+    grid-column: 2;
+    padding: 0 0.72rem;
+}
+
+.optimizer-run-bar .optimizer-run-inner {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+}
+
+.optimizer-run-bar :is(.optimizer-run-action, .optimizer-apply-variant) {
+    width: 75%;
+    min-width: min(16rem, 100%);
+}
+
+.optimizer-run-bar .optimizer-run-meta {
+    order: 1;
+    justify-content: center;
 }
 
 .optimizer-workspace-column {

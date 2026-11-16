@@ -316,8 +316,8 @@
 }
 
 @media (min-width: 1024px) and (max-width: 1350px) {
-    .optimizer-main-grid {
-        grid-template-columns: minmax(14rem, 0.65fr) minmax(34rem, 1.75fr);
+    .optimizer-theme {
+        --optimizer-grid-columns: minmax(14rem, 0.65fr) minmax(34rem, 1.75fr);
     }
 
     .optimizer-goals-column {
@@ -342,6 +342,10 @@
 }
 
 @media (max-width: 1023px) {
+    .optimizer-run-bar {
+        display: block;
+    }
+
     .optimizer-main-grid {
         display: block;
         min-height: 0;
