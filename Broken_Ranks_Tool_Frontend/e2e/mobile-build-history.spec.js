@@ -132,10 +132,18 @@ for (const mobile of [false, true]) {
             const file = await downloaded;
             const payload = JSON.parse(await readFile(await file.path(), "utf8"));
             expect(payload.build.requestData.slots.helmet.itemStars).toBe(9);
-            await page.evaluate(() => {
-                window.failDraftSave = false;
+            const retrySave = page.getByRole("button", { name: "Ponów zapis", exact: true });
+            await retrySave.evaluate((button) => {
+                // Keep automatic writes failing until the retry click reaches the application.
+                button.addEventListener(
+                    "click",
+                    () => {
+                        window.failDraftSave = false;
+                    },
+                    { capture: true, once: true }
+                );
             });
-            await page.getByRole("button", { name: "Ponów zapis", exact: true }).click();
+            await retrySave.click();
             await expect(page.getByRole("alert")).toHaveCount(0);
             await expect
                 .poll(() =>
