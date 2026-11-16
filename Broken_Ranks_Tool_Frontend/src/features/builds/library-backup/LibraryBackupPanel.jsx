@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "../../../shared/i18n/useTranslation";
 import AppNotice from "../../../shared/ui/AppNotice";
+import { MAX_SAVED_BUILDS } from "../buildLibraryStorage";
 import {
     libraryConflicts,
     librarySnapshotIdentity,
@@ -141,12 +142,13 @@ export default function LibraryBackupPanel({ library, data }) {
                     ) : (
                         <p role="status">
                             {t(
-                                "Dodane: {0}, zastąpione: {1}, pominięte: {2}. Po imporcie: {3}/10.",
+                                "Dodane: {0}, zastąpione: {1}, pominięte: {2}. Po imporcie: {3}/{4}.",
                                 [
                                     preview.plan.added,
                                     preview.plan.replaced,
                                     preview.plan.skipped,
                                     preview.plan.total,
+                                    MAX_SAVED_BUILDS,
                                 ]
                             )}
                         </p>
@@ -154,7 +156,8 @@ export default function LibraryBackupPanel({ library, data }) {
                     {preview.plan && !preview.plan.fits && (
                         <p role="alert">
                             {t(
-                                "Po imporcie biblioteka przekroczyłaby limit 10 buildów. Pomiń wybrane wpisy lub zastąp istniejące."
+                                "Po imporcie biblioteka przekroczyłaby limit {0} buildów. Pomiń wybrane wpisy lub zastąp istniejące.",
+                                [MAX_SAVED_BUILDS]
                             )}
                         </p>
                     )}

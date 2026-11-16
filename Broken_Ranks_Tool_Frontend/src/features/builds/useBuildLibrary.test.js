@@ -6,6 +6,7 @@ import {
     readBuildLibrary,
     BUILD_LIBRARY_STORAGE_KEY,
     BUILD_LIBRARY_RECOVERY_KEY,
+    MAX_SAVED_BUILDS,
 } from "./buildLibraryStorage";
 
 vi.mock("./buildDownloads", () => ({ downloadBuildPayload: vi.fn(), downloadBuildText: vi.fn() }));
@@ -163,17 +164,17 @@ describe("useBuildLibrary", () => {
             useBuildLibrary({ createSnapshot: () => snapshot(), applySnapshot: vi.fn() })
         );
 
-        for (let index = 0; index < 10; index += 1) {
+        for (let index = 0; index < MAX_SAVED_BUILDS; index += 1) {
             await act(async () => result.current.saveCurrent(`Build ${index + 1}`));
         }
         let overflow;
         await act(async () => {
-            overflow = await result.current.saveCurrent("Build 11");
+            overflow = await result.current.saveCurrent("Build 101");
         });
 
-        expect(result.current.builds).toHaveLength(10);
+        expect(result.current.builds).toHaveLength(100);
         expect(overflow).toBeNull();
-        expect(result.current.notice.message).toContain("maksymalnie 10 buildów");
+        expect(result.current.notice.message).toContain("maksymalnie 100 buildów");
     });
 
     it("merges simultaneous saves from independent instances", async () => {

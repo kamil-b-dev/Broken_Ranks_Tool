@@ -6,7 +6,7 @@ i pełnymi plecakami wszystkich buildów. Kopia ma format
 `broken-ranks-tool-build-library`, wersję 1 i listę `builds`. Nie obejmuje
 niezapisanego roboczego kreatora ani lokalnego postępu planera.
 
-„Wczytaj kopię biblioteki” przyjmuje plik do 10 MB, obejmujący najwyżej 10 buildów.
+„Wczytaj kopię biblioteki” przyjmuje plik do 10 MB, obejmujący najwyżej 100 buildów.
 Każdy build przechodzi ten sam importer i walidację katalogową co pojedynczy plik.
 Niepoprawny rekord odrzuca całą kopię bez częściowego zapisu. Obsługiwane są
 wersje 1–4 buildów wewnątrz kopii. Kopia zachowuje także notatki, oznaczenia i do
@@ -18,7 +18,7 @@ Przed zapisem aplikacja pokazuje podgląd. Konflikt oznacza zgodne ID lub nazwę
 bez rozróżniania wielkości liter. Domyślnie zachowuje oba buildy, nadając kopii
 nowe ID i nazwę z sufiksem. Każdy wpis można pominąć lub wskazać konkretny
 konfliktujący zapis do zastąpienia. Dwa wpisy nie mogą zastąpić tego samego
-zapisu. Limit 10 obowiązuje również wynik importu; nadmiar wymaga zmiany decyzji.
+zapisu. Limit 100 obowiązuje również wynik importu; nadmiar wymaga zmiany decyzji.
 
 Cała wybrana operacja jest zapisywana jednym zapisem pod Web Lock. Zmiana
 biblioteki w innej karcie po otwarciu podglądu unieważnia ten podgląd; użytkownik

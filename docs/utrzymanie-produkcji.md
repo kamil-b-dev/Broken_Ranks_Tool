@@ -75,7 +75,7 @@ w opisie wydania, bez kopiowania sekretów.
    przed kolejnym wydaniem. Nie publikuj prywatnych konfiguracji użytkowników.
 
 Ograniczenia do podania użytkownikom: lokalne zapisy nie synchronizują się pomiędzy
-urządzeniami i domenami; biblioteka mieści 10 buildów; zakres jej kopii opisano poniżej.
+urządzeniami i domenami; biblioteka mieści 100 buildów; zakres jej kopii opisano poniżej.
 Ograniczenia algorytmów i aktualność katalogu oceniaj dla konkretnego wydania.
 
 ## Cofnięcie wadliwego wdrożenia

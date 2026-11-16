@@ -73,15 +73,15 @@ it("preserves corrupt archive bytes before enabling writes again", async () => {
 });
 
 it("reports a full archive without dropping existing analyses", async () => {
-    const entries = Array.from({ length: 10 }, (_, index) => ({
+    const entries = Array.from({ length: 100 }, (_, index) => ({
         id: String(index),
         savedAt: "2026-11-14",
         document,
     }));
     localStorage.setItem(ANALYSIS_ARCHIVE_KEY, JSON.stringify({ version: 1, entries }));
     render(<AnalysisArchive document={document} />);
-    expect(screen.getByText("10 / 10")).toBeInTheDocument();
+    expect(screen.getByText("100 / 100")).toBeInTheDocument();
     fireEvent.click(screen.getByText("Zapisz pełną analizę"));
-    expect(await screen.findByRole("alert")).toHaveTextContent("mieści 10 analiz");
-    expect(readAnalysisArchive()).toHaveLength(10);
+    expect(await screen.findByRole("alert")).toHaveTextContent("mieści 100 analiz");
+    expect(readAnalysisArchive()).toHaveLength(100);
 });

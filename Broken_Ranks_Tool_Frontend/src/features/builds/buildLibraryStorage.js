@@ -1,7 +1,7 @@
 import { archiveBuildVersion, validBuildExtras } from "./library/buildVersions";
 export const BUILD_LIBRARY_STORAGE_KEY = "broken-ranks-tool.build-library.v1";
 export const BUILD_LIBRARY_VERSION = 1;
-export const MAX_SAVED_BUILDS = 10;
+export const MAX_SAVED_BUILDS = 100;
 export const BUILD_LIBRARY_CHANGED_EVENT = "broken-ranks-tool:build-library-changed";
 export const BUILD_LIBRARY_RECOVERY_KEY = `${BUILD_LIBRARY_STORAGE_KEY}.recovery`;
 export const LIBRARY_RECOVERY_MESSAGE =

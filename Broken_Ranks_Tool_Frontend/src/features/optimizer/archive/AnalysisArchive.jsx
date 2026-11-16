@@ -5,6 +5,7 @@ import {
     removeAnalysis,
     recoverAnalysisArchive,
     ANALYSIS_ARCHIVE_KEY,
+    MAX_SAVED_ANALYSES,
 } from "./analysisArchiveStorage";
 import OptimizerReportColumn from "../OptimizerReportColumn";
 import { downloadBuildText } from "../../builds/buildDownloads";
@@ -64,7 +65,9 @@ export default function AnalysisArchive({ document, busy, data, gameRules = {} }
                         {t("Zapisz pełną analizę")}
                     </button>
                     {!state.damaged && (
-                        <span className="analysis-archive-count">{state.entries.length} / 10</span>
+                        <span className="analysis-archive-count">
+                            {state.entries.length} / {MAX_SAVED_ANALYSES}
+                        </span>
                     )}
                 </div>
                 {state.error && (

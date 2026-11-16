@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createLocalBuildRecord } from "../buildLibraryStorage";
+import { createLocalBuildRecord, MAX_SAVED_BUILDS } from "../buildLibraryStorage";
 import { createBuildPayload } from "../buildPayload";
 import { builderCatalog as data } from "../../../test/fixtures/equipment/builderCatalog";
 import {
@@ -84,13 +84,20 @@ describe("whole-library backups", () => {
             mergeLibraryBackup(existing, incoming, { one: "replace:one", two: "replace:one" })
         ).toThrow("tego samego zapisu");
     });
-    it("previews and enforces the ten-build limit without discarding records", () => {
-        const existing = Array.from({ length: 10 }, (_, index) =>
+    it("round trips 100 builds and enforces the import limit without discarding records", () => {
+        const existing = Array.from({ length: MAX_SAVED_BUILDS }, (_, index) =>
             record(String(index), String(index))
         );
-        expect(planLibraryImport(existing, [record("new", "New")]).fits).toBe(false);
-        expect(() => mergeLibraryBackup(existing, [record("new", "New")])).toThrow("limit 10");
-        expect(existing).toHaveLength(10);
+        expect(parseLibraryBackup(createLibraryBackup(existing), data)).toEqual(existing);
+        const incoming = [record("new", "New")];
+        expect(planLibraryImport(existing.slice(1), incoming).fits).toBe(true);
+        expect(mergeLibraryBackup(existing.slice(1), incoming)).toHaveLength(100);
+        expect(planLibraryImport(existing, incoming).fits).toBe(false);
+        expect(() => mergeLibraryBackup(existing, incoming)).toThrow("limit 100");
+        expect(() =>
+            parseLibraryBackup(createLibraryBackup([...existing, ...incoming]), data)
+        ).toThrow();
+        expect(existing).toHaveLength(100);
         expect(mergeLibraryBackup(existing, [record("new", "New")], { new: "skip" })).toEqual(
             existing
         );

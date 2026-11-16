@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, it, vi } from "vitest";
-import { createLocalBuildRecord } from "../buildLibraryStorage";
+import { createLocalBuildRecord, MAX_SAVED_BUILDS } from "../buildLibraryStorage";
 import { createBuildPayload } from "../buildPayload";
 import { builderCatalog as data } from "../../../test/fixtures/equipment/builderCatalog";
 import { createLibraryBackup } from "./libraryBackup";
@@ -68,7 +68,7 @@ it("keeps the library unchanged when a file is invalid, canceled or replaced by 
 
 it("blocks the import action when keeping copies would exceed capacity", async () => {
     const library = {
-        builds: Array.from({ length: 10 }, (_, i) => ({
+        builds: Array.from({ length: MAX_SAVED_BUILDS }, (_, i) => ({
             ...record(),
             id: String(i),
             name: String(i),
@@ -82,5 +82,6 @@ it("blocks the import action when keeping copies would exceed capacity", async (
     await waitFor(() =>
         expect(screen.getByRole("button", { name: "Importuj wybrane buildy" })).toBeDisabled()
     );
-    expect(screen.getByRole("alert")).toHaveTextContent("limit 10");
+    expect(screen.getByRole("alert")).toHaveTextContent("limit 100");
+    expect(screen.getByRole("status")).toHaveTextContent("Po imporcie: 101/100.");
 });
