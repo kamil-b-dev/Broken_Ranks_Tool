@@ -191,7 +191,7 @@ for (const layout of ["desktop", "mobile"]) {
             ).toHaveCount(0);
         });
     }
-    test(`${layout} inserts two exact targeted copies and upgrades an equipped stone with the real API`, async ({
+    test(`${layout} inserts two exact targeted copies without upgrades with the real API`, async ({
         page,
         request,
     }) => {
@@ -237,7 +237,7 @@ for (const layout of ["desktop", "mobile"]) {
             .getByRole("combobox", { name: "Przedmiot docelowy", exact: true })
             .nth(1)
             .selectOption("boots");
-        await page.getByLabel("Ulepsz również założone drify").check();
+        await expect(page.getByLabel("Ulepsz również założone drify")).toHaveCount(0);
         const pending = page.waitForResponse(
             (response) =>
                 response.url().endsWith(optimizerPath) && response.request().method() === "POST"
@@ -249,7 +249,7 @@ for (const layout of ["desktop", "mobile"]) {
             { entryId: "one", targetSlotKey: "armor" },
             { entryId: "two", targetSlotKey: "boots" },
         ]);
-        expect(sent.reorganization.upgrades).toHaveLength(1);
+        expect(sent.reorganization.upgrades).toBeUndefined();
         expect(sent.backpackDrifs.map((entry) => entry.id)).toEqual(["one", "two"]);
         const response = await http.json();
         expect(response.summary.outcome, response.summary.message).toBe("VALID_BUILD");
@@ -266,7 +266,7 @@ for (const layout of ["desktop", "mobile"]) {
         if (layout === "mobile") await page.getByRole("button", { name: "Pokaż wynik →" }).click();
         await expect(page.getByText("Instrukcja wykonania", { exact: true })).toBeVisible();
         await page.screenshot({
-            path: `../tmp/reorganization-real-combined-${layout}.png`,
+            path: `../tmp/reorganization-real-targeted-insert-${layout}.png`,
             fullPage: true,
         });
         await page.getByRole("button", { name: "Cofnij reorganizację", exact: true }).click();

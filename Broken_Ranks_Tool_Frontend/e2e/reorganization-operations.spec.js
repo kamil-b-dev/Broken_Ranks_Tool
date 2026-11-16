@@ -63,6 +63,14 @@ for (const layout of ["desktop", "mobile"])
                                         reorganization: {
                                             task,
                                             includeBackpack: true,
+                                            includeUpgrades: true,
+                                            upgrades: [
+                                                {
+                                                    source: "helmet:0",
+                                                    targetTemplateId: 60,
+                                                    targetLevel: 6,
+                                                },
+                                            ],
                                             insertEntryId: "chosen",
                                             reservation: {
                                                 slotKey: "helmet",
@@ -144,6 +152,9 @@ for (const layout of ["desktop", "mobile"])
                 });
                 await page.getByRole("button", { name: /Uruchom optymalizację/i }).click();
                 await expect.poll(() => received?.reorganization?.task).toBe(task);
+                expect(received.reorganization.upgrades).toBeUndefined();
+                await expect(page.getByLabel("Ulepsz również założone drify")).toHaveCount(0);
+                await expect(page.getByLabel("Kamień do ulepszenia")).toHaveCount(0);
                 if (task === "INSERT")
                     expect(received.backpackDrifs).toEqual([
                         { id: "chosen", templateId: 60, level: 6 },

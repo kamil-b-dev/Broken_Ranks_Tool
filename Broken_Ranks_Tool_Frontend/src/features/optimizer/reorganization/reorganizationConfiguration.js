@@ -18,7 +18,6 @@ export const DEFAULT_REORGANIZATION = {
     upgrades: [],
     insertEntryId: "",
     insertions: [],
-    includeUpgrades: false,
     reservation: { slotKey: "", freeSockets: 1, freeCapacity: 0 },
     protectedModifiers: {},
 };
@@ -52,7 +51,6 @@ export const normalizeReorganization = (value = {}) => ({
                   targetSlotKey: typeof row.targetSlotKey === "string" ? row.targetSlotKey : "",
               }))
         : [],
-    includeUpgrades: value?.includeUpgrades === true,
     reservation: {
         ...DEFAULT_REORGANIZATION.reservation,
         ...(value?.reservation && typeof value.reservation === "object" ? value.reservation : {}),
@@ -183,7 +181,7 @@ export const buildReorganizationConfiguration = (settings, input) => {
         maxMoves,
         protectedModifiers,
     };
-    if (options.task === "UPGRADE" || (options.task === "INSERT" && options.includeUpgrades)) {
+    if (options.task === "UPGRADE") {
         const used = new Set();
         reorganization.upgrades = upgradeRows(options).map((row) => {
             const { source, target, level } = upgradeSelection(row, stones, input.data.drifs);

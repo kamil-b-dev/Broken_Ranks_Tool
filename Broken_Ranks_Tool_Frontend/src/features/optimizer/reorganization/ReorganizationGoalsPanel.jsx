@@ -115,8 +115,7 @@ export default function ReorganizationGoalsPanel({ settings, onChange, disabled 
                     {t("Zastosowano. Wybierz kolejne zadanie lub kamienie.")}
                 </p>
             )}
-            {(options.task === "UPGRADE" ||
-                (options.task === "INSERT" && options.includeUpgrades)) && (
+            {options.task === "UPGRADE" && (
                 <div className="reorganization-upgrades">
                     {rows.map((row, index) => {
                         const selection = upgradeSelection(row, stones, data.drifs);
@@ -137,7 +136,7 @@ export default function ReorganizationGoalsPanel({ settings, onChange, disabled 
                             >
                                 <div className="reorganization-stone-heading">
                                     <span>{t("Drif {0}", [index + 1])}</span>
-                                    {(rows.length > 1 || options.task === "INSERT") && (
+                                    {rows.length > 1 && (
                                         <button
                                             type="button"
                                             className="reorganization-remove"
@@ -145,10 +144,6 @@ export default function ReorganizationGoalsPanel({ settings, onChange, disabled 
                                             onClick={() =>
                                                 update({
                                                     upgrades: rows.filter((_, i) => i !== index),
-                                                    ...(rows.length === 1 &&
-                                                    options.task === "INSERT"
-                                                        ? { includeUpgrades: false }
-                                                        : {}),
                                                 })
                                             }
                                         >
@@ -390,14 +385,6 @@ export default function ReorganizationGoalsPanel({ settings, onChange, disabled 
                     >
                         {t("+ Dodaj wstawienie")}
                     </button>
-                    <label className="reorganization-checkbox">
-                        <input
-                            type="checkbox"
-                            checked={options.includeUpgrades}
-                            onChange={(event) => update({ includeUpgrades: event.target.checked })}
-                        />
-                        {t("Ulepsz również założone drify")}
-                    </label>
                 </div>
             )}
             {options.task === "RESERVE" && (
